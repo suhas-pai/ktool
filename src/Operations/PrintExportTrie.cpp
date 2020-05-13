@@ -6,6 +6,7 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#include <cstring>
 #include "ADT/MachO.h"
 
 #include "Utils/MachOPrinter.h"
@@ -17,11 +18,11 @@
 #include "PrintExportTrie.h"
 
 PrintExportTrieOperation::PrintExportTrieOperation() noexcept
-: Operation(OpKind) {}
+: PrintOperation(OpKind) {}
 
 PrintExportTrieOperation::PrintExportTrieOperation(
     const struct Options &Options) noexcept
-: Operation(OpKind), Options(Options) {}
+: PrintOperation(OpKind), Options(Options) {}
 
 void PrintExportTrieOperation::run(const ConstMemoryObject &Object) noexcept {
     run(Object, Options);
@@ -29,13 +30,14 @@ void PrintExportTrieOperation::run(const ConstMemoryObject &Object) noexcept {
 
 static void
 PrintReexportDylibPath(const std::vector<std::string_view> &DylibList,
-                       uint32_t DylibOrdinal) noexcept
-{
+                       uint32_t DylibOrdinal,
+                       const struct PrintExportTrieOperation::Options &Options)
+noexcept {
     const auto DylibIndex = DylibOrdinal - 1;
     if (DylibOrdinal == 0 || !IndexOutOfBounds(DylibIndex, DylibList.size())) {
-        fprintf(stdout, "%s", DylibList.at(DylibIndex).data());
+        fprintf(Options.OutFile, "%s", DylibList.at(DylibIndex).data());
     } else {
-        fputs("(Ordinal Out-Of-Bounds!)", stdout);
+        fputs("(Ordinal Out-Of-Bounds!)", Options.OutFile);
     }
 }
 
@@ -57,38 +59,40 @@ PrintExport(const MachO::ExportTrieSymbol &Export,
 
     if (!IsReexport) {
         if (Is64Bit) {
-            fprintf(stdout, OFFSET_64_FMT, Export.GetImageOffset());
+            fprintf(Options.OutFile, OFFSET_64_FMT, Export.GetImageOffset());
         } else {
-            fprintf(stdout,
+            fprintf(Options.OutFile,
                     OFFSET_32_FMT,
                     static_cast<uint32_t>(Export.GetImageOffset()));
         }
     } else {
         if (Is64Bit) {
-            PrintUtilsPadSpaces(stdout, OFFSET_64_LEN);
+            PrintUtilsPadSpaces(Options.OutFile, OFFSET_64_LEN);
         } else {
-            PrintUtilsPadSpaces(stdout, OFFSET_32_LEN);
+            PrintUtilsPadSpaces(Options.OutFile, OFFSET_32_LEN);
         }
     }
 
-    fprintf(stdout,
+    fprintf(Options.OutFile,
             "\t%" PRINTF_RIGHTPAD_FMT "s",
             static_cast<int>(LongestDescLength),
             TypeDesc.data());
 
     if (Options.PrintReexportDylibPaths) {
-        fprintf(stdout,
+        fprintf(Options.OutFile,
                 "%" PRINTF_RIGHTPAD_FMT "s",
                 static_cast<int>(LongestExportLength),
                 Export.GetString().data());
 
         if (IsReexport) {
-            PrintReexportDylibPath(DylibList, Export.GetReexportDylibOrdinal());
+            PrintReexportDylibPath(DylibList,
+                                   Export.GetReexportDylibOrdinal(),
+                                   Options);
         }
 
-        fputc('\n', stdout);
+        fputc('\n', Options.OutFile);
     } else {
-        fprintf(stdout, "%s\n", Export.GetString().data());
+        fprintf(Options.OutFile, "%s\n", Export.GetString().data());
     }
 }
 
@@ -113,57 +117,57 @@ PrintExportVerbose(const MachO::ExportTrieSymbol &Export,
 
     if (!IsReexport) {
         if (Is64Bit) {
-            fprintf(stdout, OFFSET_64_FMT, Export.GetImageOffset());
+            fprintf(Options.OutFile, OFFSET_64_FMT, Export.GetImageOffset());
         } else {
-            fprintf(stdout,
+            fprintf(Options.OutFile,
                     OFFSET_32_FMT,
                     static_cast<uint32_t>(Export.GetImageOffset()));
         }
     } else {
         if (Is64Bit) {
-            PrintUtilsPadSpaces(stdout, OFFSET_64_LEN);
+            PrintUtilsPadSpaces(Options.OutFile, OFFSET_64_LEN);
         } else {
-            PrintUtilsPadSpaces(stdout, OFFSET_32_LEN);
+            PrintUtilsPadSpaces(Options.OutFile, OFFSET_32_LEN);
         }
     }
 
-    fprintf(stdout,
+    fprintf(Options.OutFile,
             "\t%" PRINTF_RIGHTPAD_FMT "s",
             LongestDescLength,
             TypeDesc.data());
 
-    fprintf(stdout,
+    fprintf(Options.OutFile,
             "%" PRINTF_RIGHTPAD_FMT "s",
             static_cast<int>(LongestExportLength),
             Export.GetString().data());
 
-    fprintf(stdout,
+    fprintf(Options.OutFile,
             " %" PRINTF_RIGHTPAD_FMT "s",
             LongestNameLength,
             TypeName.data());
 
     if (Export.GetType() == MachO::ExportTrieSymbolType::Reexport) {
         if (!Export.GetReexportImportName().empty()) {
-            fprintf(stdout,
+            fprintf(Options.OutFile,
                     " (Re-exported from %s, Ordinal: %" PRIu32 ")",
                     Export.GetReexportImportName().data(),
                     Export.GetReexportDylibOrdinal());
         } else {
             const auto DylibOrdinal = Export.GetReexportDylibOrdinal();
-            fprintf(stdout,
+            fprintf(Options.OutFile,
                     " (Re-exported from Dylib-Ordinal %02" PRIu32,
                     DylibOrdinal);
 
             if (Options.PrintReexportDylibPaths) {
-                fputs(" - ", stdout);
-                PrintReexportDylibPath(DylibList, DylibOrdinal);
+                fputs(" - ", Options.OutFile);
+                PrintReexportDylibPath(DylibList, DylibOrdinal, Options);
             }
 
-            fputc(')', stdout);
+            fputc(')', Options.OutFile);
         }
     }
 
-    fputc('\n', stdout);
+    fputc('\n', Options.OutFile);
 }
 
 void
@@ -221,7 +225,7 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
         }
 
         if (FoundTrieCount == 2) {
-            fputs("Provided file has multiple export-tries\n", stderr);
+            fputs("Provided file has multiple export-tries\n", Options.ErrFile);
             exit(1);
         }
     }
@@ -229,7 +233,7 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
     // Not having an export-trie is not an error.
 
     if (FoundTrieCount == 0) {
-        fputs("Provided file does not have an export-trie\n", stdout);
+        fputs("Provided file does not have an export-trie\n", Options.OutFile);
         return;
     }
 
@@ -240,7 +244,7 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
         case MachO::SizeRangeError::PastEnd:
             fputs("Provided file has an export-trie that extends past "
                   "end-of-file",
-                  stdout);
+                  Options.ErrFile);
             exit(1);
     }
 
@@ -263,17 +267,26 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
         ExportList.emplace_back(std::move(Symbol));
     }
 
+    if (ExportList.empty()) {
+        fputs("Provided file has no exports in export-trie\n", Options.ErrFile);
+        exit(1);
+    }
+
+    fprintf(Options.OutFile,
+            "Provided file has %ld exports:\n",
+            ExportList.size());
+
     auto Counter = static_cast<uint32_t>(1);
     const auto Is64Bit = Object.Is64Bit();
 
     for (const auto &Export : ExportList) {
-        PrintUtilsRightPadSpaces(stdout,
-                                 fprintf(stdout,
+        PrintUtilsRightPadSpaces(Options.OutFile,
+                                 fprintf(Options.OutFile,
                                          "Export %02" PRIu32 ":",
                                          Counter),
                                  LENGTH_OF("Export 0000:"));
 
-        fputc('\t', stdout);
+        fputc('\t', Options.OutFile);
 
         if (Options.Verbose) {
             PrintExportVerbose(Export,

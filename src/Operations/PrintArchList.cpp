@@ -6,6 +6,7 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#include <cstring>
 #include "ADT/MachO.h"
 
 #include "Utils/MachOPrinter.h"
@@ -15,9 +16,11 @@
 #include "Operation.h"
 #include "PrintArchList.h"
 
-PrintArchListOperation::PrintArchListOperation() noexcept : Operation(OpKind) {}
+PrintArchListOperation::PrintArchListOperation() noexcept
+: PrintOperation(OpKind) {}
+
 PrintArchListOperation::PrintArchListOperation(const struct Options &Options)
-noexcept : Operation(OpKind), Options(Options) {}
+noexcept : PrintOperation(OpKind), Options(Options) {}
 
 void PrintArchListOperation::run(const ConstMemoryObject &Object) noexcept {
     run(Object, Options);
@@ -32,10 +35,10 @@ PrintArchListOperation::run(const ConstFatMachOMemoryObject &Object,
             Object.GetArchCount());
 
     if (Options.Verbose) {
-        MachOTypePrinter<MachO::FatHeader>::PrintArchListVerbose(stdout,
-            Object.GetConstHeader(), "\t");
+        MachOTypePrinter<MachO::FatHeader>::PrintArchListVerbose(
+            Options.OutFile, Object.GetConstHeader(), "\t");
     } else {
-        MachOTypePrinter<MachO::FatHeader>::PrintArchList(stdout,
+        MachOTypePrinter<MachO::FatHeader>::PrintArchList(Options.OutFile,
             Object.GetConstHeader(), "\t");
     }
 }

@@ -14,9 +14,11 @@
 #include "Operation.h"
 #include "PrintHeader.h"
 
-PrintHeaderOperation::PrintHeaderOperation() noexcept : Operation(OpKind) {}
+PrintHeaderOperation::PrintHeaderOperation() noexcept
+: PrintOperation(OpKind) {}
+
 PrintHeaderOperation::PrintHeaderOperation(const struct Options &Options)
-noexcept : Operation(OpKind), Options(Options) {}
+noexcept : PrintOperation(OpKind), Options(Options) {}
 
 void PrintHeaderOperation::run(const ConstMemoryObject &Object) noexcept {
     run(Object, Options);
@@ -52,7 +54,7 @@ PrintHeaderOperation::run(const ConstMachOMemoryObject &Object,
         const auto MagicName = MachO::Header::MagicGetName(Magic).data();
         const auto MagicValue = static_cast<uint32_t>(Magic);
 
-        fprintf(stdout,
+        fprintf(Options.OutFile,
                 "Magic:\n"
                 "\tName:        %s\n"
                 "\tDescription: %s\n"
@@ -71,7 +73,7 @@ PrintHeaderOperation::run(const ConstMachOMemoryObject &Object,
             const auto CpuSubTypeDesc =
                 Mach::CpuSubType::GetDescription(CpuType, CpuSubType).data();
 
-            fprintf(stdout,
+            fprintf(Options.OutFile,
                     "CpuType:\n"
                     "\tName:        %s\n"
                     "\tDescription: %s\n"
@@ -82,7 +84,7 @@ PrintHeaderOperation::run(const ConstMachOMemoryObject &Object,
                     CpuTypeValue);
 
             if (CpuSubTypeName != nullptr) {
-                fprintf(stdout,
+                fprintf(Options.OutFile,
                         "CpuSubType:\n"
                         "\tName:        %s\n"
                         "\tDescription: %s\n"
@@ -92,20 +94,20 @@ PrintHeaderOperation::run(const ConstMachOMemoryObject &Object,
                         CpuSubType,
                         CpuSubType);
             } else {
-                fprintf(stdout,
+                fprintf(Options.OutFile,
                         "CpuSubType:\n"
                         "\tUnrecognized\n"
                         "\tValue; %" PRIu32 " (0x%" PRIX32 ")\n",
                         CpuSubType, CpuSubType);
             }
         } else {
-            fprintf(stdout,
+            fprintf(Options.OutFile,
                     "CpuType:\n"
                     "\tUnrecognized\n\tValue: %" PRIu32 " (Value: 0x%X)\n",
                     CpuTypeValue,
                     CpuTypeValue);
 
-            fprintf(stdout,
+            fprintf(Options.OutFile,
                     "CpuSubType:\n"
                     "\tUnknown\n"
                     "\tValue; %" PRIu32 " (Value: 0x%" PRIX32 ")\n",
@@ -114,7 +116,7 @@ PrintHeaderOperation::run(const ConstMachOMemoryObject &Object,
         }
 
         if (FileTypeName != nullptr) {
-            fprintf(stdout,
+            fprintf(Options.OutFile,
                     "FileType:\n"
                     "\tName:        %s\n"
                     "\tDescription: %s\n"
@@ -124,17 +126,17 @@ PrintHeaderOperation::run(const ConstMachOMemoryObject &Object,
                     FileTypeValue,
                     FileTypeValue);
         } else {
-            fprintf(stdout,
+            fprintf(Options.OutFile,
                     "FileType:\n"
                     "\tUnrecognized\n\tValue: %" PRIu32 " (0x%" PRIX32 ")\n",
                     FileTypeValue,
                     FileTypeValue);
         }
 
-        fprintf(stdout, "Ncmds: %" PRIu32 "\n", Ncmds);
-        fprintf(stdout, "SizeOfCmds: %" PRIu32 "\n", SizeOfCmds);
+        fprintf(Options.OutFile, "Ncmds: %" PRIu32 "\n", Ncmds);
+        fprintf(Options.OutFile, "SizeOfCmds: %" PRIu32 "\n", SizeOfCmds);
 
-        fprintf(stdout,
+        fprintf(Options.OutFile,
                 "Flags:\n"
                 "\tNumber: %u (0x%X)\n"
                 "\tCount:  %" PRIu64 "\n",
@@ -142,11 +144,11 @@ PrintHeaderOperation::run(const ConstMachOMemoryObject &Object,
                 FlagsValue,
                 Flags.GetSetCount(IsBigEndian));
     } else {
-        fprintf(stdout, "Magic:      %s\n", MagicDesc);
+        fprintf(Options.OutFile, "Magic:      %s\n", MagicDesc);
 
         const auto BrandName = Mach::CpuTypeGetBrandName(CpuType).data();
         if (BrandName == nullptr) {
-            fprintf(stdout,
+            fprintf(Options.OutFile,
                     "CpuType:    Unrecognized (Value: %" PRIu32 ")\n",
                     CpuTypeValue);
             return;
@@ -156,29 +158,29 @@ PrintHeaderOperation::run(const ConstMachOMemoryObject &Object,
             Mach::CpuSubType::GetFullName(CpuType, CpuSubType).data();
 
         if (SubTypeFullName != nullptr) {
-            fprintf(stdout, "CpuType:    %s\n", SubTypeFullName);
+            fprintf(Options.OutFile, "CpuType:    %s\n", SubTypeFullName);
         } else {
-            fprintf(stdout,
+            fprintf(Options.OutFile,
                     "CpuType:    %s (Unrecognized CpuSubType: %" PRIu32 ")\n",
                     BrandName,
                     CpuSubType);
         }
 
         if (FileTypeDesc != nullptr) {
-            fprintf(stdout, "FileType:   %s\n", FileTypeDesc);
+            fprintf(Options.OutFile, "FileType:   %s\n", FileTypeDesc);
         } else {
-            fprintf(stdout,
+            fprintf(Options.OutFile,
                     "FileType:   Unrecognized (%" PRIu32 ")\n",
                     FileTypeValue);
         }
 
-        fprintf(stdout,
+        fprintf(Options.OutFile,
                 "Ncmds:      %u\n"
                 "SizeOfCmds: %u\n",
                 Ncmds,
                 SizeOfCmds);
 
-        fprintf(stdout, "Flags:      0x%X\n", FlagsValue);
+        fprintf(Options.OutFile, "Flags:      0x%X\n", FlagsValue);
     }
 }
 
@@ -196,21 +198,23 @@ PrintHeaderOperation::run(const ConstFatMachOMemoryObject &Object,
         const auto MagicValue = static_cast<uint32_t>(Magic);
         const auto &MagicName = MachO::FatHeader::MagicGetName(Magic).data();
 
-        fprintf(stdout,
+        fprintf(Options.OutFile,
                 "Magic:\n"
                 "\tName:%s\n"
                 "\tDescription: %s\n"
                 "\tValue: %" PRIu32 "(0x%" PRIX32 ")\n",
                 MagicName, MagicDesc, MagicValue, MagicValue);
     } else {
-        fprintf(stdout, "Magic: %s\n", MagicDesc);
+        fprintf(Options.OutFile, "Magic: %s\n", MagicDesc);
     }
 
     const auto ArchsCount = Object.GetArchCount();
-    fprintf(stdout, "Archs Count: %" PRIu32 "\n", ArchsCount);
+    fprintf(Options.OutFile, "Archs Count: %" PRIu32 "\n", ArchsCount);
 
     if (ArchsCount <= 3) {
-        MachOTypePrinter<MachO::FatHeader>::PrintArchList(stdout, Header, "\t");
+        MachOTypePrinter<MachO::FatHeader>::PrintArchList(Options.OutFile,
+                                                          Header,
+                                                          "\t");
     }
 }
 

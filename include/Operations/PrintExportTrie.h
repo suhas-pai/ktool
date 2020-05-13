@@ -12,11 +12,11 @@
 #include "Kind.h"
 #include "Objects/MachOMemory.h"
 
-struct PrintExportTrieOperation : public Operation {
+struct PrintExportTrieOperation : public PrintOperation {
 public:
     constexpr static const auto OpKind = OperationKind::PrintExportTrie;
-    struct Options : public Operation::Options {
-        explicit Options() noexcept : Operation::Options(OpKind) {}
+    struct Options : public PrintOperation::Options {
+        explicit Options() noexcept : PrintOperation::Options(OpKind) {}
         static inline bool IsOfKind(const Operation::Options &Opt) noexcept {
             return (Opt.GetKind() == OpKind);
         }

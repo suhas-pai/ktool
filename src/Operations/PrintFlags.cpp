@@ -6,6 +6,7 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#include <cstring>
 #include <vector>
 
 #include "ADT/MachO.h"
@@ -15,9 +16,9 @@
 #include "Operation.h"
 #include "PrintFlags.h"
 
-PrintFlagsOperation::PrintFlagsOperation() noexcept : Operation(OpKind) {}
+PrintFlagsOperation::PrintFlagsOperation() noexcept : PrintOperation(OpKind) {}
 PrintFlagsOperation::PrintFlagsOperation(const struct Options &Options) noexcept
-: Operation(OpKind), Options(Options) {}
+: PrintOperation(OpKind), Options(Options) {}
 
 void PrintFlagsOperation::run(const ConstMemoryObject &Object) noexcept {
     run(Object, Options);
@@ -204,7 +205,6 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
         }
         case Header::FlagsEnum::Prebindable: {
             using FlagInfo = Header::FlagInfo<Header::FlagsEnum::Prebindable>;
-
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
@@ -248,7 +248,6 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
         }
         case Header::FlagsEnum::Canonical: {
             using FlagInfo = Header::FlagInfo<Header::FlagsEnum::Canonical>;
-
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
@@ -277,7 +276,6 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
         }
         case Header::FlagsEnum::BindsToWeak: {
             using FlagInfo = Header::FlagInfo<Header::FlagsEnum::BindsToWeak>;
-
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
@@ -465,7 +463,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
 
     auto FlagNumber = static_cast<uint32_t>(1);
     for (const auto &Info : FlagInfoList) {
-        fprintf(stdout,
+        fprintf(Options.OutFile,
                 "Flag %02" PRIu32 ": %" PRINTF_RIGHTPAD_FMT "s",
                 FlagNumber,
                 LongestFlagNameLength,
@@ -474,17 +472,19 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
         FlagNumber++;
 
         if (Options.Verbose) {
-            fprintf(stdout, " (Description: %s)\n", Info.Description.data());
+            fprintf(Options.OutFile,
+                    " (Description: %s)\n",
+                    Info.Description.data());
         } else {
-            fputc('\n', stdout);
+            fputc('\n', Options.OutFile);
         }
     }
 }
 
 struct PrintFlagsOperation::Options
 PrintFlagsOperation::ParseOptionsImpl(int Argc,
-                                   const char *Argv[],
-                                   int *IndexOut) noexcept
+                                      const char *Argv[],
+                                      int *IndexOut) noexcept
 {
     struct Options Options;
     for (auto I = int(); I != Argc; I++) {
@@ -517,7 +517,7 @@ noexcept {
 
 void
 PrintFlagsOperation::run(const ConstMemoryObject &Object,
-                      const struct Options &Options) noexcept
+                         const struct Options &Options) noexcept
 {
     switch (Object.GetKind()) {
         case ObjectKind::None:
@@ -533,8 +533,8 @@ PrintFlagsOperation::run(const ConstMemoryObject &Object,
 
 void
 PrintFlagsOperation::run(const ConstMemoryObject &Object,
-                      int Argc,
-                      const char *Argv[]) noexcept
+                         int Argc,
+                         const char *Argv[]) noexcept
 {
     assert(Object.GetKind() != ObjectKind::None);
     run(Object, ParseOptionsImpl(Argc, Argv, nullptr));

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cassert>
+#include <utility>
 
 #include "ADT/TypedAllocation.h"
 #include "TypeTraits/DisableIfNotConst.h"

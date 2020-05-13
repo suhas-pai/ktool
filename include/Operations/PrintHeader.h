@@ -9,11 +9,11 @@
 #pragma once
 #include "Base.h"
 
-struct PrintHeaderOperation : public Operation {
+struct PrintHeaderOperation : public PrintOperation {
 public:
     constexpr static const auto OpKind = OperationKind::PrintHeader;
-    struct Options : public Operation::Options {
-        explicit Options() noexcept : Operation::Options(OpKind) {}
+    struct Options : public PrintOperation::Options {
+        explicit Options() noexcept : PrintOperation::Options(OpKind) {}
         static inline bool IsOfKind(const Operation::Options &Opt) noexcept {
             return (Opt.GetKind() == OpKind);
         }

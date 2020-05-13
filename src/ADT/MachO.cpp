@@ -18,10 +18,7 @@
 #include "MachO.h"
 
 namespace MachO {
-    bool Header::HasValidMagic() const noexcept {
-        return MagicIsValid(Magic);
-    }
-
+    bool Header::HasValidMagic() const noexcept { return MagicIsValid(Magic); }
     bool Header::HasValidFileType() const noexcept {
         const auto Value = SwitchEndianIf(FileType, this->IsBigEndian());
         return FileTypeIsValid(static_cast<enum FileType>(Value));

@@ -1,5 +1,5 @@
 //
-//  include/ADT/MemoryMap.h
+//  include/ADT/MappedFile.h
 //  stool
 //
 //  Created by Suhas Pai on 3/30/20.

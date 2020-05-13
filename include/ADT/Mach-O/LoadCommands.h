@@ -1,5 +1,5 @@
 //
-//  include/ADT/MachO/LoadCommands.h
+//  include/ADT/Mach-O/LoadCommands.h
 //  stool
 //
 //  Created by Suhas Pai on 3/7/20.

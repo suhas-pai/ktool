@@ -19,6 +19,8 @@
 #include "PrintFlags.h"
 
 Operation::Operation(OperationKind Kind) noexcept : Kind(Kind) {}
+PrintOperation::PrintOperation(OperationKind Kind) noexcept :
+Operation(Kind) {}
 
 void
 Operation::Run(OperationKind Kind,
@@ -151,9 +153,10 @@ static void PrintSelectArchMessage(const ConstFatMachOMemoryObject &Object) {
 }
 
 void
-Operation::PrintObjectKindNotSupportedError(OperationKind OpKind,
-                                            const ConstMemoryObject &Object)
-noexcept {
+PrintOperation::PrintObjectKindNotSupportedError(
+    OperationKind OpKind,
+    const ConstMemoryObject &Object) noexcept
+{
     assert(OpKind != OperationKind::None && "Operation-Kind is None");
     switch (Object.GetKind()) {
         case ObjectKind::None:

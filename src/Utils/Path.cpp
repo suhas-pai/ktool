@@ -1,5 +1,5 @@
 //
-//  src/ADT/PathFixer.cpp
+//  src/Utils/Path.cpp
 //  stool
 //
 //  Created by Suhas Pai on 4/11/20.
@@ -8,6 +8,7 @@
 
 #include <cassert>
 #include <cerrno>
+#include <cstring>
 #include <string_view>
 #include <unistd.h>
 

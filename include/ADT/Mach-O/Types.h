@@ -1,5 +1,5 @@
 //
-//  include/ADT/MachO/Types.h
+//  include/ADT/Mach-O/Types.h
 //  stool
 //
 //  Created by Suhas Pai on 3/7/20.

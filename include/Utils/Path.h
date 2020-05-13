@@ -1,5 +1,5 @@
 //
-//  include/ADT/PathFixer.h
+//  include/Utils/Path.h
 //  stool
 //
 //  Created by Suhas Pai on 4/11/20.

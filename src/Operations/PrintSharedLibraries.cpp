@@ -1,5 +1,5 @@
 //
-//  include/Operations/PrintSharedLibraries.h
+//  include/Operations/PrintSharedLibraries.cpp
 //  stool
 //
 //  Created by Suhas Pai on 4/4/20.
@@ -21,11 +21,11 @@
 #include "PrintSharedLibraries.h"
 
 PrintSharedLibrariesOperation::PrintSharedLibrariesOperation() noexcept
-: Operation(OpKind) {}
+: PrintOperation(OpKind) {}
 
 PrintSharedLibrariesOperation::PrintSharedLibrariesOperation(
     const struct Options &Options) noexcept
-: Operation(OpKind), Options(Options) {}
+: PrintOperation(OpKind), Options(Options) {}
 
 void PrintSharedLibrariesOperation::run(const ConstMemoryObject &Object)
 noexcept {
@@ -165,11 +165,13 @@ PrintSharedLibrariesOperation::run(const ConstMachOMemoryObject &Object,
         LCIndex++;
     }
 
-    fprintf(stdout, "%" PRIuPTR " Shared Libraries:\n", DylibList.size());
-    auto Counter = static_cast<uint32_t>(1);
+    fprintf(Options.OutFile,
+            "%" PRIuPTR " Shared Libraries:\n",
+            DylibList.size());
 
+    auto Counter = static_cast<uint32_t>(1);
     for (const auto &DylibInfo : DylibList) {
-        fprintf(stdout,
+        fprintf(Options.OutFile,
                 "Lib %02" PRIu32 ": LC %02" PRIu32 ": %" PRINTF_RIGHTPAD_FMT "s"
                 "\t",
                 Counter,
@@ -177,13 +179,14 @@ PrintSharedLibrariesOperation::run(const ConstMachOMemoryObject &Object,
                 static_cast<int>(LongestLCKindLength),
                 MachO::LoadCommand::KindGetName(DylibInfo.Kind).data());
 
-        fprintf(stdout,
+        fprintf(Options.OutFile,
                 "%" PRINTF_RIGHTPAD_FMT "s",
                 static_cast<int>(MaxDylibNameLength),
                 DylibInfo.Name.data());
 
         MachOTypePrinter<struct MachO::DylibCommand::Info>::PrintOnOneLine(
-            stdout, DylibInfo.Info, IsBigEndian, Options.Verbose, " (", ")\n");
+            Options.OutFile, DylibInfo.Info, IsBigEndian, Options.Verbose, " (",
+            ")\n");
 
         Counter++;
     }

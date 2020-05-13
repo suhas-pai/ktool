@@ -1,5 +1,5 @@
 //
-//  include/Operations/PrintId.h
+//  include/Operations/PrintArchList.h
 //  stool
 //
 //  Created by Suhas Pai on 4/24/20.
@@ -12,11 +12,11 @@
 #include "Kind.h"
 #include "Objects/MachOMemory.h"
 
-struct PrintArchListOperation : public Operation {
+struct PrintArchListOperation : public PrintOperation {
 public:
     constexpr static const auto OpKind = OperationKind::PrintArchList;
-    struct Options : public Operation::Options {
-        explicit Options() noexcept : Operation::Options(OpKind) {}
+    struct Options : public PrintOperation::Options {
+        explicit Options() noexcept : PrintOperation::Options(OpKind) {}
         static inline bool IsOfKind(const Operation::Options &Opt) noexcept {
             return (Opt.GetKind() == OpKind);
         }

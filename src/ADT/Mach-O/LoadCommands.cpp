@@ -6,6 +6,7 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#include <algorithm>
 #include <cstring>
 #include <string_view>
 
@@ -1476,7 +1477,7 @@ namespace MachO {
 
     BindByte::BindByte(uint8_t Byte) noexcept
     : DyldInfoByteMasksHandler(Byte) {}
-    
+
     BindByte::Opcode BindByte::GetOpcode() const noexcept {
         return BindByte::Opcode(GetValueForMask(Masks::Opcode));
     }
@@ -1487,7 +1488,7 @@ namespace MachO {
 
     RebaseByte::RebaseByte(uint8_t Byte) noexcept
     : DyldInfoByteMasksHandler(Byte) {}
-    
+
     RebaseByte::Opcode RebaseByte::GetOpcode() const noexcept {
         return RebaseByte::Opcode(GetValueForMask(Masks::Opcode));
     }
@@ -1802,7 +1803,7 @@ namespace MachO {
 
                     MoveUptoParentNode();
                     StackTopIndex -= 1;
-                    
+
                     continue;
                 }
             }
@@ -1921,7 +1922,7 @@ namespace MachO {
         const auto NameOffset = SwitchEndianIf(Name.Offset, IsBigEndian);
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, NameOffset);
-        
+
         return Result;
     }
 }

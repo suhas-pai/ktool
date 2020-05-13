@@ -6,6 +6,7 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#include <cstring>
 #include "ADT/MachO.h"
 
 #include "Utils/MachOPrinter.h"
@@ -15,9 +16,9 @@
 #include "Operation.h"
 #include "PrintId.h"
 
-PrintIdOperation::PrintIdOperation() noexcept : Operation(OpKind) {}
+PrintIdOperation::PrintIdOperation() noexcept : PrintOperation(OpKind) {}
 PrintIdOperation::PrintIdOperation(const struct Options &Options) noexcept
-: Operation(OpKind), Options(Options) {}
+: PrintOperation(OpKind), Options(Options) {}
 
 void PrintIdOperation::run(const ConstMemoryObject &Object) noexcept {
     run(Object, Options);
@@ -28,7 +29,7 @@ PrintIdOperation::run(const ConstMachOMemoryObject &Object,
                       const struct Options &Options) noexcept
 {
     if (Object.GetFileType() != MachO::Header::FileType::Dylib) {
-        fputs("Provided file is not a Dynamic-Library file\n", stdout);
+        fputs("Provided file is not a Dynamic-Library file\n", Options.OutFile);
         return;
     }
 
@@ -56,14 +57,15 @@ PrintIdOperation::run(const ConstMachOMemoryObject &Object,
     }
 
     if (Id.empty()) {
-        fputs("No Identification found for the provided dylib\n", stdout);
+        fputs("No Identification found for the provided dylib\n",
+              Options.OutFile);
         exit(1);
     }
 
-    fprintf(stdout, "%s\n", Id.data());
+    fprintf(Options.OutFile, "%s\n", Id.data());
     if (Options.Verbose) {
         MachOTypePrinter<struct MachO::DylibCommand::Info>::Print(
-            stdout, Info, IsBigEndian, true, "\t", "");
+            Options.OutFile, Info, IsBigEndian, true, "\t", "");
     }
 }
 

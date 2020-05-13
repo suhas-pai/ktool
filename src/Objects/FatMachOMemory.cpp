@@ -1,5 +1,5 @@
 //
-//  src/Objects/FatMachOMap.cpp
+//  src/Objects/FatMachOMemory.cpp
 //  stool
 //
 //  Created by Suhas Pai on 3/30/20.

@@ -31,10 +31,6 @@ public:
     bool RequiresMap(OperationKind Kind) noexcept;
 
     static void
-    PrintObjectKindNotSupportedError(OperationKind OpKind,
-                                     const ConstMemoryObject &Object) noexcept;
-
-    static void
     Run(OperationKind Kind,
         const MemoryObject &Object,
         int Argc,
@@ -49,17 +45,19 @@ public:
     ParseOptions(int Argc, const char *Argv[], int *IndexOut) = delete;
 };
 
-struct PrintOperation {
+struct PrintOperation : Operation {
 public:
     struct Options : public Operation::Options {
-    private:
-        FILE *OutFile;
     public:
+        FILE *OutFile = stdout;
+        FILE *ErrFile = stderr;
+        
         Options(OperationKind Kind) noexcept : Operation::Options(Kind) {}
         Options(OperationKind Kind, FILE *OutFile) noexcept
         : Operation::Options(Kind), OutFile(OutFile) {}
 
         inline FILE *GetOutFile() const noexcept { return OutFile; }
+        inline FILE *GetErrFile() const noexcept { return ErrFile; }
     };
 public:
     explicit PrintOperation(OperationKind Kind) noexcept;
@@ -78,4 +76,8 @@ public:
 
     static struct Options *
     ParseOptions(int Argc, const char *Argv[], int *IndexOut) = delete;
+
+    static void
+    PrintObjectKindNotSupportedError(OperationKind OpKind,
+                                     const ConstMemoryObject &Object) noexcept;
 };

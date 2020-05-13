@@ -281,18 +281,18 @@ struct MachOTypePrinter<MachO::FatHeader> {
 
         if (Header.Is64Bit()) {
             for (const auto &Arch : Header.GetConstArch64List(IsBigEndian)) {
-                fprintf(stdout, "%sArch #%" PRIu32 "\n", LinePrefix, I);
+                fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
                 WrittenOut +=
                     MachOTypePrinter<MachO::FatHeader::Arch64>::Print<false>(
-                        stdout, Arch, IsBigEndian, CombinedLinePrefix.data());
+                        OutFile, Arch, IsBigEndian, CombinedLinePrefix.data());
                 I++;
             }
         } else {
             for (const auto &Arch : Header.GetConstArch32List(IsBigEndian)) {
-                fprintf(stdout, "%sArch #%" PRIu32 "\n", LinePrefix, I);
+                fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
                 WrittenOut +=
                     MachOTypePrinter<MachO::FatHeader::Arch32>::Print<false>(
-                        stdout, Arch, IsBigEndian, CombinedLinePrefix.data());
+                        OutFile, Arch, IsBigEndian, CombinedLinePrefix.data());
                 I++;
             }
         }
@@ -313,18 +313,18 @@ struct MachOTypePrinter<MachO::FatHeader> {
 
         if (Header.Is64Bit()) {
             for (const auto &Arch : Header.GetConstArch64List(IsBigEndian)) {
-                fprintf(stdout, "%sArch #%" PRIu32 "\n", LinePrefix, I);
+                fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
                 WrittenOut +=
                     MachOTypePrinter<MachO::FatHeader::Arch64>::Print<true>(
-                        stdout, Arch, IsBigEndian, CombinedLinePrefix.data());
+                        OutFile, Arch, IsBigEndian, CombinedLinePrefix.data());
                 I++;
             }
         } else {
             for (const auto &Arch : Header.GetConstArch32List(IsBigEndian)) {
-                fprintf(stdout, "%sArch #%" PRIu32 "\n", LinePrefix, I);
+                fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
                 WrittenOut +=
                     MachOTypePrinter<MachO::FatHeader::Arch32>::Print<true>(
-                        stdout, Arch, IsBigEndian, CombinedLinePrefix.data());
+                        OutFile, Arch, IsBigEndian, CombinedLinePrefix.data());
                 I++;
             }
         }

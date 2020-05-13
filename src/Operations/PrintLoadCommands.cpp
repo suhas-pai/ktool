@@ -7,6 +7,7 @@
 //
 
 #include <cstdio>
+#include <cstring>
 
 #include "ADT/Mach-O/LoadCommandStorage.h"
 #include "ADT/Mach-O/LoadCommands.h"
@@ -21,11 +22,11 @@
 #include "PrintLoadCommands.h"
 
 PrintLoadCommandsOperation::PrintLoadCommandsOperation() noexcept
-: Operation(OpKind) {}
+: PrintOperation(OpKind) {}
 
 PrintLoadCommandsOperation::PrintLoadCommandsOperation(
     const struct Options &Options) noexcept
-: Operation(OpKind), Options(Options) {}
+: PrintOperation(OpKind), Options(Options) {}
 
 void PrintLoadCommandsOperation::run(const ConstMemoryObject &Object) noexcept {
     run(Object, Options);
@@ -43,11 +44,11 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
 
     auto LoadCmdCounter = uint32_t();
     for (const auto &LoadCmd : LoadCommandStorage) {
-        fprintf(stdout, "LC %02d: ", LoadCmdCounter);
+        fprintf(Options.OutFile, "LC %02d: ", LoadCmdCounter);
 
         const auto Kind = LoadCmd.GetKind(IsBigEndian);
         if (!MachO::LoadCommand::KindIsValid(Kind)) {
-            fprintf(stdout,
+            fprintf(Options.OutFile,
                     "Unrecognized LoadCmd (%" PRIu32 ")\n",
                     static_cast<uint32_t>(Kind));
             continue;
@@ -56,7 +57,7 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
         switch (Kind) {
             case MachO::LoadCommand::Kind::Segment:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::Segment>::Print(stdout,
+                    MachO::LoadCommand::Kind::Segment>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::Segment>(LoadCmd,
                             IsBigEndian),
@@ -64,23 +65,23 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::SymbolTable:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::SymbolTable>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::SymbolTable>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::SymbolTable>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::SymbolSegment:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::SymbolSegment>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::SymbolSegment>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::SymbolSegment>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::Thread:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::Thread>::Print(stdout,
+                    MachO::LoadCommand::Kind::Thread>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::Thread>(LoadCmd,
                             IsBigEndian),
@@ -88,15 +89,15 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::UnixThread:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::UnixThread>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::UnixThread>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::UnixThread>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::Segment64:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::Segment64>::Print(stdout,
+                    MachO::LoadCommand::Kind::Segment64>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::Segment64>(LoadCmd,
                             IsBigEndian),
@@ -105,7 +106,7 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
             case MachO::LoadCommand::Kind::LoadFixedVMSharedLibrary:
                 MachOLoadCommandPrinter<
                     MachO::LoadCommand::Kind::LoadFixedVMSharedLibrary>::Print(
-                        stdout, Object.GetRange(), cast<
+                        Options.OutFile, Object.GetRange(), cast<
                             MachO::LoadCommand::Kind::LoadFixedVMSharedLibrary>(
                                 LoadCmd, IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
@@ -113,14 +114,14 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
             case MachO::LoadCommand::Kind::IdFixedVMSharedLibrary:
                 MachOLoadCommandPrinter<
                     MachO::LoadCommand::Kind::IdFixedVMSharedLibrary>::Print(
-                        stdout, Object.GetRange(), cast<
+                        Options.OutFile, Object.GetRange(), cast<
                             MachO::LoadCommand::Kind::IdFixedVMSharedLibrary>(
                                 LoadCmd, IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::Ident:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::Ident>::Print(stdout,
+                    MachO::LoadCommand::Kind::Ident>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::Ident>(LoadCmd,
                             IsBigEndian),
@@ -128,15 +129,15 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::FixedVMFile:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::FixedVMFile>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::FixedVMFile>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::FixedVMFile>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::PrePage:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::PrePage>::Print(stdout,
+                    MachO::LoadCommand::Kind::PrePage>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::PrePage>(LoadCmd,
                             IsBigEndian),
@@ -144,15 +145,15 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::DynamicSymbolTable:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::DynamicSymbolTable>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::DynamicSymbolTable>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::DynamicSymbolTable>(
                             LoadCmd, IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::LoadDylib:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::LoadDylib>::Print(stdout,
+                    MachO::LoadCommand::Kind::LoadDylib>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::LoadDylib>(LoadCmd,
                             IsBigEndian),
@@ -160,7 +161,7 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::IdDylib:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::IdDylib>::Print(stdout,
+                    MachO::LoadCommand::Kind::IdDylib>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::IdDylib>(LoadCmd,
                             IsBigEndian),
@@ -168,31 +169,31 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::LoadDylinker:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::LoadDylinker>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::LoadDylinker>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::LoadDylinker>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::IdDylinker:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::IdDylinker>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::IdDylinker>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::IdDylinker>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::PreBoundDylib:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::PreBoundDylib>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::PreBoundDylib>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::PreBoundDylib>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::Routines:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::Routines>::Print(stdout,
+                    MachO::LoadCommand::Kind::Routines>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::Routines>(LoadCmd,
                             IsBigEndian),
@@ -200,23 +201,23 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::SubFramework:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::SubFramework>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::SubFramework>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::SubFramework>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::SubUmbrella:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::SubUmbrella>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::SubUmbrella>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::SubUmbrella>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::SubClient:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::SubClient>::Print(stdout,
+                    MachO::LoadCommand::Kind::SubClient>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::SubClient>(LoadCmd,
                             IsBigEndian),
@@ -224,47 +225,47 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::SubLibrary:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::SubLibrary>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::SubLibrary>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::SubLibrary>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::TwoLevelHints:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::TwoLevelHints>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::TwoLevelHints>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::TwoLevelHints>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::PrebindChecksum:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::PrebindChecksum>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::PrebindChecksum>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::PrebindChecksum>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::LoadWeakDylib:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::LoadWeakDylib>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::LoadWeakDylib>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::LoadWeakDylib>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::Routines64:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::Routines64>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::Routines64>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::Routines64>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::Uuid:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::Uuid>::Print(stdout,
+                    MachO::LoadCommand::Kind::Uuid>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::Uuid>(LoadCmd,
                             IsBigEndian),
@@ -272,7 +273,7 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::Rpath:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::Rpath>::Print(stdout,
+                    MachO::LoadCommand::Kind::Rpath>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::Rpath>(LoadCmd,
                             IsBigEndian),
@@ -280,47 +281,47 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::CodeSignature:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::CodeSignature>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::CodeSignature>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::CodeSignature>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::SegmentSplitInfo:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::SegmentSplitInfo>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::SegmentSplitInfo>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::SegmentSplitInfo>(
                             LoadCmd, IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::ReexportDylib:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::ReexportDylib>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::ReexportDylib>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::ReexportDylib>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::LazyLoadDylib:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::LazyLoadDylib>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::LazyLoadDylib>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::LazyLoadDylib>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::EncryptionInfo:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::EncryptionInfo>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::EncryptionInfo>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::EncryptionInfo>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::DyldInfo:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::DyldInfo>::Print(stdout,
+                    MachO::LoadCommand::Kind::DyldInfo>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::DyldInfo>(LoadCmd,
                             IsBigEndian),
@@ -328,8 +329,8 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::DyldInfoOnly:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::DyldInfoOnly>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::DyldInfoOnly>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::DyldInfoOnly>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
@@ -337,8 +338,8 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::LoadUpwardDylib:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::LoadUpwardDylib>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::LoadUpwardDylib>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::LoadUpwardDylib>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
@@ -346,7 +347,7 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
             case MachO::LoadCommand::Kind::VersionMinimumMacOSX:
                 MachOLoadCommandPrinter<
                     MachO::LoadCommand::Kind::VersionMinimumMacOSX>::Print(
-                        stdout, Object.GetRange(),
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::VersionMinimumMacOSX>(
                             LoadCmd, IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
@@ -354,30 +355,30 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
             case MachO::LoadCommand::Kind::VersionMinimumIPhoneOS:
                 MachOLoadCommandPrinter<
                     MachO::LoadCommand::Kind::VersionMinimumIPhoneOS>::Print(
-                        stdout, Object.GetRange(),
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::VersionMinimumIPhoneOS>(
                             LoadCmd, IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::FunctionStarts:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::FunctionStarts>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::FunctionStarts>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::FunctionStarts>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::DyldEnvironment:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::DyldEnvironment>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::DyldEnvironment>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::DyldEnvironment>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::Main:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::Main>::Print(stdout,
+                    MachO::LoadCommand::Kind::Main>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::Main>(LoadCmd,
                             IsBigEndian),
@@ -385,40 +386,40 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::DataInCode:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::DataInCode>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::DataInCode>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::DataInCode>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::SourceVersion:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::SourceVersion>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::SourceVersion>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::SourceVersion>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::DylibCodeSignDRS:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::DylibCodeSignDRS>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::DylibCodeSignDRS>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::DylibCodeSignDRS>(
                             LoadCmd, IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::EncryptionInfo64:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::EncryptionInfo64>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::EncryptionInfo64>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::EncryptionInfo64>(
                             LoadCmd, IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::LinkerOption:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::LinkerOption>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::LinkerOption>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::LinkerOption>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
@@ -426,16 +427,15 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
             case MachO::LoadCommand::Kind::LinkerOptimizationHint:
                 MachOLoadCommandPrinter<
                     MachO::LoadCommand::Kind::LinkerOptimizationHint>::Print(
-                        stdout,
-                        Object.GetRange(),
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::LinkerOptimizationHint>(
                             LoadCmd, IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::VersionMinimumTvOS:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::VersionMinimumTvOS>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::VersionMinimumTvOS>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::VersionMinimumTvOS>(
                             LoadCmd, IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
@@ -443,14 +443,14 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
             case MachO::LoadCommand::Kind::VersionMinimumWatchOS:
                 MachOLoadCommandPrinter<
                     MachO::LoadCommand::Kind::VersionMinimumWatchOS>::Print(
-                        stdout, Object.GetRange(),
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::VersionMinimumWatchOS>(
                             LoadCmd, IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::Note:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::Note>::Print(stdout,
+                    MachO::LoadCommand::Kind::Note>::Print(Options.OutFile,
                         Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::Note>(LoadCmd,
                             IsBigEndian),
@@ -458,24 +458,24 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                 break;
             case MachO::LoadCommand::Kind::BuildVersion:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::BuildVersion>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::BuildVersion>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::BuildVersion>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::DyldExportsTrie:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::DyldExportsTrie>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::DyldExportsTrie>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::DyldExportsTrie>(LoadCmd,
                             IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
             case MachO::LoadCommand::Kind::DyldChainedFixups:
                 MachOLoadCommandPrinter<
-                    MachO::LoadCommand::Kind::DyldChainedFixups>::Print(stdout,
-                        Object.GetRange(),
+                    MachO::LoadCommand::Kind::DyldChainedFixups>::Print(
+                        Options.OutFile, Object.GetRange(),
                         cast<MachO::LoadCommand::Kind::DyldChainedFixups>(
                             LoadCmd, IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
