@@ -20,7 +20,7 @@ public:
         OperationKind Kind;
     public:
         constexpr Options(OperationKind Kind) noexcept : Kind(Kind) {}
-        inline OperationKind GetKind() const noexcept { return Kind; }
+        constexpr inline OperationKind GetKind() const noexcept { return Kind; }
     };
 private:
     OperationKind Kind;
@@ -30,13 +30,13 @@ public:
 
     bool RequiresMap(OperationKind Kind) noexcept;
 
-    static void
+    static int
     Run(OperationKind Kind,
         const MemoryObject &Object,
         int Argc,
         const char *Argv[]) noexcept;
 
-    static void
+    static int
     Run(OperationKind Kind,
         const MemoryObject &Object,
         const struct Options &Options) noexcept;
@@ -47,8 +47,24 @@ public:
 
 struct PrintOperation : Operation {
 public:
+    constexpr static inline bool IsOfKind(const Operation &Op) {
+        const auto Kind =
+            static_cast<std::underlying_type_t<OperationKind>>(Op.GetKind());
+
+        return (Kind & 1);
+    }
+
     struct Options : public Operation::Options {
     public:
+        constexpr static inline
+        bool IsOfKind(const Operation::Options &Options) noexcept {
+            const auto Kind =
+                static_cast<std::underlying_type_t<OperationKind>>(
+                    Options.GetKind());
+
+            return (Kind & 1);
+        }
+
         FILE *OutFile = stdout;
         FILE *ErrFile = stderr;
         
@@ -63,13 +79,13 @@ public:
     explicit PrintOperation(OperationKind Kind) noexcept;
     bool RequiresMap(OperationKind Kind) noexcept;
 
-    static void
+    static int
     Run(OperationKind Kind,
         const MemoryObject &Object,
         int Argc,
         const char *Argv[]) noexcept;
 
-    static void
+    static int
     Run(OperationKind Kind,
         const MemoryObject &Object,
         const struct Options &Options) noexcept;

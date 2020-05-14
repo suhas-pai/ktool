@@ -20,22 +20,22 @@ PrintIdOperation::PrintIdOperation() noexcept : PrintOperation(OpKind) {}
 PrintIdOperation::PrintIdOperation(const struct Options &Options) noexcept
 : PrintOperation(OpKind), Options(Options) {}
 
-void PrintIdOperation::run(const ConstMemoryObject &Object) noexcept {
-    run(Object, Options);
+int PrintIdOperation::run(const ConstMemoryObject &Object) noexcept {
+    return run(Object, Options);
 }
 
-void
+int
 PrintIdOperation::run(const ConstMachOMemoryObject &Object,
                       const struct Options &Options) noexcept
 {
     if (Object.GetFileType() != MachO::Header::FileType::Dylib) {
         fputs("Provided file is not a Dynamic-Library file\n", Options.OutFile);
-        return;
+        return 0;
     }
 
     const auto IsBigEndian = Object.IsBigEndian();
     const auto LoadCommandStorage =
-        OperationCommon::GetConstLoadCommandStorage(Object);
+        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
     struct MachO::DylibCommand::Info Info = {};
     auto Id = std::string_view();
@@ -59,7 +59,7 @@ PrintIdOperation::run(const ConstMachOMemoryObject &Object,
     if (Id.empty()) {
         fputs("No Identification found for the provided dylib\n",
               Options.OutFile);
-        exit(1);
+        return 1;
     }
 
     fprintf(Options.OutFile, "%s\n", Id.data());
@@ -67,6 +67,8 @@ PrintIdOperation::run(const ConstMachOMemoryObject &Object,
         MachOTypePrinter<struct MachO::DylibCommand::Info>::Print(
             Options.OutFile, Info, IsBigEndian, true, "\t", "");
     }
+
+    return 0;
 }
 
 struct PrintIdOperation::Options
@@ -103,7 +105,7 @@ noexcept {
     return new struct Options(ParseOptionsImpl(Argc, Argv, IndexOut));
 }
 
-void
+int
 PrintIdOperation::run(const ConstMemoryObject &Object,
                       const struct Options &Options) noexcept
 {
@@ -111,19 +113,20 @@ PrintIdOperation::run(const ConstMemoryObject &Object,
         case ObjectKind::None:
             assert(0 && "Object Type is None");
         case ObjectKind::MachO:
-            run(cast<ObjectKind::MachO>(Object), Options);
-            break;
+            return run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
             PrintObjectKindNotSupportedError(OpKind, Object);
-            exit(1);
+            return 1;
     }
+
+    assert(0 && "Reached end with unrecognizable Object-Kind");
 }
 
-void
+int
 PrintIdOperation::run(const ConstMemoryObject &Object,
                       int Argc,
                       const char *Argv[]) noexcept
 {
     assert(Object.GetKind() != ObjectKind::None);
-    run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
+    return run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
 }

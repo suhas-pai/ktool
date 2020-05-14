@@ -28,22 +28,26 @@ PrintLoadCommandsOperation::PrintLoadCommandsOperation(
     const struct Options &Options) noexcept
 : PrintOperation(OpKind), Options(Options) {}
 
-void PrintLoadCommandsOperation::run(const ConstMemoryObject &Object) noexcept {
-    run(Object, Options);
+int PrintLoadCommandsOperation::run(const ConstMemoryObject &Object) noexcept {
+    return run(Object, Options);
 }
 
-void
+int
 PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
                                 const struct Options &Options) noexcept
 {
     const auto IsBigEndian = Object.IsBigEndian();
     const auto Is64Bit = Object.Is64Bit();
 
-    const auto LoadCommandStorage =
-        OperationCommon::GetConstLoadCommandStorage(Object);
+    const auto LoadCmdStorage =
+        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
+
+    if (LoadCmdStorage.HasError()) {
+        return 1;
+    }
 
     auto LoadCmdCounter = uint32_t();
-    for (const auto &LoadCmd : LoadCommandStorage) {
+    for (const auto &LoadCmd : LoadCmdStorage) {
         fprintf(Options.OutFile, "LC %02d: ", LoadCmdCounter);
 
         const auto Kind = LoadCmd.GetKind(IsBigEndian);
@@ -484,6 +488,8 @@ PrintLoadCommandsOperation::run(const ConstMachOMemoryObject &Object,
 
         LoadCmdCounter++;
     }
+
+    return 0;
 }
 
 struct PrintLoadCommandsOperation::Options
@@ -522,7 +528,7 @@ PrintLoadCommandsOperation::ParseOptions(int Argc,
     return new struct Options(ParseOptionsImpl(Argc, Argv, IndexOut));
 }
 
-void
+int
 PrintLoadCommandsOperation::run(const ConstMemoryObject &Object,
                                 const struct Options &Options) noexcept
 {
@@ -530,19 +536,20 @@ PrintLoadCommandsOperation::run(const ConstMemoryObject &Object,
         case ObjectKind::None:
             assert(0 && "Object Type is None");
         case ObjectKind::MachO:
-            run(cast<ObjectKind::MachO>(Object), Options);
-            break;
+            return run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
             PrintObjectKindNotSupportedError(OpKind, Object);
-            exit(1);
+            return 1;
     }
+
+    assert(0 && "Reached end with unrecognizable Object-Kind");
 }
 
-void
+int
 PrintLoadCommandsOperation::run(const ConstMemoryObject &Object,
                                 int Argc,
                                 const char *Argv[]) noexcept
 {
     assert(Object.GetKind() != ObjectKind::None);
-    run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
+    return run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
 }

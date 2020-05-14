@@ -343,12 +343,12 @@
 				F3A5C2312443BC10000DE1B9 /* Kind.h */,
 				F3D66211245770A300270435 /* Operation.h */,
 				F3D66212245770AB00270435 /* PrintArchList.h */,
-				F3B810B02467B50200DED4F2 /* PrintExportTrie.h */,
 				F3B1962E2439B32500AE997A /* PrintHeader.h */,
 				F35FF7FB24486A9000BEF782 /* PrintLoadCommands.h */,
 				F3DC4DA3245272020063906C /* PrintSharedLibraries.h */,
 				F3DC4DA92452E3F60063906C /* PrintId.h */,
 				F3B2CEC72465047F0066B7C8 /* PrintFlags.h */,
+				F3B810B02467B50200DED4F2 /* PrintExportTrie.h */,
 			);
 			name = Operations;
 			sourceTree = "<group>";

@@ -27,12 +27,12 @@ PrintSharedLibrariesOperation::PrintSharedLibrariesOperation(
     const struct Options &Options) noexcept
 : PrintOperation(OpKind), Options(Options) {}
 
-void PrintSharedLibrariesOperation::run(const ConstMemoryObject &Object)
+int PrintSharedLibrariesOperation::run(const ConstMemoryObject &Object)
 noexcept {
-    run(Object, Options);
+    return run(Object, Options);
 }
 
-void
+int
 PrintSharedLibrariesOperation::run(const ConstMachOMemoryObject &Object,
                                    const struct Options &Options) noexcept
 {
@@ -49,14 +49,18 @@ PrintSharedLibrariesOperation::run(const ConstMachOMemoryObject &Object,
     };
 
     const auto IsBigEndian = Object.IsBigEndian();
-    const auto LoadCommandStorage =
-        OperationCommon::GetConstLoadCommandStorage(Object);
+    const auto LoadCmdStorage =
+        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
+
+    if (LoadCmdStorage.HasError()) {
+        return 1;
+    }
 
     auto LCIndex = uint32_t();
     auto DylibList = std::vector<DylibInfo>();
     auto MaxDylibNameLength = std::string_view::size_type();
 
-    for (const auto &LoadCmd : LoadCommandStorage) {
+    for (const auto &LoadCmd : LoadCmdStorage) {
         const auto LCKind = LoadCmd.GetKind(IsBigEndian);
         switch (LCKind) {
             case MachO::LoadCommand::Kind::LoadDylib:
@@ -190,6 +194,8 @@ PrintSharedLibrariesOperation::run(const ConstMachOMemoryObject &Object,
 
         Counter++;
     }
+
+    return 0;
 }
 
 struct PrintSharedLibrariesOperation::Options
@@ -228,7 +234,7 @@ PrintSharedLibrariesOperation::ParseOptions(int Argc,
     return new struct Options(ParseOptionsImpl(Argc, Argv, IndexOut));
 }
 
-void
+int
 PrintSharedLibrariesOperation::run(const ConstMemoryObject &Object,
                                    const struct Options &Options) noexcept
 {
@@ -236,19 +242,20 @@ PrintSharedLibrariesOperation::run(const ConstMemoryObject &Object,
         case ObjectKind::None:
             assert(0 && "Object Type is None");
         case ObjectKind::MachO:
-            run(cast<ObjectKind::MachO>(Object), Options);
-            break;
+            return run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
             PrintObjectKindNotSupportedError(OpKind, Object);
-            exit(1);
+            return 1;
     }
+
+    assert(0 && "Reached end with unrecognizable Object-Kind");
 }
 
-void
+int
 PrintSharedLibrariesOperation::run(const ConstMemoryObject &Object,
                                    int Argc,
                                    const char *Argv[]) noexcept
 {
     assert(Object.GetKind() != ObjectKind::None);
-    run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
+    return run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
 }

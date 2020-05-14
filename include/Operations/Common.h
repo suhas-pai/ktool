@@ -14,10 +14,11 @@
 
 struct OperationCommon {
     static MachO::LoadCommandStorage
-    GetLoadCommandStorage(MachOMemoryObject &Object) noexcept;
+    GetLoadCommandStorage(MachOMemoryObject &Object, FILE *ErrFile) noexcept;
 
     static MachO::ConstLoadCommandStorage
-    GetConstLoadCommandStorage(const ConstMachOMemoryObject &Object) noexcept;
+    GetConstLoadCommandStorage(const ConstMachOMemoryObject &Object,
+                               FILE *ErrFile) noexcept;
 
     static const std::string_view &
     GetLoadCommandStringValue(

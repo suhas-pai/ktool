@@ -15,12 +15,17 @@
 struct PrintArchListOperation : public PrintOperation {
 public:
     constexpr static const auto OpKind = OperationKind::PrintArchList;
+    constexpr static inline bool IsOfKind(const Operation &Opt) noexcept {
+        return (Opt.GetKind() == OpKind);
+    }
+
     struct Options : public PrintOperation::Options {
-        explicit Options() noexcept : PrintOperation::Options(OpKind) {}
+        constexpr
         static inline bool IsOfKind(const Operation::Options &Opt) noexcept {
             return (Opt.GetKind() == OpKind);
         }
 
+        explicit Options() noexcept : PrintOperation::Options(OpKind) {}
         bool Verbose : 1;
     };
 protected:
@@ -35,16 +40,16 @@ public:
     static struct Options *
     ParseOptions(int Argc, const char *Argv[], int *IndexOut) noexcept;
 
-    void run(const ConstMemoryObject &Object) noexcept;
+    int run(const ConstMemoryObject &Object) noexcept;
 
-    static void run(const ConstFatMachOMemoryObject &Object,
+    static int run(const ConstFatMachOMemoryObject &Object,
                     const struct Options &Options) noexcept;
 
-    static void run(const ConstMemoryObject &Object,
+    static int run(const ConstMemoryObject &Object,
                     int Argc,
                     const char *Argv[]) noexcept;
 
-    static void run(const ConstMemoryObject &Object,
+    static int run(const ConstMemoryObject &Object,
                     const struct Options &Options) noexcept;
 
     constexpr static bool SupportsObjectKind(ObjectKind Kind) noexcept {

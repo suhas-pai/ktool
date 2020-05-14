@@ -24,8 +24,8 @@ PrintExportTrieOperation::PrintExportTrieOperation(
     const struct Options &Options) noexcept
 : PrintOperation(OpKind), Options(Options) {}
 
-void PrintExportTrieOperation::run(const ConstMemoryObject &Object) noexcept {
-    run(Object, Options);
+int PrintExportTrieOperation::run(const ConstMemoryObject &Object) noexcept {
+    return run(Object, Options);
 }
 
 static void
@@ -170,7 +170,7 @@ PrintExportVerbose(const MachO::ExportTrieSymbol &Export,
     fputc('\n', Options.OutFile);
 }
 
-void
+int
 PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
                               const struct Options &Options) noexcept
 {
@@ -178,7 +178,11 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
 
     const auto IsBigEndian = Object.IsBigEndian();
     const auto LoadCmdStorage =
-        OperationCommon::GetConstLoadCommandStorage(Object);
+        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
+
+    if (LoadCmdStorage.HasError()) {
+        return 1;
+    }
 
     auto FoundTrieCount = uint32_t();
     auto DylibList = std::vector<std::string_view>();
@@ -206,7 +210,7 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
 
         const auto *DyldInfo = dyn_cast<DyldInfoCommand>(LoadCmd, IsBigEndian);
         if (DyldInfo != nullptr) {
-            TrieList = DyldInfo->GetConstExportTrieList(Object.GetMap(),
+            TrieList = DyldInfo->GetConstExportTrieList(Object.GetConstMap(),
                                                         IsBigEndian);
             FoundTrieCount++;
         } else {
@@ -226,7 +230,7 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
 
         if (FoundTrieCount == 2) {
             fputs("Provided file has multiple export-tries\n", Options.ErrFile);
-            exit(1);
+            return 1;
         }
     }
 
@@ -234,7 +238,7 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
 
     if (FoundTrieCount == 0) {
         fputs("Provided file does not have an export-trie\n", Options.OutFile);
-        return;
+        return 0;
     }
 
     switch (TrieList.GetError()) {
@@ -245,7 +249,7 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
             fputs("Provided file has an export-trie that extends past "
                   "end-of-file",
                   Options.ErrFile);
-            exit(1);
+            return 1;
     }
 
     auto ExportList = std::vector<ExportTrieSymbol>();
@@ -254,7 +258,7 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
     // A very large allocation, but many dylibs seem to have anywhere between
     // 1000-3000 symbols in the export-trie.
 
-    ExportList.reserve(1000);
+    ExportList.reserve(2000);
 
     for (auto Symbol : TrieList.GetRef()) {
         const auto String = Symbol.GetString();
@@ -269,7 +273,7 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
 
     if (ExportList.empty()) {
         fputs("Provided file has no exports in export-trie\n", Options.ErrFile);
-        exit(1);
+        return 1;
     }
 
     fprintf(Options.OutFile,
@@ -304,6 +308,8 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
 
         Counter++;
     }
+
+    return 0;
 }
 
 struct PrintExportTrieOperation::Options
@@ -344,7 +350,7 @@ PrintExportTrieOperation::ParseOptions(int Argc,
     return new struct Options(ParseOptionsImpl(Argc, Argv, IndexOut));
 }
 
-void
+int
 PrintExportTrieOperation::run(const ConstMemoryObject &Object,
                               const struct Options &Options) noexcept
 {
@@ -352,19 +358,20 @@ PrintExportTrieOperation::run(const ConstMemoryObject &Object,
         case ObjectKind::None:
             assert(0 && "Object Type is None");
         case ObjectKind::MachO:
-            run(cast<ObjectKind::MachO>(Object), Options);
-            break;
+            return run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
             PrintObjectKindNotSupportedError(OpKind, Object);
-            exit(1);
+            return 1;
     }
+
+    assert(0 && "Reached end with unrecognizable Object-Kind");
 }
 
-void
+int
 PrintExportTrieOperation::run(const ConstMemoryObject &Object,
                               int Argc,
                               const char *Argv[]) noexcept
 {
     assert(Object.GetKind() != ObjectKind::None);
-    run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
+    return run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
 }

@@ -20,11 +20,11 @@ PrintHeaderOperation::PrintHeaderOperation() noexcept
 PrintHeaderOperation::PrintHeaderOperation(const struct Options &Options)
 noexcept : PrintOperation(OpKind), Options(Options) {}
 
-void PrintHeaderOperation::run(const ConstMemoryObject &Object) noexcept {
-    run(Object, Options);
+int PrintHeaderOperation::run(const ConstMemoryObject &Object) noexcept {
+    return run(Object, Options);
 }
 
-void
+int
 PrintHeaderOperation::run(const ConstMachOMemoryObject &Object,
                           const struct Options &Options) noexcept
 {
@@ -64,7 +64,7 @@ PrintHeaderOperation::run(const ConstMachOMemoryObject &Object,
                 MagicValue,
                 MagicValue);
 
-        const auto &CpuTypeName = Mach::CpuTypeGetName(CpuType).data();
+        const auto CpuTypeName = Mach::CpuTypeGetName(CpuType).data();
         if (CpuTypeName != nullptr) {
             const auto CpuTypeDesc =
                 Mach::CpuTypeGetDescripton(CpuType).data();
@@ -135,7 +135,6 @@ PrintHeaderOperation::run(const ConstMachOMemoryObject &Object,
 
         fprintf(Options.OutFile, "Ncmds: %" PRIu32 "\n", Ncmds);
         fprintf(Options.OutFile, "SizeOfCmds: %" PRIu32 "\n", SizeOfCmds);
-
         fprintf(Options.OutFile,
                 "Flags:\n"
                 "\tNumber: %u (0x%X)\n"
@@ -146,23 +145,23 @@ PrintHeaderOperation::run(const ConstMachOMemoryObject &Object,
     } else {
         fprintf(Options.OutFile, "Magic:      %s\n", MagicDesc);
 
-        const auto BrandName = Mach::CpuTypeGetBrandName(CpuType).data();
-        if (BrandName == nullptr) {
+        const auto CpuBrandName = Mach::CpuTypeGetBrandName(CpuType).data();
+        if (CpuBrandName != nullptr) {
+            fprintf(Options.OutFile, "CpuType:    %s\n", CpuBrandName);
+        } else {
             fprintf(Options.OutFile,
                     "CpuType:    Unrecognized (Value: %" PRIu32 ")\n",
                     CpuTypeValue);
-            return;
         }
 
         const auto SubTypeFullName =
             Mach::CpuSubType::GetFullName(CpuType, CpuSubType).data();
 
         if (SubTypeFullName != nullptr) {
-            fprintf(Options.OutFile, "CpuType:    %s\n", SubTypeFullName);
+            fprintf(Options.OutFile, "CpuSubType:    %s\n", SubTypeFullName);
         } else {
             fprintf(Options.OutFile,
-                    "CpuType:    %s (Unrecognized CpuSubType: %" PRIu32 ")\n",
-                    BrandName,
+                    "CpuSubType:    Unrecognized (Value: %" PRIu32 ")\n",
                     CpuSubType);
         }
 
@@ -182,9 +181,11 @@ PrintHeaderOperation::run(const ConstMachOMemoryObject &Object,
 
         fprintf(Options.OutFile, "Flags:      0x%X\n", FlagsValue);
     }
+
+    return 0;
 }
 
-void
+int
 PrintHeaderOperation::run(const ConstFatMachOMemoryObject &Object,
                           const struct Options &Options) noexcept
 {
@@ -192,18 +193,21 @@ PrintHeaderOperation::run(const ConstFatMachOMemoryObject &Object,
 
     const auto &Header = Object.GetConstHeader();
     const auto &Magic = Header.Magic;
-    const auto &MagicDesc = MachO::FatHeader::MagicGetDescription(Magic).data();
+    const auto MagicDesc = MachO::FatHeader::MagicGetDescription(Magic).data();
 
     if (Options.Verbose) {
         const auto MagicValue = static_cast<uint32_t>(Magic);
-        const auto &MagicName = MachO::FatHeader::MagicGetName(Magic).data();
+        const auto MagicName = MachO::FatHeader::MagicGetName(Magic).data();
 
         fprintf(Options.OutFile,
                 "Magic:\n"
                 "\tName:%s\n"
                 "\tDescription: %s\n"
                 "\tValue: %" PRIu32 "(0x%" PRIX32 ")\n",
-                MagicName, MagicDesc, MagicValue, MagicValue);
+                MagicName,
+                MagicDesc,
+                MagicValue,
+                MagicValue);
     } else {
         fprintf(Options.OutFile, "Magic: %s\n", MagicDesc);
     }
@@ -214,8 +218,11 @@ PrintHeaderOperation::run(const ConstFatMachOMemoryObject &Object,
     if (ArchsCount <= 3) {
         MachOTypePrinter<MachO::FatHeader>::PrintArchList(Options.OutFile,
                                                           Header,
-                                                          "\t");
+                                                          "\t",
+                                                          "");
     }
+
+    return 0;
 }
 
 struct PrintHeaderOperation::Options
@@ -252,7 +259,7 @@ noexcept {
     return new struct Options(ParseOptionsImpl(Argc, Argv, IndexOut));
 }
 
-void
+int
 PrintHeaderOperation::run(const ConstMemoryObject &Object,
                           const struct Options &Options) noexcept
 {
@@ -260,19 +267,19 @@ PrintHeaderOperation::run(const ConstMemoryObject &Object,
         case ObjectKind::None:
             assert(0 && "Object Type is None");
         case ObjectKind::MachO:
-            run(cast<ObjectKind::MachO>(Object), Options);
-            break;
+            return run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
-            run(cast<ObjectKind::FatMachO>(Object), Options);
-            break;
+            return run(cast<ObjectKind::FatMachO>(Object), Options);
     }
+
+    assert(0 && "Reached end with unrecognizable Object-Kind");
 }
 
-void
+int
 PrintHeaderOperation::run(const ConstMemoryObject &Object,
                           int Argc,
                           const char *Argv[]) noexcept
 {
     assert(Object.GetKind() != ObjectKind::None);
-    run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
+    return run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
 }

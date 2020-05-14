@@ -18,7 +18,7 @@ LocationRange::LocationRange(uint64_t Begin, uint64_t End) noexcept
 LocationRange
 LocationRange::CreateWithEnd(uint64_t Begin, uint64_t End) noexcept {
     assert(Begin <= End &&
-           "Called LocationRange::CreateWithEnd with End before Begin");
+           "LocationRange::CreateWithEnd(): End > Begin");
     
     return LocationRange(Begin, End);
 }

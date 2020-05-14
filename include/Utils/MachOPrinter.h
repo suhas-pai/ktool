@@ -135,7 +135,8 @@ struct MachOTypePrinter<MachO::FatHeader::Arch32> {
     Print(FILE *OutFile,
           const Type &Arch,
           bool IsBigEndian,
-          const char *LinePrefix) noexcept
+          const char *LinePrefix,
+          const char *LineSuffix) noexcept
     {
         const auto CpuType = Arch.GetCpuType(IsBigEndian);
         const auto CpuSubType = SwitchEndianIf(Arch.CpuSubType, IsBigEndian);
@@ -167,29 +168,30 @@ struct MachOTypePrinter<MachO::FatHeader::Arch32> {
         if constexpr (Verbose) {
             WrittenOut =
                 fprintf(OutFile,
-                        "%sCpuType:    %s (Value: %" PRIu32 ")\n"
-                        "%sCpuSubType: %s (Value: %" PRIu32 ")\n"
+                        "%sCpuType:    %s (Value: %" PRIu32 ")%s\n"
+                        "%sCpuSubType: %s (Value: %" PRIu32 ")%s\n"
                         "%sOffset:%-5s" OFFSET_32_FMT " (" OFFSET_32_RNG_FMT
-                        ")\n%sSize:       %" PRIu32 "\n"
-                        "%sAlign:      %" PRIu32 "\n",
+                        ")%s\n%sSize:       %" PRIu32 "%s\n"
+                        "%sAlign:      %" PRIu32 "%s\n",
                         LinePrefix, CpuTypeName, static_cast<int32_t>(CpuType),
-                        LinePrefix, CpuSubTypeName, CpuSubType,
-                        LinePrefix, "", Offset, Offset, ArchEnd,
-                        LinePrefix, Size,
-                        LinePrefix, Align);
+                        LineSuffix,
+                        LinePrefix, CpuSubTypeName, CpuSubType, LineSuffix,
+                        LinePrefix, "", Offset, Offset, ArchEnd, LineSuffix,
+                        LinePrefix, Size, LineSuffix,
+                        LinePrefix, Align, LineSuffix);
         } else {
             WrittenOut =
                 fprintf(OutFile,
-                        "%sCpuType:    %s\n"
-                        "%sCpuSubType: %s\n"
+                        "%sCpuType:    %s%s\n"
+                        "%sCpuSubType: %s%s\n"
                         "%sOffset:%-5s" OFFSET_32_FMT " (" OFFSET_32_RNG_FMT
-                        ")\n%sSize:       %" PRIu32 "\n"
-                        "%sAlign:      %" PRIu32 "\n",
-                        LinePrefix, CpuTypeName,
-                        LinePrefix, CpuSubTypeName,
-                        LinePrefix, "", Offset, Offset, ArchEnd,
-                        LinePrefix, Size,
-                        LinePrefix, Align);
+                        ")%s\n%sSize:       %" PRIu32 "%s\n"
+                        "%sAlign:      %" PRIu32 "%s\n",
+                        LinePrefix, CpuTypeName, LineSuffix,
+                        LinePrefix, CpuSubTypeName, LineSuffix,
+                        LinePrefix, "", Offset, Offset, ArchEnd, LineSuffix,
+                        LinePrefix, Size, LineSuffix,
+                        LinePrefix, Align, LineSuffix);
         }
 
         return WrittenOut;
@@ -205,7 +207,8 @@ struct MachOTypePrinter<MachO::FatHeader::Arch64> {
     Print(FILE *OutFile,
           const Type &Arch,
           bool IsBigEndian,
-          const char *LinePrefix) noexcept
+          const char *LinePrefix,
+          const char *LineSuffix) noexcept
     {
         const auto CpuType = Arch.GetCpuType(IsBigEndian);
         const auto CpuSubType = SwitchEndianIf(Arch.CpuSubType, IsBigEndian);
@@ -237,29 +240,30 @@ struct MachOTypePrinter<MachO::FatHeader::Arch64> {
         if constexpr (Verbose) {
             WrittenOut =
                 fprintf(OutFile,
-                        "%sCpuType:    %s (Value: %" PRIu32 ")\n"
-                        "%sCpuSubType: %s (Value: %" PRIu32 ")\n"
+                        "%sCpuType:    %s (Value: %" PRIu32 ")%s\n"
+                        "%sCpuSubType: %s (Value: %" PRIu32 ")%s\n"
                         "%sOffset:%-5s" OFFSET_64_FMT " (" OFFSET_64_RNG_FMT
-                        ")\n%sSize:       %" PRIu64 "\n"
-                        "%sAlign:      %" PRIu32 "\n",
+                        ")%s\n%sSize:       %" PRIu64 "%s\n"
+                        "%sAlign:      %" PRIu32 "%s\n",
                         LinePrefix, CpuTypeName, static_cast<int32_t>(CpuType),
-                        LinePrefix, CpuSubTypeName, CpuSubType,
-                        LinePrefix, "", Offset, Offset, ArchEnd,
-                        LinePrefix, Size,
-                        LinePrefix, Align);
+                        LineSuffix,
+                        LinePrefix, CpuSubTypeName, CpuSubType, LineSuffix,
+                        LinePrefix, "", Offset, Offset, ArchEnd, LineSuffix,
+                        LinePrefix, Size, LineSuffix,
+                        LinePrefix, Align, LineSuffix);
         } else {
             WrittenOut =
                 fprintf(OutFile,
-                        "%sCpuType:    %s\n"
-                        "%sCpuSubType: %s\n"
+                        "%sCpuType:    %s%s\n"
+                        "%sCpuSubType: %s%s\n"
                         "%sOffset:%-5s" OFFSET_64_FMT " (" OFFSET_64_RNG_FMT
-                        ")\n%sSize:       %" PRIu64 "\n"
-                        "%sAlign:      %" PRIu32 "\n",
-                        LinePrefix, CpuTypeName,
-                        LinePrefix, CpuSubTypeName,
-                        LinePrefix, "", Offset, Offset, ArchEnd,
-                        LinePrefix, Size,
-                        LinePrefix, Align);
+                        ")%s\n%sSize:       %" PRIu64 "%s\n"
+                        "%sAlign:      %" PRIu32 "%s\n",
+                        LinePrefix, CpuTypeName, LineSuffix,
+                        LinePrefix, CpuSubTypeName, LineSuffix,
+                        LinePrefix, "", Offset, Offset, ArchEnd, LineSuffix,
+                        LinePrefix, Size, LineSuffix,
+                        LinePrefix, Align, LineSuffix);
         }
 
         return WrittenOut;
@@ -271,8 +275,11 @@ struct MachOTypePrinter<MachO::FatHeader> {
     using Type = MachO::FatHeader;
 
     static int
-    PrintArchList(FILE *OutFile, const Type &Header, const char *LinePrefix)
-    noexcept {
+    PrintArchList(FILE *OutFile,
+                  const Type &Header,
+                  const char *LinePrefix,
+                  const char *LineSuffix) noexcept
+    {
         const auto IsBigEndian = Header.IsBigEndian();
 
         auto CombinedLinePrefix = std::string(LinePrefix).append("\t");
@@ -284,7 +291,8 @@ struct MachOTypePrinter<MachO::FatHeader> {
                 fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
                 WrittenOut +=
                     MachOTypePrinter<MachO::FatHeader::Arch64>::Print<false>(
-                        OutFile, Arch, IsBigEndian, CombinedLinePrefix.data());
+                        OutFile, Arch, IsBigEndian, CombinedLinePrefix.data(),
+                        LineSuffix);
                 I++;
             }
         } else {
@@ -292,7 +300,8 @@ struct MachOTypePrinter<MachO::FatHeader> {
                 fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
                 WrittenOut +=
                     MachOTypePrinter<MachO::FatHeader::Arch32>::Print<false>(
-                        OutFile, Arch, IsBigEndian, CombinedLinePrefix.data());
+                        OutFile, Arch, IsBigEndian, CombinedLinePrefix.data(),
+                        LineSuffix);
                 I++;
             }
         }
@@ -303,7 +312,8 @@ struct MachOTypePrinter<MachO::FatHeader> {
     static int
     PrintArchListVerbose(FILE *OutFile,
                          const Type &Header,
-                         const char *LinePrefix) noexcept
+                         const char *LinePrefix,
+                         const char *LineSuffix) noexcept
     {
         const auto IsBigEndian = Header.IsBigEndian();
 
@@ -316,7 +326,8 @@ struct MachOTypePrinter<MachO::FatHeader> {
                 fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
                 WrittenOut +=
                     MachOTypePrinter<MachO::FatHeader::Arch64>::Print<true>(
-                        OutFile, Arch, IsBigEndian, CombinedLinePrefix.data());
+                        OutFile, Arch, IsBigEndian, CombinedLinePrefix.data(),
+                        LineSuffix);
                 I++;
             }
         } else {
@@ -324,7 +335,8 @@ struct MachOTypePrinter<MachO::FatHeader> {
                 fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
                 WrittenOut +=
                     MachOTypePrinter<MachO::FatHeader::Arch32>::Print<true>(
-                        OutFile, Arch, IsBigEndian, CombinedLinePrefix.data());
+                        OutFile, Arch, IsBigEndian, CombinedLinePrefix.data(),
+                        LineSuffix);
                 I++;
             }
         }

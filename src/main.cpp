@@ -64,8 +64,7 @@ int main(int Argc, const char *Argv[]) {
             }
 
         case OperationKind::PrintHeader:
-            if (strcmp(Argv[1], "-h") == 0 ||
-                strcmp(Argv[1], "--header") == 0)
+            if (strcmp(Argv[1], "-h") == 0 || strcmp(Argv[1], "--header") == 0)
             {
                 Ops = OperationKind::PrintHeader;
                 OpsOptions =
@@ -300,6 +299,5 @@ int main(int Argc, const char *Argv[]) {
         }
     }
 
-    Operation::Run(Ops, *Object, *OpsOptions);
-    return 0;
+    return Operation::Run(Ops, *Object, *OpsOptions);
 }

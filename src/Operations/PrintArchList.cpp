@@ -22,11 +22,11 @@ PrintArchListOperation::PrintArchListOperation() noexcept
 PrintArchListOperation::PrintArchListOperation(const struct Options &Options)
 noexcept : PrintOperation(OpKind), Options(Options) {}
 
-void PrintArchListOperation::run(const ConstMemoryObject &Object) noexcept {
-    run(Object, Options);
+int PrintArchListOperation::run(const ConstMemoryObject &Object) noexcept {
+    return run(Object, Options);
 }
 
-void
+int
 PrintArchListOperation::run(const ConstFatMachOMemoryObject &Object,
                             const struct Options &Options) noexcept
 {
@@ -34,13 +34,23 @@ PrintArchListOperation::run(const ConstFatMachOMemoryObject &Object,
             "Provided file has %" PRIu32 " archs:\n",
             Object.GetArchCount());
 
+    // General safe-guard against over-printing. More likely than too-many
+    // valid architectures is rather a mistake in this program.
+
+    if (Object.GetArchCount() > 25) {
+        fputs("Provided file has too many archs to list\n", Options.ErrFile);
+        return 0;
+    }
+
     if (Options.Verbose) {
         MachOTypePrinter<MachO::FatHeader>::PrintArchListVerbose(
-            Options.OutFile, Object.GetConstHeader(), "\t");
+            Options.OutFile, Object.GetConstHeader(), "\t", "");
     } else {
         MachOTypePrinter<MachO::FatHeader>::PrintArchList(Options.OutFile,
-            Object.GetConstHeader(), "\t");
+            Object.GetConstHeader(), "\t", "");
     }
+
+    return 0;
 }
 
 struct PrintArchListOperation::Options
@@ -79,7 +89,7 @@ PrintArchListOperation::ParseOptions(int Argc,
     return new struct Options(ParseOptionsImpl(Argc, Argv, IndexOut));
 }
 
-void
+int
 PrintArchListOperation::run(const ConstMemoryObject &Object,
                             const struct Options &Options) noexcept
 {
@@ -88,18 +98,19 @@ PrintArchListOperation::run(const ConstMemoryObject &Object,
             assert(0 && "Object Type is None");
         case ObjectKind::MachO:
             PrintObjectKindNotSupportedError(OpKind, Object);
-            exit(1);
+            return 1;
         case ObjectKind::FatMachO:
-            run(cast<ObjectKind::FatMachO>(Object), Options);
-            break;
+            return run(cast<ObjectKind::FatMachO>(Object), Options);
     }
+
+    assert(0 && "Reached end with unrecognizable Object-Kind");
 }
 
-void
+int
 PrintArchListOperation::run(const ConstMemoryObject &Object,
                             int Argc,
                             const char *Argv[]) noexcept
 {
     assert(Object.GetKind() != ObjectKind::None);
-    run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
+    return run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
 }

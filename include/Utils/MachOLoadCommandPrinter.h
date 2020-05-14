@@ -544,7 +544,7 @@ MachOLoadCommandPrinterWriteLoadCommandString(
 {
     switch (Value.GetError()) {
         case MachO::LoadCommandString::GetStringError::None:
-            fprintf(OutFile, "%s\n", Value.GetString().data());
+            fprintf(OutFile, "%s", Value.GetString().data());
             break;
         case MachO::LoadCommandString::GetStringError::OffsetOutOfBounds:
             fprintf(OutFile, "(Name-Offset out-of-bounds)");
@@ -587,6 +587,8 @@ struct MachOLoadCommandPrinter<
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, FvmLib.GetName(IsBigEndian));
+
+        fputc('\n', OutFile);
     }
 };
 
@@ -611,6 +613,8 @@ struct MachOLoadCommandPrinter<
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, FvmLib.GetName(IsBigEndian));
+
+        fputc('\n', OutFile);
     }
 };
 
@@ -653,6 +657,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::FixedVMFile> {
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, FvmFile.GetName(IsBigEndian));
+
+        fputc('\n', OutFile);
     }
 };
 
@@ -762,6 +768,8 @@ MachOLoadCommandPrinterWriteDylibCommand(
     MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
         OutFile, Dylib.GetName(IsBigEndian));
 
+    fputc('\n', OutFile);
+
     if (Verbose) {
         MachOTypePrinter<struct MachO::DylibCommand::Info>::Print(OutFile,
             Dylib.Info, IsBigEndian, false, "\t", "");
@@ -836,6 +844,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LoadDylinker>
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(OutFile,
             Dylinker.GetName(IsBigEndian));
+
+        fputc('\n', OutFile);
     }
 };
 
@@ -859,6 +869,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::IdDylinker>
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(OutFile,
             Dylinker.GetName(IsBigEndian));
+
+        fputc('\n', OutFile);
     }
 };
 
@@ -882,6 +894,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::PreBoundDylib>
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(OutFile,
             Dylib.GetName(IsBigEndian));
+
+        fputc('\n', OutFile);
     }
 };
 
@@ -948,6 +962,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubFramework>
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, SubFramework.GetUmbrella(IsBigEndian));
+
+        fputc('\n', OutFile);
     }
 };
 
@@ -994,6 +1010,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubClient>
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, SubClient.GetClient(IsBigEndian));
+
+        fputc('\n', OutFile);
     }
 };
 
@@ -1017,6 +1035,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubLibrary>
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, SubLibrary.GetLibrary(IsBigEndian));
+
+        fputc('\n', OutFile);
     }
 };
 
@@ -1170,6 +1190,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Rpath>
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, Rpath.GetPath(IsBigEndian));
+
+        fputc('\n', OutFile);
     }
 };
 
@@ -1676,6 +1698,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldEnvironment>
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, DyldEnvironment.GetName(IsBigEndian));
+
+        fputc('\n', OutFile);
     }
 };
 

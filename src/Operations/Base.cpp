@@ -22,7 +22,7 @@ Operation::Operation(OperationKind Kind) noexcept : Kind(Kind) {}
 PrintOperation::PrintOperation(OperationKind Kind) noexcept :
 Operation(Kind) {}
 
-void
+int
 Operation::Run(OperationKind Kind,
                const MemoryObject &Object,
                int Argc,
@@ -32,42 +32,17 @@ Operation::Run(OperationKind Kind,
         case OperationKind::None:
             assert(0 && "Operation-Kind is None");
         case OperationKind::PrintHeader:
-            OperationKindInfo<OperationKind::PrintHeader>::Type::run(Object,
-                                                                     Argc,
-                                                                     Argv);
-            break;
         case OperationKind::PrintLoadCommands:
-            OperationKindInfo<OperationKind::PrintLoadCommands>::Type::run(
-                Object, Argc, Argv);
-            break;
         case OperationKind::PrintSharedLibraries:
-            OperationKindInfo<OperationKind::PrintSharedLibraries>::Type::run(
-                Object, Argc, Argv);
-            break;
         case OperationKind::PrintId:
-            OperationKindInfo<OperationKind::PrintId>::Type::run(Object,
-                                                                 Argc,
-                                                                 Argv);
-            break;
         case OperationKind::PrintArchList:
-            OperationKindInfo<OperationKind::PrintArchList>::Type::run(Object,
-                                                                       Argc,
-                                                                       Argv);
-            break;
         case OperationKind::PrintFlags:
-            OperationKindInfo<OperationKind::PrintFlags>::Type::run(Object,
-                                                                    Argc,
-                                                                    Argv);
-            break;
         case OperationKind::PrintExportTrie:
-            OperationKindInfo<OperationKind::PrintExportTrie>::Type::run(Object,
-                                                                         Argc,
-                                                                         Argv);
-            break;
+            return PrintOperation::Run(Kind, Object, Argc, Argv);
     }
 }
 
-void
+int
 Operation::Run(OperationKind Kind,
                const MemoryObject &Object,
                const struct Options &Options) noexcept
@@ -76,33 +51,16 @@ Operation::Run(OperationKind Kind,
         case OperationKind::None:
             assert(0 && "Operation-Kind is None");
         case OperationKind::PrintHeader:
-            OperationTypeFromKind<OperationKind::PrintHeader>::run(
-                Object, cast<OperationKind::PrintHeader>(Options));
-            break;
         case OperationKind::PrintLoadCommands:
-            OperationTypeFromKind<OperationKind::PrintLoadCommands>::run(
-                Object, cast<OperationKind::PrintLoadCommands>(Options));
-            break;
         case OperationKind::PrintSharedLibraries:
-            OperationTypeFromKind<OperationKind::PrintSharedLibraries>::run(
-                Object, cast<OperationKind::PrintSharedLibraries>(Options));
-            break;
         case OperationKind::PrintId:
-            OperationTypeFromKind<OperationKind::PrintId>::run(
-                Object, cast<OperationKind::PrintId>(Options));
-            break;
         case OperationKind::PrintArchList:
-            OperationTypeFromKind<OperationKind::PrintArchList>::run(
-                Object, cast<OperationKind::PrintArchList>(Options));
-            break;
         case OperationKind::PrintFlags:
-            OperationTypeFromKind<OperationKind::PrintFlags>::run(
-                Object, cast<OperationKind::PrintFlags>(Options));
-            break;
         case OperationKind::PrintExportTrie:
-            OperationTypeFromKind<OperationKind::PrintExportTrie>::run(
-                Object, cast<OperationKind::PrintExportTrie>(Options));
-            break;
+            return PrintOperation::Run(Kind,
+                                       Object,
+                                       cast<const PrintOperation::Options &>(
+                                            Options));
     }
 }
 
@@ -149,6 +107,7 @@ static void PrintSelectArchMessage(const ConstFatMachOMemoryObject &Object) {
     fputs(":\n", stdout);
     MachOTypePrinter<MachO::FatHeader>::PrintArchList(stdout,
                                                       Object.GetConstHeader(),
+                                                      "",
                                                       "");
 }
 
@@ -188,7 +147,7 @@ PrintOperation::PrintObjectKindNotSupportedError(
     assert(0 && "Reached end of PrintObjectKindNotSupportedError()");
 }
 
-void
+int
 PrintOperation::Run(OperationKind Kind,
                     const MemoryObject &Object,
                     int Argc,
@@ -198,42 +157,42 @@ PrintOperation::Run(OperationKind Kind,
         case OperationKind::None:
             assert(0 && "Operation-Kind is None");
         case OperationKind::PrintHeader:
-            OperationKindInfo<OperationKind::PrintHeader>::Type::run(Object,
-                                                                     Argc,
-                                                                     Argv);
-            break;
-        case OperationKind::PrintLoadCommands:
-            OperationKindInfo<OperationKind::PrintLoadCommands>::Type::run(
-                Object, Argc, Argv);
-            break;
-        case OperationKind::PrintSharedLibraries:
-            OperationKindInfo<OperationKind::PrintSharedLibraries>::Type::run(
-                Object, Argc, Argv);
-            break;
-        case OperationKind::PrintId:
-            OperationKindInfo<OperationKind::PrintId>::Type::run(Object,
-                                                                 Argc,
-                                                                 Argv);
-            break;
-        case OperationKind::PrintArchList:
-            OperationKindInfo<OperationKind::PrintArchList>::Type::run(Object,
-                                                                       Argc,
-                                                                       Argv);
-            break;
-        case OperationKind::PrintFlags:
-            OperationKindInfo<OperationKind::PrintFlags>::Type::run(Object,
-                                                                    Argc,
-                                                                    Argv);
-            break;
-        case OperationKind::PrintExportTrie:
-            OperationKindInfo<OperationKind::PrintExportTrie>::Type::run(Object,
+            return
+                OperationKindInfo<OperationKind::PrintHeader>::Type::run(Object,
                                                                          Argc,
                                                                          Argv);
-            break;
+        case OperationKind::PrintLoadCommands:
+            return
+                OperationKindInfo<OperationKind::PrintLoadCommands>::Type::run(
+                    Object, Argc, Argv);
+        case OperationKind::PrintSharedLibraries:
+            return
+                OperationKindInfo<
+                    OperationKind::PrintSharedLibraries>::Type::run(Object,
+                                                                    Argc,
+                                                                    Argv);
+        case OperationKind::PrintId:
+            return
+                OperationKindInfo<OperationKind::PrintId>::Type::run(Object,
+                                                                     Argc,
+                                                                     Argv);
+        case OperationKind::PrintArchList:
+            return
+                OperationKindInfo<OperationKind::PrintArchList>::Type::run(
+                    Object, Argc, Argv);
+        case OperationKind::PrintFlags:
+            return
+                OperationKindInfo<OperationKind::PrintFlags>::Type::run(Object,
+                                                                        Argc,
+                                                                        Argv);
+        case OperationKind::PrintExportTrie:
+            return
+                OperationKindInfo<OperationKind::PrintExportTrie>::Type::run(
+                    Object, Argc, Argv);
     }
 }
 
-void
+int
 PrintOperation::Run(OperationKind Kind,
                     const MemoryObject &Object,
                     const struct Options &Options) noexcept
@@ -242,32 +201,34 @@ PrintOperation::Run(OperationKind Kind,
         case OperationKind::None:
             assert(0 && "Operation-Kind is None");
         case OperationKind::PrintHeader:
-            OperationTypeFromKind<OperationKind::PrintHeader>::run(
-                Object, cast<OperationKind::PrintHeader>(Options));
-            break;
+            return
+                OperationTypeFromKind<OperationKind::PrintHeader>::run(
+                    Object, cast<OperationKind::PrintHeader>(Options));
         case OperationKind::PrintLoadCommands:
-            OperationTypeFromKind<OperationKind::PrintLoadCommands>::run(
-                Object, cast<OperationKind::PrintLoadCommands>(Options));
-            break;
+            return
+                OperationTypeFromKind<OperationKind::PrintLoadCommands>::run(
+                    Object, cast<OperationKind::PrintLoadCommands>(Options));
         case OperationKind::PrintSharedLibraries:
-            OperationTypeFromKind<OperationKind::PrintSharedLibraries>::run(
-                Object, cast<OperationKind::PrintSharedLibraries>(Options));
-            break;
+            return
+                OperationTypeFromKind<OperationKind::PrintSharedLibraries>::run(
+                    Object, cast<OperationKind::PrintSharedLibraries>(Options));
         case OperationKind::PrintId:
-            OperationTypeFromKind<OperationKind::PrintId>::run(
-                Object, cast<OperationKind::PrintId>(Options));
-            break;
+            return
+                OperationTypeFromKind<OperationKind::PrintId>::run(Object,
+                    cast<OperationKind::PrintId>(Options));
         case OperationKind::PrintArchList:
-            OperationTypeFromKind<OperationKind::PrintArchList>::run(
-                Object, cast<OperationKind::PrintArchList>(Options));
-            break;
+            return
+                OperationTypeFromKind<OperationKind::PrintArchList>::run(Object,
+                    cast<OperationKind::PrintArchList>(Options));
         case OperationKind::PrintFlags:
-            OperationTypeFromKind<OperationKind::PrintFlags>::run(
-                Object, cast<OperationKind::PrintFlags>(Options));
-            break;
+            return
+                OperationTypeFromKind<OperationKind::PrintFlags>::run(Object,
+                    cast<OperationKind::PrintFlags>(Options));
         case OperationKind::PrintExportTrie:
-            OperationTypeFromKind<OperationKind::PrintExportTrie>::run(
-                Object, cast<OperationKind::PrintExportTrie>(Options));
-            break;
+            return
+                OperationTypeFromKind<OperationKind::PrintExportTrie>::run(
+                    Object, cast<OperationKind::PrintExportTrie>(Options));
     }
+
+    return 0;
 }

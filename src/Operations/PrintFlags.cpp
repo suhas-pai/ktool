@@ -20,11 +20,11 @@ PrintFlagsOperation::PrintFlagsOperation() noexcept : PrintOperation(OpKind) {}
 PrintFlagsOperation::PrintFlagsOperation(const struct Options &Options) noexcept
 : PrintOperation(OpKind), Options(Options) {}
 
-void PrintFlagsOperation::run(const ConstMemoryObject &Object) noexcept {
-    run(Object, Options);
+int PrintFlagsOperation::run(const ConstMemoryObject &Object) noexcept {
+    return run(Object, Options);
 }
 
-void
+int
 PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
                          const struct Options &Options) noexcept
 {
@@ -479,6 +479,8 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             fputc('\n', Options.OutFile);
         }
     }
+
+    return 0;
 }
 
 struct PrintFlagsOperation::Options
@@ -515,7 +517,7 @@ noexcept {
     return new struct Options(ParseOptionsImpl(Argc, Argv, IndexOut));
 }
 
-void
+int
 PrintFlagsOperation::run(const ConstMemoryObject &Object,
                          const struct Options &Options) noexcept
 {
@@ -523,20 +525,21 @@ PrintFlagsOperation::run(const ConstMemoryObject &Object,
         case ObjectKind::None:
             assert(0 && "Object Type is None");
         case ObjectKind::MachO:
-            run(cast<ObjectKind::MachO>(Object), Options);
-            break;
+            return run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
             PrintObjectKindNotSupportedError(OpKind, Object);
-            exit(1);
+            return 1;
     }
+
+    assert(0 && "Reached end with unrecognizable Object-Kind");
 }
 
-void
+int
 PrintFlagsOperation::run(const ConstMemoryObject &Object,
                          int Argc,
                          const char *Argv[]) noexcept
 {
     assert(Object.GetKind() != ObjectKind::None);
-    run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
+    return run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
 }
 

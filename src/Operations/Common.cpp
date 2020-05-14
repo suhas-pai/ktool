@@ -12,43 +12,47 @@
 #include <string_view>
 
 static void
-HandleLoadCommandStorageError(MachO::LoadCommandStorage::Error Error) {
+HandleLoadCommandStorageError(FILE *ErrFile,
+                              MachO::LoadCommandStorage::Error Error) {
     switch (Error) {
         case MachO::LoadCommandStorage::Error::None:
             break;
         case MachO::LoadCommandStorage::Error::NoLoadCommands:
-            fprintf(stderr, "File has no load-commands!\n");
-            exit(1);
+            fprintf(ErrFile, "File has no load-commands!\n");
+            break;
         case MachO::LoadCommandStorage::Error::CmdSizeTooSmall:
-            fprintf(stderr,
+            fprintf(ErrFile,
                     "LoadCommands Buffer has an invalid LoadCommand (CmdSize "
                     "Too Small)\n");
-            exit(1);
+            break;
         case MachO::LoadCommandStorage::Error::CmdSizeNotAligned:
-            fprintf(stderr,
+            fprintf(ErrFile,
                     "LoadCommands Buffer has an invalid LoadCommand (CmdSize "
-                    "Not Aligned)\n", stderr);
-            exit(1);
+                    "Not Aligned)\n");
+            break;
         case MachO::LoadCommandStorage::Error::SizeOfCmdsTooSmall:
-            fprintf(stderr, "LoadCommands Buffer is too small\n");
-            exit(1);
+            fprintf(ErrFile, "LoadCommands Buffer is too small\n");
+            break;
     }
 }
 
 MachO::LoadCommandStorage
-OperationCommon::GetLoadCommandStorage(MachOMemoryObject &Object) noexcept {
+OperationCommon::GetLoadCommandStorage(MachOMemoryObject &Object,
+                                       FILE *ErrFile) noexcept
+{
     const auto LoadCommandStorage = Object.GetLoadCommands();
-    HandleLoadCommandStorageError(LoadCommandStorage.GetError());
+    HandleLoadCommandStorageError(ErrFile, LoadCommandStorage.GetError());
 
     return LoadCommandStorage;
 }
 
 MachO::ConstLoadCommandStorage
 OperationCommon::GetConstLoadCommandStorage(
-    const ConstMachOMemoryObject &Object) noexcept
+    const ConstMachOMemoryObject &Object,
+    FILE *ErrFile) noexcept
 {
     const auto LoadCommandStorage = Object.GetLoadCommands();
-    HandleLoadCommandStorageError(LoadCommandStorage.GetError());
+    HandleLoadCommandStorageError(ErrFile, LoadCommandStorage.GetError());
 
     return LoadCommandStorage;
 }
