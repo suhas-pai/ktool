@@ -15,7 +15,7 @@
 struct PrintFlagsOperation : public PrintOperation {
 public:
     constexpr static const auto OpKind = OperationKind::PrintFlags;
-    constexpr static inline bool IsOfKind(const Operation::Options &Opt) noexcept {
+    constexpr static inline bool IsOfKind(const Operation &Opt) noexcept {
         return (Opt.GetKind() == OpKind);
     }
 
@@ -42,14 +42,14 @@ public:
     int run(const ConstMemoryObject &Object) noexcept;
 
     static int run(const ConstMachOMemoryObject &Object,
-                    const struct Options &Options) noexcept;
+                   const struct Options &Options) noexcept;
 
     static int run(const ConstMemoryObject &Object,
-                    int Argc,
-                    const char *Argv[]) noexcept;
+                   int Argc,
+                   const char *Argv[]) noexcept;
 
     static int run(const ConstMemoryObject &Object,
-                    const struct Options &Options) noexcept;
+                   const struct Options &Options) noexcept;
 
     constexpr static bool SupportsObjectKind(ObjectKind Kind) noexcept {
         switch (Kind) {

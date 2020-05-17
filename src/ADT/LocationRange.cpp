@@ -39,6 +39,19 @@ bool LocationRange::ContainsLocation(uint64_t Location) const noexcept {
     return (Location >= Begin && Location < End);
 }
 
+bool LocationRange::ContainsRelativeLocation(uint64_t Location) const noexcept {
+    return (Location < GetSize());
+}
+
+uint64_t LocationRange::GetSizeFromLocation(uint64_t Location) const noexcept {
+    return GetSizeFromRelativeLocation(Location - Begin);
+}
+
+uint64_t
+LocationRange::GetSizeFromRelativeLocation(uint64_t Location) const noexcept {
+    return (End - Location);
+}
+
 bool
 LocationRange::ContainsEndLocation(uint64_t EndLocation) const noexcept {
     return (EndLocation > Begin && EndLocation <= End);

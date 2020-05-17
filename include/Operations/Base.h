@@ -27,7 +27,6 @@ private:
 public:
     explicit Operation(OperationKind Kind) noexcept;
     inline OperationKind GetKind() const noexcept { return Kind; }
-
     bool RequiresMap(OperationKind Kind) noexcept;
 
     static int
@@ -71,9 +70,6 @@ public:
         Options(OperationKind Kind) noexcept : Operation::Options(Kind) {}
         Options(OperationKind Kind, FILE *OutFile) noexcept
         : Operation::Options(Kind), OutFile(OutFile) {}
-
-        inline FILE *GetOutFile() const noexcept { return OutFile; }
-        inline FILE *GetErrFile() const noexcept { return ErrFile; }
     };
 public:
     explicit PrintOperation(OperationKind Kind) noexcept;

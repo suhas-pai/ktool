@@ -10,6 +10,8 @@
 
 enum class OperationKind {
     None,
+
+    // Print-Operations should have the LSB set.
     PrintHeader          = (1ull << 1) | 1,
     PrintLoadCommands    = (2ull << 1) | 1,
     PrintSharedLibraries = (3ull << 1) | 1,
@@ -17,4 +19,5 @@ enum class OperationKind {
     PrintArchList        = (5ull << 1) | 1,
     PrintFlags           = (6ull << 1) | 1,
     PrintExportTrie      = (7ull << 1) | 1,
+    PrintObjcClassList   = (8ull << 1) | 1
 };

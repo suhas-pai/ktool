@@ -74,7 +74,7 @@ int main(int Argc, const char *Argv[]) {
             }
 
         case OperationKind::PrintLoadCommands:
-            if (strcmp(Argv[1], "-l") == 0 || strcmp(Argv[1], "-lc") == 0) {
+            if (strcmp(Argv[1], "-l") == 0 || strcmp(Argv[1], "--lc") == 0) {
                 Ops = OperationKind::PrintLoadCommands;
                 OpsOptions =
                     OperationTypeFromKind<OperationKind::PrintLoadCommands>::
@@ -123,6 +123,15 @@ int main(int Argc, const char *Argv[]) {
                 Ops = OperationKind::PrintExportTrie;
                 OpsOptions =
                     OperationTypeFromKind<OperationKind::PrintExportTrie>::
+                        ParseOptions(Argc - 2, Argv + 2, &PathIndex);
+                break;
+            }
+
+        case OperationKind::PrintObjcClassList:
+            if (strcmp(Argv[1], "--list-objc-classes") == 0) {
+                Ops = OperationKind::PrintObjcClassList;
+                OpsOptions =
+                    OperationTypeFromKind<OperationKind::PrintObjcClassList>::
                         ParseOptions(Argc - 2, Argv + 2, &PathIndex);
                 break;
             }

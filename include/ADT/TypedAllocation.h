@@ -22,7 +22,7 @@ public:
     }
 
     inline T *Get() const noexcept { return Ptr; }
-    inline const T *ConstGet() const noexcept { return Ptr; }
+    inline const T *GetConst() const noexcept { return Ptr; }
 
     inline void Set(T *Ptr) noexcept {
         delete this->Ptr;

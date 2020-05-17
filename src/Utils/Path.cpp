@@ -14,7 +14,7 @@
 
 #include "Path.h"
 
-static auto Cd = std::string_view();
+static auto Cd = std::string();
 
 bool PathUtil::IsAbsolute(const std::string_view &Path) noexcept {
     return (Path.front() == '/');

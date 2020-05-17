@@ -16,11 +16,13 @@
 template <typename T>
 struct BasicPointerAbstraction :
     public BasicWrapperIterator<T *, std::ptrdiff_t> {
+private:
+    using Super = BasicWrapperIterator<T *, std::ptrdiff_t>;
 public:
     using BasicWrapperIterator<T *, std::ptrdiff_t>::BasicWrapperIterator;
 
     explicit BasicPointerAbstraction(uint8_t *Ptr) noexcept
-    : BasicWrapperIterator<T, std::ptrdiff_t>(reinterpret_cast<T>(Ptr)) {}
+    : Super(reinterpret_cast<T *>(Ptr)) {}
 
     T *operator->() const noexcept { return this->Item; }
 };

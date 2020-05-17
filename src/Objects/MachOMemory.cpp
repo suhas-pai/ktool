@@ -58,19 +58,13 @@ MachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) noexcept {
     }
 
     // Basic check with Ncmds.
-    auto MinSizeOfCmds = uint64_t();
+    auto MinSizeOfCmds = uint32_t();
 
     const auto Ncmds = SwitchEndianIf(Header->Ncmds, IsBigEndian);
     const auto LCSize = sizeof(MachO::LoadCommand);
 
-    if (Is64Bit) {
-        if (DoesMultiplyOverflow(LCSize, Ncmds, &MinSizeOfCmds)) {
-            return MachOMemoryObject::Error::TooManyLoadCommands;
-        }
-    } else {
-        if (DoesMultiplyOverflow<uint32_t>(LCSize, Ncmds, &MinSizeOfCmds)) {
-            return MachOMemoryObject::Error::TooManyLoadCommands;
-        }
+    if (DoesMultiplyOverflow(LCSize, Ncmds, &MinSizeOfCmds)) {
+        return MachOMemoryObject::Error::TooManyLoadCommands;
     }
 
     if (SizeOfCmds < MinSizeOfCmds) {

@@ -12,8 +12,10 @@
 #include <cstddef>
 
 #include "ADT/BasicWrapperIterator.h"
-#include "ADT/MachO.h"
 #include "ADT/PointerErrorStorage.h"
+
+#include "LoadCommands.h"
+#include "LoadCommandTemplates.h"
 
 namespace MachO {
     template <typename PtrType>
@@ -99,7 +101,7 @@ namespace MachO {
 
         uint8_t *End;
         uint8_t Ncmds;
-        bool IsBigEndian : 1;
+        bool mIsBigEndian : 1;
 
         LoadCommandStorage(Error Error) noexcept;
         explicit LoadCommandStorage(uint8_t *Begin,
@@ -126,16 +128,16 @@ namespace MachO {
         using ConstEndIterator =
             LoadCommandStorageEndIteratorBase<const uint8_t>;
 
-        inline Iterator begin() noexcept {
-            return Iterator(Begin, IsBigEndian);
+        inline Iterator begin() const noexcept {
+            return Iterator(Begin, mIsBigEndian);
         }
 
-        inline EndIterator end() noexcept {
+        inline EndIterator end() const noexcept {
             return EndIterator(End);
         }
 
         inline ConstIterator cbegin() const noexcept {
-            return ConstIterator(Begin, IsBigEndian);
+            return ConstIterator(Begin, mIsBigEndian);
         }
 
         inline ConstEndIterator cend() const noexcept {
@@ -154,6 +156,10 @@ namespace MachO {
         inline bool HasError() const noexcept {
             return ErrorStorage.HasValue();
         }
+
+        inline bool IsBigEndian() const noexcept {
+            return mIsBigEndian;
+        }
     };
 
     class ConstLoadCommandStorage {
@@ -167,7 +173,7 @@ namespace MachO {
 
         const uint8_t *End;
         uint8_t Ncmds;
-        bool IsBigEndian : 1;
+        bool mIsBigEndian : 1;
 
         ConstLoadCommandStorage(Error Error) noexcept;
         explicit ConstLoadCommandStorage(const uint8_t *Begin,
@@ -193,7 +199,7 @@ namespace MachO {
         using ConstEndIterator = EndIterator;
 
         inline Iterator begin() const noexcept {
-            return Iterator(Begin, IsBigEndian);
+            return Iterator(Begin, mIsBigEndian);
         }
 
         inline EndIterator end() const noexcept {
@@ -201,7 +207,7 @@ namespace MachO {
         }
 
         inline ConstIterator cbegin() const noexcept {
-            return ConstIterator(Begin, IsBigEndian);
+            return ConstIterator(Begin, mIsBigEndian);
         }
 
         inline ConstEndIterator cend() const noexcept {
@@ -219,6 +225,10 @@ namespace MachO {
 
         inline bool HasError() const noexcept {
             return ErrorStorage.HasValue();
+        }
+
+        inline bool IsBigEndian() const noexcept {
+            return mIsBigEndian;
         }
     };
 }

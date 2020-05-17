@@ -1632,8 +1632,6 @@ namespace MachO {
     }
 
     ExportTrieIterator::Error ExportTrieIterator::Advance() noexcept {
-        auto StackTopIndex = StackList.size();
-
         // Do some initial setup.
         Symbol.ClearExportExclusiveInfo();
 
@@ -1667,7 +1665,7 @@ namespace MachO {
                         return Error::InvalidFormat;
                     }
 
-                    Symbol.Flags = ExportTrieFlagsByte(Flags);
+                    Symbol.Flags = ExportTrieFlags(Flags);
                     if (Symbol.Flags.IsReexport()) {
                         auto DylibOrdinal = uint32_t();
                         Ptr = ReadUleb128(Ptr, End, &DylibOrdinal);
@@ -1772,7 +1770,6 @@ namespace MachO {
                         break;
                     }
 
-                    StackTopIndex -= 1;
                     continue;
                 }
 
@@ -1802,8 +1799,6 @@ namespace MachO {
                     }
 
                     MoveUptoParentNode();
-                    StackTopIndex -= 1;
-
                     continue;
                 }
             }
@@ -1845,7 +1840,6 @@ namespace MachO {
             NewStack.RangeListSize = RangeList.size();
 
             StackList.emplace_back(NewStack);
-            StackTopIndex += 1;
         } while (true);
 
         return Error::None;
@@ -1858,7 +1852,7 @@ namespace MachO {
         const auto Offset = SwitchEndianIf(this->ExportOff, IsBigEndian);
         const auto Size = SwitchEndianIf(this->ExportSize, IsBigEndian);
 
-        auto End = static_cast<uint64_t>(Offset + Size);
+        auto End = static_cast<uint64_t>(Offset) + Size;
         auto Range = LocationRange::CreateWithEnd(Offset, End);
 
         if (!Map.GetRange().Contains(Range)) {
@@ -1876,7 +1870,7 @@ namespace MachO {
         const auto Offset = SwitchEndianIf(this->ExportOff, IsBigEndian);
         const auto Size = SwitchEndianIf(this->ExportSize, IsBigEndian);
 
-        auto End = static_cast<uint64_t>(Offset + Size);
+        auto End = static_cast<uint64_t>(Offset) + Size;
         auto Range = LocationRange::CreateWithEnd(Offset, End);
 
         if (!Map.GetRange().Contains(Range)) {

@@ -111,7 +111,7 @@ PrintIdOperation::run(const ConstMemoryObject &Object,
 {
     switch (Object.GetKind()) {
         case ObjectKind::None:
-            assert(0 && "Object Type is None");
+            assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
             return run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:

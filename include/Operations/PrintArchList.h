@@ -43,14 +43,14 @@ public:
     int run(const ConstMemoryObject &Object) noexcept;
 
     static int run(const ConstFatMachOMemoryObject &Object,
-                    const struct Options &Options) noexcept;
+                   const struct Options &Options) noexcept;
 
     static int run(const ConstMemoryObject &Object,
-                    int Argc,
-                    const char *Argv[]) noexcept;
+                   int Argc,
+                   const char *Argv[]) noexcept;
 
     static int run(const ConstMemoryObject &Object,
-                    const struct Options &Options) noexcept;
+                   const struct Options &Options) noexcept;
 
     constexpr static bool SupportsObjectKind(ObjectKind Kind) noexcept {
         switch (Kind) {

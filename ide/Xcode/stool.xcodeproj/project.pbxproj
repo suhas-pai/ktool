@@ -24,6 +24,8 @@
 		F3B196322439B34200AE997A /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B196302439B34200AE997A /* Base.cpp */; };
 		F3B2CEC9246504EC0066B7C8 /* PrintFlags.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B2CEC8246504EC0066B7C8 /* PrintFlags.cpp */; };
 		F3B810B22467B53E00DED4F2 /* PrintExportTrie.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B810B12467B53E00DED4F2 /* PrintExportTrie.cpp */; };
+		F3BA28B4247096BA009B6BCE /* PrintObjcClassList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3BA28B3247096BA009B6BCE /* PrintObjcClassList.cpp */; };
+		F3BA28B924709ACD009B6BCE /* SegmentUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3BA28B824709ACD009B6BCE /* SegmentUtil.cpp */; };
 		F3D66214245770BA00270435 /* PrintArchList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3D66213245770BA00270435 /* PrintArchList.cpp */; };
 		F3D66217245770E200270435 /* RelativeRange.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3D66216245770E200270435 /* RelativeRange.cpp */; };
 		F3DC4DA52452720A0063906C /* PrintSharedLibraries.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3DC4DA42452720A0063906C /* PrintSharedLibraries.cpp */; };
@@ -110,6 +112,15 @@
 		F3B810B02467B50200DED4F2 /* PrintExportTrie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintExportTrie.h; path = ../../include/Operations/PrintExportTrie.h; sourceTree = "<group>"; };
 		F3B810B12467B53E00DED4F2 /* PrintExportTrie.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintExportTrie.cpp; path = ../../src/Operations/PrintExportTrie.cpp; sourceTree = "<group>"; };
 		F3B810B32467EECD00DED4F2 /* LargestIntHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LargestIntHelper.h; path = ../../include/ADT/LargestIntHelper.h; sourceTree = "<group>"; };
+		F3BA28B224709670009B6BCE /* PrintObjcClassList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintObjcClassList.h; path = ../../include/Operations/PrintObjcClassList.h; sourceTree = "<group>"; };
+		F3BA28B3247096BA009B6BCE /* PrintObjcClassList.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintObjcClassList.cpp; path = ../../src/Operations/PrintObjcClassList.cpp; sourceTree = "<group>"; };
+		F3BA28B724709A6F009B6BCE /* SegmentUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SegmentUtil.h; path = "../../include/ADT/Mach-O/SegmentUtil.h"; sourceTree = "<group>"; };
+		F3BA28B824709ACD009B6BCE /* SegmentUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SegmentUtil.cpp; path = "../../src/ADT/Mach-O/SegmentUtil.cpp"; sourceTree = "<group>"; };
+		F3BA28BA2470A846009B6BCE /* Headers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Headers.h; path = "../../include/ADT/Mach-O/Headers.h"; sourceTree = "<group>"; };
+		F3BA28BC2470CA42009B6BCE /* PointerUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PointerUtils.h; path = ../../include/Utils/PointerUtils.h; sourceTree = "<group>"; };
+		F3BA28BD2470F3CD009B6BCE /* ObjC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ObjC.h; path = "../../include/ADT/Mach-O/ObjC.h"; sourceTree = "<group>"; };
+		F3BA28BF24712537009B6BCE /* SegmentInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SegmentInfo.h; path = "../../include/ADT/Mach-O/SegmentInfo.h"; sourceTree = "<group>"; };
+		F3BA28C024713E17009B6BCE /* CharUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CharUtils.h; path = ../../include/Utils/CharUtils.h; sourceTree = "<group>"; };
 		F3D66211245770A300270435 /* Operation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Operation.h; path = ../../include/Operations/Operation.h; sourceTree = "<group>"; };
 		F3D66212245770AB00270435 /* PrintArchList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintArchList.h; path = ../../include/Operations/PrintArchList.h; sourceTree = "<group>"; };
 		F3D66213245770BA00270435 /* PrintArchList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintArchList.cpp; path = ../../src/Operations/PrintArchList.cpp; sourceTree = "<group>"; };
@@ -228,6 +239,7 @@
 			isa = PBXGroup;
 			children = (
 				F33DFDCF2438503800BF3E47 /* Casting.h */,
+				F3BA28C024713E17009B6BCE /* CharUtils.h */,
 				F3923E89243C1680002479B3 /* DoesOverflow.h */,
 				F37166A7246650AE0078C5CA /* IntegerLimit.h */,
 				F35FF7FA24486A8700BEF782 /* MachOLoadCommandPrinter.h */,
@@ -235,6 +247,7 @@
 				F3856AA2244BBB5C007980C9 /* Macros.h */,
 				F3DC4DB12453D5910063906C /* MiscTemplates.h */,
 				F39A9879245FE4FE002C229F /* Path.h */,
+				F3BA28BC2470CA42009B6BCE /* PointerUtils.h */,
 				F3856A9A244A9F73007980C9 /* PrintUtils.h */,
 				F3104AC62431966D00B24FEB /* SwitchEndian.h */,
 				F3DC4DAE2452F4760063906C /* Timestamp.h */,
@@ -257,9 +270,13 @@
 		F35FF7F124486A5900BEF782 /* Mach-O */ = {
 			isa = PBXGroup;
 			children = (
+				F3BA28BA2470A846009B6BCE /* Headers.h */,
 				F3856A9B244ABDA1007980C9 /* LoadCommands.h */,
 				F3856A9C244ABDA1007980C9 /* LoadCommandStorage.h */,
 				F3856A9E244ABDA1007980C9 /* LoadCommandTemplates.h */,
+				F3BA28BD2470F3CD009B6BCE /* ObjC.h */,
+				F3BA28BF24712537009B6BCE /* SegmentInfo.h */,
+				F3BA28B724709A6F009B6BCE /* SegmentUtil.h */,
 				F3856A9D244ABDA1007980C9 /* Types.h */,
 			);
 			name = "Mach-O";
@@ -270,6 +287,7 @@
 			children = (
 				F35FF7F424486A6600BEF782 /* LoadCommands.cpp */,
 				F35FF7F324486A6600BEF782 /* LoadCommandStorage.cpp */,
+				F3BA28B824709ACD009B6BCE /* SegmentUtil.cpp */,
 			);
 			name = "Mach-O";
 			sourceTree = "<group>";
@@ -331,6 +349,7 @@
 				F3DC4DAC2452E4780063906C /* PrintId.cpp */,
 				F3B2CEC8246504EC0066B7C8 /* PrintFlags.cpp */,
 				F3B810B12467B53E00DED4F2 /* PrintExportTrie.cpp */,
+				F3BA28B3247096BA009B6BCE /* PrintObjcClassList.cpp */,
 			);
 			name = Operations;
 			sourceTree = "<group>";
@@ -349,6 +368,7 @@
 				F3DC4DA92452E3F60063906C /* PrintId.h */,
 				F3B2CEC72465047F0066B7C8 /* PrintFlags.h */,
 				F3B810B02467B50200DED4F2 /* PrintExportTrie.h */,
+				F3BA28B224709670009B6BCE /* PrintObjcClassList.h */,
 			);
 			name = Operations;
 			sourceTree = "<group>";
@@ -413,12 +433,14 @@
 				F3B2CEC9246504EC0066B7C8 /* PrintFlags.cpp in Sources */,
 				F3923E88243C0BA0002479B3 /* MachOMemory.cpp in Sources */,
 				F35FF7F624486A6600BEF782 /* LoadCommands.cpp in Sources */,
+				F3BA28B924709ACD009B6BCE /* SegmentUtil.cpp in Sources */,
 				F3DC4DAD2452E4780063906C /* PrintId.cpp in Sources */,
 				F3DC4DA7245272220063906C /* Common.cpp in Sources */,
 				F36FBF6A2436B0600075D461 /* SwitchEndian.cpp in Sources */,
 				F3104AC42431960E00B24FEB /* main.cpp in Sources */,
 				F3D66217245770E200270435 /* RelativeRange.cpp in Sources */,
 				F3923E86243C0BA0002479B3 /* MemoryBase.cpp in Sources */,
+				F3BA28B4247096BA009B6BCE /* PrintObjcClassList.cpp in Sources */,
 				F36FBF8924380E000075D461 /* MemoryMap.cpp in Sources */,
 				F3D66214245770BA00270435 /* PrintArchList.cpp in Sources */,
 				F39A9878245FE4F4002C229F /* Path.cpp in Sources */,

@@ -23,6 +23,8 @@ private:
 
     explicit LocationRange(uint64_t Begin, uint64_t End) noexcept;
 public:
+    explicit LocationRange() = default;
+    
     template <typename T = uint64_t>
     static std::optional<LocationRange>
     CreateWithSize(uint64_t Begin, uint64_t Size) noexcept {
@@ -57,10 +59,14 @@ public:
     uint64_t GetSize() const noexcept;
 
     bool ContainsLocation(uint64_t Location) const noexcept;
+    bool ContainsRelativeLocation(uint64_t Location) const noexcept;
     bool ContainsEndLocation(uint64_t EndLocation) const noexcept;
 
     bool Contains(const LocationRange &LocRange) const noexcept;
     bool Overlaps(const LocationRange &LocRange) const noexcept;
+
+    uint64_t GetSizeFromLocation(uint64_t Location) const noexcept;
+    uint64_t GetSizeFromRelativeLocation(uint64_t Location) const noexcept;
 
     bool GoesPastSize(uint64_t Size) const noexcept;
     RelativeRange ToRelativeRange() const noexcept;

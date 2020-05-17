@@ -34,7 +34,7 @@ PrintReexportDylibPath(const std::vector<std::string_view> &DylibList,
                        const struct PrintExportTrieOperation::Options &Options)
 noexcept {
     const auto DylibIndex = DylibOrdinal - 1;
-    if (DylibOrdinal == 0 || !IndexOutOfBounds(DylibIndex, DylibList.size())) {
+    if (DylibOrdinal != 0 && !IndexOutOfBounds(DylibIndex, DylibList.size())) {
         fprintf(Options.OutFile, "%s", DylibList.at(DylibIndex).data());
     } else {
         fputs("(Ordinal Out-Of-Bounds!)", Options.OutFile);
@@ -49,13 +49,11 @@ PrintExport(const MachO::ExportTrieSymbol &Export,
             bool Is64Bit) noexcept
 {
     using namespace MachO;
-
-    const auto TypeDesc = ExportTrieSymbolTypeGetDescription(Export.GetType());
-    const auto IsReexport =
-        (Export.GetType() == MachO::ExportTrieSymbolType::Reexport);
-
     constexpr const auto LongestDescLength =
         static_cast<int>(ExportTrieSymbolTypeGetLongestDescriptionLength());
+
+    const auto TypeDesc = ExportTrieSymbolTypeGetDescription(Export.GetType());
+    const auto IsReexport = Export.GetFlags().IsReexport();
 
     if (!IsReexport) {
         if (Is64Bit) {
@@ -66,11 +64,8 @@ PrintExport(const MachO::ExportTrieSymbol &Export,
                     static_cast<uint32_t>(Export.GetImageOffset()));
         }
     } else {
-        if (Is64Bit) {
-            PrintUtilsPadSpaces(Options.OutFile, OFFSET_64_LEN);
-        } else {
-            PrintUtilsPadSpaces(Options.OutFile, OFFSET_32_LEN);
-        }
+        const auto PadLength = (Is64Bit) ? OFFSET_64_LEN : OFFSET_32_LEN;
+        PrintUtilsPadSpaces(Options.OutFile, static_cast<int>(PadLength));
     }
 
     fprintf(Options.OutFile,
@@ -106,15 +101,10 @@ PrintExportVerbose(const MachO::ExportTrieSymbol &Export,
     using namespace MachO;
     constexpr const auto LongestDescLength =
         static_cast<int>(ExportTrieSymbolTypeGetLongestDescriptionLength());
-
-    const auto TypeDesc = ExportTrieSymbolTypeGetDescription(Export.GetType());
-    const auto TypeName = ExportTrieSymbolTypeGetName(Export.GetType());
-    const auto IsReexport =
-        (Export.GetType() == MachO::ExportTrieSymbolType::Reexport);
-
     constexpr const auto LongestNameLength =
         static_cast<int>(ExportTrieSymbolTypeGetLongestNameLength());
 
+    const auto IsReexport = Export.GetFlags().IsReexport();
     if (!IsReexport) {
         if (Is64Bit) {
             fprintf(Options.OutFile, OFFSET_64_FMT, Export.GetImageOffset());
@@ -124,12 +114,12 @@ PrintExportVerbose(const MachO::ExportTrieSymbol &Export,
                     static_cast<uint32_t>(Export.GetImageOffset()));
         }
     } else {
-        if (Is64Bit) {
-            PrintUtilsPadSpaces(Options.OutFile, OFFSET_64_LEN);
-        } else {
-            PrintUtilsPadSpaces(Options.OutFile, OFFSET_32_LEN);
-        }
+        const auto PadLength = (Is64Bit) ? OFFSET_64_LEN : OFFSET_32_LEN;
+        PrintUtilsPadSpaces(Options.OutFile, static_cast<int>(PadLength));
     }
+
+    const auto TypeDesc = ExportTrieSymbolTypeGetDescription(Export.GetType());
+    const auto TypeName = ExportTrieSymbolTypeGetName(Export.GetType());
 
     fprintf(Options.OutFile,
             "\t%" PRINTF_RIGHTPAD_FMT "s",
@@ -146,11 +136,12 @@ PrintExportVerbose(const MachO::ExportTrieSymbol &Export,
             LongestNameLength,
             TypeName.data());
 
-    if (Export.GetType() == MachO::ExportTrieSymbolType::Reexport) {
-        if (!Export.GetReexportImportName().empty()) {
+    if (IsReexport) {
+        const auto ImportName = Export.GetReexportImportName();
+        if (!ImportName.empty()) {
             fprintf(Options.OutFile,
                     " (Re-exported from %s, Ordinal: %" PRIu32 ")",
-                    Export.GetReexportImportName().data(),
+                    ImportName.data(),
                     Export.GetReexportDylibOrdinal());
         } else {
             const auto DylibOrdinal = Export.GetReexportDylibOrdinal();
@@ -170,6 +161,10 @@ PrintExportVerbose(const MachO::ExportTrieSymbol &Export,
     fputc('\n', Options.OutFile);
 }
 
+void PrintExtraExportTrieError(FILE *ErrFile) noexcept {
+    fputs("Provided file has multiple export-tries\n", ErrFile);
+}
+
 int
 PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
                               const struct Options &Options) noexcept
@@ -184,7 +179,7 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
         return 1;
     }
 
-    auto FoundTrieCount = uint32_t();
+    auto FoundExportTrie = false;
     auto DylibList = std::vector<std::string_view>();
     auto TrieList =
         TypedAllocationOrError<ConstExportTrieList *, SizeRangeError>();
@@ -210,33 +205,39 @@ PrintExportTrieOperation::run(const ConstMachOMemoryObject &Object,
 
         const auto *DyldInfo = dyn_cast<DyldInfoCommand>(LoadCmd, IsBigEndian);
         if (DyldInfo != nullptr) {
-            TrieList = DyldInfo->GetConstExportTrieList(Object.GetConstMap(),
-                                                        IsBigEndian);
-            FoundTrieCount++;
+            if (FoundExportTrie) {
+                PrintExtraExportTrieError(Options.ErrFile);
+                return 1;
+            }
+
+            TrieList =
+                DyldInfo->GetConstExportTrieList(Object.GetConstMap(),
+                                                 IsBigEndian);
+            FoundExportTrie = true;
         } else {
             const auto *DyldExportsTrie =
                 dyn_cast<LoadCommand::Kind::DyldExportsTrie>(LoadCmd,
                                                              IsBigEndian);
 
             if (DyldExportsTrie != nullptr) {
+                if (FoundExportTrie) {
+                    PrintExtraExportTrieError(Options.ErrFile);
+                    return 1;
+                }
+
                 LCExportOff =
                     SwitchEndianIf(DyldExportsTrie->DataOff, IsBigEndian);
                 LCExportSize =
                     SwitchEndianIf(DyldExportsTrie->DataSize, IsBigEndian);
 
-                FoundTrieCount++;
+                FoundExportTrie = true;
             }
-        }
-
-        if (FoundTrieCount == 2) {
-            fputs("Provided file has multiple export-tries\n", Options.ErrFile);
-            return 1;
         }
     }
 
     // Not having an export-trie is not an error.
 
-    if (FoundTrieCount == 0) {
+    if (!FoundExportTrie) {
         fputs("Provided file does not have an export-trie\n", Options.OutFile);
         return 0;
     }
@@ -356,7 +357,7 @@ PrintExportTrieOperation::run(const ConstMemoryObject &Object,
 {
     switch (Object.GetKind()) {
         case ObjectKind::None:
-            assert(0 && "Object Type is None");
+            assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
             return run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:

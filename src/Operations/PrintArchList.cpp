@@ -30,14 +30,13 @@ int
 PrintArchListOperation::run(const ConstFatMachOMemoryObject &Object,
                             const struct Options &Options) noexcept
 {
-    fprintf(stdout,
-            "Provided file has %" PRIu32 " archs:\n",
-            Object.GetArchCount());
+    const auto ArchCount = Object.GetArchCount();
+    fprintf(stdout, "Provided file has %" PRIu32 " archs:\n", ArchCount);
 
-    // General safe-guard against over-printing. More likely than too-many
-    // valid architectures is rather a mistake in this program.
+    // General safe-guard against over-printing. More likely than too-many valid
+    // architectures is a mistake in this program.
 
-    if (Object.GetArchCount() > 25) {
+    if (ArchCount > 25) {
         fputs("Provided file has too many archs to list\n", Options.ErrFile);
         return 0;
     }
@@ -95,7 +94,7 @@ PrintArchListOperation::run(const ConstMemoryObject &Object,
 {
     switch (Object.GetKind()) {
         case ObjectKind::None:
-            assert(0 && "Object Type is None");
+            assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
             PrintObjectKindNotSupportedError(OpKind, Object);
             return 1;

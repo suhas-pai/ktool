@@ -18,6 +18,7 @@
 #include "PrintArchList.h"
 #include "PrintExportTrie.h"
 #include "PrintFlags.h"
+#include "PrintObjcClassList.h"
 
 template <OperationKind Kind>
 struct OperationKindInfo {};
@@ -79,6 +80,15 @@ struct OperationKindInfo<OperationKind::PrintExportTrie> {
     typedef PrintExportTrieOperation Type;
 };
 
+template<>
+struct OperationKindInfo<OperationKind::PrintObjcClassList> {
+    constexpr static const auto Kind = OperationKind::PrintFlags;
+    constexpr static const auto Name =
+        std::string_view("print-objc-class-list");
+
+    typedef PrintObjcClassListOperation Type;
+};
+
 constexpr const std::string_view &
 OperationKindGetName(OperationKind Kind) noexcept {
     switch (Kind) {
@@ -98,6 +108,8 @@ OperationKindGetName(OperationKind Kind) noexcept {
             return OperationKindInfo<OperationKind::PrintFlags>::Name;
         case OperationKind::PrintExportTrie:
             return OperationKindInfo<OperationKind::PrintFlags>::Name;
+        case OperationKind::PrintObjcClassList:
+            return OperationKindInfo<OperationKind::PrintObjcClassList>::Name;
     }
 
     assert(0 && "Reached end of OperationKindGetName()");

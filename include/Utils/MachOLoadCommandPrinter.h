@@ -540,7 +540,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::UnixThread> {
 
 static inline void
 MachOLoadCommandPrinterWriteLoadCommandString(
-    FILE *OutFile, const MachO::LoadCommandString::GetValueResult &Value)
+    FILE *OutFile,
+    const MachO::LoadCommandString::GetValueResult &Value)
 {
     switch (Value.GetError()) {
         case MachO::LoadCommandString::GetStringError::None:
@@ -702,19 +703,14 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DynamicSymbolTable> {
 
         const auto LocalSymbolsIndex =
             SwitchEndianIf(DySymtab.ILocalSymbols, IsBigEndian);
-
         const auto LocalSymbolsCount =
             SwitchEndianIf(DySymtab.NLocalSymbols, IsBigEndian);
-
         const auto ExternalSymbolsIndex =
             SwitchEndianIf(DySymtab.IExternallyDefinedSymbols, IsBigEndian);
-
         const auto ExternalSymbolsCount =
             SwitchEndianIf(DySymtab.NExternallyDefinedSymbols, IsBigEndian);
-
         const auto UndefinedSymbolsIndex =
             SwitchEndianIf(DySymtab.IUndefinedSymbols, IsBigEndian);
-
         const auto UndefinedSymbolsCount =
             SwitchEndianIf(DySymtab.NUndefinedSymbols, IsBigEndian);
 

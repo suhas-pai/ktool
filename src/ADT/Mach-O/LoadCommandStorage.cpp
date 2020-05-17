@@ -73,13 +73,13 @@ namespace MachO {
                                            uint8_t *End,
                                            uint32_t Ncmds,
                                            bool IsBigEndian) noexcept
-    : Begin(Begin), End(End), Ncmds(Ncmds), IsBigEndian(IsBigEndian) {}
+    : Begin(Begin), End(End), Ncmds(Ncmds), mIsBigEndian(IsBigEndian) {}
 
     ConstLoadCommandStorage::ConstLoadCommandStorage(const uint8_t *Begin,
                                                      const uint8_t *End,
                                                      const uint32_t Ncmds,
                                                      bool IsBigEndian) noexcept
-    : Begin(Begin), End(End), Ncmds(Ncmds), IsBigEndian(IsBigEndian) {}
+    : Begin(Begin), End(End), Ncmds(Ncmds), mIsBigEndian(IsBigEndian) {}
 
     LoadCommandStorage
     LoadCommandStorage::Open(uint8_t *Begin,

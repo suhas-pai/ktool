@@ -29,6 +29,7 @@
 #include "Types.h"
 
 namespace MachO {
+    extern const std::string_view EmptyStringValue;
     struct LoadCommand {
         constexpr static const auto KindRequiredByDyld = 0x80000000ul;
         enum class Kind : uint32_t {
@@ -515,8 +516,6 @@ namespace MachO {
         constexpr static const auto Description =
             std::string_view("32-Bit Init Function Offsets");
     };
-
-    constexpr static const auto EmptyStringValue = std::string_view();
 
     constexpr std::string_view
     SegmentSectionTypeGetName(SegmentSectionType Type) noexcept {
@@ -2229,7 +2228,7 @@ namespace MachO {
     };
 
     using ExportSymbolMasksHandler =
-        BasicMasksHandler<ExportSymbolMasks, uint32_t>;
+        BasicMasksHandler<ExportSymbolMasks, uint64_t>;
 
     enum class ExportSymbolKind : uint8_t {
         Regular,
@@ -2237,10 +2236,10 @@ namespace MachO {
         Absolute
     };
 
-    struct ExportTrieFlagsByte : private ExportSymbolMasksHandler {
+    struct ExportTrieFlags : private ExportSymbolMasksHandler {
     public:
-        constexpr explicit ExportTrieFlagsByte() noexcept = default;
-        constexpr explicit ExportTrieFlagsByte(uint8_t Byte) noexcept
+        constexpr explicit ExportTrieFlags() noexcept = default;
+        constexpr explicit ExportTrieFlags(uint64_t Byte) noexcept
         : ExportSymbolMasksHandler(Byte) {}
 
         using Masks = ExportSymbolMasks;
@@ -2451,6 +2450,7 @@ namespace MachO {
     protected:
         std::string String;
         std::string ReexportImportName;
+
         union {
             uint32_t ReexportDylibOrdinal;
 
@@ -2460,7 +2460,7 @@ namespace MachO {
             };
         };
 
-        ExportTrieFlagsByte Flags;
+        ExportTrieFlags Flags;
         Type sType;
     public:
         inline std::string_view GetString() const noexcept {
@@ -2491,7 +2491,7 @@ namespace MachO {
             return ImageOffset;
         }
 
-        inline ExportTrieFlagsByte GetFlags() const noexcept {
+        inline ExportTrieFlags GetFlags() const noexcept {
             return Flags;
         }
 

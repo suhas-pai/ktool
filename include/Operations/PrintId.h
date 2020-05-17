@@ -15,7 +15,7 @@
 struct PrintIdOperation : public PrintOperation {
 public:
     constexpr static const auto OpKind = OperationKind::PrintId;
-    constexpr static inline bool IsOfKind(const Operation::Options &Opt) noexcept {
+    constexpr static inline bool IsOfKind(const Operation &Opt) noexcept {
         return (Opt.GetKind() == OpKind);
     }
 

@@ -38,6 +38,7 @@ Operation::Run(OperationKind Kind,
         case OperationKind::PrintArchList:
         case OperationKind::PrintFlags:
         case OperationKind::PrintExportTrie:
+        case OperationKind::PrintObjcClassList:
             return PrintOperation::Run(Kind, Object, Argc, Argv);
     }
 }
@@ -57,6 +58,7 @@ Operation::Run(OperationKind Kind,
         case OperationKind::PrintArchList:
         case OperationKind::PrintFlags:
         case OperationKind::PrintExportTrie:
+        case OperationKind::PrintObjcClassList:
             return PrintOperation::Run(Kind,
                                        Object,
                                        cast<const PrintOperation::Options &>(
@@ -89,6 +91,9 @@ OperationKindSupportsObjectKind(OperationKind OpKind, ObjectKind ObjKind) {
                 SupportsObjectKind(ObjKind);
         case OperationKind::PrintExportTrie:
             return OperationTypeFromKind<OperationKind::PrintExportTrie>::
+                SupportsObjectKind(ObjKind);
+        case OperationKind::PrintObjcClassList:
+            return OperationTypeFromKind<OperationKind::PrintObjcClassList>::
                 SupportsObjectKind(ObjKind);
     }
 
@@ -189,6 +194,10 @@ PrintOperation::Run(OperationKind Kind,
             return
                 OperationKindInfo<OperationKind::PrintExportTrie>::Type::run(
                     Object, Argc, Argv);
+        case OperationKind::PrintObjcClassList:
+            return
+                OperationKindInfo<OperationKind::PrintObjcClassList>::Type::run(
+                    Object, Argc, Argv);
     }
 }
 
@@ -228,6 +237,10 @@ PrintOperation::Run(OperationKind Kind,
             return
                 OperationTypeFromKind<OperationKind::PrintExportTrie>::run(
                     Object, cast<OperationKind::PrintExportTrie>(Options));
+        case OperationKind::PrintObjcClassList:
+            return
+                OperationTypeFromKind<OperationKind::PrintObjcClassList>::run(
+                    Object, cast<OperationKind::PrintObjcClassList>(Options));
     }
 
     return 0;

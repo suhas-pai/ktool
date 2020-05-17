@@ -1,8 +1,8 @@
 //
-//  include/Operations/PrintExportTrie.h
+//  include/Operations/PrintObjcClassList.h
 //  stool
 //
-//  Created by Suhas Pai on 5/9/20.
+//  Created by Suhas Pai on 5/16/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
@@ -12,9 +12,9 @@
 #include "Kind.h"
 #include "Objects/MachOMemory.h"
 
-struct PrintExportTrieOperation : public PrintOperation {
+struct PrintObjcClassListOperation : public PrintOperation {
 public:
-    constexpr static const auto OpKind = OperationKind::PrintExportTrie;
+    constexpr static const auto OpKind = OperationKind::PrintObjcClassList;
     constexpr static inline bool IsOfKind(const Operation &Opt) noexcept {
         return (Opt.GetKind() == OpKind);
     }
@@ -26,7 +26,7 @@ public:
         }
 
         bool Verbose : 1;
-        bool PrintReexportDylibPaths : 1;
+        bool Sort : 1;
     };
 protected:
     Options Options;
@@ -34,8 +34,9 @@ protected:
     static struct Options
     ParseOptionsImpl(int Argc, const char *Argv[], int *IndexOut) noexcept;
 public:
-    explicit PrintExportTrieOperation() noexcept;
-    explicit PrintExportTrieOperation(const struct Options &Options) noexcept;
+    explicit PrintObjcClassListOperation() noexcept;
+    explicit PrintObjcClassListOperation(const struct Options &Options)
+    noexcept;
 
     static struct Options *
     ParseOptions(int Argc, const char *Argv[], int *IndexOut) noexcept;
@@ -65,4 +66,5 @@ public:
         assert(0 && "Reached end of SupportsObjectKind()");
     }
 };
+
 
