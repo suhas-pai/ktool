@@ -397,8 +397,7 @@ namespace MachO {
         return nullptr;
     }
 
-    uint8_t *
-    GetDataForSegment(uint8_t *Map, const SegmentInfo &Info) noexcept {
+    uint8_t *GetDataForSegment(uint8_t *Map, const SegmentInfo &Info) noexcept {
         return (Map + Info.File.getBegin());
     }
 
@@ -407,8 +406,7 @@ namespace MachO {
         return (Map + Info.File.getBegin());
     }
 
-    uint8_t *
-    GetDataForSection(uint8_t *Map, const SectionInfo &Info) noexcept {
+    uint8_t *GetDataForSection(uint8_t *Map, const SectionInfo &Info) noexcept {
         return (Map + Info.File.getBegin());
     }
 
