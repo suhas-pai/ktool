@@ -34,7 +34,7 @@
 static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
     if (Arg[0] == '-' && Arg[1] != '-') {
         const auto ShortName = Operation::GetOptionShortName(Kind).data();
-        if (strcmp(Arg + 1, ShortName) == 0) {
+        if (ShortName != nullptr && strcmp(Arg + 1, ShortName) == 0) {
             return true;
         }
     } else if (strcmp(Arg + 2, Operation::GetOptionName(Kind).data()) == 0) {
