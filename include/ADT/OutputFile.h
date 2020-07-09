@@ -17,9 +17,11 @@ public:
     explicit OutputFile() noexcept;
     ~OutputFile() noexcept;
 
-    inline bool IsOpen() const noexcept { return Tmp.IsOpen(); }
-    inline bool IsEmpty() const noexcept { return Tmp.IsEmpty(); }
-    inline bool HasError() const noexcept { return Tmp.HasError(); }
+    [[nodiscard]] inline bool IsOpen() const noexcept { return Tmp.IsOpen(); }
+    [[nodiscard]] inline bool IsEmpty() const noexcept { return Tmp.IsEmpty(); }
+    [[nodiscard]] inline bool hasError() const noexcept {
+        return Tmp.hasError();
+    }
 
     bool Read(void *Buf, size_t Size) const noexcept;
     bool Write(const void *Buf, size_t Size) noexcept;

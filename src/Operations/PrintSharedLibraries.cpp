@@ -1,5 +1,5 @@
 //
-//  include/Operations/PrintSharedLibraries.cpp
+//  src/Operations/PrintSharedLibraries.cpp
 //  stool
 //
 //  Created by Suhas Pai on 4/4/20.
@@ -20,23 +20,15 @@
 #include "Operation.h"
 #include "PrintSharedLibraries.h"
 
-PrintSharedLibrariesOperation::PrintSharedLibrariesOperation() noexcept
-: PrintOperation(OpKind) {}
-
 PrintSharedLibrariesOperation::PrintSharedLibrariesOperation(
     const struct Options &Options) noexcept
-: PrintOperation(OpKind), Options(Options) {}
-
-int PrintSharedLibrariesOperation::run(const ConstMemoryObject &Object)
-noexcept {
-    return run(Object, Options);
-}
+: Operation(OpKind), Options(Options) {}
 
 int
-PrintSharedLibrariesOperation::run(const ConstMachOMemoryObject &Object,
+PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
                                    const struct Options &Options) noexcept
 {
-    constexpr static const auto LongestLCKindLength =
+    constexpr static auto LongestLCKindLength =
         MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::LoadUpwardDylib>::Name.length();
 
@@ -52,7 +44,7 @@ PrintSharedLibrariesOperation::run(const ConstMachOMemoryObject &Object,
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
-    if (LoadCmdStorage.HasError()) {
+    if (LoadCmdStorage.hasError()) {
         return 1;
     }
 
@@ -61,7 +53,7 @@ PrintSharedLibrariesOperation::run(const ConstMachOMemoryObject &Object,
     auto MaxDylibNameLength = std::string_view::size_type();
 
     for (const auto &LoadCmd : LoadCmdStorage) {
-        const auto LCKind = LoadCmd.GetKind(IsBigEndian);
+        const auto LCKind = LoadCmd.getKind(IsBigEndian);
         switch (LCKind) {
             case MachO::LoadCommand::Kind::LoadDylib:
                 static_assert(MachO::LoadCommandKindInfo<
@@ -95,7 +87,7 @@ PrintSharedLibrariesOperation::run(const ConstMachOMemoryObject &Object,
                               "record-holder");
 
                 const auto &DylibCmd =
-                    cast<const MachO::DylibCommand &>(LoadCmd, IsBigEndian);
+                    cast<MachO::DylibCommand>(LoadCmd, IsBigEndian);
 
                 const auto GetNameResult = DylibCmd.GetName(IsBigEndian);
                 const auto &Name =
@@ -170,7 +162,7 @@ PrintSharedLibrariesOperation::run(const ConstMachOMemoryObject &Object,
     }
 
     fprintf(Options.OutFile,
-            "%" PRIuPTR " Shared Libraries:\n",
+            "Provided file has %" PRIuPTR " Shared Libraries:\n",
             DylibList.size());
 
     auto Counter = static_cast<uint32_t>(1);
@@ -183,15 +175,20 @@ PrintSharedLibrariesOperation::run(const ConstMachOMemoryObject &Object,
                 static_cast<int>(LongestLCKindLength),
                 MachO::LoadCommand::KindGetName(DylibInfo.Kind).data());
 
-        fprintf(Options.OutFile,
-                "%" PRINTF_RIGHTPAD_FMT "s",
-                static_cast<int>(MaxDylibNameLength),
-                DylibInfo.Name.data());
+        const auto WrittenOut =
+            fprintf(Options.OutFile, "\"%s\"", DylibInfo.Name.data());
 
-        MachOTypePrinter<struct MachO::DylibCommand::Info>::PrintOnOneLine(
-            Options.OutFile, DylibInfo.Info, IsBigEndian, Options.Verbose, " (",
-            ")\n");
+        if (Options.Verbose) {
+            PrintUtilsRightPadSpaces(Options.OutFile,
+                                     WrittenOut,
+                                     static_cast<int>(MaxDylibNameLength) + 2);
 
+            MachOTypePrinter<struct MachO::DylibCommand::Info>::PrintOnOneLine(
+                Options.OutFile, DylibInfo.Info, IsBigEndian, true, " (",
+                ")");
+        }
+
+        fputc('\n', Options.OutFile);
         Counter++;
     }
 
@@ -199,18 +196,16 @@ PrintSharedLibrariesOperation::run(const ConstMachOMemoryObject &Object,
 }
 
 struct PrintSharedLibrariesOperation::Options
-PrintSharedLibrariesOperation::ParseOptionsImpl(int Argc,
-                                                const char *Argv[],
+PrintSharedLibrariesOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                 int *IndexOut) noexcept
 {
     struct Options Options;
-    for (auto I = int(); I != Argc; I++) {
-        const auto Argument = Argv[I];
+    for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
-        } else if (Argument[0] != '-') {
+        } else if (!Argument.IsOption()) {
             if (IndexOut != nullptr) {
-                *IndexOut = I;
+                *IndexOut = Argv.indexOf(Argument);
             }
 
             break;
@@ -218,7 +213,7 @@ PrintSharedLibrariesOperation::ParseOptionsImpl(int Argc,
             fprintf(stderr,
                     "Unrecognized argument for operation %s: %s\n",
                     OperationKindInfo<OpKind>::Name.data(),
-                    Argument);
+                    Argument.getString());
             exit(1);
         }
     }
@@ -226,36 +221,23 @@ PrintSharedLibrariesOperation::ParseOptionsImpl(int Argc,
     return Options;
 }
 
-struct PrintSharedLibrariesOperation::Options *
-PrintSharedLibrariesOperation::ParseOptions(int Argc,
-                                            const char *Argv[],
+void
+PrintSharedLibrariesOperation::ParseOptions(const ArgvArray &Argv,
                                             int *IndexOut) noexcept
 {
-    return new struct Options(ParseOptionsImpl(Argc, Argv, IndexOut));
+    Options = ParseOptionsImpl(Argv, IndexOut);
 }
 
 int
-PrintSharedLibrariesOperation::run(const ConstMemoryObject &Object,
-                                   const struct Options &Options) noexcept
-{
-    switch (Object.GetKind()) {
+PrintSharedLibrariesOperation::Run(const MemoryObject &Object) const noexcept {
+    switch (Object.getKind()) {
         case ObjectKind::None:
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
-            return run(cast<ObjectKind::MachO>(Object), Options);
+            return Run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
-            PrintObjectKindNotSupportedError(OpKind, Object);
-            return 1;
+            return InvalidObjectKind;
     }
 
-    assert(0 && "Reached end with unrecognizable Object-Kind");
-}
-
-int
-PrintSharedLibrariesOperation::run(const ConstMemoryObject &Object,
-                                   int Argc,
-                                   const char *Argv[]) noexcept
-{
-    assert(Object.GetKind() != ObjectKind::None);
-    return run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
+    assert(0 && "Unrecognized Object-Kind");
 }

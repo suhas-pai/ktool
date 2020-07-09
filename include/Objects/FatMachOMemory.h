@@ -15,8 +15,10 @@
 #include "MachOMemory.h"
 #include "MemoryBase.h"
 
+struct ConstFatMachOMemoryObject;
 struct FatMachOMemoryObject : public MemoryObject {
 public:
+    constexpr static auto ObjKind = ObjectKind::FatMachO;
     enum class Error {
         None,
 
@@ -41,52 +43,79 @@ protected:
     FatMachOMemoryObject(const MemoryMap &Map) noexcept;
     FatMachOMemoryObject(Error Error) noexcept;
 public:
+    [[nodiscard]]
     static FatMachOMemoryObject Open(const MemoryMap &Map) noexcept;
+
+    [[nodiscard]]
     static inline bool IsOfKind(const MemoryObject &Obj) noexcept {
-        return (Obj.GetKind() == ObjectKind::FatMachO);
+        return (Obj.getKind() == ObjectKind::FatMachO);
     }
 
-    bool DidMatchFormat() const noexcept override;
-    MemoryObject *ToPtr() const noexcept override;
+    [[nodiscard]] bool DidMatchFormat() const noexcept override;
+    [[nodiscard]] MemoryObject *ToPtr() const noexcept override;
 
-    inline Error GetError() const noexcept { return ErrorStorage.GetValue(); }
-    inline bool HasError() const noexcept override {
-        return ErrorStorage.HasValue();
+    [[nodiscard]] inline Error getError() const noexcept {
+        return ErrorStorage.getValue();
     }
 
-    inline MemoryMap GetMap() const noexcept override {
+    [[nodiscard]] inline bool hasError() const noexcept override {
+        return ErrorStorage.hasValue();
+    }
+
+    [[nodiscard]] inline MemoryMap getMap() const noexcept {
         return MemoryMap(Map, End);
     }
 
-    inline ConstMemoryMap GetConstMap() const noexcept override {
+    [[nodiscard]] inline ConstMemoryMap getConstMap() const noexcept override {
         return ConstMemoryMap(Map, End);
     }
 
-    inline RelativeRange GetRange() const noexcept override {
+    [[nodiscard]] inline RelativeRange getRange() const noexcept override {
         return RelativeRange(End - Map);
     }
 
-    inline MachO::FatHeader &GetHeader() noexcept { return *Header; }
-    inline const MachO::FatHeader &GetConstHeader() const noexcept {
+    [[nodiscard]] inline MachO::FatHeader &getHeader() noexcept {
         return *Header;
     }
 
-    inline bool IsBigEndian() const noexcept { return Header->IsBigEndian(); }
-    inline bool Is64Bit() const noexcept { return Header->Is64Bit(); }
-    inline uint32_t GetArchCount() const noexcept {
+    [[nodiscard]]
+    inline const MachO::FatHeader &getConstHeader() const noexcept {
+        return *Header;
+    }
+
+    [[nodiscard]] inline bool IsBigEndian() const noexcept {
+        return Header->IsBigEndian();
+    }
+
+    [[nodiscard]] inline bool Is64Bit() const noexcept {
+        return Header->Is64Bit();
+    }
+
+    [[nodiscard]] inline uint32_t getArchCount() const noexcept {
         return SwitchEndianIf(Header->NFatArch, this->IsBigEndian());
     }
 
-    inline operator ConstFatMachOMemoryObject &() noexcept {
-        return reinterpret_cast<ConstFatMachOMemoryObject &>(*this);
-    }
-
-    inline operator const ConstFatMachOMemoryObject &() const noexcept {
+    [[nodiscard]]
+    inline const ConstFatMachOMemoryObject &toConst() const noexcept {
         return reinterpret_cast<const ConstFatMachOMemoryObject &>(*this);
     }
 
-    inline enum MachO::FatHeader::Magic GetMagic() const noexcept {
-        return GetConstHeader().Magic;
+    [[nodiscard]] inline ConstFatMachOMemoryObject &toConst() noexcept {
+        return reinterpret_cast<ConstFatMachOMemoryObject &>(*this);
+    }
+
+    [[nodiscard]] inline operator ConstFatMachOMemoryObject &() noexcept {
+        return toConst();
+    }
+
+    [[nodiscard]]
+    inline operator const ConstFatMachOMemoryObject &() const noexcept {
+        return toConst();
+    }
+
+    [[nodiscard]]
+    inline enum MachO::FatHeader::Magic getMagic() const noexcept {
+        return getConstHeader().Magic;
     }
 
     using Arch32List = MachO::FatHeader::Arch32List;
@@ -95,25 +124,27 @@ public:
     using ConstArch32List = MachO::FatHeader::ConstArch32List;
     using ConstArch64List = MachO::FatHeader::ConstArch64List;
 
-    inline Arch32List GetArch32List(bool IsBigEndian) noexcept {
-        return Header->GetArch32List(IsBigEndian);
+    [[nodiscard]] inline Arch32List getArch32List(bool IsBigEndian) noexcept {
+        return Header->getArch32List(IsBigEndian);
     }
 
-    inline Arch64List GetArch64List(bool IsBigEndian) noexcept {
-        return Header->GetArch64List(IsBigEndian);
+    [[nodiscard]] inline Arch64List getArch64List(bool IsBigEndian) noexcept {
+        return Header->getArch64List(IsBigEndian);
     }
 
-    inline ConstArch32List GetConstArch32List(bool IsBigEndian) const noexcept {
-        return Header->GetConstArch32List(IsBigEndian);
+    [[nodiscard]]
+    inline ConstArch32List getConstArch32List(bool IsBigEndian) const noexcept {
+        return Header->getConstArch32List(IsBigEndian);
     }
 
-    inline ConstArch64List GetConstArch64List(bool IsBigEndian) const noexcept {
-        return Header->GetConstArch64List(IsBigEndian);
+    [[nodiscard]]
+    inline ConstArch64List getConstArch64List(bool IsBigEndian) const noexcept {
+        return Header->getConstArch64List(IsBigEndian);
     }
 
     struct ArchInfo {
-        Mach::CpuType CpuType;
-        int32_t CpuSubType;
+        Mach::CpuKind CpuKind;
+        int32_t CpuSubKind;
         uint64_t Offset;
         uint64_t Size;
         uint32_t Align;
@@ -123,7 +154,7 @@ public:
 
     enum class GetObjectResultWarningEnum {
         None,
-        MachOCpuTypeMismatch
+        MachOCpuKindMismatch
     };
 
     template <typename MemoryObjectType>
@@ -140,11 +171,15 @@ public:
         GetObjectResultTemplate(WarningEnum Warning) noexcept
         : Warning(Warning) {}
 
-        GetObjectResultTemplate(MemoryObjectType *Object, WarningEnum Warning)
-        noexcept : Object(Object), Warning(Warning) {}
+        GetObjectResultTemplate(MemoryObjectType *Object,
+                                WarningEnum Warning) noexcept
+        : Object(Object), Warning(Warning) {}
 
-        inline MemoryObjectType *GetObject() const noexcept { return Object; }
-        inline WarningEnum GetWarning() const noexcept {
+        [[nodiscard]] inline MemoryObjectType *getObject() const noexcept {
+            return Object;
+        }
+
+        [[nodiscard]] inline WarningEnum getWarning() const noexcept {
             return Warning;
         }
     };
@@ -153,86 +188,47 @@ public:
     GetObjectResult GetArchObjectFromInfo(const ArchInfo &Info) const noexcept;
 };
 
-struct ConstFatMachOMemoryObject : public ConstMemoryObject {
-public:
-    using Error = FatMachOMemoryObject::Error;
+struct ConstFatMachOMemoryObject : public FatMachOMemoryObject {
 protected:
-    union {
-        const uint8_t *Map;
-        const MachO::FatHeader *Header;
-        PointerErrorStorage<Error> ErrorStorage;
-    };
-
-    const uint8_t *End;
-
     ConstFatMachOMemoryObject(const ConstMemoryMap &Map) noexcept;
     ConstFatMachOMemoryObject(Error Error) noexcept;
 public:
+    [[nodiscard]]
     static ConstFatMachOMemoryObject Open(const ConstMemoryMap &Map) noexcept;
-    static inline bool IsOfKind(const ConstMemoryObject &Obj) noexcept {
-        return (Obj.GetKind() == ObjectKind::FatMachO);
-    }
 
-    bool DidMatchFormat() const noexcept override;
-    ConstMemoryObject *ToPtr() const noexcept override;
-
-    inline Error GetError() const noexcept { return ErrorStorage.GetValue(); }
-    inline bool HasError() const noexcept override {
-        return ErrorStorage.HasValue();
-    }
-
-    inline ConstMemoryMap GetMap() const noexcept override {
+    [[nodiscard]] inline ConstMemoryMap getMap() const noexcept {
+        assert(!hasError());
         return ConstMemoryMap(Map, End);
     }
 
-    inline ConstMemoryMap GetConstMap() const noexcept override {
-        return ConstMemoryMap(Map, End);
-    }
-
-    inline RelativeRange GetRange() const noexcept override {
-        assert(!HasError());
+    [[nodiscard]] inline RelativeRange getRange() const noexcept override {
+        assert(!hasError());
         return RelativeRange(End - Map);
     }
 
-    inline const MachO::FatHeader &GetHeader() noexcept {
+    [[nodiscard]] inline const MachO::FatHeader &getHeader() noexcept {
         return *Header;
     }
 
-    inline const MachO::FatHeader &GetConstHeader() const noexcept {
+    [[nodiscard]]
+    inline const MachO::FatHeader &getConstHeader() const noexcept {
         return *Header;
     }
-
-    inline bool IsBigEndian() const noexcept { return Header->IsBigEndian(); }
-    inline bool Is64Bit() const noexcept { return Header->Is64Bit(); }
-    inline uint32_t GetArchCount() const noexcept {
-        return Header->GetArchsCount();
-    }
-
-    inline enum MachO::FatHeader::Magic GetMagic() const noexcept {
-        return GetConstHeader().Magic;
-    }
-
-    using Arch32List = MachO::FatHeader::Arch32List;
-    using Arch64List = MachO::FatHeader::Arch64List;
 
     using ConstArch32List = MachO::FatHeader::ConstArch32List;
     using ConstArch64List = MachO::FatHeader::ConstArch64List;
 
-    inline ConstArch32List GetConstArch32List(bool IsBigEndian) const noexcept {
-        return Header->GetConstArch32List(IsBigEndian);
+    [[nodiscard]]
+    inline ConstArch32List getConstArch32List(bool IsBigEndian) const noexcept {
+        return Header->getConstArch32List(IsBigEndian);
     }
 
-    inline ConstArch64List GetConstArch64List(bool IsBigEndian) const noexcept {
-        return Header->GetConstArch64List(IsBigEndian);
+    [[nodiscard]]
+    inline ConstArch64List getConstArch64List(bool IsBigEndian) const noexcept {
+        return Header->getConstArch64List(IsBigEndian);
     }
 
     using ArchInfo = FatMachOMemoryObject::ArchInfo;
     using GetObjectResult =
-        FatMachOMemoryObject::GetObjectResultTemplate<ConstMemoryObject>;
-
-    ArchInfo GetArchInfoAtIndex(uint32_t Index) const noexcept;
-    GetObjectResult GetArchObjectFromInfo(const ArchInfo &Info) const noexcept;
+        FatMachOMemoryObject::GetObjectResultTemplate<MemoryObject>;
 };
-
-static_assert(sizeof(FatMachOMemoryObject) == sizeof(ConstFatMachOMemoryObject),
-              "FatMachOMemoryObject and its const-class are not the same size");

@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "ADT/Mach-O/LoadCommandStorage.h"
 #include "ADT/Mach.h"
 #include "ADT/MachO.h"
 #include "ADT/MemoryMap.h"
@@ -18,6 +17,7 @@
 
 struct MachOMemoryObject : public MemoryObject {
 public:
+    constexpr static auto ObjKind = ObjectKind::MachO;
     enum class Error : uintptr_t {
         None,
 
@@ -38,138 +38,106 @@ protected:
     MachOMemoryObject(Error Error) noexcept;
     explicit MachOMemoryObject(const MemoryMap &Map) noexcept;
 public:
-    static MachOMemoryObject Open(const MemoryMap &Map) noexcept;
+    [[nodiscard]] static MachOMemoryObject Open(const MemoryMap &Map) noexcept;
+
+    [[nodiscard]]
     static inline bool IsOfKind(const MemoryObject &Obj) noexcept {
-        return (Obj.GetKind() == ObjectKind::MachO);
+        return (Obj.getKind() == ObjectKind::MachO);
     }
 
     virtual ~MachOMemoryObject() noexcept = default;
 
-    bool DidMatchFormat() const noexcept override;
-    MemoryObject *ToPtr() const noexcept override;
+    [[nodiscard]] bool DidMatchFormat() const noexcept override;
+    [[nodiscard]] MemoryObject *ToPtr() const noexcept override;
 
-    inline operator ConstMachOMemoryObject &() noexcept {
-        return reinterpret_cast<ConstMachOMemoryObject &>(*this);
-    }
-
-    inline operator const ConstMachOMemoryObject &() const noexcept {
+    [[nodiscard]]
+    inline const ConstMachOMemoryObject &toConst() const noexcept {
         return reinterpret_cast<const ConstMachOMemoryObject &>(*this);
     }
 
-    inline Error GetError() const noexcept { return ErrorStorage.GetValue(); }
-    inline bool HasError() const noexcept override {
-        return ErrorStorage.HasValue();
+    [[nodiscard]] inline ConstMachOMemoryObject &toConst() noexcept {
+        return reinterpret_cast<ConstMachOMemoryObject &>(*this);
     }
 
-    inline MemoryMap GetMap() const noexcept override {
+    [[nodiscard]] inline operator ConstMachOMemoryObject &() noexcept {
+        return toConst();
+    }
+
+    [[nodiscard]]
+    inline operator const ConstMachOMemoryObject &() const noexcept {
+        return toConst();
+    }
+
+    [[nodiscard]] inline Error getError() const noexcept {
+        return ErrorStorage.getValue();
+    }
+
+    [[nodiscard]] inline bool hasError() const noexcept override {
+        return ErrorStorage.hasValue();
+    }
+
+    [[nodiscard]] inline MemoryMap getMap() const noexcept {
         return MemoryMap(Map, End);
     }
 
-    inline ConstMemoryMap GetConstMap() const noexcept override {
-        return ConstMemoryMap(Map, End);
+    [[nodiscard]] inline ConstMemoryMap getConstMap() const noexcept override {
+        return MemoryMap(Map, End);
     }
 
-    inline RelativeRange GetRange() const noexcept override {
+    [[nodiscard]] inline RelativeRange getRange() const noexcept override {
         return RelativeRange(End - Map);
     }
 
-    inline MachO::Header &GetHeader() noexcept { return *Header; }
-    inline const MachO::Header &GetConstHeader() const noexcept {
+    [[nodiscard]] inline MachO::Header &getHeader() noexcept { return *Header; }
+    [[nodiscard]] inline const MachO::Header &getConstHeader() const noexcept {
         return *Header;
     }
 
-    MachO::LoadCommandStorage
+    [[nodiscard]] MachO::LoadCommandStorage
     GetLoadCommands(bool Verify = true) noexcept;
 
-    MachO::ConstLoadCommandStorage
+    [[nodiscard]] MachO::ConstLoadCommandStorage
     GetConstLoadCommands(bool Verify = true) const noexcept;
 
-    inline bool IsBigEndian() const noexcept { return Header->IsBigEndian(); }
-    inline bool Is64Bit() const noexcept { return Header->IsBigEndian(); }
-
-    inline enum MachO::Header::Magic GetMagic() const noexcept {
-        return GetConstHeader().Magic;
+    [[nodiscard]] inline bool IsBigEndian() const noexcept {
+        return Header->IsBigEndian();
     }
 
-    inline Mach::CpuType GetCpuType() const noexcept {
-        return GetConstHeader().GetCpuType();
+    [[nodiscard]] inline bool Is64Bit() const noexcept {
+        return Header->Is64Bit();
     }
 
-    inline enum MachO::Header::FileType GetFileType() const noexcept {
-        return GetConstHeader().GetFileType();
+    [[nodiscard]] inline enum MachO::Header::Magic getMagic() const noexcept {
+        return getConstHeader().Magic;
+    }
+
+    [[nodiscard]] inline Mach::CpuKind getCpuKind() const noexcept {
+        return getConstHeader().getCpuKind();
+    }
+
+    [[nodiscard]]
+    inline enum MachO::Header::FileKind getFileKind() const noexcept {
+        return getConstHeader().getFileKind();
     }
 };
 
-struct ConstMachOMemoryObject : public ConstMemoryObject {
-    friend struct MachOMemoryObject;
-public:
-    using Error = MachOMemoryObject::Error;
+struct ConstMachOMemoryObject : public MachOMemoryObject {
 protected:
-    union {
-        const uint8_t *Map;
-        const MachO::Header *Header;
-        PointerErrorStorage<Error> ErrorStorage;
-    };
-
-    const uint8_t *End;
-
     ConstMachOMemoryObject(Error Error) noexcept;
     explicit ConstMachOMemoryObject(const ConstMemoryMap &Map) noexcept;
 public:
+    [[nodiscard]]
     static ConstMachOMemoryObject Open(const ConstMemoryMap &Map) noexcept;
-    static inline bool IsOfKind(const ConstMemoryObject &Obj) noexcept {
-        return (Obj.GetKind() == ObjectKind::MachO);
-    }
-
     virtual ~ConstMachOMemoryObject() noexcept = default;
 
-    bool DidMatchFormat() const noexcept override;
-    ConstMemoryObject *ToPtr() const noexcept override;
-
-    inline Error GetError() const noexcept { return ErrorStorage.GetValue(); }
-    inline bool HasError() const noexcept override {
-        return ErrorStorage.HasValue();
-    }
-
-    inline ConstMemoryMap GetMap() const noexcept override {
+    [[nodiscard]] inline ConstMemoryMap getMap() const noexcept {
         return ConstMemoryMap(Map, End);
     }
 
-    inline ConstMemoryMap GetConstMap() const noexcept override {
-        return ConstMemoryMap(Map, End);
-    }
-
-    inline RelativeRange GetRange() const noexcept override {
-        return RelativeRange(End - Map);
-    }
-
-    inline const MachO::Header &GetHeader() noexcept { return *Header; }
-    inline const MachO::Header &GetConstHeader() const noexcept {
+    [[nodiscard]] inline const MachO::Header &getHeader() noexcept {
         return *Header;
     }
 
-    inline operator ConstMemoryMap() const noexcept override {
-        return ConstMemoryMap(this->Map, this->End);
-    }
-
-    MachO::ConstLoadCommandStorage
+    [[nodiscard]] MachO::ConstLoadCommandStorage
     GetLoadCommands(bool Verify = true) const noexcept;
-
-    inline bool IsBigEndian() const noexcept { return Header->IsBigEndian(); }
-    inline bool Is64Bit() const noexcept { return Header->Is64Bit(); }
-
-    inline enum MachO::Header::Magic GetMagic() const noexcept {
-        return GetConstHeader().Magic;
-    }
-
-    inline Mach::CpuType GetCpuType() const noexcept {
-        return GetConstHeader().GetCpuType();
-    }
-
-    inline enum MachO::Header::FileType GetFileType() const noexcept {
-        return GetConstHeader().GetFileType();
-    }
 };
-
-static_assert(sizeof(MachOMemoryObject) == sizeof(ConstMachOMemoryObject),
-              "MachOMemoryObject and its const-class are not the same size");

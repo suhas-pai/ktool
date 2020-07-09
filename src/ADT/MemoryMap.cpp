@@ -14,7 +14,7 @@ MemoryMap::MemoryMap(uint8_t *Begin, uint8_t *End) noexcept
 
 ConstMemoryMap::ConstMemoryMap(const uint8_t *Begin,
                                const uint8_t *End) noexcept
-: Begin(Begin), End(End) {}
+: MemoryMap(const_cast<uint8_t *>(Begin), const_cast<uint8_t *>(End)) {}
 
 ConstMemoryMap::ConstMemoryMap(const MemoryMap &Map) noexcept
-: Begin(Map.GetBegin()), End(Map.GetEnd()) {}
+: MemoryMap(Map) {}

@@ -1,5 +1,5 @@
 //
-//  include/Operations/Base.cpp
+//  src/Operations/Base.cpp
 //  stool
 //
 //  Created by Suhas Pai on 4/4/20.
@@ -19,89 +19,82 @@
 #include "PrintFlags.h"
 
 Operation::Operation(OperationKind Kind) noexcept : Kind(Kind) {}
-PrintOperation::PrintOperation(OperationKind Kind) noexcept :
-Operation(Kind) {}
-
-int
-Operation::Run(OperationKind Kind,
-               const MemoryObject &Object,
-               int Argc,
-               const char *Argv[]) noexcept
-{
-    switch (Kind) {
-        case OperationKind::None:
-            assert(0 && "Operation-Kind is None");
-        case OperationKind::PrintHeader:
-        case OperationKind::PrintLoadCommands:
-        case OperationKind::PrintSharedLibraries:
-        case OperationKind::PrintId:
-        case OperationKind::PrintArchList:
-        case OperationKind::PrintFlags:
-        case OperationKind::PrintExportTrie:
-        case OperationKind::PrintObjcClassList:
-            return PrintOperation::Run(Kind, Object, Argc, Argv);
-    }
-}
-
-int
-Operation::Run(OperationKind Kind,
-               const MemoryObject &Object,
-               const struct Options &Options) noexcept
-{
-    switch (Kind) {
-        case OperationKind::None:
-            assert(0 && "Operation-Kind is None");
-        case OperationKind::PrintHeader:
-        case OperationKind::PrintLoadCommands:
-        case OperationKind::PrintSharedLibraries:
-        case OperationKind::PrintId:
-        case OperationKind::PrintArchList:
-        case OperationKind::PrintFlags:
-        case OperationKind::PrintExportTrie:
-        case OperationKind::PrintObjcClassList:
-            return PrintOperation::Run(Kind,
-                                       Object,
-                                       cast<const PrintOperation::Options &>(
-                                            Options));
-    }
-}
 
 static bool
-OperationKindSupportsObjectKind(OperationKind OpKind, ObjectKind ObjKind) {
+OperationKindSupportsObjectKind(OperationKind OpKind,
+                                ObjectKind ObjKind) noexcept
+{
     switch (OpKind) {
         case OperationKind::None:
             assert(0 && "Operation-Kind is None");
         case OperationKind::PrintHeader:
-            return OperationTypeFromKind<OperationKind::PrintHeader>::
-                SupportsObjectKind(ObjKind);
+            return
+                OperationTypeFromKind<OperationKind::PrintHeader>::
+                    SupportsObjectKind(ObjKind);
         case OperationKind::PrintLoadCommands:
-            return OperationTypeFromKind<OperationKind::PrintLoadCommands>::
-                SupportsObjectKind(ObjKind);
+            return
+                OperationTypeFromKind<OperationKind::PrintLoadCommands>::
+                    SupportsObjectKind(ObjKind);
         case OperationKind::PrintSharedLibraries:
-            return OperationTypeFromKind<OperationKind::PrintSharedLibraries>::
-                SupportsObjectKind(ObjKind);
+            return
+                OperationTypeFromKind<OperationKind::PrintSharedLibraries>::
+                    SupportsObjectKind(ObjKind);
         case OperationKind::PrintId:
-            return OperationTypeFromKind<OperationKind::PrintId>::
-                SupportsObjectKind(ObjKind);
+            return
+                OperationTypeFromKind<OperationKind::PrintId>::
+                    SupportsObjectKind(ObjKind);
         case OperationKind::PrintArchList:
-            return OperationTypeFromKind<OperationKind::PrintArchList>::
-                SupportsObjectKind(ObjKind);
+            return
+                OperationTypeFromKind<OperationKind::PrintArchList>::
+                    SupportsObjectKind(ObjKind);
         case OperationKind::PrintFlags:
-            return OperationTypeFromKind<OperationKind::PrintFlags>::
-                SupportsObjectKind(ObjKind);
+            return
+                OperationTypeFromKind<OperationKind::PrintFlags>::
+                    SupportsObjectKind(ObjKind);
         case OperationKind::PrintExportTrie:
-            return OperationTypeFromKind<OperationKind::PrintExportTrie>::
-                SupportsObjectKind(ObjKind);
+            return
+                OperationTypeFromKind<OperationKind::PrintExportTrie>::
+                    SupportsObjectKind(ObjKind);
         case OperationKind::PrintObjcClassList:
-            return OperationTypeFromKind<OperationKind::PrintObjcClassList>::
-                SupportsObjectKind(ObjKind);
+            return
+                OperationTypeFromKind<OperationKind::PrintObjcClassList>::
+                    SupportsObjectKind(ObjKind);
+        case OperationKind::PrintBindActionList:
+            return
+                OperationTypeFromKind<OperationKind::PrintBindActionList>::
+                    SupportsObjectKind(ObjKind);
+        case OperationKind::PrintBindOpcodeList:
+            return
+                OperationTypeFromKind<OperationKind::PrintBindOpcodeList>::
+                    SupportsObjectKind(ObjKind);
+        case OperationKind::PrintBindSymbolList:
+            return
+                OperationTypeFromKind<OperationKind::PrintBindSymbolList>::
+                    SupportsObjectKind(ObjKind);
+        case OperationKind::PrintRebaseActionList:
+            return
+                OperationTypeFromKind<OperationKind::PrintRebaseActionList>::
+                    SupportsObjectKind(ObjKind);
+        case OperationKind::PrintRebaseOpcodeList:
+            return
+                OperationTypeFromKind<OperationKind::PrintRebaseOpcodeList>::
+                    SupportsObjectKind(ObjKind);
+        case OperationKind::PrintCStringSection:
+            return
+                OperationTypeFromKind<OperationKind::PrintCStringSection>::
+                    SupportsObjectKind(ObjKind);
+        case OperationKind::PrintSymbolPtrSection:
+            return
+                OperationTypeFromKind<OperationKind::PrintSymbolPtrSection>::
+                    SupportsObjectKind(ObjKind);
     }
 
     assert(0 && "Reached end of OperationKindSupportsObjectKind()");
 }
 
-static void PrintSelectArchMessage(const ConstFatMachOMemoryObject &Object) {
-    const auto ArchCount = Object.GetArchCount();
+static
+void PrintSelectArchMessage(const ConstFatMachOMemoryObject &Object) noexcept {
+    const auto ArchCount = Object.getArchCount();
     fprintf(stdout, "Please select one of %" PRIu32 " archs", ArchCount);
 
     if (ArchCount > 3) {
@@ -111,18 +104,39 @@ static void PrintSelectArchMessage(const ConstFatMachOMemoryObject &Object) {
 
     fputs(":\n", stdout);
     MachOTypePrinter<MachO::FatHeader>::PrintArchList(stdout,
-                                                      Object.GetConstHeader(),
+                                                      Object.getConstHeader(),
                                                       "",
                                                       "");
 }
 
 void
-PrintOperation::PrintObjectKindNotSupportedError(
-    OperationKind OpKind,
-    const ConstMemoryObject &Object) noexcept
+Operation::PrintLineSpamWarning(FILE *OutFile,
+                                     uint64_t LineAmount) noexcept
 {
-    assert(OpKind != OperationKind::None && "Operation-Kind is None");
-    switch (Object.GetKind()) {
+    if (!isatty(fileno(OutFile))) {
+        return;
+    }
+
+    if (LineAmount < 4500) {
+        return;
+    }
+
+    constexpr static const auto DelayAmount = 2;
+    fprintf(OutFile,
+            "Warning: %" PRIu64 " Lines will be printed in %d seconds\n\n",
+            LineAmount,
+            DelayAmount);
+
+    sleep(DelayAmount);
+}
+
+void
+Operation::PrintObjectKindNotSupportedError(
+    OperationKind OpKind,
+    const MemoryObject &Object) noexcept
+{
+    assert(OpKind != OperationKind::None);
+    switch (Object.getKind()) {
         case ObjectKind::None:
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
@@ -152,96 +166,379 @@ PrintOperation::PrintObjectKindNotSupportedError(
     assert(0 && "Reached end of PrintObjectKindNotSupportedError()");
 }
 
-int
-PrintOperation::Run(OperationKind Kind,
-                    const MemoryObject &Object,
-                    int Argc,
-                    const char *Argv[]) noexcept
-{
+std::string_view
+Operation::GetOptionShortName(OperationKind Kind) noexcept {
     switch (Kind) {
         case OperationKind::None:
-            assert(0 && "Operation-Kind is None");
+            assert(0 && "Object-Kind is None");
         case OperationKind::PrintHeader:
-            return
-                OperationKindInfo<OperationKind::PrintHeader>::Type::run(Object,
-                                                                         Argc,
-                                                                         Argv);
+            return "h"sv;
         case OperationKind::PrintLoadCommands:
-            return
-                OperationKindInfo<OperationKind::PrintLoadCommands>::Type::run(
-                    Object, Argc, Argv);
+            return "l"sv;
         case OperationKind::PrintSharedLibraries:
-            return
-                OperationKindInfo<
-                    OperationKind::PrintSharedLibraries>::Type::run(Object,
-                                                                    Argc,
-                                                                    Argv);
+            return "L"sv;
         case OperationKind::PrintId:
-            return
-                OperationKindInfo<OperationKind::PrintId>::Type::run(Object,
-                                                                     Argc,
-                                                                     Argv);
+            return "Id"sv;
         case OperationKind::PrintArchList:
-            return
-                OperationKindInfo<OperationKind::PrintArchList>::Type::run(
-                    Object, Argc, Argv);
         case OperationKind::PrintFlags:
-            return
-                OperationKindInfo<OperationKind::PrintFlags>::Type::run(Object,
-                                                                        Argc,
-                                                                        Argv);
         case OperationKind::PrintExportTrie:
-            return
-                OperationKindInfo<OperationKind::PrintExportTrie>::Type::run(
-                    Object, Argc, Argv);
         case OperationKind::PrintObjcClassList:
-            return
-                OperationKindInfo<OperationKind::PrintObjcClassList>::Type::run(
-                    Object, Argc, Argv);
+        case OperationKind::PrintBindActionList:
+        case OperationKind::PrintBindOpcodeList:
+        case OperationKind::PrintBindSymbolList:
+        case OperationKind::PrintRebaseActionList:
+        case OperationKind::PrintRebaseOpcodeList:
+        case OperationKind::PrintCStringSection:
+        case OperationKind::PrintSymbolPtrSection:
+            return std::string_view();
     }
 }
 
-int
-PrintOperation::Run(OperationKind Kind,
-                    const MemoryObject &Object,
-                    const struct Options &Options) noexcept
+std::string_view Operation::GetOptionName(OperationKind Kind) noexcept {
+    switch (Kind) {
+        case OperationKind::None:
+            assert(0 && "Object-Kind is None");
+        case OperationKind::PrintHeader:
+            return "header"sv;
+        case OperationKind::PrintLoadCommands:
+            return "lc"sv;
+        case OperationKind::PrintSharedLibraries:
+            return "libraries"sv;
+        case OperationKind::PrintId:
+            return "Identity"sv;
+        case OperationKind::PrintArchList:
+            return "list-archs"sv;
+        case OperationKind::PrintFlags:
+            return "list-flags"sv;
+        case OperationKind::PrintExportTrie:
+            return "list-export-trie"sv;
+        case OperationKind::PrintObjcClassList:
+            return "list-objc-classes"sv;
+        case OperationKind::PrintBindActionList:
+            return "list-bind-actions"sv;
+        case OperationKind::PrintBindOpcodeList:
+            return "list-bind-opcodes"sv;
+        case OperationKind::PrintBindSymbolList:
+            return "list-bind-symbols"sv;
+        case OperationKind::PrintRebaseActionList:
+            return "list-rebase-actions"sv;
+        case OperationKind::PrintRebaseOpcodeList:
+            return "list-rebase-opcodes"sv;
+        case OperationKind::PrintCStringSection:
+            return "list-c-string-section"sv;
+        case OperationKind::PrintSymbolPtrSection:
+            return "list-symbol-ptr-section"sv;
+    }
+}
+
+std::string_view
+Operation::GetOptionDescription(OperationKind Kind) noexcept {
+    switch (Kind) {
+        case OperationKind::None:
+            assert(0 && "Object-Kind is None");
+        case OperationKind::PrintHeader:
+            return "Print header of a Mach-O File"sv;
+        case OperationKind::PrintLoadCommands:
+            return "Print Load-commands of a Thin Mach-O File"sv;
+        case OperationKind::PrintSharedLibraries:
+            return "Print imported Shared-Libraries of a Thin Mach-O File"sv;
+        case OperationKind::PrintId:
+            return "Print Identification of a Thin Mach-O File"sv;
+        case OperationKind::PrintArchList:
+            return "List Archs of a FAT Mach-O File"sv;
+        case OperationKind::PrintFlags:
+            return "List Header-Flags of a Thin Mach-O File"sv;
+        case OperationKind::PrintExportTrie:
+            return "List Export-Trie of a Thin Mach-O File"sv;
+        case OperationKind::PrintObjcClassList:
+            return "List Objc-Classes of a Thin Mach-O File"sv;
+        case OperationKind::PrintBindActionList:
+            return "List Bind-Actions of a Thin Mach-O File"sv;
+        case OperationKind::PrintBindOpcodeList:
+            return "List Bind-Opcodes of a Thin Mach-O File"sv;
+        case OperationKind::PrintBindSymbolList:
+            return "List Bind-Symbols of a Thin Mach-O File"sv;
+        case OperationKind::PrintRebaseActionList:
+            return "List Rebase-Actions of a Thin Mach-O File"sv;
+        case OperationKind::PrintRebaseOpcodeList:
+            return "List Rebase-Opcodes of a Thin Mach-O File"sv;
+        case OperationKind::PrintCStringSection: {
+            const auto Desc =
+                "List C-Strings of a C-String Section of a Thin Mach-O File"sv;
+
+            return Desc;
+        }
+        case OperationKind::PrintSymbolPtrSection: {
+            const auto Desc =
+                "List Symbols of a Symbol-Ptr Section of a Thin Mach-O File"sv;
+
+            return Desc;
+        }
+    }
+}
+
+void
+Operation::PrintOptionHelpMenu(OperationKind Kind,
+                               FILE *OutFile,
+                               const char *Prefix) noexcept
 {
     switch (Kind) {
         case OperationKind::None:
             assert(0 && "Operation-Kind is None");
         case OperationKind::PrintHeader:
-            return
-                OperationTypeFromKind<OperationKind::PrintHeader>::run(
-                    Object, cast<OperationKind::PrintHeader>(Options));
         case OperationKind::PrintLoadCommands:
-            return
-                OperationTypeFromKind<OperationKind::PrintLoadCommands>::run(
-                    Object, cast<OperationKind::PrintLoadCommands>(Options));
         case OperationKind::PrintSharedLibraries:
-            return
-                OperationTypeFromKind<OperationKind::PrintSharedLibraries>::run(
-                    Object, cast<OperationKind::PrintSharedLibraries>(Options));
         case OperationKind::PrintId:
-            return
-                OperationTypeFromKind<OperationKind::PrintId>::run(Object,
-                    cast<OperationKind::PrintId>(Options));
         case OperationKind::PrintArchList:
-            return
-                OperationTypeFromKind<OperationKind::PrintArchList>::run(Object,
-                    cast<OperationKind::PrintArchList>(Options));
         case OperationKind::PrintFlags:
-            return
-                OperationTypeFromKind<OperationKind::PrintFlags>::run(Object,
-                    cast<OperationKind::PrintFlags>(Options));
+            fprintf(OutFile,
+                    "%s-v, --verbose, Print more Verbose Information\n",
+                    Prefix);
+            break;
         case OperationKind::PrintExportTrie:
-            return
-                OperationTypeFromKind<OperationKind::PrintExportTrie>::run(
-                    Object, cast<OperationKind::PrintExportTrie>(Options));
+            fprintf(OutFile,
+                    "%s    --require-kind,    Only print exports with a "
+                    "specific kind\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --require-section, Only print exports with a "
+                    "specific section\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort,            Sort every node and exports\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s-v, --verbose,         Print more Verbose Information\n",
+                    Prefix);
+            break;
         case OperationKind::PrintObjcClassList:
-            return
-                OperationTypeFromKind<OperationKind::PrintObjcClassList>::run(
-                    Object, cast<OperationKind::PrintObjcClassList>(Options));
+            fprintf(OutFile,
+                    "%s    --include-categories,    Include Objective-C Class "
+                    "Categories\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-dylib-ordinal, Sort Objective-C Classes "
+                    "by Dylib-Ordinal\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-kind,          Sort Objective-C Classes "
+                    "by Kind\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-name,          Sort Objective-C Classes "
+                    "by Name\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --tree,                  Print Objective-C Classes "
+                    "in a tree\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s-v, --verbose,               Print more Verbose "
+                    "Information\n",
+                    Prefix);
+            break;
+        case OperationKind::PrintBindActionList:
+            fprintf(OutFile,
+                    "%s    --only-normal,           Only Print Normal-Bind "
+                    "Action-List\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --only-lazy,             Only Print Lazy-Bind "
+                    "Action-List\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --only-weak,             Only Print Weak-Bind "
+                    "Action-List\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-dylib-ordinal, Sort Bind-Actions by "
+                    "Dylib-Ordinal\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-name,          Sort Bind-Actions by "
+                    "Symbol-Name\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-type,          Sort Bind-Actions by "
+                    "Type\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s-v, --verbose,               Print more Verbose "
+                    "Information\n",
+                    Prefix);
+            break;
+        case OperationKind::PrintBindOpcodeList:
+            fprintf(OutFile,
+                    "%s    --only-normal,           Only Print Normal-Bind "
+                    "Opcode-List\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --only-lazy,             Only Print Lazy-Bind "
+                    "Opcode-List\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --only-weak,             Only Print Weak-Bind "
+                    "Opcode-List\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s-v, --verbose,               Print more Verbose "
+                    "Information\n",
+                    Prefix);
+            break;
+        case OperationKind::PrintBindSymbolList:
+            fprintf(OutFile,
+                    "%s    --only-normal,           Only Print Normal-Bind "
+                    "Action-List\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --only-lazy,             Only Print Lazy-Bind "
+                    "Action-List\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --only-weak,             Only Print Weak-Bind "
+                    "Action-List\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-dylib-ordinal, Sort Bind-Actions by "
+                    "Dylib-Ordinal\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-name,          Sort Bind-Actions by "
+                    "Symbol-Name\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-type,          Sort Bind-Actions by "
+                    "Type\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s-v, --verbose,               Print more Verbose "
+                    "Information\n",
+                    Prefix);
+            break;
+        case OperationKind::PrintRebaseActionList:
+            fprintf(OutFile,
+                    "%s    --sort,    Sort Rebase-Actions\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s-v, --verbose, Print more Verbose Information\n",
+                    Prefix);
+            break;
+        case OperationKind::PrintRebaseOpcodeList:
+            fprintf(OutFile,
+                    "%s-v, --verbose, Print more Verbose Information\n",
+                    Prefix);
+            break;
+        case OperationKind::PrintCStringSection:
+            fprintf(OutFile,
+                    "%s    --sort,    Sort C-String List\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s-v, --verbose, Print more Verbose Information\n",
+                    Prefix);
+            break;
+        case OperationKind::PrintSymbolPtrSection:
+            fprintf(OutFile,
+                    "%s    --sort-by-dylib-ordinal, Sort C-String List by "
+                    "Dylib-Ordinal\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-index,         Sort C-String List by "
+                    "Index\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-symbol,        Sort C-String List by "
+                    "Symbol-Name\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s-v, --verbose,               Print more Verbose "
+                    "Information\n",
+                    Prefix);
+            break;
+    }
+}
+
+constexpr static auto UsageString =
+    "Usage: stool [Main-Operation] [Operation-Options] [Path] [Path-Options]\n";
+
+void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
+    fputs(UsageString, OutFile);
+
+    constexpr auto OperationKindList = magic_enum::enum_values<OperationKind>();
+    auto LongestOptionNameLength = LargestIntHelper<int>();
+
+    const auto Begin = OperationKindList.begin() + 1;
+    const auto End = OperationKindList.end();
+
+    for (auto Iter = Begin; Iter != End; Iter++) {
+        const auto &IKind = *Iter;
+
+        const auto ShortName = GetOptionShortName(IKind);
+        const auto Name = GetOptionName(IKind);
+        const auto Description = GetOptionDescription(IKind);
+
+        assert(!Name.empty());
+        assert(!Description.empty());
+
+        assert(ShortName != Description && Name != Description);
+        assert(ShortName.size() <= MaxShortOptionNameLength);
+
+        LongestOptionNameLength = static_cast<int>(Name.length());
+        for (auto Jter = Begin; Jter != Iter; Jter++) {
+            const auto &JKind = *Jter;
+            if (!ShortName.empty()) {
+                assert(ShortName != GetOptionShortName(JKind));
+            }
+
+            assert(Name != GetOptionName(JKind));
+            assert(Description != GetOptionDescription(JKind));
+        }
     }
 
-    return 0;
+    LongestOptionNameLength = HelpOption.length();
+    LongestOptionNameLength = UsageOption.length();
+
+    fputs("Options:\n", OutFile);
+    fprintf(OutFile,
+            "\t%5s--%s,%*s Print this Menu\n",
+            "",
+            HelpOption.data(),
+            static_cast<int>(LongestOptionNameLength - HelpOption.length()),
+            "");
+
+    fprintf(OutFile,
+            "\t%5s--%s,%*s Print this Menu\n\n",
+            "",
+            UsageOption.data(),
+            static_cast<int>(LongestOptionNameLength - UsageOption.length()),
+            "");
+
+    for (auto Iter = Begin; Iter != End; Iter++) {
+        const auto &Kind = *Iter;
+        if (Kind == OperationKind::None) {
+            continue;
+        }
+
+        const auto &ShortName = GetOptionShortName(Kind);
+        if (!ShortName.empty()) {
+            fprintf(OutFile, "\t-%s, ", ShortName.data());
+        } else {
+            fprintf(OutFile, "\t%3s", "");
+        }
+
+        PrintUtilsRightPadSpaces(OutFile,
+                                 static_cast<int>(ShortName.size()),
+                                 MaxShortOptionNameLength);
+
+        const auto &Name = GetOptionName(Kind);
+        PrintUtilsRightPadSpaces(OutFile,
+                                 fprintf(OutFile, "--%s,", Name.data()),
+                                 LongestOptionNameLength + LENGTH_OF("--,"));
+
+        fprintf(OutFile, " %s\n", GetOptionDescription(Kind).data());
+        PrintOptionHelpMenu(Kind, stdout, "\t\t\t");
+
+        if (Iter != (End - 1)) {
+            fputc('\n', stdout);
+        }
+    }
 }

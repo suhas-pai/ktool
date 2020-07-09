@@ -16,44 +16,50 @@
 #include "Operation.h"
 #include "PrintId.h"
 
-PrintIdOperation::PrintIdOperation() noexcept : PrintOperation(OpKind) {}
 PrintIdOperation::PrintIdOperation(const struct Options &Options) noexcept
-: PrintOperation(OpKind), Options(Options) {}
-
-int PrintIdOperation::run(const ConstMemoryObject &Object) noexcept {
-    return run(Object, Options);
-}
+: Operation(OpKind), Options(Options) {}
 
 int
-PrintIdOperation::run(const ConstMachOMemoryObject &Object,
+PrintIdOperation::Run(const ConstMachOMemoryObject &Object,
                       const struct Options &Options) noexcept
 {
-    if (Object.GetFileType() != MachO::Header::FileType::Dylib) {
+    if (Object.getFileKind() != MachO::Header::FileKind::Dylib) {
         fputs("Provided file is not a Dynamic-Library file\n", Options.OutFile);
         return 0;
     }
 
     const auto IsBigEndian = Object.IsBigEndian();
-    const auto LoadCommandStorage =
+    const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
     struct MachO::DylibCommand::Info Info = {};
     auto Id = std::string_view();
 
-    for (const auto &LoadCmd : LoadCommandStorage) {
-        if (LoadCmd.GetKind(IsBigEndian) != MachO::LoadCommand::Kind::IdDylib) {
+    for (const auto &LoadCmd : LoadCmdStorage) {
+        const auto *DylibCmd =
+            LoadCmd.dyn_cast<MachO::LoadCommand::Kind::IdDylib>(IsBigEndian);
+
+        if (DylibCmd == nullptr) {
             continue;
         }
 
-        const auto &DylibCmd =
-            cast<MachO::LoadCommand::Kind::IdDylib>(LoadCmd, IsBigEndian);
+        const auto NameResult = DylibCmd->GetName(IsBigEndian);
+        if (NameResult.hasError()) {
+            fputs("Provided file has an invalid Id-Name\n", Options.ErrFile);
+            return 1;
+        }
 
-        const auto &Name = DylibCmd.GetName(IsBigEndian);
+        const auto &Name =
+            OperationCommon::GetLoadCommandStringValue(NameResult);
 
-        Info = DylibCmd.Info;
-        Id = OperationCommon::GetLoadCommandStringValue(Name);
+        if (!Id.empty() && Id != Name) {
+            fputs("Provided file has multiple (differing) Id-Names\n",
+                  Options.ErrFile);
+            return 1;
+        }
 
-        break;
+        Id = Name;
+        Info = DylibCmd->Info;
     }
 
     if (Id.empty()) {
@@ -62,7 +68,7 @@ PrintIdOperation::run(const ConstMachOMemoryObject &Object,
         return 1;
     }
 
-    fprintf(Options.OutFile, "%s\n", Id.data());
+    fprintf(Options.OutFile, "\"%s\"\n", Id.data());
     if (Options.Verbose) {
         MachOTypePrinter<struct MachO::DylibCommand::Info>::Print(
             Options.OutFile, Info, IsBigEndian, true, "\t", "");
@@ -72,18 +78,16 @@ PrintIdOperation::run(const ConstMachOMemoryObject &Object,
 }
 
 struct PrintIdOperation::Options
-PrintIdOperation::ParseOptionsImpl(int Argc,
-                                   const char *Argv[],
+PrintIdOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                    int *IndexOut) noexcept
 {
     struct Options Options;
-    for (auto I = int(); I != Argc; I++) {
-        const auto Argument = Argv[I];
+    for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
-        } else if (Argument[0] != '-') {
+        } else if (!Argument.IsOption()) {
             if (IndexOut != nullptr) {
-                *IndexOut = I;
+                *IndexOut = Argv.indexOf(Argument);
             }
 
             break;
@@ -91,7 +95,7 @@ PrintIdOperation::ParseOptionsImpl(int Argc,
             fprintf(stderr,
                     "Unrecognized argument for operation %s: %s\n",
                     OperationKindInfo<OpKind>::Name.data(),
-                    Argument);
+                    Argument.getString());
             exit(1);
         }
     }
@@ -99,34 +103,21 @@ PrintIdOperation::ParseOptionsImpl(int Argc,
     return Options;
 }
 
-struct PrintIdOperation::Options *
-PrintIdOperation::ParseOptions(int Argc, const char *Argv[], int *IndexOut)
-noexcept {
-    return new struct Options(ParseOptionsImpl(Argc, Argv, IndexOut));
+void
+PrintIdOperation::ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept {
+    Options = ParseOptionsImpl(Argv, IndexOut);
 }
 
-int
-PrintIdOperation::run(const ConstMemoryObject &Object,
-                      const struct Options &Options) noexcept
-{
-    switch (Object.GetKind()) {
+int PrintIdOperation::Run(const MemoryObject &Object) const noexcept {
+    switch (Object.getKind()) {
         case ObjectKind::None:
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
-            return run(cast<ObjectKind::MachO>(Object), Options);
+            return Run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
-            PrintObjectKindNotSupportedError(OpKind, Object);
-            return 1;
+            return InvalidObjectKind;
     }
 
-    assert(0 && "Reached end with unrecognizable Object-Kind");
+    assert(0 && "Unrecognized Object-Kind");
 }
 
-int
-PrintIdOperation::run(const ConstMemoryObject &Object,
-                      int Argc,
-                      const char *Argv[]) noexcept
-{
-    assert(Object.GetKind() != ObjectKind::None);
-    return run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
-}

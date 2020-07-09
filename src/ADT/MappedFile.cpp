@@ -1,5 +1,5 @@
 //
-//  src/ADT/MemoryMap.cpp
+//  src/ADT/MappedFile.cpp
 //  stool
 //
 //  Created by Suhas Pai on 4/2/20.
@@ -26,7 +26,7 @@ MappedFile::Open(const FileDescriptor &Fd, Protections Prot, Type Type) noexcept
         return OpenError::FailedToGetSize;
     }
 
-    const auto FdV = Fd.GetFd();
+    const auto FdV = Fd.getDescriptor();
     const auto Size = OptSize.value();
 
     if (Size == 0) {
@@ -34,7 +34,7 @@ MappedFile::Open(const FileDescriptor &Fd, Protections Prot, Type Type) noexcept
     }
 
     const auto Map = mmap(nullptr, Size, Prot, static_cast<int>(Type), FdV, 0);
-    if (Map == nullptr) {
+    if (Map == MAP_FAILED) {
         return OpenError::MmapCallFailed;
     }
 

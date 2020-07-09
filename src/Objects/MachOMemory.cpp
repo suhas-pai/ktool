@@ -10,28 +10,28 @@
 #include "MachOMemory.h"
 
 MachOMemoryObject::MachOMemoryObject(Error Error) noexcept
-: MemoryObject(ObjectKind::MachO), ErrorStorage(Error) {}
+: MemoryObject(ObjKind), ErrorStorage(Error) {}
 
 MachOMemoryObject::MachOMemoryObject(const MemoryMap &Map) noexcept
-: MemoryObject(ObjectKind::MachO), Map(Map.GetBegin()), End(Map.GetEnd()) {}
+: MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()) {}
 
 ConstMachOMemoryObject::ConstMachOMemoryObject(Error Error) noexcept
-: ConstMemoryObject(ObjectKind::MachO), ErrorStorage(Error) {}
+: MachOMemoryObject(Error) {}
 
-ConstMachOMemoryObject::ConstMachOMemoryObject(const ConstMemoryMap &Map)
-noexcept : ConstMemoryObject(ObjectKind::MachO), Map(Map.GetBegin()),
-           End(Map.GetEnd()) {}
+ConstMachOMemoryObject::ConstMachOMemoryObject(
+    const ConstMemoryMap &Map) noexcept
+: MachOMemoryObject(reinterpret_cast<const MemoryMap &>(Map)) {}
 
 static
 MachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) noexcept {
-    const auto Header = reinterpret_cast<const MachO::Header *>(Map.GetBegin());
-    const auto MapSize = Map.GetSize();
+    const auto Header = reinterpret_cast<const MachO::Header *>(Map.getBegin());
+    const auto MapSize = Map.size();
 
     if (MapSize < sizeof(*Header)) {
         return MachOMemoryObject::Error::SizeTooSmall;
     }
 
-    if (!Header->HasValidMagic()) {
+    if (!Header->hasValidMagic()) {
         return MachOMemoryObject::Error::WrongFormat;
     }
 
@@ -42,11 +42,11 @@ MachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) noexcept {
     const auto SizeOfCmds = SwitchEndianIf(Header->SizeOfCmds, IsBigEndian);
 
     if (Is64Bit) {
-        if (DoesAddOverflow(Header->GetSize(), SizeOfCmds, &HeaderAndLCSize)) {
+        if (DoesAddOverflow(Header->size(), SizeOfCmds, &HeaderAndLCSize)) {
             return MachOMemoryObject::Error::TooManyLoadCommands;
         }
     } else {
-        if (DoesAddOverflow<uint32_t>(Header->GetSize(), SizeOfCmds,
+        if (DoesAddOverflow<uint32_t>(Header->size(), SizeOfCmds,
                                       &HeaderAndLCSize))
         {
             return MachOMemoryObject::Error::TooManyLoadCommands;
@@ -108,29 +108,21 @@ static bool MatchesFormat(MachOMemoryObject::Error Error) noexcept {
 }
 
 bool MachOMemoryObject::DidMatchFormat() const noexcept {
-    return MatchesFormat(GetError());
-}
-
-bool ConstMachOMemoryObject::DidMatchFormat() const noexcept {
-    return MatchesFormat(GetError());
+    return MatchesFormat(getError());
 }
 
 MemoryObject *MachOMemoryObject::ToPtr() const noexcept {
     return new MachOMemoryObject(MemoryMap(Map, End));
 }
 
-ConstMemoryObject *ConstMachOMemoryObject::ToPtr() const noexcept {
-    return new ConstMachOMemoryObject(ConstMemoryMap(Map, End));
-}
-
 MachO::LoadCommandStorage
 MachOMemoryObject::GetLoadCommands(bool Verify) noexcept {
-    assert(!HasError());
+    assert(!hasError());
 
     const auto IsBigEndian = Header->IsBigEndian();
     const auto Is64Bit = Header->Is64Bit();
 
-    const auto Begin = Header->GetLoadCmdBuffer();
+    const auto Begin = Header->getLoadCmdBuffer();
     const auto Ncmds = SwitchEndianIf(Header->Ncmds, IsBigEndian);
     const auto SizeOfCmds = SwitchEndianIf(Header->SizeOfCmds, IsBigEndian);
 
@@ -149,7 +141,7 @@ GetConstLoadCommandStorage(const MachO::Header *Header, bool Verify) noexcept {
     const auto IsBigEndian = Header->IsBigEndian();
     const auto Is64Bit = Header->Is64Bit();
 
-    const auto Begin = Header->GetConstLoadCmdBuffer();
+    const auto Begin = Header->getConstLoadCmdBuffer();
     const auto Ncmds = SwitchEndianIf(Header->Ncmds, IsBigEndian);
     const auto SizeOfCmds = SwitchEndianIf(Header->SizeOfCmds, IsBigEndian);
 
@@ -165,12 +157,12 @@ GetConstLoadCommandStorage(const MachO::Header *Header, bool Verify) noexcept {
 
 MachO::ConstLoadCommandStorage
 MachOMemoryObject::GetConstLoadCommands(bool Verify) const noexcept {
-    assert(!HasError());
+    assert(!hasError());
     return GetConstLoadCommandStorage(Header, Verify);
 }
 
 MachO::ConstLoadCommandStorage
 ConstMachOMemoryObject::GetLoadCommands(bool Verify) const noexcept {
-    assert(!HasError());
+    assert(!hasError());
     return GetConstLoadCommandStorage(Header, Verify);
 }

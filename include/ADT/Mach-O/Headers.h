@@ -7,9 +7,16 @@
 //
 
 #pragma once
+
 #include <string>
 
 #include "ADT/Mach.h"
+#include "ADT/BasicContiguousList.h"
+#include "ADT/BasicMasksHandler.h"
+
+#include "Utils/Casting.h"
+#include "Utils/SwitchEndian.h"
+
 #include "Types.h"
 
 namespace MachO {
@@ -64,7 +71,7 @@ namespace MachO {
                 std::string_view("Big Endian (64-Bit)");
         };
 
-        constexpr static bool MagicIsValid(Magic Magic) noexcept {
+        [[nodiscard]] constexpr static bool MagicIsValid(Magic Magic) noexcept {
             switch (Magic) {
                 case Magic::Default:
                 case Magic::Default64:
@@ -76,7 +83,7 @@ namespace MachO {
             return false;
         }
 
-        constexpr
+        [[nodiscard]] constexpr
         static const std::string_view &MagicGetName(Magic Magic) noexcept {
             switch (Magic) {
                 case Magic::Default:
@@ -92,7 +99,7 @@ namespace MachO {
             return EmptyStringValue;
         }
 
-        constexpr static
+        [[nodiscard]] constexpr static
         const std::string_view &MagicGetDescription(Magic Magic) noexcept {
             switch (Magic) {
                 case Magic::Default:
@@ -108,7 +115,7 @@ namespace MachO {
             return EmptyStringValue;
         }
 
-        enum class FileType : uint32_t {
+        enum class FileKind : uint32_t {
             Object = 1,
             Executable,
             FixedVMSharedLibrary,
@@ -122,12 +129,12 @@ namespace MachO {
             KextBundle
         };
 
-        template <FileType>
-        struct FileTypeInfo {};
+        template <FileKind>
+        struct FileKindInfo {};
 
         template <>
-        struct FileTypeInfo<FileType::Object> {
-            constexpr static const auto Kind = FileType::Object;
+        struct FileKindInfo<FileKind::Object> {
+            constexpr static const auto Kind = FileKind::Object;
 
             constexpr static const auto Name = std::string_view("MH_OBJECT");
             constexpr static const auto Description =
@@ -135,8 +142,8 @@ namespace MachO {
         };
 
         template <>
-        struct FileTypeInfo<FileType::Executable> {
-            constexpr static const auto Kind = FileType::Executable;
+        struct FileKindInfo<FileKind::Executable> {
+            constexpr static const auto Kind = FileKind::Executable;
 
             constexpr static const auto Name = std::string_view("MH_EXECUTE");
             constexpr static const auto Description =
@@ -144,8 +151,8 @@ namespace MachO {
         };
 
         template <>
-        struct FileTypeInfo<FileType::FixedVMSharedLibrary> {
-            constexpr static const auto Kind = FileType::FixedVMSharedLibrary;
+        struct FileKindInfo<FileKind::FixedVMSharedLibrary> {
+            constexpr static const auto Kind = FileKind::FixedVMSharedLibrary;
 
             constexpr static const auto Name = std::string_view("MH_FVMLIB");
             constexpr static const auto Description =
@@ -153,8 +160,8 @@ namespace MachO {
         };
 
         template <>
-        struct FileTypeInfo<FileType::CoreFile> {
-            constexpr static const auto Kind = FileType::CoreFile;
+        struct FileKindInfo<FileKind::CoreFile> {
+            constexpr static const auto Kind = FileKind::CoreFile;
 
             constexpr static const auto Name = std::string_view("MH_CORE");
             constexpr static const auto Description =
@@ -162,8 +169,8 @@ namespace MachO {
         };
 
         template <>
-        struct FileTypeInfo<FileType::PreloadedExecutable> {
-            constexpr static const auto Kind = FileType::PreloadedExecutable;
+        struct FileKindInfo<FileKind::PreloadedExecutable> {
+            constexpr static const auto Kind = FileKind::PreloadedExecutable;
 
             constexpr static const auto Name = std::string_view("MH_PRELOAD");
             constexpr static const auto Description =
@@ -171,8 +178,8 @@ namespace MachO {
         };
 
         template <>
-        struct FileTypeInfo<FileType::Dylib> {
-            constexpr static const auto Kind = FileType::Dylib;
+        struct FileKindInfo<FileKind::Dylib> {
+            constexpr static const auto Kind = FileKind::Dylib;
 
             constexpr static const auto Name = std::string_view("MH_DYLIB");
             constexpr static const auto Description =
@@ -180,8 +187,8 @@ namespace MachO {
         };
 
         template <>
-        struct FileTypeInfo<FileType::Dylinker> {
-            constexpr static const auto Kind = FileType::Dylinker;
+        struct FileKindInfo<FileKind::Dylinker> {
+            constexpr static const auto Kind = FileKind::Dylinker;
 
             constexpr static const auto Name = std::string_view("MH_DYLINKER");
             constexpr static const auto Description =
@@ -189,8 +196,8 @@ namespace MachO {
         };
 
         template <>
-        struct FileTypeInfo<FileType::Bundle> {
-            constexpr static const auto Kind = FileType::Bundle;
+        struct FileKindInfo<FileKind::Bundle> {
+            constexpr static const auto Kind = FileKind::Bundle;
 
             constexpr static const auto Name = std::string_view("MH_BUNDLE");
             constexpr static const auto Description =
@@ -198,8 +205,8 @@ namespace MachO {
         };
 
         template <>
-        struct FileTypeInfo<FileType::DylibStub> {
-            constexpr static const auto Kind = FileType::DylibStub;
+        struct FileKindInfo<FileKind::DylibStub> {
+            constexpr static const auto Kind = FileKind::DylibStub;
 
             constexpr static const auto Name =
                 std::string_view("MH_DYLIB_STUB");
@@ -208,8 +215,8 @@ namespace MachO {
         };
 
         template <>
-        struct FileTypeInfo<FileType::Dsym> {
-            constexpr static const auto Kind = FileType::Dsym;
+        struct FileKindInfo<FileKind::Dsym> {
+            constexpr static const auto Kind = FileKind::Dsym;
 
             constexpr static const auto Name = std::string_view("MH_DSYM");
             constexpr static const auto Description =
@@ -217,8 +224,8 @@ namespace MachO {
         };
 
         template <>
-        struct FileTypeInfo<FileType::KextBundle> {
-            constexpr static const auto Kind = FileType::KextBundle;
+        struct FileKindInfo<FileKind::KextBundle> {
+            constexpr static const auto Kind = FileKind::KextBundle;
 
             constexpr static const auto Name =
                 std::string_view("MH_KEXT_BUNDLE");
@@ -226,84 +233,84 @@ namespace MachO {
                 std::string_view("Kernel Extension Bundle");
         };
 
-        static bool FileTypeIsValid(FileType FileType) noexcept {
-            switch (FileType) {
-                case FileType::Object:
-                case FileType::Executable:
-                case FileType::FixedVMSharedLibrary:
-                case FileType::CoreFile:
-                case FileType::PreloadedExecutable:
-                case FileType::Dylib:
-                case FileType::Dylinker:
-                case FileType::Bundle:
-                case FileType::DylibStub:
-                case FileType::Dsym:
-                case FileType::KextBundle:
+        [[nodiscard]] static bool FileKindIsValid(FileKind FileKind) noexcept {
+            switch (FileKind) {
+                case FileKind::Object:
+                case FileKind::Executable:
+                case FileKind::FixedVMSharedLibrary:
+                case FileKind::CoreFile:
+                case FileKind::PreloadedExecutable:
+                case FileKind::Dylib:
+                case FileKind::Dylinker:
+                case FileKind::Bundle:
+                case FileKind::DylibStub:
+                case FileKind::Dsym:
+                case FileKind::KextBundle:
                     return true;
             }
 
             return false;
         }
 
-        static const std::string_view &
-        FileTypeGetName(FileType FileType) noexcept {
-            switch (FileType) {
-                case FileType::Object:
-                    return FileTypeInfo<FileType::Object>::Name;
-                case FileType::Executable:
-                    return FileTypeInfo<FileType::Executable>::Name;
-                case FileType::FixedVMSharedLibrary:
-                    return FileTypeInfo<FileType::FixedVMSharedLibrary>::Name;
-                case FileType::CoreFile:
-                    return FileTypeInfo<FileType::CoreFile>::Name;
-                case FileType::PreloadedExecutable:
-                    return FileTypeInfo<FileType::PreloadedExecutable>::Name;
-                case FileType::Dylib:
-                    return FileTypeInfo<FileType::Dylib>::Name;
-                case FileType::Dylinker:
-                    return FileTypeInfo<FileType::Dylinker>::Name;
-                case FileType::Bundle:
-                    return FileTypeInfo<FileType::Bundle>::Name;
-                case FileType::DylibStub:
-                    return FileTypeInfo<FileType::DylibStub>::Name;
-                case FileType::Dsym:
-                    return FileTypeInfo<FileType::Dsym>::Name;
-                case FileType::KextBundle:
-                    return FileTypeInfo<FileType::KextBundle>::Name;
+        [[nodiscard]] static const std::string_view &
+        FileKindGetName(FileKind FileKind) noexcept {
+            switch (FileKind) {
+                case FileKind::Object:
+                    return FileKindInfo<FileKind::Object>::Name;
+                case FileKind::Executable:
+                    return FileKindInfo<FileKind::Executable>::Name;
+                case FileKind::FixedVMSharedLibrary:
+                    return FileKindInfo<FileKind::FixedVMSharedLibrary>::Name;
+                case FileKind::CoreFile:
+                    return FileKindInfo<FileKind::CoreFile>::Name;
+                case FileKind::PreloadedExecutable:
+                    return FileKindInfo<FileKind::PreloadedExecutable>::Name;
+                case FileKind::Dylib:
+                    return FileKindInfo<FileKind::Dylib>::Name;
+                case FileKind::Dylinker:
+                    return FileKindInfo<FileKind::Dylinker>::Name;
+                case FileKind::Bundle:
+                    return FileKindInfo<FileKind::Bundle>::Name;
+                case FileKind::DylibStub:
+                    return FileKindInfo<FileKind::DylibStub>::Name;
+                case FileKind::Dsym:
+                    return FileKindInfo<FileKind::Dsym>::Name;
+                case FileKind::KextBundle:
+                    return FileKindInfo<FileKind::KextBundle>::Name;
             }
 
             return EmptyStringValue;
         }
 
-        static const std::string_view &
-        FileTypeGetDescription(FileType FileType) noexcept {
-            switch (FileType) {
-                case FileType::Object:
-                    return FileTypeInfo<FileType::Object>::Description;
-                case FileType::Executable:
-                    return FileTypeInfo<FileType::Executable>::Description;
-                case FileType::FixedVMSharedLibrary:
+        [[nodiscard]] static const std::string_view &
+        FileKindGetDescription(FileKind FileKind) noexcept {
+            switch (FileKind) {
+                case FileKind::Object:
+                    return FileKindInfo<FileKind::Object>::Description;
+                case FileKind::Executable:
+                    return FileKindInfo<FileKind::Executable>::Description;
+                case FileKind::FixedVMSharedLibrary:
                     return
-                        FileTypeInfo<FileType::FixedVMSharedLibrary>
+                        FileKindInfo<FileKind::FixedVMSharedLibrary>
                             ::Description;
-                case FileType::CoreFile:
-                    return FileTypeInfo<FileType::CoreFile>::Description;
-                case FileType::PreloadedExecutable:
+                case FileKind::CoreFile:
+                    return FileKindInfo<FileKind::CoreFile>::Description;
+                case FileKind::PreloadedExecutable:
                     return
-                        FileTypeInfo<
-                            FileType::PreloadedExecutable>::Description;
-                case FileType::Dylib:
-                    return FileTypeInfo<FileType::Dylib>::Description;
-                case FileType::Dylinker:
-                    return FileTypeInfo<FileType::Dylinker>::Description;
-                case FileType::Bundle:
-                    return FileTypeInfo<FileType::Bundle>::Description;
-                case FileType::DylibStub:
-                    return FileTypeInfo<FileType::DylibStub>::Description;
-                case FileType::Dsym:
-                    return FileTypeInfo<FileType::Dsym>::Description;
-                case FileType::KextBundle:
-                    return FileTypeInfo<FileType::KextBundle>::Description;
+                        FileKindInfo<
+                            FileKind::PreloadedExecutable>::Description;
+                case FileKind::Dylib:
+                    return FileKindInfo<FileKind::Dylib>::Description;
+                case FileKind::Dylinker:
+                    return FileKindInfo<FileKind::Dylinker>::Description;
+                case FileKind::Bundle:
+                    return FileKindInfo<FileKind::Bundle>::Description;
+                case FileKind::DylibStub:
+                    return FileKindInfo<FileKind::DylibStub>::Description;
+                case FileKind::Dsym:
+                    return FileKindInfo<FileKind::Dsym>::Description;
+                case FileKind::KextBundle:
+                    return FileKindInfo<FileKind::KextBundle>::Description;
             }
 
             return EmptyStringValue;
@@ -587,7 +594,7 @@ namespace MachO {
 
             constexpr static const auto Name = std::string_view("MH_PIE");
             constexpr static const auto Description =
-                std::string_view("Safe for issetuid()");
+                std::string_view("Position-Independant Executable");
         };
 
         template <>
@@ -688,7 +695,7 @@ namespace MachO {
                 std::string_view("Dylib in Shared-Cache");
         };
 
-        constexpr static
+        [[nodiscard]] constexpr static
         const std::string_view &FlagsEnumGetName(FlagsEnum Flag) noexcept {
             switch (Flag) {
                 case FlagsEnum::NoUndefinedReferences:
@@ -757,7 +764,7 @@ namespace MachO {
             return EmptyStringValue;
         }
 
-        constexpr static const std::string_view &
+        [[nodiscard]] constexpr static const std::string_view &
         FlagsEnumGetDescription(FlagsEnum Flag) noexcept {
             switch (Flag) {
                 case FlagsEnum::NoUndefinedReferences:
@@ -833,29 +840,87 @@ namespace MachO {
             return EmptyStringValue;
         }
 
-        struct Flags : public BasicFlags<FlagsEnum> {};
+        using FlagsType = BasicMasksHandler<FlagsEnum>;
 
         Magic Magic;
-        int32_t CpuType;
-        int32_t CpuSubType;
-        uint32_t FileType;
+        int32_t CpuKind;
+        int32_t CpuSubKind;
+        uint32_t FileKind;
         uint32_t Ncmds;
         uint32_t SizeOfCmds;
-        Flags Flags;
+        uint32_t Flags;
 
-        [[nodiscard]] bool HasValidMagic() const noexcept;
-        [[nodiscard]] bool HasValidFileType() const noexcept;
+        [[nodiscard]] inline bool hasValidMagic() const noexcept {
+            return MagicIsValid(Magic);
+        }
+        
+        [[nodiscard]] inline bool hasValidFileKind() const noexcept {
+            const auto Value = SwitchEndianIf(FileKind, this->IsBigEndian());
+            return FileKindIsValid(static_cast<enum FileKind>(Value));
+        }
 
-        [[nodiscard]] bool IsBigEndian() const noexcept;
-        [[nodiscard]] bool Is64Bit() const noexcept;
+        [[nodiscard]] inline bool IsBigEndian() const noexcept {
+            switch (this->Magic) {
+                case Magic::BigEndian:
+                case Magic::BigEndian64:
+                    return true;
+                case Magic::Default:
+                case Magic::Default64:
+                    return false;
+            }
 
-        [[nodiscard]] Mach::CpuType GetCpuType() const noexcept;
-        [[nodiscard]] enum FileType GetFileType() const noexcept;
-        [[nodiscard]] BasicMasksHandler<FlagsEnum> GetFlags() const noexcept;
+            return false;
+        }
 
-        [[nodiscard]] uint64_t GetSize() const noexcept;
-        [[nodiscard]] uint8_t *GetLoadCmdBuffer() noexcept;
-        [[nodiscard]] const uint8_t *GetConstLoadCmdBuffer() const noexcept;
+        [[nodiscard]] inline bool Is64Bit() const noexcept {
+            switch (this->Magic) {
+                case Magic::Default64:
+                case Magic::BigEndian64:
+                    return true;
+                case Magic::Default:
+                case Magic::BigEndian:
+                    return false;
+            }
+
+            return false;
+        }
+
+        [[nodiscard]] Mach::CpuKind getCpuKind() const noexcept {
+            return Mach::CpuKind(SwitchEndianIf(CpuKind, this->IsBigEndian()));
+        }
+        
+        [[nodiscard]] enum FileKind getFileKind() const noexcept {
+            const auto Value = SwitchEndianIf(FileKind, this->IsBigEndian());
+            return static_cast<enum FileKind>(Value);
+        }
+        
+        [[nodiscard]] FlagsType getFlags() const noexcept {
+            const auto Flags = SwitchEndianIf(this->Flags, this->IsBigEndian());
+            return Flags;
+        }
+
+        [[nodiscard]] uint64_t size() const noexcept {
+            if (this->Is64Bit()) {
+                return (sizeof(*this) + sizeof(uint32_t));
+            }
+
+            return sizeof(*this);
+        }
+
+        [[nodiscard]] uint8_t *getLoadCmdBuffer() noexcept {
+            const auto LoadCmdBuffer =
+                reinterpret_cast<uint8_t *>(this) + size();
+
+            return LoadCmdBuffer;
+        }
+        
+        [[nodiscard]]
+        inline const uint8_t *getConstLoadCmdBuffer() const noexcept {
+            const auto LoadCmdBuffer =
+                reinterpret_cast<const uint8_t *>(this) + size();
+
+            return LoadCmdBuffer;
+        }
     };
 
     struct FatHeader {
@@ -906,7 +971,7 @@ namespace MachO {
                 std::string_view("Big Endian (64-Bit)");
         };
 
-        constexpr static bool MagicIsValid(Magic Magic) noexcept {
+        [[nodiscard]] constexpr static bool MagicIsValid(Magic Magic) noexcept {
             switch (Magic) {
                 case Magic::Default:
                 case Magic::Default64:
@@ -918,7 +983,7 @@ namespace MachO {
             return false;
         }
 
-        constexpr
+        [[nodiscard]] constexpr
         static const std::string_view &MagicGetName(Magic Magic) noexcept {
             switch (Magic) {
                 case Magic::Default:
@@ -934,7 +999,7 @@ namespace MachO {
             return EmptyStringValue;
         }
 
-        constexpr static
+        [[nodiscard]] constexpr static
         const std::string_view &MagicGetDescription(Magic Magic) noexcept {
             switch (Magic) {
                 case Magic::Default:
@@ -951,29 +1016,29 @@ namespace MachO {
         }
 
         struct Arch32 {
-            int32_t CpuType;
-            int32_t CpuSubType;
+            int32_t CpuKind;
+            int32_t CpuSubKind;
             uint32_t Offset;
             uint32_t Size;
             uint32_t Align;
 
             [[nodiscard]]
-            inline Mach::CpuType GetCpuType(bool IsBigEndian) const noexcept {
-                return Mach::CpuType(SwitchEndianIf(CpuType, IsBigEndian));
+            inline Mach::CpuKind getCpuKind(bool IsBigEndian) const noexcept {
+                return Mach::CpuKind(SwitchEndianIf(CpuKind, IsBigEndian));
             }
         };
 
         struct Arch64 {
-            int32_t CpuType;
-            int32_t CpuSubType;
+            int32_t CpuKind;
+            int32_t CpuSubKind;
             uint64_t Offset;
             uint64_t Size;
             uint32_t Align;
             uint32_t Reserved;
 
             [[nodiscard]]
-            inline Mach::CpuType GetCpuType(bool IsBigEndian) const noexcept {
-                return Mach::CpuType(SwitchEndianIf(CpuType, IsBigEndian));
+            inline Mach::CpuKind getCpuKind(bool IsBigEndian) const noexcept {
+                return Mach::CpuKind(SwitchEndianIf(CpuKind, IsBigEndian));
             }
         };
 
@@ -986,17 +1051,46 @@ namespace MachO {
         using ConstArch32List = BasicContiguousList<const Arch32>;
         using ConstArch64List = BasicContiguousList<const Arch64>;
 
-        Arch32List GetArch32List(bool IsBigEndian) noexcept;
-        Arch64List GetArch64List(bool IsBigEndian) noexcept;
+        [[nodiscard]] Arch32List getArch32List(bool IsBigEndian) noexcept;
+        [[nodiscard]] Arch64List getArch64List(bool IsBigEndian) noexcept;
 
-        ConstArch32List GetConstArch32List(bool IsBigEndian) const noexcept;
-        ConstArch64List GetConstArch64List(bool IsBigEndian) const noexcept;
+        [[nodiscard]]
+        ConstArch32List getConstArch32List(bool IsBigEndian) const noexcept;
 
-        [[nodiscard]] bool HasValidMagic() const noexcept;
-        [[nodiscard]] bool IsBigEndian() const noexcept;
-        [[nodiscard]] bool Is64Bit() const noexcept;
+        [[nodiscard]]
+        ConstArch64List getConstArch64List(bool IsBigEndian) const noexcept;
 
-        [[nodiscard]] inline uint32_t GetArchsCount() const noexcept {
+        [[nodiscard]] inline bool hasValidMagic() const noexcept {
+            return MagicIsValid(Magic);
+        }
+        
+        [[nodiscard]] inline bool IsBigEndian() const noexcept {
+            switch (this->Magic) {
+                case Magic::BigEndian:
+                case Magic::BigEndian64:
+                    return true;
+                case Magic::Default:
+                case Magic::Default64:
+                    return false;
+            }
+
+            return false;
+        }
+        
+        [[nodiscard]] inline bool Is64Bit() const noexcept {
+            switch (this->Magic) {
+                case Magic::Default64:
+                case Magic::BigEndian64:
+                    return true;
+                case Magic::Default:
+                case Magic::BigEndian:
+                    return false;
+            }
+
+            return false;
+        }
+
+        [[nodiscard]] inline uint32_t getArchsCount() const noexcept {
             return SwitchEndianIf(NFatArch, this->IsBigEndian());
         }
     };

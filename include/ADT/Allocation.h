@@ -15,7 +15,7 @@ struct Allocation {
 protected:
     void *Ptr = nullptr;
 public:
-    explicit Allocation() noexcept = default;
+    constexpr Allocation() noexcept = default;
 
     template <typename T>
     explicit Allocation(T *Ptr) noexcept : Ptr(reinterpret_cast<void *>(Ptr)) {}
@@ -26,28 +26,40 @@ public:
     }
 
     template <typename T>
-    inline T GetAs() const noexcept { return reinterpret_cast<T>(Ptr); }
-
-    template <typename T>
-    inline void Set(T *Ptr) noexcept {
-        delete reinterpret_cast<uint8_t *>(this->Ptr);
-        this->Ptr = Ptr;
+    [[nodiscard]] inline T getAs() const noexcept {
+        return reinterpret_cast<T>(Ptr);
     }
 
     template <typename T>
-    inline void Replace(T *Ptr) noexcept {
+    inline Allocation &set(T *Ptr) noexcept {
+        delete reinterpret_cast<uint8_t *>(this->Ptr);
         this->Ptr = Ptr;
+
+        return *this;
+    }
+
+    template <typename T>
+    inline Allocation &replace(T *Ptr) noexcept {
+        this->Ptr = Ptr;
+        return *this;
     }
 
     template <typename T>
     inline void operator=(T *Ptr) noexcept { Set(Ptr); }
 
     template <typename T>
-    operator T *() const noexcept { return static_cast<T *>(Ptr); }
+    operator T *() noexcept { return static_cast<T *>(Ptr); }
 
     template <typename T>
-    inline bool operator==(const T &Rhs) const noexcept { return Ptr == Rhs; }
+    operator const T *() const noexcept { return static_cast<const T *>(Ptr); }
 
     template <typename T>
-    inline bool operator!=(const T &Rhs) const noexcept { return Ptr != Rhs; }
+    [[nodiscard]] inline bool operator==(const T &Rhs) const noexcept {
+        return Ptr == Rhs;
+    }
+
+    template <typename T>
+    [[nodiscard]] inline bool operator!=(const T &Rhs) const noexcept {
+        return Ptr != Rhs;
+    }
 };

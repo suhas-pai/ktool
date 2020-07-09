@@ -8,10 +8,14 @@
 
 #pragma once
 
+#include "ADT/ArgvArray.h"
 #include "Objects/MachOMemory.h"
 #include "Objects/FatMachOMemory.h"
 #include "Objects/MemoryBase.h"
+
 #include "Kind.h"
+
+using namespace std::literals;
 
 struct Operation {
 public:
@@ -19,77 +23,61 @@ public:
     private:
         OperationKind Kind;
     public:
-        constexpr Options(OperationKind Kind) noexcept : Kind(Kind) {}
-        constexpr inline OperationKind GetKind() const noexcept { return Kind; }
-    };
-private:
-    OperationKind Kind;
-public:
-    explicit Operation(OperationKind Kind) noexcept;
-    inline OperationKind GetKind() const noexcept { return Kind; }
-    bool RequiresMap(OperationKind Kind) noexcept;
-
-    static int
-    Run(OperationKind Kind,
-        const MemoryObject &Object,
-        int Argc,
-        const char *Argv[]) noexcept;
-
-    static int
-    Run(OperationKind Kind,
-        const MemoryObject &Object,
-        const struct Options &Options) noexcept;
-
-    static struct Options *
-    ParseOptions(int Argc, const char *Argv[], int *IndexOut) = delete;
-};
-
-struct PrintOperation : Operation {
-public:
-    constexpr static inline bool IsOfKind(const Operation &Op) {
-        const auto Kind =
-            static_cast<std::underlying_type_t<OperationKind>>(Op.GetKind());
-
-        return (Kind & 1);
-    }
-
-    struct Options : public Operation::Options {
-    public:
-        constexpr static inline
-        bool IsOfKind(const Operation::Options &Options) noexcept {
-            const auto Kind =
-                static_cast<std::underlying_type_t<OperationKind>>(
-                    Options.GetKind());
-
-            return (Kind & 1);
+        Options(OperationKind Kind) noexcept : Kind(Kind) {}
+        [[nodiscard]] constexpr inline OperationKind getKind() const noexcept {
+            return Kind;
         }
 
         FILE *OutFile = stdout;
         FILE *ErrFile = stderr;
-        
-        Options(OperationKind Kind) noexcept : Operation::Options(Kind) {}
+
         Options(OperationKind Kind, FILE *OutFile) noexcept
-        : Operation::Options(Kind), OutFile(OutFile) {}
+        : Kind(Kind), OutFile(OutFile) {}
+
+        Options(OperationKind Kind, FILE *OutFile, FILE *ErrFile) noexcept
+        : Kind(Kind), OutFile(OutFile), ErrFile(ErrFile) {}
     };
+private:
+    OperationKind Kind;
 public:
-    explicit PrintOperation(OperationKind Kind) noexcept;
+    Operation() noexcept = default;
+    Operation(OperationKind Kind) noexcept;
+
+    virtual ~Operation() noexcept = default;
+
+    [[nodiscard]] inline OperationKind getKind() const noexcept { return Kind; }
     bool RequiresMap(OperationKind Kind) noexcept;
 
-    static int
-    Run(OperationKind Kind,
-        const MemoryObject &Object,
-        int Argc,
-        const char *Argv[]) noexcept;
-
-    static int
-    Run(OperationKind Kind,
-        const MemoryObject &Object,
-        const struct Options &Options) noexcept;
-
-    static struct Options *
-    ParseOptions(int Argc, const char *Argv[], int *IndexOut) = delete;
+    static void
+    PrintLineSpamWarning(FILE *OutFile, uint64_t LineAmount) noexcept;
 
     static void
     PrintObjectKindNotSupportedError(OperationKind OpKind,
-                                     const ConstMemoryObject &Object) noexcept;
+                                     const MemoryObject &Object) noexcept;
+
+    [[nodiscard]] static std::string_view
+    GetOptionShortName(OperationKind Kind) noexcept;
+
+    [[nodiscard]] static std::string_view
+    GetOptionName(OperationKind Kind) noexcept;
+
+    [[nodiscard]] static std::string_view
+    GetOptionDescription(OperationKind Kind) noexcept;
+
+    constexpr static auto HelpOption = "help"sv;
+    constexpr static auto UsageOption = "usage"sv;
+    constexpr static auto MaxShortOptionNameLength = 2;
+    constexpr static auto InvalidObjectKind = -2;
+
+    static void PrintHelpMenu(FILE *OutFile) noexcept;
+
+    static void
+    PrintOptionHelpMenu(OperationKind Kind,
+                        FILE *OutFile,
+                        const char *Prefix) noexcept;
+
+    virtual
+    void ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept = 0;
+    
+    virtual int Run(const MemoryObject &Object) const noexcept = 0;
 };

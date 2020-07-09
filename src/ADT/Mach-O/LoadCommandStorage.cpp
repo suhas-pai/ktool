@@ -1,5 +1,5 @@
 //
-//  src/ADT/LoadCommandStorage.cpp
+//  src/ADT/Mach-O/LoadCommandStorage.cpp
 //  stool
 //
 //  Created by Suhas Pai on 3/30/20.
@@ -79,7 +79,7 @@ namespace MachO {
                                                      const uint8_t *End,
                                                      const uint32_t Ncmds,
                                                      bool IsBigEndian) noexcept
-    : Begin(Begin), End(End), Ncmds(Ncmds), mIsBigEndian(IsBigEndian) {}
+    : Begin(Begin), End(End), Ncmds(Ncmds), sIsBigEndian(IsBigEndian) {}
 
     LoadCommandStorage
     LoadCommandStorage::Open(uint8_t *Begin,
@@ -110,8 +110,7 @@ namespace MachO {
             End = Begin + SizeOfCmds;
         }
 
-        const auto Obj = LoadCommandStorage(Begin, End, Ncmds, IsBigEndian);
-        return Obj;
+        return LoadCommandStorage(Begin, End, Ncmds, IsBigEndian);
     }
 
     ConstLoadCommandStorage
@@ -143,9 +142,6 @@ namespace MachO {
             End = Begin + SizeOfCmds;
         }
 
-        const auto Obj =
-            ConstLoadCommandStorage(Begin, End, Ncmds, IsBigEndian);
-
-        return Obj;
+       return ConstLoadCommandStorage(Begin, End, Ncmds, IsBigEndian);
     }
 }

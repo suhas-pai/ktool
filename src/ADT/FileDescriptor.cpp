@@ -13,11 +13,6 @@
 
 #include "FileDescriptor.h"
 
-FileDescriptor::FileDescriptor(int Fd) noexcept : Fd(Fd) {}
-FileDescriptor::FileDescriptor(FileDescriptor &&Rhs) noexcept : Fd(Rhs.Fd) {
-    Rhs.Fd = -1;
-}
-
 FileDescriptor
 FileDescriptor::Open(const char *Path, OpenType Type, Flags Flags) noexcept {
     return open(Path, static_cast<int>(Type), Flags);
@@ -54,7 +49,7 @@ std::optional<uint64_t> FileDescriptor::GetSize() const noexcept {
         return Sbuf.st_size;
     }
 
-    return std::optional<uint64_t>();
+    return std::nullopt;
 }
 
 FileDescriptor &FileDescriptor::operator=(FileDescriptor &&Rhs) noexcept {

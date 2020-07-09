@@ -16,16 +16,11 @@
 #include "Operation.h"
 #include "PrintFlags.h"
 
-PrintFlagsOperation::PrintFlagsOperation() noexcept : PrintOperation(OpKind) {}
 PrintFlagsOperation::PrintFlagsOperation(const struct Options &Options) noexcept
-: PrintOperation(OpKind), Options(Options) {}
-
-int PrintFlagsOperation::run(const ConstMemoryObject &Object) noexcept {
-    return run(Object, Options);
-}
+: Operation(OpKind), Options(Options) {}
 
 int
-PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
+PrintFlagsOperation::Run(const ConstMachOMemoryObject &Object,
                          const struct Options &Options) noexcept
 {
     struct FlagInfo {
@@ -43,7 +38,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
     auto FlagInfoList = std::vector<FlagInfo>();
 
     const auto MachOFlag = Header::FlagsEnum::NoUndefinedReferences;
-    const auto ObjectFlags = Object.GetConstHeader().GetFlags();
+    const auto ObjectFlags = Object.getConstHeader().getFlags();
 
     switch (MachOFlag) {
         case Header::FlagsEnum::NoUndefinedReferences: {
@@ -53,7 +48,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -68,7 +63,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -81,7 +76,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -94,7 +89,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -107,7 +102,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -120,7 +115,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -135,7 +130,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -150,7 +145,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -165,7 +160,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -180,7 +175,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -195,7 +190,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -208,7 +203,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -223,7 +218,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -238,7 +233,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -251,7 +246,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -266,7 +261,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -279,7 +274,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -294,7 +289,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -307,7 +302,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -320,7 +315,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -335,7 +330,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -348,7 +343,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
                 Header::FlagInfo<
                     Header::FlagsEnum::PositionIndependentExecutable>;
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -363,7 +358,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -378,7 +373,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -393,7 +388,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -408,7 +403,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -423,7 +418,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -438,7 +433,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -451,7 +446,7 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (ObjectFlags.Has(FlagInfo::Kind)) {
+            if (ObjectFlags.hasValueForMask(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -469,8 +464,6 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
                 LongestFlagNameLength,
                 Info.Name.data());
 
-        FlagNumber++;
-
         if (Options.Verbose) {
             fprintf(Options.OutFile,
                     " (Description: %s)\n",
@@ -478,24 +471,24 @@ PrintFlagsOperation::run(const ConstMachOMemoryObject &Object,
         } else {
             fputc('\n', Options.OutFile);
         }
+
+        FlagNumber++;
     }
 
     return 0;
 }
 
 struct PrintFlagsOperation::Options
-PrintFlagsOperation::ParseOptionsImpl(int Argc,
-                                      const char *Argv[],
+PrintFlagsOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                       int *IndexOut) noexcept
 {
     struct Options Options;
-    for (auto I = int(); I != Argc; I++) {
-        const auto Argument = Argv[I];
+    for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
-        } else if (Argument[0] != '-') {
+        } else if (!Argument.IsOption()) {
             if (IndexOut != nullptr) {
-                *IndexOut = I;
+                *IndexOut = Argv.indexOf(Argument);
             }
 
             break;
@@ -503,7 +496,7 @@ PrintFlagsOperation::ParseOptionsImpl(int Argc,
             fprintf(stderr,
                     "Unrecognized argument for operation %s: %s\n",
                     OperationKindInfo<OpKind>::Name.data(),
-                    Argument);
+                    Argument.getString());
             exit(1);
         }
     }
@@ -511,35 +504,21 @@ PrintFlagsOperation::ParseOptionsImpl(int Argc,
     return Options;
 }
 
-struct PrintFlagsOperation::Options *
-PrintFlagsOperation::ParseOptions(int Argc, const char *Argv[], int *IndexOut)
-noexcept {
-    return new struct Options(ParseOptionsImpl(Argc, Argv, IndexOut));
+void
+PrintFlagsOperation::ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept
+{
+    Options = ParseOptionsImpl(Argv, IndexOut);
 }
 
-int
-PrintFlagsOperation::run(const ConstMemoryObject &Object,
-                         const struct Options &Options) noexcept
-{
-    switch (Object.GetKind()) {
+int PrintFlagsOperation::Run(const MemoryObject &Object) const noexcept {
+    switch (Object.getKind()) {
         case ObjectKind::None:
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
-            return run(cast<ObjectKind::MachO>(Object), Options);
+            return Run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
-            PrintObjectKindNotSupportedError(OpKind, Object);
-            return 1;
+            return InvalidObjectKind;
     }
 
-    assert(0 && "Reached end with unrecognizable Object-Kind");
+    assert(0 && "Unrecognized Object-Kind");
 }
-
-int
-PrintFlagsOperation::run(const ConstMemoryObject &Object,
-                         int Argc,
-                         const char *Argv[]) noexcept
-{
-    assert(Object.GetKind() != ObjectKind::None);
-    return run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
-}
-

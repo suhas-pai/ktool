@@ -14,6 +14,7 @@
 #include <type_traits>
 
 template <typename T, typename U>
+constexpr
 inline bool IndexOutOfBounds(const T &Index, const U &Bounds) noexcept {
     static_assert(std::is_integral_v<T> && std::is_integral_v<U>,
                   "Types must be integer-types");
@@ -21,31 +22,42 @@ inline bool IndexOutOfBounds(const T &Index, const U &Bounds) noexcept {
     return (Index >= Bounds);
 }
 
-inline bool DigitIsValid(uint8_t Digit) noexcept {
-    return (Digit < 10);
-}
+template <typename ... Ts>
+struct SmallestIntegerTypeCalculator {};
 
-inline uint8_t ToDigit(char Ch) noexcept {
-    return (Ch - '0');
-}
+template <typename ... Ts>
+using SmallestIntegerType = typename SmallestIntegerTypeCalculator<Ts...>::Type;
 
 template <typename T>
-static inline T ParseNumber(const char *String) noexcept {
-    static_assert(std::is_integral_v<T>, "T must be an integer-type!");
+struct SmallestIntegerTypeCalculator<T> {
+    using Type = T;
+};
 
-    auto Number = T();
-    for (auto Ch = *String; Ch != '\0'; Ch = *(++String)) {
-        const auto Digit = ToDigit(Ch);
-        if (!DigitIsValid(Digit)) {
-            fprintf(stdout, "%s is not a valid number\n", String);
-            exit(1);
-        }
+template <typename T, typename U, typename ... Ts>
+struct SmallestIntegerTypeCalculator<T, U, Ts...>  {
+private:
+    using HelperType =
+        typename std::conditional<sizeof(T) < sizeof(U), T, U>::type;
+public:
+    using Type = SmallestIntegerType<HelperType, Ts...>;
+};
 
-        if (DoesMultiplyAndAddOverflow(Number, 10, Digit, &Number)) {
-            fprintf(stdout, "Number %s is too large\n", String);
-            exit(1);
-        }
-    }
+template <typename ... Ts>
+struct LargestIntegerTypeCalculator {};
 
-    return Number;
-}
+template <typename ... Ts>
+using LargestIntegerType = typename LargestIntegerTypeCalculator<Ts...>::Type;
+
+template <typename T>
+struct LargestIntegerTypeCalculator<T> {
+    using Type = T;
+};
+
+template <typename T, typename U, typename ... Ts>
+struct LargestIntegerTypeCalculator<T, U, Ts...>  {
+private:
+    using HelperType =
+        typename std::conditional<(sizeof(T) > sizeof(U)), T, U>::type;
+public:
+    using Type = LargestIntegerType<HelperType, Ts...>;
+};

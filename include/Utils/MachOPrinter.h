@@ -10,7 +10,7 @@
 
 #include <unistd.h>
 
-#include "ADT/Mach/CpuTypeInfoTemplates.h"
+#include "ADT/Mach.h"
 #include "ADT/MachO.h"
 
 #include "PrintUtils.h"
@@ -48,8 +48,7 @@ MachOPrintOffsetSizeRange(FILE *OutFile,
     if (Is64Bit) {
         if (!DidOverflow) {
             if constexpr (OffsetTypeIs64Bit) {
-                WrittenOut =
-                    PrintUtilsWriteOffsetRange(OutFile, Offset, End);
+                WrittenOut = PrintUtilsWriteOffsetRange(OutFile, Offset, End);
             } else {
                 WrittenOut =
                     PrintUtilsWriteOffset32To64Range(OutFile, Offset, End);
@@ -81,21 +80,19 @@ MachOPrintOffsetSizeRange(FILE *OutFile,
 template <typename OffsetType, typename EndType>
 static inline int
 MachOPrintOffsetEndRange(FILE *OutFile,
-                      const OffsetType &Offset,
-                      const EndType &End,
-                      const char *LinePrefix,
-                      const char *LineSuffix,
-                      bool Is64Bit,
-                      bool Pad,
-                      OffsetType *EndOut = nullptr) noexcept
+                         const OffsetType &Offset,
+                         const EndType &End,
+                         const char *LinePrefix,
+                         const char *LineSuffix,
+                         bool Is64Bit,
+                         bool Pad,
+                         OffsetType *EndOut = nullptr) noexcept
 {
     static_assert(std::is_integral_v<OffsetType> &&
                   std::is_integral_v<EndType>,
                   "Types must be an integer-types");
 
     constexpr auto OffsetTypeIs64Bit = std::is_same_v<OffsetType, uint64_t>;
-
-    auto WrittenOut = int();
     auto ExpectedWrittenOut =
         (Is64Bit) ?
             (OffsetTypeIs64Bit) ?
@@ -104,12 +101,8 @@ MachOPrintOffsetEndRange(FILE *OutFile,
             OFFSET_32_RANGE_LEN;
 
     fprintf(OutFile, "%s", LinePrefix);
-    if (Is64Bit) {
-        WrittenOut = PrintUtilsWriteOffsetOverflowsRange(OutFile, Offset);
-    } else {
-        WrittenOut = PrintUtilsWriteOffsetOverflowsRange(OutFile, Offset);
-    }
 
+    auto WrittenOut = PrintUtilsWriteOffsetOverflowsRange(OutFile, Offset);
     if (Pad) {
         const auto Pad = static_cast<int>(ExpectedWrittenOut - WrittenOut);
         WrittenOut += PrintUtilsPadSpaces(OutFile, Pad);
@@ -138,25 +131,25 @@ struct MachOTypePrinter<MachO::FatHeader::Arch32> {
           const char *LinePrefix,
           const char *LineSuffix) noexcept
     {
-        const auto CpuType = Arch.GetCpuType(IsBigEndian);
-        const auto CpuSubType = SwitchEndianIf(Arch.CpuSubType, IsBigEndian);
+        const auto CpuKind = Arch.getCpuKind(IsBigEndian);
+        const auto CpuSubKind = SwitchEndianIf(Arch.CpuSubKind, IsBigEndian);
 
-        auto CpuTypeName =
+        auto CpuKindName =
             (Verbose) ?
-                Mach::CpuTypeGetName(CpuType).data() :
-                Mach::CpuTypeGetBrandName(CpuType).data();
+                Mach::CpuKindGetName(CpuKind).data() :
+                Mach::CpuKindGetBrandName(CpuKind).data();
 
-        if (CpuTypeName == nullptr) {
-            CpuTypeName = "Unrecognized";
+        if (CpuKindName == nullptr) {
+            CpuKindName = "Unrecognized";
         }
 
-        auto CpuSubTypeName =
+        auto CpuSubKindName =
             (Verbose) ?
-                Mach::CpuSubType::GetName(CpuType, CpuSubType).data() :
-                Mach::CpuSubType::GetFullName(CpuType, CpuSubType).data();
+                Mach::CpuSubKind::GetName(CpuKind, CpuSubKind).data() :
+                Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data();
 
-        if (CpuSubTypeName == nullptr) {
-            CpuSubTypeName = "Unrecognized";
+        if (CpuSubKindName == nullptr) {
+            CpuSubKindName = "Unrecognized";
         }
 
         const auto Offset = SwitchEndianIf(Arch.Offset, IsBigEndian);
@@ -170,12 +163,12 @@ struct MachOTypePrinter<MachO::FatHeader::Arch32> {
                 fprintf(OutFile,
                         "%sCpuType:    %s (Value: %" PRIu32 ")%s\n"
                         "%sCpuSubType: %s (Value: %" PRIu32 ")%s\n"
-                        "%sOffset:%-5s" OFFSET_32_FMT " (" OFFSET_32_RNG_FMT
-                        ")%s\n%sSize:       %" PRIu32 "%s\n"
+                        "%sOffset:%-5s" OFFSET_32_FMT " (" OFFSET_32_RNG_FMT ")"
+                        "%s\n%sSize:       %" PRIu32 "%s\n"
                         "%sAlign:      %" PRIu32 "%s\n",
-                        LinePrefix, CpuTypeName, static_cast<int32_t>(CpuType),
+                        LinePrefix, CpuKindName, static_cast<int32_t>(CpuKind),
                         LineSuffix,
-                        LinePrefix, CpuSubTypeName, CpuSubType, LineSuffix,
+                        LinePrefix, CpuSubKindName, CpuSubKind, LineSuffix,
                         LinePrefix, "", Offset, Offset, ArchEnd, LineSuffix,
                         LinePrefix, Size, LineSuffix,
                         LinePrefix, Align, LineSuffix);
@@ -184,11 +177,11 @@ struct MachOTypePrinter<MachO::FatHeader::Arch32> {
                 fprintf(OutFile,
                         "%sCpuType:    %s%s\n"
                         "%sCpuSubType: %s%s\n"
-                        "%sOffset:%-5s" OFFSET_32_FMT " (" OFFSET_32_RNG_FMT
-                        ")%s\n%sSize:       %" PRIu32 "%s\n"
+                        "%sOffset:%-5s" OFFSET_32_FMT " (" OFFSET_32_RNG_FMT ")"
+                        "%s\n%sSize:       %" PRIu32 "%s\n"
                         "%sAlign:      %" PRIu32 "%s\n",
-                        LinePrefix, CpuTypeName, LineSuffix,
-                        LinePrefix, CpuSubTypeName, LineSuffix,
+                        LinePrefix, CpuKindName, LineSuffix,
+                        LinePrefix, CpuSubKindName, LineSuffix,
                         LinePrefix, "", Offset, Offset, ArchEnd, LineSuffix,
                         LinePrefix, Size, LineSuffix,
                         LinePrefix, Align, LineSuffix);
@@ -210,25 +203,25 @@ struct MachOTypePrinter<MachO::FatHeader::Arch64> {
           const char *LinePrefix,
           const char *LineSuffix) noexcept
     {
-        const auto CpuType = Arch.GetCpuType(IsBigEndian);
-        const auto CpuSubType = SwitchEndianIf(Arch.CpuSubType, IsBigEndian);
+        const auto CpuKind = Arch.getCpuKind(IsBigEndian);
+        const auto CpuSubKind = SwitchEndianIf(Arch.CpuSubKind, IsBigEndian);
 
-        auto CpuTypeName =
+        auto CpuKindName =
             (Verbose) ?
-                Mach::CpuTypeGetName(CpuType).data() :
-                Mach::CpuTypeGetBrandName(CpuType).data();
+                Mach::CpuKindGetName(CpuKind).data() :
+                Mach::CpuKindGetBrandName(CpuKind).data();
 
-        if (CpuTypeName == nullptr) {
-            CpuTypeName = "Unrecognized";
+        if (CpuKindName == nullptr) {
+            CpuKindName = "Unrecognized";
         }
 
-        auto CpuSubTypeName =
+        auto CpuSubKindName =
             (Verbose) ?
-                Mach::CpuSubType::GetName(CpuType, CpuSubType).data() :
-                Mach::CpuSubType::GetFullName(CpuType, CpuSubType).data();
+                Mach::CpuSubKind::GetName(CpuKind, CpuSubKind).data() :
+                Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data();
 
-        if (CpuSubTypeName == nullptr) {
-            CpuSubTypeName = "Unrecognized";
+        if (CpuSubKindName == nullptr) {
+            CpuSubKindName = "Unrecognized";
         }
 
         const auto Offset = SwitchEndianIf(Arch.Offset, IsBigEndian);
@@ -245,9 +238,9 @@ struct MachOTypePrinter<MachO::FatHeader::Arch64> {
                         "%sOffset:%-5s" OFFSET_64_FMT " (" OFFSET_64_RNG_FMT
                         ")%s\n%sSize:       %" PRIu64 "%s\n"
                         "%sAlign:      %" PRIu32 "%s\n",
-                        LinePrefix, CpuTypeName, static_cast<int32_t>(CpuType),
+                        LinePrefix, CpuKindName, static_cast<int32_t>(CpuKind),
                         LineSuffix,
-                        LinePrefix, CpuSubTypeName, CpuSubType, LineSuffix,
+                        LinePrefix, CpuSubKindName, CpuSubKind, LineSuffix,
                         LinePrefix, "", Offset, Offset, ArchEnd, LineSuffix,
                         LinePrefix, Size, LineSuffix,
                         LinePrefix, Align, LineSuffix);
@@ -259,8 +252,8 @@ struct MachOTypePrinter<MachO::FatHeader::Arch64> {
                         "%sOffset:%-5s" OFFSET_64_FMT " (" OFFSET_64_RNG_FMT
                         ")%s\n%sSize:       %" PRIu64 "%s\n"
                         "%sAlign:      %" PRIu32 "%s\n",
-                        LinePrefix, CpuTypeName, LineSuffix,
-                        LinePrefix, CpuSubTypeName, LineSuffix,
+                        LinePrefix, CpuKindName, LineSuffix,
+                        LinePrefix, CpuSubKindName, LineSuffix,
                         LinePrefix, "", Offset, Offset, ArchEnd, LineSuffix,
                         LinePrefix, Size, LineSuffix,
                         LinePrefix, Align, LineSuffix);
@@ -287,8 +280,10 @@ struct MachOTypePrinter<MachO::FatHeader> {
         auto I = static_cast<uint32_t>(1);
 
         if (Header.Is64Bit()) {
-            for (const auto &Arch : Header.GetConstArch64List(IsBigEndian)) {
-                fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
+            for (const auto &Arch : Header.getConstArch64List(IsBigEndian)) {
+                WrittenOut +=
+                    fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
+
                 WrittenOut +=
                     MachOTypePrinter<MachO::FatHeader::Arch64>::Print<false>(
                         OutFile, Arch, IsBigEndian, CombinedLinePrefix.data(),
@@ -296,8 +291,10 @@ struct MachOTypePrinter<MachO::FatHeader> {
                 I++;
             }
         } else {
-            for (const auto &Arch : Header.GetConstArch32List(IsBigEndian)) {
-                fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
+            for (const auto &Arch : Header.getConstArch32List(IsBigEndian)) {
+                WrittenOut +=
+                    fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
+
                 WrittenOut +=
                     MachOTypePrinter<MachO::FatHeader::Arch32>::Print<false>(
                         OutFile, Arch, IsBigEndian, CombinedLinePrefix.data(),
@@ -322,8 +319,10 @@ struct MachOTypePrinter<MachO::FatHeader> {
         auto I = static_cast<uint32_t>(1);
 
         if (Header.Is64Bit()) {
-            for (const auto &Arch : Header.GetConstArch64List(IsBigEndian)) {
-                fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
+            for (const auto &Arch : Header.getConstArch64List(IsBigEndian)) {
+                WrittenOut +=
+                    fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
+
                 WrittenOut +=
                     MachOTypePrinter<MachO::FatHeader::Arch64>::Print<true>(
                         OutFile, Arch, IsBigEndian, CombinedLinePrefix.data(),
@@ -331,8 +330,10 @@ struct MachOTypePrinter<MachO::FatHeader> {
                 I++;
             }
         } else {
-            for (const auto &Arch : Header.GetConstArch32List(IsBigEndian)) {
-                fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
+            for (const auto &Arch : Header.getConstArch32List(IsBigEndian)) {
+                WrittenOut +=
+                    fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
+
                 WrittenOut +=
                     MachOTypePrinter<MachO::FatHeader::Arch32>::Print<true>(
                         OutFile, Arch, IsBigEndian, CombinedLinePrefix.data(),
@@ -353,7 +354,6 @@ struct MachOTypePrinter<MachO::PackedVersion> {
     static int
     Print(FILE *OutFile,
           const Type &Version,
-          bool IsBigEndian,
           const char *LinePrefix,
           const char *LineSuffix) noexcept
     {
@@ -361,7 +361,7 @@ struct MachOTypePrinter<MachO::PackedVersion> {
         const auto PackedVersionWrittenOut =
             fprintf(OutFile,
                     MACHO_PACKED_VERSION_FMT,
-                    MACHO_PACKED_VERSION_FMT_ARGS(Version, IsBigEndian));
+                    MACHO_PACKED_VERSION_FMT_ARGS(Version));
 
         WrittenOut += PackedVersionWrittenOut;
         if constexpr (RightPad) {
@@ -381,13 +381,12 @@ struct MachOTypePrinter<MachO::PackedVersion> {
     static inline int
     PrintWithoutZeros(FILE *OutFile,
                       const Type &Version,
-                      bool IsBigEndian,
                       const char *LinePrefix,
                       const char *LineSuffix)
     {
-        const auto Major = Version.GetMajor(IsBigEndian);
-        const auto Minor = Version.GetMinor(IsBigEndian);
-        const auto Revision = Version.GetRevision(IsBigEndian);
+        const auto Major = Version.getMajor();
+        const auto Minor = Version.getMinor();
+        const auto Revision = Version.getRevision();
 
         auto WrittenOut = fprintf(OutFile, "%s", LinePrefix);
         auto PackedVersionWrittenOut = int();
@@ -429,13 +428,12 @@ struct MachOTypePrinter<MachO::PackedVersion> {
     static inline int
     PrintOrZero(FILE *OutFile,
                 const Type &Version,
-                bool IsBigEndian,
                 const char *LinePrefix,
                 const char *LineSuffix)
     {
-        const auto Major = Version.GetMajor(IsBigEndian);
-        const auto Minor = Version.GetMinor(IsBigEndian);
-        const auto Revision = Version.GetRevision(IsBigEndian);
+        const auto Major = Version.getMajor();
+        const auto Minor = Version.getMinor();
+        const auto Revision = Version.getRevision();
 
         auto WrittenOut = fprintf(OutFile, "%s", LinePrefix);
         auto PackedVersionWrittenOut = int();
@@ -443,26 +441,19 @@ struct MachOTypePrinter<MachO::PackedVersion> {
         if (Revision == 0) {
             if (Minor == 0) {
                 if (Major == 0) {
-                    PackedVersionWrittenOut = fprintf(OutFile, "0");
+                    fputc('0', OutFile);
+                    PackedVersionWrittenOut = 1;
                 } else {
                     PackedVersionWrittenOut =
-                        Print(OutFile,
-                              Version,
-                              IsBigEndian,
-                              LinePrefix,
-                              LineSuffix);
+                        Print(OutFile, Version, LinePrefix, LineSuffix);
                 }
             } else {
                 PackedVersionWrittenOut =
-                    Print(OutFile,
-                          Version,
-                          IsBigEndian,
-                          LinePrefix,
-                          LineSuffix);
+                    Print(OutFile, Version, LinePrefix, LineSuffix);
             }
         } else {
             PackedVersionWrittenOut =
-                Print(OutFile, Version, IsBigEndian, LinePrefix, LineSuffix);
+                Print(OutFile, Version, LinePrefix, LineSuffix);
         }
 
         WrittenOut += PackedVersionWrittenOut;
@@ -496,23 +487,21 @@ struct MachOTypePrinter<struct MachO::DylibCommand::Info> {
 
         WrittenOut +=
             MachOTypePrinter<MachO::PackedVersion>::Print(OutFile,
-                Info.CurrentVersion, IsBigEndian, "", "");
+                Info.getCurrentVersion(IsBigEndian), "", LineSuffix);
 
         WrittenOut +=
             fprintf(OutFile,
-                    "%s\n%sCompatibility Version: ",
-                    LineSuffix,
+                    "\n%sCompatibility Version: ",
                     LinePrefix);
 
         WrittenOut +=
             MachOTypePrinter<MachO::PackedVersion>::Print(OutFile,
-                Info.CompatibilityVersion, IsBigEndian, "", "");
+                Info.getCompatVersion(IsBigEndian), "", LineSuffix);
 
         const auto Timestamp = SwitchEndianIf(Info.Timestamp, IsBigEndian);
         WrittenOut +=
             fprintf(OutFile,
-                    "%s\n%sTimestamp:%s%s (Value: %" PRIu32 ")\n",
-                    LineSuffix,
+                    "\n%sTimestamp:%s%s (Value: %" PRIu32 ")\n",
                     LinePrefix,
                     (TimestampAligned) ? "             " : " ",
                     GetHumanReadableTimestamp(Timestamp).data(),
@@ -532,19 +521,19 @@ struct MachOTypePrinter<struct MachO::DylibCommand::Info> {
         auto WrittenOut = fprintf(OutFile, "%sCurrent-Version: ", LinePrefix);
         WrittenOut +=
             MachOTypePrinter<MachO::PackedVersion>::Print<true>(OutFile,
-                Info.CurrentVersion, IsBigEndian, "", ",");
+                Info.getCurrentVersion(IsBigEndian), "", ",");
 
         WrittenOut += fprintf(OutFile, "Compatibility-Version: ");
         WrittenOut +=
             MachOTypePrinter<MachO::PackedVersion>::Print<true>(OutFile,
-                Info.CompatibilityVersion, IsBigEndian, "", ",");
+                Info.getCompatVersion(IsBigEndian), "", ",");
 
         const auto Timestamp = SwitchEndianIf(Info.Timestamp, IsBigEndian);
         const auto HrTimestamp = GetHumanReadableTimestamp(Timestamp);
 
         WrittenOut += fprintf(OutFile, "Timestamp: %s", HrTimestamp.data());
         if (Verbose) {
-            fprintf(OutFile, " (Value: %" PRIu32 ")", Timestamp);
+            WrittenOut += fprintf(OutFile, " (Value: %" PRIu32 ")", Timestamp);
         }
 
         WrittenOut += fprintf(OutFile, "%s", LineSuffix);

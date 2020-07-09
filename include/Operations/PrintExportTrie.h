@@ -8,50 +8,68 @@
 
 #pragma once
 
+#include <variant>
 #include "Base.h"
 #include "Kind.h"
 #include "Objects/MachOMemory.h"
 
-struct PrintExportTrieOperation : public PrintOperation {
+struct PrintExportTrieOperation : public Operation {
 public:
     constexpr static const auto OpKind = OperationKind::PrintExportTrie;
+
+    [[nodiscard]]
     constexpr static inline bool IsOfKind(const Operation &Opt) noexcept {
-        return (Opt.GetKind() == OpKind);
+        return (Opt.getKind() == OpKind);
     }
 
-    struct Options : public PrintOperation::Options {
-        explicit Options() noexcept : PrintOperation::Options(OpKind) {}
+    struct Options : public Operation::Options {
+        [[nodiscard]] constexpr
         static inline bool IsOfKind(const Operation::Options &Opt) noexcept {
-            return (Opt.GetKind() == OpKind);
+            return (Opt.getKind() == OpKind);
         }
 
+        struct SegmentSectionPair {
+            std::string_view SegmentName;
+            std::string_view SectionName;
+
+            [[nodiscard]] inline
+            bool operator==(const SegmentSectionPair &Rhs) const noexcept {
+                const auto Result =
+                    (SegmentName == Rhs.SegmentName) &&
+                    (SectionName == Rhs.SectionName);
+
+                return Result;
+            }
+        };
+
+        Options() noexcept
+        : Operation::Options(OpKind), Sort(false), PrintTree(false),
+          Verbose(false) {}
+
+        bool Sort : 1;
+        bool PrintTree : 1;
         bool Verbose : 1;
-        bool PrintReexportDylibPaths : 1;
+
+        std::vector<SegmentSectionPair> SectionRequirements;
+        std::vector<MachO::ExportTrieExportKind> KindRequirements;
     };
 protected:
     Options Options;
-
-    static struct Options
-    ParseOptionsImpl(int Argc, const char *Argv[], int *IndexOut) noexcept;
 public:
-    explicit PrintExportTrieOperation() noexcept;
-    explicit PrintExportTrieOperation(const struct Options &Options) noexcept;
+    PrintExportTrieOperation() noexcept = default;
+    PrintExportTrieOperation(const struct Options &Options) noexcept;
 
-    static struct Options *
-    ParseOptions(int Argc, const char *Argv[], int *IndexOut) noexcept;
+    static int
+    Run(const ConstMachOMemoryObject &Object,
+        const struct Options &Options) noexcept;
 
-    int run(const ConstMemoryObject &Object) noexcept;
+    [[nodiscard]] static struct Options
+    ParseOptionsImpl(const ArgvArray &Argv, int *IndexOut) noexcept;
 
-    static int run(const ConstMachOMemoryObject &Object,
-                   const struct Options &Options) noexcept;
+    int Run(const MemoryObject &Object) const noexcept override;
+    void ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept override;
 
-    static int run(const ConstMemoryObject &Object,
-                   int Argc,
-                   const char *Argv[]) noexcept;
-
-    static int run(const ConstMemoryObject &Object,
-                   const struct Options &Options) noexcept;
-
+    [[nodiscard]]
     constexpr static bool SupportsObjectKind(ObjectKind Kind) noexcept {
         switch (Kind) {
             case ObjectKind::None:

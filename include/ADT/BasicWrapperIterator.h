@@ -7,67 +7,96 @@
 //
 
 #pragma once
+#include <utility>
 
 template <typename T, typename StepType = unsigned>
 struct BasicWrapperIterator {
 protected:
     T Item;
 public:
-    explicit BasicWrapperIterator() = delete;
-    explicit BasicWrapperIterator(const T &Item) noexcept : Item(Item) {}
-    explicit BasicWrapperIterator(T &&Item) noexcept : Item(Item) {}
+    constexpr BasicWrapperIterator() = delete;
+    constexpr BasicWrapperIterator(const T &Item) noexcept : Item(Item) {}
+    constexpr BasicWrapperIterator(T &&Item) noexcept : Item(std::move(Item)) {}
 
-    inline BasicWrapperIterator operator+(StepType Amt) noexcept {
-        return BasicWrapperIterator(Item + Amt);
-    }
-
-    inline BasicWrapperIterator operator-(StepType Amt) noexcept {
-        return BasicWrapperIterator(Item - Amt);
-    }
-
-    inline BasicWrapperIterator &operator++() noexcept { Item++; return *this; }
-    inline BasicWrapperIterator &operator++(int) noexcept {
-        Item++; return *this;
-    }
-
-    inline BasicWrapperIterator &operator--() noexcept { Item--; return *this; }
-    inline BasicWrapperIterator &operator--(int) noexcept {
+    inline BasicWrapperIterator &moveBack() noexcept {
         Item--;
         return *this;
     }
 
-    inline BasicWrapperIterator &operator+=(StepType Amt) noexcept {
-        Item += Amt; return *this;
+    inline BasicWrapperIterator &advance() noexcept {
+        Item++;
+        return *this;
     }
 
-    inline BasicWrapperIterator &operator-=(StepType Amt) noexcept {
-        Item -= Amt; return *this;
+    [[nodiscard]]
+    constexpr inline BasicWrapperIterator operator+(StepType Amt) noexcept {
+        return BasicWrapperIterator(Item + Amt);
     }
 
-    inline bool operator==(const BasicWrapperIterator &Rhs) noexcept {
-        return Item == Rhs.Item;
+    [[nodiscard]]
+    constexpr inline BasicWrapperIterator operator-(StepType Amt) noexcept {
+        return BasicWrapperIterator(Item - Amt);
     }
 
-    inline bool operator!=(const BasicWrapperIterator &Rhs) noexcept {
-        return Item != Rhs.Item;
+    constexpr inline BasicWrapperIterator &operator++() noexcept {
+        return advance();
     }
 
-    inline bool operator<(const BasicWrapperIterator &Rhs) noexcept {
-        return Item < Rhs.Item;
+    constexpr inline BasicWrapperIterator &operator++(int) noexcept {
+        return advance();
     }
 
-    inline bool operator<=(const BasicWrapperIterator &Rhs) noexcept {
-        return Item <= Rhs.Item;
+    constexpr inline BasicWrapperIterator &operator--() noexcept {
+        return moveBack();
     }
 
-    inline bool operator>(const BasicWrapperIterator &Rhs) noexcept {
-        return Item > Rhs.Item;
+    constexpr inline BasicWrapperIterator &operator--(int) noexcept {
+        return moveBack();
     }
 
-    inline bool operator>=(const BasicWrapperIterator &Rhs) noexcept {
-        return Item >= Rhs.Item;
+    constexpr inline BasicWrapperIterator &operator+=(StepType Amt) noexcept {
+        Item += Amt;
+        return *this;
     }
 
-    inline T &operator*() noexcept { return Item; }
-    inline T &operator->() noexcept { return Item; }
+    constexpr inline BasicWrapperIterator &operator-=(StepType Amt) noexcept {
+        Item -= Amt;
+        return *this;
+    }
+
+    [[nodiscard]]
+    constexpr inline bool operator==(const BasicWrapperIterator &Rhs) noexcept {
+        return (Item == Rhs.Item);
+    }
+
+    [[nodiscard]]
+    constexpr inline bool operator!=(const BasicWrapperIterator &Rhs) noexcept {
+        return (Item != Rhs.Item);
+    }
+
+    [[nodiscard]]
+    constexpr inline bool operator<(const BasicWrapperIterator &Rhs) noexcept {
+        return (Item < Rhs.Item);
+    }
+
+    [[nodiscard]]
+    constexpr inline bool operator<=(const BasicWrapperIterator &Rhs) noexcept {
+        return (Item <= Rhs.Item);
+    }
+
+    [[nodiscard]]
+    constexpr inline bool operator>(const BasicWrapperIterator &Rhs) noexcept {
+        return (Item > Rhs.Item);
+    }
+
+    [[nodiscard]]
+    constexpr inline bool operator>=(const BasicWrapperIterator &Rhs) noexcept {
+        return (Item >= Rhs.Item);
+    }
+
+    constexpr inline T &operator*() noexcept { return Item; }
+    constexpr inline const T &operator*() const noexcept { return Item; }
+    
+    constexpr inline T &operator->() noexcept { return Item; }
+    constexpr inline const T &operator->() const noexcept { return Item; }
 };

@@ -27,13 +27,13 @@ __MLCP_WriteOffsetRange(FILE *OutFile,
                         const OffsetType &Offset,
                         const SizeType &Size,
                         bool Pad,
-                        OffsetType *EndOut) noexcept
+                        SizeType *EndOut) noexcept
 {
     static_assert(std::is_integral_v<OffsetType> &&
                   std::is_integral_v<SizeType>,
                   "SizeType must be an integer-type");
 
-    auto End = OffsetType();
+    auto End = SizeType();
     auto WrittenOut = int();
     auto DidOverflow = DoesAddOverflow(Offset, Size, &End);
 
@@ -118,9 +118,10 @@ __MLCP_WriteSizeDiff(FILE *OutFile,
     if (Pad) {
         const auto WriteLength =
             LENGTH_OF("(+") + PrintUtilsGetIntegerDigitLength(Diff);
+        const auto PadSpacesLength =
+            static_cast<int>(WriteLengthMax - WriteLength);
 
-        PrintUtilsPadSpaces(OutFile,
-                            static_cast<int>(WriteLengthMax - WriteLength));
+        PrintUtilsPadSpaces(OutFile, PadSpacesLength);
     }
 
     if constexpr (std::is_same_v<SizeOneType, uint64_t>) {
@@ -162,7 +163,7 @@ __MLCP_WritePastEOFWarning(FILE *OutFile,
                            uint64_t End,
                            const char *LineSuffix) noexcept
 {
-    if (!FileRange.ContainsEndLocation(End)) {
+    if (!FileRange.containsEndLocation(End)) {
         fprintf(OutFile, " (Past EOF!)%s", LineSuffix);
     } else {
         fprintf(OutFile, "%s", LineSuffix);
@@ -192,7 +193,7 @@ MachOLoadCommandPrinterWriteFileAndVmRange(FILE *OutFile,
     fprintf(OutFile, "%sFile:%c", LinePrefix, (OneLine) ? ' ' : '\t');
 
     const auto ShouldPrintSizeInfo = (!OneLine || Verbose);
-    auto FileOffEnd = FileOffType();
+    auto FileOffEnd = SizeType();
 
     __MLCP_WriteOffsetRange(OutFile, FileOff, FileSize, OneLine, &FileOffEnd);
     if (ShouldPrintSizeInfo) {
@@ -273,7 +274,12 @@ MachOLoadCommandPrinterWriteSegmentCommand(FILE *OutFile,
         fputs("(Wrong Segment-Kind)", OutFile);
     }
 
-    fprintf(OutFile, "\t" CHAR_ARR_FMT(16) "\n", Segment.Name);
+    fprintf(OutFile, "\t\"" CHAR_ARR_FMT(16) "\"", Segment.Name);
+    fprintf(OutFile,
+            "\t" MEM_PROT_FMT "/" MEM_PROT_FMT "\n",
+            MEM_PROT_FMT_ARGS(Segment.getInitProt(IsBigEndian)),
+            MEM_PROT_FMT_ARGS(Segment.getInitProt(IsBigEndian)));
+
     MachOLoadCommandPrinterWriteFileAndVmRange<false>(
         OutFile, FileRange, "\t", SegFileOff, SegVmAddr, SegFileSize, SegVmSize,
         Verbose);
@@ -306,16 +312,17 @@ MachOLoadCommandPrinterWriteSegmentCommand(FILE *OutFile,
             fputc('\t', OutFile);
         }
 
-        fprintf(OutFile,
-                CHAR_ARR_AND_RIGHTPAD_WITH_SIZE_FMT(16, 16),
-                Section.Name);
+        fprintf(OutFile, "\"" CHAR_ARR_FMT(16) "\"", Section.Name);
+        if (const auto Length = strnlen(Section.Name, 16); Length != 16) {
+            PrintUtilsPadSpaces(OutFile, static_cast<int>(16 - Length));
+        }
 
-        const auto Type = Section.Flags.GetType(IsBigEndian);
-        if (Type != MachO::SegmentSectionType::Regular) {
+        const auto Type = Section.getFlags(IsBigEndian).getKind();
+        if (Type != MachO::SegmentSectionKind::Regular) {
             // Print Section-Types with space-padding to align all of them in
             // the terminal.
 
-            const auto Desc = MachO::SegmentSectionTypeGetDescription(Type);
+            const auto Desc = MachO::SegmentSectionKindGetDescription(Type);
             fprintf(OutFile, " (%s)", Desc.data());
         }
 
@@ -394,14 +401,14 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SymbolTable> {
 
         if (Is64Bit) {
             if (DoesMultiplyAndAddOverflow(
-                    sizeof(MachO::SymtabCommand::Entry64), Nsyms, StrOff,
+                    sizeof(MachO::SymTabCommand::Entry64), Nsyms, StrOff,
                     &SymEnd))
             {
                 SymOverflows = true;
             }
         } else {
             if (DoesMultiplyAndAddOverflow<uint32_t>(
-                    sizeof(MachO::SymtabCommand::Entry32), Nsyms, StrOff,
+                    sizeof(MachO::SymTabCommand::Entry32), Nsyms, StrOff,
                     &SymEnd))
             {
                 SymOverflows = true;
@@ -409,7 +416,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SymbolTable> {
         }
 
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
-        fputs("\n\tString-Table:\t", OutFile);
+        fputs("\n\tString-Table: ", OutFile);
 
         auto StrTabEnd = uint64_t();
         auto SymTabEnd = uint64_t();
@@ -418,18 +425,12 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SymbolTable> {
         fprintf(OutFile, " (%" PRIu32 " Bytes)", StrSize);
 
         __MLCP_WritePastEOFWarning(OutFile, FileRange, StrTabEnd, "\n");
-        fputs("\tSymbol-Table:\t", OutFile);
+        fputs("\tSymbol-Table: ", OutFile);
 
         if (SymOverflows) {
             PrintUtilsWriteOffsetOverflowsRange(OutFile, SymOff);
         } else {
-            if (Is64Bit) {
-                PrintUtilsWriteOffset32To64Range(OutFile, SymOff, SymEnd);
-            } else {
-                PrintUtilsWriteOffsetRange(OutFile,
-                                           SymOff,
-                                           static_cast<uint32_t>(SymEnd));
-            }
+            PrintUtilsWriteOffsetRange32(OutFile, SymOff, SymEnd, Is64Bit);
         }
 
         fprintf(OutFile, " (%" PRIu32 " Symbols)", Nsyms);
@@ -543,9 +544,9 @@ MachOLoadCommandPrinterWriteLoadCommandString(
     FILE *OutFile,
     const MachO::LoadCommandString::GetValueResult &Value)
 {
-    switch (Value.GetError()) {
+    switch (Value.getError()) {
         case MachO::LoadCommandString::GetStringError::None:
-            fprintf(OutFile, "%s", Value.GetString().data());
+            fprintf(OutFile, "\"%s\"", Value.getString().data());
             break;
         case MachO::LoadCommandString::GetStringError::OffsetOutOfBounds:
             fprintf(OutFile, "(Name-Offset out-of-bounds)");
@@ -1077,11 +1078,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::TwoLevelHints>
 
         if (Overflows) {
             PrintUtilsWriteOffsetOverflowsRange(OutFile, Offset);
-        } else if (Is64Bit) {
-            PrintUtilsWriteOffset32To64Range(OutFile, Offset, End);
         } else {
-            PrintUtilsWriteOffsetRange(OutFile, Offset,
-                                       static_cast<uint32_t>(End));
+            PrintUtilsWriteOffsetRange32(OutFile, Offset, End, Is64Bit);
         }
 
         fprintf(OutFile, "%" PRIu32 " Hints\n", NHints);
@@ -1574,12 +1572,12 @@ MachOLoadCommandPrinterWriteVersionMinimumCmd(
     fputs("\tVersion: ", OutFile);
 
     MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
-        OutFile, VersionMin.Version, IsBigEndian, "", "");
+        OutFile, VersionMin.GetVersion(IsBigEndian), "", "");
 
     fputs("\tSDK: ", OutFile);
 
     MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
-        OutFile, VersionMin.Sdk, IsBigEndian, "", "");
+        OutFile, VersionMin.GetSdk(IsBigEndian), "", "");
 
     fputc('\n', OutFile);
 }
@@ -1767,14 +1765,22 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SourceVersion>
           bool Verbose) noexcept
     {
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+
+        const auto Version = DataInCode.GetVersion(IsBigEndian);
+
+        fputs("\tSource Version:\t", OutFile);
+        if (Version.empty()) {
+            fputs("0\n", OutFile);
+            return;
+        }
+
         fprintf(OutFile,
-                "\tSource Version:\t%"
-                PRIu32 ".%" PRIu16 ".%" PRIu16 ".%" PRIu16 ".%" PRIu16 "\n",
-                DataInCode.Version.GetMajor(IsBigEndian),
-                DataInCode.Version.GetMinor(IsBigEndian),
-                DataInCode.Version.GetRevision1(IsBigEndian),
-                DataInCode.Version.GetRevision2(IsBigEndian),
-                DataInCode.Version.GetRevision3(IsBigEndian));
+                "%" PRIu32 ".%" PRIu16 ".%" PRIu16 ".%" PRIu16 ".%" PRIu16 "\n",
+                Version.getMajor(),
+                Version.getMinor(),
+                Version.getRevision1(),
+                Version.getRevision2(),
+                Version.getRevision3());
     }
 };
 
@@ -1963,18 +1969,18 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
                 PlatformDesc);
 
         MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
-            OutFile, BuildVersion.MinOS, IsBigEndian, "", "");
+            OutFile, BuildVersion.GetMinOS(IsBigEndian), "", "");
 
         fputs("\n\tSdk: ", OutFile);
 
         MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
-            OutFile, BuildVersion.Sdk, IsBigEndian, "", "");
+            OutFile, BuildVersion.GetSdk(IsBigEndian), "", "");
 
         const auto &ToolList = BuildVersion.GetConstToolList(IsBigEndian);
-        switch (ToolList.GetError()) {
+        switch (ToolList.getError()) {
             case MachO::SizeRangeError::None:
+            case MachO::SizeRangeError::Empty:
                 break;
-
             case MachO::SizeRangeError::Overflows:
             case MachO::SizeRangeError::PastEnd:
                 fprintf(OutFile,
@@ -1987,7 +1993,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
         switch (NTools) {
             case 0:
                 fputs("\n\t0 Tools\n", OutFile);
-                break;
+                return;
             case 1:
                 fputs("\n\t1 Tool:\n", OutFile);
                 break;
@@ -1996,7 +2002,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
                 break;
         }
 
-        for (const auto &Tool : ToolList.GetRef()) {
+        for (const auto &Tool : ToolList.getRef()) {
             auto KindDesc =
                 Tool.KindGetDescription(Tool.GetKind(IsBigEndian)).data();
             
@@ -2006,7 +2012,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
 
             fprintf(OutFile,"\t\tKind:    %s\n\t\tVersion: ", KindDesc);
             MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(OutFile,
-                Tool.Version, IsBigEndian, "", "");
+                Tool.GetVersion(IsBigEndian), "", "");
 
             fputc('\n', OutFile);
         }

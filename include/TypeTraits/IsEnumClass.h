@@ -10,11 +10,10 @@
 #include <type_traits>
 
 namespace TypeTraits {
-    template <typename T,
-              auto A = std::is_enum_v<T> && !std::is_convertible_v<T, int>>
-
+    template <typename T>
     struct IsEnumClass {
-        constexpr static auto Value = A;
+        constexpr static auto Value =
+            std::is_enum_v<T> && !std::is_convertible_v<T, int>;
     };
 
     template <typename Enum>

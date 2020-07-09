@@ -11,32 +11,42 @@
 #include <cstdint>
 #include <type_traits>
 
-template <bool Is64Bit>
-using PointerAddrType = std::conditional_t<Is64Bit, uint64_t, uint32_t>;
+#include "ADT/PointerKind.h"
 
-template <bool Is64Bit>
-using PointerAddrConstType = std::conditional_t<Is64Bit,
-                                                const uint64_t,
-                                                const uint32_t>;
-
-
-template <bool Is64Bit>
-static inline uint8_t PointerSize() noexcept {
-    return (Is64Bit) ? sizeof(uint64_t) : sizeof(uint32_t);
+template <PointerKind Kind>
+[[nodiscard]] constexpr static inline uint8_t PointerSize() noexcept {
+    return sizeof(PointerAddrTypeFromKind<Kind>);
 }
 
-static inline uint8_t PointerSize(bool Is64Bit) noexcept {
-    return (Is64Bit) ? PointerSize<true>() : PointerSize<false>();
+[[nodiscard]]
+constexpr static inline uint8_t PointerSize(bool Is64Bit) noexcept {
+    const auto Result =
+        (Is64Bit) ?
+            PointerSize<PointerKind::s64Bit>() :
+            PointerSize<PointerKind::s32Bit>();
+
+    return Result;
 }
 
-template <typename T, bool Is64Bit>
-static inline
-bool IntegerIsPointerAligned(const T &Integer, uint64_t Pointer) noexcept {
+[[nodiscard]]
+constexpr static inline uint8_t PointerSize(PointerKind Kind) noexcept {
+    switch (Kind) {
+        case PointerKind::s32Bit:
+            return PointerSize<PointerKind::s32Bit>();
+        case PointerKind::s64Bit:
+            return PointerSize<PointerKind::s64Bit>();
+    }
+}
+
+template <PointerKind Kind, typename T>
+[[nodiscard]] constexpr
+static inline bool IntegerIsPointerAligned(const T &Integer) noexcept {
     static_assert(std::is_integral_v<T>, "Type must be integer-type");
-    return ((Integer % PointerSize<Is64Bit>()) == 0);
+    return ((Integer % PointerSize<Kind>()) == 0);
 }
 
 template <typename T>
+[[nodiscard]] constexpr
 static inline bool IntegerIsPointerAligned(T Integer, bool Is64Bit) noexcept {
     static_assert(std::is_integral_v<T>, "Type must be integer-type");
     return ((Integer % PointerSize(Is64Bit)) == 0);

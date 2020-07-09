@@ -9,32 +9,15 @@
 #include "LocationRange.h"
 #include "RelativeRange.h"
 
-RelativeRange::RelativeRange(uint64_t SizeOrEnd) noexcept : End(SizeOrEnd) {}
-
-bool RelativeRange::ContainsLocation(uint64_t Location) const noexcept {
-    return (Location < End);
-}
-
-bool RelativeRange::ContainsEndLocation(uint64_t EndLocation) const noexcept {
-    return (EndLocation <= End);
-}
-
-bool RelativeRange::Contains(const LocationRange &LocRange) const noexcept {
+bool
+RelativeRange::containsRange(const LocationRange &LocRange) const noexcept {
     const auto DoesContain =
-        (ContainsLocation(LocRange.GetBegin()) &&
-         ContainsEndLocation(LocRange.GetEnd()));
+        (containsLocation(LocRange.getBegin()) &&
+         containsEndLocation(LocRange.getEnd()));
 
     return DoesContain;
 }
 
-bool RelativeRange::Overlaps(const LocationRange &LocRange) const noexcept {
-    return ContainsLocation(LocRange.GetBegin());
-}
-
-bool RelativeRange::GoesPastSize(uint64_t Size) const noexcept {
-    return (End > Size);
-}
-
-LocationRange RelativeRange::ToLocRange() const noexcept {
-    return LocationRange::CreateWithEnd(0, End);
+bool RelativeRange::overlaps(const LocationRange &LocRange) const noexcept {
+    return containsLocation(LocRange.getBegin());
 }

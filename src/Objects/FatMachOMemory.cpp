@@ -10,22 +10,22 @@
 #include "ADT/Mach.h"
 
 #include "Utils/DoesOverflow.h"
-#include "Utils/SwitchEndian.h"
 #include "Utils/MiscTemplates.h"
+#include "Utils/SwitchEndian.h"
 
 #include "FatMachOMemory.h"
 #include "MachOMemory.h"
 
 FatMachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) {
-    const auto MapSize = Map.GetSize();
+    const auto MapSize = Map.size();
     const auto Header =
-        reinterpret_cast<const MachO::FatHeader *>(Map.GetBegin());
+        reinterpret_cast<const MachO::FatHeader *>(Map.getBegin());
 
     if (MapSize < sizeof(*Header)) {
         return FatMachOMemoryObject::Error::SizeTooSmall;
     }
 
-    if (!Header->HasValidMagic()) {
+    if (!Header->hasValidMagic()) {
         return FatMachOMemoryObject::Error::WrongFormat;
     }
 
@@ -72,7 +72,7 @@ FatMachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) {
             const auto ArchRange =
                 LocationRange::CreateWithSize(ArchOffset, ArchSize);
 
-            if (!ArchRange || ArchRange->GoesPastSize(MapSize)) {
+            if (!ArchRange || ArchRange->goesPastEnd(MapSize)) {
                 return FatMachOMemoryObject::Error::ArchOutOfBounds;
             }
 
@@ -84,7 +84,7 @@ FatMachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) {
                 const auto InnerRange =
                     LocationRange::CreateWithSize(InnerOffset, InnerSize);
 
-                if (ArchRange->Overlaps(InnerRange.value())) {
+                if (ArchRange->overlaps(InnerRange.value())) {
                     return FatMachOMemoryObject::Error::ArchOverlapsArch;
                 }
             }
@@ -99,7 +99,7 @@ FatMachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) {
             const auto ArchRange =
                 LocationRange::CreateWithSize(ArchOffset, ArchSize);
 
-            if (!ArchRange || ArchRange->GoesPastSize(MapSize)) {
+            if (!ArchRange || ArchRange->goesPastEnd(MapSize)) {
                 return FatMachOMemoryObject::Error::ArchOutOfBounds;
             }
 
@@ -111,7 +111,7 @@ FatMachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) {
                 const auto InnerRange =
                     LocationRange::CreateWithSize(InnerOffset, InnerSize);
 
-                if (ArchRange->Overlaps(InnerRange.value())) {
+                if (ArchRange->overlaps(InnerRange.value())) {
                     return FatMachOMemoryObject::Error::ArchOverlapsArch;
                 }
             }
@@ -142,17 +142,17 @@ ConstFatMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
 }
 
 FatMachOMemoryObject::FatMachOMemoryObject(const MemoryMap &Map) noexcept
-: MemoryObject(ObjectKind::FatMachO), Map(Map.GetBegin()), End(Map.GetEnd()) {}
+: MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()) {}
 
-ConstFatMachOMemoryObject::ConstFatMachOMemoryObject(const ConstMemoryMap &Map)
-noexcept : ConstMemoryObject(ObjectKind::FatMachO), Map(Map.GetBegin()),
-           End(Map.GetEnd()) {}
+ConstFatMachOMemoryObject::ConstFatMachOMemoryObject(
+    const ConstMemoryMap &Map) noexcept
+: FatMachOMemoryObject(reinterpret_cast<const MemoryMap &>(Map)) {}
 
 FatMachOMemoryObject::FatMachOMemoryObject(Error Error) noexcept
-: MemoryObject(ObjectKind::FatMachO), ErrorStorage(Error) {}
+: MemoryObject(ObjKind), ErrorStorage(Error) {}
 
 ConstFatMachOMemoryObject::ConstFatMachOMemoryObject(Error Error) noexcept
-: ConstMemoryObject(ObjectKind::FatMachO), ErrorStorage(Error) {}
+: FatMachOMemoryObject(Error) {}
 
 static bool MatchesFormat(FatMachOMemoryObject::Error Error) noexcept {
     switch (Error) {
@@ -172,19 +172,11 @@ static bool MatchesFormat(FatMachOMemoryObject::Error Error) noexcept {
 }
 
 bool FatMachOMemoryObject::DidMatchFormat() const noexcept {
-    return MatchesFormat(GetError());
-}
-
-bool ConstFatMachOMemoryObject::DidMatchFormat() const noexcept {
-    return MatchesFormat(GetError());
+    return MatchesFormat(getError());
 }
 
 MemoryObject *FatMachOMemoryObject::ToPtr() const noexcept {
     return new FatMachOMemoryObject(MemoryMap(Map, End));
-}
-
-ConstMemoryObject *ConstFatMachOMemoryObject::ToPtr() const noexcept {
-    return new ConstFatMachOMemoryObject(ConstMemoryMap(Map, End));
 }
 
 enum class ArchKind {
@@ -194,13 +186,15 @@ enum class ArchKind {
 
 template <typename ListType>
 static FatMachOMemoryObject::ArchInfo
-GetArchInfoAtIndexImpl(const ListType &List, uint32_t Index, bool IsBigEndian)
-noexcept {
+GetArchInfoAtIndexImpl(const ListType &List,
+                       uint32_t Index,
+                       bool IsBigEndian) noexcept
+{
     auto Info = FatMachOMemoryObject::ArchInfo();
     const auto &Arch = List.at(Index);
 
-    Info.CpuType = Arch->GetCpuType(IsBigEndian);
-    Info.CpuSubType = SwitchEndianIf(Arch->CpuSubType, IsBigEndian);
+    Info.CpuKind = Arch->getCpuKind(IsBigEndian);
+    Info.CpuSubKind = SwitchEndianIf(Arch->CpuSubKind, IsBigEndian);
 
     Info.Offset = SwitchEndianIf(Arch->Offset, IsBigEndian);
     Info.Size = SwitchEndianIf(Arch->Size, IsBigEndian);
@@ -211,36 +205,17 @@ noexcept {
 
 FatMachOMemoryObject::ArchInfo
 FatMachOMemoryObject::GetArchInfoAtIndex(uint32_t Index) const noexcept {
-    assert(!IndexOutOfBounds(Index, this->GetArchCount()) &&
+    assert(!IndexOutOfBounds(Index, this->getArchCount()) &&
            "Index is past bounds of ArchList");
 
     auto Info = ArchInfo();
     const auto IsBigEndian = this->IsBigEndian();
 
     if (this->Is64Bit()) {
-        Info = GetArchInfoAtIndexImpl(Header->GetConstArch64List(IsBigEndian),
+        Info = GetArchInfoAtIndexImpl(Header->getConstArch64List(IsBigEndian),
                                       Index, IsBigEndian);
     } else {
-        Info = GetArchInfoAtIndexImpl(Header->GetConstArch32List(IsBigEndian),
-                                      Index, IsBigEndian);
-    }
-
-    return Info;
-}
-
-ConstFatMachOMemoryObject::ArchInfo
-ConstFatMachOMemoryObject::GetArchInfoAtIndex(uint32_t Index) const noexcept {
-    assert(!IndexOutOfBounds(Index, this->GetArchCount()) &&
-           "Index is past bounds of ArchList");
-
-    auto Info = ArchInfo();
-    const auto IsBigEndian = this->IsBigEndian();
-
-    if (this->Is64Bit()) {
-        Info = GetArchInfoAtIndexImpl(Header->GetConstArch64List(IsBigEndian),
-                                      Index, IsBigEndian);
-    } else {
-        Info = GetArchInfoAtIndexImpl(Header->GetConstArch32List(IsBigEndian),
+        Info = GetArchInfoAtIndexImpl(Header->getConstArch32List(IsBigEndian),
                                       Index, IsBigEndian);
     }
 
@@ -250,23 +225,22 @@ ConstFatMachOMemoryObject::GetArchInfoAtIndex(uint32_t Index) const noexcept {
 template <typename MachOObjectType, typename MemoryObjectType>
 static FatMachOMemoryObject::GetObjectResultTemplate<MemoryObjectType>
 GetMachOObjectResult(MemoryObjectType *ArchObject,
-                     Mach::CpuType CpuType,
-                     int32_t CpuSubType)
+                     Mach::CpuKind CpuKind,
+                     int32_t CpuSubKind)
 {
     using WarningEnum = FatMachOMemoryObject::GetObjectResult::WarningEnum;
     using GetObjectResult =
         FatMachOMemoryObject::GetObjectResultTemplate<MemoryObjectType>;
 
     const auto MachOObject = cast<MachOObjectType *>(ArchObject);
-    const auto Header = MachOObject->GetConstHeader();
+    const auto Header = MachOObject->getConstHeader();
     const auto IsBigEndian = MachOObject->IsBigEndian();
 
-    const auto ArchCpuType = MachOObject->GetCpuType();
-    const auto ArchCpuSubType = SwitchEndianIf(Header.CpuSubType, IsBigEndian);
+    const auto ArchCpuKind = MachOObject->getCpuKind();
+    const auto ArchCpuSubKind = SwitchEndianIf(Header.CpuSubKind, IsBigEndian);
 
-    if ((ArchCpuType != CpuType) || (ArchCpuSubType != CpuSubType)) {
-        const auto Warning = WarningEnum::MachOCpuTypeMismatch;
-        return GetObjectResult(MachOObject, Warning);
+    if ((ArchCpuKind != CpuKind) || (ArchCpuSubKind != CpuSubKind)) {
+        return GetObjectResult(MachOObject, WarningEnum::MachOCpuKindMismatch);
     }
 
     return MachOObject;
@@ -285,27 +259,7 @@ const noexcept {
             const auto Object = MachOMemoryObject::Open(ArchMap);
             if (Object.DidMatchFormat()) {
                 return GetMachOObjectResult<MachOMemoryObject>(
-                    Object.ToPtr(), Info.CpuType, Info.CpuSubType);
-            }
-    }
-
-    return nullptr;
-}
-
-ConstFatMachOMemoryObject::GetObjectResult
-ConstFatMachOMemoryObject::GetArchObjectFromInfo(const ArchInfo &Info)
-const noexcept {
-    const auto ArchMapBegin = Map + Info.Offset;
-    const auto ArchMap = ConstMemoryMap(ArchMapBegin, ArchMapBegin + Info.Size);
-
-    auto Kind = ArchKind::None;
-    switch (Kind) {
-        case ArchKind::None:
-        case ArchKind::MachO:
-            const auto Object = ConstMachOMemoryObject::Open(ArchMap);
-            if (Object.DidMatchFormat()) {
-                return GetMachOObjectResult<ConstMachOMemoryObject>(
-                    Object.ToPtr(), Info.CpuType, Info.CpuSubType);
+                    Object.ToPtr(), Info.CpuKind, Info.CpuSubKind);
             }
     }
 

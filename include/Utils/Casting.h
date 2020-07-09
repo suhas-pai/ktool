@@ -48,7 +48,7 @@ template <typename From, typename To>
 struct CastChecks<TypedAllocation<From>, To>
 {
     static inline bool CanCast(const TypedAllocation<From> &Fr) {
-        return CastChecks<From, std::remove_pointer_t<To>>::CanCast(*Fr.Get());
+        return CastChecks<From, std::remove_pointer_t<To>>::CanCast(*Fr.get());
     }
 };
 
@@ -56,7 +56,7 @@ template <typename From, typename To>
 struct CastChecks<const TypedAllocation<From>, To>
 {
     static inline bool CanCast(const TypedAllocation<From> &Fr) {
-        return CastChecks<From, std::remove_pointer_t<To>>::CanCast(*Fr.Get());
+        return CastChecks<From, std::remove_pointer_t<To>>::CanCast(*Fr.get());
     }
 };
 
@@ -137,7 +137,7 @@ private:
 public:
     using Type = TypedAllocation<ToType>;
     static inline Type Convert(const TypedAllocation<From> &Fr) {
-        return Type(reinterpret_cast<ToType *>(Fr.Get()));
+        return Type(reinterpret_cast<ToType *>(Fr.get()));
     }
 };
 
@@ -148,7 +148,7 @@ private:
 public:
     using Type = TypedAllocation<ToType>;
     static inline Type Convert(const TypedAllocation<const From> &Fr) {
-        return Type(reinterpret_cast<const ToType *>(Fr.Get()));
+        return Type(reinterpret_cast<const ToType *>(Fr.get()));
     }
 };
 

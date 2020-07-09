@@ -13,75 +13,99 @@
 
 #include "ADT/PointerErrorStorage.h"
 
-template <typename PtrType, typename ErrorType>
+template <typename T, typename ErrorType>
 struct PointerOrError {
-    static_assert(std::is_pointer_v<PtrType>, "PtrType must be a pointer-type");
 protected:
     union {
         PointerErrorStorage<ErrorType> ErrorStorage;
-        PtrType Ptr;
+        T *Ptr;
     };
 public:
-    explicit PointerOrError() noexcept = default;
+    constexpr PointerOrError() noexcept = default;
+    constexpr PointerOrError(const ErrorType &Error) noexcept
+    : ErrorStorage(Error) {}
 
-    PointerOrError(const ErrorType &Error) noexcept : ErrorStorage(Error) {}
-    PointerOrError(const std::nullptr_t &Error) noexcept = delete;
-    PointerOrError(const PtrType &Ptr) noexcept : Ptr(Ptr) {}
+    constexpr PointerOrError(const std::nullptr_t &Error) noexcept = delete;
+    constexpr PointerOrError(T *Ptr) noexcept : Ptr(Ptr) {}
 
-    inline bool HasError() const noexcept { return ErrorStorage.HasValue(); }
-    inline bool HasPtr() const noexcept { return !HasError(); }
-    inline ErrorType GetError() const noexcept {
-        return ErrorStorage.GetValue();
+    [[nodiscard]] constexpr inline bool hasError() const noexcept {
+        return ErrorStorage.hasValue();
     }
 
-    inline PtrType GetPtr() const noexcept {
-        assert(!HasError());
+    [[nodiscard]] constexpr inline bool hasPtr() const noexcept {
+        return !hasError();
+    }
+
+    [[nodiscard]] constexpr inline ErrorType getError() const noexcept {
+        return ErrorStorage.getValue();
+    }
+
+    [[nodiscard]] constexpr inline T *getPtr() const noexcept {
+        assert(!hasError());
         return Ptr;
     }
 
-    inline decltype(*Ptr) GetRef() const noexcept {
-        assert(!HasError());
+    [[nodiscard]] constexpr inline T &getRef() const noexcept {
+        assert(!hasError());
         return *Ptr;
     }
 
-    inline void SetError(const ErrorType &Error) const noexcept {
+    constexpr inline PointerOrError &setError(const ErrorType &Error) noexcept {
         ErrorStorage = Error;
+        return *this;
     }
 
-    inline void SetPtr(const PtrType &Ptr) const noexcept {
+    constexpr inline PointerOrError &SetPtr(T *Ptr) const noexcept {
         this->Ptr = Ptr;
+        return *this;
     }
 
-    inline operator PtrType() const noexcept { return GetPtr(); }
-
-    inline void operator=(const ErrorType &Error) const noexcept {
-        SetError(Error);
+    [[nodiscard]] constexpr inline operator T *() const noexcept {
+        return getPtr();
     }
 
-    inline void operator=(const PtrType &Ptr) const noexcept { SetPtr(Ptr); }
+    constexpr inline PointerOrError &clear() noexcept {
+        Ptr = nullptr;
+        return *this;
+    }
+
+    constexpr
+    inline PointerOrError &operator=(const ErrorType &Error) const noexcept {
+        return setError(Error);
+    }
+
+    inline PointerOrError &operator=(T *Ptr) const noexcept {
+        return setPtr(Ptr);
+    }
 };
 
-template <typename PtrType, typename ErrorType>
-struct TypedAllocationOrError : public PointerOrError<PtrType, ErrorType> {
+template <typename T, typename ErrorType>
+struct TypedAllocationOrError : public PointerOrError<T, ErrorType> {
 private:
-    using Super = PointerOrError<PtrType, ErrorType>;
+    using Base = PointerOrError<T, ErrorType>;
 public:
-    explicit TypedAllocationOrError() noexcept = default;
-    TypedAllocationOrError(const ErrorType &Error) noexcept : Super(Error) {}
+    constexpr TypedAllocationOrError() noexcept = default;
+    constexpr TypedAllocationOrError(const ErrorType &Error) noexcept
+    : Base(Error) {}
+
+    constexpr
     TypedAllocationOrError(const std::nullptr_t &Error) noexcept = delete;
-    TypedAllocationOrError(const PtrType &Ptr) noexcept : Super(Ptr) {}
 
-    explicit TypedAllocationOrError(const TypedAllocationOrError &)
-    noexcept = delete;
+    constexpr TypedAllocationOrError(T *Ptr) noexcept : Base(Ptr) {}
 
+    explicit
+    TypedAllocationOrError(const TypedAllocationOrError &) noexcept = delete;
+
+    constexpr
     explicit TypedAllocationOrError(TypedAllocationOrError &&) noexcept;
 
-    TypedAllocationOrError &operator=(const TypedAllocationOrError &)
-    noexcept = delete;
+    TypedAllocationOrError &
+    operator=(const TypedAllocationOrError &) noexcept = delete;
 
+    constexpr
     TypedAllocationOrError &operator=(TypedAllocationOrError &&Rhs) noexcept {
-        if (this->HasPtr()) {
-            delete this->GetPtr();
+        if (this->hasPtr()) {
+            delete this->getPtr();
         }
 
         this->Ptr = Rhs.Ptr;
@@ -90,9 +114,14 @@ public:
         return *this;
     }
 
+    constexpr inline TypedAllocationOrError &clear() noexcept {
+        Base::clear();
+        return *this;
+    }
+
     ~TypedAllocationOrError() noexcept {
-        if (this->HasPtr()) {
-            delete this->GetPtr();
+        if (this->hasPtr()) {
+            delete this->getPtr();
         }
     }
 };

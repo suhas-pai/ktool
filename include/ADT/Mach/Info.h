@@ -12,13 +12,13 @@
 #include <string_view>
 
 namespace Mach {
-    static inline const auto CpuTypeIs64BitMask =
+    static inline const auto CpuKindIs64BitMask =
         static_cast<uint32_t>(0x1000000);
 
-    static inline const auto CpuTypeIs64Bit32Mask =
+    static inline const auto CpuKindIs64Bit32Mask =
         static_cast<uint32_t>(0x2000000);
 
-    enum class CpuType : int32_t {
+    enum class CpuKind : int32_t {
         Any = -1,
         Vax = 1,
         Romp,
@@ -26,7 +26,7 @@ namespace Mach {
         NS32332,
         Mc680x0,
         i386,
-        x86_64 = (i386 | CpuTypeIs64BitMask),
+        x86_64 = (i386 | CpuKindIs64BitMask),
         Mips = 8,
         NS32532,
         Hppa = 11,
@@ -38,17 +38,21 @@ namespace Mach {
         Rs9600,
         Mc98000,
         PowerPC,
-        PowerPC64 = (PowerPC | CpuTypeIs64BitMask),
+        PowerPC64 = (PowerPC | CpuKindIs64BitMask),
         Veo = 255,
-        Arm64 = (Arm | CpuTypeIs64BitMask),
-        Arm64_32 = (Arm | CpuTypeIs64Bit32Mask)
+        Arm64 = (Arm | CpuKindIs64BitMask),
+        Arm64_32 = (Arm | CpuKindIs64Bit32Mask)
     };
 
-    inline bool CpuTypeIs64Bit(CpuType CpuType) noexcept {
-        return (static_cast<int32_t>(CpuType) & CpuTypeIs64BitMask);
+    [[nodiscard]] inline bool CpuKindIs64Bit(CpuKind CpuKind) noexcept {
+        return (static_cast<int32_t>(CpuKind) & CpuKindIs64BitMask);
     }
 
-    namespace CpuSubType {
+    [[nodiscard]] inline bool CpuKindIs64Bit32(CpuKind CpuKind) noexcept {
+        return (static_cast<int32_t>(CpuKind) & CpuKindIs64Bit32Mask);
+    }
+
+    namespace CpuSubKind {
         enum class Any {
             Multiple,
             LittleEndian,

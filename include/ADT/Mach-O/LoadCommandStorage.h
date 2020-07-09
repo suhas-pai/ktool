@@ -24,11 +24,11 @@ namespace MachO {
         PtrType *End;
     public:
         explicit LoadCommandStorageEndIteratorBase(PtrType *End) : End(End) {}
-        PtrType *GetEnd() const noexcept { return End; }
+        [[nodiscard]] PtrType *getEnd() const noexcept { return End; }
     };
 
     template <typename PtrType, typename LoadCommandType>
-    class LoadCommandStorageIteratorBase :
+    struct LoadCommandStorageIteratorBase :
         public BasicWrapperIterator<PtrType *> {
     private:
         using Base = BasicWrapperIterator<PtrType *>;
@@ -41,7 +41,7 @@ namespace MachO {
         using DifferenceType = std::ptrdiff_t;
 
         inline LoadCommandStorageIteratorBase &operator++() noexcept {
-            this->Item += SwitchEndianIf(GetLoadCmd()->CmdSize, IsBigEndian);
+            this->Item += SwitchEndianIf(getLoadCmd()->CmdSize, IsBigEndian);
             return *this;
         }
 
@@ -52,37 +52,45 @@ namespace MachO {
 
         inline LoadCommandStorageIteratorBase &
         operator+=(DifferenceType Amt) noexcept {
-            for (DifferenceType I = DifferenceType(); I != Amt; I++) {
+            for (auto I = DifferenceType(); I != Amt; I++) {
                 ++(*this);
             }
 
             return *this;
         }
 
-        inline LoadCommandType *GetLoadCmd() const noexcept {
+        [[nodiscard]] inline LoadCommandType *getLoadCmd() const noexcept {
             return reinterpret_cast<LoadCommandType *>(this->Item);
         }
 
-        inline LoadCommandType &operator*() const noexcept {
-            return *GetLoadCmd();
+        template <LoadCommand::Kind Kind>
+        [[nodiscard]] inline LoadCommandPtrTypeFromKind<Kind> getAs() noexcept {
+            using LCPtrType = LoadCommandPtrTypeFromKind<Kind>;
+            return dyn_cast<LCPtrType>(getLoadCmd());
         }
 
-        inline LoadCommandType *operator->() const noexcept {
-            return GetLoadCmd();
+        [[nodiscard]] inline LoadCommandType &operator*() const noexcept {
+            return *getLoadCmd();
+        }
+
+        [[nodiscard]] inline LoadCommandType *operator->() const noexcept {
+            return getLoadCmd();
         }
 
         using EndIterator = LoadCommandStorageEndIteratorBase<PtrType>;
 
+        [[nodiscard]]
         inline bool operator==(const EndIterator &Iter) const noexcept {
-            return (this->Item >= Iter.GetEnd());
+            return (this->Item >= Iter.getEnd());
         }
 
-        inline bool operator!=(const EndIterator &Iter) const noexcept {
+        [[nodiscard]]
+            inline bool operator!=(const EndIterator &Iter) const noexcept {
             return !(*this == Iter);
         }
     };
 
-    class LoadCommandStorage {
+    struct LoadCommandStorage {
     public:
         enum class Error : uintptr_t {
             None,
@@ -109,7 +117,7 @@ namespace MachO {
                                     uint32_t Ncmds,
                                     bool IsBigEndian) noexcept;
     public:
-        static
+        [[nodiscard]] static
         LoadCommandStorage Open(uint8_t *Begin,
                                 uint32_t Ncmds,
                                 uint32_t SizeOfCmds,
@@ -128,41 +136,45 @@ namespace MachO {
         using ConstEndIterator =
             LoadCommandStorageEndIteratorBase<const uint8_t>;
 
-        inline Iterator begin() const noexcept {
+        [[nodiscard]] inline Iterator begin() const noexcept {
             return Iterator(Begin, mIsBigEndian);
         }
 
-        inline EndIterator end() const noexcept {
+        [[nodiscard]] inline EndIterator end() const noexcept {
             return EndIterator(End);
         }
 
-        inline ConstIterator cbegin() const noexcept {
+        [[nodiscard]] inline ConstIterator cbegin() const noexcept {
             return ConstIterator(Begin, mIsBigEndian);
         }
 
-        inline ConstEndIterator cend() const noexcept {
+        [[nodiscard]] inline ConstEndIterator cend() const noexcept {
             return ConstEndIterator(End);
         }
 
-        inline uint32_t Count() const noexcept { return Ncmds; }
-        inline uint32_t Size() const noexcept {
+        [[nodiscard]] inline uint32_t count() const noexcept { return Ncmds; }
+        [[nodiscard]] inline uint32_t size() const noexcept {
             return static_cast<uint32_t>(End - Begin);
         }
 
-        inline Error GetError() const noexcept {
-            return ErrorStorage.GetValue();
+        [[nodiscard]] inline Error getError() const noexcept {
+            return ErrorStorage.getValue();
         }
 
-        inline bool HasError() const noexcept {
-            return ErrorStorage.HasValue();
+        [[nodiscard]] inline bool hasError() const noexcept {
+            return ErrorStorage.hasValue();
         }
 
-        inline bool IsBigEndian() const noexcept {
+        [[nodiscard]] inline bool IsBigEndian() const noexcept {
             return mIsBigEndian;
+        }
+
+        [[nodiscard]] inline uint8_t *getMap() const noexcept {
+            return Begin;
         }
     };
 
-    class ConstLoadCommandStorage {
+    struct ConstLoadCommandStorage {
     public:
         using Error = LoadCommandStorage::Error;
     protected:
@@ -173,15 +185,16 @@ namespace MachO {
 
         const uint8_t *End;
         uint8_t Ncmds;
-        bool mIsBigEndian : 1;
+        bool sIsBigEndian : 1;
 
         ConstLoadCommandStorage(Error Error) noexcept;
-        explicit ConstLoadCommandStorage(const uint8_t *Begin,
-                                         const uint8_t *End,
-                                         uint32_t Ncmds,
-                                         bool IsBigEndian) noexcept;
+        explicit
+        ConstLoadCommandStorage(const uint8_t *Begin,
+                                const uint8_t *End,
+                                uint32_t Ncmds,
+                                bool IsBigEndian) noexcept;
     public:
-        static
+        [[nodiscard]] static
         ConstLoadCommandStorage Open(const uint8_t *Begin,
                                      uint32_t Ncmds,
                                      uint32_t SizeOfCmds,
@@ -198,37 +211,41 @@ namespace MachO {
         using EndIterator = LoadCommandStorageEndIteratorBase<const uint8_t>;
         using ConstEndIterator = EndIterator;
 
-        inline Iterator begin() const noexcept {
-            return Iterator(Begin, mIsBigEndian);
+        [[nodiscard]] inline Iterator begin() const noexcept {
+            return Iterator(Begin, sIsBigEndian);
         }
 
-        inline EndIterator end() const noexcept {
+        [[nodiscard]] inline EndIterator end() const noexcept {
             return EndIterator(End);
         }
 
-        inline ConstIterator cbegin() const noexcept {
-            return ConstIterator(Begin, mIsBigEndian);
+        [[nodiscard]] inline ConstIterator cbegin() const noexcept {
+            return ConstIterator(Begin, sIsBigEndian);
         }
 
-        inline ConstEndIterator cend() const noexcept {
+        [[nodiscard]] inline ConstEndIterator cend() const noexcept {
             return ConstEndIterator(End);
         }
 
-        inline uint32_t Count() const noexcept { return Ncmds; }
-        inline uint32_t Size() const noexcept {
+        [[nodiscard]] inline uint32_t count() const noexcept { return Ncmds; }
+        [[nodiscard]] inline uint32_t size() const noexcept {
             return static_cast<uint32_t>(End - Begin);
         }
 
-        inline Error GetError() const noexcept {
-            return ErrorStorage.GetValue();
+        [[nodiscard]] inline Error getError() const noexcept {
+            return ErrorStorage.getValue();
         }
 
-        inline bool HasError() const noexcept {
-            return ErrorStorage.HasValue();
+        [[nodiscard]] inline bool hasError() const noexcept {
+            return ErrorStorage.hasValue();
         }
 
-        inline bool IsBigEndian() const noexcept {
-            return mIsBigEndian;
+        [[nodiscard]] inline bool IsBigEndian() const noexcept {
+            return sIsBigEndian;
+        }
+
+        [[nodiscard]] inline const uint8_t *getMap() const noexcept {
+            return Begin;
         }
     };
 }

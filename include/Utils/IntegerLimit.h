@@ -7,20 +7,15 @@
 //
 
 #pragma once
+
+#include <cstdint>
 #include <type_traits>
 
 using IntegerLimitDefaultType = void;
 
-template <typename ValueType>
+template <typename ValueType, typename MaxValueType = uint64_t>
 using IntegerLimitRealValueType =
         typename std::conditional<
             std::is_same_v<ValueType, IntegerLimitDefaultType>,
-            uint64_t,
-            ValueType>::type;
-
-template <typename ValueType>
-using IntegerLimitUseType =
-        typename std::conditional<
-            sizeof(IntegerLimitRealValueType<ValueType>) <= sizeof(ValueType),
-            IntegerLimitRealValueType<ValueType>,
+            MaxValueType,
             ValueType>::type;

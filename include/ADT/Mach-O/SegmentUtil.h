@@ -7,99 +7,191 @@
 //
 
 #pragma once
+#include <type_traits>
 
 #include "ADT/MemoryMap.h"
-#include "LoadCommandStorage.h"
 #include "SegmentInfo.h"
 
 namespace MachO {
-    enum class SegmentInfoCollectionError {
-        None,
-
-        InvalidSegment,
-        OverlappingSegments,
-
-        InvalidSection,
-        OverlappingSections
-    };
-
-    // The list is still collected, but the (last) error encountered is also
-    // given.
-
-    typedef std::vector<SegmentInfo> SegmentInfoCollection;
-    struct SegmentInfoCollectionResult {
-        SegmentInfoCollection Collection;
-        SegmentInfoCollectionError Error;
-    };
-
-    SegmentInfoCollectionResult
-    CollectSegmentInfoList(const MachO::ConstLoadCommandStorage &LoadCmdStorage,
-                           bool Is64Bit) noexcept;
-
-    const SegmentInfo *
-    FindSegmentWithName(const std::vector<SegmentInfo> &SegInfoList,
-                        const std::string_view &Name) noexcept;
-
-    const SectionInfo *
-    FindSectionWithName(const std::vector<SegmentInfo> &SegInfoList,
-                        const std::string_view &SegmentName,
-                        const std::string_view &Name) noexcept;
-
     struct SectionNamePair {
         std::string_view SegmentName;
-        std::string_view SectionName;
+        std::initializer_list<std::string_view> SectionList;
     };
 
-    const SectionInfo *
-    FindSectionWithName(
-        const std::vector<SegmentInfo> &SegInfoList,
-        const std::initializer_list<SectionNamePair> &SectNameList) noexcept;
+    struct ConstLoadCommandStorage;
+    struct SegmentInfoCollection {
+    public:
+        enum class Error {
+            None,
 
-    uint8_t *
-    GetDataForSection(uint8_t *Map, const SectionInfo *Info) noexcept;
+            InvalidSegment,
+            OverlappingSegments,
 
-    const uint8_t *
-    GetDataForSection(const uint8_t *Map, const SectionInfo *Info) noexcept;
+            InvalidSection,
+            OverlappingSections
+        };
+    protected:
+        std::vector<SegmentInfo> List;
+        explicit SegmentInfoCollection() noexcept = default;
+    public:
+        [[nodiscard]] static SegmentInfoCollection
+        Open(const ConstLoadCommandStorage &LoadCmdStorage,
+             bool Is64Bit,
+             Error *ErrorOut) noexcept;
 
-    uint8_t *
-    GetDataForVirtualAddr(const SegmentInfoCollection &Collection,
-                          uint8_t *Map,
-                          uint64_t Addr,
-                          uint8_t **EndOut = nullptr) noexcept;
+        [[nodiscard]] const SegmentInfo *
+        GetInfoForName(const std::string_view &Name) const noexcept;
 
-    const uint8_t *
-    GetDataForVirtualAddr(const SegmentInfoCollection &Collection,
-                          const uint8_t *Map,
-                          uint64_t Addr,
-                          const uint8_t **EndOut = nullptr) noexcept;
+        [[nodiscard]] const SectionInfo *
+        FindSectionWithName(const std::string_view &SegmentName,
+                            const std::string_view &Name) const noexcept;
 
-    template <typename T>
-    T *GetPtrForVirtualAddr(const SegmentInfoCollection &Collection,
-                            uint8_t *Map,
-                            uint64_t Addr,
-                            T **EndOut = nullptr) noexcept
-    {
-        const auto Data =
-            GetDataForVirtualAddr(Collection,
-                                  Map,
-                                  Addr,
-                                  reinterpret_cast<uint8_t **>(EndOut));
+        [[nodiscard]] const SegmentInfo *
+        FindSegmentContainingAddress(uint64_t Address) const noexcept;
 
-        return reinterpret_cast<T *>(Data);
-    }
+        [[nodiscard]] const SectionInfo *
+        FindSectionContainingAddress(uint64_t Address) const noexcept;
 
-    template <typename T>
-    const T *GetPtrForVirtualAddr(const SegmentInfoCollection &Collection,
-                                  const uint8_t *Map,
-                                  uint64_t Addr,
-                                  const T **EndOut = nullptr) noexcept
-    {
-        const auto Data =
-            GetDataForVirtualAddr(Collection,
-                                  Map,
-                                  Addr,
-                                  reinterpret_cast<const uint8_t **>(EndOut));
+        [[nodiscard]] const SectionInfo *
+        FindSectionWithName(
+            const std::initializer_list<SectionNamePair> &List) const noexcept;
 
-        return reinterpret_cast<const T *>(Data);
-    }
+        [[nodiscard]] const SectionInfo *
+        GetSectionWithIndex(uint64_t SectionIndex) const noexcept;
+
+        [[nodiscard]] uint8_t *
+        GetDataForVirtualAddr(uint8_t *Map,
+                              uint64_t Addr,
+                              uint64_t Size,
+                              uint8_t **EndOut = nullptr) const noexcept;
+
+        [[nodiscard]] const uint8_t *
+        GetDataForVirtualAddr(const uint8_t *Map,
+                              uint64_t Addr,
+                              uint64_t Size,
+                              const uint8_t **EndOut = nullptr) const noexcept;
+
+        [[nodiscard]] uint8_t *
+        GetDataForVirtualAddrIgnoreSections(
+            uint8_t *Map,
+            uint64_t Addr,
+            uint64_t Size,
+            uint8_t **EndOut = nullptr) const noexcept;
+
+        [[nodiscard]] const uint8_t *
+        GetDataForVirtualAddrIgnoreSections(
+            const uint8_t *Map,
+            uint64_t Addr,
+            uint64_t Size,
+            const uint8_t **EndOut = nullptr) const noexcept;
+
+        template <typename T, typename = std::enable_if_t<!std::is_const_v<T>>>
+        [[nodiscard]] T *
+        GetPtrForVirtualAddr(uint8_t *Map,
+                             uint64_t Addr,
+                             uint64_t Size = sizeof(T),
+                             T **EndOut = nullptr) const noexcept
+        {
+            const auto Data =
+                GetDataForVirtualAddr(Map,
+                                      Addr,
+                                      Size,
+                                      reinterpret_cast<uint8_t **>(EndOut));
+
+            return reinterpret_cast<T *>(Data);
+        }
+
+        template <typename T>
+        [[nodiscard]] T *
+        GetPtrForVirtualAddr(const uint8_t *Map,
+                             uint64_t Addr,
+                             uint64_t Size = sizeof(T),
+                             T **EndOut = nullptr) const noexcept
+        {
+            const auto Data =
+                GetDataForVirtualAddr(
+                    Map,
+                    Addr,
+                    Size,
+                    reinterpret_cast<const uint8_t **>(EndOut));
+
+            return reinterpret_cast<T *>(Data);
+        }
+
+        template <typename T, typename = std::enable_if_t<!std::is_const_v<T>>>
+        [[nodiscard]] T *
+        GetPtrForVirtualAddrIgnoreSections(
+             uint8_t *Map,
+             uint64_t Addr,
+             uint64_t Size = sizeof(T),
+             T **EndOut = nullptr) const noexcept
+        {
+            const auto Data =
+                GetDataForVirtualAddrIgnoreSections(
+                    Map,
+                    Addr,
+                    Size,
+                    reinterpret_cast<uint8_t **>(EndOut));
+
+            return reinterpret_cast<T *>(Data);
+        }
+
+        template <typename T>
+        [[nodiscard]] T *
+        GetPtrForVirtualAddrIgnoreSections(
+            const uint8_t *Map,
+            uint64_t Addr,
+            uint64_t Size = sizeof(T),
+            T **EndOut = nullptr) const noexcept
+        {
+            const auto Data =
+                GetDataForVirtualAddrIgnoreSections(
+                    Map,
+                    Addr,
+                    Size,
+                    reinterpret_cast<const uint8_t **>(EndOut));
+
+            return reinterpret_cast<T *>(Data);
+        }
+
+        [[nodiscard]]
+        inline const SegmentInfo *at(uint64_t Index) const noexcept {
+            if (IndexOutOfBounds(Index, size())) {
+                return nullptr;
+            }
+
+            return &List.at(Index);
+        }
+
+        [[nodiscard]] inline uint64_t size() const noexcept {
+            return List.size();
+        }
+
+        [[nodiscard]]
+        inline decltype(List)::const_iterator begin() const noexcept {
+            return List.cbegin();
+        }
+
+        [[nodiscard]]
+        inline decltype(List)::const_iterator end() const noexcept {
+            return List.cend();
+        }
+    };
+
+    SegmentInfoCollection::Error
+    CollectSegmentInfoList(const ConstLoadCommandStorage &LoadCmdStorage,
+                           bool Is64Bit,
+                           SegmentInfoCollection &CollectionOut) noexcept;
+
+    [[nodiscard]] uint8_t *
+    GetDataForSegment(uint8_t *Map, const SegmentInfo &Info) noexcept;
+
+    [[nodiscard]] const uint8_t *
+    GetDataForSegment(const uint8_t *Map, const SegmentInfo &Info) noexcept;
+
+    [[nodiscard]] uint8_t *
+    GetDataForSection(uint8_t *Map, const SectionInfo &Info) noexcept;
+
+    [[nodiscard]] const uint8_t *
+    GetDataForSection(const uint8_t *Map, const SectionInfo &Info) noexcept;
 }

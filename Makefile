@@ -23,7 +23,7 @@ $(TARGET): $(OBJS)
 
 clean:
 	@$(RM) -rf $(OBJ)
-	@$(RM) -rf $(dir $(TARGET))
+	@$(RM) $(TARGET)
 
 debug: $(DEBUGTARGET)
 

@@ -9,7 +9,6 @@
 #include <cstring>
 #include "ADT/MachO.h"
 
-#include "Utils/CharUtils.h"
 #include "Utils/MachOPrinter.h"
 #include "Utils/MiscTemplates.h"
 #include "Utils/PointerUtils.h"
@@ -19,280 +18,435 @@
 #include "Operation.h"
 #include "PrintObjcClassList.h"
 
-PrintObjcClassListOperation::PrintObjcClassListOperation() noexcept
-: PrintOperation(OpKind) {}
 PrintObjcClassListOperation::PrintObjcClassListOperation(
     const struct Options &Options) noexcept
-: PrintOperation(OpKind), Options(Options) {}
+: Operation(OpKind), Options(Options) {}
 
-int PrintObjcClassListOperation::run(const ConstMemoryObject &Object) noexcept {
-    return run(Object, Options);
+static inline void PrintFlagSeparator(FILE *OutFile, bool &DidPrint) noexcept {
+    if (DidPrint) {
+        fputs(" - ", OutFile);
+    }
+
+    DidPrint = true;
 }
 
-[[nodiscard]]
-static inline bool ShouldSkipClass(const std::string &Name) noexcept {
-    for (const auto &Ch : Name) {
-        if (IsControl(Ch) || IsSpace(Ch)) {
-            return true;
+static void
+PrintClassRoFlags(FILE *OutFile, const MachO::ObjcClassRoFlags &Flags) noexcept
+{
+    fputc('<', OutFile);
+
+    auto DidPrint = false;
+    if (Flags.IsRoot()) {
+        fputs("Root", OutFile);
+        DidPrint = true;
+    }
+
+    if (Flags.IsMeta()) {
+        PrintFlagSeparator(OutFile, DidPrint);
+        fputs("Meta", OutFile);
+    }
+
+    if (Flags.IsHidden()) {
+        PrintFlagSeparator(OutFile, DidPrint);
+        fputs("Hidden", OutFile);
+    }
+
+    if (Flags.IsARC()) {
+        PrintFlagSeparator(OutFile, DidPrint);
+        fputs("ARC", OutFile);
+    }
+
+    if (Flags.IsException()) {
+        PrintFlagSeparator(OutFile, DidPrint);
+        fputs("Exception", OutFile);
+    }
+
+    if (Flags.hasSwiftInitializer()) {
+        PrintFlagSeparator(OutFile, DidPrint);
+        fputs("Swift-Initializer", OutFile);
+    }
+
+    if (Flags.IsFromBundle()) {
+        PrintFlagSeparator(OutFile, DidPrint);
+        fputs("From Bundle", OutFile);
+    }
+
+    if (Flags.hasWeakWithoutARC()) {
+        PrintFlagSeparator(OutFile, DidPrint);
+        fputs("Non-ARC Weak", OutFile);
+    }
+
+    if (Flags.hasCxxDestructorOnly()) {
+        PrintFlagSeparator(OutFile, DidPrint);
+        fputs("Has C++ Destructor", OutFile);
+    } else if (Flags.hasCxxStructors()) {
+        PrintFlagSeparator(OutFile, DidPrint);
+        fputs("Has C++ Constructor & Destructor", OutFile);
+    }
+
+    if (Flags.ForbidsAssociatedObjects()) {
+        PrintFlagSeparator(OutFile, DidPrint);
+        fputs("Forbids Associated-Objects", OutFile);
+    }
+
+    fputc('>', OutFile);
+}
+
+static int
+CompareActionsBySortKind(
+    const MachO::ObjcClassInfo &Lhs,
+    const MachO::ObjcClassInfo &Rhs,
+    const PrintObjcClassListOperation::Options::SortKind SortKind) noexcept
+{
+    switch (SortKind) {
+        case PrintObjcClassListOperation::Options::SortKind::None:
+            assert(0 && "Unrecognized Sort-Type");
+        case PrintObjcClassListOperation::Options::SortKind::ByName:
+            return Lhs.Name.compare(Rhs.Name);
+        case PrintObjcClassListOperation::Options::SortKind::ByDylibOrdinal:
+            if (Lhs.DylibOrdinal < Rhs.DylibOrdinal) {
+                return -1;
+            } else if (Lhs.DylibOrdinal == Rhs.DylibOrdinal) {
+                return 0;
+            }
+
+            return 1;
+        case PrintObjcClassListOperation::Options::SortKind::ByKind: {
+            if (Lhs.IsExternal) {
+                if (Rhs.IsExternal) {
+                    return 0;
+                }
+
+                return 1;
+            }
+
+            return -1;
         }
     }
 
     return false;
 }
 
-static inline const char *
-HandleNameString(const char *It,
-                 const char *End,
-                 std::vector<std::string> &NameList) noexcept
-{
-    const auto Name = std::string(It, strnlen(It, End - It));
-    if (Name.empty()) {
-        return (It += 1);
-    }
-
-    It += (Name.length() + 1);
-    if (ShouldSkipClass(Name)) {
-        return It;
-    }
-
-    NameList.emplace_back(std::move(Name));
-    return It;
-}
-
-template <bool Is64Bit>
-static inline std::vector<std::string>
-ParseObjcClassNameList(const MachO::SegmentInfoCollection &Collection,
-                       const uint8_t *Data,
-                       const uint64_t Size) noexcept
-{
-    auto NameList = std::vector<std::string>();
-
-    const auto Begin = reinterpret_cast<const char *>(Data);
-    const auto End = Begin + Size;
-
-    for (auto It = Begin; It != End;) {
-        It = HandleNameString(It, End, NameList);
-    }
-
-    return NameList;
-}
-
-
-template <bool Is64Bit>
-static inline std::vector<std::string>
-ParseObjcClassList(const MachO::SegmentInfoCollection &Collection,
-                   const uint8_t *Map,
-                   const uint8_t *AddrListPtr,
-                   const uint64_t Size,
-                   bool IsBigEndian) noexcept
-{
-    using AddrType = PointerAddrConstType<Is64Bit>;
-    using ObjcClassType =
-        std::conditional_t<Is64Bit, MachO::ObjcClass64, MachO::ObjcClass>;
-    using ObjcClassRoType =
-        std::conditional_t<Is64Bit, MachO::ObjcClassRo64, MachO::ObjcClassRo>;
-
-    const auto AddrList = BasicContiguousList<AddrType>(AddrListPtr, Size);
-    auto NameList = std::vector<std::string>();
-
-    for (const auto &Addr : AddrList) {
-        const auto ObjcClass =
-            MachO::GetPtrForVirtualAddr<ObjcClassType>(Collection, Map, Addr);
-
-        if (ObjcClass == nullptr) {
-            continue;
-        }
-
-        const auto ObjcClassRoAddr =
-            SwitchEndianIf(ObjcClass->Data, IsBigEndian) & ~7;
-        const auto ObjcClassRo =
-            MachO::GetPtrForVirtualAddr<ObjcClassRoType>(Collection,
-                                                         Map,
-                                                         ObjcClassRoAddr);
-
-        if (ObjcClassRo == nullptr) {
-            continue;
-        }
-
-        auto NameMaxEnd = static_cast<const char *>(nullptr);
-
-        const auto NameAddr = SwitchEndianIf(ObjcClassRo->Name, IsBigEndian);
-        const auto Name =
-            MachO::GetPtrForVirtualAddr<const char>(Collection,
-                                                    Map,
-                                                    NameAddr,
-                                                    &NameMaxEnd);
-        if (Name == nullptr) {
-            continue;
-        }
-
-        HandleNameString(Name, NameMaxEnd, NameList);
-    }
-
-    return NameList;
-}
-
 static int
-CollectClassNames(const MachO::SegmentInfoCollection &SegCollection,
-                  const uint8_t *Map,
-                  FILE *ErrFile,
-                  bool IsBigEndian,
-                  bool Is64Bit,
-                  MachO::SegmentInfoCollectionError CollectionError,
-                  std::vector<std::string> *ClassesOut) noexcept
+CompareObjcClasses(
+    const BasicTreeNode &LEntry,
+    const BasicTreeNode &REntry,
+    const struct PrintObjcClassListOperation::Options &Options) noexcept
 {
-    const auto ObjCClassNameListSection =
-        MachO::FindSectionWithName(SegCollection, {
-            { "__TEXT", "__objc_classname" },
-        });
+    const auto &Lhs = reinterpret_cast<const MachO::ObjcClassInfo &>(LEntry);
+    const auto &Rhs = reinterpret_cast<const MachO::ObjcClassInfo &>(REntry);
 
-    if (ObjCClassNameListSection != nullptr) {
-        const auto Size = ObjCClassNameListSection->File.GetSize();
-        const auto Data =
-            MachO::GetDataForSection(Map, ObjCClassNameListSection);
-
-        if (Is64Bit) {
-            *ClassesOut =
-                ParseObjcClassNameList<true>(SegCollection, Data, Size);
-        } else {
-            *ClassesOut =
-                ParseObjcClassNameList<false>(SegCollection, Data, Size);
+    for (const auto &SortKind : Options.SortKindList) {
+        const auto CmpResult = CompareActionsBySortKind(Lhs, Rhs, SortKind);
+        if (CmpResult != 0) {
+            return (CmpResult < 0);
         }
 
-        return 0;
+        continue;
     }
 
-    const auto ObjCClassListSection =
-        MachO::FindSectionWithName(SegCollection, {
-            { "__DATA",       "__objc_classlist" },
-            { "__DATA_CONST", "__objc_classlist" },
-            { "__OBJC2",      "__class_list"     }
-        });
+    return false;
+};
 
-    if (ObjCClassListSection != nullptr) {
-        const auto Size = ObjCClassListSection->File.GetSize();
-        if (IntegerIsPointerAligned(Size, Is64Bit)) {
-            const auto Data =
-                MachO::GetDataForSection(Map, ObjCClassListSection);
-
-            if (Is64Bit) {
-                *ClassesOut =
-                    ParseObjcClassList<true>(SegCollection,
-                                             Map,
-                                             Data,
-                                             Size,
-                                             IsBigEndian);
-            } else {
-                *ClassesOut =
-                    ParseObjcClassList<false>(SegCollection,
-                                              Map,
-                                              Data,
-                                              Size,
-                                              IsBigEndian);
-            }
-
-            return 0;
-        }
-
-        fputs("Objective-C Class-List Section is not aligned properly\n",
-              ErrFile);
-
-        return 1;
+static void
+PrintOffset(FILE *OutFile,
+            uint64_t Offset,
+            bool IsExternal,
+            bool Is64Bit) noexcept
+{
+    if (IsExternal) {
+        PrintUtilsRightPadSpaces(OutFile,
+                                 fputs("<imported>", OutFile),
+                                 OFFSET_LEN(Is64Bit));
+    } else {
+        PrintUtilsPrintOffset(OutFile, Offset, Is64Bit);
     }
-
-    // Delay handling Collection's Error as segments and sections are still
-    // added to the list.
-
-    switch (CollectionError) {
-        case MachO::SegmentInfoCollectionError::None:
-            break;
-        case MachO::SegmentInfoCollectionError::InvalidSegment:
-            fputs("Provided file has an invalid segment\n", ErrFile);
-            return 1;
-        case MachO::SegmentInfoCollectionError::OverlappingSegments:
-            fputs("Provided file has overlapping segments\n", ErrFile);
-            return 1;
-        case MachO::SegmentInfoCollectionError::InvalidSection:
-            fputs("Provided file has an invalid section\n", ErrFile);
-            return 1;
-        case MachO::SegmentInfoCollectionError::OverlappingSections:
-            fputs("Provided file has overlapping sections", ErrFile);
-            return 1;
-    }
-
-    return 1;
 }
+
+static void
+PrintCategoryList(
+    FILE *OutFile,
+    const std::vector<MachO::ObjcClassCategoryInfo *> &CategoryList,
+    bool Is64Bit) noexcept
+{
+    switch (CategoryList.size()) {
+        case 0:
+            return;
+
+        case 1:
+            fputs("1 Category:\n", OutFile);
+            break;
+
+        default:
+            fprintf(OutFile, "%" PRIuPTR " Categories\n", CategoryList.size());
+            break;
+    }
+
+    for (const auto &Category : CategoryList) {
+        fputs("\t\t", OutFile);
+
+        PrintOffset(OutFile, Category->Address, false, Is64Bit);
+        fprintf(OutFile, " \"%s\"\n", Category->Name.data());
+    }
+}
+
+constexpr static auto TabLength = 8;
 
 int
-PrintObjcClassListOperation::run(const ConstMachOMemoryObject &Object,
+PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
                                  const struct Options &Options) noexcept
 {
+    const auto IsBigEndian = Object.IsBigEndian();
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
-    if (LoadCmdStorage.HasError()) {
+    if (LoadCmdStorage.hasError()) {
         return 1;
     }
 
-    const auto Is64Bit =  Object.Is64Bit();
-    const auto CollectionResult =
-        MachO::CollectSegmentInfoList(LoadCmdStorage, Is64Bit);
+    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
 
-    auto NameList = std::vector<std::string>();
+    const auto Is64Bit = Object.Is64Bit();
+    const auto SegmentCollection =
+        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
+                                           Is64Bit,
+                                           &SegmentCollectionError);
 
-    const auto &SegmentCollection = CollectionResult.Collection;
-    const auto CollectClassNamesResult =
-        CollectClassNames(SegmentCollection,
-                          Object.GetMap().GetBegin(),
-                          Options.ErrFile,
-                          LoadCmdStorage.IsBigEndian(),
-                          Is64Bit,
-                          CollectionResult.Error,
-                          &NameList);
+    auto SharedLibraryCollectionError =
+        MachO::SharedLibraryInfoCollection::Error::None;
 
-    if (CollectClassNamesResult != 0) {
-        return CollectClassNamesResult;
+    const auto SharedLibraryCollection =
+        MachO::SharedLibraryInfoCollection::Open(LoadCmdStorage,
+                                                 &SharedLibraryCollectionError);
+
+    auto BindCollection = MachO::BindActionCollection();
+    const auto GetBindActionResult =
+        OperationCommon::GetBindActionCollection(Options.ErrFile,
+                                                 Object.getMap(),
+                                                 LoadCmdStorage,
+                                                 SegmentCollection,
+                                                 BindCollection,
+                                                 Is64Bit);
+
+    if (GetBindActionResult != 0) {
+        return GetBindActionResult;
     }
 
-    if (NameList.empty()) {
-        fputs("Provided file has no Objective-C sections\n", Options.OutFile);
+    const auto Map = Object.getMap();
+
+    auto DeVirtualizer = MachO::ConstDeVirtualizer(Map, SegmentCollection);
+    auto Error = MachO::ObjcClassInfoTree::Error();
+
+    auto ObjcClassCollection =
+        MachO::ObjcClassInfoTree::Open(Map.getBegin(),
+                                       SegmentCollection,
+                                       DeVirtualizer,
+                                       BindCollection,
+                                       Is64Bit,
+                                       IsBigEndian,
+                                       &Error);
+
+    if (Options.PrintCategories) {
+        MachO::ObjcClassCategoryCollection::Open(Map.getBegin(),
+                                                 SegmentCollection,
+                                                 DeVirtualizer,
+                                                 BindCollection,
+                                                 &ObjcClassCollection,
+                                                 Is64Bit,
+                                                 IsBigEndian,
+                                                 &Error);
+    }
+
+    if (ObjcClassCollection.empty()) {
+        fputs("Provided file has no Objective-C Classes\n", Options.OutFile);
         return 0;
     }
 
-    if (Options.Sort) {
-        std::sort(NameList.begin(), NameList.end());
+    auto LongestLength = LargestIntHelper<uint64_t>();
+
+    const auto End = ObjcClassCollection.end();
+    for (auto Iter = ObjcClassCollection.begin(); Iter != End; Iter++) {
+        if (!Iter->IsExternal) {
+            continue;
+        }
+
+        const auto DepthIndex = (Iter.getDepthLevel() - 1);
+        const auto Length = (Iter->Name.length() + (TabLength * DepthIndex));
+
+        LongestLength = Length;
     }
 
-    fprintf(Options.OutFile, "%lu Objective-C Classes:\n", NameList.size());
+    if (Options.PrintTree) {
+        if (!Options.SortKindList.empty()) {
+            ObjcClassCollection.Sort([&](const auto &Lhs, const auto &Rhs) {
+                return CompareObjcClasses(Lhs, Rhs, Options);
+            });
+        }
 
-    auto Counter = static_cast<uint64_t>(1);
-    for (const auto &Name : NameList) {
+        const auto Printer =
+            [&](FILE *OutFile,
+                int WrittenOut,
+                uint64_t DepthLevel,
+                const BasicTreeNode &TreeNode) noexcept
+        {
+            const auto &Node =
+                reinterpret_cast<const MachO::ObjcClassInfo &>(TreeNode);
+
+            if (Node.IsNull) {
+                return false;
+            }
+
+            const auto NamePrintLength =
+                fprintf(OutFile, "\"%s\"", Node.Name.data()) +
+                ((DepthLevel - 1) * TabLength);
+
+            if (!Options.Verbose) {
+                return true;
+            }
+
+            const auto RightPad =
+                static_cast<int>(LongestLength + LENGTH_OF("\"\""));
+
+            if (Node.IsExternal) {
+                PrintUtilsRightPadSpaces(OutFile,
+                                         static_cast<int>(NamePrintLength),
+                                         RightPad);
+
+                fputs("Imported - ", Options.OutFile);
+                OperationCommon::PrintDylibOrdinalInfo(OutFile,
+                                                       SharedLibraryCollection,
+                                                       Node.DylibOrdinal,
+                                                       Options.Verbose);
+            } else {
+                if (Node.IsSwift) {
+                    fputs("<Swift> ", Options.OutFile);
+                }
+
+                if (!Node.Flags.empty()) {
+                    PrintUtilsRightPadSpaces(OutFile,
+                                             static_cast<int>(NamePrintLength),
+                                             RightPad);
+
+                    PrintClassRoFlags(Options.OutFile, Node.Flags);
+                }
+            }
+
+            return true;
+        };
+
+        ObjcClassCollection.PrintHorizontal(Options.OutFile, 8, Printer);
+    } else {
+        auto ObjcClassList = ObjcClassCollection.GetAsList();
+        if (!Options.SortKindList.empty()) {
+            std::sort(ObjcClassList.begin(),
+                      ObjcClassList.end(),
+                      [&](const auto &Lhs, const auto &Rhs) noexcept
+            {
+                return CompareObjcClasses(*Lhs, *Rhs, Options);
+            });
+        }
+
         fprintf(Options.OutFile,
-                "Objective-C Class %04" PRIu64 ": %s\n",
-                Counter,
-                Name.data());
-        
-        Counter++;
+                "Provided file has %" PRIuPTR " Objective-C Classes:\n",
+                ObjcClassList.size());
+
+        const auto MaxDigitLength =
+            PrintUtilsGetIntegerDigitLength(ObjcClassList.size());
+
+        auto I = static_cast<uint64_t>(1);
+        for (const auto &Iter : ObjcClassList) {
+            const auto &Node =
+                reinterpret_cast<const MachO::ObjcClassInfo &>(*Iter);
+
+            if (Node.IsNull) {
+                I++;
+                continue;
+            }
+
+            fprintf(Options.OutFile,
+                    "Objective-C Class %0*" PRIu64 ": ",
+                    MaxDigitLength,
+                    I);
+
+            if (Node.IsExternal) {
+                PrintUtilsRightPadSpaces(Options.OutFile,
+                                         fputs("<imported>", Options.OutFile),
+                                         OFFSET_LEN(Is64Bit));
+            } else {
+                PrintUtilsPrintOffset(Options.OutFile, Node.Addr, Is64Bit);
+            }
+
+            const auto NamePrintLength =
+                fprintf(Options.OutFile, " \"%s\"", Node.Name.data());
+
+            if (Node.IsExternal) {
+                const auto RightPad =
+                    static_cast<int>(LongestLength + LENGTH_OF(" \"\""));
+
+                PrintUtilsRightPadSpaces(Options.OutFile,
+                                         NamePrintLength,
+                                         RightPad);
+
+                OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
+                                                       SharedLibraryCollection,
+                                                       Node.DylibOrdinal,
+                                                       Options.Verbose);
+            }
+
+            fputc('\n', Options.OutFile);
+            if (Options.PrintCategories) {
+                PrintCategoryList(Options.OutFile, Node.CategoryList, Is64Bit);
+            }
+
+            I++;
+        }
     }
 
     return 0;
 }
 
+static inline bool
+ListHasSortKind(
+    std::vector<PrintObjcClassListOperation::Options::SortKind> &List,
+    const PrintObjcClassListOperation::Options::SortKind &Sort) noexcept
+{
+    const auto ListEnd = List.cend();
+    return (std::find(List.cbegin(), ListEnd, Sort) != ListEnd);
+}
+
+static inline void
+AddSortKind(const char *Opt,
+            struct PrintObjcClassListOperation::Options &Options,
+            PrintObjcClassListOperation::Options::SortKind SortKind) noexcept
+{
+    if (ListHasSortKind(Options.SortKindList, SortKind)) {
+        fprintf(Options.OutFile, "Option %s specified twice\n", Opt);
+    } else {
+        Options.SortKindList.push_back(SortKind);
+    }
+}
+
 struct PrintObjcClassListOperation::Options
-PrintObjcClassListOperation::ParseOptionsImpl(int Argc,
-                                              const char *Argv[],
+PrintObjcClassListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                               int *IndexOut) noexcept
 {
     struct Options Options;
-    for (auto I = int(); I != Argc; I++) {
-        const auto Argument = Argv[I];
+    for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
-        } else if (strcmp(Argument, "--sort") == 0) {
-            Options.Sort = true;
-        } else if (Argument[0] != '-') {
+        } else if (strcmp(Argument, "--include-categories") == 0) {
+            Options.PrintCategories = true;
+        } else if (strcmp(Argument, "--sort-by-name") == 0) {
+            AddSortKind(Argument, Options, Options::SortKind::ByName);
+        } else if (strcmp(Argument, "--sort-by-dylib-ordinal") == 0) {
+            AddSortKind(Argument, Options, Options::SortKind::ByDylibOrdinal);
+        } else if (strcmp(Argument, "--sort-by-kind") == 0) {
+            AddSortKind(Argument, Options, Options::SortKind::ByKind);
+        } else if (strcmp(Argument, "--tree") == 0) {
+            Options.PrintTree = true;
+        } else if (!Argument.IsOption()) {
             if (IndexOut != nullptr) {
-                *IndexOut = I;
+                *IndexOut = Argv.indexOf(Argument);
             }
 
             break;
@@ -300,44 +454,37 @@ PrintObjcClassListOperation::ParseOptionsImpl(int Argc,
             fprintf(stderr,
                     "Unrecognized argument for operation %s: %s\n",
                     OperationKindInfo<OpKind>::Name.data(),
-                    Argument);
+                    Argument.getString());
             exit(1);
         }
+    }
+
+    if (Options.PrintTree && Options.PrintCategories) {
+        fputs("Cannot both print a tree and print categories\n",
+              Options.OutFile);
+        exit(1);
     }
 
     return Options;
 }
 
-struct PrintObjcClassListOperation::Options *
-PrintObjcClassListOperation::ParseOptions(int Argc,
-                                          const char *Argv[],
+void
+PrintObjcClassListOperation::ParseOptions(const ArgvArray &Argv,
                                           int *IndexOut) noexcept
 {
-    return new struct Options(ParseOptionsImpl(Argc, Argv, IndexOut));
+    Options = ParseOptionsImpl(Argv, IndexOut);
 }
 
 int
-PrintObjcClassListOperation::run(const ConstMemoryObject &Object,
-                                 const struct Options &Options) noexcept
-{
-    switch (Object.GetKind()) {
+PrintObjcClassListOperation::Run(const MemoryObject &Object) const noexcept {
+    switch (Object.getKind()) {
         case ObjectKind::None:
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
-            return run(cast<ObjectKind::MachO>(Object), Options);
+            return Run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
-            PrintObjectKindNotSupportedError(OpKind, Object);
-            return 1;
+            return InvalidObjectKind;
     }
 
-    assert(0 && "Reached end with unrecognizable Object-Kind");
-}
-
-int
-PrintObjcClassListOperation::run(const ConstMemoryObject &Object,
-                                 int Argc,
-                                 const char *Argv[]) noexcept
-{
-    assert(Object.GetKind() != ObjectKind::None);
-    return run(Object, ParseOptionsImpl(Argc, Argv, nullptr));
+    assert(0 && "Unrecognized Object-Kind");
 }

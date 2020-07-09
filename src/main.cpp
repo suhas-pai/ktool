@@ -1,5 +1,5 @@
 //
-//  src/main.cc
+//  src/main.cpp
 //  stool
 //
 //  Created by Suhas Pai on 3/29/20.
@@ -12,6 +12,7 @@
 #include <cstring>
 
 #include "ADT/Allocation.h"
+#include "ADT/ArgvArray.h"
 #include "ADT/FileDescriptor.h"
 #include "ADT/MappedFile.h"
 #include "ADT/TypedAllocation.h"
@@ -27,120 +28,151 @@
 #include "Utils/MiscTemplates.h"
 #include "Utils/Path.h"
 #include "Utils/PrintUtils.h"
+#include "Utils/StringUtils.h"
 
-static inline bool IsAtArgcEnd(int Index, int Argc) {
-    return (Index == (Argc - 1));
-}
-
-int HandleHelp(int Argc, const char *Argv[]) {
-    if (!IsAtArgcEnd(1, Argc)) {
-        fprintf(stderr, "Unrecognized Argument: %s\n", Argv[2]);
-        return 1;
+[[nodiscard]]
+static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
+    if (Arg[0] == '-' && Arg[1] != '-') {
+        const auto ShortName = Operation::GetOptionShortName(Kind).data();
+        if (strcmp(Arg + 1, ShortName) == 0) {
+            return true;
+        }
+    } else if (strcmp(Arg + 2, Operation::GetOptionName(Kind).data()) == 0) {
+        return true;
     }
 
-    fputs("Usage: stool <operation> <operation-opts> <path> <path-options>\n",
-          stdout);
-    return 0;
+    return false;
+}
+
+[[nodiscard]] static inline bool IsHelpOption(const char *Arg) noexcept {
+    if (memcmp(Arg, "--", 2) != 0) {
+        return false;
+    }
+
+    const auto Result =
+        (Operation::HelpOption == (Arg + 2)) ||
+        (Operation::UsageOption == (Arg + 2));
+
+    return Result;
 }
 
 int main(int Argc, const char *Argv[]) {
     if (Argc < 2) {
-        fputs("Run --help or --usage to see a list of options\n", stdout);
-        return 1;
+        fprintf(stdout,
+                "Run --%s or --%s to see a list of options\n",
+                Operation::HelpOption.data(),
+                Operation::UsageOption.data());
+
+        return 0;
     }
 
     // Get the Operation-Kind.
 
-    auto Ops = OperationKind::None;
-    auto OpsOptions = TypedAllocation<Operation::Options>();
+    auto Ops = TypedAllocation<Operation>();
     auto PathIndex = int();
 
-    switch (Ops) {
-        case OperationKind::None:
-            if (strcmp(Argv[1], "--help") == 0 ||
-                strcmp(Argv[1], "--usage") == 0)
-            {
-                return HandleHelp(Argc, Argv);
-            }
-
-        case OperationKind::PrintHeader:
-            if (strcmp(Argv[1], "-h") == 0 || strcmp(Argv[1], "--header") == 0)
-            {
-                Ops = OperationKind::PrintHeader;
-                OpsOptions =
-                    OperationTypeFromKind<OperationKind::PrintHeader>::
-                        ParseOptions(Argc - 2, Argv + 2, &PathIndex);
-                break;
-            }
-
-        case OperationKind::PrintLoadCommands:
-            if (strcmp(Argv[1], "-l") == 0 || strcmp(Argv[1], "--lc") == 0) {
-                Ops = OperationKind::PrintLoadCommands;
-                OpsOptions =
-                    OperationTypeFromKind<OperationKind::PrintLoadCommands>::
-                        ParseOptions(Argc - 2, Argv + 2, &PathIndex);
-                break;
-            }
-
-        case OperationKind::PrintSharedLibraries:
-            if (strcmp(Argv[1], "-L") == 0) {
-                Ops = OperationKind::PrintSharedLibraries;
-                OpsOptions =
-                    OperationTypeFromKind<OperationKind::PrintSharedLibraries>::
-                        ParseOptions(Argc - 2, Argv + 2, &PathIndex);
-                break;
-            }
-
-        case OperationKind::PrintId:
-            if (strcmp(Argv[1], "-Id") == 0) {
-                Ops = OperationKind::PrintId;
-                OpsOptions =
-                    OperationTypeFromKind<OperationKind::PrintId>::
-                        ParseOptions(Argc - 2, Argv + 2, &PathIndex);
-                break;
-            }
-
-        case OperationKind::PrintArchList:
-            if (strcmp(Argv[1], "--list-archs") == 0) {
-                Ops = OperationKind::PrintArchList;
-                OpsOptions =
-                    OperationTypeFromKind<OperationKind::PrintArchList>::
-                        ParseOptions(Argc - 2, Argv + 2, &PathIndex);
-                break;
-            }
-
-        case OperationKind::PrintFlags:
-            if (strcmp(Argv[1], "--list-flags") == 0) {
-                Ops = OperationKind::PrintFlags;
-                OpsOptions =
-                    OperationTypeFromKind<OperationKind::PrintFlags>::
-                        ParseOptions(Argc - 2, Argv + 2, &PathIndex);
-                break;
-            }
-
-        case OperationKind::PrintExportTrie:
-            if (strcmp(Argv[1], "--list-export-trie") == 0) {
-                Ops = OperationKind::PrintExportTrie;
-                OpsOptions =
-                    OperationTypeFromKind<OperationKind::PrintExportTrie>::
-                        ParseOptions(Argc - 2, Argv + 2, &PathIndex);
-                break;
-            }
-
-        case OperationKind::PrintObjcClassList:
-            if (strcmp(Argv[1], "--list-objc-classes") == 0) {
-                Ops = OperationKind::PrintObjcClassList;
-                OpsOptions =
-                    OperationTypeFromKind<OperationKind::PrintObjcClassList>::
-                        ParseOptions(Argc - 2, Argv + 2, &PathIndex);
-                break;
-            }
-    }
-
-    if (Ops == OperationKind::None) {
-        fprintf(stderr, "Unrecognized Operation: %s\n", Argv[1]);
+    if (Argv[1][0] != '-') {
+        fprintf(stderr, "Expected Option, Got: \"%s\"\n", Argv[1]);
         return 1;
     }
+
+    if (strcmp(Argv[1], "-") == 0 || strcmp(Argv[1], "--") == 0) {
+        fputs("Please provide a non-empty option\n", stderr);
+        return 1;
+    }
+
+    auto ArgvArr = ArgvArray(Argc, Argv);
+    auto OpsKind = OperationKind::None;
+
+    switch (OpsKind) {
+        case OperationKind::None:
+            if (IsHelpOption(Argv[1])) {
+                Operation::PrintHelpMenu(stdout);
+                return 0;
+            }
+        case OperationKind::PrintHeader:
+            if (MatchesOption(OperationKind::PrintHeader, Argv[1])) {
+                Ops = new PrintHeaderOperation();
+                break;
+            }
+        case OperationKind::PrintLoadCommands:
+            if (MatchesOption(OperationKind::PrintLoadCommands, Argv[1])) {
+                Ops = new PrintLoadCommandsOperation();
+                break;
+            }
+        case OperationKind::PrintSharedLibraries:
+            if (MatchesOption(OperationKind::PrintSharedLibraries, Argv[1])) {
+                Ops = new PrintSharedLibrariesOperation();
+                break;
+            }
+        case OperationKind::PrintId:
+            if (MatchesOption(OperationKind::PrintId, Argv[1])) {
+                Ops = new PrintIdOperation();
+                break;
+            }
+        case OperationKind::PrintArchList:
+            if (MatchesOption(OperationKind::PrintArchList, Argv[1])) {
+                Ops = new PrintArchListOperation();
+                break;
+            }
+        case OperationKind::PrintFlags:
+            if (MatchesOption(OperationKind::PrintFlags, Argv[1])) {
+                Ops = new PrintFlagsOperation();
+                break;
+            }
+        case OperationKind::PrintExportTrie:
+            if (MatchesOption(OperationKind::PrintExportTrie, Argv[1])) {
+                Ops = new PrintExportTrieOperation();
+                break;
+            }
+        case OperationKind::PrintObjcClassList:
+            if (MatchesOption(OperationKind::PrintObjcClassList, Argv[1])) {
+                Ops = new PrintObjcClassListOperation();
+                break;
+            }
+        case OperationKind::PrintBindActionList:
+            if (MatchesOption(OperationKind::PrintBindActionList, Argv[1])) {
+                Ops = new PrintBindActionListOperation();
+                break;
+            }
+        case OperationKind::PrintBindOpcodeList:
+            if (MatchesOption(OperationKind::PrintBindOpcodeList, Argv[1])) {
+                Ops = new PrintBindOpcodeListOperation();
+                break;
+            }
+        case OperationKind::PrintBindSymbolList:
+            if (MatchesOption(OperationKind::PrintBindSymbolList, Argv[1])) {
+                Ops = new PrintBindSymbolListOperation();
+                break;
+            }
+        case OperationKind::PrintRebaseActionList:
+            if (MatchesOption(OperationKind::PrintRebaseActionList, Argv[1])) {
+                Ops = new PrintRebaseActionListOperation();
+                break;
+            }
+        case OperationKind::PrintRebaseOpcodeList:
+            if (MatchesOption(OperationKind::PrintRebaseOpcodeList, Argv[1])) {
+                Ops = new PrintRebaseOpcodeListOperation();
+                break;
+            }
+        case OperationKind::PrintCStringSection:
+            if (MatchesOption(OperationKind::PrintCStringSection, Argv[1])) {
+                Ops = new PrintCStringSectionOperation();
+                break;
+            }
+        case OperationKind::PrintSymbolPtrSection:
+            if (MatchesOption(OperationKind::PrintSymbolPtrSection, Argv[1])) {
+                Ops = new PrintSymbolPtrSectionOperation();
+                break;
+            }
+    }
+
+    if (Ops == nullptr) {
+        fprintf(stderr, "Unrecognized Option: \"%s\"\n", Argv[1]);
+        return 1;
+    }
+
+    Ops->ParseOptions(ArgvArr.fromIndex(2), &PathIndex);
 
     // Since we gave Operation::Options a [2, Argc] Argv, we have to add two
     // here to get the full index.
@@ -155,7 +187,7 @@ int main(int Argc, const char *Argv[]) {
     const auto Fd =
         FileDescriptor::Open(Path.data(), FileDescriptor::OpenType::Read);
 
-    if (Fd.HasError()) {
+    if (Fd.hasError()) {
         fprintf(stderr,
                 "Could not open the provided file (at path: %s), error: %s\n",
                 Path.data(),
@@ -165,13 +197,13 @@ int main(int Argc, const char *Argv[]) {
 
     auto FileMapProt = MappedFile::Protections();
 
-    FileMapProt.Add(MappedFile::ProtectionsEnum::Read);
-    FileMapProt.Add(MappedFile::ProtectionsEnum::Write);
+    FileMapProt.add(MappedFile::ProtectionsEnum::Read);
+    FileMapProt.add(MappedFile::ProtectionsEnum::Write);
 
     const auto FileMap =
         MappedFile::Open(Fd, FileMapProt, MappedFile::Type::Private);
 
-    switch (FileMap.GetError()) {
+    switch (FileMap.getError()) {
         case MappedFile::OpenError::None:
             break;
         case MappedFile::OpenError::FailedToGetSize:
@@ -195,13 +227,13 @@ int main(int Argc, const char *Argv[]) {
         return 1;
     }
 
-    if (Object->HasError()) {
-        switch (Object->GetKind()) {
+    if (Object->hasError()) {
+        switch (Object->getKind()) {
             case ObjectKind::None:
                 assert(0 && "MemoryObject::Open() returned ObjectKind::None");
             case ObjectKind::MachO: {
                 const auto RealObject = cast<ObjectKind::MachO>(Object);
-                switch (RealObject->GetError()) {
+                switch (RealObject->getError()) {
                     case MachOMemoryObject::Error::None:
                     case MachOMemoryObject::Error::WrongFormat:
                     case MachOMemoryObject::Error::SizeTooSmall:
@@ -217,7 +249,7 @@ int main(int Argc, const char *Argv[]) {
 
             case ObjectKind::FatMachO:
                 const auto RealObject = cast<ObjectKind::FatMachO>(Object);
-                switch (RealObject->GetError()) {
+                switch (RealObject->getError()) {
                     case FatMachOMemoryObject::Error::None:
                     case FatMachOMemoryObject::Error::WrongFormat:
                     case FatMachOMemoryObject::Error::SizeTooSmall:
@@ -246,23 +278,25 @@ int main(int Argc, const char *Argv[]) {
 
     // Parse any arguments for the path.
 
-    for (auto Index = PathIndex + 1; Index != Argc; Index++) {
-        if (strcmp(Argv[Index], "-arch") == 0) {
+    for (auto &Argument : ArgvArray(Argv, PathIndex + 1, Argc)) {
+        if (strcmp(Argument, "-arch") == 0) {
             const auto FatObject = dyn_cast<ObjectKind::FatMachO>(Object);
             if (!FatObject) {
                 fputs("Provided file is not a Fat Mach-O File\n", stderr);
                 return 1;
             }
 
-            if (IsAtArgcEnd(Index, Argc)) {
+            if (!Argument.hasNext()) {
                 fputs("Please provide an arch-index.\nUse the --list-archs "
                       "option to see a list of archs\n",
                       stderr);
                 return 1;
             }
 
-            const auto ArchNumber = ParseNumber<uint32_t>(Argv[++Index]);
-            const auto ArchCount = FatObject->GetArchCount();
+            Argument.advance();
+
+            const auto ArchNumber = ParseNumber<uint32_t>(Argument.getString());
+            const auto ArchCount = FatObject->getArchCount();
 
             if (ArchNumber == 0) {
                 fputs("An ArchNumber of 0 is invalid. For the first arch, use "
@@ -282,7 +316,7 @@ int main(int Argc, const char *Argv[]) {
             const auto ArchInfo = FatObject->GetArchInfoAtIndex(ArchIndex);
             const auto ArchObject = FatObject->GetArchObjectFromInfo(ArchInfo);
 
-            Object = ArchObject.GetObject();
+            Object = ArchObject.getObject();
             if (Object == nullptr) {
                 fputs("Provided file's selected arch is of an unrecognized "
                       "kind\n", stderr);
@@ -292,10 +326,10 @@ int main(int Argc, const char *Argv[]) {
             using ArchWarningEnum =
                 FatMachOMemoryObject::GetObjectResult::WarningEnum;
 
-            switch (ArchObject.GetWarning()) {
+            switch (ArchObject.getWarning()) {
                 case ArchWarningEnum::None:
                     break;
-                case ArchWarningEnum::MachOCpuTypeMismatch:
+                case ArchWarningEnum::MachOCpuKindMismatch:
                     fputs("Warning: Arch's Cputype differs from expected\n",
                           stderr);
                     break;
@@ -303,10 +337,15 @@ int main(int Argc, const char *Argv[]) {
         } else {
             fprintf(stdout,
                     "Unrecognized Argument for provided path: %s\n",
-                    Argv[Index]);
+                    Argument.getString());
             return 1;
         }
     }
 
-    return Operation::Run(Ops, *Object, *OpsOptions);
+    const auto Result = Ops->Run(*Object);
+    if (Result == Operation::InvalidObjectKind) {
+        Operation::PrintObjectKindNotSupportedError(Ops->getKind(), *Object);
+    }
+
+    return 0;
 }

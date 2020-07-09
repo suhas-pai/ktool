@@ -8,6 +8,6 @@
 
 #pragma once
 
-#include "Mach/CpuSubTypeInfo.h"
-#include "Mach/CpuSubTypeInfoTemplates.h"
-#include "Mach/CpuTypeInfoTemplates.h"
+#include "Mach/CpuSubKindInfo.h"
+#include "Mach/CpuSubKindInfoTemplates.h"
+#include "Mach/CpuKindInfoTemplates.h"

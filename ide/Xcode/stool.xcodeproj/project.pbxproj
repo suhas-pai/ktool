@@ -8,24 +8,44 @@
 
 /* Begin PBXBuildFile section */
 		F3104AC42431960E00B24FEB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3104AC32431960E00B24FEB /* main.cpp */; };
+		F314A9DE24AFF67C00796991 /* PrintSymbolPtrSection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F314A9DD24AFF67C00796991 /* PrintSymbolPtrSection.cpp */; };
+		F314A9E124B0314400796991 /* SymbolTableUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F314A9E024B0314400796991 /* SymbolTableUtil.cpp */; };
+		F33E8CD42473B267009C4EA0 /* ExportTrie.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F33E8CD32473B267009C4EA0 /* ExportTrie.cpp */; };
+		F33E8CD62473B61B009C4EA0 /* BindInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F33E8CD52473B61B009C4EA0 /* BindInfo.cpp */; };
+		F33E8CD92473C044009C4EA0 /* RebaseInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F33E8CD82473C044009C4EA0 /* RebaseInfo.cpp */; };
+		F348C8A524AB457C007D83CB /* PrintCStringSection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F348C8A424AB457C007D83CB /* PrintCStringSection.cpp */; };
 		F35FF7F024486A4800BEF782 /* PrintLoadCommands.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F35FF7EF24486A4800BEF782 /* PrintLoadCommands.cpp */; };
 		F35FF7F524486A6600BEF782 /* LoadCommandStorage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F35FF7F324486A6600BEF782 /* LoadCommandStorage.cpp */; };
 		F35FF7F624486A6600BEF782 /* LoadCommands.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F35FF7F424486A6600BEF782 /* LoadCommands.cpp */; };
-		F36FBF6A2436B0600075D461 /* SwitchEndian.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36FBF672436B0600075D461 /* SwitchEndian.cpp */; };
+		F369E4102480E66D00F5A5E8 /* PrintBindActionList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F369E40F2480E66D00F5A5E8 /* PrintBindActionList.cpp */; };
 		F36FBF8524380E000075D461 /* LocationRange.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36FBF8024380E000075D461 /* LocationRange.cpp */; };
 		F36FBF8624380E000075D461 /* FileDescriptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36FBF8124380E000075D461 /* FileDescriptor.cpp */; };
 		F36FBF8724380E000075D461 /* MachO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36FBF8224380E000075D461 /* MachO.cpp */; };
 		F36FBF8824380E000075D461 /* MappedFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36FBF8324380E000075D461 /* MappedFile.cpp */; };
 		F36FBF8924380E000075D461 /* MemoryMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36FBF8424380E000075D461 /* MemoryMap.cpp */; };
+		F3840EB42481FE16003AD004 /* PrintRebaseActionList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3840EB32481FE16003AD004 /* PrintRebaseActionList.cpp */; };
+		F3840EB62481FE26003AD004 /* PrintRebaseOpcodeList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3840EB52481FE26003AD004 /* PrintRebaseOpcodeList.cpp */; };
+		F38FCE6124876FE500920AB1 /* ByteVector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F38FCE6024876FE500920AB1 /* ByteVector.cpp */; };
+		F38FCE642487793B00920AB1 /* SwapRanges.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F38FCE632487793B00920AB1 /* SwapRanges.cpp */; };
+		F38FCE672488D88600920AB1 /* PrintUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F38FCE662488D88600920AB1 /* PrintUtils.cpp */; };
+		F38FCE6C248B03C800920AB1 /* ExportTrieUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F38FCE6B248B03C800920AB1 /* ExportTrieUtil.cpp */; };
+		F38FCF28248DEF0900DCB79F /* OutputFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F38FCF27248DEF0900DCB79F /* OutputFile.cpp */; };
+		F38FCF2B248EFB3B00DCB79F /* Tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F38FCF2A248EFB3B00DCB79F /* Tree.cpp */; };
 		F3923E86243C0BA0002479B3 /* MemoryBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3923E83243C0BA0002479B3 /* MemoryBase.cpp */; };
 		F3923E87243C0BA0002479B3 /* FatMachOMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3923E84243C0BA0002479B3 /* FatMachOMemory.cpp */; };
 		F3923E88243C0BA0002479B3 /* MachOMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3923E85243C0BA0002479B3 /* MachOMemory.cpp */; };
 		F39A9878245FE4F4002C229F /* Path.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39A9877245FE4F4002C229F /* Path.cpp */; };
+		F3A2D2982495A971005DA2D0 /* ObjcUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3A2D2972495A971005DA2D0 /* ObjcUtil.cpp */; };
+		F3A2D29B249AD5B9005DA2D0 /* LoadCommandsCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3A2D29A249AD5B9005DA2D0 /* LoadCommandsCommon.cpp */; };
+		F3A2D2A0249B2163005DA2D0 /* BindUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3A2D29F249B2163005DA2D0 /* BindUtil.cpp */; };
 		F3B196322439B34200AE997A /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B196302439B34200AE997A /* Base.cpp */; };
 		F3B2CEC9246504EC0066B7C8 /* PrintFlags.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B2CEC8246504EC0066B7C8 /* PrintFlags.cpp */; };
 		F3B810B22467B53E00DED4F2 /* PrintExportTrie.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B810B12467B53E00DED4F2 /* PrintExportTrie.cpp */; };
 		F3BA28B4247096BA009B6BCE /* PrintObjcClassList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3BA28B3247096BA009B6BCE /* PrintObjcClassList.cpp */; };
 		F3BA28B924709ACD009B6BCE /* SegmentUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3BA28B824709ACD009B6BCE /* SegmentUtil.cpp */; };
+		F3BA28C32471ECC6009B6BCE /* PrintBindSymbolList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3BA28C22471ECC6009B6BCE /* PrintBindSymbolList.cpp */; };
+		F3BB3090247706AB00706267 /* SharedLibraryUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3BB308F247706AB00706267 /* SharedLibraryUtil.cpp */; };
+		F3CAF1852478B37200050D8D /* PrintBindOpcodeList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3CAF1842478B37200050D8D /* PrintBindOpcodeList.cpp */; };
 		F3D66214245770BA00270435 /* PrintArchList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3D66213245770BA00270435 /* PrintArchList.cpp */; };
 		F3D66217245770E200270435 /* RelativeRange.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3D66216245770E200270435 /* RelativeRange.cpp */; };
 		F3DC4DA52452720A0063906C /* PrintSharedLibraries.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3DC4DA42452720A0063906C /* PrintSharedLibraries.cpp */; };
@@ -54,23 +74,42 @@
 		F3104ABB2431950B00B24FEB /* DisableIfNotEnumClass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DisableIfNotEnumClass.h; path = ../../include/TypeTraits/DisableIfNotEnumClass.h; sourceTree = "<group>"; };
 		F3104AC32431960E00B24FEB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../src/main.cpp; sourceTree = "<group>"; };
 		F3104AC62431966D00B24FEB /* SwitchEndian.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SwitchEndian.h; path = ../../include/Utils/SwitchEndian.h; sourceTree = "<group>"; };
+		F314A9D924AFF5C800796991 /* PrintSymbolPtrSection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintSymbolPtrSection.h; path = ../../include/Operations/PrintSymbolPtrSection.h; sourceTree = "<group>"; };
+		F314A9DD24AFF67C00796991 /* PrintSymbolPtrSection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintSymbolPtrSection.cpp; path = ../../src/Operations/PrintSymbolPtrSection.cpp; sourceTree = "<group>"; };
+		F314A9DF24B01DA900796991 /* SymbolTableUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SymbolTableUtil.h; path = "../../include/ADT/Mach-O/SymbolTableUtil.h"; sourceTree = "<group>"; };
+		F314A9E024B0314400796991 /* SymbolTableUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SymbolTableUtil.cpp; path = "../../src/ADT/Mach-O/SymbolTableUtil.cpp"; sourceTree = "<group>"; };
+		F31C4E7E2479B1B50057FE50 /* magic_enum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = magic_enum.h; path = ../../include/External/magic_enum.h; sourceTree = "<group>"; };
+		F31C4E7F2479B1EA0057FE50 /* EnumHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EnumHelper.h; path = ../../include/ADT/EnumHelper.h; sourceTree = "<group>"; };
+		F31C4E80247BB7370057FE50 /* PointerFlagStorage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PointerFlagStorage.h; path = ../../include/ADT/PointerFlagStorage.h; sourceTree = "<group>"; };
 		F33DFDCF2438503800BF3E47 /* Casting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Casting.h; path = ../../include/Utils/Casting.h; sourceTree = "<group>"; };
 		F33DFDD0243867F900BF3E47 /* IsEnumClass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = IsEnumClass.h; path = ../../include/TypeTraits/IsEnumClass.h; sourceTree = "<group>"; };
 		F33DFDD324393B8000BF3E47 /* RemoveAllPointers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RemoveAllPointers.h; path = ../../include/TypeTraits/RemoveAllPointers.h; sourceTree = "<group>"; };
 		F33DFDD424394CEC00BF3E47 /* RemovePointersAndRefs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RemovePointersAndRefs.h; path = ../../include/TypeTraits/RemovePointersAndRefs.h; sourceTree = "<group>"; };
 		F33DFDD524394D4A00BF3E47 /* Identity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Identity.h; path = ../../include/TypeTraits/Identity.h; sourceTree = "<group>"; };
+		F33E8CD02473AA52009C4EA0 /* BindInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BindInfo.h; path = "../../include/ADT/Mach-O/BindInfo.h"; sourceTree = "<group>"; };
+		F33E8CD12473AAA0009C4EA0 /* LoadCommandsCommon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadCommandsCommon.h; path = "../../include/ADT/Mach-O/LoadCommandsCommon.h"; sourceTree = "<group>"; };
+		F33E8CD22473B0DD009C4EA0 /* ExportTrie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ExportTrie.h; path = "../../include/ADT/Mach-O/ExportTrie.h"; sourceTree = "<group>"; };
+		F33E8CD32473B267009C4EA0 /* ExportTrie.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ExportTrie.cpp; path = "../../src/ADT/Mach-O/ExportTrie.cpp"; sourceTree = "<group>"; };
+		F33E8CD52473B61B009C4EA0 /* BindInfo.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BindInfo.cpp; path = "../../src/ADT/Mach-O/BindInfo.cpp"; sourceTree = "<group>"; };
+		F33E8CD72473BFB7009C4EA0 /* RebaseInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RebaseInfo.h; path = "../../include/ADT/Mach-O/RebaseInfo.h"; sourceTree = "<group>"; };
+		F33E8CD82473C044009C4EA0 /* RebaseInfo.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = RebaseInfo.cpp; path = "../../src/ADT/Mach-O/RebaseInfo.cpp"; sourceTree = "<group>"; };
+		F348C8A324AB4527007D83CB /* PrintCStringSection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintCStringSection.h; path = ../../include/Operations/PrintCStringSection.h; sourceTree = "<group>"; };
+		F348C8A424AB457C007D83CB /* PrintCStringSection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintCStringSection.cpp; path = ../../src/Operations/PrintCStringSection.cpp; sourceTree = "<group>"; };
 		F35FF7EF24486A4800BEF782 /* PrintLoadCommands.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintLoadCommands.cpp; path = ../../src/Operations/PrintLoadCommands.cpp; sourceTree = "<group>"; };
 		F35FF7F324486A6600BEF782 /* LoadCommandStorage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LoadCommandStorage.cpp; path = "../../src/ADT/Mach-O/LoadCommandStorage.cpp"; sourceTree = "<group>"; };
 		F35FF7F424486A6600BEF782 /* LoadCommands.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LoadCommands.cpp; path = "../../src/ADT/Mach-O/LoadCommands.cpp"; sourceTree = "<group>"; };
 		F35FF7FA24486A8700BEF782 /* MachOLoadCommandPrinter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MachOLoadCommandPrinter.h; path = ../../include/Utils/MachOLoadCommandPrinter.h; sourceTree = "<group>"; };
 		F35FF7FB24486A9000BEF782 /* PrintLoadCommands.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintLoadCommands.h; path = ../../include/Operations/PrintLoadCommands.h; sourceTree = "<group>"; };
-		F36FBF672436B0600075D461 /* SwitchEndian.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SwitchEndian.cpp; path = ../../src/Utils/SwitchEndian.cpp; sourceTree = "<group>"; };
-		F36FBF7524380DD40075D461 /* BasicContinguousList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BasicContinguousList.h; path = ../../include/ADT/BasicContinguousList.h; sourceTree = "<group>"; };
+		F369E40C24808B2800F5A5E8 /* DefaultStructVariable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DefaultStructVariable.h; path = ../../include/ADT/DefaultStructVariable.h; sourceTree = "<group>"; };
+		F369E40D2480982F00F5A5E8 /* DeVirtualizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DeVirtualizer.h; path = "../../include/ADT/Mach-O/DeVirtualizer.h"; sourceTree = "<group>"; };
+		F369E40E2480E65700F5A5E8 /* PrintBindActionList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintBindActionList.h; path = ../../include/Operations/PrintBindActionList.h; sourceTree = "<group>"; };
+		F369E40F2480E66D00F5A5E8 /* PrintBindActionList.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintBindActionList.cpp; path = ../../src/Operations/PrintBindActionList.cpp; sourceTree = "<group>"; };
+		F36FBF7524380DD40075D461 /* BasicContiguousList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BasicContiguousList.h; path = ../../include/ADT/BasicContiguousList.h; sourceTree = "<group>"; };
 		F36FBF7624380DD40075D461 /* LocationRange.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LocationRange.h; path = ../../include/ADT/LocationRange.h; sourceTree = "<group>"; };
 		F36FBF7724380DD40075D461 /* PointerOrError.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PointerOrError.h; path = ../../include/ADT/PointerOrError.h; sourceTree = "<group>"; };
 		F36FBF7824380DD40075D461 /* PointerErrorStorage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PointerErrorStorage.h; path = ../../include/ADT/PointerErrorStorage.h; sourceTree = "<group>"; };
 		F36FBF7924380DD40075D461 /* TypedAllocation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TypedAllocation.h; path = ../../include/ADT/TypedAllocation.h; sourceTree = "<group>"; };
-		F36FBF7A24380DD40075D461 /* BasicContinguousIterator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BasicContinguousIterator.h; path = ../../include/ADT/BasicContinguousIterator.h; sourceTree = "<group>"; };
+		F36FBF7A24380DD40075D461 /* BasicContiguousIterator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BasicContiguousIterator.h; path = ../../include/ADT/BasicContiguousIterator.h; sourceTree = "<group>"; };
 		F36FBF7B24380DD40075D461 /* FileDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FileDescriptor.h; path = ../../include/ADT/FileDescriptor.h; sourceTree = "<group>"; };
 		F36FBF7C24380DD40075D461 /* MachO.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MachO.h; path = ../../include/ADT/MachO.h; sourceTree = "<group>"; };
 		F36FBF7D24380DD40075D461 /* Allocation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Allocation.h; path = ../../include/ADT/Allocation.h; sourceTree = "<group>"; };
@@ -83,8 +122,12 @@
 		F36FBF8424380E000075D461 /* MemoryMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MemoryMap.cpp; path = ../../src/ADT/MemoryMap.cpp; sourceTree = "<group>"; };
 		F36FBF8A24380E7D0075D461 /* MemoryMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MemoryMap.h; path = ../../include/ADT/MemoryMap.h; sourceTree = "<group>"; };
 		F36FBF8B243826040075D461 /* MappedFile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MappedFile.h; path = ../../include/ADT/MappedFile.h; sourceTree = "<group>"; };
-		F37166A6246650980078C5CA /* Uleb128.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Uleb128.h; path = ../../include/Utils/Uleb128.h; sourceTree = "<group>"; };
+		F37166A6246650980078C5CA /* Leb128.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Leb128.h; path = ../../include/Utils/Leb128.h; sourceTree = "<group>"; };
 		F37166A7246650AE0078C5CA /* IntegerLimit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = IntegerLimit.h; path = ../../include/Utils/IntegerLimit.h; sourceTree = "<group>"; };
+		F3840EB12481FDCE003AD004 /* PrintRebaseOpcodeList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintRebaseOpcodeList.h; path = ../../include/Operations/PrintRebaseOpcodeList.h; sourceTree = "<group>"; };
+		F3840EB22481FDE5003AD004 /* PrintRebaseActionList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintRebaseActionList.h; path = ../../include/Operations/PrintRebaseActionList.h; sourceTree = "<group>"; };
+		F3840EB32481FE16003AD004 /* PrintRebaseActionList.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintRebaseActionList.cpp; path = ../../src/Operations/PrintRebaseActionList.cpp; sourceTree = "<group>"; };
+		F3840EB52481FE26003AD004 /* PrintRebaseOpcodeList.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintRebaseOpcodeList.cpp; path = ../../src/Operations/PrintRebaseOpcodeList.cpp; sourceTree = "<group>"; };
 		F3856A9A244A9F73007980C9 /* PrintUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintUtils.h; path = ../../include/Utils/PrintUtils.h; sourceTree = "<group>"; };
 		F3856A9B244ABDA1007980C9 /* LoadCommands.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadCommands.h; path = "../../include/ADT/Mach-O/LoadCommands.h"; sourceTree = "<group>"; };
 		F3856A9C244ABDA1007980C9 /* LoadCommandStorage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadCommandStorage.h; path = "../../include/ADT/Mach-O/LoadCommandStorage.h"; sourceTree = "<group>"; };
@@ -92,6 +135,19 @@
 		F3856A9E244ABDA1007980C9 /* LoadCommandTemplates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadCommandTemplates.h; path = "../../include/ADT/Mach-O/LoadCommandTemplates.h"; sourceTree = "<group>"; };
 		F3856A9F244BA5F3007980C9 /* MachOPrinter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MachOPrinter.h; path = ../../include/Utils/MachOPrinter.h; sourceTree = "<group>"; };
 		F3856AA2244BBB5C007980C9 /* Macros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Macros.h; path = ../../include/Utils/Macros.h; sourceTree = "<group>"; };
+		F38FCE5F24876C7A00920AB1 /* ByteVector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ByteVector.h; path = ../../include/ADT/ByteVector.h; sourceTree = "<group>"; };
+		F38FCE6024876FE500920AB1 /* ByteVector.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ByteVector.cpp; path = ../../src/ADT/ByteVector.cpp; sourceTree = "<group>"; };
+		F38FCE62248778E000920AB1 /* SwapRanges.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SwapRanges.h; path = ../../include/Utils/SwapRanges.h; sourceTree = "<group>"; };
+		F38FCE632487793B00920AB1 /* SwapRanges.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SwapRanges.cpp; path = ../../src/Utils/SwapRanges.cpp; sourceTree = "<group>"; };
+		F38FCE652487B02E00920AB1 /* PointerKind.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PointerKind.h; path = ../../include/ADT/PointerKind.h; sourceTree = "<group>"; };
+		F38FCE662488D88600920AB1 /* PrintUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintUtils.cpp; path = ../../src/Utils/PrintUtils.cpp; sourceTree = "<group>"; };
+		F38FCE6924898B9A00920AB1 /* ArgvArray.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ArgvArray.h; path = ../../include/ADT/ArgvArray.h; sourceTree = "<group>"; };
+		F38FCE6A248AFCD200920AB1 /* ExportTrieUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ExportTrieUtil.h; path = "../../include/ADT/Mach-O/ExportTrieUtil.h"; sourceTree = "<group>"; };
+		F38FCE6B248B03C800920AB1 /* ExportTrieUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ExportTrieUtil.cpp; path = "../../src/ADT/Mach-O/ExportTrieUtil.cpp"; sourceTree = "<group>"; };
+		F38FCF26248DEEE300DCB79F /* OutputFile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OutputFile.h; path = ../../include/ADT/OutputFile.h; sourceTree = "<group>"; };
+		F38FCF27248DEF0900DCB79F /* OutputFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OutputFile.cpp; path = ../../src/ADT/OutputFile.cpp; sourceTree = "<group>"; };
+		F38FCF29248EDD5B00DCB79F /* Tree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Tree.h; path = ../../include/ADT/Tree.h; sourceTree = "<group>"; };
+		F38FCF2A248EFB3B00DCB79F /* Tree.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Tree.cpp; path = ../../src/ADT/Tree.cpp; sourceTree = "<group>"; };
 		F3923E7C243C0B62002479B3 /* Mach.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Mach.h; path = ../../include/ADT/Mach.h; sourceTree = "<group>"; };
 		F3923E7F243C0B97002479B3 /* MemoryBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MemoryBase.h; path = ../../include/Objects/MemoryBase.h; sourceTree = "<group>"; };
 		F3923E80243C0B97002479B3 /* Kind.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Kind.h; path = ../../include/Objects/Kind.h; sourceTree = "<group>"; };
@@ -103,6 +159,12 @@
 		F3923E89243C1680002479B3 /* DoesOverflow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DoesOverflow.h; path = ../../include/Utils/DoesOverflow.h; sourceTree = "<group>"; };
 		F39A9877245FE4F4002C229F /* Path.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Path.cpp; path = ../../src/Utils/Path.cpp; sourceTree = "<group>"; };
 		F39A9879245FE4FE002C229F /* Path.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Path.h; path = ../../include/Utils/Path.h; sourceTree = "<group>"; };
+		F3A2D2962495A71D005DA2D0 /* ObjcUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ObjcUtil.h; path = "../../include/ADT/Mach-O/ObjcUtil.h"; sourceTree = "<group>"; };
+		F3A2D2972495A971005DA2D0 /* ObjcUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ObjcUtil.cpp; path = "../../src/ADT/Mach-O/ObjcUtil.cpp"; sourceTree = "<group>"; };
+		F3A2D2992499C41B005DA2D0 /* SpecificCapArray.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SpecificCapArray.h; path = ../../include/ADT/SpecificCapArray.h; sourceTree = "<group>"; };
+		F3A2D29A249AD5B9005DA2D0 /* LoadCommandsCommon.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = LoadCommandsCommon.cpp; path = "../../src/ADT/Mach-O/LoadCommandsCommon.cpp"; sourceTree = "<group>"; };
+		F3A2D29E249B1E5E005DA2D0 /* BindUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BindUtil.h; path = "../../include/ADT/Mach-O/BindUtil.h"; sourceTree = "<group>"; };
+		F3A2D29F249B2163005DA2D0 /* BindUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BindUtil.cpp; path = "../../src/ADT/Mach-O/BindUtil.cpp"; sourceTree = "<group>"; };
 		F3A5C2312443BC10000DE1B9 /* Kind.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Kind.h; path = ../../include/Operations/Kind.h; sourceTree = "<group>"; };
 		F3B1962C2439B32500AE997A /* Base.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Base.h; path = ../../include/Operations/Base.h; sourceTree = "<group>"; };
 		F3B1962E2439B32500AE997A /* PrintHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintHeader.h; path = ../../include/Operations/PrintHeader.h; sourceTree = "<group>"; };
@@ -118,9 +180,16 @@
 		F3BA28B824709ACD009B6BCE /* SegmentUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SegmentUtil.cpp; path = "../../src/ADT/Mach-O/SegmentUtil.cpp"; sourceTree = "<group>"; };
 		F3BA28BA2470A846009B6BCE /* Headers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Headers.h; path = "../../include/ADT/Mach-O/Headers.h"; sourceTree = "<group>"; };
 		F3BA28BC2470CA42009B6BCE /* PointerUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PointerUtils.h; path = ../../include/Utils/PointerUtils.h; sourceTree = "<group>"; };
-		F3BA28BD2470F3CD009B6BCE /* ObjC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ObjC.h; path = "../../include/ADT/Mach-O/ObjC.h"; sourceTree = "<group>"; };
+		F3BA28BD2470F3CD009B6BCE /* Objc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Objc.h; path = "../../include/ADT/Mach-O/Objc.h"; sourceTree = "<group>"; };
 		F3BA28BF24712537009B6BCE /* SegmentInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SegmentInfo.h; path = "../../include/ADT/Mach-O/SegmentInfo.h"; sourceTree = "<group>"; };
-		F3BA28C024713E17009B6BCE /* CharUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CharUtils.h; path = ../../include/Utils/CharUtils.h; sourceTree = "<group>"; };
+		F3BA28C024713E17009B6BCE /* StringUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = StringUtils.h; path = ../../include/Utils/StringUtils.h; sourceTree = "<group>"; };
+		F3BA28C12471EC92009B6BCE /* PrintBindSymbolList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintBindSymbolList.h; path = ../../include/Operations/PrintBindSymbolList.h; sourceTree = "<group>"; };
+		F3BA28C22471ECC6009B6BCE /* PrintBindSymbolList.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintBindSymbolList.cpp; path = ../../src/Operations/PrintBindSymbolList.cpp; sourceTree = "<group>"; };
+		F3BB308D2477051B00706267 /* SharedLibraryUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SharedLibraryUtil.h; path = "../../include/ADT/Mach-O/SharedLibraryUtil.h"; sourceTree = "<group>"; };
+		F3BB308E2477061D00706267 /* SharedLibraryInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SharedLibraryInfo.h; path = "../../include/ADT/Mach-O/SharedLibraryInfo.h"; sourceTree = "<group>"; };
+		F3BB308F247706AB00706267 /* SharedLibraryUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SharedLibraryUtil.cpp; path = "../../src/ADT/Mach-O/SharedLibraryUtil.cpp"; sourceTree = "<group>"; };
+		F3CAF1832478B31000050D8D /* PrintBindOpcodeList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintBindOpcodeList.h; path = ../../include/Operations/PrintBindOpcodeList.h; sourceTree = "<group>"; };
+		F3CAF1842478B37200050D8D /* PrintBindOpcodeList.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintBindOpcodeList.cpp; path = ../../src/Operations/PrintBindOpcodeList.cpp; sourceTree = "<group>"; };
 		F3D66211245770A300270435 /* Operation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Operation.h; path = ../../include/Operations/Operation.h; sourceTree = "<group>"; };
 		F3D66212245770AB00270435 /* PrintArchList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintArchList.h; path = ../../include/Operations/PrintArchList.h; sourceTree = "<group>"; };
 		F3D66213245770BA00270435 /* PrintArchList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintArchList.cpp; path = ../../src/Operations/PrintArchList.cpp; sourceTree = "<group>"; };
@@ -137,9 +206,9 @@
 		F3DC4DAF2452F48F0063906C /* Timestamp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Timestamp.cpp; path = ../../src/Utils/Timestamp.cpp; sourceTree = "<group>"; };
 		F3DC4DB12453D5910063906C /* MiscTemplates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MiscTemplates.h; path = ../../include/Utils/MiscTemplates.h; sourceTree = "<group>"; };
 		F3DDCBDA2442A08A0051ADD0 /* PrintHeader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintHeader.cpp; path = ../../src/Operations/PrintHeader.cpp; sourceTree = "<group>"; };
-		F3EA2DCE244CB88600ACA736 /* CpuSubTypeInfoTemplates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CpuSubTypeInfoTemplates.h; path = ../../include/ADT/Mach/CpuSubTypeInfoTemplates.h; sourceTree = "<group>"; };
-		F3F08B7A244D27CB007F3271 /* CpuSubTypeInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CpuSubTypeInfo.h; path = ../../include/ADT/Mach/CpuSubTypeInfo.h; sourceTree = "<group>"; };
-		F3F08B7B244D27CB007F3271 /* CpuTypeInfoTemplates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CpuTypeInfoTemplates.h; path = ../../include/ADT/Mach/CpuTypeInfoTemplates.h; sourceTree = "<group>"; };
+		F3EA2DCE244CB88600ACA736 /* CpuSubKindInfoTemplates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CpuSubKindInfoTemplates.h; path = ../../include/ADT/Mach/CpuSubKindInfoTemplates.h; sourceTree = "<group>"; };
+		F3F08B7A244D27CB007F3271 /* CpuSubKindInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CpuSubKindInfo.h; path = ../../include/ADT/Mach/CpuSubKindInfo.h; sourceTree = "<group>"; };
+		F3F08B7B244D27CB007F3271 /* CpuKindInfoTemplates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CpuKindInfoTemplates.h; path = ../../include/ADT/Mach/CpuKindInfoTemplates.h; sourceTree = "<group>"; };
 		F3F08B7C244D2834007F3271 /* Info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Info.h; path = ../../include/ADT/Mach/Info.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -188,6 +257,7 @@
 			isa = PBXGroup;
 			children = (
 				F3104AB52431943000B24FEB /* ADT */,
+				F31C4E7D2479B1650057FE50 /* External */,
 				F3104AC82431C3F100B24FEB /* Objects */,
 				F3B196252439B30200AE997A /* Operations */,
 				F3104AB62431943900B24FEB /* TypeTraits */,
@@ -202,10 +272,14 @@
 				F3856AA1244BBAC7007980C9 /* Mach */,
 				F35FF7F124486A5900BEF782 /* Mach-O */,
 				F36FBF7D24380DD40075D461 /* Allocation.h */,
-				F36FBF7A24380DD40075D461 /* BasicContinguousIterator.h */,
-				F36FBF7524380DD40075D461 /* BasicContinguousList.h */,
+				F38FCE6924898B9A00920AB1 /* ArgvArray.h */,
+				F36FBF7A24380DD40075D461 /* BasicContiguousIterator.h */,
+				F36FBF7524380DD40075D461 /* BasicContiguousList.h */,
 				F36FBF7F24380DD40075D461 /* BasicMasksHandler.h */,
 				F36FBF7E24380DD40075D461 /* BasicWrapperIterator.h */,
+				F38FCE5F24876C7A00920AB1 /* ByteVector.h */,
+				F369E40C24808B2800F5A5E8 /* DefaultStructVariable.h */,
+				F31C4E7F2479B1EA0057FE50 /* EnumHelper.h */,
 				F36FBF7B24380DD40075D461 /* FileDescriptor.h */,
 				F3B810B32467EECD00DED4F2 /* LargestIntHelper.h */,
 				F36FBF7624380DD40075D461 /* LocationRange.h */,
@@ -213,9 +287,14 @@
 				F36FBF7C24380DD40075D461 /* MachO.h */,
 				F36FBF8B243826040075D461 /* MappedFile.h */,
 				F36FBF8A24380E7D0075D461 /* MemoryMap.h */,
+				F38FCF26248DEEE300DCB79F /* OutputFile.h */,
 				F36FBF7824380DD40075D461 /* PointerErrorStorage.h */,
+				F31C4E80247BB7370057FE50 /* PointerFlagStorage.h */,
+				F38FCE652487B02E00920AB1 /* PointerKind.h */,
 				F36FBF7724380DD40075D461 /* PointerOrError.h */,
 				F3D66215245770D800270435 /* RelativeRange.h */,
+				F3A2D2992499C41B005DA2D0 /* SpecificCapArray.h */,
+				F38FCF29248EDD5B00DCB79F /* Tree.h */,
 				F36FBF7924380DD40075D461 /* TypedAllocation.h */,
 			);
 			name = ADT;
@@ -239,9 +318,9 @@
 			isa = PBXGroup;
 			children = (
 				F33DFDCF2438503800BF3E47 /* Casting.h */,
-				F3BA28C024713E17009B6BCE /* CharUtils.h */,
 				F3923E89243C1680002479B3 /* DoesOverflow.h */,
 				F37166A7246650AE0078C5CA /* IntegerLimit.h */,
+				F37166A6246650980078C5CA /* Leb128.h */,
 				F35FF7FA24486A8700BEF782 /* MachOLoadCommandPrinter.h */,
 				F3856A9F244BA5F3007980C9 /* MachOPrinter.h */,
 				F3856AA2244BBB5C007980C9 /* Macros.h */,
@@ -249,9 +328,10 @@
 				F39A9879245FE4FE002C229F /* Path.h */,
 				F3BA28BC2470CA42009B6BCE /* PointerUtils.h */,
 				F3856A9A244A9F73007980C9 /* PrintUtils.h */,
+				F3BA28C024713E17009B6BCE /* StringUtils.h */,
 				F3104AC62431966D00B24FEB /* SwitchEndian.h */,
+				F38FCE62248778E000920AB1 /* SwapRanges.h */,
 				F3DC4DAE2452F4760063906C /* Timestamp.h */,
-				F37166A6246650980078C5CA /* Uleb128.h */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -267,16 +347,35 @@
 			name = Objects;
 			sourceTree = "<group>";
 		};
+		F31C4E7D2479B1650057FE50 /* External */ = {
+			isa = PBXGroup;
+			children = (
+				F31C4E7E2479B1B50057FE50 /* magic_enum.h */,
+			);
+			name = External;
+			sourceTree = "<group>";
+		};
 		F35FF7F124486A5900BEF782 /* Mach-O */ = {
 			isa = PBXGroup;
 			children = (
+				F33E8CD02473AA52009C4EA0 /* BindInfo.h */,
+				F3A2D29E249B1E5E005DA2D0 /* BindUtil.h */,
+				F369E40D2480982F00F5A5E8 /* DeVirtualizer.h */,
+				F33E8CD22473B0DD009C4EA0 /* ExportTrie.h */,
+				F38FCE6A248AFCD200920AB1 /* ExportTrieUtil.h */,
 				F3BA28BA2470A846009B6BCE /* Headers.h */,
 				F3856A9B244ABDA1007980C9 /* LoadCommands.h */,
+				F33E8CD12473AAA0009C4EA0 /* LoadCommandsCommon.h */,
 				F3856A9C244ABDA1007980C9 /* LoadCommandStorage.h */,
 				F3856A9E244ABDA1007980C9 /* LoadCommandTemplates.h */,
-				F3BA28BD2470F3CD009B6BCE /* ObjC.h */,
+				F3BA28BD2470F3CD009B6BCE /* Objc.h */,
+				F3A2D2962495A71D005DA2D0 /* ObjcUtil.h */,
+				F33E8CD72473BFB7009C4EA0 /* RebaseInfo.h */,
 				F3BA28BF24712537009B6BCE /* SegmentInfo.h */,
 				F3BA28B724709A6F009B6BCE /* SegmentUtil.h */,
+				F3BB308E2477061D00706267 /* SharedLibraryInfo.h */,
+				F3BB308D2477051B00706267 /* SharedLibraryUtil.h */,
+				F314A9DF24B01DA900796991 /* SymbolTableUtil.h */,
 				F3856A9D244ABDA1007980C9 /* Types.h */,
 			);
 			name = "Mach-O";
@@ -285,9 +384,18 @@
 		F35FF7F224486A6000BEF782 /* Mach-O */ = {
 			isa = PBXGroup;
 			children = (
+				F33E8CD52473B61B009C4EA0 /* BindInfo.cpp */,
+				F3A2D29F249B2163005DA2D0 /* BindUtil.cpp */,
+				F33E8CD32473B267009C4EA0 /* ExportTrie.cpp */,
+				F38FCE6B248B03C800920AB1 /* ExportTrieUtil.cpp */,
 				F35FF7F424486A6600BEF782 /* LoadCommands.cpp */,
+				F3A2D29A249AD5B9005DA2D0 /* LoadCommandsCommon.cpp */,
 				F35FF7F324486A6600BEF782 /* LoadCommandStorage.cpp */,
+				F3A2D2972495A971005DA2D0 /* ObjcUtil.cpp */,
+				F33E8CD82473C044009C4EA0 /* RebaseInfo.cpp */,
 				F3BA28B824709ACD009B6BCE /* SegmentUtil.cpp */,
+				F3BB308F247706AB00706267 /* SharedLibraryUtil.cpp */,
+				F314A9E024B0314400796991 /* SymbolTableUtil.cpp */,
 			);
 			name = "Mach-O";
 			sourceTree = "<group>";
@@ -306,12 +414,15 @@
 			isa = PBXGroup;
 			children = (
 				F35FF7F224486A6000BEF782 /* Mach-O */,
+				F38FCE6024876FE500920AB1 /* ByteVector.cpp */,
 				F36FBF8124380E000075D461 /* FileDescriptor.cpp */,
 				F36FBF8024380E000075D461 /* LocationRange.cpp */,
 				F36FBF8224380E000075D461 /* MachO.cpp */,
 				F36FBF8324380E000075D461 /* MappedFile.cpp */,
 				F36FBF8424380E000075D461 /* MemoryMap.cpp */,
+				F38FCF27248DEF0900DCB79F /* OutputFile.cpp */,
 				F3D66216245770E200270435 /* RelativeRange.cpp */,
+				F38FCF2A248EFB3B00DCB79F /* Tree.cpp */,
 			);
 			name = ADT;
 			sourceTree = "<group>";
@@ -320,8 +431,9 @@
 			isa = PBXGroup;
 			children = (
 				F39A9877245FE4F4002C229F /* Path.cpp */,
-				F36FBF672436B0600075D461 /* SwitchEndian.cpp */,
+				F38FCE662488D88600920AB1 /* PrintUtils.cpp */,
 				F3DC4DAF2452F48F0063906C /* Timestamp.cpp */,
+				F38FCE632487793B00920AB1 /* SwapRanges.cpp */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -329,9 +441,9 @@
 		F3856AA1244BBAC7007980C9 /* Mach */ = {
 			isa = PBXGroup;
 			children = (
-				F3F08B7A244D27CB007F3271 /* CpuSubTypeInfo.h */,
-				F3EA2DCE244CB88600ACA736 /* CpuSubTypeInfoTemplates.h */,
-				F3F08B7B244D27CB007F3271 /* CpuTypeInfoTemplates.h */,
+				F3F08B7A244D27CB007F3271 /* CpuSubKindInfo.h */,
+				F3EA2DCE244CB88600ACA736 /* CpuSubKindInfoTemplates.h */,
+				F3F08B7B244D27CB007F3271 /* CpuKindInfoTemplates.h */,
 				F3F08B7C244D2834007F3271 /* Info.h */,
 			);
 			name = Mach;
@@ -350,6 +462,13 @@
 				F3B2CEC8246504EC0066B7C8 /* PrintFlags.cpp */,
 				F3B810B12467B53E00DED4F2 /* PrintExportTrie.cpp */,
 				F3BA28B3247096BA009B6BCE /* PrintObjcClassList.cpp */,
+				F369E40F2480E66D00F5A5E8 /* PrintBindActionList.cpp */,
+				F3CAF1842478B37200050D8D /* PrintBindOpcodeList.cpp */,
+				F3BA28C22471ECC6009B6BCE /* PrintBindSymbolList.cpp */,
+				F3840EB32481FE16003AD004 /* PrintRebaseActionList.cpp */,
+				F3840EB52481FE26003AD004 /* PrintRebaseOpcodeList.cpp */,
+				F348C8A424AB457C007D83CB /* PrintCStringSection.cpp */,
+				F314A9DD24AFF67C00796991 /* PrintSymbolPtrSection.cpp */,
 			);
 			name = Operations;
 			sourceTree = "<group>";
@@ -369,6 +488,13 @@
 				F3B2CEC72465047F0066B7C8 /* PrintFlags.h */,
 				F3B810B02467B50200DED4F2 /* PrintExportTrie.h */,
 				F3BA28B224709670009B6BCE /* PrintObjcClassList.h */,
+				F369E40E2480E65700F5A5E8 /* PrintBindActionList.h */,
+				F3CAF1832478B31000050D8D /* PrintBindOpcodeList.h */,
+				F3BA28C12471EC92009B6BCE /* PrintBindSymbolList.h */,
+				F3840EB22481FDE5003AD004 /* PrintRebaseActionList.h */,
+				F3840EB12481FDCE003AD004 /* PrintRebaseOpcodeList.h */,
+				F348C8A324AB4527007D83CB /* PrintCStringSection.h */,
+				F314A9D924AFF5C800796991 /* PrintSymbolPtrSection.h */,
 			);
 			name = Operations;
 			sourceTree = "<group>";
@@ -399,7 +525,7 @@
 		F3104AA1243193E100B24FEB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1140;
+				LastUpgradeCheck = 1150;
 				ORGANIZATIONNAME = "Suhas Pai";
 				TargetAttributes = {
 					F3104AA8243193E100B24FEB = {
@@ -431,12 +557,24 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3B2CEC9246504EC0066B7C8 /* PrintFlags.cpp in Sources */,
+				F3A2D2982495A971005DA2D0 /* ObjcUtil.cpp in Sources */,
 				F3923E88243C0BA0002479B3 /* MachOMemory.cpp in Sources */,
 				F35FF7F624486A6600BEF782 /* LoadCommands.cpp in Sources */,
+				F3840EB42481FE16003AD004 /* PrintRebaseActionList.cpp in Sources */,
+				F33E8CD92473C044009C4EA0 /* RebaseInfo.cpp in Sources */,
+				F33E8CD62473B61B009C4EA0 /* BindInfo.cpp in Sources */,
+				F38FCE642487793B00920AB1 /* SwapRanges.cpp in Sources */,
 				F3BA28B924709ACD009B6BCE /* SegmentUtil.cpp in Sources */,
+				F3BA28C32471ECC6009B6BCE /* PrintBindSymbolList.cpp in Sources */,
+				F38FCF2B248EFB3B00DCB79F /* Tree.cpp in Sources */,
+				F38FCE6C248B03C800920AB1 /* ExportTrieUtil.cpp in Sources */,
+				F369E4102480E66D00F5A5E8 /* PrintBindActionList.cpp in Sources */,
+				F3840EB62481FE26003AD004 /* PrintRebaseOpcodeList.cpp in Sources */,
+				F3A2D29B249AD5B9005DA2D0 /* LoadCommandsCommon.cpp in Sources */,
+				F33E8CD42473B267009C4EA0 /* ExportTrie.cpp in Sources */,
+				F3CAF1852478B37200050D8D /* PrintBindOpcodeList.cpp in Sources */,
 				F3DC4DAD2452E4780063906C /* PrintId.cpp in Sources */,
 				F3DC4DA7245272220063906C /* Common.cpp in Sources */,
-				F36FBF6A2436B0600075D461 /* SwitchEndian.cpp in Sources */,
 				F3104AC42431960E00B24FEB /* main.cpp in Sources */,
 				F3D66217245770E200270435 /* RelativeRange.cpp in Sources */,
 				F3923E86243C0BA0002479B3 /* MemoryBase.cpp in Sources */,
@@ -446,11 +584,19 @@
 				F39A9878245FE4F4002C229F /* Path.cpp in Sources */,
 				F35FF7F024486A4800BEF782 /* PrintLoadCommands.cpp in Sources */,
 				F3B810B22467B53E00DED4F2 /* PrintExportTrie.cpp in Sources */,
+				F314A9E124B0314400796991 /* SymbolTableUtil.cpp in Sources */,
+				F348C8A524AB457C007D83CB /* PrintCStringSection.cpp in Sources */,
+				F38FCF28248DEF0900DCB79F /* OutputFile.cpp in Sources */,
 				F3923E87243C0BA0002479B3 /* FatMachOMemory.cpp in Sources */,
+				F38FCE6124876FE500920AB1 /* ByteVector.cpp in Sources */,
 				F3DDCBDC2442A08B0051ADD0 /* PrintHeader.cpp in Sources */,
 				F35FF7F524486A6600BEF782 /* LoadCommandStorage.cpp in Sources */,
+				F38FCE672488D88600920AB1 /* PrintUtils.cpp in Sources */,
+				F3BB3090247706AB00706267 /* SharedLibraryUtil.cpp in Sources */,
+				F3A2D2A0249B2163005DA2D0 /* BindUtil.cpp in Sources */,
 				F36FBF8724380E000075D461 /* MachO.cpp in Sources */,
 				F3DC4DB02452F48F0063906C /* Timestamp.cpp in Sources */,
+				F314A9DE24AFF67C00796991 /* PrintSymbolPtrSection.cpp in Sources */,
 				F3B196322439B34200AE997A /* Base.cpp in Sources */,
 				F36FBF8824380E000075D461 /* MappedFile.cpp in Sources */,
 				F36FBF8524380E000075D461 /* LocationRange.cpp in Sources */,
@@ -575,6 +721,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				OTHER_CFLAGS = "-I${PROJECT_DIR}/../../include/";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
@@ -586,6 +733,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				OTHER_CFLAGS = "-I${PROJECT_DIR}/../../include/";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";

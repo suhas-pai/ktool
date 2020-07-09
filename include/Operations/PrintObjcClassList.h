@@ -12,47 +12,54 @@
 #include "Kind.h"
 #include "Objects/MachOMemory.h"
 
-struct PrintObjcClassListOperation : public PrintOperation {
+struct PrintObjcClassListOperation : public Operation {
 public:
     constexpr static const auto OpKind = OperationKind::PrintObjcClassList;
+
+    [[nodiscard]]
     constexpr static inline bool IsOfKind(const Operation &Opt) noexcept {
-        return (Opt.GetKind() == OpKind);
+        return (Opt.getKind() == OpKind);
     }
 
-    struct Options : public PrintOperation::Options {
-        explicit Options() noexcept : PrintOperation::Options(OpKind) {}
+    struct Options : public Operation::Options {
+        [[nodiscard]] constexpr
         static inline bool IsOfKind(const Operation::Options &Opt) noexcept {
-            return (Opt.GetKind() == OpKind);
+            return (Opt.getKind() == OpKind);
         }
 
+        Options() noexcept
+        : Operation::Options(OpKind), PrintTree(false), Verbose(false) {}
+
+        bool PrintCategories : 1;
+        bool PrintTree : 1;
         bool Verbose : 1;
-        bool Sort : 1;
+
+        enum class SortKind {
+            None,
+            ByName,
+            ByDylibOrdinal,
+            ByKind
+        };
+
+        std::vector<SortKind> SortKindList;
     };
 protected:
     Options Options;
-
-    static struct Options
-    ParseOptionsImpl(int Argc, const char *Argv[], int *IndexOut) noexcept;
 public:
-    explicit PrintObjcClassListOperation() noexcept;
-    explicit PrintObjcClassListOperation(const struct Options &Options)
-    noexcept;
+    PrintObjcClassListOperation() noexcept = default;
+    PrintObjcClassListOperation(const struct Options &Options) noexcept;
 
-    static struct Options *
-    ParseOptions(int Argc, const char *Argv[], int *IndexOut) noexcept;
+    static int
+    Run(const ConstMachOMemoryObject &Object,
+        const struct Options &Options) noexcept;
 
-    int run(const ConstMemoryObject &Object) noexcept;
+    [[nodiscard]] static struct Options
+    ParseOptionsImpl(const ArgvArray &Argv, int *IndexOut) noexcept;
 
-    static int run(const ConstMachOMemoryObject &Object,
-                   const struct Options &Options) noexcept;
+    void ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept override;
+    int Run(const MemoryObject &Object) const noexcept override;
 
-    static int run(const ConstMemoryObject &Object,
-                   int Argc,
-                   const char *Argv[]) noexcept;
-
-    static int run(const ConstMemoryObject &Object,
-                   const struct Options &Options) noexcept;
-
+    [[nodiscard]]
     constexpr static bool SupportsObjectKind(ObjectKind Kind) noexcept {
         switch (Kind) {
             case ObjectKind::None:

@@ -12,9 +12,11 @@
 #include <string_view>
 
 struct PathUtil {
-    static bool IsAbsolute(const std::string_view &Path) noexcept;
+    [[nodiscard]] static bool IsAbsolute(const std::string_view &Path) noexcept;
+    [[nodiscard]]
     static std::string Absolutify(const std::string_view &Path) noexcept;
-    static std::string
-        ConcatPaths(const std::string_view &Lhs,
-                    const std::string_view &Rhs) noexcept;
+
+    [[nodiscard]] static std::string
+    ConcatPaths(const std::string_view &Lhs,
+                const std::string_view &Rhs) noexcept;
 };

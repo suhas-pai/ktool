@@ -8,51 +8,50 @@
 
 #pragma once
 
-#include "Base.h"
-#include "Kind.h"
+#include "ADT/ArgvArray.h"
 #include "Objects/MachOMemory.h"
 
-struct PrintArchListOperation : public PrintOperation {
+#include "Base.h"
+#include "Kind.h"
+
+using namespace std::literals;
+
+struct PrintArchListOperation : public Operation {
 public:
     constexpr static const auto OpKind = OperationKind::PrintArchList;
+
+    [[nodiscard]]
     constexpr static inline bool IsOfKind(const Operation &Opt) noexcept {
-        return (Opt.GetKind() == OpKind);
+        return (Opt.getKind() == OpKind);
     }
 
-    struct Options : public PrintOperation::Options {
-        constexpr
+    struct Options : public Operation::Options {
+        [[nodiscard]] constexpr
         static inline bool IsOfKind(const Operation::Options &Opt) noexcept {
-            return (Opt.GetKind() == OpKind);
+            return (Opt.getKind() == OpKind);
         }
 
-        explicit Options() noexcept : PrintOperation::Options(OpKind) {}
+        Options() noexcept : Operation::Options(OpKind), Verbose(false) {}
         bool Verbose : 1;
     };
 protected:
     Options Options;
-
-    static struct Options
-    ParseOptionsImpl(int Argc, const char *Argv[], int *IndexOut) noexcept;
 public:
-    explicit PrintArchListOperation() noexcept;
-    explicit PrintArchListOperation(const struct Options &Options) noexcept;
+    PrintArchListOperation() noexcept = default;
+    PrintArchListOperation(const struct Options &Options) noexcept;
 
-    static struct Options *
-    ParseOptions(int Argc, const char *Argv[], int *IndexOut) noexcept;
+    static int
+    Run(const ConstFatMachOMemoryObject &Object,
+        const struct Options &Options) noexcept;
 
-    int run(const ConstMemoryObject &Object) noexcept;
+    [[nodiscard]] static struct Options
+    ParseOptionsImpl(const ArgvArray &Argv, int *IndexOut) noexcept;
 
-    static int run(const ConstFatMachOMemoryObject &Object,
-                   const struct Options &Options) noexcept;
+    void ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept override;
+    int Run(const MemoryObject &Object) const noexcept override;
 
-    static int run(const ConstMemoryObject &Object,
-                   int Argc,
-                   const char *Argv[]) noexcept;
-
-    static int run(const ConstMemoryObject &Object,
-                   const struct Options &Options) noexcept;
-
-    constexpr static bool SupportsObjectKind(ObjectKind Kind) noexcept {
+    [[nodiscard]]
+    constexpr static inline bool SupportsObjectKind(ObjectKind Kind) noexcept {
         switch (Kind) {
             case ObjectKind::None:
                 assert(0 && "SupportsObjectKind() got Object-Kind None");

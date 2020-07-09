@@ -10,301 +10,336 @@
 
 #include <string_view>
 
-#include "ADT/Mach-O/LoadCommands.h"
 #include "TypeTraits/DisableIfNotConst.h"
 #include "TypeTraits/DisableIfNotPointer.h"
 
+#include "LoadCommandsCommon.h"
+
 namespace MachO {
-    template <enum LoadCommand::Kind Kind>
+    struct LoadCommand;
+    struct SegmentCommand;
+    struct SymTabCommand;
+    struct SymbolSegmentCommand;
+    struct ThreadCommand;
+    struct FixedVMSharedLibraryCommand;
+    struct IdentCommand;
+    struct FixedVMFileCommand;
+    struct DynamicSymTabCommand;
+    struct DylibCommand;
+    struct DylinkerCommand;
+    struct EntryPointCommand;
+    struct SourceVersionCommand;
+    struct EncryptionInfoCommand64;
+    struct LinkerOptionCommand;
+    struct PreBoundDylibCommand;
+    struct RoutinesCommand;
+    struct SubFrameworkCommand;
+    struct SubUmbrellaCommand;
+    struct SubClientCommand;
+    struct SubLibraryCommand;
+    struct TwoLevelHintsCommand;
+    struct PrebindChecksumCommand;
+    struct SegmentCommand64;
+    struct RoutinesCommand64;
+    struct UuidCommand;
+    struct RpathCommand;
+    struct LinkeditDataCommand;
+    struct EncryptionInfoCommand;
+    struct DyldInfoCommand;
+    struct VersionMinimumCommand;
+    struct NoteCommand;
+    struct BuildVersionCommand;
+
+    template <enum LoadCommandKind Kind>
     struct LoadCommandKindInfo {};
 
-    template <enum LoadCommand::Kind Kind>
+    template <enum LoadCommandKind Kind>
     using LoadCommandTypeFromKind = typename LoadCommandKindInfo<Kind>::Type;
 
-    template <enum LoadCommand::Kind Kind>
+    template <enum LoadCommandKind Kind>
     using LoadCommandPtrTypeFromKind =
         typename LoadCommandKindInfo<Kind>::PtrType;
 
-    template <enum LoadCommand::Kind Kind>
+    template <enum LoadCommandKind Kind>
     using LoadCommandConstPtrTypeFromKind =
         typename LoadCommandKindInfo<Kind>::ConstPtrType;
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::Segment> {
-        static constexpr const auto Kind = LoadCommand::Kind::Segment;
+    struct LoadCommandKindInfo<LoadCommandKind::Segment> {
+        static constexpr const auto Kind = LoadCommandKind::Segment;
 
         static constexpr const auto Name = std::string_view("LC_SEGMENT");
         static constexpr const auto Description = std::string_view("Segment");
 
-        typedef MachO::SegmentCommand Type;
+        typedef SegmentCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::SymbolTable> {
-        static constexpr const auto Kind = LoadCommand::Kind::SymbolTable;
+    struct LoadCommandKindInfo<LoadCommandKind::SymbolTable> {
+        static constexpr const auto Kind = LoadCommandKind::SymbolTable;
 
         static constexpr const auto Name = std::string_view("LC_SYMTAB");
         static constexpr const auto Description =
             std::string_view("Symbol-Table");
 
-        typedef MachO::SymtabCommand Type;
+        typedef SymTabCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::SymbolSegment> {
-        static constexpr const auto Kind = LoadCommand::Kind::SymbolSegment;
+    struct LoadCommandKindInfo<LoadCommandKind::SymbolSegment> {
+        static constexpr const auto Kind = LoadCommandKind::SymbolSegment;
 
         static constexpr const auto Name = std::string_view("LC_SYMSEG");
         static constexpr const auto Description =
             std::string_view("Symbol-Segment");
 
-        typedef MachO::SymbolSegmentCommand Type;
+        typedef SymbolSegmentCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::Thread> {
-        static constexpr const auto Kind = LoadCommand::Kind::Thread;
+    struct LoadCommandKindInfo<LoadCommandKind::Thread> {
+        static constexpr const auto Kind = LoadCommandKind::Thread;
 
         static constexpr const auto Name = std::string_view("LC_THREAD");
         static constexpr const auto Description = std::string_view("Thread");
 
-        typedef MachO::ThreadCommand Type;
+        typedef ThreadCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::UnixThread> {
-        static constexpr const auto Kind = LoadCommand::Kind::UnixThread;
+    struct LoadCommandKindInfo<LoadCommandKind::UnixThread> {
+        static constexpr const auto Kind = LoadCommandKind::UnixThread;
 
         static constexpr const auto Name = std::string_view("LC_UNIXTHREAD");
         static constexpr const auto Description =
             std::string_view("Unix-Thread");
 
-        typedef MachO::ThreadCommand Type;
+        typedef ThreadCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::LoadFixedVMSharedLibrary> {
+    struct LoadCommandKindInfo<LoadCommandKind::LoadFixedVMSharedLibrary> {
         static constexpr const auto Kind =
-            LoadCommand::Kind::LoadFixedVMSharedLibrary;
+            LoadCommandKind::LoadFixedVMSharedLibrary;
 
         static constexpr const auto Name = std::string_view("LC_LOADFVMLIB");
         static constexpr const auto Description =
             std::string_view("Load Fixed VM Shared-Library");
 
-        typedef MachO::FixedVMSharedLibraryCommand Type;
+        typedef FixedVMSharedLibraryCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::IdFixedVMSharedLibrary> {
+    struct LoadCommandKindInfo<LoadCommandKind::IdFixedVMSharedLibrary> {
         static constexpr const auto Kind =
-            LoadCommand::Kind::IdFixedVMSharedLibrary;
+            LoadCommandKind::IdFixedVMSharedLibrary;
 
         static constexpr const auto Name = std::string_view("LC_IDFVMLIB");
         static constexpr const auto Description =
             std::string_view("Id Fixed VM Shared-Library");
 
-        typedef MachO::FixedVMSharedLibraryCommand Type;
+        typedef FixedVMSharedLibraryCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::Ident> {
-        static constexpr const auto Kind = LoadCommand::Kind::Ident;
+    struct LoadCommandKindInfo<LoadCommandKind::Ident> {
+        static constexpr const auto Kind = LoadCommandKind::Ident;
 
         static constexpr const auto Name = std::string_view("LC_IDENT");
         static constexpr const auto Description = std::string_view("Identity");
 
-        typedef MachO::IdentCommand Type;
+        typedef IdentCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::FixedVMFile> {
-        static constexpr const auto Kind = LoadCommand::Kind::FixedVMFile;
+    struct LoadCommandKindInfo<LoadCommandKind::FixedVMFile> {
+        static constexpr const auto Kind = LoadCommandKind::FixedVMFile;
 
         static constexpr const auto Name = std::string_view("LC_FVMFILE");
         static constexpr const auto Description =
             std::string_view("Fixed VM File");
 
-        typedef MachO::FixedVMFileCommand Type;
+        typedef FixedVMFileCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::PrePage> {
-        static constexpr const auto Kind = LoadCommand::Kind::PrePage;
+    struct LoadCommandKindInfo<LoadCommandKind::PrePage> {
+        static constexpr const auto Kind = LoadCommandKind::PrePage;
 
         static constexpr const auto Name = std::string_view("LC_PREPAGE");
         static constexpr const auto Description = std::string_view("PrePage");
 
-        typedef MachO::LoadCommand Type;
+        typedef LoadCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::DynamicSymbolTable> {
+    struct LoadCommandKindInfo<LoadCommandKind::DynamicSymbolTable> {
         static constexpr const auto Kind =
-            LoadCommand::Kind::DynamicSymbolTable;
+            LoadCommandKind::DynamicSymbolTable;
 
         static constexpr const auto Name = std::string_view("LC_DYSYMTAB");
         static constexpr const auto Description =
             std::string_view("Dynamic Symbol-Table");
 
-        typedef MachO::DynamicSymtabCommand Type;
+        typedef DynamicSymTabCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::LoadDylib> {
-        static constexpr const auto Kind = LoadCommand::Kind::LoadDylib;
+    struct LoadCommandKindInfo<LoadCommandKind::LoadDylib> {
+        static constexpr const auto Kind = LoadCommandKind::LoadDylib;
 
         static constexpr const auto Name = std::string_view("LC_LOAD_DYLIB");
         static constexpr const auto Description =
             std::string_view("Load-Dylib");
 
-        typedef MachO::DylibCommand Type;
+        typedef DylibCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::IdDylib> {
-        static constexpr const auto Kind = LoadCommand::Kind::IdDylib;
+    struct LoadCommandKindInfo<LoadCommandKind::IdDylib> {
+        static constexpr const auto Kind = LoadCommandKind::IdDylib;
 
         static constexpr const auto Name = std::string_view("LC_ID_DYLIB");
         static constexpr const auto Description =
             std::string_view("Id-Dylib");
 
-        typedef MachO::DylibCommand Type;
+        typedef DylibCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::LoadDylinker> {
-        static constexpr const auto Kind = LoadCommand::Kind::LoadDylinker;
+    struct LoadCommandKindInfo<LoadCommandKind::LoadDylinker> {
+        static constexpr const auto Kind = LoadCommandKind::LoadDylinker;
 
         static constexpr const auto Name =
             std::string_view("LC_LOAD_DYLINKER");
         static constexpr const auto Description =
             std::string_view("Load-Dylinker");
 
-        typedef MachO::DylinkerCommand Type;
+        typedef DylinkerCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::IdDylinker> {
-        static constexpr const auto Kind = LoadCommand::Kind::IdDylinker;
+    struct LoadCommandKindInfo<LoadCommandKind::IdDylinker> {
+        static constexpr const auto Kind = LoadCommandKind::IdDylinker;
 
         static constexpr const auto Name = std::string_view("LC_ID_DYLINKER");
         static constexpr const auto Description =
             std::string_view("Id-Dylinker");
 
-        typedef MachO::DylinkerCommand Type;
+        typedef DylinkerCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::PreBoundDylib> {
-        static constexpr const auto Kind = LoadCommand::Kind::PreBoundDylib;
+    struct LoadCommandKindInfo<LoadCommandKind::PreBoundDylib> {
+        static constexpr const auto Kind = LoadCommandKind::PreBoundDylib;
 
         static constexpr const auto Name =
             std::string_view("LC_PREBOUND_DYLIB");
         static constexpr const auto Description =
             std::string_view("Prebound-Dylib");
 
-        typedef MachO::PreBoundDylibCommand Type;
+        typedef PreBoundDylibCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::Routines> {
-        static constexpr const auto Kind = LoadCommand::Kind::Routines;
+    struct LoadCommandKindInfo<LoadCommandKind::Routines> {
+        static constexpr const auto Kind = LoadCommandKind::Routines;
 
         static constexpr const auto Name = std::string_view("LC_ROUTINES");
         static constexpr const auto Description = std::string_view("Routines");
 
-        typedef MachO::RoutinesCommand Type;
+        typedef RoutinesCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::SubFramework> {
-        static constexpr const auto Kind = LoadCommand::Kind::SubFramework;
+    struct LoadCommandKindInfo<LoadCommandKind::SubFramework> {
+        static constexpr const auto Kind = LoadCommandKind::SubFramework;
 
         static constexpr const auto Name = std::string_view("LC_SUB_FRAMEWORK");
         static constexpr const auto Description =
             std::string_view("Sub-Framework");
 
-        typedef MachO::SubFrameworkCommand Type;
+        typedef SubFrameworkCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::SubUmbrella> {
-        static constexpr const auto Kind = LoadCommand::Kind::SubUmbrella;
+    struct LoadCommandKindInfo<LoadCommandKind::SubUmbrella> {
+        static constexpr const auto Kind = LoadCommandKind::SubUmbrella;
 
         static constexpr const auto Name = std::string_view("LC_SUB_UMBRELLA");
         static constexpr const auto Description =
             std::string_view("Sub-Umbrella");
 
-        typedef MachO::SubUmbrellaCommand Type;
+        typedef SubUmbrellaCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::SubClient> {
-        static constexpr const auto Kind = LoadCommand::Kind::SubClient;
+    struct LoadCommandKindInfo<LoadCommandKind::SubClient> {
+        static constexpr const auto Kind = LoadCommandKind::SubClient;
 
         static constexpr const auto Name = std::string_view("LC_SUB_CLIENT");
         static constexpr const auto Description =
             std::string_view("Sub-Client");
 
-        typedef MachO::SubClientCommand Type;
+        typedef SubClientCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::SubLibrary> {
-        static constexpr const auto Kind = LoadCommand::Kind::SubLibrary;
+    struct LoadCommandKindInfo<LoadCommandKind::SubLibrary> {
+        static constexpr const auto Kind = LoadCommandKind::SubLibrary;
 
         static constexpr const auto Name = std::string_view("LC_SUB_LIBRARY");
         static constexpr const auto Description =
             std::string_view("Sub-Library");
 
-        typedef MachO::SubLibraryCommand Type;
+        typedef SubLibraryCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::TwoLevelHints> {
-        static constexpr const auto Kind = LoadCommand::Kind::TwoLevelHints;
+    struct LoadCommandKindInfo<LoadCommandKind::TwoLevelHints> {
+        static constexpr const auto Kind = LoadCommandKind::TwoLevelHints;
 
         static constexpr const auto Name =
             std::string_view("LC_TWOLEVEL_HINTS");
@@ -312,27 +347,27 @@ namespace MachO {
         static constexpr const auto Description =
             std::string_view("TwoLevel-Hints");
 
-        typedef MachO::TwoLevelHintsCommand Type;
+        typedef TwoLevelHintsCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::PrebindChecksum> {
-        static constexpr const auto Kind = LoadCommand::Kind::PrebindChecksum;
+    struct LoadCommandKindInfo<LoadCommandKind::PrebindChecksum> {
+        static constexpr const auto Kind = LoadCommandKind::PrebindChecksum;
 
         static constexpr const auto Name = std::string_view("LC_PREBIND_CKSUM");
         static constexpr const auto Description =
             std::string_view("Prebind=Checksum");
 
-        typedef MachO::PrebindChecksumCommand Type;
+        typedef PrebindChecksumCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::LoadWeakDylib> {
-        static constexpr const auto Kind = LoadCommand::Kind::LoadWeakDylib;
+    struct LoadCommandKindInfo<LoadCommandKind::LoadWeakDylib> {
+        static constexpr const auto Kind = LoadCommandKind::LoadWeakDylib;
 
         static constexpr const auto Name =
             std::string_view("LC_LOAD_WEAK_DYLIB");
@@ -340,311 +375,311 @@ namespace MachO {
         static constexpr const auto Description =
             std::string_view("Load Weak-Dylib");
 
-        typedef MachO::DylibCommand Type;
+        typedef DylibCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::Segment64> {
-        static constexpr const auto Kind = LoadCommand::Kind::Segment64;
+    struct LoadCommandKindInfo<LoadCommandKind::Segment64> {
+        static constexpr const auto Kind = LoadCommandKind::Segment64;
 
         static constexpr const auto Name = std::string_view("LC_SEGMENT_64");
         static constexpr const auto Description =
             std::string_view("Segment (64-Bit)");
 
-        typedef MachO::SegmentCommand64 Type;
+        typedef SegmentCommand64 Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::Routines64> {
-        static constexpr const auto Kind = LoadCommand::Kind::Routines64;
+    struct LoadCommandKindInfo<LoadCommandKind::Routines64> {
+        static constexpr const auto Kind = LoadCommandKind::Routines64;
 
         static constexpr const auto Name = std::string_view("LC_ROUTINES_64");
         static constexpr const auto Description =
             std::string_view("Routines (64-Bit)");
 
-        typedef MachO::RoutinesCommand64 Type;
+        typedef RoutinesCommand64 Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::Uuid> {
-        static constexpr const auto Kind = LoadCommand::Kind::Uuid;
+    struct LoadCommandKindInfo<LoadCommandKind::Uuid> {
+        static constexpr const auto Kind = LoadCommandKind::Uuid;
 
         static constexpr const auto Name = std::string_view("LC_UUID");
         static constexpr const auto Description = std::string_view("Uuid");
 
-        typedef MachO::UuidCommand Type;
+        typedef UuidCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::Rpath> {
-        static constexpr const auto Kind = LoadCommand::Kind::Rpath;
+    struct LoadCommandKindInfo<LoadCommandKind::Rpath> {
+        static constexpr const auto Kind = LoadCommandKind::Rpath;
 
         static constexpr const auto Name = std::string_view("LC_RPATH");
         static constexpr const auto Description = std::string_view("Rpath");
 
-        typedef MachO::RpathCommand Type;
+        typedef RpathCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::CodeSignature> {
-        static constexpr const auto Kind = LoadCommand::Kind::CodeSignature;
+    struct LoadCommandKindInfo<LoadCommandKind::CodeSignature> {
+        static constexpr const auto Kind = LoadCommandKind::CodeSignature;
 
         static constexpr const auto Name =
             std::string_view("LC_CODE_SIGNATURE");
         static constexpr const auto Description =
             std::string_view("Code-Signature");
 
-        typedef MachO::LinkeditDataCommand Type;
+        typedef LinkeditDataCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::SegmentSplitInfo> {
-        static constexpr const auto Kind = LoadCommand::Kind::SegmentSplitInfo;
+    struct LoadCommandKindInfo<LoadCommandKind::SegmentSplitInfo> {
+        static constexpr const auto Kind = LoadCommandKind::SegmentSplitInfo;
 
         static constexpr const auto Name =
             std::string_view("LC_SEGMENT_SPLIT_INFO");
         static constexpr const auto Description =
             std::string_view("Segment Split-Info");
 
-        typedef MachO::LinkeditDataCommand Type;
+        typedef LinkeditDataCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::ReexportDylib> {
-        static constexpr const auto Kind = LoadCommand::Kind::ReexportDylib;
+    struct LoadCommandKindInfo<LoadCommandKind::ReexportDylib> {
+        static constexpr const auto Kind = LoadCommandKind::ReexportDylib;
 
         static constexpr const auto Name = std::string_view("LC_REEXPORT_DYLIB");
         static constexpr const auto Description =
             std::string_view("Re-export Dylib");
 
-        typedef MachO::DylibCommand Type;
+        typedef DylibCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::LazyLoadDylib> {
-        static constexpr const auto Kind = LoadCommand::Kind::LazyLoadDylib;
+    struct LoadCommandKindInfo<LoadCommandKind::LazyLoadDylib> {
+        static constexpr const auto Kind = LoadCommandKind::LazyLoadDylib;
 
         static constexpr const auto Name =
             std::string_view("LC_LAZY_LOAD_DYLIB");
         static constexpr const auto Description =
             std::string_view("Lazy Load-Dylib");
 
-        typedef MachO::DylibCommand Type;
+        typedef DylibCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::EncryptionInfo> {
-        static constexpr const auto Kind = LoadCommand::Kind::EncryptionInfo;
+    struct LoadCommandKindInfo<LoadCommandKind::EncryptionInfo> {
+        static constexpr const auto Kind = LoadCommandKind::EncryptionInfo;
 
         static constexpr const auto Name =
             std::string_view("LC_ENCRYTPION_INFO");
         static constexpr const auto Description =
             std::string_view("Encryption Info");
 
-        typedef MachO::EncryptionInfoCommand Type;
+        typedef EncryptionInfoCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::DyldInfo> {
-        static constexpr const auto Kind = LoadCommand::Kind::DyldInfo;
+    struct LoadCommandKindInfo<LoadCommandKind::DyldInfo> {
+        static constexpr const auto Kind = LoadCommandKind::DyldInfo;
 
         static constexpr const auto Name = std::string_view("LC_DYLD_INFO");
         static constexpr const auto Description = std::string_view("Dyld Info");
 
-        typedef MachO::DyldInfoCommand Type;
+        typedef DyldInfoCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::DyldInfoOnly> {
-        static constexpr const auto Kind = LoadCommand::Kind::DyldInfoOnly;
+    struct LoadCommandKindInfo<LoadCommandKind::DyldInfoOnly> {
+        static constexpr const auto Kind = LoadCommandKind::DyldInfoOnly;
 
         static constexpr const auto Name =
             std::string_view("LC_DYLD_INFO_ONLY");
         static constexpr const auto Description =
             std::string_view("Dyld-Info Only");
 
-        typedef MachO::DyldInfoCommand Type;
+        typedef DyldInfoCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::LoadUpwardDylib> {
-        static constexpr const auto Kind = LoadCommand::Kind::LoadUpwardDylib;
+    struct LoadCommandKindInfo<LoadCommandKind::LoadUpwardDylib> {
+        static constexpr const auto Kind = LoadCommandKind::LoadUpwardDylib;
 
         static constexpr const auto Name =
             std::string_view("LC_LOAD_UPWARD_DYLIB");
         static constexpr const auto Description =
             std::string_view("Load Upward Dylib");
 
-        typedef MachO::DylibCommand Type;
+        typedef DylibCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::VersionMinimumMacOSX> {
+    struct LoadCommandKindInfo<LoadCommandKind::VersionMinimumMacOSX> {
         static constexpr const auto Kind =
-            LoadCommand::Kind::VersionMinimumMacOSX;
+            LoadCommandKind::VersionMinimumMacOSX;
 
         static constexpr const auto Name =
             std::string_view("LC_VERSION_MIN_MACOSX");
         static constexpr const auto Description =
             std::string_view("Version Minimum (macOS)");
 
-        typedef MachO::VersionMinimumCommand Type;
+        typedef VersionMinimumCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::VersionMinimumIPhoneOS> {
+    struct LoadCommandKindInfo<LoadCommandKind::VersionMinimumIPhoneOS> {
         static constexpr const auto Kind =
-            LoadCommand::Kind::VersionMinimumIPhoneOS;
+            LoadCommandKind::VersionMinimumIPhoneOS;
 
         static constexpr const auto Name =
             std::string_view("LC_VERSION_MIN_IPHONEOS");
         static constexpr const auto Description =
             std::string_view("Version Minimum (iOS)");
 
-        typedef MachO::VersionMinimumCommand Type;
+        typedef VersionMinimumCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::FunctionStarts> {
-        static constexpr const auto Kind = LoadCommand::Kind::FunctionStarts;
+    struct LoadCommandKindInfo<LoadCommandKind::FunctionStarts> {
+        static constexpr const auto Kind = LoadCommandKind::FunctionStarts;
 
         static constexpr const auto Name =
             std::string_view("LC_FUNCTION_STARTS");
         static constexpr const auto Description =
             std::string_view("Function Starts");
 
-        typedef MachO::LinkeditDataCommand Type;
+        typedef LinkeditDataCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::DyldEnvironment> {
-        static constexpr const auto Kind = LoadCommand::Kind::DyldEnvironment;
+    struct LoadCommandKindInfo<LoadCommandKind::DyldEnvironment> {
+        static constexpr const auto Kind = LoadCommandKind::DyldEnvironment;
 
         static constexpr const auto Name =
             std::string_view("LC_DYLD_ENVIRONMENT");
         static constexpr const auto Description =
             std::string_view("Dyld Environment");
 
-        typedef MachO::DylinkerCommand Type;
+        typedef DylinkerCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::Main> {
-        static constexpr const auto Kind = LoadCommand::Kind::Main;
+    struct LoadCommandKindInfo<LoadCommandKind::Main> {
+        static constexpr const auto Kind = LoadCommandKind::Main;
 
         static constexpr const auto Name = std::string_view("LC_MAIN");
         static constexpr const auto Description = std::string_view("Main");
 
-        typedef MachO::EntryPointCommand Type;
+        typedef EntryPointCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::DataInCode> {
-        static constexpr const auto Kind = LoadCommand::Kind::DataInCode;
+    struct LoadCommandKindInfo<LoadCommandKind::DataInCode> {
+        static constexpr const auto Kind = LoadCommandKind::DataInCode;
 
         static constexpr const auto Name = std::string_view("LC_DATA_IN_CODE");
         static constexpr const auto Description =
             std::string_view("Data In Code");
 
-        typedef MachO::LinkeditDataCommand Type;
+        typedef LinkeditDataCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::SourceVersion> {
-        static constexpr const auto Kind = LoadCommand::Kind::SourceVersion;
+    struct LoadCommandKindInfo<LoadCommandKind::SourceVersion> {
+        static constexpr const auto Kind = LoadCommandKind::SourceVersion;
 
         static constexpr const auto Name =
             std::string_view("LC_SOURCE_VERSION");
         static constexpr const auto Description =
             std::string_view("Source Version");
 
-        typedef MachO::SourceVersionCommand Type;
+        typedef SourceVersionCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::DylibCodeSignDRS> {
-        static constexpr const auto Kind = LoadCommand::Kind::DylibCodeSignDRS;
+    struct LoadCommandKindInfo<LoadCommandKind::DylibCodeSignDRS> {
+        static constexpr const auto Kind = LoadCommandKind::DylibCodeSignDRS;
 
         static constexpr const auto Name =
             std::string_view("LC_DYLIB_CODE_SIGN_DRS");
         static constexpr const auto Description =
             std::string_view("Dylib CodeSign DRS");
 
-        typedef MachO::LinkeditDataCommand Type;
+        typedef LinkeditDataCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::EncryptionInfo64> {
-        static constexpr const auto Kind = LoadCommand::Kind::EncryptionInfo64;
+    struct LoadCommandKindInfo<LoadCommandKind::EncryptionInfo64> {
+        static constexpr const auto Kind = LoadCommandKind::EncryptionInfo64;
 
         static constexpr const auto Name =
             std::string_view("LC_ENCRYPTION_INFO_64");
         static constexpr const auto Description =
             std::string_view("Encryption Info (64-Bit)");
 
-        typedef MachO::EncryptionInfoCommand64 Type;
+        typedef EncryptionInfoCommand64 Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::LinkerOption> {
-        static constexpr const auto Kind = LoadCommand::Kind::LinkerOption;
+    struct LoadCommandKindInfo<LoadCommandKind::LinkerOption> {
+        static constexpr const auto Kind = LoadCommandKind::LinkerOption;
 
         static constexpr const auto Name =
             std::string_view("LC_LINKER_OPTION");
         static constexpr const auto Description =
             std::string_view("Linker Option");
 
-        typedef MachO::LinkerOptionCommand Type;
+        typedef LinkerOptionCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::LinkerOptimizationHint>
+    struct LoadCommandKindInfo<LoadCommandKind::LinkerOptimizationHint>
     {
         static constexpr const auto Name =
             std::string_view("LC_LINKER_OPTIMIZATION_HINT");
@@ -652,93 +687,92 @@ namespace MachO {
             std::string_view("Linker Optimization Hint");
 
         static constexpr const auto Kind =
-            LoadCommand::Kind::LinkerOptimizationHint;
+            LoadCommandKind::LinkerOptimizationHint;
 
-        typedef MachO::LinkeditDataCommand Type;
+        typedef LinkeditDataCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::VersionMinimumTvOS> {
+    struct LoadCommandKindInfo<LoadCommandKind::VersionMinimumTvOS> {
         static constexpr const auto Kind =
-            LoadCommand::Kind::VersionMinimumTvOS;
+            LoadCommandKind::VersionMinimumTvOS;
 
         static constexpr const auto Name =
             std::string_view("LC_VERSION_MIN_TVOS");
         static constexpr const auto Description =
             std::string_view("Version Minimum (tvOS)");
 
-        typedef MachO::VersionMinimumCommand Type;
+        typedef VersionMinimumCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::VersionMinimumWatchOS> {
+    struct LoadCommandKindInfo<LoadCommandKind::VersionMinimumWatchOS> {
         static constexpr const auto Kind =
-            LoadCommand::Kind::VersionMinimumWatchOS;
+            LoadCommandKind::VersionMinimumWatchOS;
 
         static constexpr const auto Name =
             std::string_view("LC_VERSION_MIN_WATCHOS");
         static constexpr const auto Description =
             std::string_view("Version Minimum (watchOS)");
 
-        typedef MachO::VersionMinimumCommand Type;
+        typedef VersionMinimumCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::Note> {
-        static constexpr const auto Kind = LoadCommand::Kind::Note;
+    struct LoadCommandKindInfo<LoadCommandKind::Note> {
+        static constexpr const auto Kind = LoadCommandKind::Note;
 
         static constexpr const auto Name = std::string_view("LC_NOTE");
         static constexpr const auto Description = std::string_view("Note");
 
-        typedef MachO::NoteCommand Type;
+        typedef NoteCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::BuildVersion> {
-        static constexpr const auto Kind = LoadCommand::Kind::BuildVersion;
+    struct LoadCommandKindInfo<LoadCommandKind::BuildVersion> {
+        static constexpr const auto Kind = LoadCommandKind::BuildVersion;
 
         static constexpr const auto Name =
             std::string_view("LC_BUILD_VERSION");
         static constexpr const auto Description =
             std::string_view("Build Version");
 
-        typedef MachO::BuildVersionCommand Type;
+        typedef BuildVersionCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::DyldExportsTrie> {
-        static constexpr const auto Kind = LoadCommand::Kind::DyldExportsTrie;
+    struct LoadCommandKindInfo<LoadCommandKind::DyldExportsTrie> {
+        static constexpr const auto Kind = LoadCommandKind::DyldExportsTrie;
 
         static constexpr const auto Name =
             std::string_view("LC_DYLD_EXPORTS_TRIE");
         static constexpr const auto Description =
             std::string_view("Dyld Exports-Trie");
 
-        typedef MachO::LinkeditDataCommand Type;
+        typedef LinkeditDataCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
 
     template <>
-    struct LoadCommandKindInfo<LoadCommand::Kind::DyldChainedFixups> {
-        static constexpr const auto Kind = LoadCommand::Kind::DyldChainedFixups;
-
+    struct LoadCommandKindInfo<LoadCommandKind::DyldChainedFixups> {
+        static constexpr const auto Kind = LoadCommandKind::DyldChainedFixups;
         static constexpr const auto Name =
             std::string_view("LC_DYLD_CHAINED_FIXUPS");
         static constexpr const auto Description =
             std::string_view("Dyld Chained-Fixups");
 
-        typedef MachO::LinkeditDataCommand Type;
+        typedef LinkeditDataCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };
@@ -747,324 +781,4 @@ namespace MachO {
     using EnableIfLoadCommandSubtype =
         typename std::enable_if_t<
             std::is_base_of_v<LoadCommand, LoadCommandType>, LoadCommandType>;
-}
-
-// isa<T> templats
-// isa<Kind>(const MachO::LoadCommand &, bool IsBigEndian)
-
-template <MachO::LoadCommand::Kind Kind,
-          typename LoadCommandType = MachO::LoadCommandTypeFromKind<Kind>>
-
-static inline bool isa(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) {
-    return (LoadCmd.GetKind(IsBigEndian) == Kind);
-}
-
-// isa<Kind>(const MachO::LoadCommand *, bool IsBigEndian)
-
-template <MachO::LoadCommand::Kind Kind,
-          typename LoadCommandType = MachO::LoadCommandTypeFromKind<Kind>>
-
-static inline bool isa(const MachO::LoadCommand *LoadCmd, bool IsBigEndian) {
-    return (LoadCmd->GetKind(IsBigEndian) == Kind);
-}
-
-// isa<MachO::SegmentCommand>(const MachO::LoadCommand &, bool IsBigEndian)
-
-template <typename LoadCommandType,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline
-bool isa(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
-    return LoadCommandType::IsOfKind(LoadCmd.GetKind(IsBigEndian));
-}
-
-// isa<MachO::SegmentCommand>(const MachO::LoadCommand *, bool IsBigEndian)
-
-template <typename LoadCommandType,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline
-bool isa(const MachO::LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-    return LoadCommandType::IsOfKind(LoadCmd->GetKind(IsBigEndian));
-}
-
-// isa<MachO::SegmentCommand *>(const MachO::LoadCommand *, bool IsBigEndian)
-
-template <typename LoadCommandTypePtr,
-          typename LoadCommandType =
-              typename std::remove_pointer_t<LoadCommandTypePtr>,
-          typename = TypeTraits::DisableIfNotPointer<LoadCommandTypePtr>,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline
-bool isa(const MachO::LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-    return LoadCommandType::IsOfKind(LoadCmd->GetKind(IsBigEndian));
-}
-
-// cast<T> templates
-// cast<Kind>(MachO::LoadCommand &, bool IsBigEndian) -> LoadCommandType &
-
-template <MachO::LoadCommand::Kind Kind,
-          typename LoadCommandType = MachO::LoadCommandTypeFromKind<Kind>>
-
-static inline
-LoadCommandType &cast(MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
-    assert(isa<Kind>(LoadCmd, IsBigEndian));
-    return static_cast<const LoadCommandType &>(LoadCmd);
-}
-
-// cast<Kind>(const MachO::LoadCommand &, bool IsBigEndian)
-// -> const LoadCommandType &
-
-template <MachO::LoadCommand::Kind Kind,
-          typename LoadCommandType = MachO::LoadCommandTypeFromKind<Kind>>
-
-static inline const LoadCommandType &
-cast(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
-    assert(isa<Kind>(LoadCmd, IsBigEndian));
-    return static_cast<const LoadCommandType &>(LoadCmd);
-}
-
-// cast<Kind>(MachO::LoadCommand *, bool IsBigEndian) -> LoadCommandType *
-
-template <MachO::LoadCommand::Kind Kind,
-          typename LoadCommandType = MachO::LoadCommandTypeFromKind<Kind>>
-
-static inline
-LoadCommandType *cast(MachO::LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-    assert(isa<Kind>(LoadCmd, IsBigEndian));
-    return static_cast<LoadCommandType *>(LoadCmd);
-}
-
-// cast<Kind>(const MachO::LoadCommand *) -> const LoadCommandType *
-
-template <MachO::LoadCommand::Kind Kind,
-          typename LoadCommandType = MachO::LoadCommandTypeFromKind<Kind>>
-
-static inline const LoadCommandType *
-cast(const MachO::LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-    assert(isa<Kind>(LoadCmd, IsBigEndian));
-    return static_cast<LoadCommandType *>(LoadCmd);
-}
-
-// cast<const MachO::SegmentCommand>(const MachO::LoadCommand *)
-// -> const LoadCommandType *
-
-template <typename LoadCommandType,
-          typename = TypeTraits::DisableIfNotConst<LoadCommandType>,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline const LoadCommandType *
-cast(const MachO::LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-    assert(isa<LoadCommandType>(LoadCmd, IsBigEndian));
-    return static_cast<const LoadCommandType *>(LoadCmd);
-}
-
-// cast<MachO::SegmentCommand &>(MachO::LoadCommand &)
-// -> LoadCommandType *
-
-template <typename LoadCommandTypeRef,
-          typename LoadCommandType =
-              typename std::remove_reference_t<LoadCommandTypeRef>,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline
-LoadCommandType &cast(MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
-    assert(isa<LoadCommandTypeRef>(LoadCmd, IsBigEndian));
-    return static_cast<LoadCommandTypeRef>(LoadCmd);
-}
-
-// cast<const MachO::SegmentCommand &>(const MachO::LoadCommand &)
-// -> const LoadCommandType *
-
-template <typename LoadCommandTypeRef,
-          typename LoadCommandType =
-              typename std::remove_reference_t<LoadCommandTypeRef>,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline const LoadCommandType &
-cast(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
-    assert(isa<LoadCommandType>(LoadCmd, IsBigEndian));
-    return static_cast<const LoadCommandType &>(LoadCmd);
-}
-
-// cast<MachO::SegmentCommand *>(MachO::LoadCommand *)
-// -> LoadCommandType *
-
-template <typename LoadCommandTypePtr,
-          typename LoadCommandType =
-              typename std::remove_pointer_t<LoadCommandTypePtr>,
-          typename = TypeTraits::DisableIfNotPointer<LoadCommandTypePtr>,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline
-LoadCommandType *cast(MachO::LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-    assert(isa<LoadCommandTypePtr>(LoadCmd, IsBigEndian));
-    return static_cast<LoadCommandTypePtr>(LoadCmd);
-}
-
-// cast<const MachO::SegmentCommand *>(const MachO::LoadCommand *)
-// -> const LoadCommandType *
-
-template <typename LoadCommandTypePtr,
-          typename LoadCommandType =
-              typename std::remove_pointer_t<LoadCommandTypePtr>,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline const LoadCommandType *
-cast(const MachO::LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-    assert(isa<LoadCommandTypePtr>(LoadCmd, IsBigEndian));
-    return static_cast<const LoadCommandType *>(LoadCmd);
-}
-
-// dyn_cast<T> templates
-// dyn_cast<Kind>(MachO::LoadCommand &) -> LoadCommandType &
-
-template <MachO::LoadCommand::Kind Kind,
-          typename LoadCommandType = MachO::LoadCommandTypeFromKind<Kind>>
-
-static inline
-LoadCommandType &dyn_cast(MachO::LoadCommand &LoadCmd, bool IsBigEndian) {
-    if (isa<Kind>(LoadCmd, IsBigEndian)) {
-        return cast<LoadCommandType>(LoadCmd);
-    }
-
-    return nullptr;
-}
-
-// dyn_cast<Kind>(const MachO::LoadCommand &) -> const LoadCommandType &
-
-template <MachO::LoadCommand::Kind Kind,
-          typename LoadCommandType = MachO::LoadCommandTypeFromKind<Kind>>
-
-static inline const LoadCommandType *
-dyn_cast(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) {
-    if (isa<Kind>(LoadCmd, IsBigEndian)) {
-        return &cast<LoadCommandType>(LoadCmd, IsBigEndian);
-    }
-
-    return nullptr;
-}
-
-// dyn_cast<Kind>(MachO::LoadCommand *) -> LoadCommandType *
-
-template <MachO::LoadCommand::Kind Kind,
-          typename LoadCommandType = MachO::LoadCommandTypeFromKind<Kind>>
-
-static inline LoadCommandType *
-dyn_cast(MachO::LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-    if (isa<LoadCommandType>(LoadCmd, IsBigEndian)) {
-        return cast<LoadCommandType>(LoadCmd, IsBigEndian);
-    }
-
-    return nullptr;
-}
-
-// dyn_cast<Kind>(const MachO::LoadCommand *) -> const LoadCommandType *
-
-template <MachO::LoadCommand::Kind Kind,
-          typename LoadCommandType = MachO::LoadCommandTypeFromKind<Kind>>
-
-static inline const LoadCommandType *
-dyn_cast(const MachO::LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-    if (isa<LoadCommandType>(LoadCmd, IsBigEndian)) {
-        return cast<LoadCommandType>(LoadCmd, IsBigEndian);
-    }
-
-    return nullptr;
-}
-
-// dyn_cast<MachO::SegmentCommand>(MachO::LoadCommand *) -> LoadCommandType *
-
-template <typename LoadCommandType,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline LoadCommandType &
-dyn_cast(MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
-    if (isa<LoadCommandType>(LoadCmd, IsBigEndian)) {
-        return cast<LoadCommandType>(LoadCmd, IsBigEndian);
-    }
-
-    return nullptr;
-}
-
-// dyn_cast<MachO::SegmentCommand>(MachO::LoadCommand *) -> LoadCommandType *
-
-template <typename LoadCommandType,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline const LoadCommandType *
-dyn_cast(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
-    if (isa<LoadCommandType>(LoadCmd, IsBigEndian)) {
-        return &cast<LoadCommandType &>(LoadCmd, IsBigEndian);
-    }
-
-    return nullptr;
-}
-
-// dyn_cast<MachO::SegmentCommand>(MachO::LoadCommand *) -> LoadCommandType *
-
-template <typename LoadCommandType,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline LoadCommandType *
-dyn_cast(MachO::LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-    if (isa<LoadCommandType>(LoadCmd, IsBigEndian)) {
-        return &cast<LoadCommandType>(LoadCmd, IsBigEndian);
-    }
-
-    return nullptr;
-}
-
-// dyn_cast<const MachO::SegmentCommand>(const MachO::LoadCommand *)
-// -> const LoadCommandType *
-
-template <typename LoadCommandType,
-          typename = TypeTraits::DisableIfNotConst<LoadCommandType>,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline const LoadCommandType *
-dyn_cast(const MachO::LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-    if (isa<LoadCommandType>(LoadCmd, IsBigEndian)) {
-        return cast<const LoadCommandType *>(LoadCmd, IsBigEndian);
-    }
-
-    return nullptr;
-}
-
-// dyn_cast<MachO::SegmentCommand *>(MachO::LoadCommand *)
-// -> LoadCommandType *
-
-template <typename LoadCommandTypePtr,
-          typename LoadCommandType =
-              typename std::remove_pointer_t<LoadCommandTypePtr>,
-          typename = TypeTraits::DisableIfNotPointer<LoadCommandTypePtr>,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline LoadCommandTypePtr
-dyn_cast(const MachO::LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-    if (isa<LoadCommandType>(LoadCmd, IsBigEndian)) {
-        return cast<LoadCommandTypePtr>(LoadCmd, IsBigEndian);
-    }
-
-    return nullptr;
-}
-
-// dyn_cast<const MachO::SegmentCommand *>(const MachO::LoadCommand *)
-// -> const LoadCommandType *
-
-template <typename LoadCommandTypePtr,
-          typename LoadCommandType =
-              typename std::remove_pointer_t<LoadCommandTypePtr>,
-          typename = TypeTraits::DisableIfNotPointer<LoadCommandTypePtr>,
-          typename = TypeTraits::DisableIfNotConst<LoadCommandTypePtr>,
-          typename = MachO::EnableIfLoadCommandSubtype<LoadCommandType>>
-
-static inline LoadCommandTypePtr
-dyn_cast(const MachO::LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-    if (isa<LoadCommandType>(LoadCmd, IsBigEndian)) {
-        return cast<LoadCommandTypePtr>(LoadCmd, IsBigEndian);
-    }
-
-    return nullptr;
 }

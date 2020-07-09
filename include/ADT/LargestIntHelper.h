@@ -9,14 +9,14 @@
 #pragma once
 #include <type_traits>
 
-template <typename T>
+template <typename T = uint64_t>
 struct LargestIntHelper {
     static_assert(std::is_integral_v<T>, "Type must be an integer");
 protected:
     T Integer;
 public:
-    constexpr explicit LargestIntHelper() noexcept = default;
-    constexpr inline explicit LargestIntHelper(const T &Integer) noexcept
+    constexpr LargestIntHelper() noexcept = default;
+    constexpr inline LargestIntHelper(const T &Integer) noexcept
     : Integer(Integer) {}
 
     constexpr inline LargestIntHelper &operator=(const T &Integer) noexcept {
@@ -25,6 +25,10 @@ public:
         }
 
         return *this;
+    }
+
+    [[nodiscard]] inline T value() const noexcept {
+        return Integer;
     }
 
     constexpr inline operator T() const noexcept { return Integer; }

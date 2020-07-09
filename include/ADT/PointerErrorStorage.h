@@ -22,31 +22,39 @@ struct PointerErrorStorage {
 protected:
     uintptr_t Storage;
 public:
-    explicit PointerErrorStorage() noexcept = default;
+    constexpr PointerErrorStorage() noexcept = default;
 
-    PointerErrorStorage(Enum Error) noexcept
+    constexpr PointerErrorStorage(Enum Error) noexcept
     : Storage(static_cast<uintptr_t>(Error)) {}
 
+    [[nodiscard]] constexpr
     static inline bool PointerHasErrorValue(uintptr_t Storage) noexcept {
         return (Storage < std::numeric_limits<uint8_t>::max());
     }
 
-    inline bool HasValue() const noexcept {
+    [[nodiscard]] constexpr inline bool hasValue() const noexcept {
         return PointerHasErrorValue(this->Storage);
     }
 
-    inline Enum GetValue() const noexcept {
-        if (!HasValue()) {
+    [[nodiscard]] constexpr inline Enum getValue() const noexcept {
+        if (!hasValue()) {
             return Enum::None;
         }
 
         return static_cast<Enum>(Storage);
     }
 
-    inline void SetValue(const Enum &Value) noexcept {
+    constexpr inline PointerErrorStorage &setValue(const Enum &Value) noexcept {
         Storage = static_cast<uintptr_t>(Value);
+        return *this;
     }
 
-    inline void Clear() noexcept { Storage = 0; }
-    inline void operator=(const Enum &Value) noexcept { SetValue(Value); }
+    constexpr inline PointerErrorStorage &clear() noexcept {
+        Storage = 0;
+        return *this;
+    }
+
+    constexpr inline void operator=(const Enum &Value) noexcept {
+        setValue(Value);
+    }
 };

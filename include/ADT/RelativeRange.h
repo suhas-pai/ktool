@@ -14,17 +14,36 @@ struct RelativeRange {
 protected:
     uint64_t End;
 public:
-    explicit RelativeRange(uint64_t SizeOrEnd) noexcept;
+    constexpr RelativeRange(uint64_t SizeOrEnd) noexcept : End(SizeOrEnd) {}
+    RelativeRange(void *End) noexcept : End(reinterpret_cast<uint64_t>(End)) {}
 
-    inline uint64_t GetEnd() const noexcept { return End; }
-    inline uint64_t GetSize() const noexcept { return End; }
+    [[nodiscard]] constexpr inline uint64_t getEnd() const noexcept {
+        return End;
+    }
 
-    bool ContainsLocation(uint64_t Location) const noexcept;
-    bool ContainsEndLocation(uint64_t EndLocation) const noexcept;
+    [[nodiscard]] constexpr inline uint64_t size() const noexcept {
+        return End;
+    }
 
-    bool Contains(const LocationRange &LocRange) const noexcept;
-    bool Overlaps(const LocationRange &LocRange) const noexcept;
+    [[nodiscard]]
+    bool containsRange(const LocationRange &LocRange) const noexcept;
 
-    bool GoesPastSize(uint64_t Size) const noexcept;
-    LocationRange ToLocRange() const noexcept;
+    [[nodiscard]] constexpr
+    inline bool containsLocation(uint64_t Location) const noexcept {
+        return (Location < End);
+    }
+
+    [[nodiscard]] constexpr
+    inline bool containsEndLocation(uint64_t EndLocation) const noexcept {
+        return (EndLocation <= End);
+    }
+
+    [[nodiscard]] bool overlaps(const LocationRange &LocRange) const noexcept;
+
+    [[nodiscard]]
+    constexpr inline bool goesPastSize(uint64_t Size) const noexcept {
+        return (End > Size);
+    }
+
+    [[nodiscard]] LocationRange ToLocRange() const noexcept;
 };
