@@ -187,6 +187,11 @@ int main(int Argc, const char *Argv[]) {
     if (!OpsArgv.empty()) {
         const auto &Front = OpsArgv.front();
         if (strcmp(Front, "--help") == 0) {
+            if (OpsArgv.count() != 1) {
+                fputs("Option --help should be run separately\n", stderr);
+                return 1;
+            }
+            
             const auto OpsKind = Ops->getKind();
             fprintf(stdout,
                     "Usage: --%s [Options] [Path] [Path-Options]\n"
