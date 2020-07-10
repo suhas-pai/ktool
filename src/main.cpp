@@ -56,6 +56,9 @@ static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
     return Result;
 }
 
+constexpr static auto UsageString =
+    "Usage: ktool [Main-Operation] [Operation-Options] [Path] [Path-Options]\n";
+
 int main(int Argc, const char *Argv[]) {
     if (Argc < 2) {
         fprintf(stdout,
@@ -87,6 +90,9 @@ int main(int Argc, const char *Argv[]) {
     switch (OpsKind) {
         case OperationKind::None:
             if (IsHelpOption(Argv[1])) {
+                fputs(UsageString, stdout);
+                fputs("Options:\n", stdout);
+
                 Operation::PrintHelpMenu(stdout);
                 return 0;
             }
@@ -172,7 +178,22 @@ int main(int Argc, const char *Argv[]) {
         return 1;
     }
 
-    Ops->ParseOptions(ArgvArr.fromIndex(2), &PathIndex);
+    const auto OpsArgv = ArgvArr.fromIndex(2);
+    if (!OpsArgv.empty()) {
+        const auto &Front = OpsArgv.front();
+        if (strcmp(Front, "--help") == 0) {
+            const auto OpsKind = Ops->getKind();
+            fprintf(stdout,
+                    "Usage: --%s [Options] [Path] [Path-Options]\n"
+                    "Options:\n",
+                    Operation::GetOptionName(OpsKind).data());
+
+            Operation::PrintOptionHelpMenu(OpsKind, stdout, "\t");
+            return 0;
+        }
+    }
+
+    Ops->ParseOptions(OpsArgv, &PathIndex);
 
     // Since we gave Operation::Options a [2, Argc] Argv, we have to add two
     // here to get the full index.
@@ -281,7 +302,7 @@ int main(int Argc, const char *Argv[]) {
     for (auto &Argument : ArgvArray(Argv, PathIndex + 1, Argc)) {
         if (strcmp(Argument, "-arch") == 0) {
             const auto FatObject = dyn_cast<ObjectKind::FatMachO>(Object);
-            if (FatObject == nullptr) { 
+            if (FatObject == nullptr) {
                 fputs("Provided file is not a Fat Mach-O File\n", stderr);
                 return 1;
             }

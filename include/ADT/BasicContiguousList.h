@@ -8,7 +8,9 @@
 
 #pragma once
 
+#include <cassert>
 #include <type_traits>
+
 #include "BasicContiguousIterator.h"
 #include "BasicWrapperIterator.h"
 
@@ -67,6 +69,30 @@ public:
 
     [[nodiscard]] inline uint64_t size() const noexcept {
         return sizeof(EntryType) * count();
+    }
+
+    [[nodiscard]] inline bool empty() const noexcept {
+        return (count() == 0);
+    }
+
+    [[nodiscard]] inline EntryType &front() noexcept {
+        assert(!empty());
+        return *Begin;
+    }
+
+    [[nodiscard]] inline const EntryType &front() const noexcept {
+        assert(!empty());
+        return *Begin;
+    }
+
+    [[nodiscard]] inline EntryType &back() noexcept {
+        assert(!empty());
+        return End[-1];
+    }
+
+    [[nodiscard]] inline const EntryType &back() const noexcept {
+        assert(!empty());
+        return End[-1];
     }
 };
 
@@ -131,7 +157,7 @@ struct BasicContiguousList<uint8_t> {
     using EntryType = uint8_t;
 private:
     EntryType *Begin;
-    const EntryType *End;
+    EntryType *End;
 public:
     BasicContiguousList(EntryType *Begin, EntryType *End) noexcept
     : Begin(Begin), End(End) {}
@@ -173,6 +199,30 @@ public:
 
     [[nodiscard]] inline uint64_t size() const noexcept {
         return sizeof(EntryType) * count();
+    }
+
+    [[nodiscard]] inline bool empty() const noexcept {
+        return (count() == 0);
+    }
+
+    [[nodiscard]] inline EntryType &front() noexcept {
+        assert(!empty());
+        return *Begin;
+    }
+
+    [[nodiscard]] inline const EntryType &front() const noexcept {
+        assert(!empty());
+        return *Begin;
+    }
+
+    [[nodiscard]] inline EntryType &back() noexcept {
+        assert(!empty());
+        return End[-1];
+    }
+
+    [[nodiscard]] inline const EntryType &back() const noexcept {
+        assert(!empty());
+        return End[-1];
     }
 };
 
@@ -221,5 +271,29 @@ public:
 
     [[nodiscard]] inline uint64_t size() const noexcept {
         return sizeof(EntryType) * count();
+    }
+
+    [[nodiscard]] inline bool empty() const noexcept {
+        return (count() == 0);
+    }
+
+    [[nodiscard]] inline EntryType &front() noexcept {
+        assert(!empty());
+        return *Begin;
+    }
+
+    [[nodiscard]] inline const EntryType &front() const noexcept {
+        assert(!empty());
+        return *Begin;
+    }
+
+    [[nodiscard]] inline EntryType &back() noexcept {
+        assert(!empty());
+        return End[-1];
+    }
+
+    [[nodiscard]] inline const EntryType &back() const noexcept {
+        assert(!empty());
+        return End[-1];
     }
 };

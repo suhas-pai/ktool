@@ -457,12 +457,7 @@ Operation::PrintOptionHelpMenu(OperationKind Kind,
     }
 }
 
-constexpr static auto UsageString =
-    "Usage: ktool [Main-Operation] [Operation-Options] [Path] [Path-Options]\n";
-
 void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
-    fputs(UsageString, OutFile);
-
     constexpr auto OperationKindList = magic_enum::enum_values<OperationKind>();
     auto LongestOptionNameLength = LargestIntHelper<int>();
 
@@ -497,7 +492,6 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
     LongestOptionNameLength = HelpOption.length();
     LongestOptionNameLength = UsageOption.length();
 
-    fputs("Options:\n", OutFile);
     fprintf(OutFile,
             "\t%5s--%s,%*s Print this Menu\n",
             "",
