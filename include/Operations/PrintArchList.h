@@ -37,7 +37,7 @@ public:
 protected:
     Options Options;
 public:
-    PrintArchListOperation() noexcept = default;
+    PrintArchListOperation() noexcept;
     PrintArchListOperation(const struct Options &Options) noexcept;
 
     static int

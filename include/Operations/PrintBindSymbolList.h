@@ -52,7 +52,7 @@ public:
 protected:
     Options Options;
 public:
-    PrintBindSymbolListOperation() noexcept = default;
+    PrintBindSymbolListOperation() noexcept;
     PrintBindSymbolListOperation(const struct Options &Options) noexcept;
 
     static int

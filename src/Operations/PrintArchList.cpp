@@ -16,6 +16,7 @@
 #include "Operation.h"
 #include "PrintArchList.h"
 
+PrintArchListOperation::PrintArchListOperation() noexcept : Operation(OpKind) {}
 PrintArchListOperation::PrintArchListOperation(
     const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}

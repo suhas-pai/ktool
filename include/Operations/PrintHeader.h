@@ -34,7 +34,7 @@ public:
 protected:
     Options Options;
 public:
-    PrintHeaderOperation() noexcept = default;
+    PrintHeaderOperation() noexcept;
     PrintHeaderOperation(const struct Options &Options) noexcept;
 
     static int

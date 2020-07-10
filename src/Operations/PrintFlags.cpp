@@ -16,6 +16,7 @@
 #include "Operation.h"
 #include "PrintFlags.h"
 
+PrintFlagsOperation::PrintFlagsOperation() noexcept : Operation(OpKind) {}
 PrintFlagsOperation::PrintFlagsOperation(const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}
 

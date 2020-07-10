@@ -10,6 +10,9 @@
 #include "Operation.h"
 #include "PrintCStringSection.h"
 
+PrintCStringSectionOperation::PrintCStringSectionOperation() noexcept
+: Operation(OpKind) {}
+
 PrintCStringSectionOperation::PrintCStringSectionOperation(
     const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}

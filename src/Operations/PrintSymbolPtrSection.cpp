@@ -10,6 +10,9 @@
 #include "Operation.h"
 #include "PrintSymbolPtrSection.h"
 
+PrintSymbolPtrSectionOperation::PrintSymbolPtrSectionOperation() noexcept
+: Operation(OpKind) {}
+
 PrintSymbolPtrSectionOperation::PrintSymbolPtrSectionOperation(
     const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}

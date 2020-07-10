@@ -56,7 +56,7 @@ public:
 protected:
     Options Options;
 public:
-    PrintExportTrieOperation() noexcept = default;
+    PrintExportTrieOperation() noexcept;
     PrintExportTrieOperation(const struct Options &Options) noexcept;
 
     static int

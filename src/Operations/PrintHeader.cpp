@@ -14,6 +14,7 @@
 #include "Operation.h"
 #include "PrintHeader.h"
 
+PrintHeaderOperation::PrintHeaderOperation() noexcept : Operation(OpKind) {}
 PrintHeaderOperation::PrintHeaderOperation(
     const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}

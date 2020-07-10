@@ -53,7 +53,7 @@ public:
 protected:
     Options Options;
 public:
-    PrintBindActionListOperation() noexcept = default;
+    PrintBindActionListOperation() noexcept;
     PrintBindActionListOperation(const struct Options &Options) noexcept;
 
     static int

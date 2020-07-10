@@ -33,7 +33,7 @@ public:
 protected:
     Options Options;
 public:
-    PrintRebaseOpcodeListOperation() noexcept = default;
+    PrintRebaseOpcodeListOperation() noexcept;
     PrintRebaseOpcodeListOperation(const struct Options &Options) noexcept;
 
     static int

@@ -33,7 +33,7 @@ public:
 protected:
     Options Options;
 public:
-    PrintLoadCommandsOperation() noexcept = default;
+    PrintLoadCommandsOperation() noexcept;
     PrintLoadCommandsOperation(const struct Options &Options) noexcept;
 
     static int

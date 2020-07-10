@@ -18,6 +18,9 @@
 #include "Operation.h"
 #include "PrintExportTrie.h"
 
+PrintExportTrieOperation::PrintExportTrieOperation() noexcept
+: Operation(OpKind) {}
+
 PrintExportTrieOperation::PrintExportTrieOperation(
     const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}

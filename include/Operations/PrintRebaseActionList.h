@@ -37,7 +37,7 @@ public:
 protected:
     Options Options;
 public:
-    PrintRebaseActionListOperation() noexcept = default;
+    PrintRebaseActionListOperation() noexcept;
     PrintRebaseActionListOperation(const struct Options &Options) noexcept;
 
     static int

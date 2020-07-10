@@ -36,7 +36,7 @@ public:
 protected:
     Options Options;
 public:
-    PrintCStringSectionOperation() noexcept = default;
+    PrintCStringSectionOperation() noexcept;
     PrintCStringSectionOperation(const struct Options &Options) noexcept;
 
     static int

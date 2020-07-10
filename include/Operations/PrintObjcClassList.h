@@ -46,7 +46,7 @@ public:
 protected:
     Options Options;
 public:
-    PrintObjcClassListOperation() noexcept = default;
+    PrintObjcClassListOperation() noexcept;
     PrintObjcClassListOperation(const struct Options &Options) noexcept;
 
     static int

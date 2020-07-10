@@ -20,6 +20,9 @@
 #include "Operation.h"
 #include "PrintSharedLibraries.h"
 
+PrintSharedLibrariesOperation::PrintSharedLibrariesOperation() noexcept
+: Operation(OpKind) {}
+
 PrintSharedLibrariesOperation::PrintSharedLibrariesOperation(
     const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}

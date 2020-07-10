@@ -13,6 +13,9 @@
 #include "Operation.h"
 #include "PrintBindSymbolList.h"
 
+PrintBindSymbolListOperation::PrintBindSymbolListOperation() noexcept
+: Operation(OpKind) {}
+
 PrintBindSymbolListOperation::PrintBindSymbolListOperation(
     const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}

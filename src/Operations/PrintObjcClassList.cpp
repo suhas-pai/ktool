@@ -18,6 +18,9 @@
 #include "Operation.h"
 #include "PrintObjcClassList.h"
 
+PrintObjcClassListOperation::PrintObjcClassListOperation() noexcept
+: Operation(OpKind) {}
+
 PrintObjcClassListOperation::PrintObjcClassListOperation(
     const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}

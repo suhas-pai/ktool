@@ -44,7 +44,7 @@ public:
 protected:
     Options Options;
 public:
-    PrintBindOpcodeListOperation() noexcept = default;
+    PrintBindOpcodeListOperation() noexcept;
     PrintBindOpcodeListOperation(const struct Options &Options) noexcept;
 
     static int

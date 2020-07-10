@@ -21,6 +21,9 @@
 #include "Operation.h"
 #include "PrintLoadCommands.h"
 
+PrintLoadCommandsOperation::PrintLoadCommandsOperation() noexcept
+: Operation(OpKind) {}
+
 PrintLoadCommandsOperation::PrintLoadCommandsOperation(
     const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}

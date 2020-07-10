@@ -35,7 +35,7 @@ public:
 protected:
     Options Options;
 public:
-    PrintSharedLibrariesOperation() noexcept = default;
+    PrintSharedLibrariesOperation() noexcept;
     PrintSharedLibrariesOperation(const struct Options &Options) noexcept;
 
     static int

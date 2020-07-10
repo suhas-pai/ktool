@@ -40,9 +40,7 @@ public:
 private:
     OperationKind Kind;
 public:
-    Operation() noexcept = default;
     Operation(OperationKind Kind) noexcept;
-
     virtual ~Operation() noexcept = default;
 
     [[nodiscard]] inline OperationKind getKind() const noexcept { return Kind; }

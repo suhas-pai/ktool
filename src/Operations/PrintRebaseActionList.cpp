@@ -13,6 +13,9 @@
 #include "Operation.h"
 #include "PrintRebaseActionList.h"
 
+PrintRebaseActionListOperation::PrintRebaseActionListOperation() noexcept
+: Operation(OpKind) {}
+
 PrintRebaseActionListOperation::PrintRebaseActionListOperation(
     const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}

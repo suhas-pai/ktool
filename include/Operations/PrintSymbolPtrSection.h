@@ -42,7 +42,7 @@ public:
 protected:
     Options Options;
 public:
-    PrintSymbolPtrSectionOperation() noexcept = default;
+    PrintSymbolPtrSectionOperation() noexcept;
     PrintSymbolPtrSectionOperation(const struct Options &Options) noexcept;
 
     static int

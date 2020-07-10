@@ -16,6 +16,7 @@
 #include "Operation.h"
 #include "PrintId.h"
 
+PrintIdOperation::PrintIdOperation() noexcept : Operation(OpKind) {}
 PrintIdOperation::PrintIdOperation(const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}
 
