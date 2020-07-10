@@ -44,6 +44,4 @@ public:
     constexpr inline bool goesPastSize(uint64_t Size) const noexcept {
         return (End > Size);
     }
-
-    [[nodiscard]] LocationRange ToLocRange() const noexcept;
 };
