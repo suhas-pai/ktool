@@ -15,6 +15,7 @@
 
 #include "MemoryBase.h"
 
+struct ConstMachOMemoryObject;
 struct MachOMemoryObject : public MemoryObject {
 public:
     constexpr static auto ObjKind = ObjectKind::MachO;
