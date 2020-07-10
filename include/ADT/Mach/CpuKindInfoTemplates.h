@@ -18,6 +18,8 @@ namespace Mach {
 
     using namespace std::literals;
 
+    constexpr inline auto EmptyStringValue = std::string_view();
+
     template <>
     struct CpuKindTemplateInfo<CpuKind::Any> {
         constexpr static Mach::CpuKind CpuKind = Mach::CpuKind::Any;
@@ -226,7 +228,8 @@ namespace Mach {
         constexpr static auto Description = "Arm64_32"sv;
     };
 
-    constexpr std::string_view CpuKindGetName(CpuKind CpuKind) noexcept {
+    [[nodiscard]] constexpr
+    const std::string_view &CpuKindGetName(CpuKind CpuKind) noexcept {
         switch (CpuKind) {
             case CpuKind::Any:
                 return CpuKindTemplateInfo<CpuKind::Any>::Name;
@@ -276,11 +279,11 @@ namespace Mach {
                 return CpuKindTemplateInfo<CpuKind::Arm64_32>::Name;
         }
 
-        return std::string_view();
+        return EmptyStringValue;
     }
 
-    constexpr
-    std::string_view CpuKindGetBrandName(enum CpuKind CpuKind) noexcept {
+    [[nodiscard]] constexpr
+    const std::string_view &CpuKindGetBrandName(enum CpuKind CpuKind) noexcept {
         switch (CpuKind) {
             case CpuKind::Any:
                 return CpuKindTemplateInfo<CpuKind::Any>::BrandName;
@@ -330,11 +333,11 @@ namespace Mach {
                 return CpuKindTemplateInfo<CpuKind::Arm64_32>::BrandName;
         }
 
-        return std::string_view();
+        return EmptyStringValue;
     }
 
-    constexpr
-    std::string_view CpuKindGetDescripton(enum CpuKind CpuKind) noexcept {
+    [[nodiscard]] constexpr const std::string_view &
+    CpuKindGetDescripton(enum CpuKind CpuKind) noexcept {
         switch (CpuKind) {
             case CpuKind::Any:
                 return CpuKindTemplateInfo<CpuKind::Any>::Description;
@@ -384,6 +387,6 @@ namespace Mach {
                 return CpuKindTemplateInfo<CpuKind::Arm64_32>::Description;
         }
 
-        return std::string_view();
+        return EmptyStringValue;
     }
 }

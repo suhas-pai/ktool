@@ -196,9 +196,9 @@ PrintHeaderOperation::Run(const ConstFatMachOMemoryObject &Object,
 
         fprintf(Options.OutFile,
                 "Magic:\n"
-                "\tName:%s\n"
+                "\tName: %s\n"
                 "\tDescription: %s\n"
-                "\tValue: %" PRIu32 "(0x%" PRIX32 ")\n",
+                "\tValue: %" PRIu32 " (0x%" PRIX32 ")\n",
                 MagicName,
                 MagicDesc,
                 MagicValue,
@@ -208,13 +208,16 @@ PrintHeaderOperation::Run(const ConstFatMachOMemoryObject &Object,
     }
 
     const auto ArchsCount = Object.getArchCount();
-    fprintf(Options.OutFile, "Archs Count: %" PRIu32 "\n", ArchsCount);
+    fprintf(Options.OutFile, "File has %" PRIu32 " Archs", ArchsCount);
 
     if (ArchsCount <= 3) {
+        fputs(":\n", Options.OutFile);
         MachOTypePrinter<MachO::FatHeader>::PrintArchList(Options.OutFile,
                                                           Header,
                                                           "\t",
                                                           "");
+    } else {
+        fputc('\n', Options.OutFile);
     }
 
     return 0;

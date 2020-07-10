@@ -1056,6 +1056,7 @@ namespace Mach {
         }
     };
 
+    [[nodiscard]]
     constexpr const CpuKindInfo *GetInfoForCpuKind(CpuKind CpuKind) noexcept {
         switch (CpuKind) {
             case CpuKind::Any:
@@ -1109,7 +1110,7 @@ namespace Mach {
         return nullptr;
     }
 
-    constexpr const CpuSubKindInfo *
+    [[nodiscard]] constexpr const CpuSubKindInfo *
     GetInfoForCpuSubKind(CpuKind CpuKind, int32_t SubType) noexcept {
         switch (CpuKind) {
             case CpuKind::Any:
@@ -1443,9 +1444,9 @@ namespace Mach {
     }
 
     namespace CpuSubKind {
-        constexpr static std::string_view EmptyStringView = std::string_view();
+        constexpr inline std::string_view EmptyStringView = std::string_view();
 
-        constexpr const std::string_view &
+        [[nodiscard]] constexpr const std::string_view &
         GetName(CpuKind CpuKind, int32_t CpuSubKind) noexcept {
             if (auto *Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->Name;
@@ -1454,7 +1455,7 @@ namespace Mach {
             return EmptyStringView;
         }
 
-        constexpr const std::string_view &
+        [[nodiscard]] constexpr const std::string_view &
         GetFullName(CpuKind CpuKind, int32_t CpuSubKind) noexcept {
             if (auto *Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->FullName;
@@ -1463,7 +1464,7 @@ namespace Mach {
             return EmptyStringView;
         }
 
-        constexpr const std::string_view &
+        [[nodiscard]] constexpr const std::string_view &
         GetDescription(CpuKind CpuKind, int32_t CpuSubKind) noexcept {
             if (auto *Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->Description;
