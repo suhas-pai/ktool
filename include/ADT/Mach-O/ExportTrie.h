@@ -1,6 +1,6 @@
 //
 //  include/ADT/Mach-O/ExportTrie.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/18/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -412,7 +412,7 @@ namespace MachO {
 
         Error ParseNode(const uint8_t *Begin, NodeInfo *InfoOut) noexcept;
         Error ParseNextNode(const uint8_t *& Ptr, NodeInfo *InfoOut) noexcept;
-        
+
         Error Advance() noexcept;
     public:
         explicit ExportTrieIterator(const uint8_t *Begin,

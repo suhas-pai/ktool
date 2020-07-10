@@ -1,6 +1,6 @@
 //
 //  src/Utils/SwapRanges.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 6/2/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -46,7 +46,7 @@ SwapRanges(void *ArgLhsBegin,
         std::move(RhsBegin + RhsSize - Diff,
                   End - Diff,
                   RhsBegin + LhsSize - Diff);
-        
+
         std::copy(const_cast<const uint8_t *>(Buffer.data()),
                   Buffer.dataEnd(),
                   RhsBegin + RhsSize - Diff);

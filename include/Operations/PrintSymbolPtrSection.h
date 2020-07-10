@@ -1,6 +1,6 @@
 //
 //  include/Operations/PrintSymbolPtrSection.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 7/3/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.

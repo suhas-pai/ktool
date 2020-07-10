@@ -1,6 +1,6 @@
 //
 //  include/ADT/LocationRange.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 3/14/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -27,7 +27,7 @@ private:
     : Begin(Begin), End(End) {}
 public:
     constexpr LocationRange() noexcept = default;
-    
+
     template <typename T = uint64_t>
     [[nodiscard]] constexpr static std::optional<LocationRange>
     CreateWithSize(uint64_t Begin, uint64_t Size) noexcept {
@@ -180,7 +180,7 @@ public:
     [[nodiscard]] constexpr bool goesPastEnd(uint64_t Size) const noexcept {
         return (End > Size);
     }
-    
+
     [[nodiscard]] RelativeRange ToRelativeRange() const noexcept;
 };
 

@@ -1,6 +1,6 @@
 //
 //  include/Operations/PrintBindSymbolList.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/17/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -45,7 +45,7 @@ public:
             ByDylibOrdinal,
             ByType
         };
-        
+
         bool Verbose : 1;
         std::vector<SortKind> SortKindList;
     };

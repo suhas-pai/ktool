@@ -1,6 +1,6 @@
 //
 //  include/ADT/BasicContinguousIterator.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 3/8/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.

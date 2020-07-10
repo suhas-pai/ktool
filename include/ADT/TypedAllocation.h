@@ -1,6 +1,6 @@
 //
 //  include/ADT/TypedAllocation.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 3/29/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.

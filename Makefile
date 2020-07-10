@@ -9,9 +9,9 @@ CFLAGS=-Iinclude/ -Wall -std=c++17
 DEBUGCFLAGS=$(CFLAGS) -g3
 RELEASECFLAGS=$(CFLAGS) -Ofast
 
-TARGET=bin/stool
+TARGET=bin/ktool
 
-DEBUGTARGET=bin/stool_debug
+DEBUGTARGET=bin/ktool_debug
 DEBUGOBJS=$(foreach obj,$(SRCS:src/%=%),$(OBJ)/$(basename $(obj)).d.o)
 
 .PHONY: all clean debug

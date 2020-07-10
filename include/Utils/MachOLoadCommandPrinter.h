@@ -1,6 +1,6 @@
 //
 //  src/Utils/MachOLoadCommandPrinter.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 3/30/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -2005,7 +2005,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
         for (const auto &Tool : ToolList.getRef()) {
             auto KindDesc =
                 Tool.KindGetDescription(Tool.GetKind(IsBigEndian)).data();
-            
+
             if (KindDesc == nullptr) {
                 KindDesc = "Unrecognized";
             }

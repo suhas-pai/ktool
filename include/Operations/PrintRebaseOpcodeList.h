@@ -1,6 +1,6 @@
 //
 //  include/Operations/PrintRebaseOpcodeList.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/29/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -26,7 +26,7 @@ public:
         static inline bool IsOfKind(const Operation::Options &Opt) noexcept {
             return (Opt.getKind() == OpKind);
         }
-        
+
         Options() noexcept : Operation::Options(OpKind), Verbose(false) {}
         bool Verbose : 1;
     };

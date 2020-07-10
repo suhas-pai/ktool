@@ -1,6 +1,6 @@
 //
 //  include/ADT/Mach-O/BindInfo.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/18/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -571,7 +571,7 @@ namespace MachO {
 
     struct BindOpcodeIterateInfo {
         BindInfoKind Kind;
-        
+
         int64_t Addend = 0;
         int64_t DylibOrdinal = -1;
 
@@ -656,7 +656,7 @@ namespace MachO {
         [[nodiscard]]
         inline uint64_t getOffset(const BindByte *Ptr) const noexcept {
             const auto Base = reinterpret_cast<const uint8_t *>(Ptr);
-            
+
             assert(Base <= Iter->getPtr());
             return (Iter->getPtr() - Base);
         }

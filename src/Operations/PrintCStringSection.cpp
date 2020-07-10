@@ -1,6 +1,6 @@
 //
 //  src/Operation/PrintCStringSection.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 6/30/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -33,7 +33,7 @@ inline bool ShouldExcludeString(const std::string_view &String) noexcept {
     if (String.empty()) {
         return true;
     }
-    
+
     for (const auto &Ch : String) {
         if (isprint(Ch) == 0) {
             return true;

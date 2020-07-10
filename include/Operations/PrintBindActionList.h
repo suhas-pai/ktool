@@ -1,6 +1,6 @@
 //
 //  include/Operations/PrintBindActionList.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/28/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -16,7 +16,7 @@
 struct PrintBindActionListOperation : public Operation {
 public:
     constexpr static const auto OpKind = OperationKind::PrintBindActionList;
-    
+
     [[nodiscard]]
     constexpr static inline bool IsOfKind(const Operation &Opt) noexcept {
         return (Opt.getKind() == OpKind);

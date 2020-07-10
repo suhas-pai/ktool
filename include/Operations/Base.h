@@ -1,6 +1,6 @@
 //
 //  include/Operations/Base.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 4/4/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -76,6 +76,6 @@ public:
 
     virtual
     void ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept = 0;
-    
+
     virtual int Run(const MemoryObject &Object) const noexcept = 0;
 };

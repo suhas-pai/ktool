@@ -1,6 +1,6 @@
 //
 //  src/ADT/Mach-O/BindUtil.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 6/17/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -72,7 +72,7 @@ namespace MachO {
                 SegmentIndex = Action.SegmentIndex;
                 SegmentAddress = Segment->Memory.getBegin();
             }
-            
+
             const auto FullAddr = SegmentAddress + Action.AddrInSeg;
             const auto &ActionListIter = ActionList.find(FullAddr);
 

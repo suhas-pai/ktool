@@ -1,6 +1,6 @@
 //
 //  src/main.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 3/29/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -281,7 +281,7 @@ int main(int Argc, const char *Argv[]) {
     for (auto &Argument : ArgvArray(Argv, PathIndex + 1, Argc)) {
         if (strcmp(Argument, "-arch") == 0) {
             const auto FatObject = dyn_cast<ObjectKind::FatMachO>(Object);
-            if (!FatObject) {
+            if (FatObject == nullptr) { 
                 fputs("Provided file is not a Fat Mach-O File\n", stderr);
                 return 1;
             }

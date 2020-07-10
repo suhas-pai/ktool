@@ -1,6 +1,6 @@
 //
 //  src/Operations/PrintBindOpcodeList.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/22/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -77,7 +77,7 @@ PrintBindInfo(FILE *OutFile,
     fputs("Address: ", OutFile);
     PrintUtilsPrintOffset(OutFile, Info.AddrInSeg, Is64Bit);
     fputs(", ", OutFile);
-    
+
     OperationCommon::PrintDylibOrdinalInfo(OutFile,
                                            LibraryCollection,
                                            Info.DylibOrdinal,

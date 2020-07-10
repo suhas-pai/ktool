@@ -1,6 +1,6 @@
 //
 //  src/Objects/FatMachOMemory.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 3/30/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.

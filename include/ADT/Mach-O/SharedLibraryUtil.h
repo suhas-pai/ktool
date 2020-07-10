@@ -1,6 +1,6 @@
 //
 //  include/ADT/Mach-O/SharedLibraryUtil.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/21/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.

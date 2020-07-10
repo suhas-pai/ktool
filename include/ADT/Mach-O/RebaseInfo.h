@@ -1,6 +1,6 @@
 //
 //  include/ADT/Mach-O/RebaseInfo.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/19/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -108,7 +108,7 @@ namespace MachO {
         constexpr static const auto Description =
             "Do Rebase Uleb128 Times (Immediate) "sv;
     };
-    
+
     template <>
     struct RebaseByteOpcodeInfo<RebaseByteOpcode::DoRebaseUlebTimesSkipUleb> {
         constexpr static const auto Kind =
@@ -950,7 +950,7 @@ namespace MachO {
                         if (Error != ErrorEnum::None) {
                             return Error;
                         }
-                        
+
                         auto SingleStep = int64_t();
                         auto Total = int64_t();
 

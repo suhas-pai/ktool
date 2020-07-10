@@ -1,6 +1,6 @@
 //
 //  include/Utils/StringUtils.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/17/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.

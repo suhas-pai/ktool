@@ -1,6 +1,6 @@
 //
 //  include/ADT/Mach-O/ObjcUtil.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 6/13/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -30,7 +30,7 @@ namespace MachO {
         std::conditional_t<PointerKindIs64Bit(Kind),
                            ObjcClassCategory64,
                            ObjcClassCategory>;
-    
+
     void
     SetSuperClassForClassInfo(ObjcClassInfo *Super,
                               ObjcClassInfo *Info) noexcept

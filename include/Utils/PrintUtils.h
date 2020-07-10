@@ -1,6 +1,6 @@
 //
 //  include/Utils/PrintUtils.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 4/16/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -215,7 +215,7 @@ PrintUtilsWriteSizeRange(FILE *OutFile,
     } else {
         Overflows = DoesAddOverflow<uint32_t>(Offset, Size, &End);
     }
-    
+
     if (Overflows) {
         return PrintUtilsWriteOffsetOverflowsRange(OutFile, Offset);
     }

@@ -1,6 +1,6 @@
 //
 //  src/ADT/Mach-O/SymbolTableUtil.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 7/3/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -258,7 +258,7 @@ namespace MachO {
     {
         const auto IndexEnd = IndexBegin + IndexCount;
         const auto IndexList = BasicContiguousList(IndexBegin, IndexEnd);
-        
+
         if (Is64Bit) {
             using EntryType =
                  MachOSymbolTableEntryTypeCalculator<PointerKind::s64Bit>;

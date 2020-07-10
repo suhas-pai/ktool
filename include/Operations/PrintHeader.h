@@ -1,6 +1,6 @@
 //
 //  include/Operations/PrintHeader.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 4/4/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -47,7 +47,7 @@ public:
 
     [[nodiscard]] static struct Options
     ParseOptionsImpl(const ArgvArray &Argv, int *IndexOut) noexcept;
-    
+
     void ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept override;
     int Run(const MemoryObject &Object) const noexcept override;
 

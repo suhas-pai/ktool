@@ -1,6 +1,6 @@
 //
 //  src/Operations/PrintRebaseOpcodeList.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/29/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -379,7 +379,7 @@ PrintRebaseOpcodeListOperation::Run(const ConstMachOMemoryObject &Object,
     for (const auto &LoadCmd : LoadCmdStorage) {
         const auto *DyldInfo =
             dyn_cast<MachO::DyldInfoCommand>(LoadCmd, IsBigEndian);
-        
+
         if (DyldInfo == nullptr) {
             continue;
         }

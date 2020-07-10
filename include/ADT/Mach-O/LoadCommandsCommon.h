@@ -1,6 +1,6 @@
 //
 //  include/ADT/Mach-O/DyldInfoCommon.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/18/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -105,7 +105,7 @@ namespace MachO {
 
         return SizeRangeError::None;
     }
-    
+
     enum class DyldInfoByteMasks : uint8_t {
         Opcode    = 0xF0,
         Immediate = 0x0F

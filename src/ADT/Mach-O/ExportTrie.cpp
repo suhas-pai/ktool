@@ -1,6 +1,6 @@
 //
 //  src/ADT/Mach-O/ExportTrie.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/18/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -351,7 +351,7 @@ namespace MachO {
 
         return Error::None;
     }
-    
+
     void ExportTrieExportIterator::Advance() noexcept {
         do {
             Iterator++;
@@ -446,7 +446,7 @@ namespace MachO {
         // TODO: Get faster impl?
         const auto TrieList =
             GetConstExportTrieExportList(Map, ExportOff, ExportSize);
-        
+
         if (TrieList.hasError()) {
             return TrieList.getError();
         }

@@ -1,6 +1,6 @@
 //
 //  include/ADT/Mach/CpuSubKindInfo.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 4/19/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.

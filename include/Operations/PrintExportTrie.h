@@ -1,6 +1,6 @@
 //
 //  include/Operations/PrintExportTrie.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/9/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.

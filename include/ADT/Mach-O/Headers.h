@@ -1,6 +1,6 @@
 //
 //  include/ADT/Mach-O/Headers.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/16/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -853,7 +853,7 @@ namespace MachO {
         [[nodiscard]] inline bool hasValidMagic() const noexcept {
             return MagicIsValid(Magic);
         }
-        
+
         [[nodiscard]] inline bool hasValidFileKind() const noexcept {
             const auto Value = SwitchEndianIf(FileKind, this->IsBigEndian());
             return FileKindIsValid(static_cast<enum FileKind>(Value));
@@ -888,12 +888,12 @@ namespace MachO {
         [[nodiscard]] Mach::CpuKind getCpuKind() const noexcept {
             return Mach::CpuKind(SwitchEndianIf(CpuKind, this->IsBigEndian()));
         }
-        
+
         [[nodiscard]] enum FileKind getFileKind() const noexcept {
             const auto Value = SwitchEndianIf(FileKind, this->IsBigEndian());
             return static_cast<enum FileKind>(Value);
         }
-        
+
         [[nodiscard]] FlagsType getFlags() const noexcept {
             const auto Flags = SwitchEndianIf(this->Flags, this->IsBigEndian());
             return Flags;
@@ -913,7 +913,7 @@ namespace MachO {
 
             return LoadCmdBuffer;
         }
-        
+
         [[nodiscard]]
         inline const uint8_t *getConstLoadCmdBuffer() const noexcept {
             const auto LoadCmdBuffer =
@@ -1063,7 +1063,7 @@ namespace MachO {
         [[nodiscard]] inline bool hasValidMagic() const noexcept {
             return MagicIsValid(Magic);
         }
-        
+
         [[nodiscard]] inline bool IsBigEndian() const noexcept {
             switch (this->Magic) {
                 case Magic::BigEndian:
@@ -1076,7 +1076,7 @@ namespace MachO {
 
             return false;
         }
-        
+
         [[nodiscard]] inline bool Is64Bit() const noexcept {
             switch (this->Magic) {
                 case Magic::Default64:

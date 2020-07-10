@@ -1,6 +1,6 @@
 //
 //  src/Operations/PrintBindSymbolList.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/17/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -333,7 +333,7 @@ PrintBindSymbolListOperation::Run(const ConstMachOMemoryObject &Object,
         if (ShouldPrintBind) {
             fputc('\n', Options.OutFile);
         }
-        
+
         const auto LazyBindActionListOpt =
             FoundDyldInfo->GetLazyBindActionList(Object.getConstMap(),
                                                  SegmentCollection,

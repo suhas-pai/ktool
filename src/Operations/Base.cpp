@@ -1,6 +1,6 @@
 //
 //  src/Operations/Base.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 4/4/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -458,7 +458,7 @@ Operation::PrintOptionHelpMenu(OperationKind Kind,
 }
 
 constexpr static auto UsageString =
-    "Usage: stool [Main-Operation] [Operation-Options] [Path] [Path-Options]\n";
+    "Usage: ktool [Main-Operation] [Operation-Options] [Path] [Path-Options]\n";
 
 void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
     fputs(UsageString, OutFile);

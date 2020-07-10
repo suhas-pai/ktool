@@ -1,6 +1,6 @@
 //
 //  include/Utils/Path.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 4/11/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.

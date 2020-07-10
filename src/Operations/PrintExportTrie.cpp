@@ -1,6 +1,6 @@
 //
 //  src/Operations/PrintExportTrie.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/9/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -214,7 +214,7 @@ HandleTreeOption(
                 Iter++;
                 continue;
             }
-            
+
             Iter = Collection.RemoveNode(*Iter.getNode(), true);
         }
 
@@ -490,7 +490,7 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
             const auto OffsetLength = (Is64Bit) ? OFFSET_64_LEN : OFFSET_32_LEN;
             const auto PadLength =
                 OperationCommon::SegmentSectionPairMaxLength + OffsetLength;
-            
+
             PrintUtilsPadSpaces(Options.OutFile, static_cast<int>(PadLength));
         }
 

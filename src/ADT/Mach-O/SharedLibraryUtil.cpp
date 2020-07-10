@@ -1,6 +1,6 @@
 //
 //  src/ADT/Mach-O/SharedLibraryUtil.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/21/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -69,7 +69,7 @@ namespace MachO {
                 return false;
         }
     }
-    
+
     SharedLibraryInfoCollection
     SharedLibraryInfoCollection::Open(
         const ConstLoadCommandStorage &LoadCmdStorage,
@@ -91,7 +91,7 @@ namespace MachO {
                 case LoadCommand::Kind::LoadUpwardDylib: {
                     const auto &DylibCmd =
                         cast<DylibCommand>(LoadCmd, IsBigEndian);
-                    
+
                     const auto GetNameResult = DylibCmd.GetName(IsBigEndian);
                     const auto &Name =
                         (GetNameResult.hasError()) ?

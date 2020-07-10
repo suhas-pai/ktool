@@ -1,6 +1,6 @@
 //
 //  src/ADT/OutputFile.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 4/29/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.

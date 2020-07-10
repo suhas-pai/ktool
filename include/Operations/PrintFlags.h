@@ -1,6 +1,6 @@
 //
 //  include/Operations/PrintFlags.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/7/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -15,7 +15,7 @@
 struct PrintFlagsOperation : public Operation {
 public:
     constexpr static const auto OpKind = OperationKind::PrintFlags;
-    
+
     [[nodiscard]]
     constexpr static inline bool IsOfKind(const Operation &Opt) noexcept {
         return (Opt.getKind() == OpKind);

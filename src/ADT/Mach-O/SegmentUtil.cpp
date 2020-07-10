@@ -1,6 +1,6 @@
 //
 //  src/ADT/Mach-O/SegmentUtil.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 5/16/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -426,7 +426,7 @@ namespace MachO {
         if (Addr == 0) {
             return nullptr;
         }
-        
+
         const auto DataRange = LocationRange::CreateWithEnd(Addr, Addr + Size);
         for (const auto &Segment : Collection) {
             if (!Segment.Memory.contains(DataRange)) {

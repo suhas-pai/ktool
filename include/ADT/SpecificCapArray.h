@@ -1,6 +1,6 @@
 //
 //  include/ADT/SpecificCapArray.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 6/16/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.

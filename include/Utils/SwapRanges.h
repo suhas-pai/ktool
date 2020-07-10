@@ -1,6 +1,6 @@
 //
 //  include/Utils/SwapRanges.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 6/2/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.

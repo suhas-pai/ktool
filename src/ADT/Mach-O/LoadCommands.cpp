@@ -1,6 +1,6 @@
 //
 //  src/ADT/Mach-O/LoadCommands.cpp
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 3/30/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -1472,7 +1472,7 @@ namespace MachO {
 
         return Result;
     }
-    
+
     TypedAllocationOrError<BuildVersionCommand::ToolList, SizeRangeError>
     BuildVersionCommand::GetToolList(bool IsBigEndian) noexcept {
         auto End = uint64_t();
@@ -1517,7 +1517,7 @@ namespace MachO {
 
         return new ConstToolList(Entries, Count);
     }
-    
+
     bool
     FixedVMFileCommand::IsNameOffsetValid(bool IsBigEndian) const noexcept {
         const auto CmdSize = SwitchEndianIf(this->CmdSize, IsBigEndian);

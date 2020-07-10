@@ -1,6 +1,6 @@
 //
 //  include/ADT/Tree.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 6/8/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -422,7 +422,7 @@ public:
 
         return Result;
     }
-    
+
     template <typename Comparator>
     BasicTree &Sort(const Comparator &IsInOrder) noexcept {
         const auto Swap = [](BasicTreeNode &Lhs, BasicTreeNode &Rhs) noexcept {
@@ -499,7 +499,7 @@ public:
 
     BasicTreeNode *
     RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept;
-    
+
     [[nodiscard]] virtual uint64_t GetCount() const noexcept;
 
     template <typename NodePrinter>

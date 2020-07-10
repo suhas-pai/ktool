@@ -1,6 +1,6 @@
 //
 //  include/ADT/Mach-O/LoadCommands.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 3/7/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -1827,7 +1827,7 @@ namespace MachO {
         [[nodiscard]] TypedAllocationOrError<ConstToolList, SizeRangeError>
         GetConstToolList(bool IsBigEndian) const noexcept;
     };
-    
+
     struct DyldInfoCommand : public LoadCommand {
         [[nodiscard]] constexpr
         static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {

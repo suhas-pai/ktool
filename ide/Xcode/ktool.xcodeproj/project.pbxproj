@@ -68,7 +68,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		F3104AA9243193E100B24FEB /* stool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = stool; sourceTree = BUILT_PRODUCTS_DIR; };
+		F3104AA9243193E100B24FEB /* ktool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ktool; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3104AB92431948B00B24FEB /* DisableIfNotConst.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DisableIfNotConst.h; path = ../../include/TypeTraits/DisableIfNotConst.h; sourceTree = "<group>"; };
 		F3104ABA243194D600B24FEB /* DisableIfNotPointer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DisableIfNotPointer.h; path = ../../include/TypeTraits/DisableIfNotPointer.h; sourceTree = "<group>"; };
 		F3104ABB2431950B00B24FEB /* DisableIfNotEnumClass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DisableIfNotEnumClass.h; path = ../../include/TypeTraits/DisableIfNotEnumClass.h; sourceTree = "<group>"; };
@@ -236,7 +236,7 @@
 		F3104AAA243193E100B24FEB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F3104AA9243193E100B24FEB /* stool */,
+				F3104AA9243193E100B24FEB /* ktool */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -502,9 +502,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		F3104AA8243193E100B24FEB /* stool */ = {
+		F3104AA8243193E100B24FEB /* ktool */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F3104AB0243193E100B24FEB /* Build configuration list for PBXNativeTarget "stool" */;
+			buildConfigurationList = F3104AB0243193E100B24FEB /* Build configuration list for PBXNativeTarget "ktool" */;
 			buildPhases = (
 				F3104AA5243193E100B24FEB /* Sources */,
 				F3104AA6243193E100B24FEB /* Frameworks */,
@@ -514,9 +514,9 @@
 			);
 			dependencies = (
 			);
-			name = stool;
-			productName = stool;
-			productReference = F3104AA9243193E100B24FEB /* stool */;
+			name = ktool;
+			productName = ktool;
+			productReference = F3104AA9243193E100B24FEB /* ktool */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -533,7 +533,7 @@
 					};
 				};
 			};
-			buildConfigurationList = F3104AA4243193E100B24FEB /* Build configuration list for PBXProject "stool" */;
+			buildConfigurationList = F3104AA4243193E100B24FEB /* Build configuration list for PBXProject "ktool" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -546,7 +546,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				F3104AA8243193E100B24FEB /* stool */,
+				F3104AA8243193E100B24FEB /* ktool */,
 			);
 		};
 /* End PBXProject section */
@@ -744,7 +744,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F3104AA4243193E100B24FEB /* Build configuration list for PBXProject "stool" */ = {
+		F3104AA4243193E100B24FEB /* Build configuration list for PBXProject "ktool" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F3104AAE243193E100B24FEB /* Debug */,
@@ -753,7 +753,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F3104AB0243193E100B24FEB /* Build configuration list for PBXNativeTarget "stool" */ = {
+		F3104AB0243193E100B24FEB /* Build configuration list for PBXNativeTarget "ktool" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F3104AB1243193E100B24FEB /* Debug */,

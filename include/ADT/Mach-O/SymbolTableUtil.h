@@ -1,6 +1,6 @@
 //
 //  include/ADT/Mach-O/SymbolTableUtil.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 7/3/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
@@ -319,7 +319,7 @@ namespace MachO {
         inline std::vector<EntryInfo *> GetAsList() const noexcept {
             auto List = std::vector<EntryInfo *>();
             List.reserve(size());
-            
+
             for (const auto &Info : *this) {
                 List.emplace_back(Info.second.get());
             }

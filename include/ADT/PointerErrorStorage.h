@@ -1,6 +1,6 @@
 //
 //  include/ADT/PointerErrorStorage.h
-//  stool
+//  ktool
 //
 //  Created by Suhas Pai on 3/28/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
