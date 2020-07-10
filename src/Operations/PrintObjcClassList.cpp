@@ -269,7 +269,7 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
 
     const auto End = ObjcClassCollection.end();
     for (auto Iter = ObjcClassCollection.begin(); Iter != End; Iter++) {
-        if (!Iter->IsExternal) {
+        if (Iter->IsNull) {
             continue;
         }
 
