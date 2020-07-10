@@ -37,7 +37,7 @@ static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
         if (ShortName != nullptr && strcmp(Arg + 1, ShortName) == 0) {
             return true;
         }
-    } else if (strcmp(Arg + 2, Operation::GetOptionName(Kind).data()) == 0) {
+    } else if (Operation::GetOptionName(Kind) == (Arg + 2)) {
         return true;
     }
 
