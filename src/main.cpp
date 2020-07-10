@@ -174,7 +174,12 @@ int main(int Argc, const char *Argv[]) {
     }
 
     if (Ops == nullptr) {
-        fprintf(stderr, "Unrecognized Option: \"%s\"\n", Argv[1]);
+        fprintf(stderr,
+                "Unrecognized Option: \"%s\".\n"
+                "Use Option --%s or --%s to see a list of options\n",
+                Argv[1],
+                Operation::HelpOption.data(),
+                Operation::UsageOption.data());
         return 1;
     }
 
@@ -200,7 +205,9 @@ int main(int Argc, const char *Argv[]) {
 
     PathIndex += 2;
     if (PathIndex == Argc) {
-        fputs("Please provide a file for the operation\n", stderr);
+        fprintf(stderr,
+                "Please provide a file for operation %s\n",
+                OperationKindGetName(Ops->getKind()).data());
         return 1;
     }
 
@@ -229,7 +236,7 @@ int main(int Argc, const char *Argv[]) {
             break;
         case MappedFile::OpenError::FailedToGetSize:
             fprintf(stderr,
-                    "Failed to get file-size of provided file. Error=%s\n",
+                    "Failed to get file-size of provided file. Error: %s\n",
                     strerror(errno));
             return 1;
         case MappedFile::OpenError::EmptyFile:
@@ -237,14 +244,14 @@ int main(int Argc, const char *Argv[]) {
             return 1;
         case MappedFile::OpenError::MmapCallFailed:
             fprintf(stderr,
-                    "Failed to map file to memory. Error=%s\n",
+                    "Failed to map file to memory. Error: %s\n",
                     strerror(errno));
             return 1;
     }
 
     auto Object = TypedAllocation(MemoryObject::Open(FileMap));
     if (Object == nullptr) {
-        fputs("Provided file has an unrecognized file-format\n", stderr);
+        fputs("Provided file has an unsupported file-format\n", stderr);
         return 1;
     }
 
