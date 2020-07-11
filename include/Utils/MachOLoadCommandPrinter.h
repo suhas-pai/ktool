@@ -1133,17 +1133,9 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Uuid>
           bool Verbose) noexcept
     {
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
-        fprintf(OutFile,
-                "\t%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X"
-                "%02X%02X\n",
-                (unsigned int)Uuid.uuid[0], (unsigned int)Uuid.uuid[1],
-                (unsigned int)Uuid.uuid[2], (unsigned int)Uuid.uuid[3],
-                (unsigned int)Uuid.uuid[4], (unsigned int)Uuid.uuid[5],
-                (unsigned int)Uuid.uuid[6], (unsigned int)Uuid.uuid[7],
-                (unsigned int)Uuid.uuid[8], (unsigned int)Uuid.uuid[9],
-                (unsigned int)Uuid.uuid[10], (unsigned int)Uuid.uuid[11],
-                (unsigned int)Uuid.uuid[12], (unsigned int)Uuid.uuid[13],
-                (unsigned int)Uuid.uuid[14], (unsigned int)Uuid.uuid[15]);
+
+        fputc('\t', OutFile);
+        PrintUtilsWriteUuid(OutFile, Uuid.Uuid);
     }
 };
 
@@ -1960,10 +1952,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
     {
         const auto NTools = SwitchEndianIf(BuildVersion.NTools, IsBigEndian);
         const auto Platform = BuildVersion.GetPlatform(IsBigEndian);
-        auto PlatformDesc =
-            MachO::BuildVersionCommand::PlatformKindGetDescription(
-                Platform).data();
 
+        auto PlatformDesc = MachO::PlatformKindGetDescription(Platform).data();
         if (PlatformDesc == nullptr) {
             PlatformDesc = "(Unrecognized)";
         }

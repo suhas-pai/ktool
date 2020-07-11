@@ -1245,7 +1245,7 @@ namespace MachO {
             return LoadCommand::CmdSizeInvalidType::None;
         }
 
-        uint8_t uuid[16];
+        uint8_t Uuid[16];
     };
 
     struct RpathCommand : public LoadCommand {
@@ -1496,6 +1496,184 @@ namespace MachO {
         }
     };
 
+    enum class PlatformKind : uint32_t {
+        macOS = 1,
+        iOS,
+        tvOS,
+        watchOS,
+        bridgeOS,
+        iOSMac,
+        macCatalyst = iOSMac,
+        iOSSimulator,
+        tvOSSimulator,
+        watchOSSimulator,
+        DriverKit
+    };
+
+    template <PlatformKind>
+    struct PlatformKindInfo {};
+
+    template <>
+    struct PlatformKindInfo<PlatformKind::macOS> {
+        constexpr static const auto Kind = PlatformKind::macOS;
+
+        constexpr static const auto Name =
+            std::string_view("PLATFORM_MACOS");
+        constexpr static const auto Description = std::string_view("macOS");
+    };
+
+    template <>
+    struct PlatformKindInfo<PlatformKind::iOS> {
+        constexpr static const auto Kind = PlatformKind::iOS;
+
+        constexpr static const auto Name = std::string_view("PLATFORM_IOS");
+        constexpr static const auto Description = std::string_view("iOS");
+    };
+
+    template <>
+    struct PlatformKindInfo<PlatformKind::tvOS> {
+        constexpr static const auto Kind = PlatformKind::tvOS;
+
+        constexpr static const auto Name =
+            std::string_view("PLATFORM_TVOS");
+        constexpr static const auto Description = std::string_view("tvOS");
+    };
+
+    template <>
+    struct PlatformKindInfo<PlatformKind::watchOS> {
+        constexpr static const auto Kind = PlatformKind::watchOS;
+
+        constexpr static const auto Name =
+            std::string_view("PLATFORM_WATCHOS");
+        constexpr static const auto Description =
+            std::string_view("watchOS");
+    };
+
+    template <>
+    struct PlatformKindInfo<PlatformKind::bridgeOS> {
+        constexpr static const auto Kind = PlatformKind::bridgeOS;
+
+        constexpr static const auto Name =
+            std::string_view("PLATFORM_BRDIGEOS");
+        constexpr static const auto Description =
+            std::string_view("bridgeOS");
+    };
+
+    template <>
+    struct PlatformKindInfo<PlatformKind::iOSMac> {
+        constexpr static const auto Kind = PlatformKind::iOSMac;
+
+        constexpr static const auto Name =
+            std::string_view("PLATFORM_IOSMAC");
+        constexpr static const auto Description =
+            std::string_view("iOSMac");
+    };
+
+    template <>
+    struct PlatformKindInfo<PlatformKind::iOSSimulator> {
+        constexpr static const auto Kind = PlatformKind::iOSSimulator;
+
+        constexpr static const auto Name =
+            std::string_view("PLATFORM_IOSSIMULATOR");
+        constexpr static const auto Description =
+            std::string_view("iOS Simulator");
+    };
+
+    template <>
+    struct PlatformKindInfo<PlatformKind::tvOSSimulator> {
+        constexpr static const auto Kind = PlatformKind::tvOSSimulator;
+
+        constexpr static const auto Name =
+            std::string_view("PLATFORM_TVOSSIMULATOR");
+        constexpr static const auto Description =
+            std::string_view("tvOS Simulator");
+    };
+
+    template <>
+    struct PlatformKindInfo<PlatformKind::watchOSSimulator> {
+        constexpr static const auto Kind = PlatformKind::watchOSSimulator;
+
+        constexpr static const auto Name =
+            std::string_view("PLATFORM_WATCHOSSIMULATOR");
+        constexpr static const auto Description =
+            std::string_view("watchOS Simulator");
+    };
+
+    template <>
+    struct PlatformKindInfo<PlatformKind::DriverKit> {
+        constexpr static const auto Kind = PlatformKind::DriverKit;
+
+        constexpr static const auto Name =
+            std::string_view("PLATFORM_DRIVERKIT");
+        constexpr static const auto Description =
+            std::string_view("DriverKit");
+    };
+
+    [[nodiscard]] constexpr static const std::string_view &
+    PlatformKindGetName(PlatformKind Kind) noexcept {
+        switch (Kind) {
+            case PlatformKind::macOS:
+                return PlatformKindInfo<PlatformKind::macOS>::Name;
+            case PlatformKind::iOS:
+                return PlatformKindInfo<PlatformKind::iOS>::Name;
+            case PlatformKind::tvOS:
+                return PlatformKindInfo<PlatformKind::tvOS>::Name;
+            case PlatformKind::watchOS:
+                return PlatformKindInfo<PlatformKind::watchOS>::Name;
+            case PlatformKind::bridgeOS:
+                return PlatformKindInfo<PlatformKind::bridgeOS>::Name;
+            case PlatformKind::iOSMac:
+                return PlatformKindInfo<PlatformKind::iOSMac>::Name;
+            case PlatformKind::iOSSimulator:
+                return PlatformKindInfo<PlatformKind::iOSSimulator>::Name;
+            case PlatformKind::tvOSSimulator:
+                return PlatformKindInfo<PlatformKind::tvOSSimulator>::Name;
+            case PlatformKind::watchOSSimulator:
+                return
+                    PlatformKindInfo<PlatformKind::watchOSSimulator>::Name;
+            case PlatformKind::DriverKit:
+                return PlatformKindInfo<PlatformKind::DriverKit>::Name;
+        }
+
+        return EmptyStringValue;
+    }
+
+    [[nodiscard]] constexpr static const std::string_view &
+    PlatformKindGetDescription(PlatformKind Kind) noexcept {
+        switch (Kind) {
+            case PlatformKind::macOS:
+                return PlatformKindInfo<PlatformKind::macOS>::Description;
+            case PlatformKind::iOS:
+                return PlatformKindInfo<PlatformKind::iOS>::Description;
+            case PlatformKind::tvOS:
+                return PlatformKindInfo<PlatformKind::tvOS>::Description;
+            case PlatformKind::watchOS:
+                return PlatformKindInfo<PlatformKind::watchOS>::Description;
+            case PlatformKind::bridgeOS:
+                return
+                    PlatformKindInfo<PlatformKind::bridgeOS>::Description;
+            case PlatformKind::iOSMac:
+                return PlatformKindInfo<PlatformKind::iOSMac>::Description;
+            case PlatformKind::iOSSimulator:
+                return
+                    PlatformKindInfo<PlatformKind::iOSSimulator>
+                        ::Description;
+            case PlatformKind::tvOSSimulator:
+                return
+                    PlatformKindInfo<PlatformKind::tvOSSimulator>
+                    ::Description;
+            case PlatformKind::watchOSSimulator:
+                return
+                    PlatformKindInfo<PlatformKind::watchOSSimulator>
+                        ::Description;
+            case PlatformKind::DriverKit:
+                return
+                    PlatformKindInfo<PlatformKind::DriverKit>::Description;
+        }
+
+        return EmptyStringValue;
+    }
+
     struct BuildVersionCommand : public LoadCommand {
         [[nodiscard]] constexpr
         static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
@@ -1617,184 +1795,6 @@ namespace MachO {
             }
 
             return LoadCommand::CmdSizeInvalidType::None;
-        }
-
-        enum class PlatformKind : uint32_t {
-            macOS = 1,
-            iOS,
-            tvOS,
-            watchOS,
-            bridgeOS,
-            iOSMac,
-            macCatalyst = iOSMac,
-            iOSSimulator,
-            tvOSSimulator,
-            watchOSSimulator,
-            DriverKit
-        };
-
-        template <PlatformKind>
-        struct PlatformKindInfo {};
-
-        template <>
-        struct PlatformKindInfo<PlatformKind::macOS> {
-            constexpr static const auto Kind = PlatformKind::macOS;
-
-            constexpr static const auto Name =
-                std::string_view("PLATFORM_MACOS");
-            constexpr static const auto Description = std::string_view("macOS");
-        };
-
-        template <>
-        struct PlatformKindInfo<PlatformKind::iOS> {
-            constexpr static const auto Kind = PlatformKind::iOS;
-
-            constexpr static const auto Name = std::string_view("PLATFORM_IOS");
-            constexpr static const auto Description = std::string_view("iOS");
-        };
-
-        template <>
-        struct PlatformKindInfo<PlatformKind::tvOS> {
-            constexpr static const auto Kind = PlatformKind::tvOS;
-
-            constexpr static const auto Name =
-                std::string_view("PLATFORM_TVOS");
-            constexpr static const auto Description = std::string_view("tvOS");
-        };
-
-        template <>
-        struct PlatformKindInfo<PlatformKind::watchOS> {
-            constexpr static const auto Kind = PlatformKind::watchOS;
-
-            constexpr static const auto Name =
-                std::string_view("PLATFORM_WATCHOS");
-            constexpr static const auto Description =
-                std::string_view("watchOS");
-        };
-
-        template <>
-        struct PlatformKindInfo<PlatformKind::bridgeOS> {
-            constexpr static const auto Kind = PlatformKind::bridgeOS;
-
-            constexpr static const auto Name =
-                std::string_view("PLATFORM_BRDIGEOS");
-            constexpr static const auto Description =
-                std::string_view("bridgeOS");
-        };
-
-        template <>
-        struct PlatformKindInfo<PlatformKind::iOSMac> {
-            constexpr static const auto Kind = PlatformKind::iOSMac;
-
-            constexpr static const auto Name =
-                std::string_view("PLATFORM_IOSMAC");
-            constexpr static const auto Description =
-                std::string_view("iOSMac");
-        };
-
-        template <>
-        struct PlatformKindInfo<PlatformKind::iOSSimulator> {
-            constexpr static const auto Kind = PlatformKind::iOSSimulator;
-
-            constexpr static const auto Name =
-                std::string_view("PLATFORM_IOSSIMULATOR");
-            constexpr static const auto Description =
-                std::string_view("iOS Simulator");
-        };
-
-        template <>
-        struct PlatformKindInfo<PlatformKind::tvOSSimulator> {
-            constexpr static const auto Kind = PlatformKind::tvOSSimulator;
-
-            constexpr static const auto Name =
-                std::string_view("PLATFORM_TVOSSIMULATOR");
-            constexpr static const auto Description =
-                std::string_view("tvOS Simulator");
-        };
-
-        template <>
-        struct PlatformKindInfo<PlatformKind::watchOSSimulator> {
-            constexpr static const auto Kind = PlatformKind::watchOSSimulator;
-
-            constexpr static const auto Name =
-                std::string_view("PLATFORM_WATCHOSSIMULATOR");
-            constexpr static const auto Description =
-                std::string_view("watchOS Simulator");
-        };
-
-        template <>
-        struct PlatformKindInfo<PlatformKind::DriverKit> {
-            constexpr static const auto Kind = PlatformKind::DriverKit;
-
-            constexpr static const auto Name =
-                std::string_view("PLATFORM_DRIVERKIT");
-            constexpr static const auto Description =
-                std::string_view("DriverKit");
-        };
-
-        [[nodiscard]] constexpr static const std::string_view &
-        PlatformKindGetName(PlatformKind Kind) noexcept {
-            switch (Kind) {
-                case PlatformKind::macOS:
-                    return PlatformKindInfo<PlatformKind::macOS>::Name;
-                case PlatformKind::iOS:
-                    return PlatformKindInfo<PlatformKind::iOS>::Name;
-                case PlatformKind::tvOS:
-                    return PlatformKindInfo<PlatformKind::tvOS>::Name;
-                case PlatformKind::watchOS:
-                    return PlatformKindInfo<PlatformKind::watchOS>::Name;
-                case PlatformKind::bridgeOS:
-                    return PlatformKindInfo<PlatformKind::bridgeOS>::Name;
-                case PlatformKind::iOSMac:
-                    return PlatformKindInfo<PlatformKind::iOSMac>::Name;
-                case PlatformKind::iOSSimulator:
-                    return PlatformKindInfo<PlatformKind::iOSSimulator>::Name;
-                case PlatformKind::tvOSSimulator:
-                    return PlatformKindInfo<PlatformKind::tvOSSimulator>::Name;
-                case PlatformKind::watchOSSimulator:
-                    return
-                        PlatformKindInfo<PlatformKind::watchOSSimulator>::Name;
-                case PlatformKind::DriverKit:
-                    return PlatformKindInfo<PlatformKind::DriverKit>::Name;
-            }
-
-            return EmptyStringValue;
-        }
-
-        static const std::string_view &
-        PlatformKindGetDescription(PlatformKind Kind) noexcept {
-            switch (Kind) {
-                case PlatformKind::macOS:
-                    return PlatformKindInfo<PlatformKind::macOS>::Description;
-                case PlatformKind::iOS:
-                    return PlatformKindInfo<PlatformKind::iOS>::Description;
-                case PlatformKind::tvOS:
-                    return PlatformKindInfo<PlatformKind::tvOS>::Description;
-                case PlatformKind::watchOS:
-                    return PlatformKindInfo<PlatformKind::watchOS>::Description;
-                case PlatformKind::bridgeOS:
-                    return
-                        PlatformKindInfo<PlatformKind::bridgeOS>::Description;
-                case PlatformKind::iOSMac:
-                    return PlatformKindInfo<PlatformKind::iOSMac>::Description;
-                case PlatformKind::iOSSimulator:
-                    return
-                        PlatformKindInfo<PlatformKind::iOSSimulator>
-                            ::Description;
-                case PlatformKind::tvOSSimulator:
-                    return
-                        PlatformKindInfo<PlatformKind::tvOSSimulator>
-                        ::Description;
-                case PlatformKind::watchOSSimulator:
-                    return
-                        PlatformKindInfo<PlatformKind::watchOSSimulator>
-                            ::Description;
-                case PlatformKind::DriverKit:
-                    return
-                        PlatformKindInfo<PlatformKind::DriverKit>::Description;
-            }
-
-            return EmptyStringValue;
         }
 
         uint32_t Platform;
