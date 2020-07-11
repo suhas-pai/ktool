@@ -1570,12 +1570,12 @@ MachOLoadCommandPrinterWriteVersionMinimumCmd(
     fputs("\tVersion: ", OutFile);
 
     MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
-        OutFile, VersionMin.GetVersion(IsBigEndian), "", "");
+        OutFile, VersionMin.getVersion(IsBigEndian), "", "");
 
     fputs("\tSDK: ", OutFile);
 
     MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
-        OutFile, VersionMin.GetSdk(IsBigEndian), "", "");
+        OutFile, VersionMin.getSdk(IsBigEndian), "", "");
 
     fputc('\n', OutFile);
 }
@@ -1763,10 +1763,9 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SourceVersion>
           bool Verbose) noexcept
     {
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
-
-        const auto Version = DataInCode.GetVersion(IsBigEndian);
-
         fputs("\tSource Version:\t", OutFile);
+
+        const auto Version = DataInCode.getVersion(IsBigEndian);
         if (Version.empty()) {
             fputs("0\n", OutFile);
             return;
@@ -2008,7 +2007,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
 
             fprintf(OutFile,"\t\tKind:    %s\n\t\tVersion: ", KindDesc);
             MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(OutFile,
-                Tool.GetVersion(IsBigEndian), "", "");
+                Tool.getVersion(IsBigEndian), "", "");
 
             fputc('\n', OutFile);
         }

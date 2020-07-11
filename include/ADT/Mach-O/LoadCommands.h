@@ -1486,12 +1486,12 @@ namespace MachO {
         uint32_t Sdk;
 
         [[nodiscard]] constexpr
-        PackedVersion GetVersion(bool IsBigEndian) const noexcept {
+        PackedVersion getVersion(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Version, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        PackedVersion GetSdk(bool IsBigEndian) const noexcept {
+        PackedVersion getSdk(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Sdk, IsBigEndian);
         }
     };
@@ -1757,7 +1757,7 @@ namespace MachO {
             }
 
             [[nodiscard]] constexpr
-            PackedVersion GetVersion(bool IsBigEndian) const noexcept {
+            PackedVersion getVersion(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Version, IsBigEndian);
             }
         };
@@ -2318,7 +2318,7 @@ namespace MachO {
         uint64_t Version;
 
         [[nodiscard]] constexpr
-        PackedVersion64 GetVersion(bool IsBigEndian) const noexcept {
+        PackedVersion64 getVersion(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Version, IsBigEndian);
         }
     };
