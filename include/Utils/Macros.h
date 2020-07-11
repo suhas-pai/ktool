@@ -12,3 +12,5 @@
 
 #define TO_STRING_IMPL(Tok) #Tok
 #define TO_STRING(Tok) TO_STRING_IMPL(Tok)
+
+#define SIZE_OF_FIELD(Type, Field) (sizeof(((Type *)0)->Field))
