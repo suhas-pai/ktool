@@ -33,3 +33,28 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
                                                Pad);
     return Result;
 }
+
+int PrintUtilsWriteUuid(FILE *OutFile, const uint8_t Uuid[16]) noexcept {
+    const auto Result =
+        fprintf(OutFile,
+                "%.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X"
+                "%.2X%.2X%.2X%.2X%.2X",
+                Uuid[0],
+                Uuid[1],
+                Uuid[2],
+                Uuid[3],
+                Uuid[4],
+                Uuid[5],
+                Uuid[6],
+                Uuid[7],
+                Uuid[8],
+                Uuid[9],
+                Uuid[10],
+                Uuid[11],
+                Uuid[12],
+                Uuid[13],
+                Uuid[14],
+                Uuid[15]);
+
+    return Result;
+}

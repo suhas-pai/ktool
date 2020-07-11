@@ -47,7 +47,7 @@ PrintRebaseInfo(FILE *OutFile,
                                            true);
 
     fputs("Address: ", OutFile);
-    PrintUtilsPrintOffset(OutFile, Info.AddrInSeg, Is64Bit);
+    PrintUtilsWriteOffset(OutFile, Info.AddrInSeg, Is64Bit);
 }
 
 static inline void
@@ -273,7 +273,7 @@ PrintRebaseOpcodeList(
             }
             case MachO::RebaseByte::Opcode::SetSegmentAndOffsetUleb: {
                 fprintf(Options.OutFile, "(%" PRIu32 ", ", Iter.SegmentIndex);
-                PrintUtilsPrintOffset(Options.OutFile, Iter.AddrInSeg, Is64Bit);
+                PrintUtilsWriteOffset(Options.OutFile, Iter.AddrInSeg, Is64Bit);
                 fputc(')', Options.OutFile);
 
                 if (Options.Verbose) {
@@ -288,7 +288,7 @@ PrintRebaseOpcodeList(
                             Iter.Segment->Memory.getBegin() + Iter.AddrInSeg;
 
                         fputc(' ', Options.OutFile);
-                        PrintUtilsPrintOffset(Options.OutFile,
+                        PrintUtilsWriteOffset(Options.OutFile,
                                               FullAddr,
                                               Is64Bit);
                     }
@@ -303,7 +303,7 @@ PrintRebaseOpcodeList(
 
                 if (Options.Verbose) {
                     PadSpacesAfterOpcode();
-                    PrintUtilsPrintOffset(Options.OutFile,
+                    PrintUtilsWriteOffset(Options.OutFile,
                                           Iter.AddrInSeg,
                                           Is64Bit);
                 }

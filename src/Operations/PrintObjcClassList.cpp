@@ -162,7 +162,7 @@ PrintOffset(FILE *OutFile,
                                  fputs("<imported>", OutFile),
                                  OFFSET_LEN(Is64Bit));
     } else {
-        PrintUtilsPrintOffset(OutFile, Offset, Is64Bit);
+        PrintUtilsWriteOffset(OutFile, Offset, Is64Bit);
     }
 }
 
@@ -376,7 +376,7 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
                                          fputs("<imported>", Options.OutFile),
                                          OFFSET_LEN(Is64Bit));
             } else {
-                PrintUtilsPrintOffset(Options.OutFile, Node.Addr, Is64Bit);
+                PrintUtilsWriteOffset(Options.OutFile, Node.Addr, Is64Bit);
             }
 
             const auto NamePrintLength =

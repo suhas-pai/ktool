@@ -134,7 +134,7 @@ PrintTreeExportInfo(
                                                    false);
 
             fputs(" - ", Options.OutFile);
-            PrintUtilsPrintOffset(Options.OutFile, Info.Address, Is64Bit);
+            PrintUtilsWriteOffset(Options.OutFile, Info.Address, Is64Bit);
         }
     }
 
@@ -485,7 +485,7 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
                                                    true);
 
             const auto ImageOffset = Export.Info.getImageOffset();
-            PrintUtilsPrintOffset(Options.OutFile, ImageOffset, Is64Bit);
+            PrintUtilsWriteOffset(Options.OutFile, ImageOffset, Is64Bit);
         } else {
             const auto OffsetLength = (Is64Bit) ? OFFSET_64_LEN : OFFSET_32_LEN;
             const auto PadLength =

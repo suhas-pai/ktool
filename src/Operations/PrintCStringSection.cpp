@@ -164,7 +164,7 @@ PrintCStringSectionOperation::Run(const ConstMachOMemoryObject &Object,
                 StringListSizeDigithLength,
                 Counter);
 
-        PrintUtilsPrintOffset(Options.OutFile, Info.Addr, Is64Bit);
+        PrintUtilsWriteOffset(Options.OutFile, Info.Addr, Is64Bit);
         const auto PrintLength =
             fprintf(Options.OutFile, " \"%s\"", String.data());
 
@@ -178,7 +178,7 @@ PrintCStringSectionOperation::Run(const ConstMachOMemoryObject &Object,
                     LongestStringLengthDigitLength,
                     String.length());
 
-            PrintUtilsPrintOffset(Options.OutFile, Info.Offset, Is64Bit);
+            PrintUtilsWriteOffset(Options.OutFile, Info.Offset, Is64Bit);
             fputc(')', Options.OutFile);
         }
 

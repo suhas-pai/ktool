@@ -49,7 +49,7 @@ PrintRebaseAction(
                                                Section,
                                                true);
 
-        PrintUtilsPrintOffset(Options.OutFile, FullAddr, Is64Bit);
+        PrintUtilsWriteOffset(Options.OutFile, FullAddr, Is64Bit);
     } else {
         PrintUtilsRightPadSpaces(Options.OutFile,
                                  fputs("<unknown>", Options.OutFile),

@@ -49,19 +49,25 @@ __MLCP_WriteOffsetRange(FILE *OutFile,
     if constexpr (Is64Bit) {
         if (!DidOverflow) {
             if constexpr (OffsetTypeIs64Bit) {
-                WrittenOut = PrintUtilsWriteOffsetRange(OutFile, Offset, End);
+                WrittenOut = PrintUtilsWriteOffset64Range(OutFile, Offset, End);
             } else {
                 WrittenOut =
                     PrintUtilsWriteOffset32To64Range(OutFile, Offset, End);
             }
         } else {
-            WrittenOut = PrintUtilsWriteOffsetOverflowsRange(OutFile, Offset);
+            if constexpr (OffsetTypeIs64Bit) {
+                WrittenOut =
+                    PrintUtilsWriteOffset64OverflowsRange(OutFile, Offset);
+            } else {
+                WrittenOut =
+                    PrintUtilsWriteOffset32OverflowsRange(OutFile, Offset);
+            }
         }
     } else {
         if (!DidOverflow) {
-            WrittenOut = PrintUtilsWriteOffsetRange(OutFile, Offset, End);
+            WrittenOut = PrintUtilsWriteOffset32Range(OutFile, Offset, End);
         } else {
-            WrittenOut = PrintUtilsWriteOffsetOverflowsRange(OutFile, Offset);
+            WrittenOut = PrintUtilsWriteOffset32OverflowsRange(OutFile, Offset);
         }
     }
 
@@ -428,7 +434,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SymbolTable> {
         fputs("\tSymbol-Table: ", OutFile);
 
         if (SymOverflows) {
-            PrintUtilsWriteOffsetOverflowsRange(OutFile, SymOff);
+            PrintUtilsWriteOffset32OverflowsRange(OutFile, SymOff);
         } else {
             PrintUtilsWriteOffsetRange32(OutFile, SymOff, SymEnd, Is64Bit);
         }
@@ -1077,7 +1083,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::TwoLevelHints>
         fputc('\t', OutFile);
 
         if (Overflows) {
-            PrintUtilsWriteOffsetOverflowsRange(OutFile, Offset);
+            PrintUtilsWriteOffset32OverflowsRange(OutFile, Offset);
         } else {
             PrintUtilsWriteOffsetRange32(OutFile, Offset, End, Is64Bit);
         }

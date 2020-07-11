@@ -77,7 +77,7 @@
     PackedVersion.getRevision()
 
 inline int
-PrintUtilsWriteOffsetOverflowsRange(FILE *OutFile, uint32_t Offset) noexcept {
+PrintUtilsWriteOffset32OverflowsRange(FILE *OutFile, uint32_t Offset) noexcept {
     if (Offset != 0) {
         return fprintf(OutFile, OFFSET_32_OVERFLOW_FMT, Offset);
     }
@@ -86,7 +86,7 @@ PrintUtilsWriteOffsetOverflowsRange(FILE *OutFile, uint32_t Offset) noexcept {
 }
 
 inline int
-PrintUtilsWriteOffsetOverflowsRange(FILE *OutFile, uint64_t Offset) noexcept {
+PrintUtilsWriteOffset64OverflowsRange(FILE *OutFile, uint64_t Offset) noexcept {
     if (Offset != 0) {
         return fprintf(OutFile, OFFSET_64_OVERFLOW_FMT, Offset);
     }
@@ -95,7 +95,9 @@ PrintUtilsWriteOffsetOverflowsRange(FILE *OutFile, uint64_t Offset) noexcept {
 }
 
 inline int
-PrintUtilsWriteOffsetRange(FILE *OutFile, uint32_t Begin, uint32_t End) noexcept
+PrintUtilsWriteOffset32Range(FILE *OutFile,
+                             uint32_t Begin,
+                             uint32_t End) noexcept
 {
     if (Begin != 0) {
         return fprintf(OutFile, OFFSET_32_RNG_FMT, Begin, End);
@@ -105,7 +107,9 @@ PrintUtilsWriteOffsetRange(FILE *OutFile, uint32_t Begin, uint32_t End) noexcept
 }
 
 inline int
-PrintUtilsWriteOffsetRange(FILE *OutFile, uint64_t Begin, uint64_t End) noexcept
+PrintUtilsWriteOffset64Range(FILE *OutFile,
+                             uint64_t Begin,
+                             uint64_t End) noexcept
 {
     if (Begin != 0) {
         return fprintf(OutFile, OFFSET_64_RNG_FMT, Begin, End);
@@ -127,12 +131,62 @@ PrintUtilsWriteOffset32To64Range(FILE *OutFile,
 }
 
 inline int
-PrintUtilsPrintOffset(FILE *OutFile, uint64_t Offset, bool Is64Bit) noexcept {
+PrintUtilsWriteOffset32SizeRange(FILE *OutFile,
+                                 uint32_t Begin,
+                                 uint32_t Size) noexcept
+{
+    auto End = uint32_t();
+    if (DoesAddOverflow(Begin, Size, &End)) {
+        return PrintUtilsWriteOffset32OverflowsRange(OutFile, Begin);
+    } else {
+        return PrintUtilsWriteOffset32Range(OutFile, Begin, End);
+    }
+}
+
+inline int
+PrintUtilsWriteOffset64SizeRange(FILE *OutFile,
+                                 uint64_t Begin,
+                                 uint64_t Size) noexcept
+{
+    auto End = uint64_t();
+    if (DoesAddOverflow(Begin, Size, &End)) {
+        return PrintUtilsWriteOffset64OverflowsRange(OutFile, Begin);
+    } else {
+        return PrintUtilsWriteOffset64Range(OutFile, Begin, End);
+    }
+}
+
+inline int
+PrintUtilsWriteOffset(FILE *OutFile, uint64_t Offset, bool Is64Bit) noexcept {
     if (Is64Bit) {
+        if (Offset == 0) {
+            return fputs(OFFSET_0x0, OutFile);
+        }
+
         return fprintf(OutFile, OFFSET_64_FMT, Offset);
     }
 
+    if (Offset == 0) {
+        return fputs(OFFSET_0x0, OutFile);
+    }
+
     return fprintf(OutFile, OFFSET_32_FMT, static_cast<uint32_t>(Offset));
+}
+
+inline int PrintUtilsWriteOffset64(FILE *OutFile, uint64_t Offset) noexcept {
+    if (Offset == 0) {
+        return fputs(OFFSET_0x0, OutFile);
+    }
+
+    return fprintf(OutFile, OFFSET_64_FMT, Offset);
+}
+
+inline int PrintUtilsWriteOffset32(FILE *OutFile, uint32_t Offset) noexcept {
+    if (Offset == 0) {
+        return fputs(OFFSET_0x0, OutFile);
+    }
+
+    return fprintf(OutFile, OFFSET_32_FMT, Offset);
 }
 
 inline int
@@ -142,11 +196,11 @@ PrintUtilsWriteOffsetRange(FILE *OutFile,
                            bool Is64Bit) noexcept
 {
     if (Is64Bit) {
-        return PrintUtilsWriteOffsetRange(OutFile, Begin, End);
+        return PrintUtilsWriteOffset64Range(OutFile, Begin, End);
     }
 
     const auto Result =
-        PrintUtilsWriteOffsetRange(OutFile,
+        PrintUtilsWriteOffset32Range(OutFile,
                                    static_cast<uint32_t>(Begin),
                                    static_cast<uint32_t>(End));
     return Result;
@@ -163,8 +217,9 @@ PrintUtilsWriteOffsetRange32(FILE *OutFile,
     }
 
     const auto Result =
-        PrintUtilsWriteOffsetRange(OutFile, Begin, static_cast<uint32_t>(End));
-
+        PrintUtilsWriteOffset32Range(OutFile,
+                                     Begin,
+                                     static_cast<uint32_t>(End));
     return Result;
 }
 
@@ -185,7 +240,7 @@ PrintUtilsWriteSizeRange(FILE *OutFile,
     }
 
     if (Overflows) {
-        return PrintUtilsWriteOffsetOverflowsRange(OutFile, Offset);
+        return PrintUtilsWriteOffset32OverflowsRange(OutFile, Offset);
     }
 
     if (EndOut != nullptr) {
@@ -197,7 +252,7 @@ PrintUtilsWriteSizeRange(FILE *OutFile,
     }
 
     const auto End32 = static_cast<uint32_t>(End);
-    return PrintUtilsWriteOffsetRange(OutFile, Offset, End32);
+    return PrintUtilsWriteOffset32Range(OutFile, Offset, End32);
 }
 
 inline int
@@ -217,14 +272,14 @@ PrintUtilsWriteSizeRange(FILE *OutFile,
     }
 
     if (Overflows) {
-        return PrintUtilsWriteOffsetOverflowsRange(OutFile, Offset);
+        return PrintUtilsWriteOffset64OverflowsRange(OutFile, Offset);
     }
 
     if (EndOut != nullptr) {
         *EndOut = End;
     }
 
-    return PrintUtilsWriteOffsetRange(OutFile, Offset, End);
+    return PrintUtilsWriteOffset64Range(OutFile, Offset, End);
 }
 
 inline int
@@ -350,3 +405,5 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
                                        const MachO::SegmentInfo *Segment,
                                        const MachO::SectionInfo *Section,
                                        bool Pad) noexcept;
+
+int PrintUtilsWriteUuid(FILE *OutFile, const uint8_t Uuid[16]) noexcept;
