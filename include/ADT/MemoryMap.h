@@ -35,6 +35,16 @@ public:
         return reinterpret_cast<const ConstMemoryMap &>(*this);
     }
 
+    template <typename T>
+    [[nodiscard]] inline T *getBeginAs() const noexcept {
+        return reinterpret_cast<T *>(getBegin());
+    }
+
+    template <typename T>
+    [[nodiscard]] inline T *getEndAs() const noexcept {
+        return reinterpret_cast<T *>(getEnd());
+    }
+
     [[nodiscard]] inline RelativeRange getRange() const noexcept {
         return RelativeRange(size());
     }
@@ -50,4 +60,14 @@ public:
     }
 
     [[nodiscard]] inline const uint8_t *getEnd() const noexcept { return End; }
+
+    template <typename T>
+    [[nodiscard]] inline const T *getBeginAs() const noexcept {
+        return reinterpret_cast<const T *>(getBegin());
+    }
+
+    template <typename T>
+    [[nodiscard]] inline const T *getEndAs() const noexcept {
+        return reinterpret_cast<const T *>(getEnd());
+    }
 };
