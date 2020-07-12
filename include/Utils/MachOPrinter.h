@@ -44,23 +44,36 @@ MachOPrintOffsetSizeRange(FILE *OutFile,
                 OFFSET_32_64_RANGE_LEN :
             OFFSET_32_RANGE_LEN;
 
-    fprintf(OutFile, "%s", LinePrefix);
     if (Is64Bit) {
         if (!DidOverflow) {
             if constexpr (OffsetTypeIs64Bit) {
-                WrittenOut = PrintUtilsWriteOffsetRange(OutFile, Offset, End);
+                WrittenOut =
+                    PrintUtilsWriteOffsetRange(OutFile,
+                                               Offset,
+                                               End,
+                                               LinePrefix);
             } else {
                 WrittenOut =
-                    PrintUtilsWriteOffset32To64Range(OutFile, Offset, End);
+                    PrintUtilsWriteOffset32To64Range(OutFile,
+                                                     Offset,
+                                                     End,
+                                                     LinePrefix);
             }
         } else {
-            WrittenOut = PrintUtilsWriteOffsetOverflowsRange(OutFile, Offset);
+            WrittenOut =
+                PrintUtilsWriteOffsetOverflowsRange(OutFile,
+                                                    Offset,
+                                                    LinePrefix);
         }
     } else {
         if (!DidOverflow) {
-            WrittenOut = PrintUtilsWriteOffsetRange(OutFile, Offset, End);
+            WrittenOut =
+                PrintUtilsWriteOffsetRange(OutFile, Offset, End, LinePrefix);
         } else {
-            WrittenOut = PrintUtilsWriteOffsetOverflowsRange(OutFile, Offset);
+            WrittenOut =
+                PrintUtilsWriteOffsetOverflowsRange(OutFile,
+                                                    Offset,
+                                                    LinePrefix);
         }
     }
 

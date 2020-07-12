@@ -40,14 +40,13 @@ PrintRebaseInfo(FILE *OutFile,
         return;
     }
 
-    fputs("Section: ", OutFile);
     PrintUtilsWriteMachOSegmentSectionPair(OutFile,
                                            Info.Segment,
                                            Info.Section,
-                                           true);
+                                           true,
+                                           "Section :");
 
-    fputs("Address: ", OutFile);
-    PrintUtilsWriteOffset(OutFile, Info.AddrInSeg, Is64Bit);
+    PrintUtilsWriteOffset(OutFile, Info.AddrInSeg, Is64Bit, "Address: ");
 }
 
 static inline void
@@ -273,8 +272,11 @@ PrintRebaseOpcodeList(
             }
             case MachO::RebaseByte::Opcode::SetSegmentAndOffsetUleb: {
                 fprintf(Options.OutFile, "(%" PRIu32 ", ", Iter.SegmentIndex);
-                PrintUtilsWriteOffset(Options.OutFile, Iter.AddrInSeg, Is64Bit);
-                fputc(')', Options.OutFile);
+                PrintUtilsWriteOffset(Options.OutFile,
+                                      Iter.AddrInSeg,
+                                      Is64Bit,
+                                      "",
+                                      ")");
 
                 if (Options.Verbose) {
                     PadSpacesAfterOpcode();
@@ -287,10 +289,10 @@ PrintRebaseOpcodeList(
                         const auto FullAddr =
                             Iter.Segment->Memory.getBegin() + Iter.AddrInSeg;
 
-                        fputc(' ', Options.OutFile);
                         PrintUtilsWriteOffset(Options.OutFile,
                                               FullAddr,
-                                              Is64Bit);
+                                              Is64Bit,
+                                              " ");
                     }
                 }
 

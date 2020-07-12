@@ -88,8 +88,10 @@ PrintBindAction(
         PrintUtilsWriteOffset(Options.OutFile, FullAddr, Is64Bit);
 
         if (Action.Addend != 0) {
-            fputs(" + ", Options.OutFile);
-            PrintUtilsWriteOffset(Options.OutFile, Action.Addend, Is64Bit);
+            PrintUtilsWriteOffset(Options.OutFile,
+                                  Action.Addend,
+                                  Is64Bit,
+                                  " + ");
         }
     } else {
         PrintUtilsRightPadSpaces(Options.OutFile,

@@ -122,9 +122,9 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
                 static_cast<int>(LongestImagePath + LENGTH_OF("\"\""));
 
             PrintUtilsRightPadSpaces(Options.OutFile, WrittenOut, RightPad);
-
-            fputs(" <Address: ", Options.OutFile);
-            PrintUtilsWriteOffset64(Options.OutFile, Info.Address);
+            PrintUtilsWriteOffset64(Options.OutFile,
+                                    Info.Address,
+                                    " <Address: ");
 
             fprintf(Options.OutFile,
                     ", Modification-Time: %s, Inode: %" PRIu64 ">",

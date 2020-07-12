@@ -427,9 +427,13 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SymbolTable> {
         auto StrTabEnd = uint64_t();
         auto SymTabEnd = uint64_t();
 
-        PrintUtilsWriteSizeRange(OutFile, Is64Bit, StrOff, StrSize, &StrTabEnd);
-        fprintf(OutFile, " (%" PRIu32 " Bytes)", StrSize);
+        PrintUtilsWriteSizeRange32(OutFile,
+                                   Is64Bit,
+                                   StrOff,
+                                   StrSize,
+                                   &StrTabEnd);
 
+        fprintf(OutFile, " (%" PRIu32 " Bytes)", StrSize);
         __MLCP_WritePastEOFWarning(OutFile, FileRange, StrTabEnd, "\n");
         fputs("\tSymbol-Table: ", OutFile);
 
@@ -464,13 +468,8 @@ __MLCP_WriteLCOffsetSizePair(FILE *OutFile,
 
     [[maybe_unused]] auto End = uint64_t();
 
-    fputs(" (", OutFile);
-    PrintUtilsWriteSizeRange(OutFile, Is64Bit, Offset, Size, &End);
-    fputs(")", OutFile);
-
-    fputs(" (", OutFile);
-    PrintUtilsWriteFormattedSize(OutFile, Size);
-    fputs(")", OutFile);
+    PrintUtilsWriteSizeRange32(OutFile, Is64Bit, Offset, Size, &End, " (", ")");
+    PrintUtilsWriteFormattedSize(OutFile, Size, " (", ")");
 
     if constexpr (PrintEOF) {
         __MLCP_WritePastEOFWarning(OutFile, FileRange, End, "");
@@ -1084,12 +1083,10 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::TwoLevelHints>
         }
 
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
-        fputc('\t', OutFile);
-
         if (Overflows) {
-            PrintUtilsWriteOffset32OverflowsRange(OutFile, Offset);
+            PrintUtilsWriteOffset32OverflowsRange(OutFile, Offset, "\t");
         } else {
-            PrintUtilsWriteOffsetRange32(OutFile, Offset, End, Is64Bit);
+            PrintUtilsWriteOffsetRange32(OutFile, Offset, End, Is64Bit, "\t");
         }
 
         fprintf(OutFile, "%" PRIu32 " Hints\n", NHints);
@@ -1315,14 +1312,13 @@ static void
 MachOLoadCommandPrinterWriteEncryptionInfoCmd(
     FILE *OutFile,
     const RelativeRange &FileRange,
-    const EncryptionInfoCommand &EncryptionInfo,
+    const EncryptionInfoCommand &Info,
     bool IsBigEndian,
     bool Is64Bit) noexcept
 {
-    const auto Offset = SwitchEndianIf(EncryptionInfo.CryptOff, IsBigEndian);
-    const auto Size = SwitchEndianIf(EncryptionInfo.CryptSize, IsBigEndian);
-    const auto CryptID =
-        SwitchEndianIf(EncryptionInfo.CryptId, IsBigEndian);
+    const auto Offset = SwitchEndianIf(Info.CryptOff, IsBigEndian);
+    const auto Size = SwitchEndianIf(Info.CryptSize, IsBigEndian);
+    const auto CryptID = SwitchEndianIf(Info.CryptId, IsBigEndian);
 
     fprintf(OutFile,
             "\tCryptOff: " OFFSET_32_FMT ", CryptSize: %" PRIu32 " (",
@@ -1330,8 +1326,8 @@ MachOLoadCommandPrinterWriteEncryptionInfoCmd(
 
     auto End = uint64_t();
 
-    PrintUtilsWriteSizeRange(OutFile, Is64Bit, Offset, Size, &End);
-    fprintf(OutFile, "), CryptID: %" PRIu32, CryptID);
+    PrintUtilsWriteSizeRange32(OutFile, Is64Bit, Offset, Size, &End, "", "), ");
+    fprintf(OutFile, "CryptID: %" PRIu32, CryptID);
 
     __MLCP_WritePastEOFWarning(OutFile, FileRange, End, "\n");
 }
@@ -1438,8 +1434,13 @@ PrintDyldInfoField(FILE *OutFile,
                 Size,
                 Offset);
 
-        PrintUtilsWriteSizeRange(OutFile, Is64Bit, Offset, Size, &End);
-        fputc(')', OutFile);
+        PrintUtilsWriteSizeRange32(OutFile,
+                                   Is64Bit,
+                                   Offset,
+                                   Size,
+                                   &End,
+                                   "",
+                                   ")");
 
         __MLCP_WritePastEOFWarning(OutFile, FileRange, End, "\n");
     } else {
@@ -1929,9 +1930,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Note>
 
         auto End = uint64_t();
 
-        PrintUtilsWriteSizeRange(OutFile, Is64Bit, Offset, Size, &End);
-        fputc(')', OutFile);
-
+        PrintUtilsWriteSizeRange64(OutFile, Is64Bit, Offset, Size, &End, "", ")");
         __MLCP_WritePastEOFWarning(OutFile, FileRange, End, "\n");
     }
 };

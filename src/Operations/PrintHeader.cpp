@@ -256,23 +256,29 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
     fprintf(Options.OutFile, "%d\n", static_cast<int>(Version));
 
     PrintDscKey(Options.OutFile, "Mapping Offset");
-    PrintUtilsWriteOffset32(Options.OutFile, Header.MappingOffset);
-    fputc('\n', Options.OutFile);
+    PrintUtilsWriteOffset32(Options.OutFile,
+                            Header.MappingOffset,
+                            "",
+                            "\n");
 
     PrintDscKey(Options.OutFile, "Mapping Count");
     fprintf(Options.OutFile, "%" PRIu32 "\n", Header.MappingCount);
 
     PrintDscKey(Options.OutFile, "Images Count");
-    PrintUtilsWriteOffset32(Options.OutFile, Header.ImagesOffset);
-    fputc('\n', Options.OutFile);
+    PrintUtilsWriteOffset32(Options.OutFile,
+                            Header.ImagesOffset,
+                            "",
+                            "\n");
 
     PrintDscKey(Options.OutFile, "Images Count");
     fprintf(Options.OutFile, "%" PRIu32 "\n", Header.ImagesCount);
 
     PrintDscKey(Options.OutFile, "Dyld Base-Address");
-    PrintUtilsWriteOffset64(Options.OutFile, Header.DyldBaseAddress);
+    PrintUtilsWriteOffset64(Options.OutFile,
+                            Header.DyldBaseAddress,
+                            "",
+                            "\n");
 
-    fputc('\n', Options.OutFile);
     return Version;
 }
 
@@ -289,9 +295,11 @@ PrintDscSizeRange(FILE *OutFile,
 
     if (Size != 0) {
         if (Verbose) {
-            fputs(" (", OutFile);
-            PrintUtilsWriteOffset64SizeRange(OutFile, Offset, Size);
-            fputs(")\n", OutFile);
+            PrintUtilsWriteOffset64SizeRange(OutFile,
+                                             Offset,
+                                             Size,
+                                             " (",
+                                             ")\n");
         } else {
             fputc('\n', OutFile);
         }
@@ -301,10 +309,7 @@ PrintDscSizeRange(FILE *OutFile,
         const auto SizeWrittenOut = fprintf(OutFile, "%" PRIu64, Size);
         if (Verbose) {
             PrintUtilsRightPadSpaces(OutFile, SizeWrittenOut, OFFSET_64_LEN);
-            fputs(" (", OutFile);
-
-            PrintUtilsWriteFormattedSize(OutFile, Size);
-            fputs(")\n", OutFile);
+            PrintUtilsWriteFormattedSize(OutFile, Size, " (", ")\n");
         } else {
             fputc('\n', OutFile);
         }
@@ -380,8 +385,10 @@ PrintDscHeaderV4Info(const struct PrintHeaderOperation::Options &Options,
     const auto Header = Object.getHeaderV4();
 
     PrintDscKey(Options.OutFile, "Branch-Pools Offset");
-    PrintUtilsWriteOffset32(Options.OutFile, Header.BranchPoolsOffset);
-    fputc('\n', Options.OutFile);
+    PrintUtilsWriteOffset32(Options.OutFile,
+                            Header.BranchPoolsOffset,
+                            "",
+                            "\n");
 
     PrintDscKey(Options.OutFile, "Branch-Pools Count");
     fprintf(Options.OutFile, "%" PRIu32 "\n", Header.BranchPoolsCount);
@@ -401,8 +408,10 @@ PrintDscHeaderV4Info(const struct PrintHeaderOperation::Options &Options,
                       Options.Verbose);
 
     PrintDscKey(Options.OutFile, "Images-Text Offset");
-    PrintUtilsWriteOffset64(Options.OutFile, Header.ImagesTextOffset);
-    fputc('\n', Options.OutFile);
+    PrintUtilsWriteOffset64(Options.OutFile,
+                            Header.ImagesTextOffset,
+                            "",
+                            "\n");
 
     PrintDscKey(Options.OutFile, "Images-Text Count");
     fprintf(Options.OutFile, "%" PRIu32 "\n", Header.BranchPoolsCount);

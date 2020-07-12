@@ -13,7 +13,9 @@ int
 PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
                                        const MachO::SegmentInfo *Segment,
                                        const MachO::SectionInfo *Section,
-                                       bool Pad) noexcept
+                                       bool Pad,
+                                       const char *Prefix,
+                                       const char *Suffix) noexcept
 {
     auto SegmentName = static_cast<const char *>(nullptr);
     auto SectionName = static_cast<const char *>(nullptr);
@@ -30,15 +32,23 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
         PrintUtilsWriteMachOSegmentSectionPair(OutFile,
                                                SegmentName,
                                                SectionName,
-                                               Pad);
+                                               Pad,
+                                               Prefix,
+                                               Suffix);
     return Result;
 }
 
-int PrintUtilsWriteUuid(FILE *OutFile, const uint8_t Uuid[16]) noexcept {
+int
+PrintUtilsWriteUuid(FILE *OutFile,
+                    const uint8_t Uuid[16],
+                    const char *Prefix,
+                    const char *Suffix) noexcept
+{
     const auto Result =
         fprintf(OutFile,
-                "%.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X"
-                "%.2X%.2X%.2X%.2X%.2X",
+                "%s%.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X"
+                "%.2X%.2X%.2X%.2X%.2X%s",
+                Prefix,
                 Uuid[0],
                 Uuid[1],
                 Uuid[2],
@@ -54,7 +64,8 @@ int PrintUtilsWriteUuid(FILE *OutFile, const uint8_t Uuid[16]) noexcept {
                 Uuid[12],
                 Uuid[13],
                 Uuid[14],
-                Uuid[15]);
+                Uuid[15],
+                Suffix);
 
     return Result;
 }
@@ -73,7 +84,12 @@ constexpr static const std::string_view FormatNames[] = {
     "Yottabyte"sv
 };
 
-int PrintUtilsWriteFormattedSize(FILE *OutFile, uint64_t Size) noexcept {
+int
+PrintUtilsWriteFormattedSize(FILE *OutFile,
+                             uint64_t Size,
+                             const char *Prefix,
+                             const char *Suffix) noexcept
+{
     constexpr auto Base = 1000;
 
     auto Result = double(Size);
@@ -87,7 +103,7 @@ int PrintUtilsWriteFormattedSize(FILE *OutFile, uint64_t Size) noexcept {
     assert(Index < countof(FormatNames));
 
     const auto &Name = FormatNames[Index];
-    fprintf(stdout, "%.3f %s", Result, Name.data());
+    fprintf(stdout, "%s%.3f %s%s", Prefix, Result, Name.data(), Suffix);
 
     return 0;
 }

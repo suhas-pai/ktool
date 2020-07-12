@@ -77,132 +77,257 @@
     PackedVersion.getRevision()
 
 inline int
-PrintUtilsWriteOffset32OverflowsRange(FILE *OutFile, uint32_t Offset) noexcept {
+PrintUtilsWriteOffset32OverflowsRange(FILE *OutFile,
+                                      uint32_t Offset,
+                                      const char *Prefix = "",
+                                      const char *Suffix = "") noexcept
+{
     if (Offset != 0) {
-        return fprintf(OutFile, OFFSET_32_OVERFLOW_FMT, Offset);
+        const auto Result =
+            fprintf(OutFile,
+                    "%s" OFFSET_32_OVERFLOW_FMT "%s",
+                    Prefix,
+                    Offset,
+                    Suffix);
+
+        return Result;
     }
 
-    return fprintf(OutFile, OFFSET_0x0);
+    return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
 }
 
 inline int
-PrintUtilsWriteOffset64OverflowsRange(FILE *OutFile, uint64_t Offset) noexcept {
+PrintUtilsWriteOffset64OverflowsRange(FILE *OutFile,
+                                      uint64_t Offset,
+                                      const char *Prefix = "",
+                                      const char *Suffix = "") noexcept {
     if (Offset != 0) {
-        return fprintf(OutFile, OFFSET_64_OVERFLOW_FMT, Offset);
+        const auto Result =
+            fprintf(OutFile,
+                    "%s" OFFSET_64_OVERFLOW_FMT "%s",
+                    Prefix,
+                    Offset,
+                    Suffix);
+
+        return Result;
     }
 
-    return fprintf(OutFile, OFFSET_0x0);
+    return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
 }
 
 inline int
 PrintUtilsWriteOffset32Range(FILE *OutFile,
                              uint32_t Begin,
-                             uint32_t End) noexcept
+                             uint32_t End,
+                             const char *Prefix = "",
+                             const char *Suffix = "") noexcept
 {
     if (Begin != 0) {
-        return fprintf(OutFile, OFFSET_32_RNG_FMT, Begin, End);
+        const auto Result =
+            fprintf(OutFile,
+                    "%s" OFFSET_32_RNG_FMT "%s",
+                    Prefix,
+                    Begin,
+                    End,
+                    Suffix);
+
+        return Result;
     }
 
-    return fprintf(OutFile, OFFSET_0x0 "-" OFFSET_32_FMT, End);
+    const auto Result =
+        fprintf(OutFile,
+                "%s" OFFSET_0x0 "-" OFFSET_32_FMT "%s",
+                Prefix,
+                End,
+                Suffix);
+
+    return Result;
 }
 
 inline int
 PrintUtilsWriteOffset64Range(FILE *OutFile,
                              uint64_t Begin,
-                             uint64_t End) noexcept
+                             uint64_t End,
+                             const char *Prefix = "",
+                             const char *Suffix = "") noexcept
 {
     if (Begin != 0) {
-        return fprintf(OutFile, OFFSET_64_RNG_FMT, Begin, End);
+        const auto Result =
+            fprintf(OutFile,
+                    "%s" OFFSET_64_RNG_FMT "%s",
+                    Prefix,
+                    Begin,
+                    End,
+                    Suffix);
+
+        return Result;
     }
 
-    return fprintf(OutFile, OFFSET_0x0 "-" OFFSET_64_FMT, End);
+    const auto Result =
+        fprintf(OutFile,
+                "%s" OFFSET_0x0 "-" OFFSET_64_FMT "%s",
+                Prefix,
+                End,
+                Suffix);
+
+    return Result;
 }
 
 inline int
 PrintUtilsWriteOffset32To64Range(FILE *OutFile,
                                  uint32_t Begin,
-                                 uint64_t End) noexcept
+                                 uint64_t End,
+                                 const char *Prefix = "",
+                                 const char *Suffix = "") noexcept
 {
     if (Begin != 0) {
-        return fprintf(OutFile, OFFSET_32_64_RNG_FMT, Begin, End);
+        const auto Result =
+            fprintf(OutFile,
+                    "%s" OFFSET_32_64_RNG_FMT "%s",
+                    Prefix,
+                    Begin,
+                    End,
+                    Suffix);
+
+        return Result;
     }
 
-    return fprintf(OutFile, OFFSET_0x0 "-" OFFSET_64_FMT, End);
+    const auto Result =
+        fprintf(OutFile,
+                "%s" OFFSET_0x0 "-" OFFSET_64_FMT "%s",
+                Prefix,
+                End,
+                Suffix);
+
+    return Result;
 }
 
 inline int
 PrintUtilsWriteOffset32SizeRange(FILE *OutFile,
                                  uint32_t Begin,
-                                 uint32_t Size) noexcept
+                                 uint32_t Size,
+                                 const char *Prefix = "",
+                                 const char *Suffix = "") noexcept
 {
     auto End = uint32_t();
+    auto Result = 0;
+
     if (DoesAddOverflow(Begin, Size, &End)) {
-        return PrintUtilsWriteOffset32OverflowsRange(OutFile, Begin);
+        Result =
+            PrintUtilsWriteOffset32OverflowsRange(OutFile,
+                                                  Begin,
+                                                  Prefix,
+                                                  Suffix);
     } else {
-        return PrintUtilsWriteOffset32Range(OutFile, Begin, End);
+        Result =
+            PrintUtilsWriteOffset32Range(OutFile, Begin, End, Prefix, Suffix);
     }
+
+    return Result;
 }
 
 inline int
 PrintUtilsWriteOffset64SizeRange(FILE *OutFile,
                                  uint64_t Begin,
-                                 uint64_t Size) noexcept
+                                 uint64_t Size,
+                                 const char *Prefix = "",
+                                 const char *Suffix = "") noexcept
 {
     auto End = uint64_t();
+    auto Result = 0;
+
     if (DoesAddOverflow(Begin, Size, &End)) {
-        return PrintUtilsWriteOffset64OverflowsRange(OutFile, Begin);
+        Result =
+            PrintUtilsWriteOffset64OverflowsRange(OutFile,
+                                                  Begin,
+                                                  Prefix,
+                                                  Suffix);
     } else {
-        return PrintUtilsWriteOffset64Range(OutFile, Begin, End);
+        Result =
+            PrintUtilsWriteOffset64Range(OutFile, Begin, End, Prefix, Suffix);
     }
+
+    return Result;
 }
 
 inline int
-PrintUtilsWriteOffset(FILE *OutFile, uint64_t Offset, bool Is64Bit) noexcept {
+PrintUtilsWriteOffset(FILE *OutFile,
+                      uint64_t Offset,
+                      bool Is64Bit,
+                      const char *Prefix = "",
+                      const char *Suffix = "") noexcept {
     if (Is64Bit) {
         if (Offset == 0) {
-            return fputs(OFFSET_0x0, OutFile);
+            return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
         }
 
-        return fprintf(OutFile, OFFSET_64_FMT, Offset);
+        const auto Result =
+            fprintf(OutFile, "%s" OFFSET_64_FMT "%s", Prefix, Offset, Suffix);
+
+        return Result;
     }
 
     if (Offset == 0) {
-        return fputs(OFFSET_0x0, OutFile);
+        return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
     }
 
-    return fprintf(OutFile, OFFSET_32_FMT, static_cast<uint32_t>(Offset));
+    const auto Result =
+        fprintf(OutFile,
+                "%s" OFFSET_32_FMT "%s",
+                Prefix,
+                static_cast<uint32_t>(Offset),
+                Suffix);
+
+    return Result;
 }
 
-inline int PrintUtilsWriteOffset64(FILE *OutFile, uint64_t Offset) noexcept {
+inline int
+PrintUtilsWriteOffset32(FILE *OutFile,
+                        uint32_t Offset,
+                        const char *Prefix = "",
+                        const char *Suffix = "") noexcept
+{
     if (Offset == 0) {
-        return fputs(OFFSET_0x0, OutFile);
+        return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
     }
 
-    return fprintf(OutFile, OFFSET_64_FMT, Offset);
+    return fprintf(OutFile, "%s" OFFSET_32_FMT "%s", Prefix, Offset, Suffix);
 }
 
-inline int PrintUtilsWriteOffset32(FILE *OutFile, uint32_t Offset) noexcept {
+inline int
+PrintUtilsWriteOffset64(FILE *OutFile,
+                        uint64_t Offset,
+                        const char *Prefix = "",
+                        const char *Suffix = "") noexcept
+{
     if (Offset == 0) {
-        return fputs(OFFSET_0x0, OutFile);
+        return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
     }
 
-    return fprintf(OutFile, OFFSET_32_FMT, Offset);
+    return fprintf(OutFile, "%s" OFFSET_64_FMT "%s", Prefix, Offset, Suffix);
 }
 
 inline int
 PrintUtilsWriteOffsetRange(FILE *OutFile,
                            uint64_t Begin,
                            uint64_t End,
-                           bool Is64Bit) noexcept
+                           bool Is64Bit,
+                           const char *Prefix = "",
+                           const char *Suffix = "") noexcept
 {
     if (Is64Bit) {
-        return PrintUtilsWriteOffset64Range(OutFile, Begin, End);
+        const auto Result =
+            PrintUtilsWriteOffset64Range(OutFile, Begin, End, Prefix, Suffix);
+
+        return Result;
     }
 
     const auto Result =
         PrintUtilsWriteOffset32Range(OutFile,
-                                   static_cast<uint32_t>(Begin),
-                                   static_cast<uint32_t>(End));
+                                     static_cast<uint32_t>(Begin),
+                                     static_cast<uint32_t>(End),
+                                     Prefix,
+                                     Suffix);
     return Result;
 }
 
@@ -210,25 +335,38 @@ inline int
 PrintUtilsWriteOffsetRange32(FILE *OutFile,
                              uint32_t Begin,
                              uint64_t End,
-                             bool Is64Bit) noexcept
+                             bool Is64Bit,
+                             const char *Prefix = "",
+                             const char *Suffix = "") noexcept
 {
     if (Is64Bit) {
-        return PrintUtilsWriteOffset32To64Range(OutFile, Begin, End);
+        const auto Result =
+            PrintUtilsWriteOffset32To64Range(OutFile,
+                                             Begin,
+                                             End,
+                                             Prefix,
+                                             Suffix);
+
+        return Result;
     }
 
     const auto Result =
         PrintUtilsWriteOffset32Range(OutFile,
                                      Begin,
-                                     static_cast<uint32_t>(End));
+                                     static_cast<uint32_t>(End),
+                                     Prefix,
+                                     Suffix);
     return Result;
 }
 
 inline int
-PrintUtilsWriteSizeRange(FILE *OutFile,
-                         bool Is64Bit,
-                         uint32_t Offset,
-                         uint32_t Size,
-                         uint64_t *EndOut) noexcept
+PrintUtilsWriteSizeRange32(FILE *OutFile,
+                           bool Is64Bit,
+                           uint32_t Offset,
+                           uint32_t Size,
+                           uint64_t *EndOut,
+                           const char *Prefix = "",
+                           const char *Suffix = "") noexcept
 {
     auto End = uint64_t();
     auto Overflows = false;
@@ -240,7 +378,13 @@ PrintUtilsWriteSizeRange(FILE *OutFile,
     }
 
     if (Overflows) {
-        return PrintUtilsWriteOffset32OverflowsRange(OutFile, Offset);
+        const auto Result =
+            PrintUtilsWriteOffset32OverflowsRange(OutFile,
+                                                  Offset,
+                                                  Prefix,
+                                                  Suffix);
+
+        return Result;
     }
 
     if (EndOut != nullptr) {
@@ -248,19 +392,28 @@ PrintUtilsWriteSizeRange(FILE *OutFile,
     }
 
     if (Is64Bit) {
-        return PrintUtilsWriteOffset32To64Range(OutFile, Offset, End);
+        const auto Result =
+            PrintUtilsWriteOffset32To64Range(OutFile,
+                                             Offset,
+                                             End,
+                                             Prefix,
+                                             Suffix);
+
+        return Result;
     }
 
     const auto End32 = static_cast<uint32_t>(End);
-    return PrintUtilsWriteOffset32Range(OutFile, Offset, End32);
+    return PrintUtilsWriteOffset32Range(OutFile, Offset, End32, Prefix, Suffix);
 }
 
 inline int
-PrintUtilsWriteSizeRange(FILE *OutFile,
-                         bool Is64Bit,
-                         uint64_t Offset,
-                         uint64_t Size,
-                         uint64_t *EndOut) noexcept
+PrintUtilsWriteSizeRange64(FILE *OutFile,
+                           bool Is64Bit,
+                           uint64_t Offset,
+                           uint64_t Size,
+                           uint64_t *EndOut,
+                           const char *Prefix = "",
+                           const char *Suffix = "") noexcept
 {
     auto End = uint64_t();
     auto Overflows = false;
@@ -272,14 +425,20 @@ PrintUtilsWriteSizeRange(FILE *OutFile,
     }
 
     if (Overflows) {
-        return PrintUtilsWriteOffset64OverflowsRange(OutFile, Offset);
+        const auto Result =
+            PrintUtilsWriteOffset64OverflowsRange(OutFile,
+                                                  Offset,
+                                                  Prefix,
+                                                  Suffix);
+
+        return Result;
     }
 
     if (EndOut != nullptr) {
         *EndOut = End;
     }
 
-    return PrintUtilsWriteOffset64Range(OutFile, Offset, End);
+    return PrintUtilsWriteOffset64Range(OutFile, Offset, End, Prefix, Suffix);
 }
 
 inline int
@@ -358,7 +517,9 @@ inline int
 PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
                                        const char *SegmentName,
                                        const char *SectionName,
-                                       bool Pad) noexcept
+                                       bool Pad,
+                                       const char *Prefix = "",
+                                       const char *Suffix = "") noexcept
 {
     constexpr static auto NameLengthMax = 16;
     auto WrittenOut = int();
@@ -372,7 +533,10 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
         }
 
         WrittenOut +=
-            fprintf(OutFile, "\"" CHAR_ARR_FMT(16) "\",", SegmentName);
+            fprintf(OutFile,
+                    "%s" "\"" CHAR_ARR_FMT(16) "\"",
+                    Prefix,
+                    SegmentName);
 
         if (SectionName != nullptr) {
             WrittenOut +=
@@ -381,8 +545,10 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
                                                  "\"" CHAR_ARR_FMT(16) "\"",
                                                  SectionName),
                                          NameLengthMax + LENGTH_OF("\"\""));
+
+            WrittenOut += fprintf(OutFile, "%s", Suffix);
         } else {
-            WrittenOut += fputs("<invalid>", OutFile);
+            WrittenOut += fprintf(OutFile, "<invalid>%s", Suffix);
         }
     } else if (Pad) {
         // 2 NameLengthMax for max-names of segment and section, 4 for the
@@ -404,7 +570,18 @@ int
 PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
                                        const MachO::SegmentInfo *Segment,
                                        const MachO::SectionInfo *Section,
-                                       bool Pad) noexcept;
+                                       bool Pad,
+                                       const char *Prefix = "",
+                                       const char *Suffix = "") noexcept;
 
-int PrintUtilsWriteUuid(FILE *OutFile, const uint8_t Uuid[16]) noexcept;
-int PrintUtilsWriteFormattedSize(FILE *OutFile, uint64_t Size) noexcept;
+int
+PrintUtilsWriteUuid(FILE *OutFile,
+                    const uint8_t Uuid[16],
+                    const char *Prefix = "",
+                    const char *Suffix = "") noexcept;
+
+int
+PrintUtilsWriteFormattedSize(FILE *OutFile,
+                             uint64_t Size,
+                             const char *Prefix = "",
+                             const char *Suffix = "") noexcept;

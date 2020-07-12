@@ -68,15 +68,17 @@ PrintBindInfo(FILE *OutFile,
               const BindOpcodeInfo &Info,
               bool Is64Bit) noexcept
 {
-    fputs("Section: ", OutFile);
     PrintUtilsWriteMachOSegmentSectionPair(OutFile,
                                            Info.Segment,
                                            Info.Section,
-                                           true);
+                                           true,
+                                           "Section: ");
 
-    fputs("Address: ", OutFile);
-    PrintUtilsWriteOffset(OutFile, Info.AddrInSeg, Is64Bit);
-    fputs(", ", OutFile);
+    PrintUtilsWriteOffset(OutFile,
+                          Info.AddrInSeg,
+                          Is64Bit,
+                          "Address: ",
+                          ", ");
 
     OperationCommon::PrintDylibOrdinalInfo(OutFile,
                                            LibraryCollection,
@@ -385,15 +387,20 @@ PrintBindOpcodeList(
                 break;
             }
             case MachO::BindByte::Opcode::SetAddendSleb:
-                fputc('(', Options.OutFile);
-                PrintUtilsWriteOffset(Options.OutFile, Iter.Addend, Is64Bit);
-                fputs(")\n", Options.OutFile);
+                PrintUtilsWriteOffset(Options.OutFile,
+                                      Iter.Addend,
+                                      Is64Bit,
+                                      "(",
+                                      ")\n");
 
                 break;
             case MachO::BindByte::Opcode::SetSegmentAndOffsetUleb: {
                 fprintf(Options.OutFile, "(%" PRId64 ", ", Iter.SegmentIndex);
-                PrintUtilsWriteOffset(Options.OutFile, Iter.AddrInSeg, Is64Bit);
-                fputc(')', Options.OutFile);
+                PrintUtilsWriteOffset(Options.OutFile,
+                                      Iter.AddrInSeg,
+                                      Is64Bit,
+                                      "",
+                                      ")");
 
                 if (Options.Verbose) {
                     PadSpacesAfterOpcode();
@@ -406,10 +413,10 @@ PrintBindOpcodeList(
                         const auto FullAddr =
                             Iter.Segment->Memory.getBegin() + Iter.AddrInSeg;
 
-                        fputc(' ', Options.OutFile);
                         PrintUtilsWriteOffset(Options.OutFile,
                                               FullAddr,
-                                              Is64Bit);
+                                              Is64Bit,
+                                              " ");
                     }
                 }
 
