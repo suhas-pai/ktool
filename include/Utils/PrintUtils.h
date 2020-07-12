@@ -407,3 +407,4 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
                                        bool Pad) noexcept;
 
 int PrintUtilsWriteUuid(FILE *OutFile, const uint8_t Uuid[16]) noexcept;
+int PrintUtilsWriteFormattedSize(FILE *OutFile, uint64_t Size) noexcept;

@@ -58,3 +58,36 @@ int PrintUtilsWriteUuid(FILE *OutFile, const uint8_t Uuid[16]) noexcept {
 
     return Result;
 }
+
+using namespace std::literals;
+
+constexpr static const std::string_view FormatNames[] = {
+    "Bytes"sv,
+    "KiloBytes"sv,
+    "MegaBytes"sv,
+    "GigaBytes"sv,
+    "TeraBytes"sv,
+    "PetaBytes"sv,
+    "ExaBytes"sv,
+    "Zettabyte"sv,
+    "Yottabyte"sv
+};
+
+int PrintUtilsWriteFormattedSize(FILE *OutFile, uint64_t Size) noexcept {
+    constexpr auto Base = 1000;
+
+    auto Result = double(Size);
+    auto Index = 0;
+
+    while (Result >= Base) {
+        Result /= Base;
+        Index++;
+    }
+
+    assert(Index < countof(FormatNames));
+
+    const auto &Name = FormatNames[Index];
+    fprintf(stdout, "%.3f %s", Result, Name.data());
+
+    return 0;
+}
