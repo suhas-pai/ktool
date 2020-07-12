@@ -6,6 +6,8 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#include <cstring>
+
 #include "ADT/DyldSharedCache/Headers.h"
 #include "ADT/LocationRange.h"
 
