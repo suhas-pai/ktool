@@ -25,5 +25,6 @@ enum class OperationKind {
     PrintRebaseActionList = (12ull << 1),
     PrintRebaseOpcodeList = (13ull << 1),
     PrintCStringSection   = (14ull << 1),
-    PrintSymbolPtrSection = (15ull << 1)
+    PrintSymbolPtrSection = (15ull << 1),
+    PrintImageList        = (16ull << 1)
 };

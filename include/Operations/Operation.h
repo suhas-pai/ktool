@@ -26,6 +26,7 @@
 #include "PrintRebaseOpcodeList.h"
 #include "PrintCStringSection.h"
 #include "PrintSymbolPtrSection.h"
+#include "PrintImageList.h"
 
 using namespace std::literals;
 
@@ -152,6 +153,14 @@ struct OperationKindInfo<OperationKind::PrintSymbolPtrSection> {
     typedef PrintSymbolPtrSectionOperation Type;
 };
 
+template<>
+struct OperationKindInfo<OperationKind::PrintImageList> {
+    constexpr static const auto Kind = OperationKind::PrintImageList;
+    constexpr static const auto Name = "print-image-list"sv;
+
+    typedef PrintImageListOperation Type;
+};
+
 
 constexpr const std::string_view &
 OperationKindGetName(OperationKind Kind) noexcept {
@@ -191,6 +200,8 @@ OperationKindGetName(OperationKind Kind) noexcept {
         case OperationKind::PrintSymbolPtrSection:
             return OperationKindInfo<
                 OperationKind::PrintSymbolPtrSection>::Name;
+        case OperationKind::PrintImageList:
+            return OperationKindInfo<OperationKind::PrintImageList>::Name;
     }
 
     assert(0 && "Reached end of OperationKindGetName()");

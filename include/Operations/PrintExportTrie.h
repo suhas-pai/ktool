@@ -77,7 +77,8 @@ public:
             case ObjectKind::MachO:
                 return true;
             case ObjectKind::FatMachO:
-                return false;
+            case ObjectKind::DyldSharedCache:
+              return false;
         }
 
         assert(0 && "Reached end of SupportsObjectKind()");

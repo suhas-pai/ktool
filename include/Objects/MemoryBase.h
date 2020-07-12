@@ -46,6 +46,9 @@ struct FatMachOMemoryObject;
 struct ConstMachOMemoryObject;
 struct ConstFatMachOMemoryObject;
 
+struct DscMemoryObject;
+struct ConstDscMemoryObject;
+
 template <enum ObjectKind>
 struct ObjectKindInfo {};
 
@@ -74,6 +77,17 @@ struct ObjectKindInfo<ObjectKind::FatMachO> {
 
     typedef ConstFatMachOMemoryObject ConstType;
     typedef ConstFatMachOMemoryObject *ConstPtr;
+};
+
+template<>
+struct ObjectKindInfo<ObjectKind::DyldSharedCache> {
+    constexpr static const auto Kind = ObjectKind::FatMachO;
+
+    typedef DscMemoryObject Type;
+    typedef DscMemoryObject *Ptr;
+
+    typedef ConstDscMemoryObject ConstType;
+    typedef ConstDscMemoryObject *ConstPtr;
 };
 
 template <ObjectKind Kind>

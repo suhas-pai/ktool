@@ -468,6 +468,10 @@ __MLCP_WriteLCOffsetSizePair(FILE *OutFile,
     PrintUtilsWriteSizeRange(OutFile, Is64Bit, Offset, Size, &End);
     fputs(")", OutFile);
 
+    fputs(" (", OutFile);
+    PrintUtilsWriteFormattedSize(OutFile, Size);
+    fputs(")", OutFile);
+
     if constexpr (PrintEOF) {
         __MLCP_WritePastEOFWarning(OutFile, FileRange, End, "");
     }

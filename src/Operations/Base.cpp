@@ -87,6 +87,10 @@ OperationKindSupportsObjectKind(OperationKind OpKind,
             return
                 OperationTypeFromKind<OperationKind::PrintSymbolPtrSection>::
                     SupportsObjectKind(ObjKind);
+        case OperationKind::PrintImageList:
+            return
+                OperationTypeFromKind<OperationKind::PrintImageList>::
+                    SupportsObjectKind(ObjKind);
     }
 
     assert(0 && "Reached end of OperationKindSupportsObjectKind()");
@@ -110,9 +114,7 @@ void PrintSelectArchMessage(const ConstFatMachOMemoryObject &Object) noexcept {
 }
 
 void
-Operation::PrintLineSpamWarning(FILE *OutFile,
-                                     uint64_t LineAmount) noexcept
-{
+Operation::PrintLineSpamWarning(FILE *OutFile, uint64_t LineAmount) noexcept {
     if (!isatty(fileno(OutFile))) {
         return;
     }
@@ -121,7 +123,7 @@ Operation::PrintLineSpamWarning(FILE *OutFile,
         return;
     }
 
-    constexpr static const auto DelayAmount = 2;
+    constexpr static auto DelayAmount = 2;
     fprintf(OutFile,
             "Warning: %" PRIu64 " Lines will be printed in %d seconds\n\n",
             LineAmount,
@@ -161,6 +163,11 @@ Operation::PrintObjectKindNotSupportedError(
             }
 
             return;
+        case ObjectKind::DyldSharedCache:
+            fprintf(stderr,
+                    "Operation %s is not supported for Dyld Shared-Cache "
+                    "files\n",
+                    OperationKindGetName(OpKind).data());
     }
 
     assert(0 && "Reached end of PrintObjectKindNotSupportedError()");
@@ -190,6 +197,7 @@ Operation::GetOptionShortName(OperationKind Kind) noexcept {
         case OperationKind::PrintRebaseOpcodeList:
         case OperationKind::PrintCStringSection:
         case OperationKind::PrintSymbolPtrSection:
+        case OperationKind::PrintImageList:
             return std::string_view();
     }
 }
@@ -228,6 +236,8 @@ std::string_view Operation::GetOptionName(OperationKind Kind) noexcept {
             return "list-c-string-section"sv;
         case OperationKind::PrintSymbolPtrSection:
             return "list-symbol-ptr-section"sv;
+        case OperationKind::PrintImageList:
+            return "list-dsc-images"sv;
     }
 }
 
@@ -274,6 +284,8 @@ Operation::GetOptionDescription(OperationKind Kind) noexcept {
 
             return Desc;
         }
+        case OperationKind::PrintImageList:
+            return "List Images of a Dyld Shared-Cache File"sv;
     }
 }
 
@@ -452,6 +464,14 @@ Operation::PrintOptionHelpMenu(OperationKind Kind,
             fprintf(OutFile,
                     "%s-v, --verbose,               Print more Verbose "
                     "Information\n",
+                    Prefix);
+            break;
+        case OperationKind::PrintImageList:
+            fprintf(OutFile,
+                    "%s    --sort,    Sort Image List\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s-v, --verbose, Print more Verbose Information\n",
                     Prefix);
             break;
     }

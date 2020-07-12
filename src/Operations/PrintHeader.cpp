@@ -129,7 +129,11 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
         }
 
         fprintf(Options.OutFile, "Ncmds: %" PRIu32 "\n", Ncmds);
-        fprintf(Options.OutFile, "SizeOfCmds: %" PRIu32 "\n", SizeOfCmds);
+        fprintf(Options.OutFile, "SizeOfCmds: %" PRIu32 " (", SizeOfCmds);
+
+        PrintUtilsWriteFormattedSize(Options.OutFile, SizeOfCmds);
+        fputs(")\n", Options.OutFile);
+
         fprintf(Options.OutFile,
                 "Flags:\n"
                 "\tNumber: %" PRIu32 " (0x%X)\n"
@@ -223,6 +227,336 @@ PrintHeaderOperation::Run(const ConstFatMachOMemoryObject &Object,
     return 0;
 }
 
+static constexpr auto LongestName = LENGTH_OF("Program Closures Trie Address");
+static void PrintDscKey(FILE *OutFile, const char *Key) noexcept {
+    PrintUtilsRightPadSpaces(OutFile,
+                             fprintf(OutFile, "%s: ", Key),
+                             LongestName + LENGTH_OF(": "));
+}
+
+static DscMemoryObject::Version
+PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
+                     const ConstDscMemoryObject &Object) noexcept
+{
+    auto CpuKind = Mach::CpuKind::Any;
+    auto CpuSubKind = int32_t();
+
+    Object.getCpuKind(CpuKind, CpuSubKind);
+    const auto Header = Object.getHeaderV0();
+
+    PrintDscKey(Options.OutFile, "Magic");
+    fprintf(Options.OutFile,
+            "\"%.16s\" (Cpu-Kind: %s)\n",
+            Header.Magic,
+            Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data());
+
+    const auto Version = Object.getVersion();
+    
+    PrintDscKey(Options.OutFile, "Version");
+    fprintf(Options.OutFile, "%d\n", static_cast<int>(Version));
+
+    PrintDscKey(Options.OutFile, "Mapping Offset");
+    PrintUtilsWriteOffset32(Options.OutFile, Header.MappingOffset);
+    fputc('\n', Options.OutFile);
+
+    PrintDscKey(Options.OutFile, "Mapping Count");
+    fprintf(Options.OutFile, "%" PRIu32 "\n", Header.MappingCount);
+
+    PrintDscKey(Options.OutFile, "Images Count");
+    PrintUtilsWriteOffset32(Options.OutFile, Header.ImagesOffset);
+    fputc('\n', Options.OutFile);
+
+    PrintDscKey(Options.OutFile, "Images Count");
+    fprintf(Options.OutFile, "%" PRIu32 "\n", Header.ImagesCount);
+
+    PrintDscKey(Options.OutFile, "Dyld Base-Address");
+    PrintUtilsWriteOffset64(Options.OutFile, Header.DyldBaseAddress);
+
+    fputc('\n', Options.OutFile);
+    return Version;
+}
+
+static void
+PrintDscSizeRange(FILE *OutFile,
+                  const char *OffsetName,
+                  const char *SizeName,
+                  uint64_t Offset,
+                  uint64_t Size,
+                  bool Verbose) noexcept
+{
+    PrintDscKey(OutFile, OffsetName);
+    PrintUtilsWriteOffset64(OutFile, Offset);
+
+    if (Size != 0) {
+        if (Verbose) {
+            fputs(" (", OutFile);
+            PrintUtilsWriteOffset64SizeRange(OutFile, Offset, Size);
+            fputs(")\n", OutFile);
+        } else {
+            fputc('\n', OutFile);
+        }
+
+        PrintDscKey(OutFile, SizeName);
+
+        const auto SizeWrittenOut = fprintf(OutFile, "%" PRIu64, Size);
+        if (Verbose) {
+            PrintUtilsRightPadSpaces(OutFile, SizeWrittenOut, OFFSET_64_LEN);
+            fputs(" (", OutFile);
+
+            PrintUtilsWriteFormattedSize(OutFile, Size);
+            fputs(")\n", OutFile);
+        } else {
+            fputc('\n', OutFile);
+        }
+    } else {
+        fputc('\n', OutFile);
+        PrintDscKey(OutFile, SizeName);
+        
+        fprintf(OutFile, "%" PRIu64 "\n", Size);
+    }
+}
+
+static void
+PrintDscHeaderV1Info(const struct PrintHeaderOperation::Options &Options,
+                     const ConstDscMemoryObject &Object) noexcept
+{
+    const auto Header = Object.getHeaderV1();
+    PrintDscSizeRange(Options.OutFile,
+                      "Code-Signature Offset",
+                      "Code-Signature Size",
+                      Header.CodeSignatureOffset,
+                      Header.CodeSignatureSize,
+                      Options.Verbose);
+
+    PrintDscSizeRange(Options.OutFile,
+                      "Slide-Info Offset",
+                      "Slide-Info Size",
+                      Header.SlideInfoOffset,
+                      Header.SlideInfoSize,
+                      Options.Verbose);
+}
+
+static void
+PrintDscHeaderV2Info(const struct PrintHeaderOperation::Options &Options,
+                     const ConstDscMemoryObject &Object) noexcept
+{
+    const auto Header = Object.getHeaderV2();
+    PrintDscSizeRange(Options.OutFile,
+                      "Local-Symbols Offset",
+                      "Local-Symbols Size",
+                      Header.LocalSymbolsOffset,
+                      Header.LocalSymbolsSize,
+                      Options.Verbose);
+
+    PrintDscKey(Options.OutFile, "Uuid");
+    PrintUtilsWriteUuid(Options.OutFile, Header.Uuid);
+
+    fputc('\n', Options.OutFile);
+}
+
+static void
+PrintDscHeaderV3Info(const struct PrintHeaderOperation::Options &Options,
+                     const ConstDscMemoryObject &Object) noexcept
+{
+    PrintDscKey(Options.OutFile, "Cache-Kind");
+
+    const auto Header = Object.getHeaderV3();
+    switch (Header.Kind) {
+        case DyldSharedCache::CacheKind::Development:
+            fputs("Development\n", Options.OutFile);
+            return;
+        case DyldSharedCache::CacheKind::Production:
+            fputs("Production\n", Options.OutFile);
+            return;
+    }
+
+    fputs("<Unrecognized>", Options.OutFile);
+}
+
+static void
+PrintDscHeaderV4Info(const struct PrintHeaderOperation::Options &Options,
+                     const ConstDscMemoryObject &Object) noexcept
+{
+    const auto Header = Object.getHeaderV4();
+
+    PrintDscKey(Options.OutFile, "Branch-Pools Offset");
+    PrintUtilsWriteOffset32(Options.OutFile, Header.BranchPoolsOffset);
+    fputc('\n', Options.OutFile);
+
+    PrintDscKey(Options.OutFile, "Branch-Pools Count");
+    fprintf(Options.OutFile, "%" PRIu32 "\n", Header.BranchPoolsCount);
+
+    PrintDscSizeRange(Options.OutFile,
+                      "Accelerate-Info Address",
+                      "Accelerate-Info Size",
+                      Header.LocalSymbolsOffset,
+                      Header.LocalSymbolsSize,
+                      Options.Verbose);
+
+    PrintDscSizeRange(Options.OutFile,
+                      "Local-Symbols Offset",
+                      "Local-Symbols Size",
+                      Header.LocalSymbolsOffset,
+                      Header.LocalSymbolsSize,
+                      Options.Verbose);
+
+    PrintDscKey(Options.OutFile, "Images-Text Offset");
+    PrintUtilsWriteOffset64(Options.OutFile, Header.ImagesTextOffset);
+    fputc('\n', Options.OutFile);
+
+    PrintDscKey(Options.OutFile, "Images-Text Count");
+    fprintf(Options.OutFile, "%" PRIu32 "\n", Header.BranchPoolsCount);
+}
+
+static void PrintBoolValue(FILE *OutFile, bool Value) {
+    fputs((Value) ? "true" : "false", OutFile);
+    fputc('\n', OutFile);
+}
+
+static void
+PrintDscHeaderV5Info(const struct PrintHeaderOperation::Options &Options,
+                     const ConstDscMemoryObject &Object) noexcept
+{
+    const auto Header = Object.getHeaderV5();
+    PrintDscSizeRange(Options.OutFile,
+                      "Dylibs Image-Group Address",
+                      "Dylibs Image-Group Size",
+                      Header.DylibsImageGroupAddr,
+                      Header.DylibsImageGroupSize,
+                      Options.Verbose);
+
+    PrintDscSizeRange(Options.OutFile,
+                      "Other Image-Group Address",
+                      "Other Image-Group Size",
+                      Header.OtherImageGroupAddr,
+                      Header.OtherImageGroupSize,
+                      Options.Verbose);
+
+    PrintDscSizeRange(Options.OutFile,
+                      "Program Closures Address",
+                      "Program Closures Size",
+                      Header.ProgClosuresAddr,
+                      Header.ProgClosuresSize,
+                      Options.Verbose);
+
+    PrintDscSizeRange(Options.OutFile,
+                      "Program Closures Trie Address",
+                      "Program Closures Trie Size",
+                      Header.ProgClosuresTrieAddr,
+                      Header.ProgClosuresTrieSize,
+                      Options.Verbose);
+
+    PrintDscKey(Options.OutFile, "Platform");
+
+    const auto Platform = MachO::PlatformKind(Header.Platform);
+    auto PlatformStr = MachO::PlatformKindGetDescription(Platform).data();
+
+    if (PlatformStr == nullptr) {
+        PlatformStr = "<unrecognized>";
+    }
+
+    fprintf(Options.OutFile, "%s\n", PlatformStr);
+
+    PrintDscKey(Options.OutFile, "Closure-Format Version");
+    fprintf(Options.OutFile, "%" PRIu32 "\n", Header.FormatVersion);
+
+    PrintDscKey(Options.OutFile, "Dylibs Expected On Disk");
+    PrintBoolValue(Options.OutFile, Header.DylibsImageGroupSize);
+
+    PrintDscKey(Options.OutFile, "Simulator");
+    PrintBoolValue(Options.OutFile, Header.Simulator);
+
+    PrintDscKey(Options.OutFile, "Locally-Built Cache");
+    PrintBoolValue(Options.OutFile, Header.LocallyBuiltCache);
+
+    PrintDscKey(Options.OutFile, "Built From Chained-Fixups");
+    PrintBoolValue(Options.OutFile, Header.BuiltFromChainedFixups);
+
+    PrintDscSizeRange(Options.OutFile,
+                      "Shared-Region Start",
+                      "Shared-Region Size",
+                      Header.SharedRegionStart,
+                      Header.SharedRegionSize,
+                      Options.Verbose);
+
+    PrintDscKey(Options.OutFile, "Max Slide");
+    fprintf(Options.OutFile, "%" PRIu64 "\n", Header.MaxSlide);
+}
+
+static void
+PrintDscHeaderV6Info(const struct PrintHeaderOperation::Options &Options,
+                     const ConstDscMemoryObject &Object) noexcept
+{
+    const auto Header = Object.getHeaderV6();
+    PrintDscSizeRange(Options.OutFile,
+                      "Dylibs Image-Array Address",
+                      "Dylibs Image-Array Size",
+                      Header.DylibsImageArrayAddr,
+                      Header.DylibsImageArraySize,
+                      Options.Verbose);
+
+    PrintDscSizeRange(Options.OutFile,
+                      "Dylibs Trie Address",
+                      "Dylibs Trie Size",
+                      Header.DylibsTrieAddr,
+                      Header.DylibsTrieSize,
+                      Options.Verbose);
+
+    PrintDscSizeRange(Options.OutFile,
+                      "Other Image Array Address",
+                      "Other Image Array Size",
+                      Header.DylibsImageArrayAddr,
+                      Header.DylibsImageArraySize,
+                      Options.Verbose);
+
+    PrintDscSizeRange(Options.OutFile,
+                      "Other Trie Address",
+                      "Other Trie Size",
+                      Header.DylibsTrieAddr,
+                      Header.DylibsTrieSize,
+                      Options.Verbose);
+}
+
+int
+PrintHeaderOperation::Run(const ConstDscMemoryObject &Object,
+                          const struct Options &Options) noexcept
+{
+    fputs("Apple Dyld Shared-Cache File\n", Options.OutFile);
+
+    const auto Version = PrintDscHeaderV0Info(Options, Object);
+    if (Version < DscMemoryObject::Version::v1) {
+        return 0;
+    }
+
+    PrintDscHeaderV1Info(Options, Object);
+    if (Version < DscMemoryObject::Version::v2) {
+        return 0;
+    }
+
+    PrintDscHeaderV2Info(Options, Object);
+    if (Version < DscMemoryObject::Version::v3) {
+        return 0;
+    }
+
+    PrintDscHeaderV3Info(Options, Object);
+    if (Version < DscMemoryObject::Version::v4) {
+        return 0;
+    }
+
+    PrintDscHeaderV4Info(Options, Object);
+    if (Version < DscMemoryObject::Version::v5) {
+        return 0;
+    }
+
+    PrintDscHeaderV5Info(Options, Object);
+    if (Version < DscMemoryObject::Version::v6) {
+        return 0;
+    }
+
+    PrintDscHeaderV6Info(Options, Object);
+    return 0;
+}
+
 struct PrintHeaderOperation::Options
 PrintHeaderOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                        int *IndexOut) noexcept
@@ -260,6 +594,8 @@ int PrintHeaderOperation::Run(const MemoryObject &Object) const noexcept {
     switch (Object.getKind()) {
         case ObjectKind::None:
             assert(0 && "Object-Kind is None");
+        case ObjectKind::DyldSharedCache:
+            return Run(cast<ObjectKind::DyldSharedCache>(Object), Options);
         case ObjectKind::MachO:
             return Run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:

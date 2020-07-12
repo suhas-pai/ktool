@@ -245,6 +245,7 @@ PrintCStringSectionOperation::Run(const MemoryObject &Object) const noexcept {
         case ObjectKind::MachO:
             return Run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
+        case ObjectKind::DyldSharedCache:
             return InvalidObjectKind;
     }
 

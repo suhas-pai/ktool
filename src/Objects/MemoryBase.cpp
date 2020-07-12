@@ -6,6 +6,7 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#include "DscMemory.h"
 #include "FatMachOMemory.h"
 #include "MachOMemory.h"
 #include "MemoryBase.h"
@@ -24,6 +25,13 @@ MemoryObject *MemoryObject::Open(const MemoryMap &Map) noexcept {
 
         case ObjectKind::FatMachO: {
             const auto Object = FatMachOMemoryObject::Open(Map);
+            if (Object.DidMatchFormat()) {
+                return Object.ToPtr();
+            }
+        }
+
+        case ObjectKind::DyldSharedCache: {
+            const auto Object = DscMemoryObject::Open(Map);
             if (Object.DidMatchFormat()) {
                 return Object.ToPtr();
             }

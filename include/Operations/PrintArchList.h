@@ -58,6 +58,7 @@ public:
             case ObjectKind::MachO:
                 return false;
             case ObjectKind::FatMachO:
+            case ObjectKind::DyldSharedCache:
                 return true;
         }
 

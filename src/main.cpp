@@ -171,6 +171,11 @@ int main(int Argc, const char *Argv[]) {
                 Ops = new PrintSymbolPtrSectionOperation();
                 break;
             }
+        case OperationKind::PrintImageList:
+            if (MatchesOption(OperationKind::PrintImageList, Argv[1])) {
+                Ops = new PrintImageListOperation();
+                break;
+            }
     }
 
     if (Ops == nullptr) {
@@ -280,7 +285,7 @@ int main(int Argc, const char *Argv[]) {
                 break;
             }
 
-            case ObjectKind::FatMachO:
+            case ObjectKind::FatMachO: {
                 const auto RealObject = cast<ObjectKind::FatMachO>(Object);
                 switch (RealObject->getError()) {
                     case FatMachOMemoryObject::Error::None:
@@ -306,6 +311,37 @@ int main(int Argc, const char *Argv[]) {
                 }
 
                 break;
+            }
+
+            case ObjectKind::DyldSharedCache: {
+                const auto RealObject =
+                    cast<ObjectKind::DyldSharedCache>(Object);
+
+                switch (RealObject->getError()) {
+                    case DscMemoryObject::Error::None:
+                    case DscMemoryObject::Error::WrongFormat:
+                    case DscMemoryObject::Error::SizeTooSmall:
+                        assert(0 && "Got Unhandled errors in main");
+                        return 1;
+                    case DscMemoryObject::Error::UnknownCpuKind:
+                        fputs("Provided file is a dyld-shared-cache file with "
+                              "an unknown cpu-kind\n",
+                              stderr);
+                        return 1;
+                    case DscMemoryObject::Error::InvalidMappingRange:
+                        fputs("Provided file is a dyld-shared-cache file with "
+                              "an invalid mapping-range\n",
+                              stderr);
+                        return 1;
+                    case DscMemoryObject::Error::InvalidImageRange:
+                        fputs("Provided file is a dyld-shared-cache file with "
+                              "an unknown image-range\n",
+                              stderr);
+                        return 1;
+                }
+
+                break;
+            }
         }
     }
 

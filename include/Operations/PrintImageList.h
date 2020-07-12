@@ -1,20 +1,17 @@
 //
-//  include/Operations/PrintObjcClassList.h
+//  include/Operations/PrintImageList.h
 //  ktool
 //
-//  Created by Suhas Pai on 5/16/20.
+//  Created by Suhas Pai on 7/11/20.
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
 #pragma once
-
 #include "Base.h"
-#include "Kind.h"
-#include "Objects/MachOMemory.h"
 
-struct PrintObjcClassListOperation : public Operation {
+struct PrintImageListOperation : public Operation {
 public:
-    constexpr static const auto OpKind = OperationKind::PrintObjcClassList;
+    constexpr static const auto OpKind = OperationKind::PrintImageList;
 
     [[nodiscard]]
     constexpr static inline bool IsOfKind(const Operation &Opt) noexcept {
@@ -27,30 +24,24 @@ public:
             return (Opt.getKind() == OpKind);
         }
 
-        Options() noexcept
-        : Operation::Options(OpKind), PrintTree(false), Verbose(false) {}
-
-        bool PrintCategories : 1;
-        bool PrintTree : 1;
-        bool Verbose : 1;
-
+        Options() noexcept : Operation::Options(OpKind), Verbose(false) {}
         enum class SortKind {
-            None,
+            ByAddress,
+            ByModTime,
             ByName,
-            ByDylibOrdinal,
-            ByKind
         };
 
         std::vector<SortKind> SortKindList;
+        bool Verbose : 1;
     };
 protected:
     Options Options;
 public:
-    PrintObjcClassListOperation() noexcept;
-    PrintObjcClassListOperation(const struct Options &Options) noexcept;
+    PrintImageListOperation() noexcept;
+    PrintImageListOperation(const struct Options &Options) noexcept;
 
     static int
-    Run(const ConstMachOMemoryObject &Object,
+    Run(const ConstDscMemoryObject &Object,
         const struct Options &Options) noexcept;
 
     [[nodiscard]] static struct Options
@@ -65,14 +56,13 @@ public:
             case ObjectKind::None:
                 assert(0 && "SupportsObjectKind() got Object-Kind None");
             case ObjectKind::MachO:
-                return true;
             case ObjectKind::FatMachO:
-            case ObjectKind::DyldSharedCache:
                 return false;
+            case ObjectKind::DyldSharedCache:
+                return true;
         }
 
         assert(0 && "Reached end of SupportsObjectKind()");
     }
 };
-
 

@@ -18,7 +18,7 @@ PrintSymbolPtrSectionOperation::PrintSymbolPtrSectionOperation(
 : Operation(OpKind), Options(Options) {}
 
 static int
-CompareActionsBySortKind(
+CompareEntriesBySortKind(
     const MachO::SymbolTableEntryCollectionEntryInfo &Lhs,
     const MachO::SymbolTableEntryCollectionEntryInfo &Rhs,
     const PrintSymbolPtrSectionOperation::Options::SortKind SortKind) noexcept
@@ -387,7 +387,7 @@ PrintSymbolPtrSectionOperation::Run(const ConstMachOMemoryObject &Object,
     std::sort(List.begin(), List.end(), [&](const auto &Lhs, const auto &Rhs) {
         if (!Options.SortKindList.empty()) {
             for (const auto &Sort : Options.SortKindList) {
-                const auto Compare = CompareActionsBySortKind(*Lhs, *Rhs, Sort);
+                const auto Compare = CompareEntriesBySortKind(*Lhs, *Rhs, Sort);
                 if (Compare != 0) {
                     return (Compare < 0);
                 }
@@ -491,7 +491,8 @@ PrintSymbolPtrSectionOperation::Run(const MemoryObject &Object) const noexcept {
         case ObjectKind::MachO:
             return Run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
-            return InvalidObjectKind;
+        case ObjectKind::DyldSharedCache:
+           return InvalidObjectKind;
     }
 
     assert(0 && "Unrecognized Object-Kind");

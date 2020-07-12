@@ -12,5 +12,6 @@
 enum class ObjectKind {
     None,
     MachO,
-    FatMachO
+    FatMachO,
+    DyldSharedCache
 };

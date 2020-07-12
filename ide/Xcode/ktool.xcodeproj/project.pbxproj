@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F300066124BA90F3008EE096 /* PrintImageList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F300066024BA90F3008EE096 /* PrintImageList.cpp */; };
 		F3104AC42431960E00B24FEB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3104AC32431960E00B24FEB /* main.cpp */; };
 		F314A9DE24AFF67C00796991 /* PrintSymbolPtrSection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F314A9DD24AFF67C00796991 /* PrintSymbolPtrSection.cpp */; };
 		F314A9E124B0314400796991 /* SymbolTableUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F314A9E024B0314400796991 /* SymbolTableUtil.cpp */; };
@@ -34,6 +35,7 @@
 		F3923E86243C0BA0002479B3 /* MemoryBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3923E83243C0BA0002479B3 /* MemoryBase.cpp */; };
 		F3923E87243C0BA0002479B3 /* FatMachOMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3923E84243C0BA0002479B3 /* FatMachOMemory.cpp */; };
 		F3923E88243C0BA0002479B3 /* MachOMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3923E85243C0BA0002479B3 /* MachOMemory.cpp */; };
+		F39740F624B9252D00710C62 /* DscMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39740F524B9252D00710C62 /* DscMemory.cpp */; };
 		F39A9878245FE4F4002C229F /* Path.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39A9877245FE4F4002C229F /* Path.cpp */; };
 		F3A2D2982495A971005DA2D0 /* ObjcUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3A2D2972495A971005DA2D0 /* ObjcUtil.cpp */; };
 		F3A2D29B249AD5B9005DA2D0 /* LoadCommandsCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3A2D29A249AD5B9005DA2D0 /* LoadCommandsCommon.cpp */; };
@@ -68,6 +70,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		F300065F24BA90AD008EE096 /* PrintImageList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintImageList.h; path = ../../include/Operations/PrintImageList.h; sourceTree = "<group>"; };
+		F300066024BA90F3008EE096 /* PrintImageList.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintImageList.cpp; path = ../../src/Operations/PrintImageList.cpp; sourceTree = "<group>"; };
 		F3104AA9243193E100B24FEB /* ktool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ktool; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3104AB92431948B00B24FEB /* DisableIfNotConst.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DisableIfNotConst.h; path = ../../include/TypeTraits/DisableIfNotConst.h; sourceTree = "<group>"; };
 		F3104ABA243194D600B24FEB /* DisableIfNotPointer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DisableIfNotPointer.h; path = ../../include/TypeTraits/DisableIfNotPointer.h; sourceTree = "<group>"; };
@@ -157,6 +161,10 @@
 		F3923E84243C0BA0002479B3 /* FatMachOMemory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FatMachOMemory.cpp; path = ../../src/Objects/FatMachOMemory.cpp; sourceTree = "<group>"; };
 		F3923E85243C0BA0002479B3 /* MachOMemory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MachOMemory.cpp; path = ../../src/Objects/MachOMemory.cpp; sourceTree = "<group>"; };
 		F3923E89243C1680002479B3 /* DoesOverflow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DoesOverflow.h; path = ../../include/Utils/DoesOverflow.h; sourceTree = "<group>"; };
+		F39740F424B924EA00710C62 /* DscMemory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DscMemory.h; path = ../../include/Objects/DscMemory.h; sourceTree = "<group>"; };
+		F39740F524B9252D00710C62 /* DscMemory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DscMemory.cpp; path = ../../src/Objects/DscMemory.cpp; sourceTree = "<group>"; };
+		F39740F824B926F000710C62 /* Headers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Headers.h; path = ../../include/ADT/DyldSharedCache/Headers.h; sourceTree = "<group>"; };
+		F39740F924B9445F00710C62 /* DyldSharedCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DyldSharedCache.h; path = ../../include/ADT/DyldSharedCache.h; sourceTree = "<group>"; };
 		F39A9877245FE4F4002C229F /* Path.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Path.cpp; path = ../../src/Utils/Path.cpp; sourceTree = "<group>"; };
 		F39A9879245FE4FE002C229F /* Path.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Path.h; path = ../../include/Utils/Path.h; sourceTree = "<group>"; };
 		F3A2D2962495A71D005DA2D0 /* ObjcUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ObjcUtil.h; path = "../../include/ADT/Mach-O/ObjcUtil.h"; sourceTree = "<group>"; };
@@ -269,6 +277,7 @@
 		F3104AB52431943000B24FEB /* ADT */ = {
 			isa = PBXGroup;
 			children = (
+				F39740F724B926CF00710C62 /* DyldSharedCache */,
 				F3856AA1244BBAC7007980C9 /* Mach */,
 				F35FF7F124486A5900BEF782 /* Mach-O */,
 				F36FBF7D24380DD40075D461 /* Allocation.h */,
@@ -279,6 +288,7 @@
 				F36FBF7E24380DD40075D461 /* BasicWrapperIterator.h */,
 				F38FCE5F24876C7A00920AB1 /* ByteVector.h */,
 				F369E40C24808B2800F5A5E8 /* DefaultStructVariable.h */,
+				F39740F924B9445F00710C62 /* DyldSharedCache.h */,
 				F31C4E7F2479B1EA0057FE50 /* EnumHelper.h */,
 				F36FBF7B24380DD40075D461 /* FileDescriptor.h */,
 				F3B810B32467EECD00DED4F2 /* LargestIntHelper.h */,
@@ -339,6 +349,7 @@
 		F3104AC82431C3F100B24FEB /* Objects */ = {
 			isa = PBXGroup;
 			children = (
+				F39740F424B924EA00710C62 /* DscMemory.h */,
 				F3923E82243C0B97002479B3 /* FatMachOMemory.h */,
 				F3923E80243C0B97002479B3 /* Kind.h */,
 				F3923E81243C0B97002479B3 /* MachOMemory.h */,
@@ -403,6 +414,7 @@
 		F37B88B32431E21D0070F870 /* Objects */ = {
 			isa = PBXGroup;
 			children = (
+				F39740F524B9252D00710C62 /* DscMemory.cpp */,
 				F3923E84243C0BA0002479B3 /* FatMachOMemory.cpp */,
 				F3923E85243C0BA0002479B3 /* MachOMemory.cpp */,
 				F3923E83243C0BA0002479B3 /* MemoryBase.cpp */,
@@ -449,6 +461,14 @@
 			name = Mach;
 			sourceTree = "<group>";
 		};
+		F39740F724B926CF00710C62 /* DyldSharedCache */ = {
+			isa = PBXGroup;
+			children = (
+				F39740F824B926F000710C62 /* Headers.h */,
+			);
+			name = DyldSharedCache;
+			sourceTree = "<group>";
+		};
 		F3B196242439B2FA00AE997A /* Operations */ = {
 			isa = PBXGroup;
 			children = (
@@ -469,6 +489,7 @@
 				F3840EB52481FE26003AD004 /* PrintRebaseOpcodeList.cpp */,
 				F348C8A424AB457C007D83CB /* PrintCStringSection.cpp */,
 				F314A9DD24AFF67C00796991 /* PrintSymbolPtrSection.cpp */,
+				F300066024BA90F3008EE096 /* PrintImageList.cpp */,
 			);
 			name = Operations;
 			sourceTree = "<group>";
@@ -495,6 +516,7 @@
 				F3840EB12481FDCE003AD004 /* PrintRebaseOpcodeList.h */,
 				F348C8A324AB4527007D83CB /* PrintCStringSection.h */,
 				F314A9D924AFF5C800796991 /* PrintSymbolPtrSection.h */,
+				F300065F24BA90AD008EE096 /* PrintImageList.h */,
 			);
 			name = Operations;
 			sourceTree = "<group>";
@@ -560,6 +582,7 @@
 				F3A2D2982495A971005DA2D0 /* ObjcUtil.cpp in Sources */,
 				F3923E88243C0BA0002479B3 /* MachOMemory.cpp in Sources */,
 				F35FF7F624486A6600BEF782 /* LoadCommands.cpp in Sources */,
+				F39740F624B9252D00710C62 /* DscMemory.cpp in Sources */,
 				F3840EB42481FE16003AD004 /* PrintRebaseActionList.cpp in Sources */,
 				F33E8CD92473C044009C4EA0 /* RebaseInfo.cpp in Sources */,
 				F33E8CD62473B61B009C4EA0 /* BindInfo.cpp in Sources */,
@@ -586,6 +609,7 @@
 				F3B810B22467B53E00DED4F2 /* PrintExportTrie.cpp in Sources */,
 				F314A9E124B0314400796991 /* SymbolTableUtil.cpp in Sources */,
 				F348C8A524AB457C007D83CB /* PrintCStringSection.cpp in Sources */,
+				F300066124BA90F3008EE096 /* PrintImageList.cpp in Sources */,
 				F38FCF28248DEF0900DCB79F /* OutputFile.cpp in Sources */,
 				F3923E87243C0BA0002479B3 /* FatMachOMemory.cpp in Sources */,
 				F38FCE6124876FE500920AB1 /* ByteVector.cpp in Sources */,

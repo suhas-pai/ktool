@@ -45,6 +45,10 @@ public:
     Run(const ConstFatMachOMemoryObject &Object,
         const struct Options &Options) noexcept;
 
+    static int
+    Run(const ConstDscMemoryObject &Object,
+        const struct Options &Options) noexcept;
+
     [[nodiscard]] static struct Options
     ParseOptionsImpl(const ArgvArray &Argv, int *IndexOut) noexcept;
 
@@ -56,6 +60,7 @@ public:
         switch (Kind) {
             case ObjectKind::None:
                 assert(0 && "SupportsObjectKind() got Object-Kind None");
+            case ObjectKind::DyldSharedCache:
             case ObjectKind::MachO:
             case ObjectKind::FatMachO:
                 return true;

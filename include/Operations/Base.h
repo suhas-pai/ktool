@@ -9,6 +9,7 @@
 #pragma once
 
 #include "ADT/ArgvArray.h"
+#include "Objects/DscMemory.h"
 #include "Objects/MachOMemory.h"
 #include "Objects/FatMachOMemory.h"
 #include "Objects/MemoryBase.h"

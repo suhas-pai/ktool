@@ -15,7 +15,8 @@
 
 static void
 HandleLoadCommandStorageError(FILE *ErrFile,
-                              MachO::LoadCommandStorage::Error Error) {
+                              MachO::LoadCommandStorage::Error Error) noexcept
+{
     switch (Error) {
         case MachO::LoadCommandStorage::Error::None:
             break;
