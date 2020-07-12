@@ -33,8 +33,8 @@
 [[nodiscard]]
 static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
     if (Arg[0] == '-' && Arg[1] != '-') {
-        const auto ShortName = Operation::GetOptionShortName(Kind).data();
-        if (ShortName != nullptr && strcmp(Arg + 1, ShortName) == 0) {
+        const auto ShortName = Operation::GetOptionShortName(Kind);
+        if (!ShortName.empty() && ShortName == (Arg + 1)) {
             return true;
         }
     } else if (Operation::GetOptionName(Kind) == (Arg + 2)) {
@@ -322,7 +322,6 @@ int main(int Argc, const char *Argv[]) {
                     case DscMemoryObject::Error::WrongFormat:
                     case DscMemoryObject::Error::SizeTooSmall:
                         assert(0 && "Got Unhandled errors in main");
-                        return 1;
                     case DscMemoryObject::Error::UnknownCpuKind:
                         fputs("Provided file is a dyld-shared-cache file with "
                               "an unknown cpu-kind\n",
@@ -351,7 +350,9 @@ int main(int Argc, const char *Argv[]) {
         if (strcmp(Argument, "-arch") == 0) {
             const auto FatObject = dyn_cast<ObjectKind::FatMachO>(Object);
             if (FatObject == nullptr) {
-                fputs("Provided file is not a Fat Mach-O File\n", stderr);
+                fputs("-arch option not allowed: Provided file is not a Fat "
+                      "Mach-O File\n",
+                      stderr);
                 return 1;
             }
 
