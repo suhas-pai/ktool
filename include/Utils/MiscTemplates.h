@@ -61,3 +61,8 @@ private:
 public:
     using Type = LargestIntegerType<HelperType, Ts...>;
 };
+
+template <typename T, size_t N>
+size_t countof(T (&arr)[N]) noexcept {
+    return std::extent<T[N]>::value;
+}
