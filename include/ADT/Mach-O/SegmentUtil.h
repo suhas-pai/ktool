@@ -163,6 +163,10 @@ namespace MachO {
             return &List.at(Index);
         }
 
+        [[nodiscard]] inline bool empty() const noexcept {
+            return List.empty();
+        }
+
         [[nodiscard]] inline uint64_t size() const noexcept {
             return List.size();
         }
