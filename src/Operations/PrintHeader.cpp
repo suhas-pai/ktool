@@ -489,7 +489,16 @@ PrintDscHeaderV5Info(const struct PrintHeaderOperation::Options &Options,
                       Options.Verbose);
 
     PrintDscKey(Options.OutFile, "Max Slide");
-    fprintf(Options.OutFile, "%" PRIu64 "\n", Header.MaxSlide);
+    const auto WrittenOut =
+        fprintf(Options.OutFile, "%" PRIu64, Header.MaxSlide);
+
+    if (Options.Verbose) {
+        PrintUtilsRightPadSpaces(Options.OutFile, WrittenOut, OFFSET_64_LEN);
+        PrintUtilsWriteFormattedSize(Options.OutFile,
+                                     Header.MaxSlide,
+                                     " (",
+                                     ")\n");
+    }
 }
 
 static void
