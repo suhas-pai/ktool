@@ -63,17 +63,21 @@ int
 PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
                              const struct Options &Options) noexcept
 {
-    const auto Begin = Object.getMap().getBeginAs<const char>();
-    const auto &Header = Object.getHeaderV0();
+    const auto ImageCount = Object.getImageCount();
+    if (ImageCount == 0) {
+        fputs("Provided file has no images\n", Options.ErrFile);
+        return 1;
+    }
+
+    const auto Map = Object.getMap().getBegin();
 
     auto ImageInfoList = std::vector<ImageInfo>();
     auto LongestImagePath = LargestIntHelper();
 
-    ImageInfoList.reserve(Header.ImagesCount);
+    ImageInfoList.reserve(ImageCount);
 
-    for (const auto &Info : Header.getImageInfoList()) {
-        const auto Path = Begin + Info.PathFileOffset;
-        auto NewInfo = ImageInfo { .Path = Path };
+    for (const auto &Info : Object.getImageInfoList()) {
+        auto NewInfo = ImageInfo { .Path = Info.getPath(Map) };
 
         NewInfo.Address = Info.Address;
         NewInfo.ModTime = Info.ModTime;
@@ -101,11 +105,11 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
     }
 
     const auto ImageInfoListSizeDigitLength =
-        PrintUtilsGetIntegerDigitLength(ImageInfoList.size());
+        PrintUtilsGetIntegerDigitLength(ImageCount);
 
     fprintf(Options.OutFile,
-            "Provided file has %" PRIuPTR " Images:\n",
-            ImageInfoList.size());
+            "Provided file has %" PRIu32 " Images:\n",
+            ImageCount);
 
     auto Counter = static_cast<uint64_t>(1);
     for (const auto &Info : ImageInfoList) {
@@ -205,6 +209,7 @@ int PrintImageListOperation::Run(const MemoryObject &Object) const noexcept {
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
         case ObjectKind::FatMachO:
+        case ObjectKind::DscImage:
             return InvalidObjectKind;
         case ObjectKind::DyldSharedCache:
             return Run(cast<ObjectKind::DyldSharedCache>(Object), Options);

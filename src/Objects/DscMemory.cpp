@@ -234,3 +234,102 @@ DscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
 
     assert(0 && "Unrecognized Cpu-Kind");
 }
+
+std::optional<uint64_t>
+DscMemoryObject::GetFileOffsetForAddr(uint64_t Addr) const noexcept {
+    for (const auto &Mapping : getHeaderV0().getMappingInfoList()) {
+        if (const auto Offset = Mapping.getFileOffsetFromAddr(Addr)) {
+            return Offset;
+        }
+    }
+
+    return std::nullopt;
+}
+
+static uint8_t *GetEndForMachOMap(uint8_t *Map) noexcept {
+    const auto Header = reinterpret_cast<MachO::Header *>(Map);
+    const auto IsBigEndian = Header->IsBigEndian();
+    const auto Is64Bit = Header->Is64Bit();
+
+    const auto Ncmds = SwitchEndianIf(Header->Ncmds, IsBigEndian);
+    const auto Begin = Map + Header->size();
+    const auto SizeOfCmds = SwitchEndianIf(Header->SizeOfCmds, IsBigEndian);
+
+    const auto LoadCmdStorage =
+        MachO::ConstLoadCommandStorage::Open(Begin,
+                                             Ncmds,
+                                             SizeOfCmds,
+                                             IsBigEndian,
+                                             Is64Bit,
+                                             true);
+
+    if (LoadCmdStorage.hasError()) {
+        return nullptr;
+    }
+
+    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
+    const auto SegmentCollection =
+        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
+                                           Is64Bit,
+                                           &SegmentCollectionError);
+
+    if (SegmentCollectionError != MachO::SegmentInfoCollection::Error::None) {
+        return nullptr;
+    }
+
+    if (SegmentCollection.empty()) {
+        return nullptr;
+    }
+
+    auto End = Map;
+    for (const auto &Segment : SegmentCollection) {
+        if (DoesAddOverflow(End, Segment.File.size(), &End)) {
+            return nullptr;
+        }
+    }
+
+    return End;
+}
+
+const DyldSharedCache::ImageInfo &
+DscMemoryObject::getImageInfoAtIndex(uint32_t Index) const noexcept {
+    return getConstImageInfoList().at(Index);
+}
+
+const DyldSharedCache::ImageInfo *
+DscMemoryObject::GetImageInfoWithPath(
+    const std::string_view &Path) const noexcept
+{
+    const auto Map = getMap().getBegin();
+    for (const auto &ImageInfo : getConstImageInfoList()) {
+        if (Path == ImageInfo.getPath(Map)) {
+            return &ImageInfo;
+        }
+    }
+
+    return nullptr;
+}
+
+DscImageMemoryObject *
+DscMemoryObject::GetImageWithInfo(
+    const DyldSharedCache::ImageInfo &ImageInfo) const noexcept
+{
+    if (const auto Offset = GetFileOffsetForAddr(ImageInfo.Address)) {
+        const auto Map = this->Map + Offset.value();
+        const auto End = GetEndForMachOMap(Map);
+
+        if (End != nullptr) {
+            return new DscImageMemoryObject(getMap(), Map, End);
+        }
+    }
+
+    return nullptr;
+}
+
+ConstDscImageMemoryObject *
+ConstDscMemoryObject::GetImageWithInfo(
+    const DyldSharedCache::ImageInfo &ImageInfo) const noexcept
+{
+    const auto Result = DscMemoryObject::GetImageWithInfo(ImageInfo);
+    return reinterpret_cast<ConstDscImageMemoryObject *>(Result);
+}

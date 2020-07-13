@@ -49,6 +49,9 @@ struct ConstFatMachOMemoryObject;
 struct DscMemoryObject;
 struct ConstDscMemoryObject;
 
+struct DscImageMemoryObject;
+struct ConstDscImageMemoryObject;
+
 template <enum ObjectKind>
 struct ObjectKindInfo {};
 
@@ -88,6 +91,17 @@ struct ObjectKindInfo<ObjectKind::DyldSharedCache> {
 
     typedef ConstDscMemoryObject ConstType;
     typedef ConstDscMemoryObject *ConstPtr;
+};
+
+template<>
+struct ObjectKindInfo<ObjectKind::DscImage> {
+    constexpr static const auto Kind = ObjectKind::DscImage;
+
+    typedef DscImageMemoryObject Type;
+    typedef DscImageMemoryObject *Ptr;
+
+    typedef ConstDscImageMemoryObject ConstType;
+    typedef ConstDscImageMemoryObject *ConstPtr;
 };
 
 template <ObjectKind Kind>

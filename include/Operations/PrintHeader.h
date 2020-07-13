@@ -63,6 +63,7 @@ public:
             case ObjectKind::DyldSharedCache:
             case ObjectKind::MachO:
             case ObjectKind::FatMachO:
+            case ObjectKind::DscImage:
                 return true;
         }
 

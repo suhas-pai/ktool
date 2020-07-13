@@ -509,7 +509,8 @@ PrintRebaseOpcodeListOperation::Run(const MemoryObject &Object) const noexcept {
             return Run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
-            return InvalidObjectKind;
+        case ObjectKind::DscImage:
+           return InvalidObjectKind;
     }
 
     assert(0 && "Unrecognized Object-Kind");

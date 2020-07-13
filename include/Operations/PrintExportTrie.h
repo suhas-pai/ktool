@@ -78,7 +78,8 @@ public:
                 return true;
             case ObjectKind::FatMachO:
             case ObjectKind::DyldSharedCache:
-              return false;
+            case ObjectKind::DscImage:
+                return false;
         }
 
         assert(0 && "Reached end of SupportsObjectKind()");

@@ -55,6 +55,7 @@ public:
             case ObjectKind::None:
                 assert(0 && "SupportsObjectKind() got Object-Kind None");
             case ObjectKind::MachO:
+            case ObjectKind::DscImage:
                 return true;
             case ObjectKind::FatMachO:
             case ObjectKind::DyldSharedCache:

@@ -86,6 +86,7 @@ int PrintArchListOperation::Run(const MemoryObject &Object) const noexcept {
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
         case ObjectKind::DyldSharedCache:
+        case ObjectKind::DscImage:
             return InvalidObjectKind;
         case ObjectKind::FatMachO:
             return Run(cast<ObjectKind::FatMachO>(Object), Options);

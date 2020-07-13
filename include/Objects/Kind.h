@@ -13,5 +13,6 @@ enum class ObjectKind {
     None,
     MachO,
     FatMachO,
-    DyldSharedCache
+    DyldSharedCache,
+    DscImage
 };

@@ -15,6 +15,10 @@ MachOMemoryObject::MachOMemoryObject(Error Error) noexcept
 MachOMemoryObject::MachOMemoryObject(const MemoryMap &Map) noexcept
 : MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()) {}
 
+MachOMemoryObject::MachOMemoryObject(ObjectKind Kind,
+                                     const MemoryMap &Map) noexcept
+: MemoryObject(Kind), Map(Map.getBegin()), End(Map.getEnd()) {}
+
 ConstMachOMemoryObject::ConstMachOMemoryObject(Error Error) noexcept
 : MachOMemoryObject(Error) {}
 

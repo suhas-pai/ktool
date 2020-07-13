@@ -37,7 +37,9 @@ protected:
     uint8_t *End;
 
     MachOMemoryObject(Error Error) noexcept;
+
     explicit MachOMemoryObject(const MemoryMap &Map) noexcept;
+    explicit MachOMemoryObject(ObjectKind Kind, const MemoryMap &Map) noexcept;
 public:
     [[nodiscard]] static MachOMemoryObject Open(const MemoryMap &Map) noexcept;
 

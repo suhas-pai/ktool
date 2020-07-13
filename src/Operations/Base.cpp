@@ -96,23 +96,6 @@ OperationKindSupportsObjectKind(OperationKind OpKind,
     assert(0 && "Reached end of OperationKindSupportsObjectKind()");
 }
 
-static
-void PrintSelectArchMessage(const ConstFatMachOMemoryObject &Object) noexcept {
-    const auto ArchCount = Object.getArchCount();
-    fprintf(stdout, "Please select one of %" PRIu32 " archs", ArchCount);
-
-    if (ArchCount > 3) {
-        fprintf(stdout, ". Use option --list-archs to see a list of archs\n");
-        return;
-    }
-
-    fputs(":\n", stdout);
-    MachOTypePrinter<MachO::FatHeader>::PrintArchList(stdout,
-                                                      Object.getConstHeader(),
-                                                      "",
-                                                      "");
-}
-
 void
 Operation::PrintLineSpamWarning(FILE *OutFile, uint64_t LineAmount) noexcept {
     if (!isatty(fileno(OutFile))) {
@@ -130,6 +113,32 @@ Operation::PrintLineSpamWarning(FILE *OutFile, uint64_t LineAmount) noexcept {
             DelayAmount);
 
     sleep(DelayAmount);
+}
+
+static
+void PrintSelectArchMessage(const ConstFatMachOMemoryObject &Object) noexcept {
+    const auto ArchCount = Object.getArchCount();
+    fprintf(stdout, "Please select one of %" PRIu32 " archs", ArchCount);
+
+    if (ArchCount > 3) {
+        fprintf(stdout, ". Use option --list-archs to see a list of archs\n");
+        return;
+    }
+
+    fputs(":\n", stdout);
+    MachOTypePrinter<MachO::FatHeader>::PrintArchList(stdout,
+                                                      Object.getConstHeader(),
+                                                      "",
+                                                      "");
+}
+
+static
+void PrintSelectImageMessage(const ConstDscMemoryObject &Object) noexcept {
+    const auto ImageCount = Object.getImageCount();
+    fprintf(stdout,
+            "Please select one of %" PRIu32 " images.\n"
+            "Use option --list-images to see a list of images\n",
+            ImageCount);
 }
 
 void
@@ -164,10 +173,32 @@ Operation::PrintObjectKindNotSupportedError(
 
             return;
         case ObjectKind::DyldSharedCache:
-            fprintf(stderr,
-                    "Operation %s is not supported for Dyld Shared-Cache "
-                    "files\n",
-                    OperationKindGetName(OpKind).data());
+            if (OperationKindSupportsObjectKind(OpKind, ObjectKind::DscImage)) {
+                const auto &DscObj = cast<ObjectKind::DyldSharedCache>(Object);
+                PrintSelectImageMessage(DscObj);
+            } else {
+                fprintf(stderr,
+                        "Operation %s is not supported for Dyld Shared-Cache "
+                        "files\n",
+                        OperationKindGetName(OpKind).data());
+            }
+
+            return;
+        case ObjectKind::DscImage: {
+            const auto ObjKind = ObjectKind::DyldSharedCache;
+            if (OperationKindSupportsObjectKind(OpKind, ObjKind)) {
+                fprintf(stderr,
+                        "Operation %s only supports Dyld Shared-Cache files\n",
+                        OperationKindGetName(OpKind).data());
+            } else {
+                fprintf(stderr,
+                        "Operation %s is not supported for Dyld Shared-Cache "
+                        "Image files\n",
+                        OperationKindGetName(OpKind).data());
+            }
+
+            return;
+        }
     }
 
     assert(0 && "Reached end of PrintObjectKindNotSupportedError()");

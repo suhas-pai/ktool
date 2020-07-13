@@ -56,6 +56,21 @@ static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
     return Result;
 }
 
+[[nodiscard]] static ConstDscImageMemoryObject *
+GetImageWithPath(const ConstDscMemoryObject &Object,
+                 const std::string_view &Path) noexcept
+{
+    auto ImageInfo = Object.GetImageInfoWithPath(Path);
+    if (ImageInfo == nullptr) {
+        fprintf(stderr,
+                "No Image with path \"%s\" was found\n",
+                Path.data());
+        exit(0);
+    }
+
+    return Object.GetImageWithInfo(*ImageInfo);
+}
+
 constexpr static auto UsageString =
     "Usage: ktool [Main-Operation] [Operation-Options] [Path] [Path-Options]\n";
 
@@ -347,6 +362,9 @@ int main(int Argc, const char *Argv[]) {
 
                 break;
             }
+
+            case ObjectKind::DscImage:
+                assert(0 && "Reached Dsc-Image for which no errors exist");
         }
     }
 
@@ -375,7 +393,7 @@ int main(int Argc, const char *Argv[]) {
             const auto ArchCount = FatObject->getArchCount();
 
             if (ArchNumber == 0) {
-                fputs("An ArchNumber of 0 is invalid. For the first arch, use "
+                fputs("An Arch-Number of 0 is invalid. For the first arch, use "
                       "-arch 1\n",
                       stderr);
                 return 1;
@@ -410,6 +428,55 @@ int main(int Argc, const char *Argv[]) {
                           stderr);
                     break;
             }
+        } else if (strcmp(Argument, "-image") == 0) {
+            const auto DscObj = dyn_cast<ObjectKind::DyldSharedCache>(Object);
+            if (DscObj == nullptr) {
+                fputs("-image option not allowed: Provided file is not a "
+                      "Dyld Shared-Cache File\n",
+                      stderr);
+                return 1;
+            }
+
+            if (!Argument.hasNext()) {
+                fputs("Please provide an image-index or image-path.\n"
+                      "Use the --list-images option to see a list of images\n",
+                      stderr);
+                return 1;
+            }
+
+            Argument.advance();
+            if (!Argument.IsPath()) {
+                const auto Number = ParseNumber<uint32_t>(Argument.getString());
+                const auto ImageCount = DscObj->getImageCount();
+
+                if (Number == 0) {
+                    fputs("An Image-Number of 0 is invalid. For the first "
+                          "image, use -image 1\n",
+                          stderr);
+                    return 1;
+                }
+
+                const auto ImageIndex = Number - 1;
+                if (IndexOutOfBounds(ImageIndex, ImageCount)) {
+                    fprintf(stderr,
+                            "Provided file only has %" PRIu32 " images\n",
+                            ImageCount);
+                    return 1;
+                }
+
+                const auto &ImageInfo = DscObj->getImageInfoAtIndex(ImageIndex);
+                Object = DscObj->GetImageWithInfo(ImageInfo);
+                
+                if (Object == nullptr) {
+                    fprintf(stderr,
+                            "Image at Index %" PRIu32 "is invalid and cannot "
+                            "be parsed\n",
+                            ImageIndex);
+                    return 1;
+                }
+            } else {
+                Object = GetImageWithPath(*DscObj, Argument.GetStringView());
+            }
         } else {
             fprintf(stdout,
                     "Unrecognized Argument for provided path: %s\n",
@@ -421,6 +488,7 @@ int main(int Argc, const char *Argv[]) {
     const auto Result = Ops->Run(*Object);
     if (Result == Operation::InvalidObjectKind) {
         Operation::PrintObjectKindNotSupportedError(Ops->getKind(), *Object);
+        return 1;
     }
 
     return 0;

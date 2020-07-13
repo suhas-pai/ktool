@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F300066124BA90F3008EE096 /* PrintImageList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F300066024BA90F3008EE096 /* PrintImageList.cpp */; };
+		F300066424BC31D3008EE096 /* DscImageMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F300066324BC31D3008EE096 /* DscImageMemory.cpp */; };
 		F3104AC42431960E00B24FEB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3104AC32431960E00B24FEB /* main.cpp */; };
 		F314A9DE24AFF67C00796991 /* PrintSymbolPtrSection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F314A9DD24AFF67C00796991 /* PrintSymbolPtrSection.cpp */; };
 		F314A9E124B0314400796991 /* SymbolTableUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F314A9E024B0314400796991 /* SymbolTableUtil.cpp */; };
@@ -72,6 +73,8 @@
 /* Begin PBXFileReference section */
 		F300065F24BA90AD008EE096 /* PrintImageList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintImageList.h; path = ../../include/Operations/PrintImageList.h; sourceTree = "<group>"; };
 		F300066024BA90F3008EE096 /* PrintImageList.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintImageList.cpp; path = ../../src/Operations/PrintImageList.cpp; sourceTree = "<group>"; };
+		F300066224BC1DE2008EE096 /* DscImageMemory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DscImageMemory.h; path = ../../include/Objects/DscImageMemory.h; sourceTree = "<group>"; };
+		F300066324BC31D3008EE096 /* DscImageMemory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DscImageMemory.cpp; path = ../../src/Objects/DscImageMemory.cpp; sourceTree = "<group>"; };
 		F3104AA9243193E100B24FEB /* ktool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ktool; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3104AB92431948B00B24FEB /* DisableIfNotConst.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DisableIfNotConst.h; path = ../../include/TypeTraits/DisableIfNotConst.h; sourceTree = "<group>"; };
 		F3104ABA243194D600B24FEB /* DisableIfNotPointer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DisableIfNotPointer.h; path = ../../include/TypeTraits/DisableIfNotPointer.h; sourceTree = "<group>"; };
@@ -350,6 +353,7 @@
 			isa = PBXGroup;
 			children = (
 				F39740F424B924EA00710C62 /* DscMemory.h */,
+				F300066224BC1DE2008EE096 /* DscImageMemory.h */,
 				F3923E82243C0B97002479B3 /* FatMachOMemory.h */,
 				F3923E80243C0B97002479B3 /* Kind.h */,
 				F3923E81243C0B97002479B3 /* MachOMemory.h */,
@@ -415,6 +419,7 @@
 			isa = PBXGroup;
 			children = (
 				F39740F524B9252D00710C62 /* DscMemory.cpp */,
+				F300066324BC31D3008EE096 /* DscImageMemory.cpp */,
 				F3923E84243C0BA0002479B3 /* FatMachOMemory.cpp */,
 				F3923E85243C0BA0002479B3 /* MachOMemory.cpp */,
 				F3923E83243C0BA0002479B3 /* MemoryBase.cpp */,
@@ -622,6 +627,7 @@
 				F3DC4DB02452F48F0063906C /* Timestamp.cpp in Sources */,
 				F314A9DE24AFF67C00796991 /* PrintSymbolPtrSection.cpp in Sources */,
 				F3B196322439B34200AE997A /* Base.cpp in Sources */,
+				F300066424BC31D3008EE096 /* DscImageMemory.cpp in Sources */,
 				F36FBF8824380E000075D461 /* MappedFile.cpp in Sources */,
 				F36FBF8524380E000075D461 /* LocationRange.cpp in Sources */,
 				F3DC4DA52452720A0063906C /* PrintSharedLibraries.cpp in Sources */,

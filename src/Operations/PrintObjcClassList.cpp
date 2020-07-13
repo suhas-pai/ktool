@@ -487,6 +487,7 @@ PrintObjcClassListOperation::Run(const MemoryObject &Object) const noexcept {
             return Run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
+        case ObjectKind::DscImage:
             return InvalidObjectKind;
     }
 

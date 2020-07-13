@@ -613,12 +613,16 @@ int PrintHeaderOperation::Run(const MemoryObject &Object) const noexcept {
     switch (Object.getKind()) {
         case ObjectKind::None:
             assert(0 && "Object-Kind is None");
-        case ObjectKind::DyldSharedCache:
-            return Run(cast<ObjectKind::DyldSharedCache>(Object), Options);
         case ObjectKind::MachO:
             return Run(cast<ObjectKind::MachO>(Object), Options);
         case ObjectKind::FatMachO:
             return Run(cast<ObjectKind::FatMachO>(Object), Options);
+        case ObjectKind::DyldSharedCache:
+            return Run(cast<ObjectKind::DyldSharedCache>(Object), Options);
+        case ObjectKind::DscImage: {
+            const auto &Obj = cast<ObjectKind::DscImage>(Object);
+            return Run(Obj, Options);
+        }
     }
 
     assert(0 && "Unrecognized Object-Kind");

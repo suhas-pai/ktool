@@ -12,6 +12,7 @@
 #include "ADT/DyldSharedCache.h"
 #include "ADT/Mach.h"
 
+#include "DscImageMemory.h"
 #include "MemoryBase.h"
 
 struct ConstDscMemoryObject;
@@ -163,10 +164,45 @@ public:
         return getHeaderV0().MappingCount;
     }
 
+    [[nodiscard]] inline
+    BasicContiguousList<DyldSharedCache::ImageInfo>
+    getImageInfoList() const noexcept {
+        return getHeaderV0().getImageInfoList();
+    }
+
+    [[nodiscard]]
+    inline BasicContiguousList<DyldSharedCache::MappingInfo>
+    getMappingInfoList() const noexcept {
+        return getHeaderV0().getMappingInfoList();
+    }
+
+    [[nodiscard]] inline
+    BasicContiguousList<const DyldSharedCache::ImageInfo>
+    getConstImageInfoList() const noexcept {
+        return getHeaderV0().getConstImageInfoList();
+    }
+
+    [[nodiscard]]
+    inline BasicContiguousList<const DyldSharedCache::MappingInfo>
+    getConstMappingInfoList() const noexcept {
+        return getHeaderV0().getConstMappingInfoList();
+    }
+
     [[nodiscard]] Version getVersion() const noexcept;
 
     const DscMemoryObject &
     getCpuKind(Mach::CpuKind &CpuKind, int32_t &CpuSubKind) const noexcept;
+
+    std::optional<uint64_t> GetFileOffsetForAddr(uint64_t Addr) const noexcept;
+
+    const DyldSharedCache::ImageInfo &
+    getImageInfoAtIndex(uint32_t Index) const noexcept;
+
+    const DyldSharedCache::ImageInfo *
+    GetImageInfoWithPath(const std::string_view &Path) const noexcept;
+
+    DscImageMemoryObject *
+    GetImageWithInfo(const DyldSharedCache::ImageInfo &Info) const noexcept;
 };
 
 struct ConstDscMemoryObject : public DscMemoryObject {
@@ -223,4 +259,19 @@ public:
         assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV6));
         return *Header;
     }
+
+    [[nodiscard]] inline
+    BasicContiguousList<const DyldSharedCache::ImageInfo>
+    getImageInfoList() const noexcept {
+        return getHeaderV0().getImageInfoList();
+    }
+
+    [[nodiscard]]
+    inline BasicContiguousList<const DyldSharedCache::MappingInfo>
+    getMappingInfoList() const noexcept {
+        return getHeaderV0().getMappingInfoList();
+    }
+
+    ConstDscImageMemoryObject *
+    GetImageWithInfo(const DyldSharedCache::ImageInfo &Info) const noexcept;
 };

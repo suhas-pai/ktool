@@ -8,10 +8,11 @@
 
 #pragma once
 
-#include <string_view>
 #include <cstdint>
+#include <string_view>
 
 #include "ADT/BasicContiguousList.h"
+#include "ADT/LocationRange.h"
 
 #define DscHeaderHasField(Header, Field) \
     (Header->MappingOffset >= (offsetof(DyldCacheHeader, Field) + \
@@ -24,6 +25,27 @@ namespace DyldSharedCache {
         uint64_t FileOffset;
         uint32_t MaxProt;
         uint32_t InitProt;
+
+        [[nodiscard]] inline
+        std::optional<LocationRange> getAddressRange() const noexcept {
+            return LocationRange::CreateWithSize(Address, Size);
+        }
+
+        [[nodiscard]] inline
+        std::optional<LocationRange> getFileRange() const noexcept {
+            return LocationRange::CreateWithSize(FileOffset, Size);
+        }
+
+        [[nodiscard]] inline std::optional<uint64_t>
+        getFileOffsetFromAddr(uint64_t Addr) const noexcept {
+            const auto Range = getAddressRange();
+            if (!Range || !Range->containsLocation(Addr)) {
+                return std::nullopt;
+            }
+
+            const auto Delta = Addr - Range->getBegin();
+            return FileOffset + Delta;
+        }
     };
 
     struct ImageInfo {
@@ -32,6 +54,11 @@ namespace DyldSharedCache {
         uint64_t Inode;
         uint32_t PathFileOffset;
         uint32_t Pad;
+
+        [[nodiscard]]
+        inline const char *getPath(const uint8_t *Map) const noexcept {
+            return reinterpret_cast<const char *>(Map) + PathFileOffset;
+        }
     };
 
     struct ImageInfoExtra {
@@ -67,6 +94,12 @@ namespace DyldSharedCache {
 
         [[nodiscard]] inline
         BasicContiguousList<const ImageInfo> getImageInfoList() const noexcept {
+            return getConstImageInfoList();
+        }
+
+        [[nodiscard]] inline
+        BasicContiguousList<const ImageInfo>
+        getConstImageInfoList() const noexcept {
             const auto Ptr =
                 reinterpret_cast<const uint8_t *>(this) + ImagesOffset;
 
@@ -81,6 +114,11 @@ namespace DyldSharedCache {
 
         [[nodiscard]] inline BasicContiguousList<const MappingInfo>
         getMappingInfoList() const noexcept {
+            return getConstMappingInfoList();
+        }
+
+        [[nodiscard]] inline BasicContiguousList<const MappingInfo>
+        getConstMappingInfoList() const noexcept {
             const auto Ptr =
                 reinterpret_cast<const uint8_t *>(this) + MappingOffset;
 
