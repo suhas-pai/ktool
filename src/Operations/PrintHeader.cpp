@@ -249,7 +249,7 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
 
     PrintDscKey(Options.OutFile, "Magic");
     fprintf(Options.OutFile,
-            "\"%.16s\" (Cpu-Kind: %s)\n",
+            "\"" CHAR_ARR_FMT(16) "\" (Cpu-Kind: %s)\n",
             Header.Magic,
             Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data());
 
