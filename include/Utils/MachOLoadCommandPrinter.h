@@ -240,7 +240,8 @@ constexpr static auto MLPC_LengthOfLongestName =
     static_cast<int>(MLPC_LongestNameKindInfo::Name.length());
 
 template <MachO::LoadCommand::Kind Kind>
-static inline void MachOLoadCommandPrinterWriteKindName(FILE *OutFile) {
+static inline
+void MachOLoadCommandPrinterWriteKindName(FILE *OutFile, bool Verbose) {
     using KindInfo = MachO::LoadCommandKindInfo<Kind>;
 
     constexpr auto LCKindLength = KindInfo::Name.length();
@@ -252,6 +253,10 @@ static inline void MachOLoadCommandPrinterWriteKindName(FILE *OutFile) {
             "%" PRINTF_RIGHTPAD_FMT "s",
             MLPC_LengthOfLongestName,
             KindInfo::Name.data());
+
+    if (Verbose) {
+        fputs("\t\t\t\t", OutFile);
+    }
 }
 
 template <MachO::LoadCommand::Kind Kind,
@@ -275,7 +280,7 @@ MachOLoadCommandPrinterWriteSegmentCommand(FILE *OutFile,
     const auto SegVmSize = SwitchEndianIf(Segment.VmSize, IsBigEndian);
     const auto SegNsects = SwitchEndianIf(Segment.Nsects, IsBigEndian);
 
-    MachOLoadCommandPrinterWriteKindName<Kind>(OutFile);
+    MachOLoadCommandPrinterWriteKindName<Kind>(OutFile, Verbose);
     if (SegmentIs64Bit != Is64Bit) {
         fputs("(Wrong Segment-Kind)", OutFile);
     }
@@ -421,7 +426,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SymbolTable> {
             }
         }
 
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         fputs("\n\tString-Table: ", OutFile);
 
         auto StrTabEnd = uint64_t();
@@ -496,7 +502,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SymbolSegment> {
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         fputc('\t', OutFile);
 
         const auto Offset = SwitchEndianIf(SymSeg.Offset, IsBigEndian);
@@ -522,7 +529,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Thread> {
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         fputc('\n', OutFile);
     }
 };
@@ -543,7 +551,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::UnixThread> {
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         fputc('\n', OutFile);
     }
 };
@@ -595,7 +604,8 @@ struct MachOLoadCommandPrinter<
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, FvmLib.GetName(IsBigEndian));
 
@@ -621,7 +631,8 @@ struct MachOLoadCommandPrinter<
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, FvmLib.GetName(IsBigEndian));
 
@@ -644,7 +655,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Ident> {
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         fputc('\n', OutFile);
     }
 };
@@ -665,7 +677,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::FixedVMFile> {
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, FvmFile.GetName(IsBigEndian));
 
@@ -688,7 +701,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::PrePage> {
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         fputc('\n', OutFile);
     }
 };
@@ -709,7 +723,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DynamicSymbolTable> {
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
 
         const auto LocalSymbolsIndex =
             SwitchEndianIf(DySymtab.ILocalSymbols, IsBigEndian);
@@ -766,11 +781,7 @@ MachOLoadCommandPrinterWriteDylibCommand(
     static_assert(MachO::DylibCommand::IsOfKind(LCKindInfo::Kind),
                   "LoadCommand is not a DylibCommand");
 
-    MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
-    if (Verbose) {
-        fputs("\t\t\t", OutFile);
-    }
-
+    MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile, Verbose);
     MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
         OutFile, Dylib.GetName(IsBigEndian));
 
@@ -847,7 +858,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LoadDylinker>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(OutFile,
             Dylinker.GetName(IsBigEndian));
 
@@ -872,7 +884,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::IdDylinker>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(OutFile,
             Dylinker.GetName(IsBigEndian));
 
@@ -897,7 +910,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::PreBoundDylib>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(OutFile,
             Dylib.GetName(IsBigEndian));
 
@@ -921,7 +935,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Routines>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         fputc('\n', OutFile);
     }
 };
@@ -943,7 +958,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Routines64>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         fputc('\n', OutFile);
     }
 };
@@ -965,7 +981,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubFramework>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, SubFramework.GetUmbrella(IsBigEndian));
 
@@ -990,7 +1007,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubUmbrella>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, SubUmbrella.GetUmbrella(IsBigEndian));
     }
@@ -1013,7 +1031,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubClient>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, SubClient.GetClient(IsBigEndian));
 
@@ -1038,7 +1057,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubLibrary>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, SubLibrary.GetLibrary(IsBigEndian));
 
@@ -1082,7 +1102,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::TwoLevelHints>
             }
         }
 
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         if (Overflows) {
             PrintUtilsWriteOffset32OverflowsRange(OutFile, Offset, "\t");
         } else {
@@ -1112,7 +1133,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::PrebindChecksum>
     {
         const auto CheckSum = SwitchEndianIf(PrebindLC.CheckSum, IsBigEndian);
 
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         fprintf(OutFile, "\tCheckSum: %0x08x\n", CheckSum);
     }
 };
@@ -1133,7 +1155,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Uuid>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
 
         fputc('\t', OutFile);
         PrintUtilsWriteUuid(OutFile, Uuid.Uuid, "", "\n");
@@ -1180,7 +1203,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Rpath>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, Rpath.GetPath(IsBigEndian));
 
@@ -1196,6 +1220,7 @@ MachOLoadCommandPrinterWriteLinkeditCmd(
     const typename LCKindInfo::Type &LoadCmd,
     bool IsBigEndian,
     bool Is64Bit,
+    bool Verbose,
     uint64_t *EndOut)
 {
     static_assert(MachO::LinkeditDataCommand::IsOfKind(LCKindInfo::Kind),
@@ -1204,7 +1229,7 @@ MachOLoadCommandPrinterWriteLinkeditCmd(
     const auto Offset = SwitchEndianIf(LoadCmd.DataOff, IsBigEndian);
     const auto Size = SwitchEndianIf(LoadCmd.DataSize, IsBigEndian);
 
-    MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+    MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile, Verbose);
     fputc('\t', OutFile);
 
     __MLCP_WriteLCOffsetSizePair<WriteEOF>(OutFile, FileRange, Offset, Size,
@@ -1229,7 +1254,9 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::CodeSignature>
           bool Verbose) noexcept
     {
         MachOLoadCommandPrinterWriteLinkeditCmd<LCKindInfo, true>(
-            OutFile, FileRange, CodeSignature, IsBigEndian, Is64Bit, nullptr);
+            OutFile, FileRange, CodeSignature, IsBigEndian, Is64Bit, Verbose,
+            nullptr);
+
         fputc('\n', OutFile);
     }
 };
@@ -1252,7 +1279,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SegmentSplitInfo>
           bool Verbose) noexcept
     {
         MachOLoadCommandPrinterWriteLinkeditCmd<LCKindInfo, true>(
-            OutFile, FileRange, SegmentSplitInfo, IsBigEndian, Is64Bit,
+            OutFile, FileRange, SegmentSplitInfo, IsBigEndian, Is64Bit, Verbose,
             nullptr);
 
         fputc('\n', OutFile);
@@ -1349,7 +1376,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::EncryptionInfo>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         MachOLoadCommandPrinterWriteEncryptionInfoCmd(
             OutFile, FileRange, EncryptionInfo, IsBigEndian, Is64Bit);
     }
@@ -1372,7 +1400,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::EncryptionInfo64>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         MachOLoadCommandPrinterWriteEncryptionInfoCmd(
             OutFile, FileRange, EncryptionInfo, IsBigEndian, Is64Bit);
     }
@@ -1455,7 +1484,8 @@ MachOLoadCommandPrinterWriteDyldInfoCmd(
     const RelativeRange &FileRange,
     const typename LCKindInfo::Type &DyldInfo,
     bool IsBigEndian,
-    bool Is64Bit) noexcept
+    bool Is64Bit,
+    bool Verbose) noexcept
 {
     static_assert(MachO::DyldInfoCommand::IsOfKind(LCKindInfo::Kind),
                   "LoadCommand is not a DyldInfoCommand");
@@ -1475,7 +1505,7 @@ MachOLoadCommandPrinterWriteDyldInfoCmd(
     const auto ExportOff = SwitchEndianIf(DyldInfo.ExportOff, IsBigEndian);
     const auto ExportSize = SwitchEndianIf(DyldInfo.ExportSize, IsBigEndian);
 
-    MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+    MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile, Verbose);
     fputc('\n', OutFile);
 
     PrintDyldInfoField<DyldInfoRebaseName, DyldInfoRebaseNameLength>(
@@ -1511,7 +1541,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldInfo>
           bool Verbose) noexcept
     {
         MachOLoadCommandPrinterWriteDyldInfoCmd<LCKindInfo>(
-            OutFile, FileRange, DyldInfo, IsBigEndian, Is64Bit);
+            OutFile, FileRange, DyldInfo, IsBigEndian, Is64Bit, Verbose);
     }
 };
 
@@ -1533,7 +1563,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldInfoOnly>
           bool Verbose) noexcept
     {
         MachOLoadCommandPrinterWriteDyldInfoCmd<LCKindInfo>(
-            OutFile, FileRange, DyldInfo, IsBigEndian, Is64Bit);
+            OutFile, FileRange, DyldInfo, IsBigEndian, Is64Bit, Verbose);
     }
 };
 
@@ -1566,12 +1596,13 @@ static inline void
 MachOLoadCommandPrinterWriteVersionMinimumCmd(
     FILE *OutFile,
     const typename LCKindInfo::Type &VersionMin,
-    bool IsBigEndian) noexcept
+    bool IsBigEndian,
+    bool Verbose) noexcept
 {
     static_assert(MachO::VersionMinimumCommand::IsOfKind(LCKindInfo::Kind),
                   "LoadCommand is not a VersionMinimumCommand");
 
-    MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+    MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile, Verbose);
     fputs("\tVersion: ", OutFile);
 
     MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
@@ -1604,7 +1635,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::VersionMinimumMacOSX>
     {
         MachOLoadCommandPrinterWriteVersionMinimumCmd<LCKindInfo>(OutFile,
                                                                   VersionMin,
-                                                                  IsBigEndian);
+                                                                  IsBigEndian,
+                                                                  Verbose);
     }
 };
 
@@ -1627,7 +1659,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::VersionMinimumIPhoneOS>
     {
         MachOLoadCommandPrinterWriteVersionMinimumCmd<LCKindInfo>(OutFile,
                                                                   VersionMin,
-                                                                  IsBigEndian);
+                                                                  IsBigEndian,
+                                                                  Verbose);
     }
 };
 
@@ -1650,7 +1683,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::FunctionStarts>
     {
         auto End = uint64_t();
         MachOLoadCommandPrinterWriteLinkeditCmd<LCKindInfo, false>(
-            OutFile, FileRange, FuncStarts, IsBigEndian, Is64Bit, &End);
+            OutFile, FileRange, FuncStarts, IsBigEndian, Is64Bit, Verbose,
+            &End);
 
         const auto Size = SwitchEndianIf(FuncStarts.DataSize, IsBigEndian);
         auto FunctionsCount = uint64_t();
@@ -1692,7 +1726,9 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldEnvironment>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
+
         MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
             OutFile, DyldEnvironment.GetName(IsBigEndian));
 
@@ -1719,7 +1755,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Main>
         const auto EntryOffset = SwitchEndianIf(Main.EntryOffset, IsBigEndian);
         const auto StackSize = SwitchEndianIf(Main.StackSize, IsBigEndian);
 
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         fprintf(OutFile,
                 "\tEntry-Offset: " OFFSET_64_FMT ", Stack-Size: %" PRIu64 "\n",
                 EntryOffset,
@@ -1745,7 +1782,9 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DataInCode>
           bool Verbose) noexcept
     {
         MachOLoadCommandPrinterWriteLinkeditCmd<LCKindInfo, true>(
-            OutFile, FileRange, DataInCode, IsBigEndian, Is64Bit, nullptr);
+            OutFile, FileRange, DataInCode, IsBigEndian, Is64Bit, Verbose,
+            nullptr);
+
         fputc('\n', OutFile);
     }
 };
@@ -1767,7 +1806,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SourceVersion>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         fputs("\tSource Version:\t", OutFile);
 
         const auto Version = DataInCode.getVersion(IsBigEndian);
@@ -1804,7 +1844,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DylibCodeSignDRS>
           bool Verbose) noexcept
     {
         MachOLoadCommandPrinterWriteLinkeditCmd<LCKindInfo, true>(
-            OutFile, FileRange, Dylib, IsBigEndian, Is64Bit, nullptr);
+            OutFile, FileRange, Dylib, IsBigEndian, Is64Bit, Verbose, nullptr);
         fputc('\n', OutFile);
     }
 };
@@ -1852,7 +1892,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LinkerOptimizationHint>
           bool Verbose) noexcept
     {
         MachOLoadCommandPrinterWriteLinkeditCmd<LCKindInfo, false>(
-            OutFile, FileRange, Dylib, IsBigEndian, Is64Bit, nullptr);
+            OutFile, FileRange, Dylib, IsBigEndian, Is64Bit, Verbose, nullptr);
         fputc('\n', OutFile);
     }
 };
@@ -1876,7 +1916,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::VersionMinimumTvOS>
     {
         MachOLoadCommandPrinterWriteVersionMinimumCmd<LCKindInfo>(OutFile,
                                                                   VersionMin,
-                                                                  IsBigEndian);
+                                                                  IsBigEndian,
+                                                                  Verbose);
     }
 };
 
@@ -1899,7 +1940,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::VersionMinimumWatchOS>
     {
         MachOLoadCommandPrinterWriteVersionMinimumCmd<LCKindInfo>(OutFile,
                                                                   VersionMin,
-                                                                  IsBigEndian);
+                                                                  IsBigEndian,
+                                                                  Verbose);
     }
 };
 
@@ -1922,7 +1964,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Note>
         const auto Offset = SwitchEndianIf(Note.Offset, IsBigEndian);
         const auto Size = SwitchEndianIf(Note.Size, IsBigEndian);
 
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         fprintf(OutFile,
                 "\tOwner: " CHAR_ARR_FMT(16) ", Offset: " OFFSET_64_FMT
                 ", Size: %" PRIu64 " (",
@@ -1960,7 +2003,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
             PlatformDesc = "(Unrecognized)";
         }
 
-        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
         fprintf(OutFile,
                 "\n\tPlatform: %s\n"
                 "\tMinimum OS Version: ",
@@ -2035,7 +2079,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldExportsTrie>
           bool Verbose) noexcept
     {
         MachOLoadCommandPrinterWriteLinkeditCmd<LCKindInfo, true>(
-            OutFile, FileRange, Dylib, IsBigEndian, Is64Bit, nullptr);
+            OutFile, FileRange, Dylib, IsBigEndian, Is64Bit, Verbose, nullptr);
         fputc('\n', OutFile);
     }
 };
@@ -2058,7 +2102,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldChainedFixups>
           bool Verbose) noexcept
     {
         MachOLoadCommandPrinterWriteLinkeditCmd<LCKindInfo, true>(
-            OutFile, FileRange, Dylib, IsBigEndian, Is64Bit, nullptr);
+            OutFile, FileRange, Dylib, IsBigEndian, Is64Bit, Verbose, nullptr);
         fputc('\n', OutFile);
     }
 };
