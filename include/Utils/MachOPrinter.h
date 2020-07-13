@@ -514,11 +514,12 @@ struct MachOTypePrinter<struct MachO::DylibCommand::Info> {
         const auto Timestamp = SwitchEndianIf(Info.Timestamp, IsBigEndian);
         WrittenOut +=
             fprintf(OutFile,
-                    "\n%sTimestamp:%s%s (Value: %" PRIu32 ")\n",
+                    "\n%sTimestamp:%s%s (Value: %" PRIu32 ")%s\n",
                     LinePrefix,
                     (TimestampAligned) ? "             " : " ",
                     GetHumanReadableTimestamp(Timestamp).data(),
-                    Timestamp);
+                    Timestamp,
+                    LineSuffix);
 
         return WrittenOut;
     }
