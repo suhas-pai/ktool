@@ -73,15 +73,12 @@ ValidateMap(const ConstMemoryMap &Map,
         return DscMemoryObject::Error::UnknownCpuKind;
     }
 
-    const auto AvailableRange =
-        LocationRange::CreateWithEnd(sizeof(DyldSharedCache::HeaderV0),
-                                     Map.size());
-
-    auto MappingEnd = uint64_t();
-
     const auto Header = Map.getBeginAs<DyldSharedCache::HeaderV0>();
     const auto MappingOffset = Header->MappingOffset;
+    const auto AvailableRange =
+        LocationRange::CreateWithEnd(MappingOffset, Map.size());
 
+    auto MappingEnd = uint64_t();
     if (DoesMultiplyAndAddOverflow(sizeof(DyldSharedCache::MappingInfo),
                                    Header->MappingCount, MappingOffset,
                                    &MappingEnd))
@@ -99,7 +96,7 @@ ValidateMap(const ConstMemoryMap &Map,
     const auto ImageOffset = Header->ImagesOffset;
     auto ImageEnd = uint64_t();
 
-    if (DoesMultiplyAndAddOverflow(sizeof(DyldSharedCache::ImageInfo),
+    if (DoesAddAndMultiplyOverflow(sizeof(DyldSharedCache::ImageInfo),
                                    Header->ImagesCount, Header->ImagesOffset,
                                    &ImageEnd))
     {
