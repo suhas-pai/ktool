@@ -103,7 +103,7 @@ __MLCP_WriteSizeDiff(FILE *OutFile,
 
     if (SizeOne == SizeTwo) {
         if (Pad) {
-            PrintUtilsPadSpaces(OutFile, WriteMax);
+            return PrintUtilsPadSpaces(OutFile, WriteMax);
         }
 
         return 0;
@@ -127,13 +127,13 @@ __MLCP_WriteSizeDiff(FILE *OutFile,
         const auto PadSpacesLength =
             static_cast<int>(WriteLengthMax - WriteLength);
 
-        PrintUtilsPadSpaces(OutFile, PadSpacesLength);
+        WrittenOut += PrintUtilsPadSpaces(OutFile, PadSpacesLength);
     }
 
     if constexpr (std::is_same_v<SizeOneType, uint64_t>) {
-        WrittenOut = fprintf(OutFile, " (%c%" PRIu64, Sign, Diff);
+        WrittenOut += fprintf(OutFile, " (%c%" PRIu64, Sign, Diff);
     } else {
-        WrittenOut = fprintf(OutFile, " (%c%" PRIu32, Sign, Diff);
+        WrittenOut += fprintf(OutFile, " (%c%" PRIu32, Sign, Diff);
 
     }
 
@@ -143,7 +143,10 @@ __MLCP_WriteSizeDiff(FILE *OutFile,
 
 template <bool Pad, typename SizeType>
 static inline int
-__MLCP_WriteSizeInfo(FILE *OutFile, const SizeType &Size) noexcept {
+__MLCP_WriteSizeInfo(FILE *OutFile,
+                     const SizeType &Size,
+                     bool PrintFormatted) noexcept
+{
     auto WrittenOut = int();
     if constexpr (Pad) {
         // Pad to the left of the Byte Info [which is (0000 Bytes)], so that the
@@ -160,6 +163,10 @@ __MLCP_WriteSizeInfo(FILE *OutFile, const SizeType &Size) noexcept {
     }
 
     WrittenOut += fputs(" Bytes)", OutFile);
+    if (PrintFormatted) {
+        WrittenOut += PrintUtilsWriteFormattedSize(OutFile, Size, " (", ")");
+    }
+
     return WrittenOut;
 }
 
@@ -167,12 +174,20 @@ static inline void
 __MLCP_WritePastEOFWarning(FILE *OutFile,
                            const RelativeRange &FileRange,
                            uint64_t End,
+                           bool Pad,
                            const char *LineSuffix) noexcept
 {
-    if (!FileRange.containsEndLocation(End)) {
-        fprintf(OutFile, " (Past EOF!)%s", LineSuffix);
-    } else {
+    using namespace std::literals;
+    constexpr auto Warning = " (Past EOF!)"sv;
+
+    if (FileRange.containsEndLocation(End)) {
+        if (Pad) {
+            PrintUtilsPadSpaces(OutFile, Warning.length());
+        }
+
         fprintf(OutFile, "%s", LineSuffix);
+    } else {
+        fprintf(OutFile, "%s%s", Warning.data(), LineSuffix);
     }
 }
 
@@ -203,15 +218,14 @@ MachOLoadCommandPrinterWriteFileAndVmRange(FILE *OutFile,
 
     __MLCP_WriteOffsetRange(OutFile, FileOff, FileSize, OneLine, &FileOffEnd);
     if (ShouldPrintSizeInfo) {
-        __MLCP_WriteSizeInfo<OneLine>(OutFile, FileSize);
+        __MLCP_WriteSizeInfo<OneLine>(OutFile, FileSize, !OneLine);
     }
 
-    __MLCP_WritePastEOFWarning(OutFile, FileRange, FileOffEnd, "");
-
-    if constexpr (OneLine) {
-        fputc('\t', OutFile);
-    } else {
+    __MLCP_WritePastEOFWarning(OutFile, FileRange, FileOffEnd, OneLine, "");
+    if constexpr (!OneLine) {
         fprintf(OutFile, "\n%s", LinePrefix);
+    } else {
+        fputc('\t', OutFile);
     }
 
     fprintf(OutFile, "Memory:%c", (OneLine) ? ' ' : '\t');
@@ -224,7 +238,7 @@ MachOLoadCommandPrinterWriteFileAndVmRange(FILE *OutFile,
                             static_cast<VmAddrType *>(nullptr));
 
     if (ShouldPrintSizeInfo) {
-        __MLCP_WriteSizeInfo<OneLine>(OutFile, VmSize);
+        __MLCP_WriteSizeInfo<OneLine>(OutFile, VmSize, !OneLine);
     }
 
     if (!OneLine || (OneLine && Verbose)) {
@@ -440,7 +454,11 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SymbolTable> {
                                    &StrTabEnd);
 
         fprintf(OutFile, " (%" PRIu32 " Bytes)", StrSize);
-        __MLCP_WritePastEOFWarning(OutFile, FileRange, StrTabEnd, "\n");
+        if (Verbose) {
+            PrintUtilsWriteFormattedSize(OutFile, StrSize, " (", ")");
+        }
+
+        __MLCP_WritePastEOFWarning(OutFile, FileRange, StrTabEnd, false, "\n");
         fputs("\tSymbol-Table: ", OutFile);
 
         if (SymOverflows) {
@@ -450,7 +468,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SymbolTable> {
         }
 
         fprintf(OutFile, " (%" PRIu32 " Symbols)", Nsyms);
-        __MLCP_WritePastEOFWarning(OutFile, FileRange, SymTabEnd, "\n");
+        __MLCP_WritePastEOFWarning(OutFile, FileRange, SymTabEnd, false, "\n");
     }
 };
 
@@ -478,7 +496,7 @@ __MLCP_WriteLCOffsetSizePair(FILE *OutFile,
     PrintUtilsWriteFormattedSize(OutFile, Size, " (", ")");
 
     if constexpr (PrintEOF) {
-        __MLCP_WritePastEOFWarning(OutFile, FileRange, End, "");
+        __MLCP_WritePastEOFWarning(OutFile, FileRange, End, false, "");
     }
 
     if (EndOut != nullptr) {
@@ -1356,7 +1374,7 @@ MachOLoadCommandPrinterWriteEncryptionInfoCmd(
     PrintUtilsWriteSizeRange32(OutFile, Is64Bit, Offset, Size, &End, "", "), ");
     fprintf(OutFile, "CryptID: %" PRIu32, CryptID);
 
-    __MLCP_WritePastEOFWarning(OutFile, FileRange, End, "\n");
+    __MLCP_WritePastEOFWarning(OutFile, FileRange, End, false, "\n");
 }
 
 template <>
@@ -1471,7 +1489,7 @@ PrintDyldInfoField(FILE *OutFile,
                                    "",
                                    ")");
 
-        __MLCP_WritePastEOFWarning(OutFile, FileRange, End, "\n");
+        __MLCP_WritePastEOFWarning(OutFile, FileRange, End, false, "\n");
     } else {
         fprintf(OutFile, "%s%s\n", Prefix.data(), Name);
     }
@@ -1705,7 +1723,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::FunctionStarts>
             }
         }
 
-        __MLCP_WritePastEOFWarning(OutFile, FileRange, End, "\n");
+        __MLCP_WritePastEOFWarning(OutFile, FileRange, End, false, "\n");
     }
 };
 
@@ -1972,9 +1990,15 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Note>
                 Note.DataOwner, Offset, Size);
 
         auto End = uint64_t();
+        PrintUtilsWriteSizeRange64(OutFile,
+                                   Is64Bit,
+                                   Offset,
+                                   Size,
+                                   &End,
+                                   "",
+                                   ")");
 
-        PrintUtilsWriteSizeRange64(OutFile, Is64Bit, Offset, Size, &End, "", ")");
-        __MLCP_WritePastEOFWarning(OutFile, FileRange, End, "\n");
+        __MLCP_WritePastEOFWarning(OutFile, FileRange, End, false, "\n");
     }
 };
 
