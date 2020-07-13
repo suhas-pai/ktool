@@ -193,12 +193,12 @@ GetArchInfoAtIndexImpl(const ListType &List,
     auto Info = FatMachOMemoryObject::ArchInfo();
     const auto &Arch = List.at(Index);
 
-    Info.CpuKind = Arch->getCpuKind(IsBigEndian);
-    Info.CpuSubKind = SwitchEndianIf(Arch->CpuSubKind, IsBigEndian);
+    Info.CpuKind = Arch.getCpuKind(IsBigEndian);
+    Info.CpuSubKind = SwitchEndianIf(Arch.CpuSubKind, IsBigEndian);
 
-    Info.Offset = SwitchEndianIf(Arch->Offset, IsBigEndian);
-    Info.Size = SwitchEndianIf(Arch->Size, IsBigEndian);
-    Info.Align = SwitchEndianIf(Arch->Align, IsBigEndian);
+    Info.Offset = SwitchEndianIf(Arch.Offset, IsBigEndian);
+    Info.Size = SwitchEndianIf(Arch.Size, IsBigEndian);
+    Info.Align = SwitchEndianIf(Arch.Align, IsBigEndian);
 
     return Info;
 }

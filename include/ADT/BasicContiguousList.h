@@ -59,8 +59,12 @@ public:
         return End;
     }
 
-    [[nodiscard]] inline EntryType *at(uint64_t Index) const noexcept {
-        return Begin + Index;
+    [[nodiscard]] inline EntryType &at(uint64_t Index) noexcept {
+        return Begin[Index];
+    }
+
+    [[nodiscard]] inline const EntryType &at(uint64_t Index) const noexcept {
+        return Begin[Index];
     }
 
     [[nodiscard]] inline uint64_t count() const noexcept {
@@ -139,8 +143,8 @@ public:
         return End;
     }
 
-    [[nodiscard]] inline EntryType *at(uint64_t Index) const noexcept {
-        return Begin + Index;
+    [[nodiscard]] inline EntryType &at(uint64_t Index) const noexcept {
+        return Begin[Index];
     }
 
     [[nodiscard]] inline uint64_t count() const noexcept {
@@ -189,8 +193,8 @@ public:
         return End;
     }
 
-    [[nodiscard]] inline EntryType *at(uint64_t Index) const noexcept {
-        return Begin + Index;
+    [[nodiscard]] inline EntryType &at(uint64_t Index) const noexcept {
+        return Begin[Index];
     }
 
     [[nodiscard]] inline uint64_t count() const noexcept {
@@ -261,8 +265,8 @@ public:
         return End;
     }
 
-    [[nodiscard]] inline EntryType *at(uint64_t Index) const noexcept {
-        return Begin + Index;
+    [[nodiscard]] inline EntryType &at(uint64_t Index) const noexcept {
+        return Begin[Index];
     }
 
     [[nodiscard]] inline uint64_t count() const noexcept {

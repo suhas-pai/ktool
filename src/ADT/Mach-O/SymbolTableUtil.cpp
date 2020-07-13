@@ -285,7 +285,7 @@ namespace MachO {
                 }
 
                 const auto Error =
-                    ParseSymbol<PointerKind::s64Bit>(*EntryList.at(Index),
+                    ParseSymbol<PointerKind::s64Bit>(EntryList.at(Index),
                                                      Index,
                                                      StrTab,
                                                      StrEnd,
@@ -323,7 +323,7 @@ namespace MachO {
                 }
 
                 const auto Error =
-                    ParseSymbol<PointerKind::s32Bit>(*EntryList.at(Index),
+                    ParseSymbol<PointerKind::s32Bit>(EntryList.at(Index),
                                                      Index,
                                                      StrTab,
                                                      StrEnd,
