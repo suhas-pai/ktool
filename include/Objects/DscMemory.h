@@ -62,14 +62,6 @@ protected:
         uint8_t *Map;
 
         DyldSharedCache::Header *Header;
-        DyldSharedCache::HeaderV0 *HeaderV0;
-        DyldSharedCache::HeaderV1 *HeaderV1;
-        DyldSharedCache::HeaderV2 *HeaderV2;
-        DyldSharedCache::HeaderV3 *HeaderV3;
-        DyldSharedCache::HeaderV4 *HeaderV4;
-        DyldSharedCache::HeaderV5 *HeaderV5;
-        DyldSharedCache::HeaderV6 *HeaderV6;
-
         PointerErrorStorage<Error> ErrorStorage;
     };
 
@@ -130,37 +122,45 @@ public:
     }
 
     [[nodiscard]] DyldSharedCache::HeaderV0 &getHeaderV0() const noexcept {
-        return *HeaderV0;
+        return *Header;
     }
 
     [[nodiscard]] DyldSharedCache::HeaderV1 &getHeaderV1() const noexcept {
-        assert(HeaderV0->MappingOffset >= sizeof(DyldSharedCache::HeaderV1));
-        return *HeaderV1;
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV1));
+        return *Header;
     }
 
     [[nodiscard]] DyldSharedCache::HeaderV2 &getHeaderV2() const noexcept {
-        assert(HeaderV0->MappingOffset >= sizeof(DyldSharedCache::HeaderV2));
-        return *HeaderV2;
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV2));
+        return *Header;
     }
 
     [[nodiscard]] DyldSharedCache::HeaderV3 &getHeaderV3() const noexcept {
-        assert(HeaderV0->MappingOffset >= sizeof(DyldSharedCache::HeaderV3));
-        return *HeaderV3;
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV3));
+        return *Header;
     }
 
     [[nodiscard]] DyldSharedCache::HeaderV4 &getHeaderV4() const noexcept {
-        assert(HeaderV0->MappingOffset >= sizeof(DyldSharedCache::HeaderV4));
-        return *HeaderV4;
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV4));
+        return *Header;
     }
 
     [[nodiscard]] DyldSharedCache::HeaderV5 &getHeaderV5() const noexcept {
-        assert(HeaderV0->MappingOffset >= sizeof(DyldSharedCache::HeaderV5));
-        return *HeaderV5;
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV5));
+        return *Header;
     }
 
     [[nodiscard]] DyldSharedCache::HeaderV6 &getHeaderV6() const noexcept {
-        assert(HeaderV0->MappingOffset >= sizeof(DyldSharedCache::HeaderV6));
-        return *HeaderV6;
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV6));
+        return *Header;
+    }
+
+    [[nodiscard]] uint32_t getImageCount() const noexcept {
+        return getHeaderV0().ImagesCount;
+    }
+
+    [[nodiscard]] uint32_t getMappingCount() const noexcept {
+        return getHeaderV0().MappingCount;
     }
 
     [[nodiscard]] Version getVersion() const noexcept;
@@ -186,41 +186,41 @@ public:
 
     [[nodiscard]]
     const DyldSharedCache::HeaderV0 &getHeaderV0() const noexcept {
-        return *HeaderV0;
+        return *Header;
     }
 
     [[nodiscard]]
     const DyldSharedCache::HeaderV1 &getHeaderV1() const noexcept {
-        assert(HeaderV0->MappingOffset >= sizeof(DyldSharedCache::HeaderV1));
-        return *HeaderV1;
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV1));
+        return *Header;
     }
 
     [[nodiscard]] DyldSharedCache::HeaderV2 &getHeaderV2() const noexcept {
-        assert(HeaderV0->MappingOffset >= sizeof(DyldSharedCache::HeaderV2));
-        return *HeaderV2;
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV2));
+        return *Header;
     }
 
     [[nodiscard]]
     const DyldSharedCache::HeaderV3 &getHeaderV3() const noexcept {
-        assert(HeaderV0->MappingOffset >= sizeof(DyldSharedCache::HeaderV3));
-        return *HeaderV3;
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV3));
+        return *Header;
     }
 
     [[nodiscard]]
     const DyldSharedCache::HeaderV4 &getHeaderV4() const noexcept {
-        assert(HeaderV0->MappingOffset >= sizeof(DyldSharedCache::HeaderV4));
-        return *HeaderV4;
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV4));
+        return *Header;
     }
 
     [[nodiscard]]
     const DyldSharedCache::HeaderV5 &getHeaderV5() const noexcept {
-        assert(HeaderV0->MappingOffset >= sizeof(DyldSharedCache::HeaderV5));
-        return *HeaderV5;
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV5));
+        return *Header;
     }
 
     [[nodiscard]]
     const DyldSharedCache::HeaderV6 &getHeaderV6() const noexcept {
-        assert(HeaderV0->MappingOffset >= sizeof(DyldSharedCache::HeaderV6));
-        return *HeaderV6;
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV6));
+        return *Header;
     }
 };
