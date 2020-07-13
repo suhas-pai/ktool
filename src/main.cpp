@@ -337,6 +337,12 @@ int main(int Argc, const char *Argv[]) {
                               "an unknown image-range\n",
                               stderr);
                         return 1;
+                    case DscMemoryObject::Error::OverlappingImageMappingRange:
+                        fputs("Provided file is a dyld_shared_cache file with "
+                              "Overlapping Image-Info and Mapping-Info "
+                              "Ranges\n",
+                              stderr);
+                        return 1;
                 }
 
                 break;

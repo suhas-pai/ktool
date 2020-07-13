@@ -75,7 +75,7 @@ ValidateMap(const ConstMemoryMap &Map,
 
     const auto Header = Map.getBeginAs<DyldSharedCache::HeaderV0>();
     const auto MappingOffset = Header->MappingOffset;
-    const auto AvailableRange =
+    const auto AllowedRange =
         LocationRange::CreateWithEnd(MappingOffset, Map.size());
 
     auto MappingEnd = uint64_t();
@@ -89,7 +89,7 @@ ValidateMap(const ConstMemoryMap &Map,
     const auto MappingRange =
         LocationRange::CreateWithEnd(MappingOffset, MappingEnd);
 
-    if (!AvailableRange.contains(MappingRange)) {
+    if (!AllowedRange.contains(MappingRange)) {
         return DscMemoryObject::Error::InvalidImageRange;
     }
 
@@ -104,8 +104,12 @@ ValidateMap(const ConstMemoryMap &Map,
     }
 
     const auto ImageRange = LocationRange::CreateWithEnd(ImageOffset, ImageEnd);
-    if (!AvailableRange.contains(ImageRange)) {
+    if (!AllowedRange.contains(ImageRange)) {
         return DscMemoryObject::Error::InvalidImageRange;
+    }
+
+    if (MappingRange.overlaps(ImageRange)) {
+        return DscMemoryObject::Error::OverlappingImageMappingRange;
     }
 
     return DscMemoryObject::Error::None;
@@ -132,6 +136,7 @@ bool DscMemoryObject::DidMatchFormat() const noexcept {
         case Error::UnknownCpuKind:
         case Error::InvalidMappingRange:
         case Error::InvalidImageRange:
+        case Error::OverlappingImageMappingRange:
             return true;
     }
 }

@@ -55,6 +55,7 @@ public:
 
         InvalidMappingRange,
         InvalidImageRange,
+        OverlappingImageMappingRange,
     };
 protected:
     union {
