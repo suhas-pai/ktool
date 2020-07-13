@@ -61,6 +61,10 @@ public:
         return *this;
     }
 
+    [[nodiscard]] inline char front() const noexcept {
+        return getString()[0];
+    }
+
     [[nodiscard]] inline bool IsAtBack() const noexcept {
         return (Item == (End - 1));
     }
@@ -70,7 +74,11 @@ public:
     }
 
     [[nodiscard]] inline bool IsOption() const noexcept {
-        return (getString()[0] == '-');
+        return (front() == '-');
+    }
+
+    [[nodiscard]] inline bool IsPath() const noexcept {
+        return (front() == '/');
     }
 
     [[nodiscard]] inline const char **getPtr() const noexcept {
