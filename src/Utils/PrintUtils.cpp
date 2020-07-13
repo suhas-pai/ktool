@@ -73,7 +73,6 @@ PrintUtilsWriteUuid(FILE *OutFile,
 using namespace std::literals;
 
 constexpr static const std::string_view FormatNames[] = {
-    "Bytes"sv,
     "KiloBytes"sv,
     "MegaBytes"sv,
     "GigaBytes"sv,
@@ -95,10 +94,15 @@ PrintUtilsWriteFormattedSize(FILE *OutFile,
     auto Result = double(Size);
     auto Index = 0;
 
+    if (Result < Base) {
+        return 0;
+    }
+
+    Result /= Base;
     while (Result >= Base) {
         Result /= Base;
         Index++;
-    }
+    };
 
     assert(Index < countof(FormatNames));
 

@@ -129,11 +129,14 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
         }
 
         fprintf(Options.OutFile, "Ncmds: %" PRIu32 "\n", Ncmds);
-        fprintf(Options.OutFile, "SizeOfCmds: %" PRIu32 " (", SizeOfCmds);
+        fprintf(Options.OutFile, "SizeOfCmds: %" PRIu32, SizeOfCmds);
 
-        PrintUtilsWriteFormattedSize(Options.OutFile, SizeOfCmds);
-        fputs(")\n", Options.OutFile);
+        PrintUtilsWriteFormattedSize(Options.OutFile,
+                                     SizeOfCmds,
+                                     " (",
+                                     ")");
 
+        fputc('\n', Options.OutFile);
         fprintf(Options.OutFile,
                 "Flags:\n"
                 "\tNumber: %" PRIu32 " (0x%X)\n"
@@ -309,10 +312,10 @@ PrintDscSizeRange(FILE *OutFile,
         const auto SizeWrittenOut = fprintf(OutFile, "%" PRIu64, Size);
         if (Verbose) {
             PrintUtilsRightPadSpaces(OutFile, SizeWrittenOut, OFFSET_64_LEN);
-            PrintUtilsWriteFormattedSize(OutFile, Size, " (", ")\n");
-        } else {
-            fputc('\n', OutFile);
+            PrintUtilsWriteFormattedSize(OutFile, Size, " (", ")");
         }
+
+        fputc('\n', OutFile);
     } else {
         fputc('\n', OutFile);
         PrintDscKey(OutFile, SizeName);
