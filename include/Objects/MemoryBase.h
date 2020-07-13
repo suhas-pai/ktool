@@ -81,7 +81,7 @@ struct ObjectKindInfo<ObjectKind::FatMachO> {
 
 template<>
 struct ObjectKindInfo<ObjectKind::DyldSharedCache> {
-    constexpr static const auto Kind = ObjectKind::FatMachO;
+    constexpr static const auto Kind = ObjectKind::DyldSharedCache;
 
     typedef DscMemoryObject Type;
     typedef DscMemoryObject *Ptr;
