@@ -1136,7 +1136,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Uuid>
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile);
 
         fputc('\t', OutFile);
-        PrintUtilsWriteUuid(OutFile, Uuid.Uuid);
+        PrintUtilsWriteUuid(OutFile, Uuid.Uuid, "", "\n");
     }
 };
 

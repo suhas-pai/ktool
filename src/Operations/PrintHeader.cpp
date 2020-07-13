@@ -357,9 +357,7 @@ PrintDscHeaderV2Info(const struct PrintHeaderOperation::Options &Options,
                       Options.Verbose);
 
     PrintDscKey(Options.OutFile, "Uuid");
-    PrintUtilsWriteUuid(Options.OutFile, Header.Uuid);
-
-    fputc('\n', Options.OutFile);
+    PrintUtilsWriteUuid(Options.OutFile, Header.Uuid, "", "\n");
 }
 
 static void
