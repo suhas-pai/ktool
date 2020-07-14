@@ -513,7 +513,8 @@ Operation::PrintOptionHelpMenu(OperationKind Kind,
                     "%s    --sort-by-name,       Sort Image List by Name\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s-v, --verbose, Print more Verbose Information\n",
+                    "%s-v, --verbose,            Print more Verbose "
+                    "Information\n",
                     Prefix);
             break;
     }
