@@ -237,7 +237,7 @@ DscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
 
 std::optional<uint64_t>
 DscMemoryObject::GetFileOffsetForAddr(uint64_t Addr) const noexcept {
-    for (const auto &Mapping : getHeaderV0().getMappingInfoList()) {
+    for (const auto &Mapping : getConstMappingInfoList()) {
         if (const auto Offset = Mapping.getFileOffsetFromAddr(Addr)) {
             return Offset;
         }
