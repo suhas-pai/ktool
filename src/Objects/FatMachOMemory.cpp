@@ -205,34 +205,33 @@ GetArchInfoAtIndexImpl(const ListType &List,
 
 FatMachOMemoryObject::ArchInfo
 FatMachOMemoryObject::GetArchInfoAtIndex(uint32_t Index) const noexcept {
-    assert(!IndexOutOfBounds(Index, this->getArchCount()) &&
-           "Index is past bounds of ArchList");
+    assert(!IndexOutOfBounds(Index, getArchCount()));
 
     auto Info = ArchInfo();
     const auto IsBigEndian = this->IsBigEndian();
 
     if (this->Is64Bit()) {
         Info = GetArchInfoAtIndexImpl(Header->getConstArch64List(IsBigEndian),
-                                      Index, IsBigEndian);
+                                      Index,
+                                      IsBigEndian);
     } else {
         Info = GetArchInfoAtIndexImpl(Header->getConstArch32List(IsBigEndian),
-                                      Index, IsBigEndian);
+                                      Index,
+                                      IsBigEndian);
     }
 
     return Info;
 }
 
-template <typename MachOObjectType, typename MemoryObjectType>
-static FatMachOMemoryObject::GetObjectResultTemplate<MemoryObjectType>
-GetMachOObjectResult(MemoryObjectType *ArchObject,
+static FatMachOMemoryObject::GetObjectResult
+GetMachOObjectResult(MemoryObject *ArchObject,
                      Mach::CpuKind CpuKind,
                      int32_t CpuSubKind)
 {
     using WarningEnum = FatMachOMemoryObject::GetObjectResult::WarningEnum;
-    using GetObjectResult =
-        FatMachOMemoryObject::GetObjectResultTemplate<MemoryObjectType>;
+    using GetObjectResult = FatMachOMemoryObject::GetObjectResult;
 
-    const auto MachOObject = cast<MachOObjectType *>(ArchObject);
+    const auto MachOObject = cast<ObjectKind::MachO>(ArchObject);
     const auto Header = MachOObject->getConstHeader();
     const auto IsBigEndian = MachOObject->IsBigEndian();
 
@@ -247,8 +246,9 @@ GetMachOObjectResult(MemoryObjectType *ArchObject,
 }
 
 FatMachOMemoryObject::GetObjectResult
-FatMachOMemoryObject::GetArchObjectFromInfo(const ArchInfo &Info)
-const noexcept {
+FatMachOMemoryObject::GetArchObjectFromInfo(
+    const ArchInfo &Info) const noexcept
+{
     const auto ArchMapBegin = Map + Info.Offset;
     const auto ArchMap = MemoryMap(ArchMapBegin, ArchMapBegin + Info.Size);
 
@@ -258,8 +258,12 @@ const noexcept {
         case ArchKind::MachO:
             const auto Object = MachOMemoryObject::Open(ArchMap);
             if (Object.DidMatchFormat()) {
-                return GetMachOObjectResult<MachOMemoryObject>(
-                    Object.ToPtr(), Info.CpuKind, Info.CpuSubKind);
+                const auto Result =
+                    GetMachOObjectResult(Object.ToPtr(),
+                                         Info.CpuKind,
+                                         Info.CpuSubKind);
+
+                return Result;
             }
     }
 

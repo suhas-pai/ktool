@@ -157,25 +157,19 @@ public:
         MachOCpuKindMismatch
     };
 
-    template <typename MemoryObjectType>
-    struct GetObjectResultTemplate {
+    struct GetObjectResult {
     public:
         using WarningEnum = GetObjectResultWarningEnum;
     protected:
-        MemoryObjectType *Object;
+        MemoryObject *Object;
         WarningEnum Warning = WarningEnum::None;
     public:
-        GetObjectResultTemplate(MemoryObjectType *Object) noexcept
-        : Object(Object) {}
-
-        GetObjectResultTemplate(WarningEnum Warning) noexcept
-        : Warning(Warning) {}
-
-        GetObjectResultTemplate(MemoryObjectType *Object,
-                                WarningEnum Warning) noexcept
+        GetObjectResult(MemoryObject *Object) noexcept : Object(Object) {}
+        GetObjectResult(WarningEnum Warning) noexcept : Warning(Warning) {}
+        GetObjectResult(MemoryObject *Object, WarningEnum Warning) noexcept
         : Object(Object), Warning(Warning) {}
 
-        [[nodiscard]] inline MemoryObjectType *getObject() const noexcept {
+        [[nodiscard]] inline MemoryObject *getObject() const noexcept {
             return Object;
         }
 
@@ -184,7 +178,6 @@ public:
         }
     };
 
-    using GetObjectResult = GetObjectResultTemplate<MemoryObject>;
     GetObjectResult GetArchObjectFromInfo(const ArchInfo &Info) const noexcept;
 };
 
@@ -229,6 +222,4 @@ public:
     }
 
     using ArchInfo = FatMachOMemoryObject::ArchInfo;
-    using GetObjectResult =
-        FatMachOMemoryObject::GetObjectResultTemplate<MemoryObject>;
 };
