@@ -27,6 +27,7 @@ public:
         Options() noexcept : Operation::Options(OpKind), Verbose(false) {}
         enum class SortKind {
             ByAddress,
+            ByInode,
             ByModTime,
             ByName,
         };

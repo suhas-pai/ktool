@@ -499,7 +499,18 @@ Operation::PrintOptionHelpMenu(OperationKind Kind,
             break;
         case OperationKind::PrintImageList:
             fprintf(OutFile,
-                    "%s    --sort,    Sort Image List\n",
+                    "%s    --sort-by-address,    Sort Image List by "
+                    "Image-Address\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-inode,      Sort Image List by Inode\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-modtime,    Sort Image List by "
+                    "Modification-Time\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-name,       Sort Image List by Name\n",
                     Prefix);
             fprintf(OutFile,
                     "%s-v, --verbose, Print more Verbose Information\n",

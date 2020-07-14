@@ -43,6 +43,14 @@ CompareInfosBySortKind(
             }
 
             return 1;
+        case PrintImageListOperation::Options::SortKind::ByInode:
+            if (Lhs.Inode == Rhs.Inode) {
+                return 0;
+            } else if (Lhs.Inode < Rhs.Inode) {
+                return -1;
+            }
+
+            return 1;
         case PrintImageListOperation::Options::SortKind::ByModTime:
             if (Lhs.ModTime == Rhs.ModTime) {
                 return 0;
@@ -174,6 +182,8 @@ PrintImageListOperation::ParseOptionsImpl(const ArgvArray &Argv,
             Options.Verbose = true;
         } else if (strcmp(Argument, "--sort-by-address") == 0) {
             AddSortKind(Options::SortKind::ByAddress, Argument, Options);
+        } else if (strcmp(Argument, "--sort-by-inode") == 0) {
+            AddSortKind(Options::SortKind::ByInode, Argument, Options);
         } else if (strcmp(Argument, "--sort-by-modtime") == 0) {
             AddSortKind(Options::SortKind::ByModTime, Argument, Options);
         } else if (strcmp(Argument, "--sort-by-name") == 0) {
