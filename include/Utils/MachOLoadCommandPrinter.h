@@ -95,7 +95,7 @@ __MLCP_WriteSizeDiff(FILE *OutFile,
                   "SizeType must be an integer-type");
 
     static_assert(std::is_same_v<SizeOneType, SizeTwoType>,
-                  "SizeType must be an integer-type");
+                  "SizeOneType and SizeTwoSize muwt be the same type");
 
     constexpr static const auto WriteLengthMax = LENGTH_OF(" (+000000");
     constexpr static const auto WriteMax =
@@ -454,9 +454,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SymbolTable> {
                                    &StrTabEnd);
 
         fprintf(OutFile, " (%" PRIu32 " Bytes)", StrSize);
-        if (Verbose) {
-            PrintUtilsWriteFormattedSize(OutFile, StrSize, " (", ")");
-        }
+        PrintUtilsWriteFormattedSize(OutFile, StrSize, " (", ")");
 
         __MLCP_WritePastEOFWarning(OutFile, FileRange, StrTabEnd, false, "\n");
         fputs("\tSymbol-Table: ", OutFile);
@@ -1489,6 +1487,7 @@ PrintDyldInfoField(FILE *OutFile,
                                    "",
                                    ")");
 
+        PrintUtilsWriteFormattedSize(OutFile, Size, " (", ")");
         __MLCP_WritePastEOFWarning(OutFile, FileRange, End, false, "\n");
     } else {
         fprintf(OutFile, "%s%s\n", Prefix.data(), Name);
