@@ -139,7 +139,7 @@ PrintSymbolList(
                 fputs(", Debug-Symbol", Options.OutFile);
             }
 
-            const auto Section = Segment->SectionList.at(Info->Section + 1);
+            const auto &Section = Segment->SectionList.at(Info->Section + 1);
             fputs(", Section: ", Options.OutFile);
 
             PrintUtilsRightPadSpaces(Options.OutFile,
@@ -175,6 +175,46 @@ PrintSymbolPtrSectionOperation::Run(const ConstMachOMemoryObject &Object,
     const auto IsBigEndian = Object.IsBigEndian();
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
+
+    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
+
+    const auto Is64Bit = Object.Is64Bit();
+    const auto SegmentCollection =
+        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
+                                           Is64Bit,
+                                           &SegmentCollectionError);
+
+    OperationCommon::HandleSegmentCollectionError(Options.ErrFile,
+                                                  SegmentCollectionError);
+
+    const auto Segment = SegmentCollection.GetInfoForName(Options.SegmentName);
+    if (Segment == nullptr) {
+        fprintf(Options.ErrFile,
+                "Provided file has no segment with name \"%s\"",
+                Options.SegmentName.data());
+        return 1;
+    }
+
+    const auto Section = Segment->FindSectionWithName(Options.SectionName);
+    if (Section == nullptr) {
+        fprintf(Options.ErrFile,
+                "Provided file has no section with name \"%s\" in provided "
+                "segment\n",
+                Options.SectionName.data());
+        return 1;
+    }
+
+    const auto SectionKind = Section->getKind();
+    if (SectionKind != MachO::SegmentSectionKind::LazySymbolPointers &&
+        SectionKind != MachO::SegmentSectionKind::NonLazySymbolPointers)
+    {
+        fprintf(Options.OutFile,
+                "Provided Segment-Section \"%s\",\"%s\" is neither a Non-Lazy "
+                "nor a Lazy Symbol-Pointer Section\n",
+                Segment->Name.data(),
+                Section->Name.data());
+        return 0;
+    }
 
     auto SymtabCommand = static_cast<const MachO::SymTabCommand *>(nullptr);
     auto DySymtabCommand =
@@ -287,46 +327,6 @@ PrintSymbolPtrSectionOperation::Run(const ConstMachOMemoryObject &Object,
               "load-command\n",
               Options.ErrFile);
         return 1;
-    }
-
-    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
-
-    const auto Is64Bit = Object.Is64Bit();
-    const auto SegmentCollection =
-        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
-                                           Is64Bit,
-                                           &SegmentCollectionError);
-
-    OperationCommon::HandleSegmentCollectionError(Options.ErrFile,
-                                                  SegmentCollectionError);
-
-    const auto Segment = SegmentCollection.GetInfoForName(Options.SegmentName);
-    if (Segment == nullptr) {
-        fprintf(Options.ErrFile,
-                "Provided file has no segment with name \"%s\"",
-                Options.SegmentName.data());
-        return 1;
-    }
-
-    const auto Section = Segment->FindSectionWithName(Options.SectionName);
-    if (Section == nullptr) {
-        fprintf(Options.ErrFile,
-                "Provided file has no section with name \"%s\" in provided "
-                "segment\n",
-                Options.SectionName.data());
-        return 1;
-    }
-
-    const auto SectionKind = Section->getKind();
-    if (SectionKind != MachO::SegmentSectionKind::LazySymbolPointers &&
-        SectionKind != MachO::SegmentSectionKind::NonLazySymbolPointers)
-    {
-        fprintf(Options.OutFile,
-                "Provided Segment-Section \"%s\",\"%s\" is neither a Non-Lazy "
-                "nor a Lazy Symbol-Pointer Section\n",
-                Segment->Name.data(),
-                Section->Name.data());
-        return 0;
     }
 
     auto LibraryCollectionError =
