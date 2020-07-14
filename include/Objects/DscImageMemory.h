@@ -35,6 +35,10 @@ public:
         return DscMap;
     }
 
+    [[nodiscard]] inline RelativeRange getDscRange() const noexcept {
+        return DscMap.getRange();
+    }
+
     [[nodiscard]]
     inline const ConstDscImageMemoryObject &toConst() const noexcept {
         return reinterpret_cast<const ConstDscImageMemoryObject &>(*this);
