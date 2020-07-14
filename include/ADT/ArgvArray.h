@@ -61,7 +61,7 @@ public:
         return *this;
     }
 
-    [[nodiscard]] inline char front() const noexcept {
+    [[nodiscard]] inline const char &front() const noexcept {
         return getString()[0];
     }
 
