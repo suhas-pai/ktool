@@ -226,7 +226,7 @@ FatMachOMemoryObject::GetArchInfoAtIndex(uint32_t Index) const noexcept {
 static FatMachOMemoryObject::GetObjectResult
 GetMachOObjectResult(MemoryObject *ArchObject,
                      Mach::CpuKind CpuKind,
-                     int32_t CpuSubKind)
+                     int32_t CpuSubKind) noexcept
 {
     using WarningEnum = FatMachOMemoryObject::GetObjectResult::WarningEnum;
     using GetObjectResult = FatMachOMemoryObject::GetObjectResult;
