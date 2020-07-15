@@ -84,7 +84,7 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
 
     ImageInfoList.reserve(ImageCount);
 
-    for (const auto &Info : Object.getImageInfoList()) {
+    for (const auto &Info : Object.getConstImageInfoList()) {
         auto NewInfo = ImageInfo { .Path = Info.getPath(Map) };
 
         NewInfo.Address = Info.Address;
