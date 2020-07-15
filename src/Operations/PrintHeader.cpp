@@ -418,7 +418,10 @@ PrintDscHeaderV4Info(const struct PrintHeaderOperation::Options &Options,
     fprintf(Options.OutFile, "%" PRIu32 "\n", Header.BranchPoolsCount);
 }
 
-static void PrintBoolValue(FILE *OutFile, bool Value) {
+static
+void PrintBoolValue(FILE *OutFile, const char *Key, bool Value) noexcept {
+    PrintDscKey(OutFile, Key);
+
     fputs((Value) ? "true" : "false", OutFile);
     fputc('\n', OutFile);
 }
@@ -470,17 +473,18 @@ PrintDscHeaderV5Info(const struct PrintHeaderOperation::Options &Options,
     PrintDscKey(Options.OutFile, "Closure-Format Version");
     fprintf(Options.OutFile, "%" PRIu32 "\n", Header.FormatVersion);
 
-    PrintDscKey(Options.OutFile, "Dylibs Expected On Disk");
-    PrintBoolValue(Options.OutFile, Header.DylibsImageGroupSize);
+    PrintBoolValue(Options.OutFile,
+                   "Dylibs Expected On Disk",
+                   Header.DylibsImageGroupSize);
 
-    PrintDscKey(Options.OutFile, "Simulator");
-    PrintBoolValue(Options.OutFile, Header.Simulator);
+    PrintBoolValue(Options.OutFile, "Simulator", Header.Simulator);
+    PrintBoolValue(Options.OutFile,
+                   "Locally-Built Cache",
+                   Header.LocallyBuiltCache);
 
-    PrintDscKey(Options.OutFile, "Locally-Built Cache");
-    PrintBoolValue(Options.OutFile, Header.LocallyBuiltCache);
-
-    PrintDscKey(Options.OutFile, "Built From Chained-Fixups");
-    PrintBoolValue(Options.OutFile, Header.BuiltFromChainedFixups);
+    PrintBoolValue(Options.OutFile,
+                   "Built From Chained-Fixups",
+                   Header.BuiltFromChainedFixups);
 
     PrintDscSizeRange(Options.OutFile,
                       "Shared-Region Start",
@@ -498,8 +502,10 @@ PrintDscHeaderV5Info(const struct PrintHeaderOperation::Options &Options,
         PrintUtilsWriteFormattedSize(Options.OutFile,
                                      Header.MaxSlide,
                                      " (",
-                                     ")\n");
+                                     ")");
     }
+
+    fputc('\n', Options.OutFile);
 }
 
 static void
