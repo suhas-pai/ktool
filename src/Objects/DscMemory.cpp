@@ -319,7 +319,7 @@ DscMemoryObject::GetImageWithInfo(
         const auto End = GetEndForMachOMap(Map);
 
         if (End != nullptr) {
-            return new DscImageMemoryObject(getMap(), Map, End);
+            return new DscImageMemoryObject(getMap(), ImageInfo, Map, End);
         }
     }
 

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "ADT/DyldSharedCache.h"
 #include "ADT/PointerErrorStorage.h"
 #include "MachOMemory.h"
 
@@ -20,7 +21,10 @@ public:
     friend struct DscMemoryObject;
 protected:
     const MemoryMap &DscMap;
+    const DyldSharedCache::ImageInfo &ImageInfo;
+
     DscImageMemoryObject(const MemoryMap &DscMap,
+                         const DyldSharedCache::ImageInfo &ImageInfo,
                          uint8_t *Begin,
                          uint8_t *End) noexcept;
 public:
@@ -56,6 +60,10 @@ public:
     inline operator const ConstDscImageMemoryObject &() const noexcept {
         return toConst();
     }
+
+    [[nodiscard]] inline const char *getPath() const noexcept {
+        return ImageInfo.getPath(getDscMap().getBegin());
+    }
 };
 
 struct ConstDscImageMemoryObject : DscImageMemoryObject {
@@ -63,6 +71,7 @@ public:
     friend struct DscMemoryObject;
 protected:
     ConstDscImageMemoryObject(const ConstMemoryMap &DscMap,
+                              const DyldSharedCache::ImageInfo &ImageInfo,
                               const uint8_t *Begin,
                               const uint8_t *End) noexcept;
 public:
