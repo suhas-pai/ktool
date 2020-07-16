@@ -20,15 +20,11 @@ PrintIdOperation::PrintIdOperation() noexcept : Operation(OpKind) {}
 PrintIdOperation::PrintIdOperation(const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}
 
-int
-PrintIdOperation::Run(const ConstMachOMemoryObject &Object,
-                      const struct Options &Options) noexcept
+static int
+PrintFromLoadCommands(
+    const MachOMemoryObject &Object,
+    const struct PrintIdOperation::Options &Options) noexcept
 {
-    if (Object.getFileKind() != MachO::Header::FileKind::Dylib) {
-        fputs("Provided file is not a Dynamic-Library file\n", Options.OutFile);
-        return 0;
-    }
-
     const auto IsBigEndian = Object.IsBigEndian();
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
@@ -78,6 +74,30 @@ PrintIdOperation::Run(const ConstMachOMemoryObject &Object,
     return 0;
 }
 
+int
+PrintIdOperation::Run(const ConstMachOMemoryObject &Object,
+                      const struct Options &Options) noexcept
+{
+    if (Object.getFileKind() != MachO::Header::FileKind::Dylib) {
+        fputs("Provided file is not a Dynamic-Library file\n", Options.OutFile);
+        return 0;
+    }
+
+    return PrintFromLoadCommands(Object, Options);
+}
+
+int
+PrintIdOperation::Run(const ConstDscImageMemoryObject &Object,
+                      const struct Options &Options) noexcept
+{
+    if (Options.Verbose) {
+        return PrintFromLoadCommands(Object, Options);
+    }
+
+    fprintf(Options.OutFile, "\"%s\"\n", Object.getPath());
+    return 0;
+}
+
 struct PrintIdOperation::Options
 PrintIdOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                    int *IndexOut) noexcept
@@ -118,10 +138,8 @@ int PrintIdOperation::Run(const MemoryObject &Object) const noexcept {
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
             return InvalidObjectKind;
-        case ObjectKind::DscImage: {
-            const auto &Obj = cast<ObjectKind::DscImage>(Object);
-            return Run(Obj, Options);
-        }
+        case ObjectKind::DscImage:
+            return Run(cast<ObjectKind::DscImage>(Object).toConst(), Options);
     }
 
     assert(0 && "Unrecognized Object-Kind");

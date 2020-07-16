@@ -40,6 +40,10 @@ public:
     Run(const ConstMachOMemoryObject &Object,
         const struct Options &Options) noexcept;
 
+    static int
+    Run(const ConstDscImageMemoryObject &Object,
+        const struct Options &Options) noexcept;
+
     [[nodiscard]] static struct Options
     ParseOptionsImpl(const ArgvArray &Argv, int *IndexOut) noexcept;
 
