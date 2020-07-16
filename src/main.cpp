@@ -30,15 +30,35 @@
 #include "Utils/PrintUtils.h"
 #include "Utils/StringUtils.h"
 
+static void PrintUnrecognizedOptionError(const char *Option) noexcept {
+    fprintf(stderr, "Unrecognized Option: \"%s\"\n", Option);
+}
+
 [[nodiscard]]
 static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
+    const auto ShortName = Operation::GetOptionShortName(Kind);
+    const auto LongName = Operation::GetOptionName(Kind);
+
     if (Arg[0] == '-' && Arg[1] != '-') {
-        const auto ShortName = Operation::GetOptionShortName(Kind);
         if (!ShortName.empty() && ShortName == (Arg + 1)) {
             return true;
         }
-    } else if (Operation::GetOptionName(Kind) == (Arg + 2)) {
+
+        if (LongName == (Arg + 1)) {
+            PrintUnrecognizedOptionError(Arg);
+            fprintf(stderr, "Did you mean option \"--%s\"?\n", LongName.data());
+
+            exit(1);
+        }
+    } else if (LongName == (Arg + 2)) {
         return true;
+    }
+
+    if (!ShortName.empty() && ShortName == (Arg + 2)) {
+        PrintUnrecognizedOptionError(Arg);
+        fprintf(stderr, "Did you mean option \"-%s\"?\n", ShortName.data());
+
+        exit(1);
     }
 
     return false;
@@ -194,12 +214,12 @@ int main(int Argc, const char *Argv[]) {
     }
 
     if (Ops == nullptr) {
+        PrintUnrecognizedOptionError(Argv[1]);
         fprintf(stderr,
-                "Unrecognized Option: \"%s\".\n"
                 "Use Option --%s or --%s to see a list of options\n",
-                Argv[1],
                 Operation::HelpOption.data(),
                 Operation::UsageOption.data());
+
         return 1;
     }
 
@@ -439,7 +459,8 @@ int main(int Argc, const char *Argv[]) {
 
             if (!Argument.hasNext()) {
                 fputs("Please provide an image-index or image-path.\n"
-                      "Use the --list-images option to see a list of images\n",
+                      "Use the --list-dsc-images option to see a list of "
+                      "images\n",
                       stderr);
                 return 1;
             }
@@ -478,9 +499,7 @@ int main(int Argc, const char *Argv[]) {
                 Object = GetImageWithPath(*DscObj, Argument.GetStringView());
             }
         } else {
-            fprintf(stdout,
-                    "Unrecognized Argument for provided path: %s\n",
-                    Argument.getString());
+            PrintUnrecognizedOptionError(Argument);
             return 1;
         }
     }
