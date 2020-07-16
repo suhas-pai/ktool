@@ -68,9 +68,9 @@ PrintSymbolList(
     const std::vector<MachO::SymbolTableEntryCollectionEntryInfo *> &List,
     const MachO::SectionInfo &Section) noexcept
 {
-    auto LargestIndex = LargestIntHelper<uint64_t>();
-    auto LongestLength = LargestIntHelper<uint64_t>();
-    auto LongestKind = LargestIntHelper<uint64_t>();
+    auto LargestIndex = LargestIntHelper();
+    auto LongestLength = LargestIntHelper();
+    auto LongestKind = LargestIntHelper();
     auto LongestSegment = LargestIntHelper<uint8_t>();
     auto LongestSection = LargestIntHelper<uint8_t>();
 

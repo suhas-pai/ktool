@@ -265,7 +265,7 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
         return 0;
     }
 
-    auto LongestLength = LargestIntHelper<uint64_t>();
+    auto LongestLength = LargestIntHelper();
 
     const auto End = ObjcClassCollection.end();
     for (auto Iter = ObjcClassCollection.begin(); Iter != End; Iter++) {
