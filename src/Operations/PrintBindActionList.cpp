@@ -84,9 +84,7 @@ PrintBindAction(
                                                Section,
                                                true);
 
-        fputc(' ', Options.OutFile);
-        PrintUtilsWriteOffset(Options.OutFile, FullAddr, Is64Bit);
-
+        PrintUtilsWriteOffset(Options.OutFile, FullAddr, Is64Bit, " ");
         if (Action.Addend != 0) {
             PrintUtilsWriteOffset(Options.OutFile,
                                   Action.Addend,

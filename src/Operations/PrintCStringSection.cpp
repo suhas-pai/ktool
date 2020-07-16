@@ -178,8 +178,11 @@ PrintCStringSectionOperation::Run(const ConstMachOMemoryObject &Object,
                     LongestStringLengthDigitLength,
                     String.length());
 
-            PrintUtilsWriteOffset(Options.OutFile, Info.Offset, Is64Bit);
-            fputc(')', Options.OutFile);
+            PrintUtilsWriteOffset(Options.OutFile,
+                                  Info.Offset,
+                                  Is64Bit,
+                                  "",
+                                  ")");
         }
 
         fputc('\n', Options.OutFile);

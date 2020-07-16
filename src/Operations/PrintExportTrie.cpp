@@ -47,6 +47,7 @@ ExportNodeMeetsRequirements(
         for (const auto &Kind : Options.KindRequirements) {
             if (Node->ExportKind == Kind) {
                 MeetsReq = true;
+                break;
             }
         }
 
@@ -127,13 +128,13 @@ PrintTreeExportInfo(
 
     if (Options.Verbose) {
         if (Info.ExportKind != MachO::ExportTrieExportKind::Reexport) {
-            fputs(" - ", Options.OutFile);
             PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
                                                    Info.Segment,
                                                    Info.Section,
-                                                   false);
+                                                   false,
+                                                   " - ",
+                                                   " - ");
 
-            fputs(" - ", Options.OutFile);
             PrintUtilsWriteOffset(Options.OutFile, Info.Address, Is64Bit);
         }
     }
@@ -145,7 +146,7 @@ PrintTreeExportInfo(
 GetSymbolLengthForLongestPrintedLine(
     const MachO::ExportTrieEntryCollection &Collection) noexcept
 {
-    auto LongestLength = LargestIntHelper<uint64_t>();
+    auto LongestLength = LargestIntHelper();
 
     const auto End = Collection.end();
     for (auto Iter = Collection.begin(); Iter != End; Iter++) {
@@ -390,7 +391,7 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
     }
 
     auto ExportList = std::vector<ExportInfo>();
-    auto LongestExportLength = uint64_t();
+    auto LongestExportLength = LargestIntHelper();
 
     // A very large allocation, but many dylibs seem to have anywhere between
     // 1000-3000 symbols in the export-trie.
@@ -405,9 +406,7 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
         const auto String = Info.String;
         const auto StringLength = String.length();
 
-        if (LongestExportLength < StringLength) {
-            LongestExportLength = StringLength;
-        }
+        LongestExportLength = StringLength;
 
         auto SegmentName = std::string_view();
         auto SectionName = std::string_view();
