@@ -171,7 +171,8 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
     auto Counter = static_cast<uint32_t>(1);
     for (const auto &DylibInfo : DylibList) {
         fprintf(Options.OutFile,
-                "Lib %02" PRIu32 ": LC %02" PRIu32 ": %" PRINTF_RIGHTPAD_FMT "s"
+                "Library %02" PRIu32 ": LC %02" PRIu32 ": "
+                "%" PRINTF_RIGHTPAD_FMT "s"
                 "\t",
                 Counter,
                 DylibInfo.Index,
@@ -182,10 +183,10 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
             fprintf(Options.OutFile, "\"%s\"", DylibInfo.Name.data());
 
         if (Options.Verbose) {
-            PrintUtilsRightPadSpaces(Options.OutFile,
-                                     WrittenOut,
-                                     static_cast<int>(MaxDylibNameLength) + 2);
+            const auto RightPad =
+                static_cast<int>(MaxDylibNameLength) + LENGTH_OF("\"\"");
 
+            PrintUtilsRightPadSpaces(Options.OutFile, WrittenOut, RightPad);
             MachOTypePrinter<struct MachO::DylibCommand::Info>::PrintOnOneLine(
                 Options.OutFile, DylibInfo.Info, IsBigEndian, true, " (",
                 ")");
