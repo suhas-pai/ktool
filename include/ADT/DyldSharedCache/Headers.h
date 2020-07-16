@@ -100,8 +100,8 @@ namespace DyldSharedCache {
         [[nodiscard]] inline
         BasicContiguousList<const ImageInfo>
         getConstImageInfoList() const noexcept {
-            const auto Ptr =
-                reinterpret_cast<const uint8_t *>(this) + ImagesOffset;
+            const auto Map = reinterpret_cast<const uint8_t *>(this);
+            const auto Ptr = Map + ImagesOffset;
 
             return BasicContiguousList<const ImageInfo>(Ptr, ImagesCount);
         }
@@ -119,8 +119,8 @@ namespace DyldSharedCache {
 
         [[nodiscard]] inline BasicContiguousList<const MappingInfo>
         getConstMappingInfoList() const noexcept {
-            const auto Ptr =
-                reinterpret_cast<const uint8_t *>(this) + MappingOffset;
+            const auto Map = reinterpret_cast<const uint8_t *>(this);
+            const auto Ptr = Map + MappingOffset;
 
             return BasicContiguousList<const MappingInfo>(Ptr, MappingCount);
         }
