@@ -73,6 +73,7 @@ protected:
     explicit DscMemoryObject(const MemoryMap &Map, CpuKind CpuKind) noexcept;
 public:
     [[nodiscard]] static DscMemoryObject Open(const MemoryMap &Map) noexcept;
+
     [[nodiscard]]
     static inline bool IsOfKind(const MemoryObject &Obj) noexcept {
         return (Obj.getKind() == ObjectKind::DyldSharedCache);

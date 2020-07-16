@@ -13,8 +13,8 @@ DscImageMemoryObject::DscImageMemoryObject(
     const DyldSharedCache::ImageInfo &ImageInfo,
     uint8_t *Begin,
     uint8_t *End) noexcept
-: MachOMemoryObject(ObjKind, MemoryMap(Begin, End)), ImageInfo(ImageInfo),
-  DscMap(DscMap) {}
+: MachOMemoryObject(ObjKind, MemoryMap(Begin, End)), DscMap(DscMap),
+  ImageInfo(ImageInfo) {}
 
 ConstDscImageMemoryObject::ConstDscImageMemoryObject(
     const ConstMemoryMap &DscMap,

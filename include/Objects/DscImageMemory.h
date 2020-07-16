@@ -9,7 +9,6 @@
 #pragma once
 
 #include "ADT/DyldSharedCache.h"
-#include "ADT/PointerErrorStorage.h"
 #include "MachOMemory.h"
 
 struct DscMemoryObject;
@@ -20,7 +19,7 @@ public:
     constexpr static auto ObjKind = ObjectKind::DscImage;
     friend struct DscMemoryObject;
 protected:
-    const MemoryMap &DscMap;
+    MemoryMap DscMap;
     const DyldSharedCache::ImageInfo &ImageInfo;
 
     DscImageMemoryObject(const MemoryMap &DscMap,
