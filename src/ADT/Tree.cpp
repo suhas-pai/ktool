@@ -228,14 +228,12 @@ static void BasicIsolate(BasicTreeNode &Node) noexcept {
         }
     }
 
-    auto DidDelete = false;
     if (!ParentHasOnlyOneChild) {
         if (Parent.getFirstChild() == &Node) {
             Parent.setFirstChild(Node.getNextSibling());
         }
 
         if (Parent.getLongestChild() == &Node) {
-            DidDelete = true;
             RecalculateLongestChild(Parent);
         }
     } else if (FirstChild == nullptr) {

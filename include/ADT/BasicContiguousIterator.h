@@ -24,8 +24,20 @@ public:
     explicit BasicPointerAbstraction(uint8_t *Ptr) noexcept
     : Base(reinterpret_cast<T *>(Ptr)) {}
 
-    T *operator->() noexcept { return this->Item; }
-    const T *operator->() const noexcept { return this->Item; }
+    inline T *operator->() noexcept { return this->Item; }
+    inline const T *operator->() const noexcept { return this->Item; }
+};
+
+template <>
+struct BasicPointerAbstraction<uint8_t> :
+    public BasicWrapperIterator<uint8_t *, std::ptrdiff_t> {
+private:
+    using Base = BasicWrapperIterator<uint8_t *, std::ptrdiff_t>;
+public:
+    using BasicWrapperIterator<uint8_t *, std::ptrdiff_t>::BasicWrapperIterator;
+
+    uint8_t *operator->() noexcept { return this->Item; }
+    const uint8_t *operator->() const noexcept { return this->Item; }
 };
 
 template <typename T>

@@ -83,7 +83,7 @@ public:
         }
     };
 
-    constexpr MappedFile() noexcept = default;
+    constexpr MappedFile() noexcept {};
     explicit MappedFile(void *Map, uint64_t Size) noexcept;
     explicit MappedFile(const MappedFile &) noexcept = delete;
     explicit MappedFile(MappedFile &&) noexcept;

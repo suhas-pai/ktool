@@ -137,7 +137,7 @@ public:
         return ConstMemoryMap(Map, End);
     }
 
-    [[nodiscard]] inline const MachO::Header &getHeader() noexcept {
+    [[nodiscard]] inline const MachO::Header &getHeader() const noexcept {
         return *Header;
     }
 

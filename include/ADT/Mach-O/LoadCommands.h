@@ -1687,7 +1687,7 @@ namespace MachO {
                 Ld,
             };
 
-            template <Kind Kind>
+            template <Kind>
             struct KindInfo {};
 
             template <>
@@ -1724,7 +1724,7 @@ namespace MachO {
 
             [[nodiscard]] constexpr
             inline enum Kind GetKind(bool IsBigEndian) const noexcept {
-                const auto Integer = SwitchEndianIf(this->Kind, IsBigEndian);
+                const auto Integer = SwitchEndianIf(Kind, IsBigEndian);
                 return static_cast<enum Kind>(Integer);
             }
 

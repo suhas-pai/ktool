@@ -254,7 +254,7 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
             Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data());
 
     const auto Version = Object.getVersion();
-    
+
     PrintDscKey(Options.OutFile, "Version");
     fprintf(Options.OutFile, "%d\n", static_cast<int>(Version));
 
@@ -319,7 +319,7 @@ PrintDscSizeRange(FILE *OutFile,
     } else {
         fputc('\n', OutFile);
         PrintDscKey(OutFile, SizeName);
-        
+
         fprintf(OutFile, "%" PRIu64 "\n", Size);
     }
 }

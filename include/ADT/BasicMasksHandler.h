@@ -25,7 +25,7 @@ public:
     static_assert(TypeTraits::IsEnumClassValue<MaskType>,
                   "EnumType must be an enum class");
 protected:
-    IntegerType Integer;
+    IntegerType Integer = 0;
 public:
     using MaskIntegerType = std::underlying_type_t<MaskType>;
 
@@ -166,18 +166,18 @@ struct BasicMasksAndShiftsHandler :
 public:
     using IntegerType = IntegerTypeT;
 private:
-    using BaseType = BasicMasksHandler<MaskType, IntegerType>;
+    using Base = BasicMasksHandler<MaskType, IntegerType>;
 public:
     constexpr BasicMasksAndShiftsHandler() noexcept = default;
     constexpr BasicMasksAndShiftsHandler(IntegerType Integer) noexcept
-    : BaseType(Integer) {};
+    : Base(Integer) {};
 
     using MaskIntegerType = std::underlying_type_t<MaskType>;
     using ShiftIntegerType = std::underlying_type_t<ShiftType>;
 
     [[nodiscard]] constexpr inline IntegerType
     getValueForMaskAndShift(MaskType Mask, ShiftType Shift) const noexcept {
-        const auto MaskedValue = BaseType::getValueForMask(Mask);
+        const auto MaskedValue = Base::getValueForMask(Mask);
         const auto ShiftInteger = static_cast<ShiftIntegerType>(Shift);
 
         return (MaskedValue >> ShiftInteger);
@@ -185,7 +185,7 @@ public:
 
     [[nodiscard]] constexpr inline IntegerType
     getValueForMaskNoShift(MaskType Mask) const noexcept {
-        return BaseType::getValueForMask(Mask);
+        return Base::getValueForMask(Mask);
     }
 
     constexpr inline BasicMasksAndShiftsHandler &

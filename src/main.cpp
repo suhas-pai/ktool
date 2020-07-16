@@ -211,7 +211,7 @@ int main(int Argc, const char *Argv[]) {
                 fputs("Option --help should be run separately\n", stderr);
                 return 1;
             }
-            
+
             const auto OpsKind = Ops->getKind();
             fprintf(stdout,
                     "Usage: --%s [Options] [Path] [Path-Options]\n"
@@ -466,7 +466,7 @@ int main(int Argc, const char *Argv[]) {
 
                 const auto &ImageInfo = DscObj->getImageInfoAtIndex(ImageIndex);
                 Object = DscObj->GetImageWithInfo(ImageInfo);
-                
+
                 if (Object == nullptr) {
                     fprintf(stderr,
                             "Image at Index %" PRIu32 "is invalid and cannot "

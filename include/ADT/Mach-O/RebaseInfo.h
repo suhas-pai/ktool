@@ -464,11 +464,11 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline RebaseOpcodeIterateInfo &getInfo() noexcept {
+        inline RebaseOpcodeIterateInfo &getInfo() noexcept {
             return *Info;
         }
 
-        [[nodiscard]] constexpr
+        [[nodiscard]]
         inline const RebaseOpcodeIterateInfo &getInfo() const noexcept {
             return *Info;
         }
@@ -477,20 +477,20 @@ namespace MachO {
             return *Prev;
         }
 
-        [[nodiscard]] constexpr inline bool hasError() const noexcept {
+        [[nodiscard]] inline bool hasError() const noexcept {
             return Info->hasError();
         }
 
-        [[nodiscard]] constexpr inline ErrorEnum getError() const noexcept {
+        [[nodiscard]] inline ErrorEnum getError() const noexcept {
             return Info->getError();
         }
 
-        constexpr inline RebaseOpcodeIterator &operator++() noexcept {
+        inline RebaseOpcodeIterator &operator++() noexcept {
             Info->Error = Advance();
             return *this;
         }
 
-        constexpr inline RebaseOpcodeIterator &operator++(int) noexcept {
+        inline RebaseOpcodeIterator &operator++(int) noexcept {
             return ++(*this);
         }
 
@@ -633,7 +633,7 @@ namespace MachO {
         constexpr struct RebaseActionInfo GetAction() const noexcept {
             const auto Result = RebaseActionInfo{
                 .Kind = this->Kind,
-                .SegmentIndex = this->SegmentIndex,
+                .SegmentIndex = static_cast<uint32_t>(this->SegmentIndex),
                 .SegOffset = this->SegOffset,
                 .AddrInSeg = this->AddrInSeg,
                 .HasSegmentIndex = this->HasSegmentIndex,
@@ -702,7 +702,7 @@ namespace MachO {
             return reinterpret_cast<const RebaseActionIterateInfo &>(Info);
         }
 
-        bool
+        [[nodiscard]] bool
         IsValidForSegmentCollection(const SegmentInfoCollection &Collection,
                                     bool Is64Bit) noexcept
         {
@@ -735,21 +735,21 @@ namespace MachO {
             return ContainsPtr;
         }
 
-        [[nodiscard]] constexpr inline bool IsAtEnd() const noexcept {
+        [[nodiscard]] inline bool IsAtEnd() const noexcept {
             return Iter.IsAtEnd();
         }
 
-        [[nodiscard]] constexpr
+        [[nodiscard]]
         inline const RebaseActionIterateInfo &operator*() const noexcept {
             return getInfo();
         }
 
-        [[nodiscard]] constexpr
+        [[nodiscard]]
         inline const RebaseActionIterateInfo *operator->() const noexcept {
             return &getInfo();
         }
 
-        constexpr inline RebaseActionIterator &operator++() noexcept {
+        inline RebaseActionIterator &operator++() noexcept {
             auto &Info = getInfo();
             if (Info.hasError()) {
                 Iter++;
@@ -759,11 +759,10 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline RebaseActionIterator &operator++(int) noexcept {
+        inline RebaseActionIterator &operator++(int) noexcept {
             return ++(*this);
         }
 
-        constexpr
         inline RebaseActionIterator &operator+=(uint64_t Amt) noexcept {
             for (auto I = uint64_t(); I != Amt; I++) {
                 ++(*this);
@@ -772,17 +771,17 @@ namespace MachO {
             return *this;
         }
 
-        [[nodiscard]] constexpr
+        [[nodiscard]] 
         inline bool operator==(const RebaseActionIteratorEnd &) const noexcept {
             return IsAtEnd();
         }
 
-        [[nodiscard]] constexpr inline
+        [[nodiscard]] inline
         bool operator!=(const RebaseActionIteratorEnd &End) const noexcept {
             return !(*this == End);
         }
 
-        constexpr inline RebaseOpcodeParseError Advance() noexcept {
+        inline RebaseOpcodeParseError Advance() noexcept {
             auto &Info = getInfo();
             const auto AddChangeToSegmentAddress = [&](int64_t Add) {
                 if (DoesAddOverflow(SegAddAddress, Add, &SegAddAddress)) {
@@ -857,7 +856,7 @@ namespace MachO {
             };
 
             const auto CheckIfCanRebase = [&]() noexcept {
-                if (Info.SegmentIndex == -1) {
+                if (!Info.HasSegmentIndex) {
                     return ErrorEnum::NoSegmentIndex;
                 }
 

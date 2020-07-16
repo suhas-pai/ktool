@@ -82,7 +82,7 @@ namespace MachO {
         PastEnd,
     };
 
-    constexpr static inline SizeRangeError
+    [[nodiscard]] static inline SizeRangeError
     CheckSizeRange(const ConstMemoryMap &Map,
                    uint32_t Offset,
                    uint32_t Size,

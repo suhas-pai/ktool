@@ -188,6 +188,7 @@ namespace MachO {
         bool sIsBigEndian : 1;
 
         ConstLoadCommandStorage(Error Error) noexcept;
+
         explicit
         ConstLoadCommandStorage(const uint8_t *Begin,
                                 const uint8_t *End,

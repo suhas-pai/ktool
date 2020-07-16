@@ -13,6 +13,7 @@
 
 struct PathUtil {
     [[nodiscard]] static bool IsAbsolute(const std::string_view &Path) noexcept;
+
     [[nodiscard]]
     static std::string Absolutify(const std::string_view &Path) noexcept;
 

@@ -20,10 +20,9 @@ struct PointerErrorStorage {
     static_assert(sizeof(Enum) <= sizeof(void *),
                   "Enum is larger than pointer-size");
 protected:
-    uintptr_t Storage;
+    uintptr_t Storage = 0;
 public:
     constexpr PointerErrorStorage() noexcept = default;
-
     constexpr PointerErrorStorage(Enum Error) noexcept
     : Storage(static_cast<uintptr_t>(Error)) {}
 

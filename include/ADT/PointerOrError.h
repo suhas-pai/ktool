@@ -21,7 +21,7 @@ protected:
         T *Ptr;
     };
 public:
-    constexpr PointerOrError() noexcept = default;
+    constexpr PointerOrError() noexcept {};
     constexpr PointerOrError(const ErrorType &Error) noexcept
     : ErrorStorage(Error) {}
 
