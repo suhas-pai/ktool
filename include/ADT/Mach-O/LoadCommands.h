@@ -588,8 +588,8 @@ namespace MachO {
     };
 
     struct SubFrameworkCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::SubFramework);
         }
 
@@ -1316,8 +1316,7 @@ namespace MachO {
 
         TypedAllocationOrError<ExportTrieList, SizeRangeError>
         GetExportTrieList(const MemoryMap &Map, bool IsBigEndian) noexcept {
-            assert((this->getKind(IsBigEndian) ==
-                    LoadCommand::Kind::DyldExportsTrie) &&
+            assert(isa<LoadCommand::Kind::DyldExportsTrie>(IsBigEndian) &&
                    "Load Command is not a Dyld Export-Trie Load COmmand");
 
             const auto Offset = SwitchEndianIf(DataOff, IsBigEndian);
@@ -1330,8 +1329,7 @@ namespace MachO {
         GetConstExportTrieList(const ConstMemoryMap &Map,
                                bool IsBigEndian) const noexcept
         {
-            assert((this->getKind(IsBigEndian) ==
-                    LoadCommand::Kind::DyldExportsTrie) &&
+            assert(isa<LoadCommand::Kind::DyldExportsTrie>(IsBigEndian) &&
                    "Load Command is not a Dyld Export-Trie Load COmmand");
 
             const auto Offset = SwitchEndianIf(DataOff, IsBigEndian);
@@ -1344,8 +1342,7 @@ namespace MachO {
         GetExportTrieExportList(const MemoryMap &Map,
                                 bool IsBigEndian) noexcept
         {
-            assert((this->getKind(IsBigEndian) ==
-                    LoadCommand::Kind::DyldExportsTrie) &&
+            assert(isa<LoadCommand::Kind::DyldExportsTrie>(IsBigEndian) &&
                    "Load Command is not a Dyld Export-Trie Load COmmand");
 
             const auto Offset = SwitchEndianIf(DataOff, IsBigEndian);
@@ -1358,8 +1355,7 @@ namespace MachO {
         GetConstExportTrieExportList(const ConstMemoryMap &Map,
                                      bool IsBigEndian) const noexcept
         {
-            assert((this->getKind(IsBigEndian) ==
-                    LoadCommand::Kind::DyldExportsTrie) &&
+            assert(isa<LoadCommand::Kind::DyldExportsTrie>(IsBigEndian) &&
                    "Load Command is not a Dyld Export-Trie Load COmmand");
 
             const auto Offset = SwitchEndianIf(DataOff, IsBigEndian);
@@ -1374,8 +1370,7 @@ namespace MachO {
             bool IsBigEndian,
             std::vector<ExportTrieExportInfo> &ExportListOut) noexcept
         {
-            assert((this->getKind(IsBigEndian) ==
-                    LoadCommand::Kind::DyldExportsTrie) &&
+            assert(isa<LoadCommand::Kind::DyldExportsTrie>(IsBigEndian) &&
                    "Load Command is not a Dyld Export-Trie Load COmmand");
 
             const auto Offset = SwitchEndianIf(DataOff, IsBigEndian);
