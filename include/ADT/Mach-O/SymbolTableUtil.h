@@ -62,10 +62,10 @@ namespace MachO {
             bool IgnorePreboundUndefined : 1;
             bool IgnoreSection           : 1;
 
-            ParseOptions() noexcept :
-            IgnoreAbsolute(false), IgnoreExternal(false),
-            IgnoreUndefined(false), IgnoreIndirect(false),
-            IgnorePreboundUndefined(false), IgnoreSection(false) {}
+            ParseOptions() noexcept
+            : IgnoreAbsolute(false), IgnoreExternal(false),
+              IgnoreUndefined(false), IgnoreIndirect(false),
+              IgnorePreboundUndefined(false), IgnoreSection(false) {}
         };
 
         SymbolTableEntryCollection &

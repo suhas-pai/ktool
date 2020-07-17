@@ -131,7 +131,7 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
 
         if (Options.Verbose) {
             const auto RightPad =
-                static_cast<int>(LongestImagePath + LENGTH_OF("\"\""));
+                static_cast<int>(LongestImagePath) + LENGTH_OF("\"\"");
 
             PrintUtilsRightPadSpaces(Options.OutFile, WrittenOut, RightPad);
             PrintUtilsWriteOffset64(Options.OutFile,

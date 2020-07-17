@@ -242,10 +242,8 @@ PrintSharedLibrariesOperation::Run(const MemoryObject &Object) const noexcept {
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
             return InvalidObjectKind;
-        case ObjectKind::DscImage: {
-            const auto &Obj = cast<ObjectKind::DscImage>(Object);
-            return Run(Obj, Options);
-        }
+        case ObjectKind::DscImage:
+            return Run(cast<ObjectKind::DscImage>(Object), Options);
     }
 
     assert(0 && "Unrecognized Object-Kind");

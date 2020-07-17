@@ -78,13 +78,15 @@ PrintSymbolList(
         const auto Section = Info->Section + 1;
         const auto SectionInfo = SegmentCollection.GetSectionWithIndex(Section);
 
+        const auto SymbolKind = Info->SymbolInfo.getKind();
+        const auto &SymbolKindName =
+            MachO::SymbolTableEntrySymbolKindGetName(SymbolKind);
+
         LargestIndex = Info->Index;
         LongestLength = Info->String->length();
         LongestSegment = SectionInfo->Segment->Name.length();
         LongestSection = SectionInfo->Name.length();
-        LongestKind =
-            MachO::SymbolTableEntrySymbolKindGetName(
-                Info->SymbolInfo.getKind()).length();
+        LongestKind = SymbolKindName.length();
     }
 
     PrintArchListOperation::PrintLineSpamWarning(Options.OutFile, List.size());
