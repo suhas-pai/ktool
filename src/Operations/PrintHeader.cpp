@@ -11,6 +11,7 @@
 #include "Utils/MachOPrinter.h"
 #include "Utils/PrintUtils.h"
 
+#include "Common.h"
 #include "Operation.h"
 #include "PrintHeader.h"
 
@@ -140,10 +141,17 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
         fprintf(Options.OutFile,
                 "Flags:\n"
                 "\tNumber: %" PRIu32 " (0x%X)\n"
-                "\tCount:  %" PRIu64 "\n",
+                "\tCount:  %" PRIu64 "\n"
+                "\tValues:\n",
                 FlagsValue,
                 FlagsValue,
                 Flags.GetSetCount(IsBigEndian));
+
+        OperationCommon::PrintFlagInfoList(
+            Options.OutFile,
+            OperationCommon::GetFlagInfoList(Flags),
+            Options.Verbose,
+            "\t\t");
     } else {
         fprintf(Options.OutFile, "Magic:      %s\n", MagicDesc);
 
@@ -306,22 +314,19 @@ PrintDscSizeRange(FILE *OutFile,
         } else {
             fputc('\n', OutFile);
         }
-
-        PrintDscKey(OutFile, SizeName);
-
-        const auto SizeWrittenOut = fprintf(OutFile, "%" PRIu64, Size);
-        if (Verbose) {
-            PrintUtilsRightPadSpaces(OutFile, SizeWrittenOut, OFFSET_64_LEN);
-            PrintUtilsWriteFormattedSize(OutFile, Size, " (", ")");
-        }
-
-        fputc('\n', OutFile);
     } else {
         fputc('\n', OutFile);
-        PrintDscKey(OutFile, SizeName);
-
-        fprintf(OutFile, "%" PRIu64 "\n", Size);
     }
+
+    PrintDscKey(OutFile, SizeName);
+
+    const auto SizeWrittenOut = fprintf(OutFile, "%" PRIu64, Size);
+    if (Verbose && Size != 0) {
+        PrintUtilsRightPadSpaces(OutFile, SizeWrittenOut, OFFSET_64_LEN);
+        PrintUtilsWriteFormattedSize(OutFile, Size, " (", ")");
+    }
+
+    fputc('\n', OutFile);
 }
 
 static void

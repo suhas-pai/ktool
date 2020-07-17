@@ -529,3 +529,468 @@ OperationCommon::GetBindActionCollection(
 
     return 0;
 }
+
+constexpr static int LongestFlagNameLength =
+    MachO::Header::FlagInfo<
+        MachO::Header::FlagsEnum::NlistOutOfSyncWithDyldInfo>
+            ::Name.length();
+
+std::vector<OperationCommon::FlagInfo>
+OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
+    using namespace MachO;
+
+    const auto MachOFlag = Header::FlagsEnum::NoUndefinedReferences;
+    auto FlagInfoList = std::vector<FlagInfo>();
+
+    switch (MachOFlag) {
+        case Header::FlagsEnum::NoUndefinedReferences: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::NoUndefinedReferences>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::IncrementalLink: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::IncrementalLink>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::DyldLink: {
+            using FlagInfo = Header::FlagInfo<Header::FlagsEnum::DyldLink>;
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::BindAtLoad: {
+            using FlagInfo = Header::FlagInfo<Header::FlagsEnum::BindAtLoad>;
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::PreBound: {
+            using FlagInfo = Header::FlagInfo<Header::FlagsEnum::PreBound>;
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::SplitSegments: {
+            using FlagInfo = Header::FlagInfo<Header::FlagsEnum::SplitSegments>;
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::LazyInitialization: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::LazyInitialization>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::TwoLevelNamespaceBindings: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::TwoLevelNamespaceBindings>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::ForceFlatNamespaces: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::ForceFlatNamespaces>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::NoMultipleDefinitions: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::NoMultipleDefinitions>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::NoFixPrebinding: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::NoFixPrebinding>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::Prebindable: {
+            using FlagInfo = Header::FlagInfo<Header::FlagsEnum::Prebindable>;
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::AllModulesBound: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::AllModulesBound>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::SubsectionsViaSymbols: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::SubsectionsViaSymbols>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::Canonical: {
+            using FlagInfo = Header::FlagInfo<Header::FlagsEnum::Canonical>;
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::WeakDefinitions: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::WeakDefinitions>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::BindsToWeak: {
+            using FlagInfo = Header::FlagInfo<Header::FlagsEnum::BindsToWeak>;
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::AllowStackExecution: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::AllowStackExecution>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::RootSafe: {
+            using FlagInfo = Header::FlagInfo<Header::FlagsEnum::RootSafe>;
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::SetuidSafe: {
+            using FlagInfo = Header::FlagInfo<Header::FlagsEnum::SetuidSafe>;
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::NoReexportedDylibs: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::NoReexportedDylibs>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::PositionIndependentExecutable: {
+            using FlagInfo =
+                Header::FlagInfo<
+                    Header::FlagsEnum::PositionIndependentExecutable>;
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::DeadStrippableDylib: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::DeadStrippableDylib>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::HasTlvDescriptors: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::HasTlvDescriptors>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::NoHeapExecution: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::NoHeapExecution>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::AppExtensionSafe: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::AppExtensionSafe>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::NlistOutOfSyncWithDyldInfo: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::NlistOutOfSyncWithDyldInfo>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::SimulatorSupport: {
+            using FlagInfo =
+                Header::FlagInfo<Header::FlagsEnum::SimulatorSupport>;
+
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+        case Header::FlagsEnum::DylibInCache: {
+            using FlagInfo = Header::FlagInfo<Header::FlagsEnum::DylibInCache>;
+            static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
+                          "Flag has longer length than current record-holder");
+
+            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+                FlagInfoList.push_back({
+                    .Name = FlagInfo::Name,
+                    .Description = FlagInfo::Description,
+                    .Mask = FlagInfo::Mask
+                });
+            }
+        }
+    }
+
+    return FlagInfoList;
+}
+
+void
+OperationCommon::PrintFlagInfoList(FILE *OutFile,
+                                   const std::vector<FlagInfo> &FlagInfoList,
+                                   bool Verbose,
+                                   const char *LinePrefix,
+                                   const char *LineSuffix) noexcept
+{
+    auto LongestFlagNameLength = LargestIntHelper();
+    for (const auto &Info : FlagInfoList) {
+        LongestFlagNameLength = Info.Name.length();
+    }
+
+    auto FlagNumber = static_cast<uint32_t>(1);
+    for (const auto &Info : FlagInfoList) {
+        fprintf(OutFile,
+                "%sFlag %02" PRIu32 ": %" PRINTF_RIGHTPAD_FMT "s",
+                LinePrefix,
+                FlagNumber,
+                static_cast<int>(LongestFlagNameLength),
+                Info.Name.data());
+
+        if (Verbose) {
+            fprintf(OutFile,
+                    " (Description: %s)%s\n",
+                    Info.Description.data(),
+                    LineSuffix);
+        } else {
+            fprintf(OutFile, "%s\n", LineSuffix);
+        }
+
+        FlagNumber++;
+    }
+}

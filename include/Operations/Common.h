@@ -86,4 +86,21 @@ struct OperationCommon {
         const MachO::SegmentInfoCollection &SegmentCollection,
         MachO::BindActionCollection &Collection,
         bool Is64Bit) noexcept;
+
+    struct FlagInfo {
+        const std::string_view &Name;
+        const std::string_view &Description;
+
+        uint32_t Mask;
+    };
+
+    static std::vector<FlagInfo>
+    GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept;
+
+    static void
+    PrintFlagInfoList(FILE *OutFile,
+                      const std::vector<FlagInfo> &FlagInfoList,
+                      bool Verbose,
+                      const char *LinePrefix = "",
+                      const char *LineSuffix = "") noexcept;
 };
