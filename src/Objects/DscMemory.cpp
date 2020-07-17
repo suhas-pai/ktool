@@ -235,17 +235,6 @@ DscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
     assert(0 && "Unrecognized Cpu-Kind");
 }
 
-std::optional<uint64_t>
-DscMemoryObject::GetFileOffsetForAddr(uint64_t Addr) const noexcept {
-    for (const auto &Mapping : getConstMappingInfoList()) {
-        if (const auto Offset = Mapping.getFileOffsetFromAddr(Addr)) {
-            return Offset;
-        }
-    }
-
-    return std::nullopt;
-}
-
 static uint8_t *GetEndForMachOMap(uint8_t *Map) noexcept {
     const auto Header = reinterpret_cast<MachO::Header *>(Map);
     const auto IsBigEndian = Header->IsBigEndian();
@@ -314,10 +303,8 @@ DscImageMemoryObject *
 DscMemoryObject::GetImageWithInfo(
     const DyldSharedCache::ImageInfo &ImageInfo) const noexcept
 {
-    if (const auto Offset = GetFileOffsetForAddr(ImageInfo.Address)) {
-        const auto Map = this->Map + Offset.value();
+    if (const auto Map = GetPtrForAddress(ImageInfo.Address)) {
         const auto End = GetEndForMachOMap(Map);
-
         if (End != nullptr) {
             return new DscImageMemoryObject(getMap(), ImageInfo, Map, End);
         }

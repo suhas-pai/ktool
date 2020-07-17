@@ -309,10 +309,12 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
             }
 
             const auto RightPad =
-                static_cast<int>(LongestLength) + LENGTH_OF("\"\"");
+                static_cast<int>(LongestLength + LENGTH_OF("\"\""));
 
             if (Node.IsExternal) {
-                PrintUtilsRightPadSpaces(OutFile, NamePrintLength, RightPad);
+                PrintUtilsRightPadSpaces(OutFile,
+                                         static_cast<int>(NamePrintLength),
+                                         RightPad);
 
                 fputs("Imported - ", Options.OutFile);
                 OperationCommon::PrintDylibOrdinalInfo(OutFile,
@@ -326,7 +328,7 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
 
                 if (!Node.Flags.empty()) {
                     PrintUtilsRightPadSpaces(OutFile,
-                                             NamePrintLength,
+                                             static_cast<int>(NamePrintLength),
                                              RightPad);
 
                     PrintClassRoFlags(Options.OutFile, Node.Flags);

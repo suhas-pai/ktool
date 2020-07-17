@@ -194,7 +194,17 @@ public:
     const DscMemoryObject &
     getCpuKind(Mach::CpuKind &CpuKind, int32_t &CpuSubKind) const noexcept;
 
-    std::optional<uint64_t> GetFileOffsetForAddr(uint64_t Addr) const noexcept;
+    [[nodiscard]] inline std::optional<uint64_t>
+    GetFileOffsetForAddress(uint64_t Addr,
+                            uint64_t *MaxSizeOut = nullptr) const noexcept
+    {
+        return getHeaderV0().GetFileOffsetForAddress(Addr, MaxSizeOut);
+    }
+
+    template <typename T = uint8_t>
+    [[nodiscard]] T *GetPtrForAddress(uint64_t Address) const noexcept {
+        return getHeaderV0().GetPtrForAddress<T>(Address);
+    }
 
     const DyldSharedCache::ImageInfo &
     getImageInfoAtIndex(uint32_t Index) const noexcept;
@@ -275,4 +285,9 @@ public:
 
     ConstDscImageMemoryObject *
     GetImageWithInfo(const DyldSharedCache::ImageInfo &Info) const noexcept;
+
+    template <typename T = uint8_t>
+    [[nodiscard]] const T *GetPtrForAddress(uint64_t Address) noexcept {
+        return getHeaderV0().GetPtrForAddress<T>(Address);
+    }
 };

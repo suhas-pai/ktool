@@ -239,11 +239,13 @@ PrintHeaderOperation::Run(const ConstFatMachOMemoryObject &Object,
     return 0;
 }
 
-static constexpr auto LongestName = LENGTH_OF("Program Closures Trie Address");
+static constexpr auto LongestDscKey =
+    LENGTH_OF("Program Closures Trie Address");
+
 static void PrintDscKey(FILE *OutFile, const char *Key) noexcept {
     PrintUtilsRightPadSpaces(OutFile,
                              fprintf(OutFile, "%s: ", Key),
-                             LongestName + LENGTH_OF(": "));
+                             LongestDscKey + LENGTH_OF(": "));
 }
 
 static DscMemoryObject::Version
@@ -268,62 +270,104 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
     fprintf(Options.OutFile, "%d\n", static_cast<int>(Version));
 
     PrintDscKey(Options.OutFile, "Mapping Offset");
-    PrintUtilsWriteOffset32(Options.OutFile,
-                            Header.MappingOffset,
-                            "",
-                            "\n");
+    PrintUtilsWriteOffset(Options.OutFile,
+                          Header.MappingOffset,
+                          "",
+                          "\n");
 
     PrintDscKey(Options.OutFile, "Mapping Count");
     fprintf(Options.OutFile, "%" PRIu32 "\n", Header.MappingCount);
 
-    PrintDscKey(Options.OutFile, "Images Count");
-    PrintUtilsWriteOffset32(Options.OutFile,
-                            Header.ImagesOffset,
-                            "",
-                            "\n");
+    PrintDscKey(Options.OutFile, "Images Offset");
+    PrintUtilsWriteOffset(Options.OutFile,
+                          Header.ImagesOffset,
+                          "",
+                          "\n");
 
     PrintDscKey(Options.OutFile, "Images Count");
     fprintf(Options.OutFile, "%" PRIu32 "\n", Header.ImagesCount);
 
     PrintDscKey(Options.OutFile, "Dyld Base-Address");
-    PrintUtilsWriteOffset64(Options.OutFile,
-                            Header.DyldBaseAddress,
-                            "",
-                            "\n");
+    PrintUtilsWriteOffset(Options.OutFile,
+                          Header.DyldBaseAddress,
+                          "",
+                          "\n");
 
     return Version;
 }
 
 static void
-PrintDscSizeRange(FILE *OutFile,
-                  const char *OffsetName,
-                  const char *SizeName,
-                  uint64_t Offset,
-                  uint64_t Size,
-                  bool Verbose) noexcept
+WarnIfOutOfRange(FILE *OutFile,
+                 const RelativeRange &Range,
+                 const uint64_t Offset,
+                 const uint64_t Size,
+                 bool PrintNewLine = true) noexcept
 {
-    PrintDscKey(OutFile, OffsetName);
-    PrintUtilsWriteOffset64(OutFile, Offset);
+    const auto LocRange = LocationRange::CreateWithSize(Offset, Size);
+    if (!LocRange || !Range.containsRange(LocRange.value())) {
+        fprintf(OutFile, " (Past EOF!)");
+    }
+
+    if (PrintNewLine) {
+        fputc('\n', OutFile);
+    }
+}
+
+template <void (*PrintKeyFunc)(FILE *, const char *) = PrintDscKey, typename T>
+static inline void
+PrintDscSizeRange(FILE *OutFile,
+                  const RelativeRange &DscRange,
+                  const char *AddressName,
+                  const char *SizeName,
+                  T Address,
+                  T Size,
+                  bool Verbose,
+                  bool IsOffset = false) noexcept
+{
+    static_assert(std::is_integral_v<T>);
+    constexpr auto Is64Bit = std::is_same_v<T, uint64_t>;
+
+    PrintKeyFunc(OutFile, AddressName);
+    PrintUtilsWriteOffset(OutFile, Address);
 
     if (Size != 0) {
         if (Verbose) {
-            PrintUtilsWriteOffset64SizeRange(OutFile,
-                                             Offset,
-                                             Size,
-                                             " (",
-                                             ")\n");
-        } else {
-            fputc('\n', OutFile);
+            if constexpr (Is64Bit) {
+                PrintUtilsWriteOffset64SizeRange(OutFile,
+                                                 Address,
+                                                 Size,
+                                                 " (",
+                                                 ")");
+            } else {
+                PrintUtilsWriteOffset32SizeRange(OutFile,
+                                                 Address,
+                                                 Size,
+                                                 " (",
+                                                 ")");
+            }
         }
-    } else {
-        fputc('\n', OutFile);
     }
 
-    PrintDscKey(OutFile, SizeName);
+    if (IsOffset) {
+        WarnIfOutOfRange(OutFile, DscRange, Address, Size, false);
+    }
 
-    const auto SizeWrittenOut = fprintf(OutFile, "%" PRIu64, Size);
+    fputc('\n', OutFile);
+    PrintKeyFunc(OutFile, SizeName);
+
+    auto SizeWrittenOut = 0;
+    auto SizeMaxLength = 0;
+
+    if constexpr (Is64Bit) {
+        SizeWrittenOut = fprintf(OutFile, "%" PRIu64, Size);
+        SizeMaxLength = OFFSET_64_LEN;
+    } else {
+        SizeWrittenOut = fprintf(OutFile, "%" PRIu32, Size);
+        SizeMaxLength = OFFSET_32_LEN;
+    }
+
     if (Verbose && Size != 0) {
-        PrintUtilsRightPadSpaces(OutFile, SizeWrittenOut, OFFSET_64_LEN);
+        PrintUtilsRightPadSpaces(OutFile, SizeWrittenOut, SizeMaxLength);
         PrintUtilsWriteFormattedSize(OutFile, Size, " (", ")");
     }
 
@@ -336,18 +380,22 @@ PrintDscHeaderV1Info(const struct PrintHeaderOperation::Options &Options,
 {
     const auto Header = Object.getHeaderV1();
     PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
                       "Code-Signature Offset",
                       "Code-Signature Size",
                       Header.CodeSignatureOffset,
                       Header.CodeSignatureSize,
-                      Options.Verbose);
+                      Options.Verbose,
+                      true);
 
     PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
                       "Slide-Info Offset",
                       "Slide-Info Size",
                       Header.SlideInfoOffset,
                       Header.SlideInfoSize,
-                      Options.Verbose);
+                      Options.Verbose,
+                      true);
 }
 
 static void
@@ -356,11 +404,13 @@ PrintDscHeaderV2Info(const struct PrintHeaderOperation::Options &Options,
 {
     const auto Header = Object.getHeaderV2();
     PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
                       "Local-Symbols Offset",
                       "Local-Symbols Size",
                       Header.LocalSymbolsOffset,
                       Header.LocalSymbolsSize,
-                      Options.Verbose);
+                      Options.Verbose,
+                      true);
 
     PrintDscKey(Options.OutFile, "Uuid");
     PrintUtilsWriteUuid(Options.OutFile, Header.Uuid, "", "\n");
@@ -392,36 +442,34 @@ PrintDscHeaderV4Info(const struct PrintHeaderOperation::Options &Options,
     const auto Header = Object.getHeaderV4();
 
     PrintDscKey(Options.OutFile, "Branch-Pools Offset");
-    PrintUtilsWriteOffset32(Options.OutFile,
-                            Header.BranchPoolsOffset,
-                            "",
-                            "\n");
+    PrintUtilsWriteOffset(Options.OutFile, Header.BranchPoolsOffset);
+
+    WarnIfOutOfRange(Options.OutFile,
+                     Object.getRange(),
+                     Header.BranchPoolsOffset,
+                     1);
 
     PrintDscKey(Options.OutFile, "Branch-Pools Count");
     fprintf(Options.OutFile, "%" PRIu32 "\n", Header.BranchPoolsCount);
 
     PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
                       "Accelerate-Info Address",
                       "Accelerate-Info Size",
-                      Header.LocalSymbolsOffset,
-                      Header.LocalSymbolsSize,
-                      Options.Verbose);
-
-    PrintDscSizeRange(Options.OutFile,
-                      "Local-Symbols Offset",
-                      "Local-Symbols Size",
-                      Header.LocalSymbolsOffset,
-                      Header.LocalSymbolsSize,
+                      Header.AccelerateInfoAddr,
+                      Header.AccelerateInfoSize,
                       Options.Verbose);
 
     PrintDscKey(Options.OutFile, "Images-Text Offset");
-    PrintUtilsWriteOffset64(Options.OutFile,
-                            Header.ImagesTextOffset,
-                            "",
-                            "\n");
+    PrintUtilsWriteOffset(Options.OutFile, Header.ImagesTextOffset);
+
+    WarnIfOutOfRange(Options.OutFile,
+                     Object.getRange(),
+                     Header.ImagesTextOffset,
+                     1);
 
     PrintDscKey(Options.OutFile, "Images-Text Count");
-    fprintf(Options.OutFile, "%" PRIu32 "\n", Header.BranchPoolsCount);
+    fprintf(Options.OutFile, "%" PRIu64 "\n", Header.ImagesTextCount);
 }
 
 static
@@ -438,6 +486,7 @@ PrintDscHeaderV5Info(const struct PrintHeaderOperation::Options &Options,
 {
     const auto Header = Object.getHeaderV5();
     PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
                       "Dylibs Image-Group Address",
                       "Dylibs Image-Group Size",
                       Header.DylibsImageGroupAddr,
@@ -445,6 +494,7 @@ PrintDscHeaderV5Info(const struct PrintHeaderOperation::Options &Options,
                       Options.Verbose);
 
     PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
                       "Other Image-Group Address",
                       "Other Image-Group Size",
                       Header.OtherImageGroupAddr,
@@ -452,6 +502,7 @@ PrintDscHeaderV5Info(const struct PrintHeaderOperation::Options &Options,
                       Options.Verbose);
 
     PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
                       "Program Closures Address",
                       "Program Closures Size",
                       Header.ProgClosuresAddr,
@@ -459,6 +510,7 @@ PrintDscHeaderV5Info(const struct PrintHeaderOperation::Options &Options,
                       Options.Verbose);
 
     PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
                       "Program Closures Trie Address",
                       "Program Closures Trie Size",
                       Header.ProgClosuresTrieAddr,
@@ -493,6 +545,7 @@ PrintDscHeaderV5Info(const struct PrintHeaderOperation::Options &Options,
                    Header.BuiltFromChainedFixups);
 
     PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
                       "Shared-Region Start",
                       "Shared-Region Size",
                       Header.SharedRegionStart,
@@ -520,6 +573,7 @@ PrintDscHeaderV6Info(const struct PrintHeaderOperation::Options &Options,
 {
     const auto Header = Object.getHeaderV6();
     PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
                       "Dylibs Image-Array Address",
                       "Dylibs Image-Array Size",
                       Header.DylibsImageArrayAddr,
@@ -527,6 +581,7 @@ PrintDscHeaderV6Info(const struct PrintHeaderOperation::Options &Options,
                       Options.Verbose);
 
     PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
                       "Dylibs Trie Address",
                       "Dylibs Trie Size",
                       Header.DylibsTrieAddr,
@@ -534,6 +589,7 @@ PrintDscHeaderV6Info(const struct PrintHeaderOperation::Options &Options,
                       Options.Verbose);
 
     PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
                       "Other Image Array Address",
                       "Other Image Array Size",
                       Header.DylibsImageArrayAddr,
@@ -541,11 +597,104 @@ PrintDscHeaderV6Info(const struct PrintHeaderOperation::Options &Options,
                       Options.Verbose);
 
     PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
                       "Other Trie Address",
                       "Other Trie Size",
                       Header.DylibsTrieAddr,
                       Header.DylibsTrieSize,
                       Options.Verbose);
+}
+
+static constexpr auto LongestAccKey = LENGTH_OF("Bottom-Up List Offset");
+static void PrintAcceleratorKey(FILE *OutFile, const char *Key) noexcept {
+    PrintUtilsRightPadSpaces(OutFile,
+                             fprintf(OutFile, "%s: ", Key),
+                             LongestAccKey + LENGTH_OF(": "));
+}
+
+static void
+WriteAcceleratorOffsetCountPair(FILE *OutFile,
+                                const RelativeRange &Range,
+                                const char *OffsetName,
+                                const char *CountName,
+                                uint32_t Offset,
+                                uint32_t Count) noexcept
+{
+    PrintAcceleratorKey(OutFile, OffsetName);
+    PrintUtilsWriteOffset(OutFile, Offset);
+
+    WarnIfOutOfRange(OutFile, Range, Offset, 1);
+
+    PrintAcceleratorKey(OutFile, CountName);
+    fprintf(OutFile, "%" PRIu32 "\n", Count);
+}
+
+static void
+PrintAcceleratorInfo(
+    FILE *OutFile,
+    const RelativeRange &Range,
+    const DyldSharedCache::AcceleratorInfo &Info,
+    const struct PrintHeaderOperation::Options &Options) noexcept
+{
+    fputs("Apple Dyld Shared-Cache Accelerator Info\n", OutFile);
+
+    PrintAcceleratorKey(OutFile, "Version");
+    fprintf(OutFile, "%" PRIu32 "\n", Info.Version);
+
+    PrintAcceleratorKey(OutFile, "Image-Extras Count");
+    fprintf(OutFile, "%" PRIu32 "\n", Info.ImageExtrasCount);
+
+    PrintAcceleratorKey(OutFile, "Image-Extras Offset");
+    PrintUtilsWriteOffset(OutFile, Info.ImageExtrasOffset, "", "\n");
+
+    PrintAcceleratorKey(OutFile, "Bottom-Up List-Offset");
+    PrintUtilsWriteOffset(OutFile, Info.BottomUpListOffset, "", "\n");
+
+    PrintDscSizeRange<PrintAcceleratorKey>(OutFile,
+                                           Range,
+                                           "Dylib-Trie Offset",
+                                           "Dylib-Trie Size",
+                                           Info.DylibTrieOffset,
+                                           Info.DylibTrieSize,
+                                           Options.Verbose);
+
+    WriteAcceleratorOffsetCountPair(OutFile,
+                                    Range,
+                                    "Initializers Offset",
+                                    "Initializers Count",
+                                    Info.InitializersOffset,
+                                    Info.InitializersCount);
+
+    WriteAcceleratorOffsetCountPair(OutFile,
+                                    Range,
+                                    "Dof-Sections Offset",
+                                    "Dof-Sections Count",
+                                    Info.DofSectionsOffset,
+                                    Info.DofSectionsCount);
+
+    WriteAcceleratorOffsetCountPair(OutFile,
+                                    Range,
+                                    "Re-Export List Offset",
+                                    "Re-Export Count",
+                                    Info.ReExportListOffset,
+                                    Info.ReExportCount);
+
+    WriteAcceleratorOffsetCountPair(OutFile,
+                                    Range,
+                                    "Dep List Offset",
+                                    "Dep List Count",
+                                    Info.DepListOffset,
+                                    Info.DepListCount);
+
+    WriteAcceleratorOffsetCountPair(OutFile,
+                                    Range,
+                                    "Range Table Offset",
+                                    "Range Table Count",
+                                    Info.RangeTableOffset,
+                                    Info.RangeTableCount);
+
+    PrintAcceleratorKey(OutFile, "Dyld Section-Address");
+    PrintUtilsWriteOffset(OutFile, Info.DyldSectionAddr);
 }
 
 int
@@ -576,15 +725,25 @@ PrintHeaderOperation::Run(const ConstDscMemoryObject &Object,
 
     PrintDscHeaderV4Info(Options, Object);
     if (Version < DscMemoryObject::Version::v5) {
-        return 0;
+        goto done;
     }
 
     PrintDscHeaderV5Info(Options, Object);
     if (Version < DscMemoryObject::Version::v6) {
-        return 0;
+        goto done;
     }
 
     PrintDscHeaderV6Info(Options, Object);
+
+done:
+    if (const auto Info = Object.getHeaderV4().GetAcceleratorInfo()) {
+        fputc('\n', Options.OutFile);
+        PrintAcceleratorInfo(Options.OutFile,
+                             Object.getRange(),
+                             *Info,
+                             Options);
+    }
+
     return 0;
 }
 

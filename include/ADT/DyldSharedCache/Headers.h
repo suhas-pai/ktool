@@ -37,13 +37,19 @@ namespace DyldSharedCache {
         }
 
         [[nodiscard]] inline std::optional<uint64_t>
-        getFileOffsetFromAddr(uint64_t Addr) const noexcept {
+        getFileOffsetFromAddr(uint64_t Addr,
+                              uint64_t *MaxSizeOut = nullptr) const noexcept
+        {
             const auto Range = getAddressRange();
             if (!Range || !Range->containsLocation(Addr)) {
                 return std::nullopt;
             }
 
             const auto Delta = Addr - Range->getBegin();
+            if (MaxSizeOut != nullptr) {
+                *MaxSizeOut = Range->getEnd() - Addr;
+            }
+
             return FileOffset + Delta;
         }
     };
@@ -68,6 +74,45 @@ namespace DyldSharedCache {
         uint32_t WeakBindingsSize;
         uint32_t DependentsStartArrayIndex;
         uint32_t ReExportsStartArrayIndex;
+    };
+
+    struct AcceleratorInfo {
+        uint32_t Version;
+        uint32_t ImageExtrasCount;
+        uint32_t ImageExtrasOffset;
+        uint32_t BottomUpListOffset;
+        uint32_t DylibTrieOffset;
+        uint32_t DylibTrieSize;
+        uint32_t InitializersOffset;
+        uint32_t InitializersCount;
+        uint32_t DofSectionsOffset;
+        uint32_t DofSectionsCount;
+        uint32_t ReExportListOffset;
+        uint32_t ReExportCount;
+        uint32_t DepListOffset;
+        uint32_t DepListCount;
+        uint32_t RangeTableOffset;
+        uint32_t RangeTableCount;
+        uint64_t DyldSectionAddr;
+
+        [[nodiscard]]
+        ImageInfoExtra &getImageInfoExtraAtIndex(uint32_t I) noexcept {
+            const auto Map = reinterpret_cast<uint8_t *>(this);
+            const auto ImageInfoExtraTable =
+                reinterpret_cast<ImageInfoExtra *>(Map + ImageExtrasOffset);
+
+            return ImageInfoExtraTable[I];
+        }
+
+        [[nodiscard]] const ImageInfoExtra &
+        getImageInfoExtraAtIndex(uint32_t I) const noexcept {
+            const auto Map = reinterpret_cast<const uint8_t *>(this);
+            const auto ImageInfoExtraTable =
+                reinterpret_cast<const ImageInfoExtra *>(
+                    Map + ImageExtrasOffset);
+
+            return ImageInfoExtraTable[I];
+        }
     };
 
     // Apple doesn't provide versions for their dyld_shared_caches, so we have
@@ -97,8 +142,7 @@ namespace DyldSharedCache {
             return getConstImageInfoList();
         }
 
-        [[nodiscard]] inline
-        BasicContiguousList<const ImageInfo>
+        [[nodiscard]] inline BasicContiguousList<const ImageInfo>
         getConstImageInfoList() const noexcept {
             const auto Map = reinterpret_cast<const uint8_t *>(this);
             const auto Ptr = Map + ImagesOffset;
@@ -123,6 +167,57 @@ namespace DyldSharedCache {
             const auto Ptr = Map + MappingOffset;
 
             return BasicContiguousList<const MappingInfo>(Ptr, MappingCount);
+        }
+
+        [[nodiscard]] std::optional<uint64_t>
+        GetFileOffsetForAddress(uint64_t Addr,
+                                uint64_t *MaxSizeOut = nullptr) const noexcept
+        {
+            if (Addr == 0) {
+                return std::nullopt;
+            }
+
+            for (const auto &Mapping : getConstMappingInfoList()) {
+                const auto Offset =
+                    Mapping.getFileOffsetFromAddr(Addr, MaxSizeOut);
+
+                if (Offset) {
+                    return Offset;
+                }
+            }
+
+            return std::nullopt;
+        }
+
+        template <typename T = uint8_t>
+        [[nodiscard]] T *GetPtrForAddress(uint64_t Address) noexcept {
+            auto Size = uint64_t();
+            if (const auto Offset = GetFileOffsetForAddress(Address, &Size)) {
+                if (Size < sizeof(T)) {
+                    return nullptr;
+                }
+
+                const auto Map = reinterpret_cast<uint8_t *>(this);
+                return reinterpret_cast<T *>(Map + Offset.value());
+            }
+
+            return nullptr;
+        }
+
+        template <typename T = uint8_t>
+        [[nodiscard]]
+        const T *GetPtrForAddress(uint64_t Address) const noexcept {
+            auto Size = uint64_t();
+            if (const auto Offset = GetFileOffsetForAddress(Address, &Size)) {
+                if (Size < sizeof(T)) {
+                    return nullptr;
+                }
+
+                const auto Map = reinterpret_cast<const uint8_t *>(this);
+                return reinterpret_cast<const T *>(Map + Offset.value());
+            }
+
+            return nullptr;
         }
     };
 
@@ -169,6 +264,23 @@ namespace DyldSharedCache {
 
         uint64_t ImagesTextOffset;
         uint64_t ImagesTextCount;
+
+        [[nodiscard]] AcceleratorInfo *GetAcceleratorInfo() noexcept {
+            if (AccelerateInfoAddr == 0 || AccelerateInfoSize == 0) {
+                return nullptr;
+            }
+
+            return GetPtrForAddress<AcceleratorInfo>(AccelerateInfoAddr);
+        }
+
+        [[nodiscard]]
+        const AcceleratorInfo *GetAcceleratorInfo() const noexcept {
+            if (AccelerateInfoAddr == 0 || AccelerateInfoSize == 0) {
+                return nullptr;
+            }
+
+            return GetPtrForAddress<AcceleratorInfo>(AccelerateInfoAddr);
+        }
     };
 
     // From dyld v519.2.1

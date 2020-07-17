@@ -282,10 +282,10 @@ PrintUtilsWriteOffset(FILE *OutFile,
 }
 
 inline int
-PrintUtilsWriteOffset32(FILE *OutFile,
-                        uint32_t Offset,
-                        const char *Prefix = "",
-                        const char *Suffix = "") noexcept
+PrintUtilsWriteOffset(FILE *OutFile,
+                      uint32_t Offset,
+                      const char *Prefix = "",
+                      const char *Suffix = "") noexcept
 {
     if (Offset == 0) {
         return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
@@ -295,10 +295,10 @@ PrintUtilsWriteOffset32(FILE *OutFile,
 }
 
 inline int
-PrintUtilsWriteOffset64(FILE *OutFile,
-                        uint64_t Offset,
-                        const char *Prefix = "",
-                        const char *Suffix = "") noexcept
+PrintUtilsWriteOffset(FILE *OutFile,
+                      uint64_t Offset,
+                      const char *Prefix = "",
+                      const char *Suffix = "") noexcept
 {
     if (Offset == 0) {
         return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);

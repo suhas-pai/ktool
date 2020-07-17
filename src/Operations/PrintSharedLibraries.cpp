@@ -184,7 +184,7 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
 
         if (Options.Verbose) {
             const auto RightPad =
-                static_cast<int>(MaxDylibNameLength) + LENGTH_OF("\"\"");
+                static_cast<int>(MaxDylibNameLength + LENGTH_OF("\"\""));
 
             PrintUtilsRightPadSpaces(Options.OutFile, WrittenOut, RightPad);
             MachOTypePrinter<struct MachO::DylibCommand::Info>::PrintOnOneLine(

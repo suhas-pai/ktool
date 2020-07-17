@@ -39,7 +39,7 @@ public:
     }
 
     [[nodiscard]] inline RelativeRange getDscRange() const noexcept {
-        return DscMap.getRange();
+        return getDscMap().getRange();
     }
 
     [[nodiscard]]
@@ -60,6 +60,71 @@ public:
         return toConst();
     }
 
+    [[nodiscard]] DyldSharedCache::Header &getDscHeader() const noexcept {
+        return *getDscMap().getBeginAs<DyldSharedCache::Header>();
+    }
+
+    [[nodiscard]] DyldSharedCache::HeaderV0 &getDscHeaderV0() const noexcept {
+        return getDscHeader();
+    }
+
+    [[nodiscard]] DyldSharedCache::HeaderV1 &getDscHeaderV1() const noexcept {
+        auto &Header = getDscHeader();
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV1));
+
+        return Header;
+    }
+
+    [[nodiscard]] DyldSharedCache::HeaderV2 &getDscHeaderV2() const noexcept {
+        auto &Header = getDscHeader();
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV2));
+
+        return Header;
+    }
+
+    [[nodiscard]] DyldSharedCache::HeaderV3 &getDscHeaderV3() const noexcept {
+        auto &Header = getDscHeader();
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV3));
+
+        return Header;
+    }
+
+    [[nodiscard]] DyldSharedCache::HeaderV4 &getDscHeaderV4() const noexcept {
+        auto &Header = getDscHeader();
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV4));
+
+        return Header;
+    }
+
+    [[nodiscard]] DyldSharedCache::HeaderV5 &getDscHeaderV5() const noexcept {
+        auto &Header = getDscHeader();
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV5));
+
+        return Header;
+    }
+
+    [[nodiscard]] DyldSharedCache::HeaderV6 &getDscHeaderV6() const noexcept {
+        auto &Header = getDscHeader();
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV6));
+
+        return Header;
+    }
+
+    [[nodiscard]] inline uint64_t getBaseOffset() const noexcept {
+        return Map - getDscMap().getBegin();
+    }
+
+    [[nodiscard]] inline uint64_t getAddress() const noexcept {
+        return ImageInfo.Address;
+    }
+
+    [[nodiscard]] inline std::optional<uint64_t>
+    GetFileOffsetForAddress(uint64_t Addr,
+                            uint64_t *MaxSizeOut) const noexcept
+    {
+        return getDscHeaderV0().GetFileOffsetForAddress(Addr, MaxSizeOut);
+    }
+
     [[nodiscard]] inline const char *getPath() const noexcept {
         return ImageInfo.getPath(getDscMap().getBegin());
     }
@@ -76,5 +141,58 @@ protected:
 public:
     [[nodiscard]] inline const ConstMemoryMap &getDscMap() const noexcept {
         return DscMap;
+    }
+
+    [[nodiscard]]
+    const DyldSharedCache::Header &getDscHeader() const noexcept {
+        return *getDscMap().getBeginAs<const DyldSharedCache::Header>();
+    }
+
+    [[nodiscard]]
+    const DyldSharedCache::HeaderV1 &getDscHeaderV1() const noexcept {
+        const auto &Header = getDscHeader();
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV1));
+
+        return Header;
+    }
+
+    [[nodiscard]]
+    const DyldSharedCache::HeaderV2 &getDscHeaderV2() const noexcept {
+        const auto &Header = getDscHeader();
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV2));
+
+        return Header;
+    }
+
+    [[nodiscard]]
+    const DyldSharedCache::HeaderV3 &getDscHeaderV3() const noexcept {
+        const auto &Header = getDscHeader();
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV3));
+
+        return Header;
+    }
+
+    [[nodiscard]]
+    const DyldSharedCache::HeaderV4 &getDscHeaderV4() const noexcept {
+        const auto &Header = getDscHeader();
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV4));
+
+        return Header;
+    }
+
+    [[nodiscard]]
+    const DyldSharedCache::HeaderV5 &getDscHeaderV5() const noexcept {
+        const auto &Header = getDscHeader();
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV5));
+
+        return Header;
+    }
+
+    [[nodiscard]]
+    const DyldSharedCache::HeaderV6 &getDscHeaderV6() const noexcept {
+        const auto &Header = getDscHeader();
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV6));
+
+        return Header;
     }
 };
