@@ -137,21 +137,22 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
                                      " (",
                                      ")");
 
+        const auto FlagInfoList = OperationCommon::GetFlagInfoList(Flags);
+
         fputc('\n', Options.OutFile);
         fprintf(Options.OutFile,
                 "Flags:\n"
                 "\tNumber: %" PRIu32 " (0x%X)\n"
-                "\tCount:  %" PRIu64 "\n"
+                "\tCount:  %" PRIuPTR "\n"
                 "\tValues:\n",
                 FlagsValue,
                 FlagsValue,
-                Flags.GetSetCount(IsBigEndian));
+                FlagInfoList.size());
 
-        OperationCommon::PrintFlagInfoList(
-            Options.OutFile,
-            OperationCommon::GetFlagInfoList(Flags),
-            Options.Verbose,
-            "\t\t");
+        OperationCommon::PrintFlagInfoList(Options.OutFile,
+                                           FlagInfoList,
+                                           Options.Verbose,
+                                           "\t\t");
     } else {
         fprintf(Options.OutFile, "Magic:      %s\n", MagicDesc);
 
