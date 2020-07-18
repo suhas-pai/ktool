@@ -9,6 +9,8 @@
 #include <cstring>
 
 #include "ADT/MachO.h"
+#include "ADT/DscImage.h"
+
 #include "Utils/MachOPrinter.h"
 #include "Utils/MiscTemplates.h"
 #include "Utils/PrintUtils.h"
@@ -45,7 +47,7 @@ ExportNodeMeetsRequirements(
     if (!Options.KindRequirements.empty()) {
         auto MeetsReq = false;
         for (const auto &Kind : Options.KindRequirements) {
-            if (Node->ExportKind == Kind) {
+            if (Node->Kind == Kind) {
                 MeetsReq = true;
                 break;
             }
@@ -58,14 +60,18 @@ ExportNodeMeetsRequirements(
         // Re-exports, if they're explicitly allowed, automatically pass all
         // section requirements.
 
-        if (Node->ExportKind == MachO::ExportTrieExportKind::Reexport) {
+        if (Node->Kind == MachO::ExportTrieExportKind::Reexport) {
             return true;
         }
     }
 
     if (!Options.SectionRequirements.empty()) {
-        const auto Segment = Node->Segment;
-        const auto Section = Node->Section;
+        if (Node->Kind == MachO::ExportTrieExportKind::Reexport) {
+            return false;
+        }
+
+        const auto Segment = Node->getSegment();
+        const auto Section = Node->getSection();
 
         if (Segment == nullptr) {
             return false;
@@ -109,7 +115,8 @@ GetLineLengthForSymbolLength(uint64_t DepthLevel,
 
 static void
 PrintTreeExportInfo(
-    const MachO::ExportTrieExportChildNode &Info,
+    const MachO::ExportTrieExportChildNode &Export,
+    const MachO::SharedLibraryInfoCollection &SharedLibraryCollection,
     int WrittenOut,
     uint64_t DepthLevel,
     int LongestLength,
@@ -117,7 +124,7 @@ PrintTreeExportInfo(
     const struct PrintExportTrieOperation::Options &Options) noexcept
 {
     auto RightPad = LongestLength + 2;
-    auto KindDesc = ExportTrieExportKindGetDescription(Info.ExportKind).data();
+    auto KindDesc = ExportTrieExportKindGetDescription(Export.Kind).data();
 
     if (KindDesc == nullptr) {
         KindDesc = "<unrecognized>";
@@ -127,15 +134,30 @@ PrintTreeExportInfo(
     fprintf(Options.OutFile, " (Exported - %s", KindDesc);
 
     if (Options.Verbose) {
-        if (Info.ExportKind != MachO::ExportTrieExportKind::Reexport) {
+        if (Export.Kind != MachO::ExportTrieExportKind::Reexport) {
             PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
-                                                   Info.Segment,
-                                                   Info.Section,
+                                                   Export.getSegment(),
+                                                   Export.getSection(),
                                                    false,
-                                                   " - ",
+                                                   "   - ",
                                                    " - ");
 
-            PrintUtilsWriteOffset(Options.OutFile, Info.Address, Is64Bit);
+            const auto ImageOffset = Export.Info.getImageOffset();
+            PrintUtilsWriteOffset(Options.OutFile, ImageOffset, Is64Bit);
+        } else {
+            fputs(" - ", Options.OutFile);
+            if (!Export.Info.getReexportImportName().empty()) {
+                fprintf(Options.OutFile,
+                        "As \"%s\" - ",
+                        Export.Info.getReexportImportName().data());
+            }
+
+            const auto DylibOrdinal = Export.Info.getReexportDylibOrdinal();
+            OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
+                                                   SharedLibraryCollection,
+                                                   DylibOrdinal,
+                                                   Options.Verbose);
+            fputc(')', Options.OutFile);
         }
     }
 
@@ -162,50 +184,20 @@ GetSymbolLengthForLongestPrintedLine(
 
 static int
 HandleTreeOption(
-    const MachO::ConstExportTrieList &Trie,
-    const MachO::SegmentInfoCollection &SegmentCollection,
+    MachO::ExportTrieEntryCollection &EntryCollection,
+    const MachO::SharedLibraryInfoCollection &SharedLibraryCollection,
+    uint64_t Base,
     bool Is64Bit,
     const struct PrintExportTrieOperation::Options &Options) noexcept
 {
-    auto Error = MachO::ExportTrieEntryCollection::Error();
-    auto Collection =
-        MachO::ExportTrieEntryCollection::Open(Trie,
-                                               &SegmentCollection,
-                                               &Error);
-
-    switch (Error) {
-        case MachO::ExportTrieParseError::None:
-            break;
-        case MachO::ExportTrieParseError::InvalidUleb128:
-            fputs("Provided file has an export-trie with an invalid Uleb128\n",
-                  Options.ErrFile);
-            return 1;
-        case MachO::ExportTrieParseError::InvalidFormat:
-            fputs("Provided file has an export-trie with an invalid format\n",
-                  Options.ErrFile);
-            return 1;
-        case MachO::ExportTrieParseError::OverlappingRanges:
-            fputs("Provided file has an export-trie with overlapping nodes\n",
-                  Options.ErrFile);
-            return 1;
-        case MachO::ExportTrieParseError::EmptyExport:
-            fputs("Provided file has an export-trie with an empty export\n",
-                  Options.ErrFile);
-            return 1;
-        case MachO::ExportTrieParseError::TooDeep:
-            fputs("Provided file has an export-trie that's too deep\n",
-                  Options.ErrFile);
-            return 1;
-    }
-
-    if (Collection.empty()) {
+    if (EntryCollection.empty()) {
         fputs("Provided file has an empty export-trie\n", Options.OutFile);
         return 1;
     }
 
     if (!Options.SectionRequirements.empty()) {
-        auto CollectionEnd = Collection.end();
-        for (auto Iter = Collection.begin(); Iter != CollectionEnd;) {
+        auto CollectionEnd = EntryCollection.end();
+        for (auto Iter = EntryCollection.begin(); Iter != CollectionEnd;) {
             if (!Iter->IsExport()) {
                 Iter++;
                 continue;
@@ -216,10 +208,10 @@ HandleTreeOption(
                 continue;
             }
 
-            Iter = Collection.RemoveNode(*Iter.getNode(), true);
+            Iter = EntryCollection.RemoveNode(*Iter.getNode(), true);
         }
 
-        if (Collection.empty()) {
+        if (EntryCollection.empty()) {
             fputs("Provided file has no export-trie after filtering with "
                   "provided requirements\n",
                   Options.OutFile);
@@ -228,7 +220,7 @@ HandleTreeOption(
     }
 
     if (Options.Sort) {
-        Collection.Sort([](const auto &Lhs, const auto &Rhs) noexcept {
+        EntryCollection.Sort([](const auto &Lhs, const auto &Rhs) noexcept {
             const auto &Left =
                 reinterpret_cast<const MachO::ExportTrieChildNode &>(Lhs);
             const auto &Right =
@@ -238,8 +230,10 @@ HandleTreeOption(
         });
     }
 
-    const auto LongestLength = GetSymbolLengthForLongestPrintedLine(Collection);
-    const auto Count = Collection.GetCount();
+    const auto Count = EntryCollection.GetCount();
+    const auto LongestLength =
+        GetSymbolLengthForLongestPrintedLine(EntryCollection);
+
     const auto PrintNode =
         [&](FILE *OutFile,
             int WrittenOut,
@@ -256,6 +250,7 @@ HandleTreeOption(
                     Info);
 
             PrintTreeExportInfo(ExportInfo,
+                                SharedLibraryCollection,
                                 WrittenOut,
                                 DepthLevel,
                                 static_cast<int>(LongestLength),
@@ -267,12 +262,13 @@ HandleTreeOption(
     };
 
     Operation::PrintLineSpamWarning(Options.OutFile, Count);
-    Collection.PrintHorizontal(Options.OutFile, TabLength, PrintNode);
+    EntryCollection.PrintHorizontal(Options.OutFile, TabLength, PrintNode);
 
     return 0;
 }
 
 struct ExportInfo {
+    MachO::ExportTrieExportKind Kind;
     MachO::ExportTrieExportInfo Info;
 
     std::string_view SegmentName;
@@ -285,46 +281,20 @@ void PrintExtraExportTrieError(FILE *ErrFile) noexcept {
     fputs("Provided file has multiple export-tries\n", ErrFile);
 }
 
-int
-PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
-                              const struct Options &Options) noexcept
+using TrieListType =
+    TypedAllocationOrError<MachO::ConstExportTrieList, MachO::SizeRangeError>;
+
+static int
+FindExportTrieList(
+    const ConstMemoryMap &Map,
+    const MachO::ConstLoadCommandStorage &LoadCmdStorage,
+    const struct PrintExportTrieOperation::Options &Options,
+    TrieListType &TrieList) noexcept
 {
-    const auto IsBigEndian = Object.IsBigEndian();
-    const auto LoadCmdStorage =
-        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
-
-    if (LoadCmdStorage.hasError()) {
-        return 1;
-    }
-
-    auto LibraryCollectionError =
-        MachO::SharedLibraryInfoCollection::Error::None;
-
-    const auto LibraryCollection =
-        MachO::SharedLibraryInfoCollection::Open(LoadCmdStorage,
-                                                 &LibraryCollectionError);
-
-    switch (LibraryCollectionError) {
-        case MachO::SharedLibraryInfoCollection::Error::None:
-        case MachO::SharedLibraryInfoCollection::Error::InvalidPath:
-            break;
-    }
-
-    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
-    const auto SegmentCollection =
-        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
-                                           Object.Is64Bit(),
-                                           &SegmentCollectionError);
-
     auto FoundExportTrie = false;
-    auto TrieList =
-        TypedAllocationOrError<MachO::ConstExportTrieList,
-                               MachO::SizeRangeError>();
+    const auto IsBigEndian = LoadCmdStorage.IsBigEndian();
 
     for (const auto &LoadCmd : LoadCmdStorage) {
-        auto LCExportOff = uint32_t();
-        auto LCExportSize = uint32_t();
-
         const auto *DyldInfo =
             dyn_cast<MachO::DyldInfoCommand>(LoadCmd, IsBigEndian);
 
@@ -335,9 +305,7 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
             }
 
             FoundExportTrie = true;
-            TrieList =
-                DyldInfo->GetConstExportTrieList(Object.getConstMap(),
-                                                 IsBigEndian);
+            TrieList = DyldInfo->GetConstExportTrieList(Map, IsBigEndian);
         } else {
             const auto *DyldExportsTrie =
                 LoadCmd.dyn_cast<MachO::LoadCommand::Kind::DyldExportsTrie>(
@@ -349,12 +317,8 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
                     return 1;
                 }
 
-                LCExportOff =
-                    SwitchEndianIf(DyldExportsTrie->DataOff, IsBigEndian);
-                LCExportSize =
-                    SwitchEndianIf(DyldExportsTrie->DataSize, IsBigEndian);
-
-                FoundExportTrie = true;
+                TrieList =
+                    DyldExportsTrie->GetConstExportTrieList(Map, IsBigEndian);
             }
         }
     }
@@ -380,16 +344,19 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
             return 1;
     }
 
-    if (Options.PrintTree) {
-        const auto Result =
-            HandleTreeOption(TrieList.getRef(),
-                             SegmentCollection,
-                             Object.Is64Bit(),
-                             Options);
+    return 0;
+}
 
-        return Result;
-    }
-
+int
+PrintExportTrie(
+    const ConstMachOMemoryObject &Object,
+    const MachO::ConstLoadCommandStorage &LoadCmdStorage,
+    const MachO::SegmentInfoCollection &SegmentCollection,
+    const MachO::SharedLibraryInfoCollection &LibraryCollection,
+    const TrieListType &TrieList,
+    uint64_t Base,
+    const struct PrintExportTrieOperation::Options &Options) noexcept
+{
     auto ExportList = std::vector<ExportInfo>();
     auto LongestExportLength = LargestIntHelper();
 
@@ -412,7 +379,7 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
         auto SectionName = std::string_view();
 
         if (!Info.Export.getFlags().IsReexport()) {
-            const auto Addr = Info.Export.getImageOffset();
+            const auto Addr = Base + Info.Export.getImageOffset();
 
             auto SegmentInfo = static_cast<const MachO::SegmentInfo *>(nullptr);
             auto SectionInfo = static_cast<const MachO::SectionInfo *>(nullptr);
@@ -431,6 +398,7 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
         }
 
         ExportList.emplace_back(ExportInfo {
+            .Kind = Info.Kind,
             .Info = Info.Export,
             .SegmentName = SegmentName,
             .SectionName = SectionName,
@@ -453,7 +421,7 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
         std::sort(ExportList.begin(), ExportList.end(), Comparator);
     }
 
-    PrintLineSpamWarning(Options.OutFile, ExportList.size());
+    Operation::PrintLineSpamWarning(Options.OutFile, ExportList.size());
     fprintf(Options.OutFile,
             "Provided file has %" PRIuPTR " exports:\n",
             ExportList.size());
@@ -493,9 +461,7 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
             PrintUtilsPadSpaces(Options.OutFile, static_cast<int>(PadLength));
         }
 
-        const auto Kind = Export.Info.getKind();
-        const auto KindDesc = ExportTrieExportKindGetDescription(Kind);
-
+        const auto KindDesc = ExportTrieExportKindGetDescription(Export.Kind);
         fprintf(Options.OutFile,
                 "\t%" PRINTF_RIGHTPAD_FMT "s",
                 LongestDescLength,
@@ -513,17 +479,17 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
 
             if (!ImportName.empty()) {
                 fprintf(Options.OutFile,
-                        " (Re-exported from %s, Ordinal: %" PRIu32 ")",
-                        ImportName.data(),
-                        DylibOrdinal);
+                        " (Re-exported as %s, ",
+                        ImportName.data());
             } else {
                 fputs(" (Re-exported from ", Options.OutFile);
-                OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
-                                                       LibraryCollection,
-                                                       DylibOrdinal,
-                                                       Options.Verbose);
-                fputc(')', Options.OutFile);
             }
+
+            OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
+                                                   LibraryCollection,
+                                                   DylibOrdinal,
+                                                   Options.Verbose);
+            fputc(')', Options.OutFile);
         }
 
         fputc('\n', Options.OutFile);
@@ -531,6 +497,163 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
     }
 
     return 0;
+}
+
+int
+PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
+                              const struct Options &Options) noexcept
+{
+    const auto LoadCmdStorage =
+        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
+
+    if (LoadCmdStorage.hasError()) {
+        return 1;
+    }
+
+    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
+    const auto SegmentCollection =
+        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
+                                           Object.Is64Bit(),
+                                           &SegmentCollectionError);
+
+    auto LibraryCollectionError =
+        MachO::SharedLibraryInfoCollection::Error::None;
+
+    const auto LibraryCollection =
+        MachO::SharedLibraryInfoCollection::Open(LoadCmdStorage,
+                                                 &LibraryCollectionError);
+
+    switch (LibraryCollectionError) {
+        case MachO::SharedLibraryInfoCollection::Error::None:
+        case MachO::SharedLibraryInfoCollection::Error::InvalidPath:
+            break;
+    }
+
+    auto TrieList = TrieListType();
+    auto Result =
+        FindExportTrieList(Object.getConstMap(),
+                           LoadCmdStorage,
+                           Options,
+                           TrieList);
+
+    if (Result != 0) {
+        return Result;
+    }
+
+    if (Options.PrintTree) {
+        auto Error = MachO::ExportTrieEntryCollection::Error();
+        auto EntryCollection =
+            MachO::ExportTrieEntryCollection::Open(TrieList.getRef(),
+                                                   &SegmentCollection,
+                                                   &Error);
+
+        auto Result =
+            OperationCommon::HandleExportTrieParseError(Options.ErrFile, Error);
+
+        if (Result != 0) {
+            return Result;
+        }
+
+        Result =
+            HandleTreeOption(EntryCollection,
+                             LibraryCollection,
+                             0,
+                             Object.Is64Bit(),
+                             Options);
+
+        return Result;
+    }
+
+    Result =
+        PrintExportTrie(Object,
+                        LoadCmdStorage,
+                        SegmentCollection,
+                        LibraryCollection,
+                        TrieList,
+                        0,
+                        Options);
+
+    return Result;
+}
+
+int
+PrintExportTrieOperation::Run(const ConstDscImageMemoryObject &Object,
+                              const struct Options &Options) noexcept
+{
+    const auto Base = Object.getAddress();
+    const auto LoadCmdStorage =
+        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
+
+    if (LoadCmdStorage.hasError()) {
+        return 1;
+    }
+
+    auto SegmentCollectionError = DscImage::SegmentInfoCollection::Error::None;
+    const auto SegmentCollection =
+        DscImage::SegmentInfoCollection::Open(LoadCmdStorage,
+                                              Base,
+                                              Object.Is64Bit(),
+                                              &SegmentCollectionError);
+
+    auto LibraryCollectionError =
+        MachO::SharedLibraryInfoCollection::Error::None;
+
+    const auto LibraryCollection =
+        MachO::SharedLibraryInfoCollection::Open(LoadCmdStorage,
+                                                 &LibraryCollectionError);
+
+    switch (LibraryCollectionError) {
+        case MachO::SharedLibraryInfoCollection::Error::None:
+        case MachO::SharedLibraryInfoCollection::Error::InvalidPath:
+            break;
+    }
+
+    auto TrieList = TrieListType();
+    auto Result =
+        FindExportTrieList(Object.getDscMap(),
+                           LoadCmdStorage,
+                           Options,
+                           TrieList);
+
+    if (Result != 0) {
+        return Result;
+    }
+
+    if (Options.PrintTree) {
+        auto Error = DscImage::ExportTrieEntryCollection::Error();
+        auto EntryCollection =
+            DscImage::ExportTrieEntryCollection::Open(Base,
+                                                      TrieList.getRef(),
+                                                      &SegmentCollection,
+                                                      &Error);
+
+        auto Result =
+            OperationCommon::HandleExportTrieParseError(Options.ErrFile, Error);
+
+        if (Result != 0) {
+            return Result;
+        }
+
+        Result =
+            HandleTreeOption(EntryCollection,
+                             LibraryCollection,
+                             Base,
+                             Object.Is64Bit(),
+                             Options);
+
+        return Result;
+    }
+
+    Result =
+        PrintExportTrie(Object,
+                        LoadCmdStorage,
+                        SegmentCollection,
+                        LibraryCollection,
+                        TrieList,
+                        Base,
+                        Options);
+
+    return Result;
 }
 
 static void
@@ -549,8 +672,9 @@ AddKindRequirement(FILE *ErrFile,
     for (; !Argument.IsOption(); Argument.advance()) {
         const auto String = Argument.GetStringView();
         const auto Kind = MachO::ExportTrieExportKindFromString(String);
+        const auto ListEnd = List.cend();
 
-        if (std::find(List.cbegin(), List.cend(), Kind) != List.cend()) {
+        if (std::find(List.cbegin(), ListEnd, Kind) != ListEnd) {
             fprintf(ErrFile, "Note: Kind %s specified twice\n", String.data());
             continue;
         }
@@ -655,9 +779,10 @@ int PrintExportTrieOperation::Run(const MemoryObject &Object) const noexcept {
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
             return Run(cast<ObjectKind::MachO>(Object), Options);
+        case ObjectKind::DscImage:
+            return Run(cast<ObjectKind::DscImage>(Object).toConst(), Options);
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
-        case ObjectKind::DscImage:
             return InvalidObjectKind;
     }
 

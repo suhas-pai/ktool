@@ -522,7 +522,7 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
                                        const char *Suffix = "") noexcept
 {
     constexpr static auto NameLengthMax = 16;
-    auto WrittenOut = int();
+    auto WrittenOut = fprintf(OutFile, "%s", Prefix);
 
     if (SegmentName != nullptr) {
         const auto PadLength =
@@ -534,8 +534,7 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
 
         WrittenOut +=
             fprintf(OutFile,
-                    "%s" "\"" CHAR_ARR_FMT(16) "\"",
-                    Prefix,
+                    "\"" CHAR_ARR_FMT(16) "\",",
                     SegmentName);
 
         if (SectionName != nullptr) {
@@ -545,10 +544,8 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
                                                  "\"" CHAR_ARR_FMT(16) "\"",
                                                  SectionName),
                                          NameLengthMax + LENGTH_OF("\"\""));
-
-            WrittenOut += fprintf(OutFile, "%s", Suffix);
         } else {
-            WrittenOut += fprintf(OutFile, "<invalid>%s", Suffix);
+            WrittenOut += fputs("<invalid>", OutFile);
         }
     } else if (Pad) {
         // 2 NameLengthMax for max-names of segment and section, 4 for the
@@ -558,6 +555,7 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
         PrintUtilsRightPadSpaces(OutFile, WrittenOut, MaxWrittenOut);
     }
 
+    WrittenOut += fprintf(OutFile, "%s", Suffix);
     return WrittenOut;
 }
 

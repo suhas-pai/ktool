@@ -272,7 +272,7 @@ static uint8_t *GetEndForMachOMap(uint8_t *Map) noexcept {
 
     auto End = Map;
     for (const auto &Segment : SegmentCollection) {
-        if (DoesAddOverflow(End, Segment.File.size(), &End)) {
+        if (DoesAddOverflow(End, Segment->File.size(), &End)) {
             return nullptr;
         }
     }
@@ -304,9 +304,18 @@ DscMemoryObject::GetImageWithInfo(
     const DyldSharedCache::ImageInfo &ImageInfo) const noexcept
 {
     if (const auto Map = GetPtrForAddress(ImageInfo.Address)) {
+        const auto ImageIndex = &ImageInfo - getImageInfoList().getBegin();
         const auto End = GetEndForMachOMap(Map);
+
         if (End != nullptr) {
-            return new DscImageMemoryObject(getMap(), ImageInfo, Map, End);
+            const auto Result =
+                new DscImageMemoryObject(getMap(),
+                                         ImageInfo,
+                                         static_cast<uint32_t>(ImageIndex),
+                                         Map,
+                                         End);
+
+            return Result;
         }
     }
 

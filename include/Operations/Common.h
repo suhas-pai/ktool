@@ -103,4 +103,8 @@ struct OperationCommon {
                       bool Verbose,
                       const char *LinePrefix = "",
                       const char *LineSuffix = "") noexcept;
+
+    static int
+    HandleExportTrieParseError(FILE *OutFile,
+                               MachO::ExportTrieParseError ParseError) noexcept;
 };

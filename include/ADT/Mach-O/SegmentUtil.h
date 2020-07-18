@@ -31,8 +31,13 @@ namespace MachO {
             OverlappingSections
         };
     protected:
-        std::vector<SegmentInfo> List;
+        std::vector<std::unique_ptr<SegmentInfo>> List;
         explicit SegmentInfoCollection() noexcept = default;
+
+        void
+        ParseFromLoadCommands(const ConstLoadCommandStorage &LoadCmdStorage,
+                              bool Is64Bit,
+                              Error *ErrorOut) noexcept;
     public:
         [[nodiscard]] static SegmentInfoCollection
         Open(const ConstLoadCommandStorage &LoadCmdStorage,
@@ -50,7 +55,22 @@ namespace MachO {
         FindSegmentContainingAddress(uint64_t Address) const noexcept;
 
         [[nodiscard]] const SectionInfo *
-        FindSectionContainingAddress(uint64_t Address) const noexcept;
+        FindSectionContainingAddress(
+            uint64_t Address,
+            const SegmentInfo **SegmentOut = nullptr) const noexcept;
+
+        [[nodiscard]] virtual inline const SegmentInfo *
+        FindSegmentWithRelativeAddress(uint64_t Address) const noexcept {
+            return FindSegmentContainingAddress(Address);
+        }
+
+        [[nodiscard]] virtual inline const SectionInfo *
+        FindSectionWithRelativeAddress(
+            uint64_t Address,
+            const SegmentInfo **SegmentOut = nullptr) const noexcept
+        {
+            return FindSectionContainingAddress(Address, SegmentOut);
+        }
 
         [[nodiscard]] const SectionInfo *
         FindSectionWithName(
@@ -160,7 +180,7 @@ namespace MachO {
                 return nullptr;
             }
 
-            return &List.at(Index);
+            return List.at(Index).get();
         }
 
         [[nodiscard]] inline bool empty() const noexcept {

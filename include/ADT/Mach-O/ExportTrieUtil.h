@@ -26,7 +26,7 @@ namespace MachO {
         ~ExportTrieChildNode() noexcept = default;
         using BasicTreeNode::BasicTreeNode;
 
-        MachO::ExportTrieExportKind ExportKind;
+        MachO::ExportTrieExportKind Kind;
         std::string String;
 
         [[nodiscard]]
@@ -83,7 +83,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline bool IsExport() const noexcept {
-            return (ExportKind != MachO::ExportTrieExportKind::None);
+            return (Kind != MachO::ExportTrieExportKind::None);
         }
 
         [[nodiscard]]
@@ -107,12 +107,23 @@ namespace MachO {
 
     struct ExportTrieExportChildNode : public ExportTrieChildNode {
         friend ExportTrieEntryCollection;
-    public:
-        using ExportTrieChildNode::ExportTrieChildNode;
-
-        uint64_t Address = 0;
+    protected:
         const MachO::SegmentInfo *Segment = nullptr;
         const MachO::SectionInfo *Section = nullptr;
+    public:
+        using ExportTrieChildNode::ExportTrieChildNode;
+        MachO::ExportTrieExportInfo Info;
+
+        [[nodiscard]]
+        inline const MachO::SegmentInfo *getSegment() const noexcept {
+            assert(Kind != MachO::ExportTrieExportKind::Reexport);
+            return Segment;
+        }
+        [[nodiscard]]
+        inline const MachO::SectionInfo *getSection() const noexcept {
+            assert(Kind != MachO::ExportTrieExportKind::Reexport);
+            return Section;
+        }
 
         [[nodiscard]]
         inline BasicTreeNode *createNew() const noexcept override {
@@ -125,13 +136,22 @@ namespace MachO {
         using ChildNode = ExportTrieChildNode;
         using ExportChildNode = ExportTrieExportChildNode;
         using Error = ExportTrieParseError;
-    private:
-        explicit ExportTrieEntryCollection() noexcept = default;
     protected:
-        [[nodiscard]] static ChildNode *
-        GetNodeForEntryInfo(
-            const MachO::ExportTrieIterateInfo &Info,
-            const SegmentInfoCollection *Collection) noexcept;
+        explicit ExportTrieEntryCollection() noexcept = default;
+
+        virtual const SegmentInfo *
+        LookupInfoForAddress(const MachO::SegmentInfoCollection *Collection,
+                             uint64_t Address,
+                             const SectionInfo **SectionOut) const noexcept;
+
+        ChildNode *
+        GetNodeForEntryInfo(const MachO::ExportTrieIterateInfo &Info,
+                            const SegmentInfoCollection *Collection) noexcept;
+
+        void
+        ParseFromTrie(const MachO::ConstExportTrieList &Trie,
+                      const MachO::SegmentInfoCollection *SegmentCollection,
+                      Error *Error) noexcept;
     public:
         static ExportTrieEntryCollection
         Open(const MachO::ConstExportTrieList &Trie,

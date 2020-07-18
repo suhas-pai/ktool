@@ -15,42 +15,40 @@ namespace MachO {
     template <typename SectionType>
     static bool
     ParseSectionInfo(const SectionType &Section,
+                     SectionInfo &InfoIn,
                      bool IsBigEndian,
-                     SegmentInfoCollection::Error *ErrorOut,
-                     SectionInfo *InfoOut) noexcept
+                     SegmentInfoCollection::Error *ErrorOut) noexcept
     {
         const auto Offset = SwitchEndianIf(Section.Offset, IsBigEndian);
         const auto Size = SwitchEndianIf(Section.Size, IsBigEndian);
         const auto VmAddr = SwitchEndianIf(Section.Addr, IsBigEndian);
 
-        auto Info = SectionInfo();
         if (const auto FilRange = LocationRange::CreateWithSize(Offset, Size)) {
-            Info.File = FilRange.value();
+            InfoIn.File = FilRange.value();
         } else {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSection;
         }
 
         if (const auto MemRange = LocationRange::CreateWithSize(VmAddr, Size)) {
-            Info.Memory = MemRange.value();
+            InfoIn.Memory = MemRange.value();
         } else {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSection;
         }
 
-        Info.Name = std::string_view(Section.Name, strnlen(Section.Name, 16));
-        Info.Flags = Section.getFlags(IsBigEndian);
-        Info.Reserved1 = SwitchEndianIf(Section.Reserved1, IsBigEndian);
-        Info.Reserved2 = SwitchEndianIf(Section.Reserved2, IsBigEndian);
+        InfoIn.Name = std::string_view(Section.Name, strnlen(Section.Name, 16));
+        InfoIn.Flags = Section.getFlags(IsBigEndian);
+        InfoIn.Reserved1 = SwitchEndianIf(Section.Reserved1, IsBigEndian);
+        InfoIn.Reserved2 = SwitchEndianIf(Section.Reserved2, IsBigEndian);
 
-        *InfoOut = Info;
         return true;
     }
 
     template <typename SegmentType>
     static bool
     ParseSegmentInfo(const SegmentType &Segment,
+                     SegmentInfo &InfoIn,
                      bool IsBigEndian,
-                     SegmentInfoCollection::Error *ErrorOut,
-                     SegmentInfo *InfoOut) noexcept
+                     SegmentInfoCollection::Error *ErrorOut) noexcept
     {
         const auto Offset = SwitchEndianIf(Segment.FileOff, IsBigEndian);
         const auto Size = SwitchEndianIf(Segment.FileSize, IsBigEndian);
@@ -62,56 +60,46 @@ namespace MachO {
             return false;
         }
 
-        auto Info = SegmentInfo();
         if (const auto MemRange = LocationRange::CreateWithSize(VmAddr, Size)) {
-            Info.Memory = MemRange.value();
+            InfoIn.Memory = MemRange.value();
         } else {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSegment;
         }
 
-        Info.File = FileRange.value();
-        Info.Name = std::string_view(Segment.Name, strnlen(Segment.Name, 16));
+        InfoIn.File = FileRange.value();
+        InfoIn.Name = std::string_view(Segment.Name, strnlen(Segment.Name, 16));
 
-        Info.InitProt = Segment.getInitProt(IsBigEndian);
-        Info.MaxProt = Segment.getMaxProt(IsBigEndian);
+        InfoIn.InitProt = Segment.getInitProt(IsBigEndian);
+        InfoIn.MaxProt = Segment.getMaxProt(IsBigEndian);
 
-        Info.Flags = Segment.getFlags(IsBigEndian);
+        InfoIn.Flags = Segment.getFlags(IsBigEndian);
 
         const auto &SectionList = Segment.GetConstSectionList(IsBigEndian);
         for (const auto &Section : SectionList) {
-            auto SectInfo = SectionInfo();
+            auto SectInfo = std::make_unique<SectionInfo>();
             const auto ParseSectResult =
-                ParseSectionInfo(Section, IsBigEndian, ErrorOut, &SectInfo);
+                ParseSectionInfo(Section,
+                                 *SectInfo.get(),
+                                 IsBigEndian,
+                                 ErrorOut);
 
             if (!ParseSectResult) {
                 continue;
             }
 
-            Info.SectionList.emplace_back(SectInfo);
+            InfoIn.SectionList.emplace_back(std::move(SectInfo));
         }
 
-        *InfoOut = Info;
         return true;
     }
 
-    static void
-    FinishSectionsForAllSegments(std::vector<SegmentInfo> &Collection) noexcept
-    {
-        for (auto &Segment : Collection) {
-            for (auto &Section : Segment.SectionList) {
-                Section.Segment = &Segment;
-            }
-        }
-    }
-
-    SegmentInfoCollection
-    SegmentInfoCollection::Open(const ConstLoadCommandStorage &LoadCmdStorage,
-                                bool Is64Bit,
-                                Error *ErrorOut) noexcept
+    void
+    SegmentInfoCollection::ParseFromLoadCommands(
+        const ConstLoadCommandStorage &LoadCmdStorage,
+        bool Is64Bit,
+        Error *ErrorOut) noexcept
     {
         const auto IsBigEndian = LoadCmdStorage.IsBigEndian();
-
-        auto Result = SegmentInfoCollection();
         auto Error = Error::None;
 
         for (const auto &LoadCmd : LoadCmdStorage) {
@@ -121,16 +109,19 @@ namespace MachO {
                         continue;
                     }
 
-                    auto Info = SegmentInfo();
+                    auto Info = std::make_unique<SegmentInfo>();
                     const auto &Segment =
                         LoadCmd.cast<LoadCommand::Kind::Segment>(IsBigEndian);
 
-                    if (!ParseSegmentInfo(Segment, IsBigEndian, &Error, &Info))
+                    if (!ParseSegmentInfo(Segment,
+                                          *Info.get(),
+                                          IsBigEndian,
+                                          &Error))
                     {
                         continue;
                     }
 
-                    Result.List.emplace_back(Info);
+                    List.emplace_back(std::move(Info));
                     break;
                 }
                 case LoadCommand::Kind::Segment64: {
@@ -138,16 +129,19 @@ namespace MachO {
                         continue;
                     }
 
-                    auto Info = SegmentInfo();
+                    auto Info = std::make_unique<SegmentInfo>();
                     const auto &Segment =
                         LoadCmd.cast<LoadCommand::Kind::Segment64>(IsBigEndian);
 
-                    if (!ParseSegmentInfo(Segment, IsBigEndian, &Error, &Info))
+                    if (!ParseSegmentInfo(Segment,
+                                          *Info.get(),
+                                          IsBigEndian,
+                                          &Error))
                     {
                         continue;
                     }
 
-                    Result.List.emplace_back(Info);
+                    List.emplace_back(std::move(Info));
                     break;
                 }
 
@@ -206,52 +200,50 @@ namespace MachO {
             }
         }
 
-        FinishSectionsForAllSegments(Result.List);
-
         // Check for any overlaps after collecting a list.
 
-        const auto ListEnd = Result.List.cend();
-        for (auto It = Result.List.cbegin(); It != ListEnd; It++) {
+        const auto ListEnd = List.cend();
+        for (auto It = List.cbegin(); It != ListEnd; It++) {
             const auto &ItSegment = *It;
-            for (auto Jt = Result.List.cbegin(); Jt != It; Jt++) {
+            for (auto Jt = List.cbegin(); Jt != It; Jt++) {
                 const auto &JtSegment = *Jt;
-                if (ItSegment.File.overlaps(JtSegment.File)) {
+                if (ItSegment->File.overlaps(JtSegment->File)) {
                     Error = Error::OverlappingSegments;
                     goto done;
                 }
 
-                if (ItSegment.Memory.overlaps(JtSegment.Memory)) {
+                if (ItSegment->Memory.overlaps(JtSegment->Memory)) {
                     Error = Error::OverlappingSegments;
                     goto done;
                 }
             }
 
-            const auto SectionListEnd = ItSegment.SectionList.cend();
-            for (auto SectIter = ItSegment.SectionList.cbegin();
+            const auto SectionListEnd = ItSegment->SectionList.cend();
+            for (auto SectIter = ItSegment->SectionList.cbegin();
                  SectIter != SectionListEnd;
                  SectIter++)
             {
                 const auto &ItSection = *SectIter;
-                if (ItSection.File.getBegin() == 0) {
+                if (ItSection->File.getBegin() == 0) {
                     continue;
                 }
 
-                if (!ItSegment.File.contains(ItSection.File)) {
+                if (!ItSegment->File.contains(ItSection->File)) {
                     Error = Error::InvalidSection;
                     goto done;
                 }
 
-                for (auto SectJter = ItSegment.SectionList.cbegin();
+                for (auto SectJter = ItSegment->SectionList.cbegin();
                      SectJter != SectIter;
                      SectJter++)
                 {
                     const auto &JtSection = *SectJter;
-                    if (ItSection.File.overlaps(JtSection.File)) {
+                    if (ItSection->File.overlaps(JtSection->File)) {
                         Error = Error::OverlappingSections;
                         goto done;
                     }
 
-                    if (ItSection.Memory.overlaps(JtSection.Memory)) {
+                    if (ItSection->Memory.overlaps(JtSection->Memory)) {
                         Error = Error::OverlappingSections;
                         goto done;
                     }
@@ -263,6 +255,15 @@ namespace MachO {
         if (ErrorOut != nullptr) {
             *ErrorOut = Error;
         }
+    }
+
+    SegmentInfoCollection
+    SegmentInfoCollection::Open(const ConstLoadCommandStorage &LoadCmdStorage,
+                                bool Is64Bit,
+                                Error *ErrorOut) noexcept
+    {
+        auto Result = SegmentInfoCollection();
+        Result.ParseFromLoadCommands(LoadCmdStorage, Is64Bit, ErrorOut);
 
         return Result;
     }
@@ -272,8 +273,8 @@ namespace MachO {
         const std::string_view &Name) const noexcept
     {
         for (const auto &SegInfo : *this) {
-            if (SegInfo.Name == Name) {
-                return &SegInfo;
+            if (SegInfo->Name == Name) {
+                return SegInfo.get();
             }
         }
 
@@ -285,8 +286,8 @@ namespace MachO {
         const std::string_view &Name) const noexcept
     {
         for (const auto &SectInfo : SectionList) {
-            if (SectInfo.Name == Name) {
-                return &SectInfo;
+            if (SectInfo->Name == Name) {
+                return SectInfo.get();
             }
         }
 
@@ -301,8 +302,8 @@ namespace MachO {
         const auto *SegmentInfo = GetInfoForName(SegmentName);
         if (SegmentInfo != nullptr) {
             for (const auto &SectInfo : SegmentInfo->SectionList) {
-                if (SectInfo.Name == Name) {
-                    return &SectInfo;
+                if (SectInfo->Name == Name) {
+                    return SectInfo.get();
                 }
             }
         }
@@ -349,13 +350,13 @@ namespace MachO {
     SegmentInfoCollection::GetSectionWithIndex(
         uint64_t SectionIndex) const noexcept
     {
-        for (auto &Segment : List) {
-            if (IndexOutOfBounds(SectionIndex, Segment.SectionList.size())) {
-                SectionIndex -= Segment.SectionList.size();
+        for (const auto &Segment : List) {
+            if (IndexOutOfBounds(SectionIndex, Segment->SectionList.size())) {
+                SectionIndex -= Segment->SectionList.size();
                 continue;
             }
 
-            return &Segment.SectionList.at(SectionIndex);
+            return Segment->SectionList.at(SectionIndex).get();
         }
 
         return nullptr;
@@ -366,8 +367,8 @@ namespace MachO {
         uint64_t Address) const noexcept
     {
         for (const auto &Segment : *this) {
-            if (Segment.Memory.containsLocation(Address)) {
-                return &Segment;
+            if (Segment->Memory.containsLocation(Address)) {
+                return Segment.get();
             }
         }
 
@@ -377,8 +378,8 @@ namespace MachO {
     const SectionInfo *
     SegmentInfo::FindSectionContainingAddress(uint64_t Address) const noexcept {
         for (const auto &Section : SectionList) {
-            if (Section.Memory.containsLocation(Address)) {
-                return &Section;
+            if (Section->Memory.containsLocation(Address)) {
+                return Section.get();
             }
         }
 
@@ -387,10 +388,12 @@ namespace MachO {
 
     const SectionInfo *
     SegmentInfoCollection::FindSectionContainingAddress(
-        uint64_t Address) const noexcept
+        uint64_t Address,
+        const SegmentInfo **SegmentOut) const noexcept
     {
         const auto *Segment = FindSegmentContainingAddress(Address);
         if (Segment != nullptr) {
+            *SegmentOut = Segment;
             return Segment->FindSectionContainingAddress(Address);
         }
 
@@ -429,24 +432,24 @@ namespace MachO {
 
         const auto DataRange = LocationRange::CreateWithEnd(Addr, Addr + Size);
         for (const auto &Segment : Collection) {
-            if (!Segment.Memory.contains(DataRange)) {
+            if (!Segment->Memory.contains(DataRange)) {
                 continue;
             }
 
-            for (const auto &Section : Segment.SectionList) {
-                if (!Section.Memory.contains(DataRange)) {
+            for (const auto &Section : Segment->SectionList) {
+                if (!Section->Memory.contains(DataRange)) {
                     continue;
                 }
 
-                const auto Data = GetDataForSection(Map, Section);
-                const auto Offset = (Addr - Section.Memory.getBegin());
+                const auto Data = GetDataForSection(Map, *Section.get());
+                const auto Offset = (Addr - Section->Memory.getBegin());
 
-                if (!Section.File.containsRelativeLocation(Offset)) {
+                if (!Section->File.containsRelativeLocation(Offset)) {
                     return nullptr;
                 }
 
                 if (EndOut != nullptr) {
-                    const auto SectionSize = Section.File.size();
+                    const auto SectionSize = Section->File.size();
                     *EndOut = reinterpret_cast<PtrType>(Data + SectionSize);
                 }
 
@@ -472,15 +475,15 @@ namespace MachO {
 
         const auto DataRange = LocationRange::CreateWithEnd(Addr, Addr + Size);
         for (const auto &Segment : Collection) {
-            if (!Segment.Memory.contains(DataRange)) {
+            if (!Segment->Memory.contains(DataRange)) {
                 continue;
             }
 
-            const auto Data = GetDataForSegment(Map, Segment);
-            const auto Offset = (Addr - Segment.Memory.getBegin());
+            const auto Data = GetDataForSegment(Map, *Segment.get());
+            const auto Offset = (Addr - Segment->Memory.getBegin());
 
             if (EndOut != nullptr) {
-                const auto SegmentSize = Segment.File.size();
+                const auto SegmentSize = Segment->File.size();
                 *EndOut = reinterpret_cast<PtrType>(Data + SegmentSize);
             }
 

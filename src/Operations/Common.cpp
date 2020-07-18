@@ -994,3 +994,34 @@ OperationCommon::PrintFlagInfoList(FILE *OutFile,
         FlagNumber++;
     }
 }
+
+int
+OperationCommon::HandleExportTrieParseError(
+    FILE *ErrFile,
+    MachO::ExportTrieParseError ParseError) noexcept
+{
+    switch (ParseError) {
+        case MachO::ExportTrieParseError::None:
+            return 0;
+        case MachO::ExportTrieParseError::InvalidUleb128:
+            fputs("Provided file has an export-trie with an invalid Uleb128\n",
+                  ErrFile);
+            return 1;
+        case MachO::ExportTrieParseError::InvalidFormat:
+            fputs("Provided file has an export-trie with an invalid format\n",
+                  ErrFile);
+            return 1;
+        case MachO::ExportTrieParseError::OverlappingRanges:
+            fputs("Provided file has an export-trie with overlapping nodes\n",
+                  ErrFile);
+            return 1;
+        case MachO::ExportTrieParseError::EmptyExport:
+            fputs("Provided file has an export-trie with an empty export\n",
+                  ErrFile);
+            return 1;
+        case MachO::ExportTrieParseError::TooDeep:
+            fputs("Provided file has an export-trie that's too deep\n",
+                  ErrFile);
+            return 1;
+    }
+}

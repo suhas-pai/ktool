@@ -68,7 +68,7 @@ namespace MachO {
         MemoryProtections MaxProt;
 
         MachO::SegmentFlags Flags;
-        std::vector<SectionInfo> SectionList;
+        std::vector<std::unique_ptr<SectionInfo>> SectionList;
 
         [[nodiscard]] const SectionInfo *
         FindSectionWithName(const std::string_view &Name) const noexcept;

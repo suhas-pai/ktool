@@ -44,7 +44,10 @@ public:
     }
 
     constexpr inline PointerErrorStorage &setValue(const Enum &Value) noexcept {
-        Storage = static_cast<uintptr_t>(Value);
+        if (Value != Enum::None) {
+            Storage = static_cast<uintptr_t>(Value);
+        }
+        
         return *this;
     }
 
@@ -55,5 +58,13 @@ public:
 
     constexpr inline void operator=(const Enum &Value) noexcept {
         setValue(Value);
+    }
+
+    [[nodiscard]] inline bool operator==(const Enum &Value) noexcept {
+        return static_cast<Enum>(Storage) == Value;
+    }
+
+    [[nodiscard]] inline bool operator!=(const Enum &Value) noexcept {
+        return !(*this == Value);
     }
 };

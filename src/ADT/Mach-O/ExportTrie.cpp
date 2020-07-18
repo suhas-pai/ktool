@@ -24,19 +24,14 @@ namespace MachO {
         Info->String.reserve(64);
 
         auto Node = NodeInfo();
-        auto ParseError = ParseNode(Begin, &Node);
+        this->ParseError = ParseNode(Begin, &Node);
 
         if (ParseError != Error::None) {
-            this->ParseError = ParseError;
             return;
         }
 
         NextStack = std::make_unique<StackInfo>(Node);
-        ParseError = Advance();
-
-        if (ParseError != Error::None) {
-            this->ParseError = ParseError;
-        }
+        this->ParseError = Advance();
     }
 
     ExportTrieExportIterator::ExportTrieExportIterator(
@@ -53,8 +48,10 @@ namespace MachO {
 
     void ExportTrieIterator::MoveUptoParentNode() noexcept {
         auto &Top = Info->getStack();
-        Info->String.erase(Top.FullPrefixLength);
+        const auto EraseToLength =
+            (Info->String.length() - Info->getNode().Prefix.length());
 
+        Info->String.erase(EraseToLength);
         if (Top.RangeListSize != 0) {
             Info->RangeList.erase(Info->RangeList.cbegin() + Top.RangeListSize,
                                   Info->RangeList.cend());
@@ -150,12 +147,14 @@ namespace MachO {
 
             if (PrevNode.IsExport()) {
                 Info->Export.clearExclusiveInfo();
+                Info->Kind = ExportTrieExportKind::None;
+
                 if (PrevNode.ChildCount == 0) {
                     MoveUptoParentNode();
                 }
             } else {
-                SetupInfoForNewStack();
                 PrevStack.ChildOrdinal += 1;
+                SetupInfoForNewStack();
             }
         } else {
             SetupInfoForNewStack();
@@ -264,19 +263,19 @@ namespace MachO {
                     switch (Export.Flags.getKind()) {
                         case ExportSymbolKind::Regular:
                             if (Export.Flags.IsStubAndResolver()) {
-                                Export.sKind = ExportInfoKind::StubAndResolver;
+                                Info->Kind = ExportInfoKind::StubAndResolver;
                             } else if (Export.Flags.IsReexport()) {
-                                Export.sKind = ExportInfoKind::Reexport;
+                                Info->Kind = ExportInfoKind::Reexport;
                             } else {
-                                Export.sKind = ExportInfoKind::Regular;
+                                Info->Kind = ExportInfoKind::Regular;
                             }
 
                             break;
                         case ExportSymbolKind::ThreadLocal:
-                            Export.sKind = ExportInfoKind::ThreadLocal;
+                            Info->Kind = ExportInfoKind::ThreadLocal;
                             break;
                         case ExportSymbolKind::Absolute:
-                            Export.sKind = ExportInfoKind::Absolute;
+                            Info->Kind = ExportInfoKind::Absolute;
                             break;
                     }
 
@@ -334,7 +333,6 @@ namespace MachO {
             }
 
             NextStack->RangeListSize = Info->RangeList.size();
-            NextStack->FullPrefixLength = Info->String.length();
 
             // We've already returned this node once if our Child-Ordinal is not
             // zero.

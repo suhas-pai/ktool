@@ -20,10 +20,13 @@ public:
     friend struct DscMemoryObject;
 protected:
     MemoryMap DscMap;
+
     const DyldSharedCache::ImageInfo &ImageInfo;
+    uint32_t ImageIndex;
 
     DscImageMemoryObject(const MemoryMap &DscMap,
                          const DyldSharedCache::ImageInfo &ImageInfo,
+                         uint32_t ImageIndex,
                          uint8_t *Begin,
                          uint8_t *End) noexcept;
 public:
@@ -110,12 +113,21 @@ public:
         return Header;
     }
 
+    [[nodiscard]]
+    inline const DyldSharedCache::ImageInfo &getImageInfo() const noexcept {
+        return ImageInfo;
+    }
+
+    [[nodiscard]] inline uint32_t getImageIndex() const noexcept {
+        return ImageIndex;
+    }
+
     [[nodiscard]] inline uint64_t getBaseOffset() const noexcept {
         return Map - getDscMap().getBegin();
     }
 
     [[nodiscard]] inline uint64_t getAddress() const noexcept {
-        return ImageInfo.Address;
+        return getImageInfo().Address;
     }
 
     [[nodiscard]] inline std::optional<uint64_t>
@@ -126,7 +138,7 @@ public:
     }
 
     [[nodiscard]] inline const char *getPath() const noexcept {
-        return ImageInfo.getPath(getDscMap().getBegin());
+        return getImageInfo().getPath(getDscMap().getBegin());
     }
 };
 
@@ -136,6 +148,7 @@ public:
 protected:
     ConstDscImageMemoryObject(const ConstMemoryMap &DscMap,
                               const DyldSharedCache::ImageInfo &ImageInfo,
+                              uint32_t ImageIndex,
                               const uint8_t *Begin,
                               const uint8_t *End) noexcept;
 public:

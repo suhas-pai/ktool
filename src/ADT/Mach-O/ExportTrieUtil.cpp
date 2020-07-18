@@ -9,6 +9,20 @@
 #include "ExportTrieUtil.h"
 
 namespace MachO {
+    const SegmentInfo *
+    ExportTrieEntryCollection::LookupInfoForAddress(
+        const MachO::SegmentInfoCollection *Collection,
+        uint64_t Address,
+        const SectionInfo **SectionOut) const noexcept
+    {
+        const auto Segment = Collection->FindSegmentContainingAddress(Address);
+        if (Segment != nullptr) {
+            *SectionOut = Segment->FindSectionContainingAddress(Address);
+        }
+
+        return Segment;
+    }
+
     ExportTrieEntryCollection::ChildNode *
     ExportTrieEntryCollection::GetNodeForEntryInfo(
         const MachO::ExportTrieIterateInfo &Info,
@@ -21,43 +35,39 @@ namespace MachO {
             Node = new ChildNode();
         }
 
-        Node->ExportKind = Info.Export.getKind();
+        Node->Kind = Info.Kind;
         Node->String = Info.String;
 
-        if (Info.IsExport() && !Info.Export.getFlags().IsReexport()) {
-            const auto Addr = Info.Export.getImageOffset();
+        if (Info.IsExport()) {
             auto ExportNode = reinterpret_cast<ExportChildNode *>(Node);
-
-            if (Collection != nullptr) {
-                const auto Segment =
-                    Collection->FindSegmentContainingAddress(Addr);
-
-                if (Segment != nullptr) {
-                    ExportNode->Segment = Segment;
-                    ExportNode->Section =
-                        Segment->FindSectionContainingAddress(Addr);
+            if (!Info.Export.getFlags().IsReexport()) {
+                const auto Addr = Info.Export.getImageOffset();
+                if (Collection != nullptr) {
+                    ExportNode->Segment =
+                        LookupInfoForAddress(Collection,
+                                             Addr,
+                                             &ExportNode->Section);
                 }
             }
 
-            ExportNode->Address = Addr;
+            ExportNode->Info = Info.Export;
         }
 
         return Node;
     }
 
-    ExportTrieEntryCollection
-    ExportTrieEntryCollection::Open(
+    void
+    ExportTrieEntryCollection::ParseFromTrie(
         const MachO::ConstExportTrieList &Trie,
         const MachO::SegmentInfoCollection *SegmentCollection,
-        Error *Error)
+        Error *Error) noexcept
     {
         auto Iter = Trie.begin();
         const auto End = Trie.end();
 
-        auto Result = ExportTrieEntryCollection();
-        Result.Root = GetNodeForEntryInfo(*Iter, SegmentCollection);
+        Root = GetNodeForEntryInfo(*Iter, SegmentCollection);
 
-        auto Parent = reinterpret_cast<ChildNode *>(Result.Root);
+        auto Parent = getRoot();
         auto PrevDepthLevel = 1;
 
         const auto MoveUpParentHierarchy = [&](uint8_t Amt) noexcept {
@@ -72,7 +82,7 @@ namespace MachO {
                     *Error = Iter.getError();
                 }
 
-                return Result;
+                return;
             }
 
             const auto DepthLevel = Iter->getDepthLevel();
@@ -81,14 +91,24 @@ namespace MachO {
             }
 
             const auto Current = GetNodeForEntryInfo(*Iter, SegmentCollection);
-            Parent->AddChild(*Current);
 
+            Parent->AddChild(*Current);
             if (Iter->getNode().ChildCount != 0) {
                 Parent = Current;
             }
 
             PrevDepthLevel = DepthLevel;
         }
+    }
+
+    ExportTrieEntryCollection
+    ExportTrieEntryCollection::Open(
+        const MachO::ConstExportTrieList &Trie,
+        const MachO::SegmentInfoCollection *SegmentCollection,
+        Error *Error)
+    {
+        auto Result = ExportTrieEntryCollection();
+        Result.ParseFromTrie(Trie, SegmentCollection, Error);
 
         return Result;
     }

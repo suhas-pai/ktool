@@ -153,7 +153,7 @@ PrintSymbolList(
             PrintUtilsRightPadSpaces(Options.OutFile,
                                      fprintf(Options.OutFile,
                                              "%s, ",
-                                             Section.Name.data()),
+                                             Section->Name.data()),
                                      LongestSection + LENGTH_OF(", "));
 
             const auto DylibOrdinal = Info->getDylibOrdinal();

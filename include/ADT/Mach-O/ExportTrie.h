@@ -227,7 +227,7 @@ namespace MachO {
         return Enum::None;
     }
 
-    constexpr
+    [[nodiscard]] constexpr
     static const uint64_t ExportTrieExportKindGetLongestNameLength() noexcept {
         const auto Result =
             EnumHelper<ExportTrieExportKind>::GetLongestAssocLength(
@@ -236,7 +236,7 @@ namespace MachO {
         return Result;
     }
 
-    constexpr static
+    [[nodiscard]] constexpr static
     const uint64_t ExportTrieExportKindGetLongestDescriptionLength() noexcept {
         const auto Result =
             EnumHelper<ExportTrieExportKind>::GetLongestAssocLength(
@@ -267,14 +267,9 @@ namespace MachO {
         };
 
         ExportTrieFlags Flags;
-        Kind sKind;
     public:
         [[nodiscard]] inline std::string_view getString() const noexcept {
             return String;
-        }
-
-        [[nodiscard]] inline Kind getKind() const noexcept {
-            return sKind;
         }
 
         [[nodiscard]]
@@ -288,7 +283,7 @@ namespace MachO {
             return ReexportDylibOrdinal;
         }
 
-        [[nodiscard]] inline uint64_t GetResolverStubAddress() const noexcept {
+        [[nodiscard]] inline uint64_t getResolverStubAddress() const noexcept {
             assert(Flags.IsStubAndResolver());
             return ResolverStubAddress;
         }
@@ -308,8 +303,6 @@ namespace MachO {
             ResolverStubAddress = 0;
 
             Flags.clear();
-            sKind = Kind::None;
-
             return *this;
         }
     };
@@ -346,7 +339,6 @@ namespace MachO {
         NodeInfo Node;
         uint16_t ChildOrdinal = 0;
 
-        std::string::size_type FullPrefixLength = 0;
         std::vector<LocationRange>::size_type RangeListSize = 0;
     };
 
@@ -359,6 +351,7 @@ namespace MachO {
         std::vector<LocationRange> RangeList;
         std::vector<StackInfo> StackList;
 
+        ExportTrieExportKind Kind;
         ExportTrieExportInfo Export;
 
         [[nodiscard]] inline StackInfo &getStack() noexcept {
@@ -415,32 +408,33 @@ namespace MachO {
 
         Error Advance() noexcept;
     public:
-        explicit ExportTrieIterator(const uint8_t *Begin,
-                                    const uint8_t *End) noexcept;
+        explicit
+        ExportTrieIterator(const uint8_t *Begin, const uint8_t *End) noexcept;
 
-        inline ExportTrieIterateInfo &getInfo() noexcept {
+        [[nodiscard]] inline ExportTrieIterateInfo &getInfo() noexcept {
             return *Info;
         }
 
+        [[nodiscard]]
         inline const ExportTrieIterateInfo &getInfo() const noexcept {
             return *Info;
         }
 
-        inline bool IsAtEnd() const noexcept {
+        [[nodiscard]] inline bool IsAtEnd() const noexcept {
             return Info->StackList.empty();
         }
 
-        inline bool hasError() const noexcept {
+        [[nodiscard]] inline bool hasError() const noexcept {
             return ParseError.hasValue();
         }
 
-        inline Error getError() const noexcept {
+        [[nodiscard]] inline Error getError() const noexcept {
             return ParseError.getValue();
         }
 
         inline ExportTrieIterator &operator++() noexcept {
             assert(!hasError());
-            Advance();
+            ParseError = Advance();
 
             return *this;
         }
