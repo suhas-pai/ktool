@@ -123,7 +123,7 @@ PrintTreeExportInfo(
     bool Is64Bit,
     const struct PrintExportTrieOperation::Options &Options) noexcept
 {
-    auto RightPad = LongestLength + 2;
+    auto RightPad = LongestLength + LENGTH_OF("\"\"");
     auto KindDesc = ExportTrieExportKindGetDescription(Export.Kind).data();
 
     if (KindDesc == nullptr) {
@@ -467,11 +467,14 @@ PrintExportTrie(
                 LongestDescLength,
                 KindDesc.data());
 
+        const auto RightPad =
+            static_cast<int>(LongestExportLength + LENGTH_OF("\"\""));
+
         PrintUtilsRightPadSpaces(Options.OutFile,
                                  fprintf(Options.OutFile,
                                          "\"%s\"",
                                          Export.String.data()),
-                                 static_cast<int>(LongestExportLength) + 2);
+                                 RightPad);
 
         if (IsReexport) {
             const auto DylibOrdinal = Export.Info.getReexportDylibOrdinal();

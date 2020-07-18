@@ -112,7 +112,7 @@ PrintSymbolList(
             PrintUtilsRightPadSpaces(
                 Options.OutFile,
                 PrintLength,
-                static_cast<int>(LongestLength.value() + 2));
+                static_cast<int>(LongestLength.value() + LENGTH_OF("\"\"")));
 
             const auto &SymbolInfo = Info->SymbolInfo;
             const auto SymbolKind = SymbolInfo.getKind();

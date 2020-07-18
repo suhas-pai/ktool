@@ -943,7 +943,7 @@ namespace MachO {
 
     [[nodiscard]]
     static inline uint16_t GetDylibOrdinal(uint16_t Desc) noexcept {
-        return (((Desc) >> 8) & 0xff);
+        return ((Desc >> 8) & 0xff);
     }
 
     struct SymbolTableEntry32 {
