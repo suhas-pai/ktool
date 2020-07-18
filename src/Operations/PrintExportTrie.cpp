@@ -686,6 +686,43 @@ AddKindRequirement(FILE *ErrFile,
 }
 
 static void
+AddSegmentRequirement(
+    FILE *ErrFile,
+    std::vector<PrintExportTrieOperation::Options::SegmentSectionPair> &List,
+    ArgvArrayIterator &Argument)
+{
+    if (Argument.IsOption()) {
+        if (List.empty()) {
+            fputs("Please provide a segment-section pair requirement\n",
+                  ErrFile);
+            exit(1);
+        }
+    }
+
+    const auto SegmentName = Argument.GetStringView();
+    if (SegmentName.length() > 16) {
+        fprintf(ErrFile,
+                "Invalid Provided Segment \"%s\": Length too long\n",
+                SegmentName.data());
+        exit(1);
+    }
+
+    const auto Pair = PrintExportTrieOperation::Options::SegmentSectionPair {
+        .SegmentName = SegmentName,
+        .SectionName = ""
+    };
+
+    if (std::find(List.cbegin(), List.cend(), Pair) != List.cend()) {
+        fprintf(ErrFile,
+                "Note: Segment-Requirement \"%s\" provided twice",
+                Argument.getString());
+        return;
+    }
+
+    List.push_back(std::move(Pair));
+}
+
+static void
 AddSectionRequirement(
     FILE *ErrFile,
     std::vector<PrintExportTrieOperation::Options::SegmentSectionPair> &List,
@@ -693,39 +730,32 @@ AddSectionRequirement(
 {
     if (Argument.IsOption()) {
         if (List.empty()) {
-            fputs("Please provide a list of segment-section pair "
-                  "requirements\n",
-                  ErrFile);
+            fputs("Please provide a segment requirement\n", ErrFile);
             exit(1);
         }
     }
 
-    for (; !Argument.IsOption(); Argument.advance()) {
-        auto SegmentName = std::string_view();
-        auto SectionName = std::string_view();
+    auto SegmentName = std::string_view();
+    auto SectionName = std::string_view();
 
-        OperationCommon::ParseSegmentSectionPair(ErrFile,
-                                                 Argument.GetStringView(),
-                                                 SegmentName,
-                                                 SectionName);
+    OperationCommon::ParseSegmentSectionPair(ErrFile,
+                                             Argument.GetStringView(),
+                                             SegmentName,
+                                             SectionName);
 
-        const auto Pair = PrintExportTrieOperation::Options::SegmentSectionPair
-        {
-            .SegmentName = SegmentName,
-            .SectionName = SectionName
-        };
+    const auto Pair = PrintExportTrieOperation::Options::SegmentSectionPair {
+        .SegmentName = SegmentName,
+        .SectionName = SectionName
+    };
 
-        if (std::find(List.cbegin(), List.cend(), Pair) != List.cend()) {
-            fprintf(ErrFile,
-                    "Note: Segment-Section Pair \"%s\" provided twice",
-                    Argument.getString());
-            continue;
-        }
-
-        List.push_back(std::move(Pair));
+    if (std::find(List.cbegin(), List.cend(), Pair) != List.cend()) {
+        fprintf(ErrFile,
+                "Note: Segment-Section Pair \"%s\" provided twice",
+                Argument.getString());
+        return;
     }
 
-    Argument.moveBack();
+    List.push_back(std::move(Pair));
 }
 
 struct PrintExportTrieOperation::Options
@@ -740,6 +770,10 @@ PrintExportTrieOperation::ParseOptionsImpl(const ArgvArray &Argv,
             AddKindRequirement(Options.ErrFile,
                                Options.KindRequirements,
                                Argument.advance());
+        } else if (strcmp(Argument, "--require-segment") == 0) {
+            AddSegmentRequirement(Options.ErrFile,
+                                  Options.SectionRequirements,
+                                  Argument.advance());
         } else if (strcmp(Argument, "--require-section") == 0) {
             AddSectionRequirement(Options.ErrFile,
                                   Options.SectionRequirements,

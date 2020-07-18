@@ -344,11 +344,15 @@ Operation::PrintOptionHelpMenu(OperationKind Kind,
                     "specific kind\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --require-section, Only print exports with a "
-                    "specific section\n",
+                    "%s    --require-segment, Only print exports with a "
+                    "specific segment\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort,            Sort every node and exports\n",
+                    "%s    --require-section, Only print exports with a "
+                    "specific segment & section\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort,            Sort every node alphabetically\n",
                     Prefix);
             fprintf(OutFile,
                     "%s-v, --verbose,         Print more Verbose Information\n",

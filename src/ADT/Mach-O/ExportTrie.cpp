@@ -26,7 +26,7 @@ namespace MachO {
         auto Node = NodeInfo();
         this->ParseError = ParseNode(Begin, &Node);
 
-        if (ParseError != Error::None) {
+        if (ParseError.hasValue()) {
             return;
         }
 

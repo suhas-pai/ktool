@@ -65,6 +65,10 @@ namespace MachO {
         auto Iter = Trie.begin();
         const auto End = Trie.end();
 
+        if (Iter == End) {
+            return;
+        }
+
         Root = GetNodeForEntryInfo(*Iter, SegmentCollection);
 
         auto Parent = getRoot();

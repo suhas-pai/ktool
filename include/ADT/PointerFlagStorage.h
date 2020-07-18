@@ -11,7 +11,7 @@
 template <typename T>
 struct PointerFlagStorage {
 protected:
-    T *Ptr;
+    T *Ptr = nullptr;
 public:
     constexpr PointerFlagStorage() = default;
     constexpr PointerFlagStorage(T *Ptr) : Ptr(Ptr) {}
