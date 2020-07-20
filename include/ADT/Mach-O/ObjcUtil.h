@@ -12,15 +12,17 @@
 #include <vector>
 
 #include "ADT/Tree.h"
+
 #include "BindUtil.h"
+#include "DeVirtualizer.h"
 #include "Objc.h"
 #include "SegmentUtil.h"
 
 namespace MachO {
-    struct ObjcClassInfoTree;
+    struct ObjcClassInfoCollection;
     struct ObjcClassCategoryInfo;
     struct ObjcClassInfo : public BasicTreeNode {
-        friend ObjcClassInfoTree;
+        friend ObjcClassInfoCollection;
     public:
         union {
             uint64_t Addr = 0;
@@ -119,16 +121,16 @@ namespace MachO {
         InvalidAddress
     };
 
-    struct ObjcClassInfoTree : public BasicTree {
+    struct ObjcClassInfoCollection : public BasicTree {
     public:
         using Info = ObjcClassInfo;
     protected:
-        std::unordered_map<uint64_t, Info *> List;
+        std::unordered_map<uint64_t, std::unique_ptr<Info>> List;
     public:
         using Error = ObjcParseError;
+        explicit ObjcClassInfoCollection() noexcept = default;
 
-        explicit ObjcClassInfoTree() noexcept = default;
-        ObjcClassInfoTree &
+        ObjcClassInfoCollection &
         Parse(const uint8_t *Map,
               const SegmentInfoCollection &SegmentCollection,
               const ConstDeVirtualizer &DeVirtualizer,
@@ -137,7 +139,7 @@ namespace MachO {
               bool IsBigEndian,
               Error *ErrorOut) noexcept;
 
-        static inline ObjcClassInfoTree
+        static inline ObjcClassInfoCollection
         Open(const uint8_t *Map,
              const SegmentInfoCollection &SegmentCollection,
              const ConstDeVirtualizer &DeVirtualizer,
@@ -146,7 +148,7 @@ namespace MachO {
              bool IsBigEndian,
              Error *ErrorOut) noexcept
         {
-            auto Result = ObjcClassInfoTree();
+            auto Result = ObjcClassInfoCollection();
             Result.Parse(Map,
                          SegmentCollection,
                          DeVirtualizer,
@@ -158,17 +160,17 @@ namespace MachO {
             return Result;
         }
 
-        [[nodiscard]] inline ObjcClassInfo *getRoot() const noexcept {
-            return reinterpret_cast<ObjcClassInfo *>(Root);
+        [[nodiscard]] inline Info *getRoot() const noexcept {
+            return reinterpret_cast<Info *>(Root);
         }
 
         [[nodiscard]] inline
-        std::unordered_map<uint64_t, ObjcClassInfo *> &getMap() noexcept {
+        std::unordered_map<uint64_t, std::unique_ptr<Info>> &getMap() noexcept {
             return List;
         }
 
-        [[nodiscard]] inline
-        const std::unordered_map<uint64_t, ObjcClassInfo *> &
+        [[nodiscard]]
+        inline const std::unordered_map<uint64_t, std::unique_ptr<Info>> &
         getMap() const noexcept {
             return List;
         }
@@ -223,7 +225,7 @@ namespace MachO {
                     const SegmentInfoCollection &SegmentCollection,
                     const ConstDeVirtualizer &DeVirtualizer,
                     const BindActionCollection &BindCollection,
-                    ObjcClassInfoTree *ClassInfoTree,
+                    ObjcClassInfoCollection *ClassInfoTree,
                     bool Is64Bit,
                     bool IsBigEndian,
                     Error *ErrorOut) noexcept;
@@ -233,7 +235,7 @@ namespace MachO {
              const SegmentInfoCollection &SegmentCollection,
              const ConstDeVirtualizer &DeVirtualizer,
              const BindActionCollection &BindCollection,
-             ObjcClassInfoTree *ClassInfoTree,
+             ObjcClassInfoCollection *ClassInfoTree,
              bool Is64Bit,
              bool IsBigEndian,
              Error *ErrorOut) noexcept

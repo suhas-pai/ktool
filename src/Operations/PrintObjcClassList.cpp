@@ -238,16 +238,16 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
     const auto Map = Object.getMap();
 
     auto DeVirtualizer = MachO::ConstDeVirtualizer(Map, SegmentCollection);
-    auto Error = MachO::ObjcClassInfoTree::Error();
+    auto Error = MachO::ObjcClassInfoCollection::Error();
 
     auto ObjcClassCollection =
-        MachO::ObjcClassInfoTree::Open(Map.getBegin(),
-                                       SegmentCollection,
-                                       DeVirtualizer,
-                                       BindCollection,
-                                       Is64Bit,
-                                       IsBigEndian,
-                                       &Error);
+        MachO::ObjcClassInfoCollection::Open(Map.getBegin(),
+                                             SegmentCollection,
+                                             DeVirtualizer,
+                                             BindCollection,
+                                             Is64Bit,
+                                             IsBigEndian,
+                                             &Error);
 
     if (Options.PrintCategories) {
         MachO::ObjcClassCategoryCollection::Open(Map.getBegin(),

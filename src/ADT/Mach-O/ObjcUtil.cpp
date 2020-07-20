@@ -31,6 +31,20 @@ namespace MachO {
                            ObjcClassCategory64,
                            ObjcClassCategory>;
 
+    ObjcClassInfo *
+    CreateClassForList(
+        std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
+        ObjcClassInfo &&Class) noexcept
+    {
+        const auto Ptr =
+            List.insert({
+                Class.Addr,
+                std::make_unique<ObjcClassInfo>(Class)
+            }).first->second.get();
+
+        return Ptr;
+    }
+
     void
     SetSuperClassForClassInfo(ObjcClassInfo *Super,
                               ObjcClassInfo *Info) noexcept
@@ -56,7 +70,7 @@ namespace MachO {
     SetSuperWithBindAction(
         ObjcClassInfo *Info,
         const BindActionCollection::Info &Action,
-        std::unordered_map<uint64_t, ObjcClassInfo *> &List,
+        std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
         std::vector<ObjcClassInfo *> &ExternalAndRootClassList) noexcept
     {
         const auto ActionSymbol = GetNameFromBindActionSymbol(*Action.Symbol);
@@ -77,23 +91,23 @@ namespace MachO {
             return;
         }
 
-        const auto SuperInfo = new ObjcClassInfo(ActionSymbol);
+        auto SuperInfo = ObjcClassInfo(ActionSymbol);
 
-        SuperInfo->BindAddr = Action.Address;
-        SuperInfo->DylibOrdinal = Action.DylibOrdinal;
-        SuperInfo->IsExternal = true;
+        SuperInfo.BindAddr = Action.Address;
+        SuperInfo.DylibOrdinal = Action.DylibOrdinal;
+        SuperInfo.IsExternal = true;
 
-        assert(SuperInfo->DylibOrdinal != 0);
+        SetSuperClassForClassInfo(&SuperInfo, Info);
 
-        SetSuperClassForClassInfo(SuperInfo, Info);
-        ExternalAndRootClassList.emplace_back(SuperInfo);
+        const auto Ptr = CreateClassForList(List, std::move(SuperInfo));
+        ExternalAndRootClassList.emplace_back(Ptr);
     }
 
     template <PointerKind Kind>
-    static ObjcClassInfoTree::Error
+    static ObjcClassInfoCollection::Error
     ParseObjcClass(uint64_t Addr,
-                   const MachO::ConstDeVirtualizer &DeVirtualizer,
-                   const MachO::BindActionCollection &BindCollection,
+                   const ConstDeVirtualizer &DeVirtualizer,
+                   const BindActionCollection &BindCollection,
                    ObjcClassInfo &Info,
                    bool IsBigEndian) noexcept
     {
@@ -107,7 +121,7 @@ namespace MachO {
             Info.Addr = Addr;
             Info.IsNull = true;
 
-            return ObjcClassInfoTree::Error::None;
+            return ObjcClassInfoCollection::Error::None;
         }
 
         const auto SuperAddr = SwitchEndianIf(Class->SuperClass, IsBigEndian);
@@ -119,7 +133,7 @@ namespace MachO {
             Info.Addr = Addr;
             Info.IsNull = true;
 
-            return ObjcClassInfoTree::Error::None;
+            return ObjcClassInfoCollection::Error::None;
         }
 
         const auto NameAddr = SwitchEndianIf(ClassRo->Name, IsBigEndian);
@@ -127,32 +141,27 @@ namespace MachO {
             Info.Name = String.value();
         }
 
-        const auto Bits = SwitchEndianIf(Class->Data, IsBigEndian);
-        const auto Flags = ClassRo->getFlags(IsBigEndian);
-        const auto IsSwiftMask =
-            (IsSwiftObjcClassPreStableMask | IsSwiftObjcClassStableMask);
-
         Info.Addr = Addr;
-        Info.DylibOrdinal = 0;
-        Info.Flags = Flags;
-        Info.IsSwift = (Bits & IsSwiftMask);
+        Info.Flags = ClassRo->getFlags(IsBigEndian);
+        Info.IsSwift = Class->IsSwift(IsBigEndian);
         Info.setSuper(reinterpret_cast<ObjcClassInfo *>(SuperAddr));
 
-        return ObjcClassInfoTree::Error::None;
+        return ObjcClassInfoCollection::Error::None;
     }
 
     static bool
-    SetSuperIfExists(const ConstDeVirtualizer &DeVirtualizer,
-                     const BindActionCollection &BindCollection,
-                     std::unordered_map<uint64_t, ObjcClassInfo *> &List,
-                     ObjcClassInfo *Info,
-                     bool IsBigEndian) noexcept
+    SetSuperIfExists(
+        const ConstDeVirtualizer &DeVirtualizer,
+        const BindActionCollection &BindCollection,
+        std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
+        ObjcClassInfo *Info,
+        bool IsBigEndian) noexcept
     {
         const auto Addr = reinterpret_cast<uint64_t>(Info->getParent());
         const auto Iter = List.find(Addr);
 
         if (Iter != List.cend()) {
-            SetSuperClassForClassInfo(Iter->second, Info);
+            SetSuperClassForClassInfo(Iter->second.get(), Info);
             return true;
         }
 
@@ -161,12 +170,13 @@ namespace MachO {
 
     template <PointerKind Kind>
     static ObjcParseError
-    FixSuperForClassInfo(ObjcClassInfo *Info,
-                         const ConstDeVirtualizer &DeVirtualizer,
-                         const BindActionCollection &BindCollection,
-                         std::unordered_map<uint64_t, ObjcClassInfo *> &List,
-                         std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
-                         bool IsBigEndian) noexcept
+    FixSuperForClassInfo(
+        ObjcClassInfo *Info,
+        const ConstDeVirtualizer &DeVirtualizer,
+        const BindActionCollection &BindCollection,
+        std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
+        std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
+        bool IsBigEndian) noexcept
     {
         // BindAddr points to the superclass field inside ObjcClass[64]
 
@@ -196,34 +206,36 @@ namespace MachO {
             return ObjcParseError::None;
         }
 
-        auto SuperInfo = new ObjcClassInfo();
+        auto SuperInfo = ObjcClassInfo();
 
         const auto Addr = reinterpret_cast<uint64_t>(Info->getSuper());
         const auto Error =
             ParseObjcClass<PointerKind::s64Bit>(Addr,
                                                 DeVirtualizer,
                                                 BindCollection,
-                                                *SuperInfo,
+                                                SuperInfo,
                                                 IsBigEndian);
 
         if (Error != ObjcParseError::None) {
-            delete SuperInfo;
             return Error;
         }
 
-        SetSuperClassForClassInfo(SuperInfo, Info);
-        ExternalAndRootClassList.emplace_back(SuperInfo);
+        SetSuperClassForClassInfo(&SuperInfo, Info);
+
+        const auto Ptr = CreateClassForList(List, std::move(SuperInfo));
+        ExternalAndRootClassList.emplace_back(Ptr);
 
         return ObjcParseError::None;
     }
 
     template <PointerKind Kind>
     static ObjcParseError
-    HandleAddrForObjcClass(uint64_t Addr,
-                           const ConstDeVirtualizer &DeVirtualizer,
-                           const BindActionCollection &BindCollection,
-                           std::unordered_map<uint64_t, ObjcClassInfo *> &List,
-                           bool IsBigEndian) noexcept
+    HandleAddrForObjcClass(
+        uint64_t Addr,
+        const ConstDeVirtualizer &DeVirtualizer,
+        const BindActionCollection &BindCollection,
+        std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
+        bool IsBigEndian) noexcept
     {
         if (Addr == 0) {
             return ObjcParseError::None;
@@ -243,7 +255,7 @@ namespace MachO {
             return Error;
         }
 
-        List.insert({ Info.Addr, new ObjcClassInfo(std::move(Info)) });
+        CreateClassForList(List, std::move(Info));
         return ObjcParseError::None;
     }
 
@@ -252,12 +264,12 @@ namespace MachO {
     FixSuperClassForClassList(
         const ConstDeVirtualizer &DeVirtualizer,
         const BindActionCollection &BindCollection,
-        std::unordered_map<uint64_t, ObjcClassInfo *> &List,
+        std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
         std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
         bool IsBigEndian) noexcept
     {
         for (auto &Iter : List) {
-            const auto &Info = Iter.second;
+            const auto &Info = Iter.second.get();
             if (Info->IsExternal) {
                 continue;
             }
@@ -285,7 +297,7 @@ namespace MachO {
         const uint8_t *End,
         const ConstDeVirtualizer &DeVirtualizer,
         const BindActionCollection &BindCollection,
-        std::unordered_map<uint64_t, ObjcClassInfo *> &ClassList,
+        std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &ClassList,
         std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
         bool IsBigEndian) noexcept
     {
@@ -317,18 +329,17 @@ namespace MachO {
         return ObjcParseError::None;
     }
 
-    ObjcClassInfo *
+    ObjcClassInfo
     CreateExternalClass(const std::string_view &Name,
                         uint64_t DylibOrdinal,
                         uint64_t BindAddr) noexcept
     {
-        assert(DylibOrdinal != 0);
-        const auto NewInfo = new ObjcClassInfo();
+        auto NewInfo = ObjcClassInfo();
 
-        NewInfo->Name = Name;
-        NewInfo->DylibOrdinal = DylibOrdinal;
-        NewInfo->BindAddr = BindAddr;
-        NewInfo->IsExternal = true;
+        NewInfo.Name = Name;
+        NewInfo.DylibOrdinal = DylibOrdinal;
+        NewInfo.BindAddr = BindAddr;
+        NewInfo.IsExternal = true;
 
         return NewInfo;
     }
@@ -337,10 +348,10 @@ namespace MachO {
     static ObjcParseError
     ParseObjcClassRefsSection(
         const uint8_t *Map,
-        const MachO::SectionInfo *SectionInfo,
+        const SectionInfo *SectionInfo,
         const ConstDeVirtualizer &DeVirtualizer,
         const BindActionCollection &BindCollection,
-        std::unordered_map<uint64_t, ObjcClassInfo *> &ClassList,
+        std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &ClassList,
         std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
         bool IsBigEndian) noexcept
     {
@@ -359,11 +370,12 @@ namespace MachO {
         for (const auto &Addr : List) {
             if (const auto *It = BindCollection.GetInfoForAddress(ListAddr)) {
                 const auto Name = GetNameFromBindActionSymbol(*It->Symbol);
-                const auto NewInfo =
+                auto NewInfo =
                     CreateExternalClass(Name, It->DylibOrdinal, It->Address);
+                const auto Ptr =
+                    CreateClassForList(ClassList, std::move(NewInfo));
 
-                ClassList.insert({ NewInfo->Addr, NewInfo });
-                ExternalAndRootClassList.emplace_back(NewInfo);
+                ExternalAndRootClassList.emplace_back(Ptr);
             } else {
                 const auto Error =
                     HandleAddrForObjcClass<Kind>(Addr,
@@ -372,7 +384,7 @@ namespace MachO {
                                                  ClassList,
                                                  IsBigEndian);
 
-                if (Error != ObjcClassInfoTree::Error::None) {
+                if (Error != ObjcClassInfoCollection::Error::None) {
                     return Error;
                 }
             }
@@ -389,8 +401,8 @@ namespace MachO {
         return ObjcParseError::None;
     }
 
-    ObjcClassInfoTree &
-    ObjcClassInfoTree::Parse(
+    ObjcClassInfoCollection &
+    ObjcClassInfoCollection::Parse(
         const uint8_t *Map,
         const SegmentInfoCollection &SegmentCollection,
         const ConstDeVirtualizer &DeVirtualizer,
@@ -406,22 +418,17 @@ namespace MachO {
             assert(!ExternalAndRootClassList.empty() &&
                    "Objc Root-Class list is empty");
 
-            for (const auto &Class : ExternalAndRootClassList) {
-                List.insert({ Class->BindAddr, Class });
-            }
-
             if (ExternalAndRootClassList.size() != 1) {
-                Root = new ObjcClassInfo();
+                Root = CreateClassForList(List, Info());
 
                 getRoot()->IsNull = true;
                 getRoot()->SetChildrenFromList(
                     reinterpret_cast<std::vector<BasicTreeNode *> &> (
                         ExternalAndRootClassList));
             } else {
-                Root = ExternalAndRootClassList.front();
+                getRoot()->AddChild(*ExternalAndRootClassList.front());
             }
 
-            Root->SetParentOfChildren();
             if (Error != Error::None) {
                 if (ErrorOut != nullptr) {
                     *ErrorOut = Error;
@@ -516,87 +523,90 @@ namespace MachO {
         return *this;
     }
 
-    std::vector<ObjcClassInfo *> ObjcClassInfoTree::GetAsList() const noexcept {
-        auto Result = std::vector<ObjcClassInfo *>();
+    std::vector<ObjcClassInfo *>
+    ObjcClassInfoCollection::GetAsList() const noexcept {
+        auto Result = std::vector<Info *>();
         Result.reserve(List.size());
 
         for (const auto &Info : List) {
-            Result.emplace_back(Info.second);
+            Result.emplace_back(Info.second.get());
         }
 
         return Result;
     }
 
-    ObjcClassInfo *ObjcClassInfoTree::AddNullClass(uint64_t Address) noexcept {
-        const auto NewInfo = new ObjcClassInfo();
+    ObjcClassInfo *
+    ObjcClassInfoCollection::AddNullClass(uint64_t Address) noexcept {
+        auto NewInfo = Info();
 
-        NewInfo->Addr = Address;
-        NewInfo->IsNull = true;
+        NewInfo.Addr = Address;
+        NewInfo.IsNull = true;
 
-        List.insert({ Address, NewInfo });
-        return NewInfo;
+        return CreateClassForList(List, std::move(NewInfo));
     }
 
     ObjcClassInfo *
-    ObjcClassInfoTree::AddExternalClass(const std::string_view &Name,
+    ObjcClassInfoCollection::AddExternalClass(const std::string_view &Name,
                                         uint64_t DylibOrdinal,
                                         uint64_t BindAddr) noexcept
     {
-        const auto NewInfo = CreateExternalClass(Name, DylibOrdinal, BindAddr);
-        List.insert({ NewInfo->BindAddr, NewInfo });
-
-        return NewInfo;
+        auto NewInfo = CreateExternalClass(Name, DylibOrdinal, BindAddr);
+        return CreateClassForList(List, std::move(NewInfo));
     }
 
     ObjcClassInfo *
-    ObjcClassInfoTree::GetInfoForAddress(uint64_t Address) const noexcept {
+    ObjcClassInfoCollection::GetInfoForAddress(
+        uint64_t Address) const noexcept
+    {
         const auto Iter = List.find(Address);
         if (Iter != List.end()) {
-            return Iter->second;
+            return Iter->second.get();
         }
 
         return nullptr;
     }
 
     ObjcClassInfo *
-    ObjcClassInfoTree::GetInfoForClassName(
+    ObjcClassInfoCollection::GetInfoForClassName(
         const std::string_view &Name) const noexcept
     {
         for (const auto &Iter : List) {
             const auto &Info = Iter.second;
             if (Info->Name == Name) {
-                return Info;
+                return Info.get();
             }
         }
 
         return nullptr;
     }
 
-    ObjcClassInfoTree::Iterator ObjcClassInfoTree::begin() const noexcept {
+    ObjcClassInfoCollection::Iterator
+    ObjcClassInfoCollection::begin() const noexcept {
         return Iterator(getRoot());
     }
 
-    ObjcClassInfoTree::Iterator ObjcClassInfoTree::end() const noexcept {
+    ObjcClassInfoCollection::Iterator
+    ObjcClassInfoCollection::end() const noexcept {
         return Iterator(nullptr);
     }
 
-    ObjcClassInfoTree::ConstIterator
-    ObjcClassInfoTree::cbegin() const noexcept {
+    ObjcClassInfoCollection::ConstIterator
+    ObjcClassInfoCollection::cbegin() const noexcept {
         return ConstIterator(getRoot());
     }
 
-    ObjcClassInfoTree::ConstIterator
-    ObjcClassInfoTree::cend() const noexcept {
+    ObjcClassInfoCollection::ConstIterator
+    ObjcClassInfoCollection::cend() const noexcept {
         return ConstIterator(nullptr);
     }
 
     template <PointerKind Kind>
     ObjcParseError ParseObjcClassCategorySection(
         const uint8_t *Map,
-        const MachO::SectionInfo *SectInfo,
+        const SectionInfo *SectInfo,
         const ConstDeVirtualizer &DeVirtualizer,
         const BindActionCollection &BindCollection,
-        ObjcClassInfoTree *ClassInfoTree,
+        ObjcClassInfoCollection *ClassInfoTree,
         std::vector<ObjcClassCategoryInfo *> &CategoryList,
         bool IsBigEndian) noexcept
     {
@@ -689,7 +699,6 @@ namespace MachO {
                 }
 
                 Info->Address = SwitchedAddr;
-                Info->Address = SwitchedAddr;
 
                 ListAddr += PointerSize<Kind>();
                 CategoryList.emplace_back(Info);
@@ -705,7 +714,7 @@ namespace MachO {
         const SegmentInfoCollection &SegmentCollection,
         const ConstDeVirtualizer &DeVirtualizer,
         const BindActionCollection &BindCollection,
-        ObjcClassInfoTree *ClassInfoTree,
+        ObjcClassInfoCollection *ClassInfoTree,
         bool Is64Bit,
         bool IsBigEndian,
         Error *ErrorOut) noexcept
