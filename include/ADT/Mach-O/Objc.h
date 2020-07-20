@@ -10,6 +10,9 @@
 #include "ADT/BasicMasksHandler.h"
 
 namespace MachO {
+    constexpr static auto IsSwiftObjcClassPreStableMask = (1ull << 0);
+    constexpr static auto IsSwiftObjcClassStableMask    = (1ull << 1);
+
     struct ObjcClass {
         uint32_t Isa;
         uint32_t SuperClass;
@@ -19,6 +22,14 @@ namespace MachO {
         uint32_t Reserved1;
         uint32_t Reserved2;
         uint32_t Reserved3;
+
+        [[nodiscard]] inline bool IsSwift(bool IsBigEndian) const noexcept {
+            const auto Data = SwitchEndianIf(this->Data, IsBigEndian);
+            const auto Mask =
+                (IsSwiftObjcClassPreStableMask | IsSwiftObjcClassStableMask);
+
+            return (Data & Mask);
+        }
     };
 
     struct ObjcClass64 {
@@ -30,6 +41,14 @@ namespace MachO {
         uint64_t Reserved1;
         uint64_t Reserved2;
         uint64_t Reserved3;
+
+        [[nodiscard]] inline bool IsSwift(bool IsBigEndian) const noexcept {
+            const auto Data = SwitchEndianIf(this->Data, IsBigEndian);
+            const auto Mask =
+                (IsSwiftObjcClassPreStableMask | IsSwiftObjcClassStableMask);
+
+            return (Data & Mask);
+        }
     };
 
     enum class ObjcClassRoMasks : uint32_t {
@@ -166,7 +185,4 @@ namespace MachO {
         uint64_t V7;
         uint64_t V8;
     };
-
-    constexpr static auto IsSwiftObjcClassPreStableMask = (1ull << 0);
-    constexpr static auto IsSwiftObjcClassStableMask    = (1ull << 1);
 }
