@@ -147,6 +147,15 @@ public:
         return Begin[Index];
     }
 
+    [[nodiscard]] inline bool empty() const noexcept {
+        return (count() == 0);
+    }
+    
+    [[nodiscard]] inline const EntryType &front() const noexcept {
+        assert(!empty());
+        return *Begin;
+    }
+
     [[nodiscard]] inline uint64_t count() const noexcept {
         return (End - Begin);
     }
