@@ -76,6 +76,16 @@ public:
         return End;
     }
 
+    constexpr inline LocationRange &setBegin(uint64_t Begin) noexcept {
+        this->Begin = Begin;
+        return *this;
+    }
+
+    constexpr inline LocationRange &setEnd(uint64_t End) noexcept {
+        this->End = End;
+        return *this;
+    }
+
     [[nodiscard]] constexpr inline uint64_t size() const noexcept {
         return (End - Begin);
     }
