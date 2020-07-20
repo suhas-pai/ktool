@@ -6,6 +6,8 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#include "ADT/DscImage.h"
+
 #include "Common.h"
 #include "Operation.h"
 #include "PrintCStringSection.h"
@@ -84,24 +86,13 @@ GetCStringList(FILE *OutFile,
     }
 }
 
-int
-PrintCStringSectionOperation::Run(const ConstMachOMemoryObject &Object,
-                                  const struct Options &Options) noexcept
+static int
+PrintCStringList(
+    const uint8_t *MapBegin,
+    const MachO::SegmentInfoCollection &SegmentCollection,
+    bool Is64Bit,
+    const struct PrintCStringSectionOperation::Options &Options) noexcept
 {
-    const auto LoadCmdStorage =
-        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
-
-    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
-
-    const auto Is64Bit = Object.Is64Bit();
-    const auto SegmentCollection =
-        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
-                                           Is64Bit,
-                                           &SegmentCollectionError);
-
-    OperationCommon::HandleSegmentCollectionError(Options.ErrFile,
-                                                  SegmentCollectionError);
-
     const auto Segment =
         SegmentCollection.GetInfoForName(Options.SegmentName);
 
@@ -130,8 +121,6 @@ PrintCStringSectionOperation::Run(const ConstMachOMemoryObject &Object,
         return 0;
     }
 
-    const auto MapBegin = Object.getMap().getBegin();
-
     auto InfoList = std::vector<StringInfo>();
     auto LongestStringLength = LargestIntHelper();
 
@@ -148,7 +137,7 @@ PrintCStringSectionOperation::Run(const ConstMachOMemoryObject &Object,
         std::sort(InfoList.begin(), InfoList.end());
     }
 
-    PrintLineSpamWarning(Options.OutFile, InfoList.size());
+    Operation::PrintLineSpamWarning(Options.OutFile, InfoList.size());
     fprintf(Options.OutFile,
             "Provided section has %" PRIuPTR " C-Strings:\n",
             InfoList.size());
@@ -190,6 +179,62 @@ PrintCStringSectionOperation::Run(const ConstMachOMemoryObject &Object,
     }
 
     return 0;
+}
+
+int
+PrintCStringSectionOperation::Run(const ConstDscImageMemoryObject &Object,
+                                  const struct Options &Options) noexcept
+{
+    const auto LoadCmdStorage =
+        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
+
+    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
+
+    const auto Is64Bit = Object.Is64Bit();
+    const auto SegmentCollection =
+        DscImage::SegmentInfoCollection::Open(Object.getAddress(),
+                                              LoadCmdStorage,
+                                              Is64Bit,
+                                              &SegmentCollectionError);
+
+    OperationCommon::HandleSegmentCollectionError(Options.ErrFile,
+                                                  SegmentCollectionError);
+
+    const auto Result =
+        PrintCStringList(Object.getDscMap().getBegin(),
+                         SegmentCollection,
+                         Is64Bit,
+                         Options);
+
+    return Result;
+}
+
+
+int
+PrintCStringSectionOperation::Run(const ConstMachOMemoryObject &Object,
+                                  const struct Options &Options) noexcept
+{
+    const auto LoadCmdStorage =
+        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
+
+    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
+
+    const auto Is64Bit = Object.Is64Bit();
+    const auto SegmentCollection =
+        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
+                                           Is64Bit,
+                                           &SegmentCollectionError);
+
+    OperationCommon::HandleSegmentCollectionError(Options.ErrFile,
+                                                  SegmentCollectionError);
+
+    const auto Result =
+        PrintCStringList(Object.getMap().getBegin(),
+                         SegmentCollection,
+                         Is64Bit,
+                         Options);
+
+    return Result;
 }
 
 struct PrintCStringSectionOperation::Options
@@ -250,10 +295,8 @@ PrintCStringSectionOperation::Run(const MemoryObject &Object) const noexcept {
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
             return InvalidObjectKind;
-        case ObjectKind::DscImage: {
-            const auto &Obj = cast<ObjectKind::DscImage>(Object);
-            return Run(Obj, Options);
-        }
+        case ObjectKind::DscImage:
+            return Run(cast<ObjectKind::DscImage>(Object).toConst(), Options);
     }
 
     assert(0 && "Unrecognized Object-Kind");
