@@ -22,10 +22,13 @@ namespace MachO {
             return Iter->second.get();
         }
 
-        const auto InsertIter =
-            SymbolList.insert({ Hash, std::make_unique<std::string>(Symbol) });
+        const auto InsertPtr =
+            SymbolList.insert({
+                Hash,
+                std::make_unique<std::string>(Symbol)
+            }).first->second.get();
 
-        return InsertIter.first->second.get();
+        return InsertPtr;
     }
 
     typedef
