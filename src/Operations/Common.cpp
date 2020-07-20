@@ -453,6 +453,16 @@ OperationCommon::GetBindActionCollection(
     auto LazyBindActionList = static_cast<MachO::LazyBindActionList *>(nullptr);
     auto WeakBindActionList = static_cast<MachO::WeakBindActionList *>(nullptr);
 
+    auto DyldInfoCmd = static_cast<const MachO::DyldInfoCommand *>(nullptr);
+    const auto GetDyldInfoCmdResult =
+        OperationCommon::GetDyldInfoCommand(ErrFile,
+                                            LoadCmdStorage,
+                                            DyldInfoCmd);
+
+    if (GetDyldInfoCmdResult != 0) {
+        return GetDyldInfoCmdResult;
+    }
+
     for (const auto &LoadCmd : LoadCmdStorage) {
         const auto *DyldInfo =
             dyn_cast<MachO::DyldInfoCommand>(LoadCmd, IsBigEndian);
