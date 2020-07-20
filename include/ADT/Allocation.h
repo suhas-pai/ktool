@@ -26,8 +26,8 @@ public:
     }
 
     template <typename T>
-    [[nodiscard]] inline T getAs() const noexcept {
-        return reinterpret_cast<T>(Ptr);
+    [[nodiscard]] inline T *getAs() const noexcept {
+        return reinterpret_cast<T *>(Ptr);
     }
 
     template <typename T>
