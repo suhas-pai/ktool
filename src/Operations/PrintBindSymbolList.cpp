@@ -81,7 +81,7 @@ PrintBindAction(
                                                Section,
                                                true);
 
-        PrintUtilsWriteOffset(Options.OutFile, FullAddr, Is64Bit);
+        PrintUtilsWriteOffset(Options.OutFile, FullAddr, Is64Bit, " ");
         if (Action.Addend) {
             PrintUtilsWriteOffset(Options.OutFile,
                                   Action.Addend,
@@ -101,14 +101,17 @@ PrintBindAction(
                 MachO::BindWriteKindGetDescription(Action.WriteKind).data());
     }
 
+    const auto RightPad =
+        static_cast<int>(LongestBindSymbolLength + LENGTH_OF(" \"\""));
+
     PrintUtilsRightPadSpaces(Options.OutFile,
                              fprintf(Options.OutFile,
                                      " \"%s\"",
                                      Action.SymbolName.data()),
-                             static_cast<int>(LongestBindSymbolLength) + 3);
+                             RightPad);
 
     if constexpr (BindKind != MachO::BindInfoKind::Weak) {
-        fputs("\t\t", Options.OutFile);
+        fputc(' ', Options.OutFile);
         OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
                                                LibraryCollection,
                                                Action.DylibOrdinal,
@@ -171,9 +174,11 @@ PrintBindActionList(
     }
 }
 
-int
-PrintBindSymbolListOperation::Run(const ConstMachOMemoryObject &Object,
-                                  const struct Options &Options) noexcept
+static int
+PrintBindSymbolList(
+    const ConstMachOMemoryObject &Object,
+    const ConstMemoryMap &Map,
+    const struct PrintBindSymbolListOperation::Options &Options) noexcept
 {
     auto FoundDyldInfo = static_cast<const MachO::DyldInfoCommand *>(nullptr);
 
@@ -263,9 +268,17 @@ PrintBindSymbolListOperation::Run(const ConstMachOMemoryObject &Object,
     auto ShouldPrintLazyBind = Options.PrintLazy;
     auto ShouldPrintWeakBind = Options.PrintWeak;
 
+    auto BindActionListError = MachO::SizeRangeError::None;
+    auto LazyBindActionListError = MachO::SizeRangeError::None;
+    auto WeakBindActionListError = MachO::SizeRangeError::None;
+
     auto BindSymbolListError = MachO::BindOpcodeParseError();
     auto LazyBindSymbolListError = MachO::BindOpcodeParseError();
     auto WeakBindSymbolListError = MachO::BindOpcodeParseError();
+
+    auto BindSymbolActionList = std::vector<MachO::BindActionInfo>();
+    auto LazyBindSymbolActionList = std::vector<MachO::BindActionInfo>();
+    auto WeakBindSymbolActionList = std::vector<MachO::BindActionInfo>();
 
     const auto Comparator =
         [&](const MachO::BindActionInfo &Lhs, const MachO::BindActionInfo &Rhs)
@@ -284,12 +297,57 @@ PrintBindSymbolListOperation::Run(const ConstMachOMemoryObject &Object,
 
     if (ShouldPrintBind) {
         const auto BindActionListOpt =
-            FoundDyldInfo->GetBindActionList(Object.getConstMap(),
+            FoundDyldInfo->GetBindActionList(Map,
                                              SegmentCollection,
                                              IsBigEndian,
                                              Is64Bit);
 
-        switch (BindActionListOpt.getError()) {
+        BindActionListError = BindActionListOpt.getError();
+        if (BindActionListError == MachO::SizeRangeError::None) {
+            const auto BindActionList = BindActionListOpt.getRef();
+            BindSymbolListError =
+                BindActionList.GetListOfSymbols(BindSymbolActionList);
+        }
+    }
+
+    if (ShouldPrintLazyBind) {
+        const auto LazyBindActionListOpt =
+            FoundDyldInfo->GetLazyBindActionList(Map,
+                                                 SegmentCollection,
+                                                 IsBigEndian,
+                                                 Is64Bit);
+
+        LazyBindActionListError = LazyBindActionListOpt.getError();
+        if (LazyBindActionListError == MachO::SizeRangeError::None) {
+            const auto LazyBindActionList = LazyBindActionListOpt.getRef();
+            LazyBindSymbolListError =
+                LazyBindActionList.GetListOfSymbols(LazyBindSymbolActionList);
+        }
+    }
+
+    if (ShouldPrintWeakBind) {
+        const auto WeakBindActionListOpt =
+            FoundDyldInfo->GetWeakBindActionList(Map,
+                                                 SegmentCollection,
+                                                 IsBigEndian,
+                                                 Is64Bit);
+
+        WeakBindActionListError = WeakBindActionListOpt.getError();
+        if (WeakBindActionListError == MachO::SizeRangeError::None) {
+            const auto WeakBindActionList = WeakBindActionListOpt.getRef();
+            WeakBindSymbolListError =
+                WeakBindActionList.GetListOfSymbols(WeakBindSymbolActionList);
+        }
+    }
+
+    const auto TotalLineCount =
+        BindSymbolActionList.size() +
+        LazyBindSymbolActionList.size() +
+        WeakBindSymbolActionList.size();
+
+    Operation::PrintLineSpamWarning(Options.OutFile, TotalLineCount);
+    if (ShouldPrintBind) {
+        switch (BindActionListError) {
             case MachO::SizeRangeError::None:
                 break;
             case MachO::SizeRangeError::Empty:
@@ -306,12 +364,6 @@ PrintBindSymbolListOperation::Run(const ConstMachOMemoryObject &Object,
         }
 
         if (ShouldPrintBind) {
-            auto BindSymbolActionList = std::vector<MachO::BindActionInfo>();
-            const auto BindActionList = BindActionListOpt.getRef();
-
-            BindSymbolListError =
-                BindActionList.GetListOfSymbols(BindSymbolActionList);
-
             if (!Options.SortKindList.empty()) {
                 std::sort(BindSymbolActionList.begin(),
                           BindSymbolActionList.end(),
@@ -336,13 +388,7 @@ PrintBindSymbolListOperation::Run(const ConstMachOMemoryObject &Object,
             fputc('\n', Options.OutFile);
         }
 
-        const auto LazyBindActionListOpt =
-            FoundDyldInfo->GetLazyBindActionList(Object.getConstMap(),
-                                                 SegmentCollection,
-                                                 IsBigEndian,
-                                                 Is64Bit);
-
-        switch (LazyBindActionListOpt.getError()) {
+        switch (LazyBindActionListError) {
             case MachO::SizeRangeError::None:
                 break;
             case MachO::SizeRangeError::Empty:
@@ -360,13 +406,6 @@ PrintBindSymbolListOperation::Run(const ConstMachOMemoryObject &Object,
         }
 
         if (ShouldPrintLazyBind) {
-            const auto LazyBindActionList = LazyBindActionListOpt.getRef();
-            auto LazyBindSymbolActionList =
-                std::vector<MachO::BindActionInfo>();
-
-            LazyBindSymbolListError =
-                LazyBindActionList.GetListOfSymbols(LazyBindSymbolActionList);
-
             if (!Options.SortKindList.empty()) {
                 std::sort(LazyBindSymbolActionList.begin(),
                           LazyBindSymbolActionList.end(),
@@ -381,23 +420,18 @@ PrintBindSymbolListOperation::Run(const ConstMachOMemoryObject &Object,
                 Is64Bit,
                 Options);
 
-            OperationCommon::HandleBindOpcodeParseError(Options.ErrFile,
-                                                        BindSymbolListError);
+            OperationCommon::HandleBindOpcodeParseError(
+                Options.ErrFile,
+                LazyBindSymbolListError);
         }
     }
 
     if (ShouldPrintWeakBind) {
-        if (ShouldPrintBind || ShouldPrintLazyBind) {
+        if (ShouldPrintBind || ShouldPrintWeakBind) {
             fputc('\n', Options.OutFile);
         }
 
-        const auto WeakBindActionListOpt =
-            FoundDyldInfo->GetWeakBindActionList(Object.getConstMap(),
-                                                 SegmentCollection,
-                                                 IsBigEndian,
-                                                 Is64Bit);
-
-        switch (WeakBindActionListOpt.getError()) {
+        switch (WeakBindActionListError) {
             case MachO::SizeRangeError::None:
                 break;
             case MachO::SizeRangeError::Empty:
@@ -415,13 +449,6 @@ PrintBindSymbolListOperation::Run(const ConstMachOMemoryObject &Object,
         }
 
         if (ShouldPrintWeakBind) {
-            const auto WeakBindActionList = WeakBindActionListOpt.getRef();
-            auto WeakBindSymbolActionList =
-                std::vector<MachO::BindActionInfo>();
-
-            WeakBindSymbolListError =
-                WeakBindActionList.GetListOfSymbols(WeakBindSymbolActionList);
-
             if (!Options.SortKindList.empty()) {
                 std::sort(WeakBindSymbolActionList.begin(),
                           WeakBindSymbolActionList.end(),
@@ -436,12 +463,27 @@ PrintBindSymbolListOperation::Run(const ConstMachOMemoryObject &Object,
                 Is64Bit,
                 Options);
 
-            OperationCommon::HandleBindOpcodeParseError(Options.ErrFile,
-                                                        BindSymbolListError);
+            OperationCommon::HandleBindOpcodeParseError(
+                Options.ErrFile,
+                WeakBindSymbolListError);
         }
     }
 
     return 0;
+}
+
+int
+PrintBindSymbolListOperation::Run(const ConstDscImageMemoryObject &Object,
+                                  const struct Options &Options) noexcept
+{
+    return PrintBindSymbolList(Object, Object.getDscMap(), Options);
+}
+
+int
+PrintBindSymbolListOperation::Run(const ConstMachOMemoryObject &Object,
+                                  const struct Options &Options) noexcept
+{
+    return PrintBindSymbolList(Object, Object.getMap(), Options);
 }
 
 static inline bool
@@ -520,9 +562,10 @@ PrintBindSymbolListOperation::Run(const MemoryObject &Object) const noexcept {
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
             return Run(cast<ObjectKind::MachO>(Object), Options);
+        case ObjectKind::DscImage:
+            return Run(cast<ObjectKind::DscImage>(Object).toConst(), Options);
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
-        case ObjectKind::DscImage:
             return InvalidObjectKind;
     }
 

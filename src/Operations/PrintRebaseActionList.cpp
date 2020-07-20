@@ -59,50 +59,11 @@ PrintRebaseAction(
     fputc('\n', Options.OutFile);
 }
 
-static void
+static int
 PrintRebaseActionList(
-    const std::vector<MachO::RebaseActionInfo> &List,
-    const MachO::SegmentInfoCollection &SegmentCollection,
-    const MachO::SharedLibraryInfoCollection &LibraryCollection,
-    bool Is64Bit,
+    const ConstMachOMemoryObject &Object,
+    const ConstMemoryMap &Map,
     const struct PrintRebaseActionListOperation::Options &Options) noexcept
-{
-    if (List.empty()) {
-        fputs("No Rebase-Info\n", Options.OutFile);
-        return;
-    }
-
-    switch (List.size()) {
-        case 0:
-            assert(0 && "Rebase-Action List shouldn't be empty at this point");
-        case 1:
-            fputs("1 Rebase Action:\n", Options.OutFile);
-            break;
-        default:
-            fprintf(Options.OutFile,
-                    "%" PRIuPTR " Rebase Actions:\n",
-                    List.size());
-            break;
-    }
-
-    auto Counter = 1ull;
-    const auto SizeDigitLength = PrintUtilsGetIntegerDigitLength(List.size());
-
-    for (const auto &Action : List) {
-        PrintRebaseAction(Counter,
-                          SizeDigitLength,
-                          Action,
-                          LibraryCollection,
-                          SegmentCollection,
-                          Is64Bit,
-                          Options);
-        Counter++;
-    }
-}
-
-int
-PrintRebaseActionListOperation::Run(const ConstMachOMemoryObject &Object,
-                                    const struct Options &Options) noexcept
 {
     auto FoundDyldInfo = static_cast<const MachO::DyldInfoCommand *>(nullptr);
 
@@ -175,9 +136,7 @@ PrintRebaseActionListOperation::Run(const ConstMachOMemoryObject &Object,
     };
 
     const auto RebaseActionListOpt =
-        FoundDyldInfo->GetRebaseActionList(Object.getConstMap(),
-                                           IsBigEndian,
-                                           Is64Bit);
+        FoundDyldInfo->GetRebaseActionList(Map, IsBigEndian, Is64Bit);
 
     switch (RebaseActionListOpt.getError()) {
         case MachO::SizeRangeError::None:
@@ -203,17 +162,60 @@ PrintRebaseActionListOperation::Run(const ConstMachOMemoryObject &Object,
                   Comparator);
     }
 
-    PrintLineSpamWarning(Options.OutFile, RebaseActionInfoList.size());
-    PrintRebaseActionList(RebaseActionInfoList,
-                          SegmentCollection,
+    Operation::PrintLineSpamWarning(Options.OutFile,
+                                    RebaseActionInfoList.size());
+
+    if (RebaseActionInfoList.empty()) {
+        fputs("No Rebase-Info\n", Options.OutFile);
+        return 0;
+    }
+
+    switch (RebaseActionInfoList.size()) {
+        case 0:
+            assert(0 && "Rebase-Action List shouldn't be empty at this point");
+        case 1:
+            fputs("1 Rebase Action:\n", Options.OutFile);
+            break;
+        default:
+            fprintf(Options.OutFile,
+                    "%" PRIuPTR " Rebase Actions:\n",
+                    RebaseActionInfoList.size());
+            break;
+    }
+
+    auto Counter = 1ull;
+    const auto SizeDigitLength =
+        PrintUtilsGetIntegerDigitLength(RebaseActionInfoList.size());
+
+    for (const auto &Action : RebaseActionInfoList) {
+        PrintRebaseAction(Counter,
+                          SizeDigitLength,
+                          Action,
                           SharedLibraryCollection,
+                          SegmentCollection,
                           Is64Bit,
                           Options);
+        Counter++;
+    }
 
     OperationCommon::HandleRebaseOpcodeParseError(Options.ErrFile,
                                                   RebaseActionListError);
 
     return 0;
+}
+
+int
+PrintRebaseActionListOperation::Run(const ConstDscImageMemoryObject &Object,
+                                    const struct Options &Options) noexcept
+{
+    return PrintRebaseActionList(Object, Object.getDscMap(), Options);
+}
+
+int
+PrintRebaseActionListOperation::Run(const ConstMachOMemoryObject &Object,
+                                    const struct Options &Options) noexcept
+{
+    return PrintRebaseActionList(Object, Object.getMap(), Options);
 }
 
 struct PrintRebaseActionListOperation::Options
@@ -258,9 +260,10 @@ PrintRebaseActionListOperation::Run(const MemoryObject &Object) const noexcept {
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
             return Run(cast<ObjectKind::MachO>(Object), Options);
+        case ObjectKind::DscImage:
+            return Run(cast<ObjectKind::DscImage>(Object).toConst(), Options);
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
-        case ObjectKind::DscImage:
             return InvalidObjectKind;
     }
 

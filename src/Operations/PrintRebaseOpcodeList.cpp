@@ -223,18 +223,102 @@ CollectRebaseOpcodeList(
     return InfoList;
 }
 
-void
+static int
 PrintRebaseOpcodeList(
-    const MachO::SharedLibraryInfoCollection &LibraryCollection,
-    const MachO::SegmentInfoCollection &SegmentCollection,
-    const std::vector<RebaseOpcodeInfo> &List,
-    bool Is64Bit,
+    const ConstMachOMemoryObject &Object,
+    const ConstMemoryMap &Map,
     const struct PrintRebaseOpcodeListOperation::Options &Options) noexcept
 {
-    auto Counter = static_cast<uint64_t>(1);
-    const auto SizeDigitLength = PrintUtilsGetIntegerDigitLength(List.size());
+    auto FoundDyldInfo = static_cast<const MachO::DyldInfoCommand *>(nullptr);
 
-    for (const auto &Iter : List) {
+    const auto IsBigEndian = Object.IsBigEndian();
+    const auto LoadCmdStorage =
+        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
+
+    for (const auto &LoadCmd : LoadCmdStorage) {
+        const auto *DyldInfo =
+            dyn_cast<MachO::DyldInfoCommand>(LoadCmd, IsBigEndian);
+
+        if (DyldInfo == nullptr) {
+            continue;
+        }
+
+        if (FoundDyldInfo != nullptr) {
+            if (DyldInfo->RebaseOff != FoundDyldInfo->RebaseOff ||
+                DyldInfo->RebaseSize != FoundDyldInfo->RebaseSize)
+            {
+                fputs("Provided file has multiple (conflicting) Rebase-Lists\n",
+                      Options.ErrFile);
+                return 1;
+            }
+        }
+
+        if (DyldInfo->RebaseSize == 0) {
+            fputs("Provided file has no Rebase-Opcodes\n", Options.ErrFile);
+            return 0;
+        }
+
+        FoundDyldInfo = DyldInfo;
+    }
+
+    if (FoundDyldInfo == nullptr) {
+        fputs("Provided file does not have a Dyld-Info Load Command\n",
+              Options.ErrFile);
+        return 0;
+    }
+
+    auto LibraryCollectionError =
+        MachO::SharedLibraryInfoCollection::Error::None;
+
+    const auto SharedLibraryCollection =
+        MachO::SharedLibraryInfoCollection::Open(LoadCmdStorage,
+                                                 &LibraryCollectionError);
+
+    switch (LibraryCollectionError) {
+        case MachO::SharedLibraryInfoCollection::Error::None:
+        case MachO::SharedLibraryInfoCollection::Error::InvalidPath:
+            break;
+    }
+
+    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
+
+    const auto Is64Bit = Object.Is64Bit();
+    const auto SegmentCollection =
+        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
+                                           Is64Bit,
+                                           &SegmentCollectionError);
+
+    OperationCommon::HandleSegmentCollectionError(Options.ErrFile,
+                                                  SegmentCollectionError);
+
+    const auto RebaseOpcodeListOpt =
+        FoundDyldInfo->GetRebaseOpcodeList(Map, IsBigEndian, Is64Bit);
+
+    switch (RebaseOpcodeListOpt.getError()) {
+        case MachO::SizeRangeError::None:
+            break;
+        case MachO::SizeRangeError::Empty:
+            fputs("No Rebase Info\n", Options.ErrFile);
+            return 0;
+        case MachO::SizeRangeError::Overflows:
+        case MachO::SizeRangeError::PastEnd:
+            fputs("Rebase-Info goes past end-of-file\n", Options.ErrFile);
+            return 1;
+    }
+
+    const auto Collection =
+        CollectRebaseOpcodeList(SharedLibraryCollection,
+                                SegmentCollection,
+                                RebaseOpcodeListOpt.getRef(),
+                                Is64Bit);
+
+    Operation::PrintLineSpamWarning(Options.OutFile, Collection.size());
+
+    const auto SizeDigitLength =
+        PrintUtilsGetIntegerDigitLength(Collection.size());
+
+    auto Counter = static_cast<uint64_t>(1);
+    for (const auto &Iter : Collection) {
         constexpr auto LongestOpcodeLength =
             EnumHelper<MachO::RebaseByte::Opcode>::GetLongestAssocLength(
                 MachO::RebaseByteOpcodeGetName);
@@ -319,7 +403,7 @@ PrintRebaseOpcodeList(
                 if (Options.Verbose) {
                     PadSpacesAfterOpcode();
                     PrintRebaseInfo(Options.OutFile,
-                                    LibraryCollection,
+                                    SharedLibraryCollection,
                                     Iter,
                                     Is64Bit,
                                     Options.Verbose);
@@ -333,7 +417,7 @@ PrintRebaseOpcodeList(
                 if (Options.Verbose) {
                     PadSpacesAfterOpcode();
                     PrintRebaseInfo(Options.OutFile,
-                                    LibraryCollection,
+                                    SharedLibraryCollection,
                                     Iter,
                                     Is64Bit,
                                     Options.Verbose);
@@ -351,7 +435,7 @@ PrintRebaseOpcodeList(
                 if (Options.Verbose) {
                     PadSpacesAfterOpcode();
                     PrintRebaseInfo(Options.OutFile,
-                                    LibraryCollection,
+                                    SharedLibraryCollection,
                                     Iter,
                                     Is64Bit,
                                     Options.Verbose);
@@ -365,106 +449,21 @@ PrintRebaseOpcodeList(
         Counter++;
     }
 
-    return;
+    return 0;
+}
+
+int
+PrintRebaseOpcodeListOperation::Run(const ConstDscImageMemoryObject &Object,
+                                    const struct Options &Options) noexcept
+{
+    return PrintRebaseOpcodeList(Object, Object.getDscMap(), Options);
 }
 
 int
 PrintRebaseOpcodeListOperation::Run(const ConstMachOMemoryObject &Object,
                                     const struct Options &Options) noexcept
 {
-    auto FoundDyldInfo = static_cast<const MachO::DyldInfoCommand *>(nullptr);
-
-    const auto IsBigEndian = Object.IsBigEndian();
-    const auto LoadCmdStorage =
-        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
-
-    for (const auto &LoadCmd : LoadCmdStorage) {
-        const auto *DyldInfo =
-            dyn_cast<MachO::DyldInfoCommand>(LoadCmd, IsBigEndian);
-
-        if (DyldInfo == nullptr) {
-            continue;
-        }
-
-        if (FoundDyldInfo != nullptr) {
-            if (DyldInfo->RebaseOff != FoundDyldInfo->RebaseOff ||
-                DyldInfo->RebaseSize != FoundDyldInfo->RebaseSize)
-            {
-                fputs("Provided file has multiple (conflicting) Rebase-Lists\n",
-                      Options.ErrFile);
-                return 1;
-            }
-        }
-
-        if (DyldInfo->RebaseSize == 0) {
-            fputs("Provided file has no Rebase-Opcodes\n", Options.ErrFile);
-            return 0;
-        }
-
-        FoundDyldInfo = DyldInfo;
-    }
-
-    if (FoundDyldInfo == nullptr) {
-        fputs("Provided file does not have a Dyld-Info Load Command\n",
-              Options.ErrFile);
-        return 0;
-    }
-
-    auto LibraryCollectionError =
-        MachO::SharedLibraryInfoCollection::Error::None;
-
-    const auto SharedLibraryCollection =
-        MachO::SharedLibraryInfoCollection::Open(LoadCmdStorage,
-                                                 &LibraryCollectionError);
-
-    switch (LibraryCollectionError) {
-        case MachO::SharedLibraryInfoCollection::Error::None:
-        case MachO::SharedLibraryInfoCollection::Error::InvalidPath:
-            break;
-    }
-
-    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
-
-    const auto Is64Bit = Object.Is64Bit();
-    const auto SegmentCollection =
-        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
-                                           Is64Bit,
-                                           &SegmentCollectionError);
-
-    OperationCommon::HandleSegmentCollectionError(Options.ErrFile,
-                                                  SegmentCollectionError);
-
-    const auto RebaseOpcodeListOpt =
-        FoundDyldInfo->GetRebaseOpcodeList(Object.getMap(),
-                                           IsBigEndian,
-                                           Is64Bit);
-
-    switch (RebaseOpcodeListOpt.getError()) {
-        case MachO::SizeRangeError::None:
-            break;
-        case MachO::SizeRangeError::Empty:
-            fputs("No Rebase Info\n", Options.ErrFile);
-            return 0;
-        case MachO::SizeRangeError::Overflows:
-        case MachO::SizeRangeError::PastEnd:
-            fputs("Rebase-Info goes past end-of-file\n", Options.ErrFile);
-            return 1;
-    }
-
-    const auto Collection =
-        CollectRebaseOpcodeList(SharedLibraryCollection,
-                                SegmentCollection,
-                                RebaseOpcodeListOpt.getRef(),
-                                Is64Bit);
-
-    PrintLineSpamWarning(Options.OutFile, Collection.size());
-    PrintRebaseOpcodeList(SharedLibraryCollection,
-                          SegmentCollection,
-                          Collection,
-                          Object.Is64Bit(),
-                          Options);
-
-    return 0;
+    return PrintRebaseOpcodeList(Object, Object.getMap(), Options);
 }
 
 struct PrintRebaseOpcodeListOperation::Options
@@ -507,9 +506,10 @@ PrintRebaseOpcodeListOperation::Run(const MemoryObject &Object) const noexcept {
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
             return Run(cast<ObjectKind::MachO>(Object), Options);
+        case ObjectKind::DscImage:
+            return Run(cast<ObjectKind::DscImage>(Object).toConst(), Options);
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
-        case ObjectKind::DscImage:
            return InvalidObjectKind;
     }
 

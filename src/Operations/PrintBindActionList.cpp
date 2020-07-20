@@ -104,11 +104,14 @@ PrintBindAction(
                 MachO::BindWriteKindGetDescription(Action.WriteKind).data());
     }
 
+    const auto RightPad =
+        static_cast<int>(LongestBindSymbolLength + LENGTH_OF(" \"\""));
+
     PrintUtilsRightPadSpaces(Options.OutFile,
                              fprintf(Options.OutFile,
                                      " \"%s\"",
                                      Action.SymbolName.data()),
-                             static_cast<int>(LongestBindSymbolLength) + 3);
+                             RightPad);
 
     if constexpr (BindKind != MachO::BindInfoKind::Weak) {
         fputc(' ', Options.OutFile);
@@ -174,9 +177,11 @@ PrintBindActionList(
     }
 }
 
-int
-PrintBindActionListOperation::Run(const ConstMachOMemoryObject &Object,
-                                  const struct Options &Options) noexcept
+static int
+PrintBindActionList(
+    const ConstMachOMemoryObject &Object,
+    const ConstMemoryMap &Map,
+    const struct PrintBindActionListOperation::Options &Options) noexcept
 {
     const auto IsBigEndian = Object.IsBigEndian();
     const auto LoadCmdStorage =
@@ -257,7 +262,7 @@ PrintBindActionListOperation::Run(const ConstMachOMemoryObject &Object,
 
     if (ShouldPrintBindList) {
         const auto BindActionListOpt =
-            DyldInfo->GetBindActionList(Object.getConstMap(),
+            DyldInfo->GetBindActionList(Map,
                                         SegmentCollection,
                                         IsBigEndian,
                                         Is64Bit);
@@ -277,7 +282,7 @@ PrintBindActionListOperation::Run(const ConstMachOMemoryObject &Object,
 
     if (ShouldPrintLazyBindList) {
         const auto LazyBindActionListOpt =
-            DyldInfo->GetLazyBindActionList(Object.getConstMap(),
+            DyldInfo->GetLazyBindActionList(Map,
                                             SegmentCollection,
                                             IsBigEndian,
                                             Is64Bit);
@@ -298,7 +303,7 @@ PrintBindActionListOperation::Run(const ConstMachOMemoryObject &Object,
 
     if (ShouldPrintWeakBindList) {
         const auto WeakBindActionListOpt =
-            DyldInfo->GetWeakBindActionList(Object.getConstMap(),
+            DyldInfo->GetWeakBindActionList(Map,
                                             SegmentCollection,
                                             IsBigEndian,
                                             Is64Bit);
@@ -322,7 +327,7 @@ PrintBindActionListOperation::Run(const ConstMachOMemoryObject &Object,
         LazyBindActionInfoList.size() +
         WeakBindActionInfoList.size();
 
-    PrintLineSpamWarning(Options.OutFile, TotalLines);
+    Operation::PrintLineSpamWarning(Options.OutFile, TotalLines);
     switch (BindActionListRangeError) {
         case MachO::SizeRangeError::None:
             break;
@@ -378,7 +383,7 @@ PrintBindActionListOperation::Run(const ConstMachOMemoryObject &Object,
     }
 
     if (ShouldPrintLazyBindList) {
-        if (ShouldPrintBindList) {
+        if (Options.PrintNormal) {
             fputc('\n', Options.OutFile);
         }
 
@@ -438,6 +443,20 @@ PrintBindActionListOperation::Run(const ConstMachOMemoryObject &Object,
     }
 
     return 0;
+}
+
+int
+PrintBindActionListOperation::Run(const ConstDscImageMemoryObject &Object,
+                                  const struct Options &Options) noexcept
+{
+    return PrintBindActionList(Object, Object.getDscMap(), Options);
+}
+
+int
+PrintBindActionListOperation::Run(const ConstMachOMemoryObject &Object,
+                                  const struct Options &Options) noexcept
+{
+    return PrintBindActionList(Object, Object.getMap(), Options);
 }
 
 static inline bool
@@ -527,9 +546,10 @@ PrintBindActionListOperation::Run(const MemoryObject &Object) const noexcept {
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
             return Run(cast<ObjectKind::MachO>(Object), Options);
+        case ObjectKind::DscImage:
+            return Run(cast<ObjectKind::DscImage>(Object).toConst(), Options);
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
-        case ObjectKind::DscImage:
             return InvalidObjectKind;
     }
 

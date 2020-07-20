@@ -425,7 +425,6 @@ PrintBindOpcodeList(
             }
             case MachO::BindByte::Opcode::AddAddrUleb: {
                 fprintf(Options.OutFile, "(%" PRId64 ")", Iter.AddAddr);
-
                 if (Options.Verbose) {
                     PadSpacesAfterOpcode();
                     PrintUtilsWriteOffset(Options.OutFile,
@@ -449,7 +448,6 @@ PrintBindOpcodeList(
                 break;
             case MachO::BindByte::Opcode::DoBindAddAddrUleb:
                 fprintf(Options.OutFile, "(%" PRId64 ")", Iter.AddAddr);
-
                 if (Options.Verbose) {
                     PadSpacesAfterOpcode();
                     PrintBindInfo(Options.OutFile,
@@ -502,9 +500,11 @@ done:
     return;
 }
 
-int
-PrintBindOpcodeListOperation::Run(const ConstMachOMemoryObject &Object,
-                                  const struct Options &Options) noexcept
+static int
+PrintOpcodeList(
+    const ConstMachOMemoryObject &Object,
+    const ConstMemoryMap &Map,
+    const struct PrintBindOpcodeListOperation::Options &Options) noexcept
 {
     const auto IsBigEndian = Object.IsBigEndian();
     const auto LoadCmdStorage =
@@ -555,33 +555,20 @@ PrintBindOpcodeListOperation::Run(const ConstMachOMemoryObject &Object,
     auto ShouldPrintLazyBindList = Options.PrintLazy;
     auto ShouldPrintWeakBindList = Options.PrintWeak;
 
+    auto BindOpcodeError = MachO::SizeRangeError::None;
+    auto LazyBindOpcodeError = MachO::SizeRangeError::None;
+    auto WeakBindOpcodeError = MachO::SizeRangeError::None;
+
     auto BindOpcodeList = std::vector<BindOpcodeInfo>();
     auto LazyBindOpcodeList = std::vector<BindOpcodeInfo>();
     auto WeakBindOpcodeList = std::vector<BindOpcodeInfo>();
 
     if (ShouldPrintBindList) {
         const auto BindOpcodeListOpt =
-            DyldInfo->GetBindOpcodeList(Object.getMap(),
-                                        IsBigEndian,
-                                        Is64Bit);
+            DyldInfo->GetBindOpcodeList(Map, IsBigEndian, Is64Bit);
 
-        switch (BindOpcodeListOpt.getError()) {
-            case MachO::SizeRangeError::None:
-                break;
-            case MachO::SizeRangeError::Empty:
-                fputs("No Bind Info\n", Options.ErrFile);
-                ShouldPrintWeakBindList = false;
-
-                break;
-            case MachO::SizeRangeError::Overflows:
-            case MachO::SizeRangeError::PastEnd:
-                fputs("Bind List goes past end-of-file\n", Options.ErrFile);
-                ShouldPrintWeakBindList = false;
-
-                break;
-        }
-
-        if (ShouldPrintBindList) {
+        BindOpcodeError = BindOpcodeListOpt.getError();
+        if (BindOpcodeError == MachO::SizeRangeError::None) {
             BindOpcodeList =
                 CollectBindOpcodeList<MachO::BindInfoKind::Normal>(
                     SharedLibraryCollection,
@@ -592,33 +579,15 @@ PrintBindOpcodeListOperation::Run(const ConstMachOMemoryObject &Object,
     }
 
     if (ShouldPrintLazyBindList) {
-        if (ShouldPrintBindList) {
+        if (Options.PrintNormal && !ShouldPrintBindList) {
             fputc('\n', Options.OutFile);
         }
 
         const auto LazyBindOpcodeListOpt =
-            DyldInfo->GetLazyBindOpcodeList(Object.getMap(),
-                                            IsBigEndian,
-                                            Is64Bit);
+            DyldInfo->GetLazyBindOpcodeList(Map, IsBigEndian, Is64Bit);
 
-        switch (LazyBindOpcodeListOpt.getError()) {
-            case MachO::SizeRangeError::None:
-                break;
-            case MachO::SizeRangeError::Empty:
-                fputs("No Lazy-Bind Info\n", Options.ErrFile);
-                ShouldPrintWeakBindList = false;
-
-                break;
-            case MachO::SizeRangeError::Overflows:
-            case MachO::SizeRangeError::PastEnd:
-                fputs("Lazy-Bind List goes past end-of-file\n",
-                      Options.ErrFile);
-
-                ShouldPrintWeakBindList = false;
-                break;
-        }
-
-        if (Options.PrintLazy) {
+        LazyBindOpcodeError = LazyBindOpcodeListOpt.getError();
+        if (LazyBindOpcodeError == MachO::SizeRangeError::None) {
             LazyBindOpcodeList =
                 CollectBindOpcodeList<MachO::BindInfoKind::Lazy>(
                     SharedLibraryCollection,
@@ -629,16 +598,93 @@ PrintBindOpcodeListOperation::Run(const ConstMachOMemoryObject &Object,
     }
 
     if (ShouldPrintWeakBindList) {
-        if (ShouldPrintBindList || ShouldPrintLazyBindList) {
+        const auto WeakBindOpcodeListOpt =
+            DyldInfo->GetWeakBindOpcodeList(Map, IsBigEndian, Is64Bit);
+
+        WeakBindOpcodeError = WeakBindOpcodeListOpt.getError();
+        if (WeakBindOpcodeError == MachO::SizeRangeError::None) {
+            WeakBindOpcodeList =
+                CollectBindOpcodeList<MachO::BindInfoKind::Lazy>(
+                    SharedLibraryCollection,
+                    SegmentCollection,
+                    WeakBindOpcodeListOpt.getRef(),
+                    Is64Bit);
+        }
+    }
+
+    const auto TotalLineCount =
+        BindOpcodeList.size() +
+        LazyBindOpcodeList.size() +
+        WeakBindOpcodeList.size();
+
+    Operation::PrintLineSpamWarning(Options.OutFile, TotalLineCount);
+    if (ShouldPrintBindList) {
+        switch (BindOpcodeError) {
+            case MachO::SizeRangeError::None:
+                break;
+            case MachO::SizeRangeError::Empty:
+                fputs("No Bind Info\n", Options.ErrFile);
+                ShouldPrintBindList = false;
+
+                break;
+            case MachO::SizeRangeError::Overflows:
+            case MachO::SizeRangeError::PastEnd:
+                fputs("Bind List goes past end-of-file\n", Options.ErrFile);
+                ShouldPrintBindList = false;
+
+                break;
+        }
+
+        if (ShouldPrintBindList) {
+            PrintBindOpcodeList<MachO::BindInfoKind::Normal>(
+                "Bind",
+                SharedLibraryCollection,
+                SegmentCollection,
+                BindOpcodeList,
+                Object.Is64Bit(),
+                Options);
+        }
+    }
+
+    if (ShouldPrintLazyBindList) {
+        if (ShouldPrintBindList) {
             fputc('\n', Options.OutFile);
         }
 
-        const auto WeakBindOpcodeListOpt =
-            DyldInfo->GetWeakBindOpcodeList(Object.getMap(),
-                                            IsBigEndian,
-                                            Is64Bit);
+        switch (LazyBindOpcodeError) {
+            case MachO::SizeRangeError::None:
+                break;
+            case MachO::SizeRangeError::Empty:
+                fputs("No Lazy-Bind Info\n", Options.ErrFile);
+                ShouldPrintLazyBindList = false;
 
-        switch (WeakBindOpcodeListOpt.getError()) {
+                break;
+            case MachO::SizeRangeError::Overflows:
+            case MachO::SizeRangeError::PastEnd:
+                fputs("Lazy-Bind List goes past end-of-file\n",
+                      Options.ErrFile);
+
+                ShouldPrintLazyBindList = false;
+                break;
+        }
+
+        if (ShouldPrintLazyBindList) {
+            PrintBindOpcodeList<MachO::BindInfoKind::Lazy>(
+                "Lazy-Bind",
+                SharedLibraryCollection,
+                SegmentCollection,
+                LazyBindOpcodeList,
+                Object.Is64Bit(),
+                Options);
+        }
+    }
+
+    if (ShouldPrintWeakBindList) {
+        if (ShouldPrintBindList || ShouldPrintLazyBindList) {
+            fputc('\n', Options.OutFile);
+        }
+        
+        switch (WeakBindOpcodeError) {
             case MachO::SizeRangeError::None:
                 break;
             case MachO::SizeRangeError::Empty:
@@ -656,52 +702,31 @@ PrintBindOpcodeListOperation::Run(const ConstMachOMemoryObject &Object,
         }
 
         if (ShouldPrintWeakBindList) {
-            WeakBindOpcodeList =
-                CollectBindOpcodeList<MachO::BindInfoKind::Lazy>(
-                    SharedLibraryCollection,
-                    SegmentCollection,
-                    WeakBindOpcodeListOpt.getRef(),
-                    Is64Bit);
+            PrintBindOpcodeList<MachO::BindInfoKind::Weak>(
+                "Weak-Bind",
+                SharedLibraryCollection,
+                SegmentCollection,
+                WeakBindOpcodeList,
+                Object.Is64Bit(),
+                Options);
         }
     }
 
-    const auto TotalLineCount =
-        BindOpcodeList.size() +
-        LazyBindOpcodeList.size() +
-        WeakBindOpcodeList.size();
-
-    PrintLineSpamWarning(Options.OutFile, TotalLineCount);
-    if (ShouldPrintBindList) {
-        PrintBindOpcodeList<MachO::BindInfoKind::Normal>(
-            "Bind",
-            SharedLibraryCollection,
-            SegmentCollection,
-            BindOpcodeList,
-            Object.Is64Bit(),
-            Options);
-    }
-
-    if (ShouldPrintLazyBindList) {
-        PrintBindOpcodeList<MachO::BindInfoKind::Lazy>(
-            "Lazy-Bind",
-            SharedLibraryCollection,
-            SegmentCollection,
-            LazyBindOpcodeList,
-            Object.Is64Bit(),
-            Options);
-    }
-
-    if (ShouldPrintWeakBindList) {
-        PrintBindOpcodeList<MachO::BindInfoKind::Weak>(
-            "Weak-Bind",
-            SharedLibraryCollection,
-            SegmentCollection,
-            WeakBindOpcodeList,
-            Object.Is64Bit(),
-            Options);
-    }
-
     return 0;
+}
+
+int
+PrintBindOpcodeListOperation::Run(const ConstDscImageMemoryObject &Object,
+                                  const struct Options &Options) noexcept
+{
+    return PrintOpcodeList(Object, Object.getDscMap(), Options);
+}
+
+int
+PrintBindOpcodeListOperation::Run(const ConstMachOMemoryObject &Object,
+                                  const struct Options &Options) noexcept
+{
+    return PrintOpcodeList(Object, Object.getMap(), Options);
 }
 
 struct PrintBindOpcodeListOperation::Options
@@ -753,9 +778,10 @@ PrintBindOpcodeListOperation::Run(const MemoryObject &Object) const noexcept {
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
             return Run(cast<ObjectKind::MachO>(Object), Options);
+        case ObjectKind::DscImage:
+            return Run(cast<ObjectKind::DscImage>(Object).toConst(), Options);
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
-        case ObjectKind::DscImage:
             return InvalidObjectKind;
     }
 

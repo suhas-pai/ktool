@@ -88,9 +88,7 @@ public:
     constexpr TypedAllocationOrError(const ErrorType &Error) noexcept
     : Base(Error) {}
 
-    constexpr
-    TypedAllocationOrError(const std::nullptr_t &Error) noexcept = delete;
-
+    constexpr TypedAllocationOrError(const std::nullptr_t &) noexcept = delete;
     constexpr TypedAllocationOrError(T *Ptr) noexcept : Base(Ptr) {}
 
     explicit

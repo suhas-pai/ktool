@@ -56,6 +56,10 @@ public:
     PrintBindSymbolListOperation(const struct Options &Options) noexcept;
 
     static int
+    Run(const ConstDscImageMemoryObject &Object,
+        const struct Options &Options) noexcept;
+    
+    static int
     Run(const ConstMachOMemoryObject &Object,
         const struct Options &Options) noexcept;
 
@@ -71,10 +75,10 @@ public:
             case ObjectKind::None:
                 assert(0 && "SupportsObjectKind() got Object-Kind None");
             case ObjectKind::MachO:
+            case ObjectKind::DscImage:
                 return true;
             case ObjectKind::FatMachO:
             case ObjectKind::DyldSharedCache:
-            case ObjectKind::DscImage:
                 return false;
         }
 
