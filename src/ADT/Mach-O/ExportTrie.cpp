@@ -43,7 +43,7 @@ namespace MachO {
 
     void ExportTrieIterator::SetupInfoForNewStack() noexcept {
         Info->String.append(NextStack->Node.Prefix);
-        Info->StackList.emplace_back(*NextStack);
+        Info->StackList.emplace_back(std::move(*NextStack));
     }
 
     void ExportTrieIterator::MoveUptoParentNode() noexcept {
@@ -53,13 +53,16 @@ namespace MachO {
 
         Info->String.erase(EraseToLength);
         if (Top.RangeListSize != 0) {
-            Info->RangeList.erase(Info->RangeList.cbegin() + Top.RangeListSize,
-                                  Info->RangeList.cend());
+            auto &RangeList = Info->RangeList;
+            RangeList.erase(RangeList.cbegin() + Top.RangeListSize,
+                            RangeList.cend());
         }
 
-        Info->StackList.pop_back();
-        if (!Info->StackList.empty()) {
-            Info->StackList.back().ChildOrdinal += 1;
+        auto &StackList = Info->StackList;
+
+        StackList.pop_back();
+        if (!StackList.empty()) {
+            StackList.back().ChildOrdinal += 1;
         }
     }
 
@@ -160,7 +163,7 @@ namespace MachO {
             SetupInfoForNewStack();
         }
 
-        if (getInfo().getDepthLevel() > 128) {
+        if (StackList.size() > 128) {
             return Error::TooDeep;
         }
 
@@ -342,7 +345,7 @@ namespace MachO {
             }
 
             SetupInfoForNewStack();
-            if (getInfo().getDepthLevel() > 128) {
+            if (StackList.size() > 128) {
                 return Error::TooDeep;
             }
         } while (true);
