@@ -296,7 +296,7 @@ PrintCStringSectionOperation::Run(const MemoryObject &Object) const noexcept {
         case ObjectKind::DyldSharedCache:
             return InvalidObjectKind;
         case ObjectKind::DscImage:
-            return Run(cast<ObjectKind::DscImage>(Object).toConst(), Options);
+            return Run(cast<ObjectKind::DscImage>(Object), Options);
     }
 
     assert(0 && "Unrecognized Object-Kind");

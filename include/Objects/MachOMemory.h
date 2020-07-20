@@ -15,8 +15,7 @@
 
 #include "MemoryBase.h"
 
-struct ConstMachOMemoryObject;
-struct MachOMemoryObject : public MemoryObject {
+struct ConstMachOMemoryObject : public MemoryObject {
 public:
     constexpr static auto ObjKind = ObjectKind::MachO;
     enum class Error : uintptr_t {
@@ -29,47 +28,31 @@ public:
     };
 protected:
     union {
-        uint8_t *Map;
+        const uint8_t *Map;
         MachO::Header *Header;
         PointerErrorStorage<Error> ErrorStorage;
     };
 
-    uint8_t *End;
+    const uint8_t *End;
 
-    MachOMemoryObject(Error Error) noexcept;
+    ConstMachOMemoryObject(Error Error) noexcept;
 
-    explicit MachOMemoryObject(const MemoryMap &Map) noexcept;
-    explicit MachOMemoryObject(ObjectKind Kind, const MemoryMap &Map) noexcept;
+    explicit ConstMachOMemoryObject(const ConstMemoryMap &Map) noexcept;
+    explicit
+    ConstMachOMemoryObject(ObjectKind Kind, const ConstMemoryMap &Map) noexcept;
 public:
-    [[nodiscard]] static MachOMemoryObject Open(const MemoryMap &Map) noexcept;
+    [[nodiscard]]
+    static ConstMachOMemoryObject Open(const ConstMemoryMap &Map) noexcept;
 
     [[nodiscard]]
     static inline bool IsOfKind(const MemoryObject &Obj) noexcept {
-        return (Obj.getKind() == ObjectKind::MachO);
+        return (Obj.getKind() == ObjKind);
     }
 
-    virtual ~MachOMemoryObject() noexcept = default;
+    virtual ~ConstMachOMemoryObject() noexcept = default;
 
     [[nodiscard]] bool DidMatchFormat() const noexcept override;
     [[nodiscard]] MemoryObject *ToPtr() const noexcept override;
-
-    [[nodiscard]]
-    inline const ConstMachOMemoryObject &toConst() const noexcept {
-        return reinterpret_cast<const ConstMachOMemoryObject &>(*this);
-    }
-
-    [[nodiscard]] inline ConstMachOMemoryObject &toConst() noexcept {
-        return reinterpret_cast<ConstMachOMemoryObject &>(*this);
-    }
-
-    [[nodiscard]] inline operator ConstMachOMemoryObject &() noexcept {
-        return toConst();
-    }
-
-    [[nodiscard]]
-    inline operator const ConstMachOMemoryObject &() const noexcept {
-        return toConst();
-    }
 
     [[nodiscard]] inline Error getError() const noexcept {
         return ErrorStorage.getValue();
@@ -79,28 +62,28 @@ public:
         return ErrorStorage.hasValue();
     }
 
-    [[nodiscard]] inline MemoryMap getMap() const noexcept {
-        return MemoryMap(Map, End);
+    [[nodiscard]] inline ConstMemoryMap getMap() const noexcept {
+        return ConstMemoryMap(Map, End);
     }
 
     [[nodiscard]] inline ConstMemoryMap getConstMap() const noexcept override {
-        return MemoryMap(Map, End);
+        return getMap();
     }
 
     [[nodiscard]] inline RelativeRange getRange() const noexcept override {
         return RelativeRange(End - Map);
     }
 
-    [[nodiscard]] inline MachO::Header &getHeader() noexcept { return *Header; }
+    [[nodiscard]] inline const MachO::Header &getHeader() const noexcept {
+        return *Header;
+    }
+
     [[nodiscard]] inline const MachO::Header &getConstHeader() const noexcept {
         return *Header;
     }
 
-    [[nodiscard]] MachO::LoadCommandStorage
-    GetLoadCommands(bool Verify = true) noexcept;
-
     [[nodiscard]] MachO::ConstLoadCommandStorage
-    GetConstLoadCommands(bool Verify = true) const noexcept;
+    GetLoadCommands(bool Verify = true) const noexcept;
 
     [[nodiscard]] inline bool IsBigEndian() const noexcept {
         return Header->IsBigEndian();
@@ -124,23 +107,22 @@ public:
     }
 };
 
-struct ConstMachOMemoryObject : public MachOMemoryObject {
+struct MachOMemoryObject : public ConstMachOMemoryObject {
 protected:
-    ConstMachOMemoryObject(Error Error) noexcept;
-    explicit ConstMachOMemoryObject(const ConstMemoryMap &Map) noexcept;
+    MachOMemoryObject(Error Error) noexcept;
+    explicit MachOMemoryObject(const MemoryMap &Map) noexcept;
 public:
-    [[nodiscard]]
-    static ConstMachOMemoryObject Open(const ConstMemoryMap &Map) noexcept;
-    virtual ~ConstMachOMemoryObject() noexcept = default;
-
-    [[nodiscard]] inline ConstMemoryMap getMap() const noexcept {
-        return ConstMemoryMap(Map, End);
+    [[nodiscard]] static MachOMemoryObject Open(const MemoryMap &Map) noexcept;
+    [[nodiscard]] inline MemoryMap getMap() const noexcept {
+        const auto End = const_cast<uint8_t *>(this->End);
+        return ConstMemoryMap(const_cast<uint8_t *>(Map), End);
     }
 
-    [[nodiscard]] inline const MachO::Header &getHeader() const noexcept {
-        return *Header;
-    }
+    [[nodiscard]] inline MachO::Header &getHeader() noexcept { return *Header; }
+
+    [[nodiscard]] MachO::LoadCommandStorage
+    GetLoadCommands(bool Verify = true) noexcept;
 
     [[nodiscard]] MachO::ConstLoadCommandStorage
-    GetLoadCommands(bool Verify = true) const noexcept;
+    GetConstLoadCommands(bool Verify = true) const noexcept;
 };

@@ -14,31 +14,31 @@
 #include "Utils/Macros.h"
 #include "DscMemory.h"
 
-DscMemoryObject::DscMemoryObject(Error Error) noexcept
-: MemoryObject(ObjKind), ErrorStorage(Error) {}
-
-DscMemoryObject::DscMemoryObject(const MemoryMap &Map, CpuKind CpuKind) noexcept
-: MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()),
-  sCpuKind(CpuKind) {}
-
 ConstDscMemoryObject::ConstDscMemoryObject(Error Error) noexcept
-: DscMemoryObject(Error) {}
+: MemoryObject(ObjKind), ErrorStorage(Error) {}
 
 ConstDscMemoryObject::ConstDscMemoryObject(const ConstMemoryMap &Map,
                                            CpuKind CpuKind) noexcept
-: DscMemoryObject(reinterpret_cast<const MemoryMap &>(Map), CpuKind) {}
+: MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()),
+  sCpuKind(CpuKind) {}
 
-static DscMemoryObject::Error
+DscMemoryObject::DscMemoryObject(Error Error) noexcept
+: ConstDscMemoryObject(Error) {}
+
+DscMemoryObject::DscMemoryObject(const MemoryMap &Map, CpuKind CpuKind) noexcept
+: ConstDscMemoryObject(Map, CpuKind) {}
+
+static ConstDscMemoryObject::Error
 ValidateMap(const ConstMemoryMap &Map,
             DscMemoryObject::CpuKind &CpuKind) noexcept
 {
     if (Map.size() < sizeof(DyldSharedCache::HeaderV0)) {
-        return DscMemoryObject::Error::SizeTooSmall;
+        return ConstDscMemoryObject::Error::SizeTooSmall;
     }
 
     const auto Begin = Map.getBeginAs<const char>();
     if (memcmp(Begin, "dyld_v1", LENGTH_OF("dyld_v1")) != 0) {
-        return DscMemoryObject::Error::WrongFormat;
+        return ConstDscMemoryObject::Error::WrongFormat;
     }
 
     const auto CpuKindStr = Begin + 7;
@@ -70,7 +70,7 @@ ValidateMap(const ConstMemoryMap &Map,
     } else if (memcmp(CpuKindStr, "arm64_32", CpuKindMaxLength) == 0) {
         CpuKind = DscMemoryObject::CpuKind::Arm64e;
     } else {
-        return DscMemoryObject::Error::UnknownCpuKind;
+        return ConstDscMemoryObject::Error::UnknownCpuKind;
     }
 
     const auto Header = Map.getBeginAs<DyldSharedCache::HeaderV0>();
@@ -83,14 +83,14 @@ ValidateMap(const ConstMemoryMap &Map,
                                    Header->MappingCount, MappingOffset,
                                    &MappingEnd))
     {
-        return DscMemoryObject::Error::InvalidImageRange;
+        return ConstDscMemoryObject::Error::InvalidImageRange;
     }
 
     const auto MappingRange =
         LocationRange::CreateWithEnd(MappingOffset, MappingEnd);
 
     if (!AllowedRange.contains(MappingRange)) {
-        return DscMemoryObject::Error::InvalidImageRange;
+        return ConstDscMemoryObject::Error::InvalidImageRange;
     }
 
     const auto ImageOffset = Header->ImagesOffset;
@@ -100,33 +100,45 @@ ValidateMap(const ConstMemoryMap &Map,
                                    Header->ImagesCount, Header->ImagesOffset,
                                    &ImageEnd))
     {
-        return DscMemoryObject::Error::InvalidImageRange;
+        return ConstDscMemoryObject::Error::InvalidImageRange;
     }
 
     const auto ImageRange = LocationRange::CreateWithEnd(ImageOffset, ImageEnd);
     if (!AllowedRange.contains(ImageRange)) {
-        return DscMemoryObject::Error::InvalidImageRange;
+        return ConstDscMemoryObject::Error::InvalidImageRange;
     }
 
     if (MappingRange.overlaps(ImageRange)) {
-        return DscMemoryObject::Error::OverlappingImageMappingRange;
+        return ConstDscMemoryObject::Error::OverlappingImageMappingRange;
     }
 
-    return DscMemoryObject::Error::None;
+    return ConstDscMemoryObject::Error::None;
+}
+
+ConstDscMemoryObject
+ConstDscMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
+    auto CpuKind = ConstDscMemoryObject::CpuKind::i386;
+    const auto Error = ValidateMap(Map, CpuKind);
+
+    if (Error != Error::None) {
+        return Error;
+    }
+
+    return ConstDscMemoryObject(Map, CpuKind);
 }
 
 DscMemoryObject DscMemoryObject::Open(const MemoryMap &Map) noexcept {
     auto CpuKind = DscMemoryObject::CpuKind::i386;
     const auto Error = ValidateMap(Map, CpuKind);
 
-    if (Error != DscMemoryObject::Error::None) {
+    if (Error != Error::None) {
         return Error;
     }
 
     return DscMemoryObject(Map, CpuKind);
 }
 
-bool DscMemoryObject::DidMatchFormat() const noexcept {
+bool ConstDscMemoryObject::DidMatchFormat() const noexcept {
     switch (ErrorStorage.getValue()) {
         case Error::None:
             return true;
@@ -141,11 +153,12 @@ bool DscMemoryObject::DidMatchFormat() const noexcept {
     }
 }
 
-MemoryObject *DscMemoryObject::ToPtr() const noexcept {
-    return new DscMemoryObject(MemoryMap(Map, End), sCpuKind);
+MemoryObject *ConstDscMemoryObject::ToPtr() const noexcept {
+    return new ConstDscMemoryObject(ConstMemoryMap(Map, End), sCpuKind);
 }
 
-DscMemoryObject::Version DscMemoryObject::getVersion() const noexcept {
+ConstDscMemoryObject::Version
+ConstDscMemoryObject::getVersion() const noexcept {
     auto Version = Version::v0;
     if (Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV6)) {
         Version = Version::v6;
@@ -164,9 +177,9 @@ DscMemoryObject::Version DscMemoryObject::getVersion() const noexcept {
     return Version;
 }
 
-const DscMemoryObject &
-DscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
-                            int32_t &CpuSubKind) const noexcept
+const ConstDscMemoryObject &
+ConstDscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
+                                 int32_t &CpuSubKind) const noexcept
 {
     switch (sCpuKind) {
         case CpuKind::i386:
@@ -235,8 +248,8 @@ DscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
     assert(0 && "Unrecognized Cpu-Kind");
 }
 
-static uint8_t *GetEndForMachOMap(uint8_t *Map) noexcept {
-    const auto Header = reinterpret_cast<MachO::Header *>(Map);
+static const uint8_t *GetEndForMachOMap(const uint8_t *Map) noexcept {
+    const auto Header = reinterpret_cast<const MachO::Header *>(Map);
     const auto IsBigEndian = Header->IsBigEndian();
     const auto Is64Bit = Header->Is64Bit();
 
@@ -281,12 +294,12 @@ static uint8_t *GetEndForMachOMap(uint8_t *Map) noexcept {
 }
 
 const DyldSharedCache::ImageInfo &
-DscMemoryObject::getImageInfoAtIndex(uint32_t Index) const noexcept {
+ConstDscMemoryObject::getImageInfoAtIndex(uint32_t Index) const noexcept {
     return getConstImageInfoList().at(Index);
 }
 
 const DyldSharedCache::ImageInfo *
-DscMemoryObject::GetImageInfoWithPath(
+ConstDscMemoryObject::GetImageInfoWithPath(
     const std::string_view &Path) const noexcept
 {
     const auto Map = getMap().getBegin();
@@ -299,8 +312,8 @@ DscMemoryObject::GetImageInfoWithPath(
     return nullptr;
 }
 
-DscImageMemoryObject *
-DscMemoryObject::GetImageWithInfo(
+ConstDscImageMemoryObject *
+ConstDscMemoryObject::GetImageWithInfo(
     const DyldSharedCache::ImageInfo &ImageInfo) const noexcept
 {
     if (const auto Map = GetPtrForAddress(ImageInfo.Address)) {
@@ -309,23 +322,15 @@ DscMemoryObject::GetImageWithInfo(
 
         if (End != nullptr) {
             const auto Result =
-                new DscImageMemoryObject(getMap(),
-                                         ImageInfo,
-                                         static_cast<uint32_t>(ImageIndex),
-                                         Map,
-                                         End);
+                new ConstDscImageMemoryObject(getMap(),
+                                              ImageInfo,
+                                              static_cast<uint32_t>(ImageIndex),
+                                              Map,
+                                              End);
 
             return Result;
         }
     }
 
     return nullptr;
-}
-
-ConstDscImageMemoryObject *
-ConstDscMemoryObject::GetImageWithInfo(
-    const DyldSharedCache::ImageInfo &ImageInfo) const noexcept
-{
-    const auto Result = DscMemoryObject::GetImageWithInfo(ImageInfo);
-    return reinterpret_cast<ConstDscImageMemoryObject *>(Result);
 }

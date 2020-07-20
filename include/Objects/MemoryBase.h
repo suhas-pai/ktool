@@ -27,7 +27,7 @@ public:
         assert(0 && "IsOfKind() called on base-class");
     }
 
-    [[nodiscard]] static MemoryObject *Open(const MemoryMap &Map) noexcept;
+    [[nodiscard]] static MemoryObject *Open(const ConstMemoryMap &Map) noexcept;
     [[nodiscard]] inline ObjectKind getKind() const noexcept { return Kind; }
 
     virtual ~MemoryObject() noexcept = default;

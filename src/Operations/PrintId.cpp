@@ -22,7 +22,7 @@ PrintIdOperation::PrintIdOperation(const struct Options &Options) noexcept
 
 static int
 PrintFromLoadCommands(
-    const MachOMemoryObject &Object,
+    const ConstMachOMemoryObject &Object,
     const struct PrintIdOperation::Options &Options) noexcept
 {
     const auto IsBigEndian = Object.IsBigEndian();
@@ -139,7 +139,7 @@ int PrintIdOperation::Run(const MemoryObject &Object) const noexcept {
         case ObjectKind::DyldSharedCache:
             return InvalidObjectKind;
         case ObjectKind::DscImage:
-            return Run(cast<ObjectKind::DscImage>(Object).toConst(), Options);
+            return Run(cast<ObjectKind::DscImage>(Object), Options);
     }
 
     assert(0 && "Unrecognized Object-Kind");

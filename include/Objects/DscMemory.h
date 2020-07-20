@@ -15,8 +15,7 @@
 #include "DscImageMemory.h"
 #include "MemoryBase.h"
 
-struct ConstDscMemoryObject;
-struct DscMemoryObject : public MemoryObject {
+struct ConstDscMemoryObject : public MemoryObject {
 public:
     constexpr static auto ObjKind = ObjectKind::DyldSharedCache;
 
@@ -58,25 +57,28 @@ public:
         InvalidImageRange,
         OverlappingImageMappingRange,
     };
+
 protected:
     union {
-        uint8_t *Map;
+        const uint8_t *Map;
 
-        DyldSharedCache::Header *Header;
+        const DyldSharedCache::Header *Header;
         PointerErrorStorage<Error> ErrorStorage;
     };
 
-    uint8_t *End;
+    const uint8_t *End;
     CpuKind sCpuKind;
+    ConstDscMemoryObject(Error Error) noexcept;
 
-    DscMemoryObject(Error Error) noexcept;
-    explicit DscMemoryObject(const MemoryMap &Map, CpuKind CpuKind) noexcept;
+    explicit
+    ConstDscMemoryObject(const ConstMemoryMap &Map, CpuKind CpuKind) noexcept;
 public:
-    [[nodiscard]] static DscMemoryObject Open(const MemoryMap &Map) noexcept;
+    [[nodiscard]]
+    static ConstDscMemoryObject Open(const ConstMemoryMap &Map) noexcept;
 
     [[nodiscard]]
     static inline bool IsOfKind(const MemoryObject &Obj) noexcept {
-        return (Obj.getKind() == ObjectKind::DyldSharedCache);
+        return (Obj.getKind() == ObjKind);
     }
 
     [[nodiscard]] bool DidMatchFormat() const noexcept override;
@@ -86,83 +88,188 @@ public:
         return ErrorStorage.hasValue();
     }
 
-    [[nodiscard]] Error getError() const noexcept {
+    [[nodiscard]] inline Error getError() const noexcept {
         return ErrorStorage.getValue();
     }
 
-    [[nodiscard]] inline const ConstDscMemoryObject &toConst() const noexcept {
-        return reinterpret_cast<const ConstDscMemoryObject &>(*this);
-    }
-
-    [[nodiscard]] inline ConstDscMemoryObject &toConst() noexcept {
-        return reinterpret_cast<ConstDscMemoryObject &>(*this);
-    }
-
-    [[nodiscard]] inline operator ConstDscMemoryObject &() noexcept {
-        return toConst();
-    }
-
-    [[nodiscard]]
-    inline operator const ConstDscMemoryObject &() const noexcept {
-        return toConst();
-    }
-
-    [[nodiscard]] inline MemoryMap getMap() const noexcept {
-        return MemoryMap(Map, End);
+    [[nodiscard]] inline ConstMemoryMap getMap() const noexcept {
+        return ConstMemoryMap(Map, End);
     }
 
     [[nodiscard]] inline ConstMemoryMap getConstMap() const noexcept override {
-        return ConstMemoryMap(Map, End);
+        return getMap();
     }
 
     [[nodiscard]] inline RelativeRange getRange() const noexcept override {
         return RelativeRange(End - Map);
     }
 
-    [[nodiscard]] DyldSharedCache::Header &getHeader() const noexcept {
+    [[nodiscard]]
+    inline const DyldSharedCache::Header &getHeader() const noexcept {
         return *Header;
     }
 
-    [[nodiscard]] DyldSharedCache::HeaderV0 &getHeaderV0() const noexcept {
+    [[nodiscard]]
+    inline const DyldSharedCache::HeaderV0 &getHeaderV0() const noexcept {
         return *Header;
     }
 
-    [[nodiscard]] DyldSharedCache::HeaderV1 &getHeaderV1() const noexcept {
+    [[nodiscard]] inline
+    const DyldSharedCache::HeaderV1 &getHeaderV1() const noexcept {
         assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV1));
         return *Header;
     }
 
-    [[nodiscard]] DyldSharedCache::HeaderV2 &getHeaderV2() const noexcept {
+    [[nodiscard]] inline
+    const DyldSharedCache::HeaderV2 &getHeaderV2() const noexcept {
         assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV2));
         return *Header;
     }
 
-    [[nodiscard]] DyldSharedCache::HeaderV3 &getHeaderV3() const noexcept {
+    [[nodiscard]] inline
+    const DyldSharedCache::HeaderV3 &getHeaderV3() const noexcept {
         assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV3));
         return *Header;
     }
 
-    [[nodiscard]] DyldSharedCache::HeaderV4 &getHeaderV4() const noexcept {
+    [[nodiscard]] inline
+    const DyldSharedCache::HeaderV4 &getHeaderV4() const noexcept {
         assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV4));
         return *Header;
     }
 
-    [[nodiscard]] DyldSharedCache::HeaderV5 &getHeaderV5() const noexcept {
+    [[nodiscard]] inline
+    const DyldSharedCache::HeaderV5 &getHeaderV5() const noexcept {
         assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV5));
         return *Header;
     }
 
-    [[nodiscard]] DyldSharedCache::HeaderV6 &getHeaderV6() const noexcept {
+    [[nodiscard]] inline
+    const DyldSharedCache::HeaderV6 &getHeaderV6() const noexcept {
         assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV6));
         return *Header;
     }
 
-    [[nodiscard]] uint32_t getImageCount() const noexcept {
+    [[nodiscard]] inline uint32_t getImageCount() const noexcept {
         return getHeaderV0().ImagesCount;
     }
 
-    [[nodiscard]] uint32_t getMappingCount() const noexcept {
+    [[nodiscard]] inline uint32_t getMappingCount() const noexcept {
         return getHeaderV0().MappingCount;
+    }
+
+    [[nodiscard]] Version getVersion() const noexcept;
+
+    const ConstDscMemoryObject &
+    getCpuKind(Mach::CpuKind &CpuKind, int32_t &CpuSubKind) const noexcept;
+
+    [[nodiscard]] inline
+    BasicContiguousList<const DyldSharedCache::ImageInfo>
+    getImageInfoList() const noexcept {
+        return getHeaderV0().getImageInfoList();
+    }
+
+    [[nodiscard]] inline
+    BasicContiguousList<const DyldSharedCache::ImageInfo>
+    getConstImageInfoList() const noexcept {
+        return getImageInfoList();
+    }
+
+    [[nodiscard]]
+    inline BasicContiguousList<const DyldSharedCache::MappingInfo>
+    getMappingInfoList() const noexcept {
+        return getHeaderV0().getMappingInfoList();
+    }
+
+    [[nodiscard]]
+    inline BasicContiguousList<const DyldSharedCache::MappingInfo>
+    getConstMappingInfoList() const noexcept {
+        return getMappingInfoList();
+    }
+
+    [[nodiscard]] inline std::optional<uint64_t>
+    GetFileOffsetForAddress(uint64_t Addr,
+                            uint64_t *MaxSizeOut = nullptr) const noexcept
+    {
+        return getHeaderV0().GetFileOffsetForAddress(Addr, MaxSizeOut);
+    }
+
+    template <typename T = uint8_t>
+    [[nodiscard]]
+    inline const T *GetPtrForAddress(uint64_t Address) const noexcept {
+        return getHeaderV0().GetPtrForAddress<T>(Address);
+    }
+
+    const DyldSharedCache::ImageInfo &
+    getImageInfoAtIndex(uint32_t Index) const noexcept;
+
+    [[nodiscard]] inline const DyldSharedCache::ImageInfo &
+    getConstImageInfoAtIndex(uint32_t Index) const noexcept {
+        return getImageInfoAtIndex(Index);
+    }
+
+    const DyldSharedCache::ImageInfo *
+    GetImageInfoWithPath(const std::string_view &Path) const noexcept;
+
+    ConstDscImageMemoryObject *
+    GetImageWithInfo(const DyldSharedCache::ImageInfo &Info) const noexcept;
+};
+
+struct DscMemoryObject : public ConstDscMemoryObject {
+protected:
+    DscMemoryObject(Error Error) noexcept;
+    explicit DscMemoryObject(const MemoryMap &Map, CpuKind CpuKind) noexcept;
+public:
+    [[nodiscard]] static DscMemoryObject Open(const MemoryMap &Map) noexcept;
+
+    [[nodiscard]] inline MemoryMap getMap() const noexcept {
+        const auto End = const_cast<uint8_t *>(this->End);
+        return MemoryMap(const_cast<uint8_t *>(Map), End);
+    }
+
+    [[nodiscard]] inline DyldSharedCache::Header &getHeader() const noexcept {
+        return const_cast<DyldSharedCache::Header &>(*Header);
+    }
+
+    [[nodiscard]]
+    inline DyldSharedCache::HeaderV0 &getHeaderV0() const noexcept {
+        return getHeader();
+    }
+
+    [[nodiscard]]
+    inline DyldSharedCache::HeaderV1 &getHeaderV1() const noexcept {
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV1));
+        return getHeader();
+    }
+
+    [[nodiscard]]
+    inline DyldSharedCache::HeaderV2 &getHeaderV2() const noexcept {
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV2));
+        return getHeader();
+    }
+
+    [[nodiscard]]
+    inline DyldSharedCache::HeaderV3 &getHeaderV3() const noexcept {
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV3));
+        return getHeader();
+    }
+
+    [[nodiscard]]
+    inline DyldSharedCache::HeaderV4 &getHeaderV4() const noexcept {
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV4));
+        return getHeader();
+    }
+
+    [[nodiscard]]
+    inline DyldSharedCache::HeaderV5 &getHeaderV5() const noexcept {
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV5));
+        return getHeader();
+    }
+
+    [[nodiscard]]
+    inline DyldSharedCache::HeaderV6 &getHeaderV6() const noexcept {
+        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV6));
+        return getHeader();
     }
 
     [[nodiscard]] inline
@@ -185,105 +292,31 @@ public:
         return getHeaderV0().getConstMappingInfoList();
     }
 
-    [[nodiscard]] Version getVersion() const noexcept;
-
-    const DscMemoryObject &
-    getCpuKind(Mach::CpuKind &CpuKind, int32_t &CpuSubKind) const noexcept;
-
-    [[nodiscard]] inline std::optional<uint64_t>
-    GetFileOffsetForAddress(uint64_t Addr,
-                            uint64_t *MaxSizeOut = nullptr) const noexcept
-    {
-        return getHeaderV0().GetFileOffsetForAddress(Addr, MaxSizeOut);
+    inline const DscMemoryObject &
+    getCpuKind(Mach::CpuKind &CpuKind, int32_t &CpuSubKind) const noexcept {
+        ConstDscMemoryObject::getCpuKind(CpuKind, CpuSubKind);
+        return *this;
     }
 
     template <typename T = uint8_t>
-    [[nodiscard]] T *GetPtrForAddress(uint64_t Address) const noexcept {
+    [[nodiscard]] inline T *GetPtrForAddress(uint64_t Address) const noexcept {
         return getHeaderV0().GetPtrForAddress<T>(Address);
     }
 
-    const DyldSharedCache::ImageInfo &
-    getImageInfoAtIndex(uint32_t Index) const noexcept;
-
-    const DyldSharedCache::ImageInfo *
-    GetImageInfoWithPath(const std::string_view &Path) const noexcept;
-
-    DscImageMemoryObject *
-    GetImageWithInfo(const DyldSharedCache::ImageInfo &Info) const noexcept;
-};
-
-struct ConstDscMemoryObject : public DscMemoryObject {
-protected:
-    ConstDscMemoryObject(Error Error) noexcept;
-
-    explicit
-    ConstDscMemoryObject(const ConstMemoryMap &Map, CpuKind CpuKind) noexcept;
-public:
-    [[nodiscard]] inline ConstMemoryMap getMap() const noexcept {
-        return ConstMemoryMap(Map, End);
+    [[nodiscard]] inline const DyldSharedCache::ImageInfo &
+    getImageInfoAtIndex(uint32_t Index) const noexcept {
+        return ConstDscMemoryObject::getConstImageInfoAtIndex(Index);
     }
 
-    [[nodiscard]] const DyldSharedCache::Header &getHeader() const noexcept {
-        return *Header;
+    inline DyldSharedCache::ImageInfo *
+    GetImageInfoWithPath(const std::string_view &Path) const noexcept {
+        const auto Result = ConstDscMemoryObject::GetImageInfoWithPath(Path);
+        return const_cast<DyldSharedCache::ImageInfo *>(Result);
     }
 
-    [[nodiscard]]
-    const DyldSharedCache::HeaderV0 &getHeaderV0() const noexcept {
-        return *Header;
-    }
-
-    [[nodiscard]]
-    const DyldSharedCache::HeaderV1 &getHeaderV1() const noexcept {
-        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV1));
-        return *Header;
-    }
-
-    [[nodiscard]] DyldSharedCache::HeaderV2 &getHeaderV2() const noexcept {
-        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV2));
-        return *Header;
-    }
-
-    [[nodiscard]]
-    const DyldSharedCache::HeaderV3 &getHeaderV3() const noexcept {
-        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV3));
-        return *Header;
-    }
-
-    [[nodiscard]]
-    const DyldSharedCache::HeaderV4 &getHeaderV4() const noexcept {
-        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV4));
-        return *Header;
-    }
-
-    [[nodiscard]]
-    const DyldSharedCache::HeaderV5 &getHeaderV5() const noexcept {
-        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV5));
-        return *Header;
-    }
-
-    [[nodiscard]]
-    const DyldSharedCache::HeaderV6 &getHeaderV6() const noexcept {
-        assert(Header->MappingOffset >= sizeof(DyldSharedCache::HeaderV6));
-        return *Header;
-    }
-
-    [[nodiscard]] inline
-    BasicContiguousList<const DyldSharedCache::ImageInfo>
-    getImageInfoList() const noexcept {
-        return getHeaderV0().getImageInfoList();
-    }
-
-    [[nodiscard]]
-    inline BasicContiguousList<const DyldSharedCache::MappingInfo>
-    getMappingInfoList() const noexcept {
-        return getHeaderV0().getMappingInfoList();
-    }
-
-    ConstDscImageMemoryObject *
-    GetImageWithInfo(const DyldSharedCache::ImageInfo &Info) const noexcept;
-
-    template <typename T = uint8_t>
-    [[nodiscard]] const T *GetPtrForAddress(uint64_t Address) noexcept {
-        return getHeaderV0().GetPtrForAddress<T>(Address);
+    [[nodiscard]] inline DscImageMemoryObject *
+    GetImageWithInfo(const DyldSharedCache::ImageInfo &Info) const noexcept {
+        const auto Result = ConstDscMemoryObject::GetImageWithInfo(Info);
+        return reinterpret_cast<DscImageMemoryObject *>(Result);
     }
 };
