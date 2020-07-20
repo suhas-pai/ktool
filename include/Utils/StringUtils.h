@@ -43,8 +43,10 @@ template <typename T>
 static inline T ParseNumber(const char *String) noexcept {
     static_assert(std::is_integral_v<T>, "T must be an integer-type!");
 
+    auto Iter = String;
     auto Number = T();
-    for (auto Ch = *String; Ch != '\0'; Ch = *(++String)) {
+
+    for (auto Ch = *Iter; Ch != '\0'; Ch = *(++Iter)) {
         const auto Digit = ToDigit(Ch);
         if (!DigitIsValid(Digit)) {
             fprintf(stdout, "%s is not a valid number\n", String);
