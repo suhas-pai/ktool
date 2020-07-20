@@ -87,6 +87,7 @@ namespace MachO {
                 continue;
             }
 
+            SectInfo->Segment = &InfoIn;
             InfoIn.SectionList.emplace_back(std::move(SectInfo));
         }
 
