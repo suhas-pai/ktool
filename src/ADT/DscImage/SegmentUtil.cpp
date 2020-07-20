@@ -11,8 +11,8 @@
 namespace DscImage {
     SegmentInfoCollection
     SegmentInfoCollection::Open(
-        const MachO::ConstLoadCommandStorage &LoadCmdStorage,
         uint64_t ImageAddress,
+        const MachO::ConstLoadCommandStorage &LoadCmdStorage,
         bool Is64Bit,
         Error *ErrorOut) noexcept
     {

@@ -123,7 +123,7 @@ PrintTreeExportInfo(
     bool Is64Bit,
     const struct PrintExportTrieOperation::Options &Options) noexcept
 {
-    auto RightPad = LongestLength + LENGTH_OF("\"\"");
+    auto RightPad = static_cast<int>(LongestLength + LENGTH_OF("\"\""));
     auto KindDesc = ExportTrieExportKindGetDescription(Export.Kind).data();
 
     if (KindDesc == nullptr) {
@@ -593,8 +593,8 @@ PrintExportTrieOperation::Run(const ConstDscImageMemoryObject &Object,
 
     auto SegmentCollectionError = DscImage::SegmentInfoCollection::Error::None;
     const auto SegmentCollection =
-        DscImage::SegmentInfoCollection::Open(LoadCmdStorage,
-                                              Base,
+        DscImage::SegmentInfoCollection::Open(Base,
+                                              LoadCmdStorage,
                                               Object.Is64Bit(),
                                               &SegmentCollectionError);
 
@@ -672,19 +672,16 @@ AddKindRequirement(FILE *ErrFile,
         }
     }
 
-    for (; !Argument.IsOption(); Argument.advance()) {
-        const auto String = Argument.GetStringView();
-        const auto Kind = MachO::ExportTrieExportKindFromString(String);
-        const auto ListEnd = List.cend();
+    const auto String = Argument.GetStringView();
+    const auto Kind = MachO::ExportTrieExportKindFromString(String);
+    const auto ListEnd = List.cend();
 
-        if (std::find(List.cbegin(), ListEnd, Kind) != ListEnd) {
-            fprintf(ErrFile, "Note: Kind %s specified twice\n", String.data());
-            continue;
-        }
-
-        List.emplace_back(Kind);
+    if (std::find(List.cbegin(), ListEnd, Kind) != ListEnd) {
+        fprintf(ErrFile, "Note: Kind %s specified twice\n", String.data());
+        return;
     }
 
+    List.emplace_back(Kind);
     Argument.moveBack();
 }
 

@@ -228,10 +228,10 @@ protected:
 public:
     BasicTreeNode() noexcept = default;
 
-    virtual BasicTreeNode *createNew() const noexcept = 0;
+    [[nodiscard]] virtual BasicTreeNode *createNew() const noexcept = 0;
     virtual ~BasicTreeNode() noexcept = default;
 
-    [[nodiscard]] BasicTreeNode *getParent() const noexcept {
+    [[nodiscard]] inline BasicTreeNode *getParent() const noexcept {
         return Parent;
     }
 
@@ -258,8 +258,6 @@ public:
         return LongestChild;
     }
 
-    uint64_t GetChildCount() const noexcept;
-
     [[nodiscard]]
     static inline BasicTreeNode *get(BasicTreeNode *Node) noexcept {
         return Node;
@@ -269,6 +267,8 @@ public:
     inline const BasicTreeNode *get(const BasicTreeNode *Node) noexcept {
         return Node;
     }
+
+    [[nodiscard]] uint64_t GetChildCount() const noexcept;
 
     BasicTreeNode &SetParentOfChildren() noexcept;
     BasicTreeNode &SetParentOfChildren(BasicTreeNode &Node) noexcept;
@@ -290,7 +290,7 @@ public:
     BasicTreeNode &
     SetChildrenFromList(const std::vector<BasicTreeNode *> &List) noexcept;
 
-    BasicTreeNode *FindNextNodeForIterator() const noexcept;
+    [[nodiscard]] BasicTreeNode *FindNextNodeForIterator() const noexcept;
 
     inline BasicTreeNode &setFirstChild(BasicTreeNode *Node) noexcept {
         FirstChild = Node;
@@ -316,16 +316,16 @@ public:
         return *this;
     }
 
-    virtual uint64_t GetLength() const noexcept = 0;
+    [[nodiscard]] virtual uint64_t GetLength() const noexcept = 0;
 
     using Iterator = TreeIterator<const BasicTreeNode>;
     using ConstIterator = Iterator;
 
-    Iterator begin() const noexcept;
-    Iterator end() const noexcept;
+    [[nodiscard]] Iterator begin() const noexcept;
+    [[nodiscard]] Iterator end() const noexcept;
 
-    ConstIterator cbegin() const noexcept;
-    ConstIterator cend() const noexcept;
+    [[nodiscard]] ConstIterator cbegin() const noexcept;
+    [[nodiscard]] ConstIterator cend() const noexcept;
 
     template <typename NodePrinter>
     void
@@ -392,11 +392,11 @@ public:
     using Iterator = TreeIterator<BasicTreeNode>;
     using ConstIterator = TreeIterator<const BasicTreeNode>;
 
-    Iterator begin() const noexcept;
-    Iterator end() const noexcept;
+    [[nodiscard]] Iterator begin() const noexcept;
+    [[nodiscard]] Iterator end() const noexcept;
 
-    ConstIterator cbegin() const noexcept;
-    ConstIterator cend() const noexcept;
+    [[nodiscard]] ConstIterator cbegin() const noexcept;
+    [[nodiscard]] ConstIterator cend() const noexcept;
 
     [[nodiscard]] inline BasicTreeNode *getRoot() const noexcept {
         return Root;
@@ -527,9 +527,9 @@ struct ConstBasicTree : public BasicTree {
     using Iterator = TreeIterator<const BasicTreeNode>;
     using ConstIterator = Iterator;
 
-    ConstIterator begin() const noexcept;
-    ConstIterator end() const noexcept;
+    [[nodiscard]] ConstIterator begin() const noexcept;
+    [[nodiscard]] ConstIterator end() const noexcept;
 
-    ConstIterator cbegin() const noexcept;
-    ConstIterator cend() const noexcept;
+    [[nodiscard]] ConstIterator cbegin() const noexcept;
+    [[nodiscard]] ConstIterator cend() const noexcept;
 };

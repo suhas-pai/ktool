@@ -94,6 +94,13 @@ void BasicTreeNode::ValidateChildArray() const noexcept {
 }
 
 static void
+SetIfLongestChild(BasicTreeNode &Parent, BasicTreeNode &Child) noexcept {
+    if (Parent.getLongestChild()->GetLength() < Child.GetLength()) {
+        Parent.setLongestChild(&Child);
+    }
+}
+
+static void
 AddChildrenRaw(BasicTreeNode &This,
                BasicTreeNode &Node,
                BasicTreeNode *End,
@@ -113,9 +120,11 @@ AddChildrenRaw(BasicTreeNode &This,
         PrevSibling->setNextSibling(&Node);
         Node.setPrevSibling(PrevSibling);
 
-        if (This.getLongestChild()->GetLength() < LongestChild->GetLength()) {
-            This.setLongestChild(LongestChild);
+        if (LongestChild == nullptr) {
+            LongestChild = &CalculateLongestNode(Node);
         }
+
+        SetIfLongestChild(This, *LongestChild);
     }
 }
 
@@ -149,9 +158,7 @@ BasicTreeNode::AddSiblings(BasicTreeNode &Node, BasicTreeNode *End) noexcept {
     }
 
     auto &NewLongestChild = CalculateLongestNode(Node, End);
-    if (Parent->getLongestChild()->GetLength() < NewLongestChild.GetLength()) {
-        Parent->setLongestChild(&NewLongestChild);
-    }
+    SetIfLongestChild(*Parent, NewLongestChild);
 
     return *this;
 }

@@ -7,6 +7,8 @@
 //
 
 #pragma once
+
+#include "ADT/DyldSharedCache/Headers.h"
 #include "ADT/Mach-O/SegmentUtil.h"
 
 namespace DscImage {
@@ -18,8 +20,8 @@ namespace DscImage {
         uint64_t ImageAddress;
     public:
         [[nodiscard]] static SegmentInfoCollection
-        Open(const MachO::ConstLoadCommandStorage &LoadCmdStorage,
-             uint64_t ImageAddress,
+        Open(uint64_t ImageAddress,
+             const MachO::ConstLoadCommandStorage &LoadCmdStorage,
              bool Is64Bit,
              Error *ErrorOut) noexcept;
 
