@@ -12,6 +12,7 @@
 #include <string_view>
 
 #include "ADT/BasicContiguousList.h"
+#include "ADT/LargestIntHelper.h"
 #include "ADT/LocationRange.h"
 
 #define DscHeaderHasField(Header, Field) \
@@ -115,6 +116,12 @@ namespace DyldSharedCache {
         }
     };
 
+    using ImageList = BasicContiguousList<ImageInfo>;
+    using ConstImageList = BasicContiguousList<const ImageInfo>;
+
+    using MappingList = BasicContiguousList<const MappingInfo>;
+    using ConstMappingList = BasicContiguousList<const MappingInfo>;
+
     // Apple doesn't provide versions for their dyld_shared_caches, so we have
     // to make up our own.
 
@@ -131,42 +138,39 @@ namespace DyldSharedCache {
 
         uint64_t DyldBaseAddress;
 
-        [[nodiscard]] inline
-        BasicContiguousList<ImageInfo> getImageInfoList() noexcept {
+        [[nodiscard]] inline ImageList getImageInfoList() noexcept {
             const auto Ptr = reinterpret_cast<uint8_t *>(this) + ImagesOffset;
             return BasicContiguousList<ImageInfo>(Ptr, ImagesCount);
         }
 
-        [[nodiscard]] inline
-        BasicContiguousList<const ImageInfo> getImageInfoList() const noexcept {
+        [[nodiscard]] inline ConstImageList getImageInfoList() const noexcept {
             return getConstImageInfoList();
         }
 
-        [[nodiscard]] inline BasicContiguousList<const ImageInfo>
-        getConstImageInfoList() const noexcept {
+        [[nodiscard]]
+        inline ConstImageList getConstImageInfoList() const noexcept {
             const auto Map = reinterpret_cast<const uint8_t *>(this);
             const auto Ptr = Map + ImagesOffset;
 
-            return BasicContiguousList<const ImageInfo>(Ptr, ImagesCount);
+            return ConstImageList(Ptr, ImagesCount);
+        }
+
+        [[nodiscard]] inline MappingList getMappingInfoList() noexcept {
+            const auto Ptr = reinterpret_cast<uint8_t *>(this) + MappingOffset;
+            return MappingList(Ptr, MappingCount);
         }
 
         [[nodiscard]]
-        inline BasicContiguousList<MappingInfo> getMappingInfoList() noexcept {
-            const auto Ptr = reinterpret_cast<uint8_t *>(this) + MappingOffset;
-            return BasicContiguousList<MappingInfo>(Ptr, MappingCount);
-        }
-
-        [[nodiscard]] inline BasicContiguousList<const MappingInfo>
-        getMappingInfoList() const noexcept {
+        inline ConstMappingList getMappingInfoList() const noexcept {
             return getConstMappingInfoList();
         }
 
-        [[nodiscard]] inline BasicContiguousList<const MappingInfo>
-        getConstMappingInfoList() const noexcept {
+        [[nodiscard]]
+        inline ConstMappingList getConstMappingInfoList() const noexcept {
             const auto Map = reinterpret_cast<const uint8_t *>(this);
             const auto Ptr = Map + MappingOffset;
 
-            return BasicContiguousList<const MappingInfo>(Ptr, MappingCount);
+            return ConstMappingList(Ptr, MappingCount);
         }
 
         [[nodiscard]] std::optional<uint64_t>
@@ -218,6 +222,19 @@ namespace DyldSharedCache {
             }
 
             return nullptr;
+        }
+
+        [[nodiscard]] inline LocationRange getMappingsRange() const noexcept {
+            auto End = LargestIntHelper();
+
+            const auto List = getConstMappingInfoList();
+            const auto Begin = List.front().Address;
+
+            for (const auto &Mapping : List) {
+                End = Mapping.Address + Mapping.Size;
+            }
+
+            return LocationRange::CreateWithEnd(Begin, End);
         }
     };
 

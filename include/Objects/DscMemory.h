@@ -166,26 +166,22 @@ public:
     }
 
     [[nodiscard]] inline
-    BasicContiguousList<DyldSharedCache::ImageInfo>
-    getImageInfoList() const noexcept {
+    DyldSharedCache::ImageList getImageInfoList() const noexcept {
         return getHeaderV0().getImageInfoList();
     }
 
-    [[nodiscard]]
-    inline BasicContiguousList<DyldSharedCache::MappingInfo>
-    getMappingInfoList() const noexcept {
+    [[nodiscard]] inline
+    DyldSharedCache::MappingList getMappingInfoList() const noexcept {
         return getHeaderV0().getMappingInfoList();
     }
 
     [[nodiscard]] inline
-    BasicContiguousList<const DyldSharedCache::ImageInfo>
-    getConstImageInfoList() const noexcept {
+    DyldSharedCache::ConstImageList getConstImageInfoList() const noexcept {
         return getHeaderV0().getConstImageInfoList();
     }
 
-    [[nodiscard]]
-    inline BasicContiguousList<const DyldSharedCache::MappingInfo>
-    getConstMappingInfoList() const noexcept {
+    [[nodiscard]] inline
+    DyldSharedCache::ConstMappingList getConstMappingInfoList() const noexcept {
         return getHeaderV0().getConstMappingInfoList();
     }
 
