@@ -162,6 +162,11 @@ public:
     }
 
     [[nodiscard]]
+    const DyldSharedCache::HeaderV0 &getDscHeaderV0() const noexcept {
+        return getDscHeader();
+    }
+
+    [[nodiscard]]
     const DyldSharedCache::HeaderV1 &getDscHeaderV1() const noexcept {
         const auto &Header = getDscHeader();
         assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV1));
