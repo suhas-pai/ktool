@@ -234,9 +234,9 @@ int main(int Argc, const char *Argv[]) {
 
             const auto OpsKind = Ops->getKind();
             fprintf(stdout,
-                    "Usage: --%s [Options] [Path] [Path-Options]\n"
+                    "Usage: ktool %s [Options] [Path] [Path-Options]\n"
                     "Options:\n",
-                    Operation::GetOptionName(OpsKind).data());
+                    Argv[1]);
 
             Operation::PrintOptionHelpMenu(OpsKind, stdout, "\t");
             return 0;
