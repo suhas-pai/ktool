@@ -13,7 +13,6 @@
 
 #include "RelativeRange.h"
 
-struct MemoryMap;
 struct ConstMemoryMap {
 protected:
     const uint8_t *Begin;
@@ -42,14 +41,6 @@ public:
     template <typename T>
     [[nodiscard]] inline const T *getEndAs() const noexcept {
         return reinterpret_cast<const T *>(getEnd());
-    }
-
-    inline operator MemoryMap &() noexcept {
-        return reinterpret_cast<MemoryMap &>(*this);
-    }
-
-    inline operator const MemoryMap &() const noexcept {
-        return reinterpret_cast<const MemoryMap &>(*this);
     }
 
     [[nodiscard]] inline RelativeRange getRange() const noexcept {
