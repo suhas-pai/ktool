@@ -1585,39 +1585,39 @@ namespace MachO {
                            uint32_t BindSize) noexcept;
 
     TypedAllocationOrError<BindOpcodeList, SizeRangeError>
-    GetBindOpcodeList(const MemoryMap &Map,
+    GetBindOpcodeList(const ConstMemoryMap &Map,
                       uint32_t BindOffset,
                       uint32_t BindSize,
                       bool Is64Bit) noexcept;
 
     TypedAllocationOrError<LazyBindOpcodeList, SizeRangeError>
-    GetLazyBindOpcodeList(const MemoryMap &Map,
+    GetLazyBindOpcodeList(const ConstMemoryMap &Map,
                           uint32_t BindOffset,
                           uint32_t BindSize,
                           bool Is64Bit) noexcept;
 
     TypedAllocationOrError<WeakBindOpcodeList, SizeRangeError>
-    GetWeakBindOpcodeList(const MemoryMap &Map,
+    GetWeakBindOpcodeList(const ConstMemoryMap &Map,
                           uint32_t BindOffset,
                           uint32_t BindSize,
                           bool Is64Bit) noexcept;
 
     TypedAllocationOrError<BindActionList, SizeRangeError>
-    GetBindActionList(const MemoryMap &Map,
+    GetBindActionList(const ConstMemoryMap &Map,
                       const SegmentInfoCollection &Collection,
                       uint32_t BindOffset,
                       uint32_t BindSize,
                       bool Is64Bit) noexcept;
 
     TypedAllocationOrError<LazyBindActionList, SizeRangeError>
-    GetLazyBindActionList(const MemoryMap &Map,
+    GetLazyBindActionList(const ConstMemoryMap &Map,
                           const SegmentInfoCollection &Collection,
                           uint32_t BindOffset,
                           uint32_t BindSize,
                           bool Is64Bit) noexcept;
 
     TypedAllocationOrError<WeakBindActionList, SizeRangeError>
-    GetWeakBindActionList(const MemoryMap &Map,
+    GetWeakBindActionList(const ConstMemoryMap &Map,
                           const SegmentInfoCollection &Collection,
                           uint32_t BindOffset,
                           uint32_t BindSize,

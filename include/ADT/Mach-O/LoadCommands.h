@@ -1879,7 +1879,7 @@ namespace MachO {
 
         [[nodiscard]] inline
         TypedAllocationOrError<BindOpcodeList, SizeRangeError>
-        GetBindOpcodeList(const MemoryMap &Map,
+        GetBindOpcodeList(const ConstMemoryMap &Map,
                           bool IsBigEndian,
                           bool Is64Bit) const noexcept
         {
@@ -1891,7 +1891,7 @@ namespace MachO {
 
         [[nodiscard]] inline
         TypedAllocationOrError<LazyBindOpcodeList, SizeRangeError>
-        GetLazyBindOpcodeList(const MemoryMap &Map,
+        GetLazyBindOpcodeList(const ConstMemoryMap &Map,
                               bool IsBigEndian,
                               bool Is64Bit) const noexcept
         {
@@ -1903,7 +1903,7 @@ namespace MachO {
 
         [[nodiscard]] inline
         TypedAllocationOrError<WeakBindOpcodeList, SizeRangeError>
-        GetWeakBindOpcodeList(const MemoryMap &Map,
+        GetWeakBindOpcodeList(const ConstMemoryMap &Map,
                               bool IsBigEndian,
                               bool Is64Bit) const noexcept
         {
@@ -1915,7 +1915,7 @@ namespace MachO {
 
         [[nodiscard]] inline
         TypedAllocationOrError<BindActionList, SizeRangeError>
-        GetBindActionList(const MemoryMap &Map,
+        GetBindActionList(const ConstMemoryMap &Map,
                           const SegmentInfoCollection &Collection,
                           bool IsBigEndian,
                           bool Is64Bit) const noexcept
@@ -1934,8 +1934,8 @@ namespace MachO {
 
         [[nodiscard]] inline
         TypedAllocationOrError<BindNakedOpcodeList, SizeRangeError>
-        GetLazyBindOpcodeList(const MemoryMap &Map,
-                              bool IsBigEndian) const noexcept
+        GetLazyBindNakedOpcodeList(const MemoryMap &Map,
+                                   bool IsBigEndian) const noexcept
         {
             const auto Offset = SwitchEndianIf(LazyBindOff, IsBigEndian);
             const auto Size = SwitchEndianIf(LazyBindSize, IsBigEndian);
@@ -1945,7 +1945,7 @@ namespace MachO {
 
         [[nodiscard]] inline
         TypedAllocationOrError<LazyBindActionList, SizeRangeError>
-        GetLazyBindActionList(const MemoryMap &Map,
+        GetLazyBindActionList(const ConstMemoryMap &Map,
                               const SegmentInfoCollection &Collection,
                               bool IsBigEndian,
                               bool Is64Bit) const noexcept
@@ -1964,8 +1964,8 @@ namespace MachO {
 
         [[nodiscard]] inline
         TypedAllocationOrError<BindNakedOpcodeList, SizeRangeError>
-        GetWeakBindOpcodeList(const MemoryMap &Map,
-                              bool IsBigEndian) const noexcept
+        GetWeakBindNakedOpcodeList(const MemoryMap &Map,
+                                   bool IsBigEndian) const noexcept
         {
             const auto Offset = SwitchEndianIf(WeakBindOff, IsBigEndian);
             const auto Size = SwitchEndianIf(WeakBindSize, IsBigEndian);
@@ -1975,7 +1975,7 @@ namespace MachO {
 
         [[nodiscard]] inline
         TypedAllocationOrError<WeakBindActionList, SizeRangeError>
-        GetWeakBindActionList(const MemoryMap &Map,
+        GetWeakBindActionList(const ConstMemoryMap &Map,
                               const SegmentInfoCollection &Collection,
                               bool IsBigEndian,
                               bool Is64Bit) const noexcept
@@ -2016,7 +2016,7 @@ namespace MachO {
 
         [[nodiscard]]
         TypedAllocationOrError<RebaseActionList, SizeRangeError>
-        GetRebaseActionList(const MemoryMap &Map,
+        GetRebaseActionList(const ConstMemoryMap &Map,
                             bool IsBigEndian,
                             bool Is64Bit) const noexcept
         {
@@ -2028,7 +2028,7 @@ namespace MachO {
 
         [[nodiscard]]
         TypedAllocationOrError<RebaseOpcodeList, SizeRangeError>
-        GetRebaseOpcodeList(const MemoryMap &Map,
+        GetRebaseOpcodeList(const ConstMemoryMap &Map,
                             bool IsBigEndian,
                             bool Is64Bit) const noexcept
         {

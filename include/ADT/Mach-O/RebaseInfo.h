@@ -771,7 +771,7 @@ namespace MachO {
             return *this;
         }
 
-        [[nodiscard]] 
+        [[nodiscard]]
         inline bool operator==(const RebaseActionIteratorEnd &) const noexcept {
             return IsAtEnd();
         }
@@ -1058,13 +1058,13 @@ namespace MachO {
                                   uint32_t RebaseSize) noexcept;
 
     TypedAllocationOrError<RebaseOpcodeList, SizeRangeError>
-    GetRebaseOpcodeList(const MemoryMap &Map,
+    GetRebaseOpcodeList(const ConstMemoryMap &Map,
                         uint32_t RebaseOffset,
                         uint32_t RebaseSize,
                         bool Is64Bit) noexcept;
 
     TypedAllocationOrError<RebaseActionList, SizeRangeError>
-    GetRebaseActionList(const MemoryMap &Map,
+    GetRebaseActionList(const ConstMemoryMap &Map,
                         uint32_t RebaseOffset,
                         uint32_t RebaseSize,
                         bool Is64Bit) noexcept;

@@ -115,7 +115,7 @@ public:
     [[nodiscard]] static MachOMemoryObject Open(const MemoryMap &Map) noexcept;
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
         const auto End = const_cast<uint8_t *>(this->End);
-        return ConstMemoryMap(const_cast<uint8_t *>(Map), End);
+        return MemoryMap(const_cast<uint8_t *>(Map), End);
     }
 
     [[nodiscard]] inline MachO::Header &getHeader() noexcept { return *Header; }

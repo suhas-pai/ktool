@@ -10,7 +10,7 @@
 
 namespace MachO {
     TypedAllocationOrError<RebaseNakedOpcodeList, SizeRangeError>
-    GetRebaseNakedOpcodeList(const MemoryMap &Map,
+    GetRebaseNakedOpcodeList(const ConstMemoryMap &Map,
                              uint32_t RebaseOff,
                              uint32_t RebaseSize) noexcept
     {
@@ -46,7 +46,7 @@ namespace MachO {
     }
 
     TypedAllocationOrError<RebaseOpcodeList, SizeRangeError>
-    GetRebaseOpcodeList(const MemoryMap &Map,
+    GetRebaseOpcodeList(const ConstMemoryMap &Map,
                         uint32_t RebaseOff,
                         uint32_t RebaseSize,
                         bool Is64Bit) noexcept
@@ -66,7 +66,7 @@ namespace MachO {
     }
 
     TypedAllocationOrError<RebaseActionList, SizeRangeError>
-    GetRebaseActionList(const MemoryMap &Map,
+    GetRebaseActionList(const ConstMemoryMap &Map,
                         uint32_t RebaseOff,
                         uint32_t RebaseSize,
                         bool Is64Bit) noexcept

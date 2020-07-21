@@ -19,8 +19,6 @@ protected:
     const uint8_t *End;
 public:
     explicit ConstMemoryMap(const uint8_t *Begin, const uint8_t *End) noexcept;
-    explicit ConstMemoryMap(const MemoryMap &Map) noexcept;
-
     [[nodiscard]] inline const uint8_t *getBegin() const noexcept {
         return Begin;
     }

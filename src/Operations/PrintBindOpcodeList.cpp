@@ -683,7 +683,7 @@ PrintOpcodeList(
         if (ShouldPrintBindList || ShouldPrintLazyBindList) {
             fputc('\n', Options.OutFile);
         }
-        
+
         switch (WeakBindOpcodeError) {
             case MachO::SizeRangeError::None:
                 break;

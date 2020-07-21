@@ -10,7 +10,7 @@
 
 namespace MachO {
     TypedAllocationOrError<BindNakedOpcodeList, SizeRangeError>
-    GetBindNakedOpcodeList(const MemoryMap &Map,
+    GetBindNakedOpcodeList(const ConstMemoryMap &Map,
                            uint32_t BindOffset,
                            uint32_t BindSize) noexcept
     {
@@ -45,7 +45,7 @@ namespace MachO {
     }
 
     TypedAllocationOrError<BindOpcodeList, SizeRangeError>
-    GetBindOpcodeList(const MemoryMap &Map,
+    GetBindOpcodeList(const ConstMemoryMap &Map,
                       uint32_t BindOffset,
                       uint32_t BindSize,
                       bool Is64Bit) noexcept
@@ -87,7 +87,7 @@ namespace MachO {
     }
 
     TypedAllocationOrError<LazyBindOpcodeList, SizeRangeError>
-    GetLazyBindOpcodeList(const MemoryMap &Map,
+    GetLazyBindOpcodeList(const ConstMemoryMap &Map,
                           uint32_t BindOffset,
                           uint32_t BindSize,
                           bool Is64Bit) noexcept
@@ -131,7 +131,7 @@ namespace MachO {
     }
 
     TypedAllocationOrError<WeakBindOpcodeList, SizeRangeError>
-    GetWeakBindOpcodeList(const MemoryMap &Map,
+    GetWeakBindOpcodeList(const ConstMemoryMap &Map,
                           uint32_t BindOffset,
                           uint32_t BindSize,
                           bool Is64Bit) noexcept
@@ -175,7 +175,7 @@ namespace MachO {
     }
 
     TypedAllocationOrError<BindActionList, SizeRangeError>
-    GetBindActionList(const MemoryMap &Map,
+    GetBindActionList(const ConstMemoryMap &Map,
                       const SegmentInfoCollection &SegmentCollection,
                       uint32_t BindOffset,
                       uint32_t BindSize,
@@ -199,7 +199,7 @@ namespace MachO {
     }
 
     TypedAllocationOrError<LazyBindActionList, SizeRangeError>
-    GetLazyBindActionList(const MemoryMap &Map,
+    GetLazyBindActionList(const ConstMemoryMap &Map,
                           const SegmentInfoCollection &SegmentCollection,
                           uint32_t BindOffset,
                           uint32_t BindSize,
@@ -223,7 +223,7 @@ namespace MachO {
     }
 
     TypedAllocationOrError<WeakBindActionList, SizeRangeError>
-    GetWeakBindActionList(const MemoryMap &Map,
+    GetWeakBindActionList(const ConstMemoryMap &Map,
                           const SegmentInfoCollection &SegmentCollection,
                           uint32_t BindOffset,
                           uint32_t BindSize,
