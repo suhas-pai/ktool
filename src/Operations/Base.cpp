@@ -503,6 +503,9 @@ Operation::PrintOptionHelpMenu(OperationKind Kind,
             break;
         case OperationKind::PrintImageList:
             fprintf(OutFile,
+                    "%s    --count,              Only print image-count\n",
+                    Prefix);
+            fprintf(OutFile,
                     "%s    --sort-by-address,    Sort Image List by "
                     "Image-Address\n",
                     Prefix);

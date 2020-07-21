@@ -66,6 +66,18 @@ CompareInfosBySortKind(
     assert(0 && "Unrecognized (and invalid) Sort-Type");
 }
 
+static void
+PrintImageCount(FILE *OutFile,
+                uint32_t ImageCount,
+                bool PrintColon = true) noexcept
+{
+    fprintf(OutFile, "Provided file has %" PRIu32 " Images", ImageCount);
+    if (PrintColon) {
+        fputc(':', OutFile);
+    }
+
+    fputc('\n', OutFile);
+}
 
 int
 PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
@@ -75,6 +87,11 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
     if (ImageCount == 0) {
         fputs("Provided file has no images\n", Options.ErrFile);
         return 1;
+    }
+
+    if (Options.OnlyCount) {
+        PrintImageCount(Options.OutFile, ImageCount, false);
+        return 0;
     }
 
     const auto Map = Object.getMap().getBegin();
@@ -112,12 +129,12 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
         std::sort(ImageInfoList.begin(), ImageInfoList.end(), Comparator);
     }
 
+    const auto &FirstMapping =
+        Object.getHeaderV0().getConstMappingInfoList().front();
     const auto ImageInfoListSizeDigitLength =
         PrintUtilsGetIntegerDigitLength(ImageCount);
 
-    fprintf(Options.OutFile,
-            "Provided file has %" PRIu32 " Images:\n",
-            ImageCount);
+    PrintImageCount(Options.OutFile, ImageCount);
 
     auto Counter = static_cast<uint64_t>(1);
     for (const auto &Info : ImageInfoList) {
@@ -134,8 +151,13 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
                 static_cast<int>(LongestImagePath + LENGTH_OF("\"\""));
 
             PrintUtilsRightPadSpaces(Options.OutFile, WrittenOut, RightPad);
-            PrintUtilsWriteOffset(Options.OutFile, Info.Address, " <Address: ");
 
+            fputs(" <", Options.OutFile);
+            if (Info.IsAlias(Map, FirstMapping)) {
+                fputs("Alias, ", Options.OutFile);
+            }
+
+            PrintUtilsWriteOffset(Options.OutFile, Info.Address, "Address: ");
             fprintf(Options.OutFile,
                     ", Modification-Time: %s, Inode: %" PRIu64 ">",
                     GetHumanReadableTimestamp(Info.ModTime).data(),
@@ -178,6 +200,8 @@ PrintImageListOperation::ParseOptionsImpl(const ArgvArray &Argv,
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
+        } else if (strcmp(Argument, "--count") == 0) {
+            Options.OnlyCount = true;
         } else if (strcmp(Argument, "--sort-by-address") == 0) {
             AddSortKind(Options::SortKind::ByAddress, Argument, Options);
         } else if (strcmp(Argument, "--sort-by-inode") == 0) {
@@ -199,6 +223,11 @@ PrintImageListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                     Argument.getString());
             exit(1);
         }
+    }
+
+    if (Options.OnlyCount && !Options.SortKindList.empty()) {
+        fputs("Error: Provided --sort-by-* when only printing count\n", stderr);
+        exit(1);
     }
 
     return Options;

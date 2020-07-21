@@ -33,6 +33,8 @@ public:
         };
 
         std::vector<SortKind> SortKindList;
+
+        bool OnlyCount : 1;
         bool Verbose : 1;
     };
 protected:
