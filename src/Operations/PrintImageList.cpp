@@ -129,12 +129,9 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
         std::sort(ImageInfoList.begin(), ImageInfoList.end(), Comparator);
     }
 
-    const auto &FirstMapping =
-        Object.getHeaderV0().getConstMappingInfoList().front();
+    PrintImageCount(Options.OutFile, ImageCount);
     const auto ImageInfoListSizeDigitLength =
         PrintUtilsGetIntegerDigitLength(ImageCount);
-
-    PrintImageCount(Options.OutFile, ImageCount);
 
     auto Counter = static_cast<uint64_t>(1);
     for (const auto &Info : ImageInfoList) {
@@ -153,7 +150,7 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
             PrintUtilsRightPadSpaces(Options.OutFile, WrittenOut, RightPad);
 
             fputs(" <", Options.OutFile);
-            if (Info.IsAlias(Map, FirstMapping)) {
+            if (Info.IsAlias(Map)) {
                 fputs("Alias, ", Options.OutFile);
             }
 

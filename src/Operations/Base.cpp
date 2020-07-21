@@ -204,8 +204,7 @@ Operation::PrintObjectKindNotSupportedError(
     assert(0 && "Reached end of PrintObjectKindNotSupportedError()");
 }
 
-std::string_view
-Operation::GetOptionShortName(OperationKind Kind) noexcept {
+std::string_view Operation::GetOptionShortName(OperationKind Kind) noexcept {
     switch (Kind) {
         case OperationKind::None:
             assert(0 && "Object-Kind is None");

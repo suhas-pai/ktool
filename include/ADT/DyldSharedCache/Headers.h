@@ -68,12 +68,7 @@ namespace DyldSharedCache {
         }
 
         [[nodiscard]] inline bool
-        IsAlias(const uint8_t *Map,
-                const MappingInfo &FirstMapping) const noexcept
-        {
-            const auto Ptr = reinterpret_cast<const char *>(&FirstMapping);
-            return (getPath(Map) < Ptr);
-        }
+        IsAlias(const uint8_t *Map) const noexcept;
     };
 
     struct ImageInfoExtra {
@@ -245,6 +240,14 @@ namespace DyldSharedCache {
             return LocationRange::CreateWithEnd(Begin, End);
         }
     };
+
+    bool ImageInfo::IsAlias(const uint8_t *Map) const noexcept {
+        const auto Header = reinterpret_cast<const HeaderV0 *>(Map);
+        const auto MappingList = Header->getConstMappingInfoList();
+        const auto FirstMappingFileOff = MappingList.front().FileOffset;
+
+        return (PathFileOffset < FirstMappingFileOff);
+    }
 
     // From dyld v195.5
 
