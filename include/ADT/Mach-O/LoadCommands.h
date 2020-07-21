@@ -285,13 +285,13 @@ namespace MachO {
         uint32_t Nsects;
         uint32_t Flags;
 
-        [[nodiscard]] constexpr inline
-        MemoryProtections getInitProt(bool IsBigEndian) const noexcept {
+        [[nodiscard]] constexpr
+        inline MemoryProtections getInitProt(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(InitProt, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr inline
-        MemoryProtections getMaxProt(bool IsBigEndian) const noexcept {
+        [[nodiscard]] constexpr
+        inline MemoryProtections getMaxProt(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(MaxProt, IsBigEndian);
         }
 
@@ -359,13 +359,13 @@ namespace MachO {
         uint32_t Nsects;
         uint32_t Flags;
 
-        [[nodiscard]] constexpr inline
-        MemoryProtections getInitProt(bool IsBigEndian) const noexcept {
+        [[nodiscard]] constexpr
+        inline MemoryProtections getInitProt(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(InitProt, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr inline
-        MemoryProtections getMaxProt(bool IsBigEndian) const noexcept {
+        [[nodiscard]] constexpr
+        inline MemoryProtections getMaxProt(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(MaxProt, IsBigEndian);
         }
 

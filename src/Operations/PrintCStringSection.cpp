@@ -98,7 +98,14 @@ PrintCStringList(
 
     if (Segment == nullptr) {
         fprintf(Options.ErrFile,
-                "Provided file has no segment with name \"%s\"",
+                "Provided file has no segment with name \"%s\"\n",
+                Options.SegmentName.data());
+        return 1;
+    }
+
+    if (Segment->Flags.IsProtected()) {
+        fprintf(Options.ErrFile,
+                "Provided segment \"%s\" is protected (encrypted)\n",
                 Options.SegmentName.data());
         return 1;
     }
