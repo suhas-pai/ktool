@@ -36,7 +36,7 @@ IterateLoadCommands(
     const struct PrintLoadCommandsOperation::Options &Options) noexcept
 {
     const auto IsBigEndian = Object.IsBigEndian();
-    const auto Is64Bit = Object.IsBigEndian();
+    const auto Is64Bit = Object.Is64Bit();
 
     auto LoadCmdCounter = uint32_t();
     for (const auto &LoadCmd : LoadCmdStorage) {
