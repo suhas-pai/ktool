@@ -490,7 +490,7 @@ int main(int Argc, const char *Argv[]) {
 
                 if (Object == nullptr) {
                     fprintf(stderr,
-                            "Image at Index %" PRIu32 "is invalid and cannot "
+                            "Image at Index %" PRIu32 " is invalid and cannot "
                             "be parsed\n",
                             ImageIndex);
                     return 1;
