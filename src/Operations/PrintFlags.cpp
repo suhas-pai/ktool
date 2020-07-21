@@ -70,11 +70,11 @@ int PrintFlagsOperation::Run(const MemoryObject &Object) const noexcept {
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
             return Run(cast<ObjectKind::MachO>(Object), Options);
+        case ObjectKind::DscImage:
+            return Run(cast<ObjectKind::DscImage>(Object), Options);
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
             return InvalidObjectKind;
-        case ObjectKind::DscImage:
-            return Run(cast<ObjectKind::DscImage>(Object), Options);
     }
 
     assert(0 && "Unrecognized Object-Kind");

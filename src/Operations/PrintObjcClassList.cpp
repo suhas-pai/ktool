@@ -223,9 +223,11 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
                                                  &SharedLibraryCollectionError);
 
     auto BindCollection = MachO::BindActionCollection();
+
+    const auto Map = Object.getMap();
     const auto GetBindActionResult =
         OperationCommon::GetBindActionCollection(Options.ErrFile,
-                                                 Object.getMap(),
+                                                 Map,
                                                  LoadCmdStorage,
                                                  SegmentCollection,
                                                  BindCollection,
@@ -234,8 +236,6 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
     if (GetBindActionResult != 0) {
         return GetBindActionResult;
     }
-
-    const auto Map = Object.getMap();
 
     auto DeVirtualizer = MachO::ConstDeVirtualizer(Map, SegmentCollection);
     auto Error = MachO::ObjcClassInfoCollection::Error();

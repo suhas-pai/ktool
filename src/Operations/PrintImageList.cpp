@@ -215,12 +215,12 @@ int PrintImageListOperation::Run(const MemoryObject &Object) const noexcept {
     switch (Object.getKind()) {
         case ObjectKind::None:
             assert(0 && "Object-Kind is None");
+        case ObjectKind::DyldSharedCache:
+            return Run(cast<ObjectKind::DyldSharedCache>(Object), Options);
         case ObjectKind::MachO:
         case ObjectKind::FatMachO:
         case ObjectKind::DscImage:
             return InvalidObjectKind;
-        case ObjectKind::DyldSharedCache:
-            return Run(cast<ObjectKind::DyldSharedCache>(Object), Options);
     }
 
     assert(0 && "Unrecognized Object-Kind");
