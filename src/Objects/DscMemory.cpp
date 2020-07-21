@@ -269,24 +269,26 @@ static const uint8_t *GetEndForMachOMap(const uint8_t *Map) noexcept {
         return nullptr;
     }
 
-    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
-    const auto SegmentCollection =
-        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
-                                           Is64Bit,
-                                           &SegmentCollectionError);
-
-    if (SegmentCollectionError != MachO::SegmentInfoCollection::Error::None) {
-        return nullptr;
-    }
-
-    if (SegmentCollection.empty()) {
-        return nullptr;
-    }
-
     auto End = Map;
-    for (const auto &Segment : SegmentCollection) {
-        if (DoesAddOverflow(End, Segment->File.size(), &End)) {
-            return nullptr;
+    if (Is64Bit) {
+        for (const auto &LoadCmd : LoadCmdStorage) {
+            const auto Segment =
+                LoadCmd.dyn_cast<MachO::LoadCommand::Kind::Segment64>(
+                    IsBigEndian);
+
+            if (Segment != nullptr) {
+                End += Segment->FileSize;
+            }
+        }
+    } else {
+        for (const auto &LoadCmd : LoadCmdStorage) {
+            const auto Segment =
+                LoadCmd.dyn_cast<MachO::LoadCommand::Kind::Segment>(
+                    IsBigEndian);
+
+            if (Segment != nullptr) {
+                End += Segment->FileSize;
+            }
         }
     }
 
@@ -316,16 +318,17 @@ ConstDscImageMemoryObject *
 ConstDscMemoryObject::GetImageWithInfo(
     const DyldSharedCache::ImageInfo &ImageInfo) const noexcept
 {
-    if (const auto Map = GetPtrForAddress(ImageInfo.Address)) {
+    if (const auto Ptr = GetPtrForAddress(ImageInfo.Address)) {
+        const auto Map = getMap();
         const auto ImageIndex = &ImageInfo - getImageInfoList().getBegin();
-        const auto End = GetEndForMachOMap(Map);
+        const auto End = GetEndForMachOMap(Ptr);
 
-        if (End != nullptr) {
+        if (End != nullptr && End <= Map.getEnd()) {
             const auto Result =
-                new ConstDscImageMemoryObject(getMap(),
+                new ConstDscImageMemoryObject(Map,
                                               ImageInfo,
                                               static_cast<uint32_t>(ImageIndex),
-                                              Map,
+                                              Ptr,
                                               End);
 
             return Result;
