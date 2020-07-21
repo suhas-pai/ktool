@@ -94,13 +94,13 @@ public:
         return (size() == 0);
     }
 
-    [[nodiscard]] constexpr inline
-    bool containsLocation(uint64_t Location) const noexcept {
+    [[nodiscard]]
+    constexpr inline bool containsLocation(uint64_t Location) const noexcept {
         return (!empty() && (Location >= Begin && Location < End));
     }
 
-    [[nodiscard]] constexpr inline
-    bool containsEndLocation(uint64_t EndLocation) const noexcept {
+    [[nodiscard]] constexpr
+    inline bool containsEndLocation(uint64_t EndLocation) const noexcept {
         return (!empty() && (EndLocation > Begin && EndLocation <= End));
     }
 
@@ -109,8 +109,8 @@ public:
         return (!empty() && (EndLocation <= End));
     }
 
-    [[nodiscard]] constexpr inline
-    bool containsRelativeLocation(uint64_t Location) const noexcept {
+    [[nodiscard]] constexpr
+    inline bool containsRelativeLocation(uint64_t Location) const noexcept {
         return (Location < size());
     }
 
@@ -136,33 +136,39 @@ public:
 
     [[nodiscard]] constexpr
     inline bool contains(const LocationRange &LocRange) const noexcept {
-        if (LocRange.empty()) {
+        if (empty()) {
             return false;
         }
 
-        const auto DoesContain =
-            containsLocation(LocRange.Begin) &&
-            containsEndLocation(LocRange.End);
+        const auto ContainsBegin = containsLocation(LocRange.Begin);
+        const auto ContainsEnd = containsEndLocation(LocRange.End);
 
-        return DoesContain;
+        if (LocRange.empty()) {
+            return (ContainsBegin || ContainsEnd);
+        }
+
+        return (ContainsBegin && ContainsEnd);
     }
 
     [[nodiscard]] constexpr inline
     bool containsAsRelative(const LocationRange &LocRange) const noexcept {
-        if (LocRange.empty()) {
+        if (empty()) {
             return false;
         }
 
-        const auto DoesContain =
-            containsRelativeLocation(LocRange.Begin) &&
-            containsRelativeEndLocation(LocRange.End);
+        const auto ContainsBegin = containsRelativeLocation(LocRange.Begin);
+        const auto ContainsEnd = containsRelativeEndLocation(LocRange.End);
 
-        return DoesContain;
+        if (LocRange.empty()) {
+            return (ContainsBegin || ContainsEnd);
+        }
+
+        return (ContainsBegin && ContainsEnd);
     }
 
     [[nodiscard]] constexpr
     inline bool overlaps(const LocationRange &LocRange) const noexcept {
-        if (LocRange.empty()) {
+        if (empty() || LocRange.empty()) {
             return false;
         }
 
@@ -177,13 +183,13 @@ public:
         return LocRange.contains(*this);
     }
 
-    [[nodiscard]] constexpr inline
-    uint64_t sizeFromLocation(uint64_t Location) const noexcept {
+    [[nodiscard]] constexpr
+    inline uint64_t sizeFromLocation(uint64_t Location) const noexcept {
         return sizeFromRelativeLocation(Location - Begin);
     }
 
-    [[nodiscard]] constexpr inline
-    uint64_t sizeFromRelativeLocation(uint64_t Location) const noexcept {
+    [[nodiscard]] constexpr
+    inline uint64_t sizeFromRelativeLocation(uint64_t Location) const noexcept {
         return (End - Location);
     }
 
@@ -193,4 +199,3 @@ public:
 
     [[nodiscard]] RelativeRange ToRelativeRange() const noexcept;
 };
-
