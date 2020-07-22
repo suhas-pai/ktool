@@ -52,7 +52,7 @@ GetCStringList(FILE *OutFile,
                std::vector<StringInfo> &StringList,
                LargestIntHelper<uint64_t> &LongestStringLength) noexcept
 {
-    if (Section->Memory.empty()) {
+    if (Section->File.empty()) {
         fputs("C-String Section is empty\n", OutFile);
         return;
     }
@@ -93,9 +93,7 @@ PrintCStringList(
     bool Is64Bit,
     const struct PrintCStringSectionOperation::Options &Options) noexcept
 {
-    const auto Segment =
-        SegmentCollection.GetInfoForName(Options.SegmentName);
-
+    const auto Segment = SegmentCollection.GetInfoForName(Options.SegmentName);
     if (Segment == nullptr) {
         fprintf(Options.ErrFile,
                 "Provided file has no segment with name \"%s\"\n",
@@ -299,11 +297,11 @@ PrintCStringSectionOperation::Run(const MemoryObject &Object) const noexcept {
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
             return Run(cast<ObjectKind::MachO>(Object), Options);
+        case ObjectKind::DscImage:
+            return Run(cast<ObjectKind::DscImage>(Object), Options);
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
             return InvalidObjectKind;
-        case ObjectKind::DscImage:
-            return Run(cast<ObjectKind::DscImage>(Object), Options);
     }
 
     assert(0 && "Unrecognized Object-Kind");
