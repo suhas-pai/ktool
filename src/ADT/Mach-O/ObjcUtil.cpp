@@ -210,11 +210,11 @@ namespace MachO {
 
         const auto Addr = reinterpret_cast<uint64_t>(Info->getSuper());
         const auto Error =
-            ParseObjcClass<PointerKind::s64Bit>(Addr,
-                                                DeVirtualizer,
-                                                BindCollection,
-                                                SuperInfo,
-                                                IsBigEndian);
+            ParseObjcClass<Kind>(Addr,
+                                 DeVirtualizer,
+                                 BindCollection,
+                                 SuperInfo,
+                                 IsBigEndian);
 
         if (Error != ObjcParseError::None) {
             return Error;
