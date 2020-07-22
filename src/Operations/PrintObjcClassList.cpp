@@ -87,7 +87,7 @@ PrintClassRoFlags(FILE *OutFile, const MachO::ObjcClassRoFlags &Flags) noexcept
         fputs("Has C++ Constructor & Destructor", OutFile);
     }
 
-    if (Flags.ForbidsAssociatedObjects()) {
+    if (Flags.forbidsAssociatedObjects()) {
         PrintFlagSeparator(OutFile, DidPrint);
         fputs("Forbids Associated-Objects", OutFile);
     }

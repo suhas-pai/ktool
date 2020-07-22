@@ -110,7 +110,7 @@ namespace MachO {
             return hasValueForMask(Masks::HasWeakWithoutARC);
         }
 
-        [[nodiscard]] inline bool ForbidsAssociatedObjects() const noexcept {
+        [[nodiscard]] inline bool forbidsAssociatedObjects() const noexcept {
             return hasValueForMask(Masks::ForbidsAssociatedObjects);
         }
 
