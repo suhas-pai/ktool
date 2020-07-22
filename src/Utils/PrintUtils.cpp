@@ -11,6 +11,59 @@
 
 int
 PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
+                                       const char *SegmentName,
+                                       const char *SectionName,
+                                       bool Pad,
+                                       const char *Prefix,
+                                       const char *Suffix) noexcept
+{
+    constexpr static auto NameLengthMax = 16;
+    auto WrittenOut = fprintf(OutFile, "%s", Prefix);
+
+    if (SegmentName != nullptr) {
+        if (Pad) {
+            const auto PadLength =
+                NameLengthMax - strnlen(SegmentName, NameLengthMax);
+
+            if (PadLength != 0) {
+                PrintUtilsPadSpaces(OutFile, static_cast<int>(PadLength));
+            }
+        }
+
+        WrittenOut +=
+            fprintf(OutFile,
+                    "\"" CHAR_ARR_FMT(16) "\",",
+                    SegmentName);
+
+        if (SectionName != nullptr) {
+            const auto PrintSectLength =
+                fprintf(OutFile, "\"" CHAR_ARR_FMT(16) "\"", SectionName);
+
+            if (Pad) {
+                WrittenOut +=
+                    PrintUtilsRightPadSpaces(OutFile,
+                                            PrintSectLength,
+                                            NameLengthMax + LENGTH_OF("\"\""));
+            }
+
+            WrittenOut += PrintSectLength;
+        } else {
+            WrittenOut += fputs("<invalid>", OutFile);
+        }
+    } else if (Pad) {
+        // 2 NameLengthMax for max-names of segment and section, 4 for the
+        // apostraphes, and 1 for the comma.
+
+        constexpr auto MaxWrittenOut = (2 * NameLengthMax) + 4 + 1;
+        PrintUtilsRightPadSpaces(OutFile, WrittenOut, MaxWrittenOut);
+    }
+
+    WrittenOut += fprintf(OutFile, "%s", Suffix);
+    return WrittenOut;
+}
+
+int
+PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
                                        const MachO::SegmentInfo *Segment,
                                        const MachO::SectionInfo *Section,
                                        bool Pad,

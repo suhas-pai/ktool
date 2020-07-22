@@ -29,26 +29,6 @@ struct RebaseOpcodeInfo : public MachO::RebaseOpcodeIterateInfo {
     const MachO::SectionInfo *Section;
 };
 
-static void
-PrintRebaseInfo(FILE *OutFile,
-                const MachO::SharedLibraryInfoCollection &LibraryCollection,
-                const RebaseOpcodeInfo &Info,
-                bool Is64Bit,
-                bool Verbose) noexcept
-{
-    if (!Verbose) {
-        return;
-    }
-
-    PrintUtilsWriteMachOSegmentSectionPair(OutFile,
-                                           Info.Segment,
-                                           Info.Section,
-                                           true,
-                                           "Section :");
-
-    PrintUtilsWriteOffset(OutFile, Info.AddrInSeg, Is64Bit, "Address: ");
-}
-
 static inline void
 GetSegmentAndSection(const MachO::SegmentInfoCollection &Collection,
                      int64_t SegmentIndex,
@@ -229,42 +209,18 @@ PrintRebaseOpcodeList(
     const ConstMemoryMap &Map,
     const struct PrintRebaseOpcodeListOperation::Options &Options) noexcept
 {
-    auto FoundDyldInfo = static_cast<const MachO::DyldInfoCommand *>(nullptr);
-
     const auto IsBigEndian = Object.IsBigEndian();
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
-    for (const auto &LoadCmd : LoadCmdStorage) {
-        const auto *DyldInfo =
-            dyn_cast<MachO::DyldInfoCommand>(LoadCmd, IsBigEndian);
+    auto DyldInfo = static_cast<const MachO::DyldInfoCommand *>(nullptr);
+    const auto GetDyldInfoResult =
+        OperationCommon::GetDyldInfoCommand(Options.ErrFile,
+                                            LoadCmdStorage,
+                                            DyldInfo);
 
-        if (DyldInfo == nullptr) {
-            continue;
-        }
-
-        if (FoundDyldInfo != nullptr) {
-            if (DyldInfo->RebaseOff != FoundDyldInfo->RebaseOff ||
-                DyldInfo->RebaseSize != FoundDyldInfo->RebaseSize)
-            {
-                fputs("Provided file has multiple (conflicting) Rebase-Lists\n",
-                      Options.ErrFile);
-                return 1;
-            }
-        }
-
-        if (DyldInfo->RebaseSize == 0) {
-            fputs("Provided file has no Rebase-Opcodes\n", Options.ErrFile);
-            return 0;
-        }
-
-        FoundDyldInfo = DyldInfo;
-    }
-
-    if (FoundDyldInfo == nullptr) {
-        fputs("Provided file does not have a Dyld-Info Load Command\n",
-              Options.ErrFile);
-        return 0;
+    if (GetDyldInfoResult != 0) {
+        return GetDyldInfoResult;
     }
 
     auto LibraryCollectionError =
@@ -292,7 +248,7 @@ PrintRebaseOpcodeList(
                                                   SegmentCollectionError);
 
     const auto RebaseOpcodeListOpt =
-        FoundDyldInfo->GetRebaseOpcodeList(Map, IsBigEndian, Is64Bit);
+        DyldInfo->GetRebaseOpcodeList(Map, IsBigEndian, Is64Bit);
 
     switch (RebaseOpcodeListOpt.getError()) {
         case MachO::SizeRangeError::None:
@@ -314,15 +270,12 @@ PrintRebaseOpcodeList(
 
     Operation::PrintLineSpamWarning(Options.OutFile, Collection.size());
 
+    const auto PtrSize = PointerSize(Is64Bit);
     const auto SizeDigitLength =
         PrintUtilsGetIntegerDigitLength(Collection.size());
 
     auto Counter = static_cast<uint64_t>(1);
     for (const auto &Iter : Collection) {
-        constexpr auto LongestOpcodeLength =
-            EnumHelper<MachO::RebaseByte::Opcode>::GetLongestAssocLength(
-                MachO::RebaseByteOpcodeGetName);
-
         const auto &Byte = Iter.Byte;
         const auto &OpcodeName =
             MachO::RebaseByteOpcodeGetName(Byte.getOpcode());
@@ -333,12 +286,28 @@ PrintRebaseOpcodeList(
                 Counter,
                 OpcodeName.data());
 
-        const auto PadSpacesAfterOpcode = [&]() noexcept {
-            PrintUtilsRightPadSpaces(Options.OutFile,
-                                     static_cast<int>(OpcodeName.length()),
-                                     LongestOpcodeLength + 25);
+        const auto PrintAddressInfo = [&](uint64_t Add = 0) noexcept {
+            if ((&Iter) != (&Collection.back() + 1)) {
+                if ((&Iter)[1].AddrInSegOverflows) {
+                    fputs(" (Overflows)", Options.OutFile);
+                    return;
+                }
+            }
 
-            fputs("\t\t", Options.OutFile);
+            PrintUtilsWriteOffset(Options.OutFile,
+                                  Iter.AddrInSeg + Add,
+                                  Is64Bit,
+                                  " - (Segment-Address: ",
+                                  ", ");
+
+            const auto FullAddr =
+                Iter.Segment->Memory.getBegin() + Iter.AddrInSeg + Add;
+
+            PrintUtilsWriteOffset(Options.OutFile,
+                                  FullAddr,
+                                  Is64Bit,
+                                  "Full-Address: ",
+                                  ")");
         };
 
         switch (Byte.getOpcode()) {
@@ -355,93 +324,84 @@ PrintRebaseOpcodeList(
                 break;
             }
             case MachO::RebaseByte::Opcode::SetSegmentAndOffsetUleb: {
-                fprintf(Options.OutFile, "(%" PRIu32 ", ", Iter.SegmentIndex);
-                PrintUtilsWriteOffset(Options.OutFile,
-                                      Iter.AddrInSeg,
-                                      Is64Bit,
-                                      "",
-                                      ")");
-
+                fprintf(Options.OutFile, "(%" PRIu32, Iter.SegmentIndex);
                 if (Options.Verbose) {
-                    PadSpacesAfterOpcode();
                     PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
                                                            Iter.Segment,
                                                            Iter.Section,
-                                                           true);
+                                                           false,
+                                                           " - (",
+                                                           "), ");
+                }
 
+                PrintUtilsWriteOffset(Options.OutFile,
+                                      Iter.AddrInSeg,
+                                      Is64Bit);
+
+                if (Options.Verbose) {
                     if (Iter.Segment != nullptr) {
                         const auto FullAddr =
                             Iter.Segment->Memory.getBegin() + Iter.AddrInSeg;
 
                         PrintUtilsWriteOffset(Options.OutFile,
                                               FullAddr,
-                                              Is64Bit,
-                                              " ");
+                                              Is64Bit);
                     }
                 }
 
-                fputc('\n', Options.OutFile);
+                fputs(")\n", Options.OutFile);
                 break;
             }
-            case MachO::RebaseByte::Opcode::AddAddrImmScaled:
-            case MachO::RebaseByte::Opcode::AddAddrUleb: {
-                fprintf(Options.OutFile, "(%" PRId64 ")", Iter.AddAddr);
-
+            case MachO::RebaseByte::Opcode::AddAddrImmScaled: {
+                fprintf(Options.OutFile, "(%" PRId64, Iter.Scale);
                 if (Options.Verbose) {
-                    PadSpacesAfterOpcode();
-                    PrintUtilsWriteOffset(Options.OutFile,
-                                          Iter.AddrInSeg,
-                                          Is64Bit);
+                    PrintAddressInfo(Iter.Scale * PtrSize);
                 }
 
-                fputc('\n', Options.OutFile);
+                fputs(")\n", Options.OutFile);
+                break;
+            }
+            case MachO::RebaseByte::Opcode::AddAddrUleb: {
+                fprintf(Options.OutFile, "(%" PRId64, Iter.AddAddr);
+                if (Options.Verbose) {
+                    PrintAddressInfo();
+                }
+
+                fputs(")\n", Options.OutFile);
                 break;
             }
             case MachO::RebaseByte::Opcode::DoRebaseAddAddrUleb:
-                fprintf(Options.OutFile, "(%" PRId64 ")", Iter.AddAddr);
-
+                fprintf(Options.OutFile, "(%" PRId64, Iter.AddAddr);
                 if (Options.Verbose) {
-                    PadSpacesAfterOpcode();
-                    PrintRebaseInfo(Options.OutFile,
-                                    SharedLibraryCollection,
-                                    Iter,
-                                    Is64Bit,
-                                    Options.Verbose);
+                    PrintAddressInfo(Iter.AddAddr);
                 }
 
-                fputc('\n', Options.OutFile);
+                fputs(")\n", Options.OutFile);
                 break;
             case MachO::RebaseByte::Opcode::DoRebaseImmTimes:
             case MachO::RebaseByte::Opcode::DoRebaseUlebTimes: {
-                fprintf(Options.OutFile, "(%" PRId64 ")", Iter.Count);
+                fprintf(Options.OutFile, "(%" PRId64, Iter.Count);
                 if (Options.Verbose) {
-                    PadSpacesAfterOpcode();
-                    PrintRebaseInfo(Options.OutFile,
-                                    SharedLibraryCollection,
-                                    Iter,
-                                    Is64Bit,
-                                    Options.Verbose);
+                    PrintAddressInfo(Iter.Count * PtrSize);
                 }
 
-                fputc('\n', Options.OutFile);
+                fputs(")\n", Options.OutFile);
                 break;
             }
             case MachO::RebaseByte::Opcode::DoRebaseUlebTimesSkipUleb: {
                 fprintf(Options.OutFile,
-                        "(%" PRId64 ", %" PRIu64 ")",
+                        "(Skip: %" PRId64 ", Count: %" PRIu64,
                         Iter.Skip,
                         Iter.Count);
 
                 if (Options.Verbose) {
-                    PadSpacesAfterOpcode();
-                    PrintRebaseInfo(Options.OutFile,
-                                    SharedLibraryCollection,
-                                    Iter,
-                                    Is64Bit,
-                                    Options.Verbose);
+                    const auto Add =
+                        (Iter.Skip * Iter.Count) + (Iter.Count * PtrSize);
+
+                    PrintAddressInfo(Add);
                 }
 
-                fputc('\n', Options.OutFile);
+                fputs(")\n", Options.OutFile);
                 break;
             }
         }

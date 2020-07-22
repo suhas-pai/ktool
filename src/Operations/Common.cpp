@@ -266,6 +266,7 @@ OperationCommon::PrintDylibOrdinalPath(
     int64_t DylibOrdinal) noexcept
 {
     if (DylibOrdinal <= 0) {
+        fputs("<Invalid Dylib-Ordinal>", OutFile);
         return;
     }
 

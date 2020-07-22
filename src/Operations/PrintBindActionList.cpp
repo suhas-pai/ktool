@@ -353,9 +353,8 @@ PrintBindActionList(
             Is64Bit,
             Options);
 
-        OperationCommon::HandleBindOpcodeParseError(
-            Options.ErrFile,
-            BindActionListError);
+        OperationCommon::HandleBindOpcodeParseError(Options.ErrFile,
+                                                    BindActionListError);
     }
 
     switch (LazyBindActionListRangeError) {
@@ -387,17 +386,15 @@ PrintBindActionList(
             fputc('\n', Options.OutFile);
         }
 
-        PrintBindActionList<MachO::BindInfoKind::Lazy>(
-            "Lazy-Bind",
-            LazyBindActionInfoList,
-            SegmentCollection,
-            SharedLibraryCollection,
-            Is64Bit,
-            Options);
+        PrintBindActionList<MachO::BindInfoKind::Lazy>("Lazy-Bind",
+                                                       LazyBindActionInfoList,
+                                                       SegmentCollection,
+                                                       SharedLibraryCollection,
+                                                       Is64Bit,
+                                                       Options);
 
-        OperationCommon::HandleBindOpcodeParseError(
-            Options.ErrFile,
-            LazyBindActionListError);
+        OperationCommon::HandleBindOpcodeParseError(Options.ErrFile,
+                                                    LazyBindActionListError);
     }
 
     switch (WeakBindActionListRangeError) {
@@ -429,17 +426,15 @@ PrintBindActionList(
             fputc('\n', Options.OutFile);
         }
 
-        PrintBindActionList<MachO::BindInfoKind::Weak>(
-            "Weak-Bind",
-            WeakBindActionInfoList,
-            SegmentCollection,
-            SharedLibraryCollection,
-            Is64Bit,
-            Options);
+        PrintBindActionList<MachO::BindInfoKind::Weak>("Weak-Bind",
+                                                       WeakBindActionInfoList,
+                                                       SegmentCollection,
+                                                       SharedLibraryCollection,
+                                                       Is64Bit,
+                                                       Options);
 
-        OperationCommon::HandleBindOpcodeParseError(
-            Options.ErrFile,
-            WeakBindActionListError);
+        OperationCommon::HandleBindOpcodeParseError(Options.ErrFile,
+                                                    WeakBindActionListError);
     }
 
     return 0;

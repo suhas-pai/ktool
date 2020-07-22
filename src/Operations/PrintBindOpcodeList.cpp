@@ -42,16 +42,6 @@ static void PrintFlags(FILE *OutFile, MachO::BindSymbolFlags Flags) noexcept {
     fputc(')', OutFile);
 }
 
-static
-void PrintSymbolName(FILE *OutFile, const std::string_view &Name) noexcept {
-    if (Name.empty()) {
-        fputs("\"\"", OutFile);
-        return;
-    }
-
-    fprintf(OutFile, "\"%s\"", Name.data());
-}
-
 struct BindOpcodeInfo : public MachO::BindOpcodeIterateInfo {
     MachO::BindByte Byte;
 
@@ -61,33 +51,6 @@ struct BindOpcodeInfo : public MachO::BindOpcodeIterateInfo {
     const MachO::SegmentInfo *Segment;
     const MachO::SectionInfo *Section;
 };
-
-static void
-PrintBindInfo(FILE *OutFile,
-              const MachO::SharedLibraryInfoCollection &LibraryCollection,
-              const BindOpcodeInfo &Info,
-              bool Is64Bit) noexcept
-{
-    PrintUtilsWriteMachOSegmentSectionPair(OutFile,
-                                           Info.Segment,
-                                           Info.Section,
-                                           true,
-                                           "Section: ");
-
-    PrintUtilsWriteOffset(OutFile,
-                          Info.AddrInSeg,
-                          Is64Bit,
-                          "Address: ",
-                          ", ");
-
-    OperationCommon::PrintDylibOrdinalInfo(OutFile,
-                                           LibraryCollection,
-                                           Info.DylibOrdinal,
-                                           true);
-
-    fputs(", Symbol: ", OutFile);
-    PrintSymbolName(OutFile, Info.SymbolName);
-}
 
 static inline void
 GetSegmentAndSection(const MachO::SegmentInfoCollection &Collection,
@@ -118,8 +81,6 @@ CollectBindOpcodeList(
 {
     auto OpcodeInfo = BindOpcodeInfo();
     auto InfoList = std::vector<BindOpcodeInfo>();
-
-    auto AddressOverflows = false;
     auto Counter = uint64_t();
 
     for (const auto &Iter : List) {
@@ -187,7 +148,7 @@ CollectBindOpcodeList(
                                     PointerSize(Is64Bit),
                                     &OpcodeInfo.AddrInSeg))
                 {
-                    AddressOverflows = true;
+                    OpcodeInfo.AddrInSegOverflows = true;
                     continue;
                 }
 
@@ -236,7 +197,7 @@ CollectBindOpcodeList(
                                                PtrSize,
                                                &Add))
                 {
-                    AddressOverflows = true;
+                    OpcodeInfo.AddrInSegOverflows = true;
                     continue;
                 }
 
@@ -244,7 +205,7 @@ CollectBindOpcodeList(
                                     Add,
                                     &OpcodeInfo.AddrInSeg))
                 {
-                    AddressOverflows = true;
+                    OpcodeInfo.AddrInSegOverflows = true;
                     continue;
                 }
 
@@ -266,13 +227,13 @@ CollectBindOpcodeList(
                 auto StepSize = int64_t();
 
                 if (DoesAddOverflow(IterInfo.Skip, PtrSize, &StepSize)) {
-                    AddressOverflows = true;
+                    OpcodeInfo.AddrInSegOverflows = true;
                     break;
                 }
 
                 auto Add = int64_t();
                 if (DoesMultiplyOverflow(StepSize, IterInfo.Count, &Add)) {
-                    AddressOverflows = true;
+                    OpcodeInfo.AddrInSegOverflows = true;
                     break;
                 }
 
@@ -280,7 +241,7 @@ CollectBindOpcodeList(
                                     Add,
                                     &OpcodeInfo.AddrInSeg))
                 {
-                    AddressOverflows = true;
+                    OpcodeInfo.AddrInSegOverflows = true;
                     break;
                 }
 
@@ -318,12 +279,9 @@ PrintBindOpcodeList(
     const auto SizeDigitLength = PrintUtilsGetIntegerDigitLength(List.size());
 
     for (const auto &Iter : List) {
-        constexpr auto LongestOpcodeLength =
-            EnumHelper<MachO::BindByte::Opcode>::GetLongestAssocLength(
-                MachO::BindByteOpcodeGetName);
-
         const auto &Byte = Iter.Byte;
         const auto &OpcodeName = MachO::BindByteOpcodeGetName(Byte.getOpcode());
+        const auto PtrSize = PointerSize(Is64Bit);
 
         fprintf(Options.OutFile,
                 "%s %0*" PRIu64 ": %s",
@@ -332,12 +290,28 @@ PrintBindOpcodeList(
                 Counter,
                 OpcodeName.data());
 
-        const auto PadSpacesAfterOpcode = [&]() noexcept {
-            PrintUtilsRightPadSpaces(Options.OutFile,
-                                     static_cast<int>(OpcodeName.length()),
-                                     LongestOpcodeLength + 25);
+        const auto PrintAddressInfo = [&](uint64_t Add = 0) noexcept {
+            if ((&Iter) != (&List.back() + 1)) {
+                if ((&Iter)[1].AddrInSegOverflows) {
+                    fputs(" (Overflows)", Options.OutFile);
+                    return;
+                }
+            }
 
-            fputs("\t\t", Options.OutFile);
+            PrintUtilsWriteOffset(Options.OutFile,
+                                  Iter.AddrInSeg + Add,
+                                  Is64Bit,
+                                  " - (Segment-Address: ",
+                                  ", ");
+
+            const auto FullAddr =
+                Iter.Segment->Memory.getBegin() + Iter.AddrInSeg + Add;
+
+            PrintUtilsWriteOffset(Options.OutFile,
+                                  FullAddr,
+                                  Is64Bit,
+                                  "Full-Address: ",
+                                  ")");
         };
 
         switch (Byte.getOpcode()) {
@@ -351,34 +325,35 @@ PrintBindOpcodeList(
             case MachO::BindByte::Opcode::SetDylibOrdinalImm:
             case MachO::BindByte::Opcode::SetDylibOrdinalUleb:
             case MachO::BindByte::Opcode::SetDylibSpecialImm:
-                fprintf(Options.OutFile, "(%" PRId64 ")", Iter.DylibOrdinal);
+                fprintf(Options.OutFile, "(%" PRId64, Iter.DylibOrdinal);
                 if (Options.Verbose) {
-                    PadSpacesAfterOpcode();
+                    fputs(" - ", Options.OutFile);
                     OperationCommon::PrintDylibOrdinalPath(Options.OutFile,
                                                            LibraryCollection,
                                                            Iter.DylibOrdinal);
                 }
 
-                fputc('\n', Options.OutFile);
+                fputs(")\n", Options.OutFile);
                 break;
             case MachO::BindByte::Opcode::SetSymbolTrailingFlagsImm:
                 fprintf(Options.OutFile,
-                        "(%s, %" PRIu8 ")",
+                        "(\"%s\", %" PRIu8,
                         Iter.SymbolName.data(),
                         Iter.Flags.value());
 
-                if (Options.Verbose && !Iter.Flags.empty()) {
-                    PadSpacesAfterOpcode();
-                    fputc('(', Options.OutFile);
-                    PrintFlags(Options.OutFile, Iter.Flags);
-                    fputc(')', Options.OutFile);
+                if (Options.Verbose) {
+                    if (!Iter.Flags.empty()) {
+                        PrintFlags(Options.OutFile, Iter.Flags);
+                    }
                 }
 
-                fputc('\n', Options.OutFile);
+                fputs(")\n", Options.OutFile);
                 break;
 
             case MachO::BindByte::Opcode::SetTypeImm: {
-                auto KindName = MachO::BindWriteKindGetName(Iter.WriteKind).data();
+                auto KindName =
+                    MachO::BindWriteKindGetName(Iter.WriteKind).data();
+
                 if (KindName == nullptr) {
                     KindName = "<unrecognized>";
                 }
@@ -395,20 +370,23 @@ PrintBindOpcodeList(
 
                 break;
             case MachO::BindByte::Opcode::SetSegmentAndOffsetUleb: {
-                fprintf(Options.OutFile, "(%" PRId64 ", ", Iter.SegmentIndex);
-                PrintUtilsWriteOffset(Options.OutFile,
-                                      Iter.AddrInSeg,
-                                      Is64Bit,
-                                      "",
-                                      ")");
-
+                fprintf(Options.OutFile, "(%" PRId64, Iter.SegmentIndex);
                 if (Options.Verbose) {
-                    PadSpacesAfterOpcode();
                     PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
                                                            Iter.Segment,
                                                            Iter.Section,
-                                                           true);
+                                                           false,
+                                                           " - (",
+                                                           ")");
+                }
 
+                PrintUtilsWriteOffset(Options.OutFile,
+                                      Iter.AddrInSeg,
+                                      Is64Bit,
+                                      ", ",
+                                      "");
+
+                if (Options.Verbose) {
                     if (Iter.Segment != nullptr) {
                         const auto FullAddr =
                             Iter.Segment->Memory.getBegin() + Iter.AddrInSeg;
@@ -416,76 +394,57 @@ PrintBindOpcodeList(
                         PrintUtilsWriteOffset(Options.OutFile,
                                               FullAddr,
                                               Is64Bit,
-                                              " ");
+                                              " (Full Address: ",
+                                              ")");
                     }
                 }
 
-                fputc('\n', Options.OutFile);
+                fputs(")\n", Options.OutFile);
                 break;
             }
             case MachO::BindByte::Opcode::AddAddrUleb: {
-                fprintf(Options.OutFile, "(%" PRId64 ")", Iter.AddAddr);
+                fprintf(Options.OutFile, "(%" PRId64, Iter.AddAddr);
                 if (Options.Verbose) {
-                    PadSpacesAfterOpcode();
-                    PrintUtilsWriteOffset(Options.OutFile,
-                                          Iter.AddrInSeg,
-                                          Is64Bit);
+                    PrintAddressInfo();
                 }
 
-                fputc('\n', Options.OutFile);
+                fputs(")\n", Options.OutFile);
                 break;
             }
             case MachO::BindByte::Opcode::DoBind:
-                if (Options.Verbose) {
-                    PadSpacesAfterOpcode();
-                    PrintBindInfo(Options.OutFile,
-                                  LibraryCollection,
-                                  Iter,
-                                  Is64Bit);
-                }
-
                 fputc('\n', Options.OutFile);
                 break;
             case MachO::BindByte::Opcode::DoBindAddAddrUleb:
-                fprintf(Options.OutFile, "(%" PRId64 ")", Iter.AddAddr);
+                fprintf(Options.OutFile, "(%" PRId64, Iter.AddAddr);
                 if (Options.Verbose) {
-                    PadSpacesAfterOpcode();
-                    PrintBindInfo(Options.OutFile,
-                                  LibraryCollection,
-                                  Iter,
-                                  Is64Bit);
+                    PrintAddressInfo(PtrSize);
                 }
 
-                fputc('\n', Options.OutFile);
+                fputs(")\n", Options.OutFile);
                 break;
             case MachO::BindByte::Opcode::DoBindAddAddrImmScaled: {
-                fprintf(Options.OutFile, "(%" PRId64 ")", Iter.Scale);
+                fprintf(Options.OutFile, "(%" PRId64, Iter.Scale);
                 if (Options.Verbose) {
-                    PadSpacesAfterOpcode();
-                    PrintBindInfo(Options.OutFile,
-                                  LibraryCollection,
-                                  Iter,
-                                  Is64Bit);
+                    PrintAddressInfo(Iter.Scale * PtrSize);
                 }
 
-                fputc('\n', Options.OutFile);
+                fputs(")\n", Options.OutFile);
                 break;
             }
             case MachO::BindByte::Opcode::DoBindUlebTimesSkippingUleb: {
                 fprintf(Options.OutFile,
-                        "(%" PRId64 ", %" PRIu64 ")",
+                        "(Skip: %" PRId64 ", Count: %" PRIu64,
                         Iter.Skip,
                         Iter.Count);
 
                 if (Options.Verbose) {
-                    PadSpacesAfterOpcode();
-                    PrintBindInfo(Options.OutFile,
-                                  LibraryCollection,
-                                  Iter,
-                                  Is64Bit);
+                    const auto Add =
+                        (Iter.Skip * Iter.Count) + (Iter.Count * PtrSize);
+
+                    PrintAddressInfo(Add);
                 }
 
-                fputc('\n', Options.OutFile);
+                fputs(")\n", Options.OutFile);
                 break;
             }
             case MachO::BindByte::Opcode::Threaded:

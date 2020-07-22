@@ -142,7 +142,7 @@ PrintRebaseActionList(
         case MachO::SizeRangeError::None:
             break;
         case MachO::SizeRangeError::Empty:
-            fputs("No Rebase Info\n", Options.ErrFile);
+            fputs("Provided file has no Rebase Info\n", Options.OutFile);
             return 0;
         case MachO::SizeRangeError::Overflows:
         case MachO::SizeRangeError::PastEnd:
