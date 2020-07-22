@@ -200,7 +200,7 @@ public:
         return getHeaderV0().GetPtrForAddress<T>(Address);
     }
 
-    inline const DyldSharedCache::ImageInfo &
+    [[nodiscard]] inline const DyldSharedCache::ImageInfo &
     getImageInfoAtIndex(uint32_t Index) const noexcept {
         return getConstImageInfoList().at(Index);
     }

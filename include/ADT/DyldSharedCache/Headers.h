@@ -67,8 +67,7 @@ namespace DyldSharedCache {
             return reinterpret_cast<const char *>(Map) + PathFileOffset;
         }
 
-        [[nodiscard]] inline bool
-        IsAlias(const uint8_t *Map) const noexcept;
+        [[nodiscard]] inline bool IsAlias(const uint8_t *Map) const noexcept;
     };
 
     struct ImageInfoExtra {

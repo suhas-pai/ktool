@@ -496,7 +496,7 @@ PrintUtilsWriteBackwards(FILE *OutFile, const char *String, int Length) noexcept
 }
 
 template <typename T>
-inline int PrintUtilsGetIntegerDigitLength(T Integer) noexcept {
+[[nodiscard]] inline int PrintUtilsGetIntegerDigitLength(T Integer) noexcept {
     static_assert(std::is_integral_v<T>, "T must be an integer-type");
 
     auto DigitLength = int();
@@ -508,7 +508,7 @@ inline int PrintUtilsGetIntegerDigitLength(T Integer) noexcept {
 }
 
 template <typename T>
-inline int
+[[nodiscard]] inline int
 PrintUtilsGetIntegerDigitLength(const LargestIntHelper<T> &Helper) noexcept {
     return PrintUtilsGetIntegerDigitLength(Helper.value());
 }
