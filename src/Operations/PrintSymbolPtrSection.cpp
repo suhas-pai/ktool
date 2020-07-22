@@ -141,20 +141,21 @@ PrintSymbolList(
                 fputs(", Debug-Symbol", Options.OutFile);
             }
 
-            const auto &Section = Segment->SectionList.at(Info->Section + 1);
+            const auto SectionIndex = Info->Section + 1;
+            const auto *Section =
+                static_cast<const MachO::SectionInfo *>(nullptr);
+
+            if (!IndexOutOfBounds(SectionIndex, Segment->SectionList.size())) {
+                Section = Segment->SectionList.at(SectionIndex).get();
+            }
+
             fputs(", Section: ", Options.OutFile);
-
-            PrintUtilsRightPadSpaces(Options.OutFile,
-                                     fprintf(Options.OutFile,
-                                             "%s,",
-                                             Segment->Name.data()),
-                                     LongestSegment + LENGTH_OF(","));
-
-            PrintUtilsRightPadSpaces(Options.OutFile,
-                                     fprintf(Options.OutFile,
-                                             "%s, ",
-                                             Section->Name.data()),
-                                     LongestSection + LENGTH_OF(", "));
+            PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
+                                                   Segment,
+                                                   Section,
+                                                   false,
+                                                   "",
+                                                   ", ");
 
             const auto DylibOrdinal = Info->getDylibOrdinal();
             OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
@@ -170,9 +171,11 @@ PrintSymbolList(
     }
 }
 
-int
-PrintSymbolPtrSectionOperation::Run(const ConstMachOMemoryObject &Object,
-                                    const struct Options &Options) noexcept
+static int
+PrintSymbolPtrList(
+    const ConstMachOMemoryObject &Object,
+    const uint8_t *MapBegin,
+    const struct PrintSymbolPtrSectionOperation::Options &Options) noexcept
 {
     const auto IsBigEndian = Object.IsBigEndian();
     const auto LoadCmdStorage =
@@ -360,7 +363,7 @@ PrintSymbolPtrSectionOperation::Run(const ConstMachOMemoryObject &Object,
 
     const auto SymbolCollection =
         MachO::SymbolTableEntryCollection::OpenForIndirectSymbolsPtrSection(
-            Object.getMap().getBegin(),
+            MapBegin,
             *SymtabCommand,
             *DySymtabCommand,
             *Section,
@@ -415,6 +418,20 @@ PrintSymbolPtrSectionOperation::Run(const ConstMachOMemoryObject &Object,
                     *Section);
 
     return 0;
+}
+
+int
+PrintSymbolPtrSectionOperation::Run(const ConstMachOMemoryObject &Object,
+                                    const struct Options &Options) noexcept
+{
+    return PrintSymbolPtrList(Object, Object.getMap().getBegin(), Options);
+}
+
+int
+PrintSymbolPtrSectionOperation::Run(const ConstDscImageMemoryObject &Object,
+                                    const struct Options &Options) noexcept
+{
+    return PrintSymbolPtrList(Object, Object.getDscMap().getBegin(), Options);
 }
 
 static inline bool
@@ -499,10 +516,11 @@ PrintSymbolPtrSectionOperation::Run(const MemoryObject &Object) const noexcept {
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
             return Run(cast<ObjectKind::MachO>(Object), Options);
+        case ObjectKind::DscImage:
+            return Run(cast<ObjectKind::DscImage>(Object), Options);
         case ObjectKind::FatMachO:
         case ObjectKind::DyldSharedCache:
-        case ObjectKind::DscImage:
-           return InvalidObjectKind;
+            return InvalidObjectKind;
     }
 
     assert(0 && "Unrecognized Object-Kind");
