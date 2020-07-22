@@ -299,11 +299,6 @@ static const uint8_t *ValidateMapAndGetEnd(const uint8_t *Map) noexcept {
     return End;
 }
 
-const DyldSharedCache::ImageInfo &
-ConstDscMemoryObject::getImageInfoAtIndex(uint32_t Index) const noexcept {
-    return getConstImageInfoList().at(Index);
-}
-
 const DyldSharedCache::ImageInfo *
 ConstDscMemoryObject::GetImageInfoWithPath(
     const std::string_view &Path) const noexcept

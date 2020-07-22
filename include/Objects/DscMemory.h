@@ -200,8 +200,10 @@ public:
         return getHeaderV0().GetPtrForAddress<T>(Address);
     }
 
-    const DyldSharedCache::ImageInfo &
-    getImageInfoAtIndex(uint32_t Index) const noexcept;
+    inline const DyldSharedCache::ImageInfo &
+    getImageInfoAtIndex(uint32_t Index) const noexcept {
+        return getConstImageInfoList().at(Index);
+    }
 
     [[nodiscard]] inline const DyldSharedCache::ImageInfo &
     getConstImageInfoAtIndex(uint32_t Index) const noexcept {
