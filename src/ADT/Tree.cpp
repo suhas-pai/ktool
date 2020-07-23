@@ -104,7 +104,7 @@ static void
 AddChildrenRaw(BasicTreeNode &This,
                BasicTreeNode &Node,
                BasicTreeNode *End,
-               BasicTreeNode *LongestChild = nullptr) noexcept
+               BasicTreeNode &LongestChild) noexcept
 {
     auto &Back = SetParentOfSiblings(&This, Node, End);
     Back.setNextSibling(nullptr);
@@ -113,40 +113,37 @@ AddChildrenRaw(BasicTreeNode &This,
         Node.setPrevSibling(nullptr);
 
         This.setFirstChild(&Node);
-        This.setLongestChild(LongestChild);
+        This.setLongestChild(&LongestChild);
     } else {
         const auto PrevSibling = This.getLastChild();
 
         PrevSibling->setNextSibling(&Node);
         Node.setPrevSibling(PrevSibling);
 
-        if (LongestChild == nullptr) {
-            LongestChild = &CalculateLongestNode(Node);
-        }
-
-        SetIfLongestChild(This, *LongestChild);
+        SetIfLongestChild(This, LongestChild);
     }
 }
 
 BasicTreeNode &BasicTreeNode::AddChild(BasicTreeNode &Node) noexcept {
-    AddChildrenRaw(*this, Node, nullptr, &Node);
+    AddChildrenRaw(*this, Node, nullptr, Node);
     return *this;
 }
 
 BasicTreeNode &
 BasicTreeNode::AddChildren(BasicTreeNode &Node, BasicTreeNode *End) noexcept {
-    AddChildrenRaw(*this, Node, End);
+    AddChildrenRaw(*this, Node, End, CalculateLongestNode(Node));
     return *this;
 }
 
 BasicTreeNode &
 BasicTreeNode::AddSiblings(BasicTreeNode &Node, BasicTreeNode *End) noexcept {
     auto &Back = SetParentOfSiblings(Parent, Node, End);
+    const auto NextSibling = getNextSibling();
 
     Node.setPrevSibling(this);
-    Back.setNextSibling(getNextSibling());
+    Back.setNextSibling(NextSibling);
 
-    if (const auto NextSibling = getNextSibling()) {
+    if (NextSibling != nullptr) {
         NextSibling->setPrevSibling(&Back);
     }
 
@@ -213,28 +210,30 @@ static void BasicIsolate(BasicTreeNode &Node) noexcept {
     }
 
     const auto ParentPtr = Node.getParent();
-    if (ParentPtr == nullptr) {
-        return;
-    }
-
-    auto &Parent = *ParentPtr;
     const auto FirstChild = Node.getFirstChild();
 
     if (FirstChild != nullptr)  {
         if (const auto PrevSibling = Node.getPrevSibling()) {
             PrevSibling->AddSiblings(*FirstChild);
         } else if (const auto NextSibling = Node.getNextSibling()) {
-            const auto LastChild = Node.getLastChild();
-            SetParentOfSiblings(ParentPtr, *FirstChild);
+            if (ParentPtr != nullptr) {
+                ParentPtr->setFirstChild(FirstChild);
+                SetParentOfSiblings(ParentPtr, *FirstChild);
+            }
 
+            const auto LastChild = Node.getLastChild();
             LastChild->AddSiblings(*NextSibling);
-            Parent.setFirstChild(FirstChild);
-        } else {
-            Parent.setFirstChild(nullptr);
-            Parent.AddChildren(*FirstChild);
+        } else if (ParentPtr != nullptr) {
+            ParentPtr->setFirstChild(nullptr);
+            ParentPtr->AddChildren(*FirstChild);
         }
     }
 
+    if (ParentPtr == nullptr) {
+        return;
+    }
+
+    auto &Parent = *ParentPtr;
     if (!ParentHasOnlyOneChild) {
         if (Parent.getFirstChild() == &Node) {
             Parent.setFirstChild(Node.getNextSibling());
@@ -268,13 +267,20 @@ BasicTreeNode::IsolateAndRemoveFromParent(bool RemoveLeafParents,
                                           BasicTreeNode *Root) noexcept
 {
     BasicIsolate(*this);
-    if (getParent() == Root || getParent()->FirstChild != nullptr) {
+
+    const auto Parent = getParent();
+    if (Parent == nullptr) {
+        ClearNode(*this);
+        return *this;
+    }
+
+    if (Parent == Root || Parent->getFirstChild() != nullptr) {
         ClearNode(*this);
         return *this;
     }
 
     if (RemoveLeafParents) {
-        DoRemoveLeafParents(*getParent());
+        DoRemoveLeafParents(*Parent);
         ClearNode(*this);
     } else {
         ClearNode(*this);
@@ -346,8 +352,8 @@ BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
     if (&Node == Root) {
         if (Node.getFirstChild() == nullptr) {
             Node.clear();
-            setRoot(nullptr);
 
+            setRoot(nullptr);
             return nullptr;
         }
 
@@ -364,7 +370,7 @@ BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
         BasicIsolate(Node);
         ClearNode(Node);
 
-        return getRoot()->FirstChild;
+        return getRoot()->getFirstChild();
     }
 
     auto NextNode = Node.getFirstChild();
