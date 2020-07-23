@@ -503,83 +503,6 @@ PrintExportTrie(
 }
 
 int
-PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
-                              const struct Options &Options) noexcept
-{
-    const auto LoadCmdStorage =
-        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
-
-    if (LoadCmdStorage.hasError()) {
-        return 1;
-    }
-
-    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
-    const auto SegmentCollection =
-        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
-                                           Object.Is64Bit(),
-                                           &SegmentCollectionError);
-
-    auto LibraryCollectionError =
-        MachO::SharedLibraryInfoCollection::Error::None;
-
-    const auto LibraryCollection =
-        MachO::SharedLibraryInfoCollection::Open(LoadCmdStorage,
-                                                 &LibraryCollectionError);
-
-    switch (LibraryCollectionError) {
-        case MachO::SharedLibraryInfoCollection::Error::None:
-        case MachO::SharedLibraryInfoCollection::Error::InvalidPath:
-            break;
-    }
-
-    auto TrieList = TrieListType();
-    auto Result =
-        FindExportTrieList(Object.getConstMap(),
-                           LoadCmdStorage,
-                           Options,
-                           TrieList);
-
-    if (Result != 0) {
-        return Result;
-    }
-
-    if (Options.PrintTree) {
-        auto Error = MachO::ExportTrieEntryCollection::Error();
-        auto EntryCollection =
-            MachO::ExportTrieEntryCollection::Open(TrieList.getRef(),
-                                                   &SegmentCollection,
-                                                   &Error);
-
-        auto Result =
-            OperationCommon::HandleExportTrieParseError(Options.ErrFile, Error);
-
-        if (Result != 0) {
-            return Result;
-        }
-
-        Result =
-            HandleTreeOption(EntryCollection,
-                             LibraryCollection,
-                             0,
-                             Object.Is64Bit(),
-                             Options);
-
-        return Result;
-    }
-
-    Result =
-        PrintExportTrie(Object,
-                        LoadCmdStorage,
-                        SegmentCollection,
-                        LibraryCollection,
-                        TrieList,
-                        0,
-                        Options);
-
-    return Result;
-}
-
-int
 PrintExportTrieOperation::Run(const ConstDscImageMemoryObject &Object,
                               const struct Options &Options) noexcept
 {
@@ -654,6 +577,83 @@ PrintExportTrieOperation::Run(const ConstDscImageMemoryObject &Object,
                         LibraryCollection,
                         TrieList,
                         Base,
+                        Options);
+
+    return Result;
+}
+
+int
+PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
+                              const struct Options &Options) noexcept
+{
+    const auto LoadCmdStorage =
+        OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
+
+    if (LoadCmdStorage.hasError()) {
+        return 1;
+    }
+
+    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
+    const auto SegmentCollection =
+        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
+                                           Object.Is64Bit(),
+                                           &SegmentCollectionError);
+
+    auto LibraryCollectionError =
+        MachO::SharedLibraryInfoCollection::Error::None;
+
+    const auto LibraryCollection =
+        MachO::SharedLibraryInfoCollection::Open(LoadCmdStorage,
+                                                 &LibraryCollectionError);
+
+    switch (LibraryCollectionError) {
+        case MachO::SharedLibraryInfoCollection::Error::None:
+        case MachO::SharedLibraryInfoCollection::Error::InvalidPath:
+            break;
+    }
+
+    auto TrieList = TrieListType();
+    auto Result =
+        FindExportTrieList(Object.getConstMap(),
+                           LoadCmdStorage,
+                           Options,
+                           TrieList);
+
+    if (Result != 0) {
+        return Result;
+    }
+
+    if (Options.PrintTree) {
+        auto Error = MachO::ExportTrieEntryCollection::Error();
+        auto EntryCollection =
+            MachO::ExportTrieEntryCollection::Open(TrieList.getRef(),
+                                                   &SegmentCollection,
+                                                   &Error);
+
+        auto Result =
+            OperationCommon::HandleExportTrieParseError(Options.ErrFile, Error);
+
+        if (Result != 0) {
+            return Result;
+        }
+
+        Result =
+            HandleTreeOption(EntryCollection,
+                             LibraryCollection,
+                             0,
+                             Object.Is64Bit(),
+                             Options);
+
+        return Result;
+    }
+
+    Result =
+        PrintExportTrie(Object,
+                        LoadCmdStorage,
+                        SegmentCollection,
+                        LibraryCollection,
+                        TrieList,
+                        0,
                         Options);
 
     return Result;

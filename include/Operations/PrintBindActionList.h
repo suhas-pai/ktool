@@ -59,7 +59,7 @@ public:
     static int
     Run(const ConstDscImageMemoryObject &Object,
         const struct Options &Options) noexcept;
-    
+
     static int
     Run(const ConstMachOMemoryObject &Object,
         const struct Options &Options) noexcept;

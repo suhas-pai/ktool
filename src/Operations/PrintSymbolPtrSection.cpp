@@ -421,17 +421,17 @@ PrintSymbolPtrList(
 }
 
 int
-PrintSymbolPtrSectionOperation::Run(const ConstMachOMemoryObject &Object,
-                                    const struct Options &Options) noexcept
-{
-    return PrintSymbolPtrList(Object, Object.getMap().getBegin(), Options);
-}
-
-int
 PrintSymbolPtrSectionOperation::Run(const ConstDscImageMemoryObject &Object,
                                     const struct Options &Options) noexcept
 {
     return PrintSymbolPtrList(Object, Object.getDscMap().getBegin(), Options);
+}
+
+int
+PrintSymbolPtrSectionOperation::Run(const ConstMachOMemoryObject &Object,
+                                    const struct Options &Options) noexcept
+{
+    return PrintSymbolPtrList(Object, Object.getMap().getBegin(), Options);
 }
 
 static inline bool

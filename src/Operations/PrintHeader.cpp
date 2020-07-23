@@ -332,19 +332,11 @@ PrintDscSizeRange(FILE *OutFile,
 
     if (Size != 0) {
         if (Verbose) {
-            if constexpr (Is64Bit) {
-                PrintUtilsWriteOffset64SizeRange(OutFile,
-                                                 Address,
-                                                 Size,
-                                                 " (",
-                                                 ")");
-            } else {
-                PrintUtilsWriteOffset32SizeRange(OutFile,
-                                                 Address,
-                                                 Size,
-                                                 " (",
-                                                 ")");
-            }
+            PrintUtilsWriteOffsetSizeRange(OutFile,
+                                           Address,
+                                           Size,
+                                           " (",
+                                           ")");
         }
     }
 
@@ -790,10 +782,8 @@ int PrintHeaderOperation::Run(const MemoryObject &Object) const noexcept {
             return Run(cast<ObjectKind::FatMachO>(Object), Options);
         case ObjectKind::DyldSharedCache:
             return Run(cast<ObjectKind::DyldSharedCache>(Object), Options);
-        case ObjectKind::DscImage: {
-            const auto &Obj = cast<ObjectKind::DscImage>(Object);
-            return Run(Obj, Options);
-        }
+        case ObjectKind::DscImage:
+            return Run(cast<ObjectKind::DscImage>(Object), Options);
     }
 
     assert(0 && "Unrecognized Object-Kind");

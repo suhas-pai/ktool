@@ -203,11 +203,11 @@ PrintUtilsWriteOffset32To64Range(FILE *OutFile,
 }
 
 inline int
-PrintUtilsWriteOffset32SizeRange(FILE *OutFile,
-                                 uint32_t Begin,
-                                 uint32_t Size,
-                                 const char *Prefix = "",
-                                 const char *Suffix = "") noexcept
+PrintUtilsWriteOffsetSizeRange(FILE *OutFile,
+                               uint32_t Begin,
+                               uint32_t Size,
+                               const char *Prefix = "",
+                               const char *Suffix = "") noexcept
 {
     auto End = uint32_t();
     auto Result = 0;
@@ -227,11 +227,11 @@ PrintUtilsWriteOffset32SizeRange(FILE *OutFile,
 }
 
 inline int
-PrintUtilsWriteOffset64SizeRange(FILE *OutFile,
-                                 uint64_t Begin,
-                                 uint64_t Size,
-                                 const char *Prefix = "",
-                                 const char *Suffix = "") noexcept
+PrintUtilsWriteOffsetSizeRange(FILE *OutFile,
+                               uint64_t Begin,
+                               uint64_t Size,
+                               const char *Prefix = "",
+                               const char *Suffix = "") noexcept
 {
     auto End = uint64_t();
     auto Result = 0;

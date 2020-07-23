@@ -74,18 +74,6 @@ PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
 }
 
 int
-PrintIdOperation::Run(const ConstMachOMemoryObject &Object,
-                      const struct Options &Options) noexcept
-{
-    if (Object.getFileKind() != MachO::Header::FileKind::Dylib) {
-        fputs("Provided file is not a Dynamic-Library file\n", Options.OutFile);
-        return 0;
-    }
-
-    return PrintFromLoadCommands(Object, Options);
-}
-
-int
 PrintIdOperation::Run(const ConstDscImageMemoryObject &Object,
                       const struct Options &Options) noexcept
 {
@@ -95,6 +83,18 @@ PrintIdOperation::Run(const ConstDscImageMemoryObject &Object,
 
     fprintf(Options.OutFile, "\"%s\"\n", Object.getPath());
     return 0;
+}
+
+int
+PrintIdOperation::Run(const ConstMachOMemoryObject &Object,
+                      const struct Options &Options) noexcept
+{
+    if (Object.getFileKind() != MachO::Header::FileKind::Dylib) {
+        fputs("Provided file is not a Dynamic-Library file\n", Options.OutFile);
+        return 0;
+    }
+
+    return PrintFromLoadCommands(Object, Options);
 }
 
 struct PrintIdOperation::Options
