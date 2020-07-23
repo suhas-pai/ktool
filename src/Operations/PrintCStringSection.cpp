@@ -52,11 +52,6 @@ GetCStringList(FILE *OutFile,
                std::vector<StringInfo> &StringList,
                LargestIntHelper<uint64_t> &LongestStringLength) noexcept
 {
-    if (Section->File.empty()) {
-        fputs("C-String Section is empty\n", OutFile);
-        return;
-    }
-
     const auto Begin = Section->getData<const char>(Map);
     const auto End = Section->getDataEnd<const char>(Map);
 
@@ -126,6 +121,11 @@ PrintCStringList(
         return 0;
     }
 
+    if (Section->File.empty()) {
+        fputs("C-String Section is empty\n", Options.OutFile);
+        return 0;
+    }
+
     auto InfoList = std::vector<StringInfo>();
     auto LongestStringLength = LargestIntHelper();
 
@@ -142,14 +142,16 @@ PrintCStringList(
         std::sort(InfoList.begin(), InfoList.end());
     }
 
-    Operation::PrintLineSpamWarning(Options.OutFile, InfoList.size());
+    const auto InfoListSize = InfoList.size();
+    Operation::PrintLineSpamWarning(Options.OutFile, InfoListSize);
+
     fprintf(Options.OutFile,
             "Provided section has %" PRIuPTR " C-Strings:\n",
-            InfoList.size());
+            InfoListSize);
 
     auto Counter = static_cast<uint64_t>(1);
     const auto StringListSizeDigithLength =
-        PrintUtilsGetIntegerDigitLength(InfoList.size());
+        PrintUtilsGetIntegerDigitLength(InfoListSize);
 
     for (const auto &Info : InfoList) {
         const auto &String = Info.String;

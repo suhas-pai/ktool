@@ -248,7 +248,7 @@ ConstDscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
     assert(0 && "Unrecognized Cpu-Kind");
 }
 
-static const uint8_t *ValidateMapAndGetEnd(const uint8_t *Map) noexcept {
+static const uint8_t *ValidateImageMapAndGetEnd(const uint8_t *Map) noexcept {
     const auto Header = reinterpret_cast<const MachO::Header *>(Map);
     if (!Header->hasValidMagic()) {
         return nullptr;
@@ -320,7 +320,7 @@ ConstDscMemoryObject::GetImageWithInfo(
     if (const auto Ptr = GetPtrForAddress(ImageInfo.Address)) {
         const auto Map = getMap();
         const auto ImageIndex = &ImageInfo - getImageInfoList().getBegin();
-        const auto End = ValidateMapAndGetEnd(Ptr);
+        const auto End = ValidateImageMapAndGetEnd(Ptr);
 
         if (End != nullptr && End <= Map.getEnd()) {
             const auto Result =

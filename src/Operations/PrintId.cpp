@@ -21,9 +21,8 @@ PrintIdOperation::PrintIdOperation(const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}
 
 static int
-PrintFromLoadCommands(
-    const ConstMachOMemoryObject &Object,
-    const struct PrintIdOperation::Options &Options) noexcept
+PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
+                      const struct PrintIdOperation::Options &Options) noexcept
 {
     const auto IsBigEndian = Object.IsBigEndian();
     const auto LoadCmdStorage =
