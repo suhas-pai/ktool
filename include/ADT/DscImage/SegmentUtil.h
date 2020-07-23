@@ -48,7 +48,7 @@ namespace DscImage {
                 if (SegmentOut != nullptr) {
                     *SegmentOut = Segment;
                 }
-                
+
                 return Segment->FindSectionContainingAddress(FullAddr);
             }
 

@@ -150,7 +150,7 @@ public:
     [[nodiscard]] inline bool empty() const noexcept {
         return (count() == 0);
     }
-    
+
     [[nodiscard]] inline const EntryType &front() const noexcept {
         assert(!empty());
         return *Begin;

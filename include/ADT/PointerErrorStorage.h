@@ -47,7 +47,7 @@ public:
         if (Value != Enum::None) {
             Storage = static_cast<uintptr_t>(Value);
         }
-        
+
         return *this;
     }
 
