@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstring>
 #include <optional>
 #include <string_view>
 
@@ -38,7 +39,7 @@ namespace DscImage {
             if (VmAddr < MappingsRange.getBegin()) {
                 return nullptr;
             }
-            
+
             const auto Offset = getFileOffsetFromVmAddr(VmAddr);
             const auto Result = reinterpret_cast<T *>(Map + Offset);
             const auto End = getEndAs<T>();
