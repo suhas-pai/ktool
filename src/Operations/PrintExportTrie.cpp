@@ -254,10 +254,6 @@ HandleTreeOption(
         const auto &Info =
             reinterpret_cast<const MachO::ExportTrieChildNode &>(Node);
 
-        if (Info.String == "_objc_debug_taggedpointer_ext_payload_lshift") {
-            printf("");
-        }
-
         WrittenOut += fprintf(OutFile, "\"%s\"", Info.String.data());
         if (Info.IsExport()) {
             const auto &ExportInfo =
