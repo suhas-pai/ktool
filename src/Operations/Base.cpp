@@ -319,7 +319,32 @@ Operation::PrintOptionHelpMenu(OperationKind Kind,
             assert(0 && "Operation-Kind is None");
         case OperationKind::PrintHeader:
         case OperationKind::PrintLoadCommands:
+            fprintf(OutFile,
+                    "%s-v, --verbose, Print more Verbose Information\n",
+                    Prefix);
+            break;
         case OperationKind::PrintSharedLibraries:
+            fprintf(OutFile,
+                    "%s    --sort-by-current-version, Sort by "
+                    "Current-Version\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-compat-version,  Sort by Compat-Version\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-index,           Sort by LC Index\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-name,            Sort by Name\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --sort-by-timestamp,       Sort by TimeStamp\n",
+                    Prefix);
+            fprintf(OutFile,
+                    "%s    --verbose,                 Print more Verbose "
+                    "Information\n",
+                    Prefix);
+            break;
         case OperationKind::PrintId:
         case OperationKind::PrintArchList:
             fprintf(OutFile,

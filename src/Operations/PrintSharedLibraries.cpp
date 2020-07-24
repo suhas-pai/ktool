@@ -27,6 +27,67 @@ PrintSharedLibrariesOperation::PrintSharedLibrariesOperation(
     const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}
 
+struct DylibInfo {
+    uint32_t Index;
+    MachO::LoadCommand::Kind Kind;
+    std::string_view Name;
+
+    struct MachO::DylibCommand::Info Info;
+};
+
+static int
+CompareEntriesBySortKind(
+    const DylibInfo &Lhs,
+    const DylibInfo &Rhs,
+    const PrintSharedLibrariesOperation::Options::SortKind SortKind) noexcept
+{
+    switch (SortKind) {
+        case PrintSharedLibrariesOperation::Options::SortKind::ByCurrentVersion:
+            if (Lhs.Info.CurrentVersion == Rhs.Info.CurrentVersion) {
+                return 0;
+            } else if (Lhs.Info.CurrentVersion < Rhs.Info.CurrentVersion) {
+                return -1;
+            }
+
+            return 1;
+        case PrintSharedLibrariesOperation::Options::SortKind::ByCompatVersion:
+        {
+            const auto LhsCompatVersion = Lhs.Info.CompatibilityVersion;
+            const auto RhsCompatVersion = Rhs.Info.CompatibilityVersion;
+
+            if (LhsCompatVersion == RhsCompatVersion) {
+                return 0;
+            } else if (LhsCompatVersion < RhsCompatVersion) {
+                return -1;
+            }
+
+            return 1;
+        }
+        case PrintSharedLibrariesOperation::Options::SortKind::ByIndex: {
+            if (Lhs.Index == Rhs.Index) {
+                return 0;
+            } else if (Lhs.Index < Rhs.Index) {
+                return -1;
+            }
+
+            return 1;
+        }
+        case PrintSharedLibrariesOperation::Options::SortKind::ByTimeStamp: {
+            if (Lhs.Info.Timestamp == Rhs.Info.Timestamp) {
+                return 0;
+            } else if (Lhs.Info.Timestamp < Rhs.Info.Timestamp) {
+                return -1;
+            }
+
+            return 1;
+        }
+        case PrintSharedLibrariesOperation::Options::SortKind::ByName:
+            return Lhs.Name.compare(Rhs.Name);
+    }
+
+    assert(0 && "Unrecognized (and invalid) Sort-Type");
+}
+
 int
 PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
                                    const struct Options &Options) noexcept
@@ -34,14 +95,6 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
     constexpr static auto LongestLCKindLength =
         MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::LoadUpwardDylib>::Name.length();
-
-    struct DylibInfo {
-        uint32_t Index;
-        MachO::LoadCommand::Kind Kind;
-        std::string_view Name;
-
-        struct MachO::DylibCommand::Info Info;
-    };
 
     const auto IsBigEndian = Object.IsBigEndian();
     const auto LoadCmdStorage =
@@ -164,6 +217,21 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
         LCIndex++;
     }
 
+    const auto Comparator = [&](const auto &Lhs, const auto &Rhs) noexcept {
+        for (const auto &Sort : Options.SortKindList) {
+            const auto Compare = CompareEntriesBySortKind(Lhs, Rhs, Sort);
+            if (Compare != 0) {
+                return (Compare < 0);
+            }
+        }
+
+        return false;
+    };
+
+    if (!Options.SortKindList.empty()) {
+        std::sort(DylibList.begin(), DylibList.end(), Comparator);
+    }
+
     fprintf(Options.OutFile,
             "Provided file has %" PRIuPTR " Shared Libraries:\n",
             DylibList.size());
@@ -199,6 +267,27 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
     return 0;
 }
 
+static inline bool
+ListHasSortKind(
+    std::vector<PrintSharedLibrariesOperation::Options::SortKind> &List,
+    const PrintSharedLibrariesOperation::Options::SortKind &Sort) noexcept
+{
+    const auto ListEnd = List.cend();
+    return (std::find(List.cbegin(), ListEnd, Sort) != ListEnd);
+}
+
+static inline void
+AddSortKind(PrintSharedLibrariesOperation::Options::SortKind SortKind,
+            const char *Option,
+            struct PrintSharedLibrariesOperation::Options &Options) noexcept
+{
+    if (ListHasSortKind(Options.SortKindList, SortKind)) {
+        fprintf(Options.OutFile, "Option %s specified twice\n", Option);
+    } else {
+        Options.SortKindList.push_back(SortKind);
+    }
+}
+
 struct PrintSharedLibrariesOperation::Options
 PrintSharedLibrariesOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                 int *IndexOut) noexcept
@@ -207,6 +296,16 @@ PrintSharedLibrariesOperation::ParseOptionsImpl(const ArgvArray &Argv,
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
+        } else if (strcmp(Argument, "--sort-by-current-version") == 0) {
+            AddSortKind(Options::SortKind::ByCurrentVersion, Argument, Options);
+        } else if (strcmp(Argument, "--sort-by-compat-version") == 0) {
+            AddSortKind(Options::SortKind::ByCompatVersion, Argument, Options);
+        } else if (strcmp(Argument, "--sort-by-index") == 0) {
+            AddSortKind(Options::SortKind::ByIndex, Argument, Options);
+        } else if (strcmp(Argument, "--sort-by-name") == 0) {
+            AddSortKind(Options::SortKind::ByName, Argument, Options);
+        } else if (strcmp(Argument, "--sort-by-timestamp") == 0) {
+            AddSortKind(Options::SortKind::ByTimeStamp, Argument, Options);
         } else if (!Argument.IsOption()) {
             if (IndexOut != nullptr) {
                 *IndexOut = Argv.indexOf(Argument);

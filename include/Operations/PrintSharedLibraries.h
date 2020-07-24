@@ -29,7 +29,17 @@ public:
             return (Opt.getKind() == OpKind);
         }
 
+        enum class SortKind {
+            ByCurrentVersion,
+            ByCompatVersion,
+            ByIndex,
+            ByName,
+            ByTimeStamp
+        };
+
         Options() noexcept : Operation::Options(OpKind), Verbose(false) {}
+
+        std::vector<SortKind> SortKindList;
         bool Verbose : 1;
     };
 protected:
