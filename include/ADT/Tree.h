@@ -343,9 +343,10 @@ public:
             auto WrittenOut = int();
 
             const auto &Info = *Iter;
-            const auto DepthLevel = Iter.getDepthLevel() - RootDepthLevel;
+            const auto DepthLevel = Iter.getDepthLevel();
+            const auto End = DepthLevel - RootDepthLevel;
 
-            for (auto I = 1; I != DepthLevel; I++) {
+            for (auto I = RootDepthLevel; I != End; I++) {
                 if (Iter.GetParentAtIndex(I)->getNextSibling() != nullptr) {
                     fputs("│", OutFile);
 

@@ -442,7 +442,7 @@ PrintUtilsWriteSizeRange64(FILE *OutFile,
 }
 
 inline int
-PrintUtilsCharMultTimes(FILE *OutFile, char Ch, uint64_t Times) noexcept {
+PrintUtilsCharMultTimes(FILE *OutFile, char Ch, int Times) noexcept {
     assert(Times >= 0 && "PrintUtilsCharMultTimes(): Times less than 0");
     for (auto I = uint64_t(); I != Times; I++) {
         fputc(Ch, OutFile);
@@ -454,7 +454,7 @@ PrintUtilsCharMultTimes(FILE *OutFile, char Ch, uint64_t Times) noexcept {
 inline int
 PrintUtilsStringMultTimes(FILE *OutFile,
                           const char *Str,
-                          uint64_t Times) noexcept
+                          int Times) noexcept
 {
     assert(Times >= 0 && "PrintUtilsStringMultTimes(): Times less than 0");
 

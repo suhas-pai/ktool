@@ -16,7 +16,6 @@
 		F33E8CD62473B61B009C4EA0 /* BindInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F33E8CD52473B61B009C4EA0 /* BindInfo.cpp */; };
 		F33E8CD92473C044009C4EA0 /* RebaseInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F33E8CD82473C044009C4EA0 /* RebaseInfo.cpp */; };
 		F33EC4FE24C27E1900A8DB06 /* SegmentUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F33EC4FD24C27E1900A8DB06 /* SegmentUtil.cpp */; };
-		F33F0F7E24C4F76100D383D9 /* ObjcUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F33F0F7D24C4F76100D383D9 /* ObjcUtil.cpp */; };
 		F348C8A524AB457C007D83CB /* PrintCStringSection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F348C8A424AB457C007D83CB /* PrintCStringSection.cpp */; };
 		F35FF7F024486A4800BEF782 /* PrintLoadCommands.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F35FF7EF24486A4800BEF782 /* PrintLoadCommands.cpp */; };
 		F35FF7F524486A6600BEF782 /* LoadCommandStorage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F35FF7F324486A6600BEF782 /* LoadCommandStorage.cpp */; };
@@ -106,8 +105,6 @@
 		F33EC4FB24C27D9D00A8DB06 /* SegmentUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SegmentUtil.h; path = ../../include/ADT/DscImage/SegmentUtil.h; sourceTree = "<group>"; };
 		F33EC4FD24C27E1900A8DB06 /* SegmentUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SegmentUtil.cpp; path = ../../src/ADT/DscImage/SegmentUtil.cpp; sourceTree = "<group>"; };
 		F33EC50124C2A76A00A8DB06 /* DscImage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DscImage.h; path = ../../include/ADT/DscImage.h; sourceTree = "<group>"; };
-		F33F0F7C24C4F70500D383D9 /* ObjcUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ObjcUtil.h; path = ../../include/ADT/DscImage/ObjcUtil.h; sourceTree = "<group>"; };
-		F33F0F7D24C4F76100D383D9 /* ObjcUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ObjcUtil.cpp; path = ../../src/ADT/DscImage/ObjcUtil.cpp; sourceTree = "<group>"; };
 		F348C8A324AB4527007D83CB /* PrintCStringSection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintCStringSection.h; path = ../../include/Operations/PrintCStringSection.h; sourceTree = "<group>"; };
 		F348C8A424AB457C007D83CB /* PrintCStringSection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintCStringSection.cpp; path = ../../src/Operations/PrintCStringSection.cpp; sourceTree = "<group>"; };
 		F35FF7EF24486A4800BEF782 /* PrintLoadCommands.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintLoadCommands.cpp; path = ../../src/Operations/PrintLoadCommands.cpp; sourceTree = "<group>"; };
@@ -388,7 +385,6 @@
 			children = (
 				F37B10BA24C3C18500CB2305 /* DeVirtualizer.h */,
 				F38A993224C2DB2400AB74F3 /* ExportTrieUtil.h */,
-				F33F0F7C24C4F70500D383D9 /* ObjcUtil.h */,
 				F33EC4FB24C27D9D00A8DB06 /* SegmentUtil.h */,
 			);
 			name = DscImage;
@@ -398,7 +394,6 @@
 			isa = PBXGroup;
 			children = (
 				F38A993024C2DA6A00AB74F3 /* ExportTrieUtil.cpp */,
-				F33F0F7D24C4F76100D383D9 /* ObjcUtil.cpp */,
 				F33EC4FD24C27E1900A8DB06 /* SegmentUtil.cpp */,
 			);
 			name = DscImage;
@@ -627,7 +622,6 @@
 				F33E8CD92473C044009C4EA0 /* RebaseInfo.cpp in Sources */,
 				F33E8CD62473B61B009C4EA0 /* BindInfo.cpp in Sources */,
 				F38FCE642487793B00920AB1 /* SwapRanges.cpp in Sources */,
-				F33F0F7E24C4F76100D383D9 /* ObjcUtil.cpp in Sources */,
 				F3BA28B924709ACD009B6BCE /* SegmentUtil.cpp in Sources */,
 				F3BA28C32471ECC6009B6BCE /* PrintBindSymbolList.cpp in Sources */,
 				F38FCF2B248EFB3B00DCB79F /* Tree.cpp in Sources */,

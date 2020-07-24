@@ -31,31 +31,30 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
         }
 
         WrittenOut +=
-            fprintf(OutFile,
-                    "\"" CHAR_ARR_FMT(16) "\",",
-                    SegmentName);
+            fprintf(OutFile, "\"" CHAR_ARR_FMT(16) "\",", SegmentName);
 
+        auto PrintSectLength = 0;
         if (SectionName != nullptr) {
-            const auto PrintSectLength =
+            PrintSectLength =
                 fprintf(OutFile, "\"" CHAR_ARR_FMT(16) "\"", SectionName);
-
-            if (Pad) {
-                WrittenOut +=
-                    PrintUtilsRightPadSpaces(OutFile,
-                                            PrintSectLength,
-                                            NameLengthMax + LENGTH_OF("\"\""));
-            }
-
-            WrittenOut += PrintSectLength;
         } else {
-            WrittenOut += fputs("<invalid>", OutFile);
+            PrintSectLength = fputs("<invalid>", OutFile);
         }
-    } else if (Pad) {
-        // 2 NameLengthMax for max-names of segment and section, 4 for the
-        // apostraphes, and 1 for the comma.
 
-        constexpr auto MaxWrittenOut = (2 * NameLengthMax) + 4 + 1;
-        PrintUtilsRightPadSpaces(OutFile, WrittenOut, MaxWrittenOut);
+        if (Pad) {
+            WrittenOut +=
+                PrintUtilsRightPadSpaces(OutFile,
+                                         PrintSectLength,
+                                         NameLengthMax + LENGTH_OF("\"\""));
+        }
+
+        WrittenOut += PrintSectLength;
+    } else if (Pad) {
+        // 2 NameLengthMax for max-names of segment and section.
+        constexpr auto MaxWrittenOut =
+            (NameLengthMax * 2) + LENGTH_OF("\"\",\"\"");
+
+        PrintUtilsPadSpaces(OutFile, MaxWrittenOut);
     }
 
     WrittenOut += fprintf(OutFile, "%s", Suffix);

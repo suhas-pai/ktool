@@ -80,7 +80,7 @@ static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
 GetImageWithPath(const ConstDscMemoryObject &Object,
                  const std::string_view &Path) noexcept
 {
-    auto ImageInfo = Object.GetImageInfoWithPath(Path);
+    const auto ImageInfo = Object.GetImageInfoWithPath(Path);
     if (ImageInfo == nullptr) {
         fprintf(stderr,
                 "No Image with path \"%s\" was found\n",

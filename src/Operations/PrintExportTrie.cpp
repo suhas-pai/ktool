@@ -123,23 +123,30 @@ PrintTreeExportInfo(
     bool Is64Bit,
     const struct PrintExportTrieOperation::Options &Options) noexcept
 {
-    auto RightPad = static_cast<int>(LongestLength + LENGTH_OF("\"\""));
+    auto RightPad = static_cast<int>(LongestLength + LENGTH_OF("\"\" -"));
     auto KindDesc = ExportTrieExportKindGetDescription(Export.Kind).data();
 
     if (KindDesc == nullptr) {
         KindDesc = "<unrecognized>";
     }
 
-    PrintUtilsRightPadSpaces(Options.OutFile, WrittenOut, RightPad);
-    fprintf(Options.OutFile, " (Exported - %s", KindDesc);
+    fputc(' ', Options.OutFile);
+    PrintUtilsCharMultTimes(Options.OutFile,
+                            '-',
+                            RightPad - WrittenOut - 1);
+
+    fprintf(Options.OutFile,
+            "> (Exported - %" PRINTF_LEFTPAD_FMT "s",
+            static_cast<int>(LENGTH_OF("Re-export")),
+            KindDesc);
 
     if (Options.Verbose) {
         if (Export.Kind != MachO::ExportTrieExportKind::Reexport) {
             PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
                                                    Export.getSegment(),
                                                    Export.getSection(),
-                                                   false,
-                                                   "   - ",
+                                                   true,
+                                                   " - ",
                                                    " - ");
 
             const auto ImageOffset = Export.Info.getImageOffset();
@@ -172,6 +179,10 @@ GetSymbolLengthForLongestPrintedLine(
 
     const auto End = Collection.end();
     for (auto Iter = Collection.begin(); Iter != End; Iter++) {
+        if (!Iter->IsExport()) {
+            continue;
+        }
+
         const auto Length =
             GetLineLengthForSymbolLength(Iter.getDepthLevel(),
                                          Iter->String.length());
@@ -242,6 +253,10 @@ HandleTreeOption(
     {
         const auto &Info =
             reinterpret_cast<const MachO::ExportTrieChildNode &>(Node);
+
+        if (Info.String == "_objc_debug_taggedpointer_ext_payload_lshift") {
+            printf("");
+        }
 
         WrittenOut += fprintf(OutFile, "\"%s\"", Info.String.data());
         if (Info.IsExport()) {

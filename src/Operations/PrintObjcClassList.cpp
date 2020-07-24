@@ -273,7 +273,11 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
             continue;
         }
 
-        const auto DepthIndex = (Iter.getDepthLevel() - 1);
+        if (!Iter->IsExternal && Iter->Flags.empty() && !Iter->IsSwift) {
+            continue;
+        }
+
+        const auto DepthIndex = Iter.getDepthLevel() - 1;
         const auto Length = (Iter->Name.length() + (TabLength * DepthIndex));
 
         LongestLength = Length;
@@ -299,38 +303,37 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
                 return false;
             }
 
-            const auto NamePrintLength =
-                fprintf(OutFile,
-                        "\"%s\"",
-                        Node.Name.data()) + ((DepthLevel - 1) * TabLength);
-
+            WrittenOut += fprintf(OutFile, "\"%s\"", Node.Name.data());
             if (!Options.Verbose) {
                 return true;
             }
 
+            if (!Node.IsExternal && Node.Flags.empty() && !Node.IsSwift) {
+                return true;
+            }
+
             const auto RightPad =
-                static_cast<int>(LongestLength + LENGTH_OF("\"\""));
+                static_cast<int>(LongestLength + LENGTH_OF("\"\" -"));
+
+            fputc(' ', OutFile);
+            PrintUtilsCharMultTimes(
+                OutFile,
+                '-',
+                static_cast<int>(RightPad - WrittenOut - 1));
 
             if (Node.IsExternal) {
-                PrintUtilsRightPadSpaces(OutFile,
-                                         static_cast<int>(NamePrintLength),
-                                         RightPad);
-
-                fputs("Imported - ", Options.OutFile);
+                fputs("> Imported - ", Options.OutFile);
                 OperationCommon::PrintDylibOrdinalInfo(OutFile,
                                                        SharedLibraryCollection,
                                                        Node.DylibOrdinal,
                                                        Options.Verbose);
             } else {
+                fputs("> ", Options.OutFile);
                 if (Node.IsSwift) {
                     fputs("<Swift> ", Options.OutFile);
                 }
 
                 if (!Node.Flags.empty()) {
-                    PrintUtilsRightPadSpaces(OutFile,
-                                             static_cast<int>(NamePrintLength),
-                                             RightPad);
-
                     PrintClassRoFlags(Options.OutFile, Node.Flags);
                 }
             }

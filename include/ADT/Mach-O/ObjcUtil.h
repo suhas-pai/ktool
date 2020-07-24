@@ -197,6 +197,10 @@ namespace MachO {
 
         ConstIterator cbegin() const noexcept;
         ConstIterator cend() const noexcept;
+
+        [[nodiscard]] inline uint64_t size() const noexcept {
+            return List.size();
+        }
     };
 
     struct ObjcClassCategoryInfo {

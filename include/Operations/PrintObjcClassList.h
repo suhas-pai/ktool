@@ -28,7 +28,8 @@ public:
         }
 
         Options() noexcept
-        : Operation::Options(OpKind), PrintTree(false), Verbose(false) {}
+        : Operation::Options(OpKind), PrintCategories(false), PrintTree(false),
+          Verbose(false) {}
 
         bool PrintCategories : 1;
         bool PrintTree : 1;

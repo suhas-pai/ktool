@@ -174,13 +174,13 @@ BasicTreeNode::SetChildrenFromList(
         auto Node = *Iter;
         assert(Node != nullptr);
 
-        PrevChild->NextSibling = Node;
-        Node->PrevSibling = PrevChild;
+        PrevChild->setNextSibling(Node);
+        Node->setPrevSibling(PrevChild);
 
         PrevChild = Node;
     }
 
-    PrevChild->NextSibling = nullptr;
+    PrevChild->setNextSibling(nullptr);
     return *this;
 }
 

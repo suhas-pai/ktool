@@ -97,14 +97,14 @@ namespace MachO {
         SuperInfo.DylibOrdinal = Action.DylibOrdinal;
         SuperInfo.IsExternal = true;
 
-        SetSuperClassForClassInfo(&SuperInfo, Info);
-
         const auto Ptr = CreateClassForList(List, std::move(SuperInfo));
+
+        SetSuperClassForClassInfo(Ptr, Info);
         ExternalAndRootClassList.emplace_back(Ptr);
     }
 
     template <PointerKind Kind>
-    static ObjcClassInfoCollection::Error
+    static ObjcParseError
     ParseObjcClass(uint64_t Addr,
                    const ConstDeVirtualizer &DeVirtualizer,
                    const BindActionCollection &BindCollection,
@@ -121,7 +121,7 @@ namespace MachO {
             Info.Addr = Addr;
             Info.IsNull = true;
 
-            return ObjcClassInfoCollection::Error::None;
+            return ObjcParseError::None;
         }
 
         const auto SuperAddr = SwitchEndianIf(Class->SuperClass, IsBigEndian);
@@ -133,7 +133,7 @@ namespace MachO {
             Info.Addr = Addr;
             Info.IsNull = true;
 
-            return ObjcClassInfoCollection::Error::None;
+            return ObjcParseError::None;
         }
 
         const auto NameAddr = SwitchEndianIf(ClassRo->Name, IsBigEndian);
@@ -144,9 +144,9 @@ namespace MachO {
         Info.Addr = Addr;
         Info.Flags = ClassRo->getFlags(IsBigEndian);
         Info.IsSwift = Class->IsSwift(IsBigEndian);
-        Info.setSuper(reinterpret_cast<ObjcClassInfo *>(SuperAddr));
+        Info.setSuper(reinterpret_cast<ObjcClassInfo *>(SuperAddr | 1));
 
-        return ObjcClassInfoCollection::Error::None;
+        return ObjcParseError::None;
     }
 
     static bool
@@ -157,7 +157,7 @@ namespace MachO {
         ObjcClassInfo *Info,
         bool IsBigEndian) noexcept
     {
-        const auto Addr = reinterpret_cast<uint64_t>(Info->getParent());
+        const auto Addr = reinterpret_cast<uint64_t>(Info->getSuper()) & ~1;
         const auto Iter = List.find(Addr);
 
         if (Iter != List.cend()) {
@@ -190,8 +190,13 @@ namespace MachO {
             return ObjcParseError::None;
         }
 
-        if (Info->getSuper() == nullptr) {
+        const auto SuperAddr =
+            reinterpret_cast<uint64_t>(Info->getSuper()) & ~1;
+
+        if (SuperAddr == 0) {
+            Info->setSuper(nullptr);
             ExternalAndRootClassList.emplace_back(Info);
+
             return ObjcParseError::None;
         }
 
@@ -207,10 +212,8 @@ namespace MachO {
         }
 
         auto SuperInfo = ObjcClassInfo();
-
-        const auto Addr = reinterpret_cast<uint64_t>(Info->getSuper());
         const auto Error =
-            ParseObjcClass<Kind>(Addr,
+            ParseObjcClass<Kind>(SuperAddr,
                                  DeVirtualizer,
                                  BindCollection,
                                  SuperInfo,
@@ -220,10 +223,20 @@ namespace MachO {
             return Error;
         }
 
-        SetSuperClassForClassInfo(&SuperInfo, Info);
-
         const auto Ptr = CreateClassForList(List, std::move(SuperInfo));
-        ExternalAndRootClassList.emplace_back(Ptr);
+        SetSuperClassForClassInfo(Ptr, Info);
+
+        const auto FixSuperError =
+            FixSuperForClassInfo<Kind>(Ptr,
+                                       DeVirtualizer,
+                                       BindCollection,
+                                       List,
+                                       ExternalAndRootClassList,
+                                       IsBigEndian);
+
+        if (FixSuperError != ObjcParseError::None) {
+            return FixSuperError;
+        }
 
         return ObjcParseError::None;
     }
@@ -270,6 +283,13 @@ namespace MachO {
     {
         for (auto &Iter : List) {
             const auto &Info = Iter.second.get();
+            const auto SuperAddr =
+                reinterpret_cast<uint64_t>(Info->getSuper()) & 1;
+
+            if (SuperAddr == 0) {
+                continue;
+            }
+
             if (Info->IsExternal) {
                 continue;
             }
@@ -384,7 +404,7 @@ namespace MachO {
                                                  ClassList,
                                                  IsBigEndian);
 
-                if (Error != ObjcClassInfoCollection::Error::None) {
+                if (Error != ObjcParseError::None) {
                     return Error;
                 }
             }
@@ -426,7 +446,7 @@ namespace MachO {
                     reinterpret_cast<std::vector<BasicTreeNode *> &> (
                         ExternalAndRootClassList));
             } else {
-                getRoot()->AddChild(*ExternalAndRootClassList.front());
+                Root = ExternalAndRootClassList.front();
             }
 
             if (Error != Error::None) {
