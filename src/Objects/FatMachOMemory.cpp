@@ -30,9 +30,9 @@ FatMachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) {
     }
 
     const auto IsBigEndian = Header->IsBigEndian();
-    const auto NFatArch = SwitchEndianIf(Header->NFatArch, IsBigEndian);
+    const auto ArchCount = SwitchEndianIf(Header->NFatArch, IsBigEndian);
 
-    if (NFatArch == 0) {
+    if (ArchCount == 0) {
         return ConstFatMachOMemoryObject::Error::ZeroArchitectures;
     }
 
@@ -44,13 +44,13 @@ FatMachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) {
 
     auto TotalHeaderSize = uint64_t();
     if (Is64Bit) {
-        if (DoesMultiplyAndAddOverflow(SingleArchSize, NFatArch,
+        if (DoesMultiplyAndAddOverflow(SingleArchSize, ArchCount,
                                        sizeof(*Header), &TotalHeaderSize))
         {
             return ConstFatMachOMemoryObject::Error::TooManyArchitectures;
         }
     } else {
-        if (DoesMultiplyAndAddOverflow<uint32_t>(SingleArchSize, NFatArch,
+        if (DoesMultiplyAndAddOverflow<uint32_t>(SingleArchSize, ArchCount,
                                                  sizeof(*Header),
                                                  &TotalHeaderSize))
         {
@@ -66,7 +66,7 @@ FatMachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) {
         const auto Begin =
             reinterpret_cast<const MachO::FatHeader::Arch64 *>(Header + 1);
 
-        for (const auto &Arch : BasicContiguousList(Begin, NFatArch)) {
+        for (const auto &Arch : BasicContiguousList(Begin, ArchCount)) {
             const auto ArchOffset = SwitchEndianIf(Arch.Offset, IsBigEndian);
             const auto ArchSize = SwitchEndianIf(Arch.Size, IsBigEndian);
             const auto ArchRange =
@@ -93,7 +93,7 @@ FatMachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) {
         const auto Begin =
             reinterpret_cast<const MachO::FatHeader::Arch32 *>(Header + 1);
 
-        for (const auto &Arch : BasicContiguousList(Begin, NFatArch)) {
+        for (const auto &Arch : BasicContiguousList(Begin, ArchCount)) {
             const auto ArchOffset = SwitchEndianIf(Arch.Offset, IsBigEndian);
             const auto ArchSize = SwitchEndianIf(Arch.Size, IsBigEndian);
             const auto ArchRange =

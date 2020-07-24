@@ -2019,7 +2019,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
           bool Verbose) noexcept
     {
         const auto NTools = SwitchEndianIf(BuildVersion.NTools, IsBigEndian);
-        const auto Platform = BuildVersion.GetPlatform(IsBigEndian);
+        const auto Platform = BuildVersion.getPlatform(IsBigEndian);
 
         auto PlatformDesc = MachO::PlatformKindGetDescription(Platform).data();
         if (PlatformDesc == nullptr) {
@@ -2034,12 +2034,12 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
                 PlatformDesc);
 
         MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
-            OutFile, BuildVersion.GetMinOS(IsBigEndian), "", "");
+            OutFile, BuildVersion.getMinOS(IsBigEndian), "", "");
 
         fputs("\n\tSdk: ", OutFile);
 
         MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
-            OutFile, BuildVersion.GetSdk(IsBigEndian), "", "");
+            OutFile, BuildVersion.getSdk(IsBigEndian), "", "");
 
         const auto &ToolList = BuildVersion.GetConstToolList(IsBigEndian);
         switch (ToolList.getError()) {

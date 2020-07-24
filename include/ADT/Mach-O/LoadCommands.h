@@ -1799,17 +1799,17 @@ namespace MachO {
         uint32_t NTools;
 
         [[nodiscard]] constexpr
-        inline PlatformKind GetPlatform(bool IsBigEndian) const noexcept {
+        inline PlatformKind getPlatform(bool IsBigEndian) const noexcept {
             return PlatformKind(SwitchEndianIf(Platform, IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        PackedVersion GetMinOS(bool IsBigEndian) const noexcept {
+        PackedVersion getMinOS(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(MinOS, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        PackedVersion GetSdk(bool IsBigEndian) const noexcept {
+        PackedVersion getSdk(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Sdk, IsBigEndian);
         }
 
