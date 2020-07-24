@@ -44,7 +44,6 @@
 		F3A2D29B249AD5B9005DA2D0 /* LoadCommandsCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3A2D29A249AD5B9005DA2D0 /* LoadCommandsCommon.cpp */; };
 		F3A2D2A0249B2163005DA2D0 /* BindUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3A2D29F249B2163005DA2D0 /* BindUtil.cpp */; };
 		F3B196322439B34200AE997A /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B196302439B34200AE997A /* Base.cpp */; };
-		F3B2CEC9246504EC0066B7C8 /* PrintFlags.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B2CEC8246504EC0066B7C8 /* PrintFlags.cpp */; };
 		F3B810B22467B53E00DED4F2 /* PrintExportTrie.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B810B12467B53E00DED4F2 /* PrintExportTrie.cpp */; };
 		F3BA28B4247096BA009B6BCE /* PrintObjcClassList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3BA28B3247096BA009B6BCE /* PrintObjcClassList.cpp */; };
 		F3BA28B924709ACD009B6BCE /* SegmentUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3BA28B824709ACD009B6BCE /* SegmentUtil.cpp */; };
@@ -188,8 +187,6 @@
 		F3B1962C2439B32500AE997A /* Base.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Base.h; path = ../../include/Operations/Base.h; sourceTree = "<group>"; };
 		F3B1962E2439B32500AE997A /* PrintHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintHeader.h; path = ../../include/Operations/PrintHeader.h; sourceTree = "<group>"; };
 		F3B196302439B34200AE997A /* Base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Base.cpp; path = ../../src/Operations/Base.cpp; sourceTree = "<group>"; };
-		F3B2CEC72465047F0066B7C8 /* PrintFlags.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintFlags.h; path = ../../include/Operations/PrintFlags.h; sourceTree = "<group>"; };
-		F3B2CEC8246504EC0066B7C8 /* PrintFlags.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintFlags.cpp; path = ../../src/Operations/PrintFlags.cpp; sourceTree = "<group>"; };
 		F3B810B02467B50200DED4F2 /* PrintExportTrie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintExportTrie.h; path = ../../include/Operations/PrintExportTrie.h; sourceTree = "<group>"; };
 		F3B810B12467B53E00DED4F2 /* PrintExportTrie.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintExportTrie.cpp; path = ../../src/Operations/PrintExportTrie.cpp; sourceTree = "<group>"; };
 		F3B810B32467EECD00DED4F2 /* LargestIntHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LargestIntHelper.h; path = ../../include/ADT/LargestIntHelper.h; sourceTree = "<group>"; };
@@ -514,7 +511,6 @@
 				F35FF7EF24486A4800BEF782 /* PrintLoadCommands.cpp */,
 				F3DC4DA42452720A0063906C /* PrintSharedLibraries.cpp */,
 				F3DC4DAC2452E4780063906C /* PrintId.cpp */,
-				F3B2CEC8246504EC0066B7C8 /* PrintFlags.cpp */,
 				F3B810B12467B53E00DED4F2 /* PrintExportTrie.cpp */,
 				F3BA28B3247096BA009B6BCE /* PrintObjcClassList.cpp */,
 				F369E40F2480E66D00F5A5E8 /* PrintBindActionList.cpp */,
@@ -541,7 +537,6 @@
 				F35FF7FB24486A9000BEF782 /* PrintLoadCommands.h */,
 				F3DC4DA3245272020063906C /* PrintSharedLibraries.h */,
 				F3DC4DA92452E3F60063906C /* PrintId.h */,
-				F3B2CEC72465047F0066B7C8 /* PrintFlags.h */,
 				F3B810B02467B50200DED4F2 /* PrintExportTrie.h */,
 				F3BA28B224709670009B6BCE /* PrintObjcClassList.h */,
 				F369E40E2480E65700F5A5E8 /* PrintBindActionList.h */,
@@ -613,7 +608,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3B2CEC9246504EC0066B7C8 /* PrintFlags.cpp in Sources */,
 				F3A2D2982495A971005DA2D0 /* ObjcUtil.cpp in Sources */,
 				F3923E88243C0BA0002479B3 /* MachOMemory.cpp in Sources */,
 				F35FF7F624486A6600BEF782 /* LoadCommands.cpp in Sources */,

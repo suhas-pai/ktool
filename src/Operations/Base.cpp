@@ -16,7 +16,6 @@
 #include "PrintSharedLibraries.h"
 #include "PrintId.h"
 #include "PrintArchList.h"
-#include "PrintFlags.h"
 
 Operation::Operation(OperationKind Kind) noexcept : Kind(Kind) {}
 
@@ -46,10 +45,6 @@ OperationKindSupportsObjectKind(OperationKind OpKind,
         case OperationKind::PrintArchList:
             return
                 OperationTypeFromKind<OperationKind::PrintArchList>::
-                    SupportsObjectKind(ObjKind);
-        case OperationKind::PrintFlags:
-            return
-                OperationTypeFromKind<OperationKind::PrintFlags>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintExportTrie:
             return
@@ -217,7 +212,6 @@ std::string_view Operation::GetOptionShortName(OperationKind Kind) noexcept {
         case OperationKind::PrintId:
             return "Id"sv;
         case OperationKind::PrintArchList:
-        case OperationKind::PrintFlags:
         case OperationKind::PrintExportTrie:
         case OperationKind::PrintObjcClassList:
         case OperationKind::PrintBindActionList:
@@ -246,8 +240,6 @@ std::string_view Operation::GetOptionName(OperationKind Kind) noexcept {
             return "Identity"sv;
         case OperationKind::PrintArchList:
             return "list-archs"sv;
-        case OperationKind::PrintFlags:
-            return "list-flags"sv;
         case OperationKind::PrintExportTrie:
             return "list-export-trie"sv;
         case OperationKind::PrintObjcClassList:
@@ -286,8 +278,6 @@ Operation::GetOptionDescription(OperationKind Kind) noexcept {
             return "Print Identification of a Thin Mach-O File"sv;
         case OperationKind::PrintArchList:
             return "List Archs of a FAT Mach-O File"sv;
-        case OperationKind::PrintFlags:
-            return "List Header-Flags of a Thin Mach-O File"sv;
         case OperationKind::PrintExportTrie:
             return "List Export-Trie of a Thin Mach-O File"sv;
         case OperationKind::PrintObjcClassList:
@@ -332,7 +322,6 @@ Operation::PrintOptionHelpMenu(OperationKind Kind,
         case OperationKind::PrintSharedLibraries:
         case OperationKind::PrintId:
         case OperationKind::PrintArchList:
-        case OperationKind::PrintFlags:
             fprintf(OutFile,
                     "%s-v, --verbose, Print more Verbose Information\n",
                     Prefix);

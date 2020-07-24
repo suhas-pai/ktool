@@ -17,7 +17,6 @@
 #include "PrintId.h"
 #include "PrintArchList.h"
 #include "PrintExportTrie.h"
-#include "PrintFlags.h"
 #include "PrintObjcClassList.h"
 #include "PrintBindActionList.h"
 #include "PrintBindOpcodeList.h"
@@ -74,16 +73,8 @@ struct OperationKindInfo<OperationKind::PrintArchList> {
 };
 
 template<>
-struct OperationKindInfo<OperationKind::PrintFlags> {
-    constexpr static const auto Kind = OperationKind::PrintFlags;
-    constexpr static const auto Name = "print-flags"sv;
-
-    typedef PrintFlagsOperation Type;
-};
-
-template<>
 struct OperationKindInfo<OperationKind::PrintExportTrie> {
-    constexpr static const auto Kind = OperationKind::PrintFlags;
+    constexpr static const auto Kind = OperationKind::PrintExportTrie;
     constexpr static const auto Name = "print-export-trie"sv;
 
     typedef PrintExportTrieOperation Type;
@@ -91,7 +82,7 @@ struct OperationKindInfo<OperationKind::PrintExportTrie> {
 
 template<>
 struct OperationKindInfo<OperationKind::PrintObjcClassList> {
-    constexpr static const auto Kind = OperationKind::PrintFlags;
+    constexpr static const auto Kind = OperationKind::PrintObjcClassList;
     constexpr static const auto Name = "print-objc-class-list"sv;
 
     typedef PrintObjcClassListOperation Type;
@@ -177,10 +168,8 @@ OperationKindGetName(OperationKind Kind) noexcept {
             return OperationKindInfo<OperationKind::PrintId>::Name;
         case OperationKind::PrintArchList:
             return OperationKindInfo<OperationKind::PrintArchList>::Name;
-        case OperationKind::PrintFlags:
-            return OperationKindInfo<OperationKind::PrintFlags>::Name;
         case OperationKind::PrintExportTrie:
-            return OperationKindInfo<OperationKind::PrintFlags>::Name;
+            return OperationKindInfo<OperationKind::PrintExportTrie>::Name;
         case OperationKind::PrintObjcClassList:
             return OperationKindInfo<OperationKind::PrintObjcClassList>::Name;
         case OperationKind::PrintBindActionList:

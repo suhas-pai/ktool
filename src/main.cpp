@@ -156,11 +156,6 @@ int main(int Argc, const char *Argv[]) {
                 Ops = new PrintArchListOperation();
                 break;
             }
-        case OperationKind::PrintFlags:
-            if (MatchesOption(OperationKind::PrintFlags, Argv[1])) {
-                Ops = new PrintFlagsOperation();
-                break;
-            }
         case OperationKind::PrintExportTrie:
             if (MatchesOption(OperationKind::PrintExportTrie, Argv[1])) {
                 Ops = new PrintExportTrieOperation();
