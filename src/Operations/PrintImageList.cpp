@@ -63,7 +63,7 @@ CompareInfosBySortKind(
             return Lhs.Path.compare(Rhs.Path);
     }
 
-    assert(0 && "Unrecognized (and invalid) Sort-Type");
+    assert(0 && "Unrecognized (and invalid) Sort-Kind");
 }
 
 static void

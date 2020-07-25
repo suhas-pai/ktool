@@ -933,7 +933,7 @@ namespace MachO {
             return hasValueForMask(MaskType::NoDeadStripping);
         }
 
-        [[nodiscard]] constexpr inline bool HasLiveSupport() const noexcept {
+        [[nodiscard]] constexpr inline bool hasLiveSupport() const noexcept {
             return hasValueForMask(MaskType::LiveSupport);
         }
 
@@ -946,17 +946,17 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline bool HasSomeInstructions() const noexcept {
+        constexpr inline bool hasSomeInstructions() const noexcept {
             return hasValueForMask(MaskType::HasSomeInstructions);
         }
 
         [[nodiscard]]
-        constexpr inline bool HasExternalRelocEntries() const noexcept {
+        constexpr inline bool hasExternalRelocEntries() const noexcept {
             return hasValueForMask(MaskType::HasExternalRelocEntries);
         }
 
         [[nodiscard]]
-        constexpr inline bool HasLocalRelocEntries() const noexcept {
+        constexpr inline bool hasLocalRelocEntries() const noexcept {
             return hasValueForMask(MaskType::HasLocalRelocEntries);
         }
 

@@ -57,7 +57,7 @@ CompareEntriesBySortKind(
             return Lhs.String->compare(*Rhs.String);
     }
 
-    assert(0 && "Unrecognized (and invalid) Sort-Type");
+    assert(0 && "Unrecognized (and invalid) Sort-Kind");
 }
 
 static void
@@ -99,6 +99,9 @@ PrintSymbolList(
     auto MaxIndexDigitLength = PrintUtilsGetIntegerDigitLength(LargestIndex);
 
     const auto Segment = SegmentCollection.at(0);
+    const auto &SectionList = Segment->SectionList;
+    const auto SectionListSize = Segment->SectionList.size();
+
     for (const auto &Info : List) {
         fprintf(Options.OutFile,
                 "Indirect-Symbol %0*" PRIu64 ": ",
@@ -145,8 +148,8 @@ PrintSymbolList(
             const auto *Section =
                 static_cast<const MachO::SectionInfo *>(nullptr);
 
-            if (!IndexOutOfBounds(SectionIndex, Segment->SectionList.size())) {
-                Section = Segment->SectionList.at(SectionIndex).get();
+            if (!IndexOutOfBounds(SectionIndex, SectionListSize)) {
+                Section = SectionList.at(SectionIndex).get();
             }
 
             fputs(", Section: ", Options.OutFile);

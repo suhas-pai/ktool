@@ -103,7 +103,7 @@ CompareActionsBySortKind(
 {
     switch (SortKind) {
         case PrintObjcClassListOperation::Options::SortKind::None:
-            assert(0 && "Unrecognized Sort-Type");
+            assert(0 && "Unrecognized Sort-Kind");
         case PrintObjcClassListOperation::Options::SortKind::ByName:
             return Lhs.Name.compare(Rhs.Name);
         case PrintObjcClassListOperation::Options::SortKind::ByDylibOrdinal:

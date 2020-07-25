@@ -28,7 +28,7 @@ CompareActionsBySortKind(
 {
     switch (SortKind) {
         case PrintBindActionListOperation::Options::SortKind::None:
-            assert(0 && "Unrecognized Sort-Type");
+            assert(0 && "Unrecognized Sort-Kind");
         case PrintBindActionListOperation::Options::SortKind::ByName:
             return Lhs.SymbolName.compare(Rhs.SymbolName);
         case PrintBindActionListOperation::Options::SortKind::ByDylibOrdinal:

@@ -85,7 +85,7 @@ CompareEntriesBySortKind(
             return Lhs.Name.compare(Rhs.Name);
     }
 
-    assert(0 && "Unrecognized (and invalid) Sort-Type");
+    assert(0 && "Unrecognized (and invalid) Sort-Kind");
 }
 
 int

@@ -23,7 +23,7 @@ static void PrintFlags(FILE *OutFile, MachO::BindSymbolFlags Flags) noexcept {
     fputc('(', OutFile);
 
     if (!Flags.empty()) {
-        const auto HasNonWeakDefinition = Flags.HasNonWeakDefinition();
+        const auto HasNonWeakDefinition = Flags.hasNonWeakDefinition();
         if (HasNonWeakDefinition) {
             fputs("Has Non-Weak Definition", OutFile);
         }

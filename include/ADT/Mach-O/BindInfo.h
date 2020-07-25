@@ -491,7 +491,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline bool HasNonWeakDefinition() const noexcept {
+        constexpr inline bool hasNonWeakDefinition() const noexcept {
             return this->hasValueForMask(Enum::NonWeakDefinition);
         }
 

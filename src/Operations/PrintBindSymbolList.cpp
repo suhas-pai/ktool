@@ -50,7 +50,7 @@ CompareActionsBySortKind(
             return 1;
     }
 
-    assert(0 && "Unrecognized (and invalid) Sort-Type");
+    assert(0 && "Unrecognized (and invalid) Sort-Kind");
 }
 
 template <MachO::BindInfoKind BindKind>
