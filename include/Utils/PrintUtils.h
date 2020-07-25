@@ -77,6 +77,47 @@
     PackedVersion.getRevision()
 
 inline int
+PrintUtilsCharMultTimes(FILE *OutFile, char Ch, int Times) noexcept {
+    assert(Times >= 0 && "PrintUtilsCharMultTimes(): Times less than 0");
+    for (auto I = uint64_t(); I != Times; I++) {
+        fputc(Ch, OutFile);
+    }
+
+    return static_cast<int>(Times);
+}
+
+inline int
+PrintUtilsStringMultTimes(FILE *OutFile,
+                          const char *Str,
+                          int Times) noexcept
+{
+    assert(Times >= 0 && "PrintUtilsStringMultTimes(): Times less than 0");
+
+    auto Total = int();
+    for (auto I = uint64_t(); I != Times; I++) {
+        Total += fputs(Str, OutFile);
+    }
+
+    return Total;
+}
+
+inline int PrintUtilsPadSpaces(FILE *OutFile, int Times) noexcept {
+    assert(Times >= 0 && "PrintUtilsPadSpaces(): Times less than 0");
+    return fprintf(OutFile, "%" PRINTF_RIGHTPAD_FMT "s", Times, "");
+}
+
+inline int PrintUtilsPadTabs(FILE *OutFile, int Times) noexcept {
+    assert(Times >= 0 && "PrintUtilsPadSpaces(): Times less than 0");
+    return PrintUtilsCharMultTimes(OutFile, '\t', Times);
+}
+
+inline int
+PrintUtilsRightPadSpaces(FILE *OutFile, int WrittenOut, int Total) noexcept {
+    const auto PadLength = (Total - WrittenOut);
+    return PrintUtilsPadSpaces(OutFile, PadLength);
+}
+
+inline int
 PrintUtilsWriteOffset32OverflowsRange(FILE *OutFile,
                                       uint32_t Offset,
                                       const char *Prefix = "",
@@ -252,43 +293,21 @@ PrintUtilsWriteOffsetSizeRange(FILE *OutFile,
 
 inline int
 PrintUtilsWriteOffset(FILE *OutFile,
-                      uint64_t Offset,
-                      bool Is64Bit,
-                      const char *Prefix = "",
-                      const char *Suffix = "") noexcept {
-    if (Is64Bit) {
-        if (Offset == 0) {
-            return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
-        }
-
-        const auto Result =
-            fprintf(OutFile, "%s" OFFSET_64_FMT "%s", Prefix, Offset, Suffix);
-
-        return Result;
-    }
-
-    if (Offset == 0) {
-        return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
-    }
-
-    const auto Result =
-        fprintf(OutFile,
-                "%s" OFFSET_32_FMT "%s",
-                Prefix,
-                static_cast<uint32_t>(Offset),
-                Suffix);
-
-    return Result;
-}
-
-inline int
-PrintUtilsWriteOffset(FILE *OutFile,
                       uint32_t Offset,
+                      bool Pad = true,
                       const char *Prefix = "",
                       const char *Suffix = "") noexcept
 {
     if (Offset == 0) {
-        return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
+        auto WrittenOut =
+            fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
+
+        if (Pad) {
+            WrittenOut +=
+                PrintUtilsRightPadSpaces(OutFile, WrittenOut, OFFSET_32_LEN);
+        }
+
+        return WrittenOut;
     }
 
     return fprintf(OutFile, "%s" OFFSET_32_FMT "%s", Prefix, Offset, Suffix);
@@ -297,14 +316,45 @@ PrintUtilsWriteOffset(FILE *OutFile,
 inline int
 PrintUtilsWriteOffset(FILE *OutFile,
                       uint64_t Offset,
+                      bool Pad = true,
                       const char *Prefix = "",
                       const char *Suffix = "") noexcept
 {
     if (Offset == 0) {
-        return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
+        auto WrittenOut =
+            fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
+
+        if (Pad) {
+            WrittenOut +=
+                PrintUtilsRightPadSpaces(OutFile, WrittenOut, OFFSET_64_LEN);
+        }
+
+        return WrittenOut;
     }
 
     return fprintf(OutFile, "%s" OFFSET_64_FMT "%s", Prefix, Offset, Suffix);
+}
+
+inline int
+PrintUtilsWriteOffset32Or64(FILE *OutFile,
+                            bool Is64Bit,
+                            uint64_t Offset,
+                            bool Pad = true,
+                            const char *Prefix = "",
+                            const char *Suffix = "") noexcept
+{
+    if (Is64Bit) {
+        return PrintUtilsWriteOffset(OutFile, Offset, Pad, Prefix, Suffix);
+    }
+
+    const auto Result =
+        PrintUtilsWriteOffset(OutFile,
+                              static_cast<uint32_t>(Offset),
+                              Pad,
+                              Prefix,
+                              Suffix);
+
+    return Result;
 }
 
 inline int
@@ -439,47 +489,6 @@ PrintUtilsWriteSizeRange64(FILE *OutFile,
     }
 
     return PrintUtilsWriteOffset64Range(OutFile, Offset, End, Prefix, Suffix);
-}
-
-inline int
-PrintUtilsCharMultTimes(FILE *OutFile, char Ch, int Times) noexcept {
-    assert(Times >= 0 && "PrintUtilsCharMultTimes(): Times less than 0");
-    for (auto I = uint64_t(); I != Times; I++) {
-        fputc(Ch, OutFile);
-    }
-
-    return static_cast<int>(Times);
-}
-
-inline int
-PrintUtilsStringMultTimes(FILE *OutFile,
-                          const char *Str,
-                          int Times) noexcept
-{
-    assert(Times >= 0 && "PrintUtilsStringMultTimes(): Times less than 0");
-
-    auto Total = int();
-    for (auto I = uint64_t(); I != Times; I++) {
-        Total += fputs(Str, OutFile);
-    }
-
-    return Total;
-}
-
-inline int PrintUtilsPadSpaces(FILE *OutFile, int Times) noexcept {
-    assert(Times >= 0 && "PrintUtilsPadSpaces(): Times less than 0");
-    return fprintf(OutFile, "%" PRINTF_RIGHTPAD_FMT "s", Times, "");
-}
-
-inline int PrintUtilsPadTabs(FILE *OutFile, int Times) noexcept {
-    assert(Times >= 0 && "PrintUtilsPadSpaces(): Times less than 0");
-    return PrintUtilsCharMultTimes(OutFile, '\t', Times);
-}
-
-inline int
-PrintUtilsRightPadSpaces(FILE *OutFile, int WrittenOut, int Total) noexcept {
-    const auto PadLength = (Total - WrittenOut);
-    return PrintUtilsPadSpaces(OutFile, PadLength);
 }
 
 template <const char String[], int Length>

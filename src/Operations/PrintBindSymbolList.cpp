@@ -81,12 +81,17 @@ PrintBindAction(
                                                Section,
                                                true);
 
-        PrintUtilsWriteOffset(Options.OutFile, FullAddr, Is64Bit, " ");
+        PrintUtilsWriteOffset32Or64(Options.OutFile,
+                                    Is64Bit,
+                                    FullAddr,
+                                    false,
+                                    " ");
         if (Action.Addend) {
-            PrintUtilsWriteOffset(Options.OutFile,
-                                  Action.Addend,
-                                  Is64Bit,
-                                  " + ");
+            PrintUtilsWriteOffset32Or64(Options.OutFile,
+                                        Is64Bit,
+                                        Action.Addend,
+                                        false,
+                                        " + ");
         }
     } else {
         PrintUtilsRightPadSpaces(Options.OutFile,

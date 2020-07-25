@@ -248,6 +248,23 @@ static void PrintDscKey(FILE *OutFile, const char *Key) noexcept {
                              LongestDscKey + LENGTH_OF(": "));
 }
 
+static void
+WarnIfOutOfRange(FILE *OutFile,
+                 const RelativeRange &Range,
+                 const uint64_t Offset,
+                 const uint64_t Size,
+                 bool PrintNewLine = true) noexcept
+{
+    const auto LocRange = LocationRange::CreateWithSize(Offset, Size);
+    if (!LocRange || !Range.containsRange(LocRange.value())) {
+        fprintf(OutFile, " (Past EOF!)");
+    }
+
+    if (PrintNewLine) {
+        fputc('\n', OutFile);
+    }
+}
+
 static DscMemoryObject::Version
 PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
                      const ConstDscMemoryObject &Object) noexcept
@@ -272,6 +289,7 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
     PrintDscKey(Options.OutFile, "Mapping Offset");
     PrintUtilsWriteOffset(Options.OutFile,
                           Header.MappingOffset,
+                          false,
                           "",
                           "\n");
 
@@ -281,6 +299,7 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
     PrintDscKey(Options.OutFile, "Images Offset");
     PrintUtilsWriteOffset(Options.OutFile,
                           Header.ImagesOffset,
+                          false,
                           "",
                           "\n");
 
@@ -290,27 +309,11 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
     PrintDscKey(Options.OutFile, "Dyld Base-Address");
     PrintUtilsWriteOffset(Options.OutFile,
                           Header.DyldBaseAddress,
+                          false,
                           "",
                           "\n");
 
     return Version;
-}
-
-static void
-WarnIfOutOfRange(FILE *OutFile,
-                 const RelativeRange &Range,
-                 const uint64_t Offset,
-                 const uint64_t Size,
-                 bool PrintNewLine = true) noexcept
-{
-    const auto LocRange = LocationRange::CreateWithSize(Offset, Size);
-    if (!LocRange || !Range.containsRange(LocRange.value())) {
-        fprintf(OutFile, " (Past EOF!)");
-    }
-
-    if (PrintNewLine) {
-        fputc('\n', OutFile);
-    }
 }
 
 template <void (*PrintKeyFunc)(FILE *, const char *) = PrintDscKey, typename T>
@@ -637,10 +640,10 @@ PrintAcceleratorInfo(
     fprintf(OutFile, "%" PRIu32 "\n", Info.ImageExtrasCount);
 
     PrintAcceleratorKey(OutFile, "Image-Extras Offset");
-    PrintUtilsWriteOffset(OutFile, Info.ImageExtrasOffset, "", "\n");
+    PrintUtilsWriteOffset(OutFile, Info.ImageExtrasOffset,  true, "", "\n");
 
     PrintAcceleratorKey(OutFile, "Bottom-Up List-Offset");
-    PrintUtilsWriteOffset(OutFile, Info.BottomUpListOffset, "", "\n");
+    PrintUtilsWriteOffset(OutFile, Info.BottomUpListOffset, true,  "", "\n");
 
     PrintDscSizeRange<PrintAcceleratorKey>(OutFile,
                                            Range,

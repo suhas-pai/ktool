@@ -141,7 +141,7 @@ PrintTreeExportInfo(
                                                    " - ");
 
             const auto ImageOffset = Export.Info.getImageOffset();
-            PrintUtilsWriteOffset32Or64(Options.OutFile, ImageOffset, Is64Bit);
+            PrintUtilsWriteOffset32Or64(Options.OutFile, Is64Bit, ImageOffset);
         } else {
             fputs(" - ", Options.OutFile);
             if (!Export.Info.getReexportImportName().empty()) {
@@ -212,8 +212,13 @@ HandleTreeOption(
             auto Section = std::string_view();
 
             if (Kind != MachO::ExportTrieExportKind::Reexport) {
-                Segment = ExportNode->getSegment()->Name;
-                Section = ExportNode->getSection()->Name;
+                if (const auto ExportSegment = ExportNode->getSegment()) {
+                    Segment = ExportSegment->Name;
+                }
+
+                if (const auto ExportSection = ExportNode->getSection()) {
+                    Section = ExportSection->Name;
+                }
             }
 
             if (ExportMeetsRequirements(Kind, Segment, Section, Options)) {
@@ -470,7 +475,7 @@ PrintExportTrie(
                                                    true);
 
             const auto ImageOffset = Export.Info.getImageOffset();
-            PrintUtilsWriteOffset(Options.OutFile, ImageOffset, Is64Bit);
+            PrintUtilsWriteOffset32Or64(Options.OutFile, Is64Bit, ImageOffset);
         } else {
             const auto OffsetLength = (Is64Bit) ? OFFSET_64_LEN : OFFSET_32_LEN;
             const auto PadLength =

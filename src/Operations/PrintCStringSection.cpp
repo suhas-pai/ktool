@@ -160,7 +160,7 @@ PrintCStringList(
                 StringListSizeDigithLength,
                 Counter);
 
-        PrintUtilsWriteOffset(Options.OutFile, Info.Addr, Is64Bit);
+        PrintUtilsWriteOffset32Or64(Options.OutFile, Is64Bit, Info.Addr);
         const auto PrintLength =
             fprintf(Options.OutFile, " \"%s\"", String.data());
 
@@ -174,11 +174,12 @@ PrintCStringList(
                     LongestStringLengthDigitLength,
                     String.length());
 
-            PrintUtilsWriteOffset(Options.OutFile,
-                                  Info.Offset,
-                                  Is64Bit,
-                                  "",
-                                  ")");
+            PrintUtilsWriteOffset32Or64(Options.OutFile,
+                                        Is64Bit,
+                                        Info.Offset,
+                                        false,
+                                        "",
+                                        ")");
         }
 
         fputc('\n', Options.OutFile);

@@ -298,20 +298,22 @@ PrintBindOpcodeList(
                 }
             }
 
-            PrintUtilsWriteOffset(Options.OutFile,
-                                  Iter.AddrInSeg + Add,
-                                  Is64Bit,
-                                  " - (Segment-Address: ",
-                                  ", ");
+            PrintUtilsWriteOffset32Or64(Options.OutFile,
+                                        Is64Bit,
+                                        Iter.AddrInSeg + Add,
+                                        false,
+                                        " - (Segment-Address: ",
+                                        ", ");
 
             const auto FullAddr =
                 Iter.Segment->Memory.getBegin() + Iter.AddrInSeg + Add;
 
-            PrintUtilsWriteOffset(Options.OutFile,
-                                  FullAddr,
-                                  Is64Bit,
-                                  "Full-Address: ",
-                                  ")");
+            PrintUtilsWriteOffset32Or64(Options.OutFile,
+                                        Is64Bit,
+                                        FullAddr,
+                                        false,
+                                        "Full-Address: ",
+                                        ")");
         };
 
         switch (Byte.getOpcode()) {
@@ -362,11 +364,12 @@ PrintBindOpcodeList(
                 break;
             }
             case MachO::BindByte::Opcode::SetAddendSleb:
-                PrintUtilsWriteOffset(Options.OutFile,
-                                      Iter.Addend,
-                                      Is64Bit,
-                                      "(",
-                                      ")\n");
+                PrintUtilsWriteOffset32Or64(Options.OutFile,
+                                            Is64Bit,
+                                            Iter.Addend,
+                                            false,
+                                            "(",
+                                            ")\n");
 
                 break;
             case MachO::BindByte::Opcode::SetSegmentAndOffsetUleb: {
@@ -380,22 +383,24 @@ PrintBindOpcodeList(
                                                            ")");
                 }
 
-                PrintUtilsWriteOffset(Options.OutFile,
-                                      Iter.AddrInSeg,
-                                      Is64Bit,
-                                      ", ",
-                                      "");
+                PrintUtilsWriteOffset32Or64(Options.OutFile,
+                                            Is64Bit,
+                                            Iter.AddrInSeg,
+                                            false,
+                                            ", ",
+                                            "");
 
                 if (Options.Verbose) {
                     if (Iter.Segment != nullptr) {
                         const auto FullAddr =
                             Iter.Segment->Memory.getBegin() + Iter.AddrInSeg;
 
-                        PrintUtilsWriteOffset(Options.OutFile,
-                                              FullAddr,
-                                              Is64Bit,
-                                              " (Full Address: ",
-                                              ")");
+                        PrintUtilsWriteOffset32Or64(Options.OutFile,
+                                                    Is64Bit,
+                                                    FullAddr,
+                                                    false,
+                                                    " (Full Address: ",
+                                                    ")");
                     }
                 }
 
