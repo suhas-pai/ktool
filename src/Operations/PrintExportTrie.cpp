@@ -40,14 +40,16 @@ FindSegmentAndSectionForAddr(const MachO::SegmentInfoCollection &Collection,
 }
 
 static bool
-ExportNodeMeetsRequirements(
-    const MachO::ExportTrieExportChildNode *Node,
+ExportMeetsRequirements(
+    const MachO::ExportTrieExportKind Kind,
+    const std::string_view &SegmentName,
+    const std::string_view &SectionName,
     const struct PrintExportTrieOperation::Options &Options)
 {
     if (!Options.KindRequirements.empty()) {
         auto MeetsReq = false;
-        for (const auto &Kind : Options.KindRequirements) {
-            if (Node->Kind == Kind) {
+        for (const auto &KindReq : Options.KindRequirements) {
+            if (Kind == KindReq) {
                 MeetsReq = true;
                 break;
             }
@@ -60,25 +62,18 @@ ExportNodeMeetsRequirements(
         // Re-exports, if they're explicitly allowed, automatically pass all
         // section requirements.
 
-        if (Node->Kind == MachO::ExportTrieExportKind::Reexport) {
+        if (Kind == MachO::ExportTrieExportKind::Reexport) {
             return true;
         }
     }
 
     if (!Options.SectionRequirements.empty()) {
-        if (Node->Kind == MachO::ExportTrieExportKind::Reexport) {
-            return false;
-        }
-
-        const auto Segment = Node->getSegment();
-        const auto Section = Node->getSection();
-
-        if (Segment == nullptr) {
+        if (Kind == MachO::ExportTrieExportKind::Reexport) {
             return false;
         }
 
         for (const auto &Requirement : Options.SectionRequirements) {
-            if (Segment->Name != Requirement.SegmentName) {
+            if (SegmentName != Requirement.SegmentName) {
                 continue;
             }
 
@@ -86,11 +81,7 @@ ExportNodeMeetsRequirements(
                 return true;
             }
 
-            if (Section == nullptr) {
-                return false;
-            }
-
-            if (Section->Name == Requirement.SectionName) {
+            if (SectionName == Requirement.SectionName) {
                 return true;
             }
         }
@@ -150,7 +141,7 @@ PrintTreeExportInfo(
                                                    " - ");
 
             const auto ImageOffset = Export.Info.getImageOffset();
-            PrintUtilsWriteOffset(Options.OutFile, ImageOffset, Is64Bit);
+            PrintUtilsWriteOffset32Or64(Options.OutFile, ImageOffset, Is64Bit);
         } else {
             fputs(" - ", Options.OutFile);
             if (!Export.Info.getReexportImportName().empty()) {
@@ -214,7 +205,18 @@ HandleTreeOption(
                 continue;
             }
 
-            if (ExportNodeMeetsRequirements(Iter->getAsExportNode(), Options)) {
+            const auto ExportNode = Iter->getAsExportNode();
+            const auto Kind = ExportNode->Kind;
+
+            auto Segment = std::string_view();
+            auto Section = std::string_view();
+
+            if (Kind != MachO::ExportTrieExportKind::Reexport) {
+                Segment = ExportNode->getSegment()->Name;
+                Section = ExportNode->getSection()->Name;
+            }
+
+            if (ExportMeetsRequirements(Kind, Segment, Section, Options)) {
                 Iter++;
                 continue;
             }
@@ -408,8 +410,13 @@ PrintExportTrie(
             }
         }
 
+        const auto &Kind = Info.Kind;
+        if (!ExportMeetsRequirements(Kind, SegmentName, SectionName, Options)) {
+            continue;
+        }
+
         ExportList.emplace_back(ExportInfo {
-            .Kind = Info.Kind,
+            .Kind = Kind,
             .Info = Info.Export,
             .SegmentName = SegmentName,
             .SectionName = SectionName,
