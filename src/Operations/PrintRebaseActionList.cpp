@@ -128,13 +128,6 @@ PrintRebaseActionList(
     OperationCommon::HandleSegmentCollectionError(Options.ErrFile,
                                                   SegmentCollectionError);
 
-    const auto Comparator =
-        [&](const MachO::RebaseActionInfo &Lhs,
-            const MachO::RebaseActionInfo &Rhs)
-    {
-        return (Lhs.AddrInSeg < Rhs.AddrInSeg);
-    };
-
     const auto RebaseActionListOpt =
         FoundDyldInfo->GetRebaseActionList(Map, IsBigEndian, Is64Bit);
 
@@ -157,6 +150,14 @@ PrintRebaseActionList(
         RebaseActionList.GetAsList(RebaseActionInfoList);
 
     if (Options.Sort) {
+        const auto Comparator =
+            [&](const MachO::RebaseActionInfo &Lhs,
+                const MachO::RebaseActionInfo &Rhs) noexcept
+        {
+            return (Lhs.AddrInSeg < Rhs.AddrInSeg);
+        };
+
+
         std::sort(RebaseActionInfoList.begin(),
                   RebaseActionInfoList.end(),
                   Comparator);
