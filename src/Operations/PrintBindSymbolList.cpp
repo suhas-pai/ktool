@@ -141,11 +141,9 @@ PrintBindActionList(
         return;
     }
 
-    auto LongestBindSymbolLength = uint64_t();
+    auto LongestBindSymbolLength = LargestIntHelper();
     for (const auto &Action : List) {
-        if (LongestBindSymbolLength < Action.SymbolName.length()) {
-            LongestBindSymbolLength = Action.SymbolName.length();
-        }
+        LongestBindSymbolLength = Action.SymbolName.length();
     }
 
     switch (List.size()) {
