@@ -77,6 +77,9 @@ namespace MachO {
         [[nodiscard]] const SectionInfo *
         FindSectionContainingAddress(uint64_t Address) const noexcept;
 
+        [[nodiscard]] const SectionInfo *
+        FindSectionContainingRelativeAddress(uint64_t Address) const noexcept;
+
         template <typename T = uint8_t,
                   typename = std::enable_if_t<!std::is_const_v<T>>>
 

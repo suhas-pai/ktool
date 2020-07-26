@@ -55,24 +55,6 @@ namespace MachO {
         FindSegmentContainingAddress(uint64_t Address) const noexcept;
 
         [[nodiscard]] const SectionInfo *
-        FindSectionContainingAddress(
-            uint64_t Address,
-            const SegmentInfo **SegmentOut = nullptr) const noexcept;
-
-        [[nodiscard]] virtual inline const SegmentInfo *
-        FindSegmentWithRelativeAddress(uint64_t Address) const noexcept {
-            return FindSegmentContainingAddress(Address);
-        }
-
-        [[nodiscard]] virtual inline const SectionInfo *
-        FindSectionWithRelativeAddress(
-            uint64_t Address,
-            const SegmentInfo **SegmentOut = nullptr) const noexcept
-        {
-            return FindSectionContainingAddress(Address, SegmentOut);
-        }
-
-        [[nodiscard]] const SectionInfo *
         FindSectionWithName(
             const std::initializer_list<SectionNamePair> &List) const noexcept;
 

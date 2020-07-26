@@ -18,11 +18,14 @@ namespace DscImage {
         const auto SegCollection =
             reinterpret_cast<const SegmentInfoCollection *>(Collection);
 
-        auto Segment = static_cast<const SegmentInfo *>(nullptr);
-        *SectionOut =
-            SegCollection->FindSectionWithRelativeAddress(Address, &Segment);
+        const auto Section =
+            SegCollection->FindSectionWithImageRelativeAddress(Address);
 
-        return Segment;
+        if (Section != nullptr) {
+            return Section->Segment;
+        }
+
+        return nullptr;
     }
 
     ExportTrieEntryCollection

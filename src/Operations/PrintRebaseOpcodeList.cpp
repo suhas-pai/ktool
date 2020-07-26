@@ -40,8 +40,7 @@ GetSegmentAndSection(const MachO::SegmentInfoCollection &Collection,
     const auto *Section = static_cast<const MachO::SectionInfo *>(nullptr);
 
     if (Segment != nullptr) {
-        const auto FullAddr = Segment->Memory.getBegin() + Address;
-        Section = Segment->FindSectionContainingAddress(FullAddr);
+        Section = Segment->FindSectionContainingAddress(Address);
     }
 
     *SegmentOut = Segment;

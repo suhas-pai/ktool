@@ -388,17 +388,15 @@ namespace MachO {
     }
 
     const SectionInfo *
-    SegmentInfoCollection::FindSectionContainingAddress(
-        uint64_t Address,
-        const SegmentInfo **SegmentOut) const noexcept
+    SegmentInfo::FindSectionContainingRelativeAddress(
+        uint64_t Address) const noexcept
     {
-        const auto *Segment = FindSegmentContainingAddress(Address);
-        if (Segment != nullptr) {
-            *SegmentOut = Segment;
-            return Segment->FindSectionContainingAddress(Address);
+        if (!Memory.containsRelativeLocation(Address)) {
+            return nullptr;
         }
 
-        return nullptr;
+        const auto FullAddr = Memory.getBegin() + Address;
+        return FindSectionContainingAddress(FullAddr);
     }
 
     uint8_t *GetDataForSegment(uint8_t *Map, const SegmentInfo &Info) noexcept {
