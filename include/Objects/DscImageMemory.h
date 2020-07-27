@@ -12,7 +12,7 @@
 #include "MachOMemory.h"
 
 struct DscMemoryObject;
-struct ConstDscImageMemoryObject : ConstMachOMemoryObject {
+struct ConstDscImageMemoryObject : public ConstMachOMemoryObject {
 public:
     constexpr static auto ObjKind = ObjectKind::DscImage;
     friend struct ConstDscMemoryObject;
@@ -110,7 +110,7 @@ public:
         return ImageIndex;
     }
 
-    [[nodiscard]] inline uint64_t getBaseOffset() const noexcept {
+    [[nodiscard]] inline uint64_t getFileOffset() const noexcept {
         return Map - getDscMap().getBegin();
     }
 
@@ -130,7 +130,7 @@ public:
     }
 };
 
-struct DscImageMemoryObject : ConstDscImageMemoryObject {
+struct DscImageMemoryObject : public ConstDscImageMemoryObject {
 protected:
     DscImageMemoryObject(const MemoryMap &DscMap,
                          const DyldSharedCache::ImageInfo &ImageInfo,
@@ -187,6 +187,19 @@ public:
         assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV6));
 
         return Header;
+    }
+
+    [[nodiscard]] inline MemoryMap getMap() const noexcept {
+        const auto End = const_cast<uint8_t *>(this->End);
+        return MemoryMap(const_cast<uint8_t *>(Map), End);
+    }
+
+    [[nodiscard]] inline MachO::Header &getHeader() noexcept { return *Header; }
+
+    [[nodiscard]] inline MachO::LoadCommandStorage
+    GetLoadCommands(bool Verify = true) noexcept {
+        auto Result = ConstMachOMemoryObject::GetLoadCommands(Verify);
+        return *reinterpret_cast<const MachO::LoadCommandStorage *>(&Result);
     }
 };
 
