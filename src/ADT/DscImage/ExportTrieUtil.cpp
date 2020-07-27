@@ -24,6 +24,7 @@ namespace DscImage {
                                                                &Segment);
 
         if (Section != nullptr) {
+            *SectionOut = Section;
             return Section->Segment;
         }
 
