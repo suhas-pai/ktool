@@ -22,6 +22,7 @@ namespace DscImage {
             SegCollection->FindSectionWithImageRelativeAddress(Address);
 
         if (Section != nullptr) {
+            *SectionOut = Section;
             return Section->Segment;
         }
 
@@ -30,7 +31,6 @@ namespace DscImage {
 
     ExportTrieEntryCollection
     ExportTrieEntryCollection::Open(
-        uint64_t BaseAddress,
         const MachO::ConstExportTrieList &List,
         const DscImage::SegmentInfoCollection *Collection,
         Error *ErrorOut) noexcept

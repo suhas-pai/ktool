@@ -21,8 +21,7 @@ namespace DscImage {
         using MachO::ExportTrieEntryCollection::ExportTrieEntryCollection;
     public:
         [[nodiscard]] static ExportTrieEntryCollection
-        Open(uint64_t BaseAddress,
-             const MachO::ConstExportTrieList &Info,
+        Open(const MachO::ConstExportTrieList &Info,
              const DscImage::SegmentInfoCollection *Collection,
              Error *ErrorOut) noexcept;
     };

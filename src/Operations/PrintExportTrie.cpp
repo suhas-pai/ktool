@@ -571,8 +571,7 @@ PrintExportTrieOperation::Run(const ConstDscImageMemoryObject &Object,
     if (Options.PrintTree) {
         auto Error = DscImage::ExportTrieEntryCollection::Error();
         auto EntryCollection =
-            DscImage::ExportTrieEntryCollection::Open(Base,
-                                                      TrieList.getRef(),
+            DscImage::ExportTrieEntryCollection::Open(TrieList.getRef(),
                                                       &SegmentCollection,
                                                       &Error);
 
