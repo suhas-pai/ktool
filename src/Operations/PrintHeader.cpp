@@ -370,8 +370,9 @@ PrintDscSizeRange(FILE *OutFile,
 }
 
 static void
-PrintDscHeaderV1Info(const struct PrintHeaderOperation::Options &Options,
-                     const ConstDscMemoryObject &Object) noexcept
+PrintDscHeaderV1Info(
+    const ConstDscMemoryObject &Object,
+    const struct PrintHeaderOperation::Options &Options) noexcept
 {
     const auto Header = Object.getHeaderV1();
     PrintDscSizeRange(Options.OutFile,
@@ -394,8 +395,9 @@ PrintDscHeaderV1Info(const struct PrintHeaderOperation::Options &Options,
 }
 
 static void
-PrintDscHeaderV2Info(const struct PrintHeaderOperation::Options &Options,
-                     const ConstDscMemoryObject &Object) noexcept
+PrintDscHeaderV2Info(
+    const ConstDscMemoryObject &Object,
+    const struct PrintHeaderOperation::Options &Options) noexcept
 {
     const auto Header = Object.getHeaderV2();
     PrintDscSizeRange(Options.OutFile,
@@ -412,8 +414,9 @@ PrintDscHeaderV2Info(const struct PrintHeaderOperation::Options &Options,
 }
 
 static void
-PrintDscHeaderV3Info(const struct PrintHeaderOperation::Options &Options,
-                     const ConstDscMemoryObject &Object) noexcept
+PrintDscHeaderV3Info(
+    const ConstDscMemoryObject &Object,
+    const struct PrintHeaderOperation::Options &Options) noexcept
 {
     PrintDscKey(Options.OutFile, "Cache-Kind");
 
@@ -431,8 +434,9 @@ PrintDscHeaderV3Info(const struct PrintHeaderOperation::Options &Options,
 }
 
 static void
-PrintDscHeaderV4Info(const struct PrintHeaderOperation::Options &Options,
-                     const ConstDscMemoryObject &Object) noexcept
+PrintDscHeaderV4Info(
+    const ConstDscMemoryObject &Object,
+    const struct PrintHeaderOperation::Options &Options) noexcept
 {
     const auto Header = Object.getHeaderV4();
 
@@ -476,8 +480,9 @@ void PrintBoolValue(FILE *OutFile, const char *Key, bool Value) noexcept {
 }
 
 static void
-PrintDscHeaderV5Info(const struct PrintHeaderOperation::Options &Options,
-                     const ConstDscMemoryObject &Object) noexcept
+PrintDscHeaderV5Info(
+    const ConstDscMemoryObject &Object,
+    const struct PrintHeaderOperation::Options &Options) noexcept
 {
     const auto Header = Object.getHeaderV5();
     PrintDscSizeRange(Options.OutFile,
@@ -563,8 +568,9 @@ PrintDscHeaderV5Info(const struct PrintHeaderOperation::Options &Options,
 }
 
 static void
-PrintDscHeaderV6Info(const struct PrintHeaderOperation::Options &Options,
-                     const ConstDscMemoryObject &Object) noexcept
+PrintDscHeaderV6Info(
+    const ConstDscMemoryObject &Object,
+    const struct PrintHeaderOperation::Options &Options) noexcept
 {
     const auto Header = Object.getHeaderV6();
     PrintDscSizeRange(Options.OutFile,
@@ -703,32 +709,32 @@ PrintHeaderOperation::Run(const ConstDscMemoryObject &Object,
         return 0;
     }
 
-    PrintDscHeaderV1Info(Options, Object);
+    PrintDscHeaderV1Info(Object, Options);
     if (Version < DscMemoryObject::Version::v2) {
         return 0;
     }
 
-    PrintDscHeaderV2Info(Options, Object);
+    PrintDscHeaderV2Info(Object, Options);
     if (Version < DscMemoryObject::Version::v3) {
         return 0;
     }
 
-    PrintDscHeaderV3Info(Options, Object);
+    PrintDscHeaderV3Info(Object, Options);
     if (Version < DscMemoryObject::Version::v4) {
         return 0;
     }
 
-    PrintDscHeaderV4Info(Options, Object);
+    PrintDscHeaderV4Info(Object, Options);
     if (Version < DscMemoryObject::Version::v5) {
         goto done;
     }
 
-    PrintDscHeaderV5Info(Options, Object);
+    PrintDscHeaderV5Info(Object, Options);
     if (Version < DscMemoryObject::Version::v6) {
         goto done;
     }
 
-    PrintDscHeaderV6Info(Options, Object);
+    PrintDscHeaderV6Info(Object, Options);
 
 done:
     if (const auto Info = Object.getHeaderV4().GetAcceleratorInfo()) {

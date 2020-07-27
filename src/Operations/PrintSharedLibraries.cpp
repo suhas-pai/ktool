@@ -278,11 +278,11 @@ ListHasSortKind(
 
 static inline void
 AddSortKind(PrintSharedLibrariesOperation::Options::SortKind SortKind,
-            const char *Option,
+            const char *Argument,
             struct PrintSharedLibrariesOperation::Options &Options) noexcept
 {
     if (ListHasSortKind(Options.SortKindList, SortKind)) {
-        fprintf(Options.OutFile, "Option %s specified twice\n", Option);
+        fprintf(Options.OutFile, "Option %s specified twice\n", Argument);
     } else {
         Options.SortKindList.push_back(SortKind);
     }

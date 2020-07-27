@@ -127,7 +127,7 @@ PrintTreeExportInfo(
                             RightPad - WrittenOut - 1);
 
     fprintf(Options.OutFile,
-            "> (Exported - %" PRINTF_LEFTPAD_FMT "s",
+            "> (Exported - %" PRINTF_RIGHTPAD_FMT "s",
             static_cast<int>(LENGTH_OF("Re-export")),
             KindDesc);
 
