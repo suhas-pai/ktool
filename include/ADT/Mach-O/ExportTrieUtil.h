@@ -199,7 +199,7 @@ namespace MachO {
         static ExportTrieExportCollection
         Open(const MachO::ConstExportTrieExportList &Trie,
              const MachO::SegmentInfoCollection *SegmentCollection,
-             Error *Error);
+             Error *Error) noexcept;
 
         using Iterator = std::vector<EntryInfo>::const_iterator;
         using ConstIterator = std::vector<EntryInfo>::const_iterator;

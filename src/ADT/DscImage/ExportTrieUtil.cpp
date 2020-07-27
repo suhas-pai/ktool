@@ -18,11 +18,12 @@ namespace DscImage {
         const auto SegCollection =
             reinterpret_cast<const SegmentInfoCollection *>(Collection);
 
+        auto Segment = static_cast<const SegmentInfo *>(nullptr);
         const auto Section =
-            SegCollection->FindSectionWithImageRelativeAddress(Address);
+            SegCollection->FindSectionWithImageRelativeAddress(Address,
+                                                               &Segment);
 
         if (Section != nullptr) {
-            *SectionOut = Section;
             return Section->Segment;
         }
 

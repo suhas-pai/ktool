@@ -404,7 +404,7 @@ PrintSymbolPtrList(
             for (const auto &Sort : Options.SortKindList) {
                 const auto Compare = CompareEntriesBySortKind(*Lhs, *Rhs, Sort);
                 if (Compare != 0) {
-                    return (Compare <= 0);
+                    return (Compare < 0);
                 }
             }
         } else if (Lhs->Index < Rhs->Index) {

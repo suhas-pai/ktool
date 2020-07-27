@@ -353,12 +353,13 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
             });
         }
 
+        const auto ObjcClassListSize = ObjcClassList.size();
         fprintf(Options.OutFile,
                 "Provided file has %" PRIuPTR " Objective-C Classes:\n",
-                ObjcClassList.size());
+                ObjcClassListSize);
 
         const auto MaxDigitLength =
-            PrintUtilsGetIntegerDigitLength(ObjcClassList.size());
+            PrintUtilsGetIntegerDigitLength(ObjcClassListSize);
 
         auto I = static_cast<uint64_t>(1);
         for (const auto &Iter : ObjcClassList) {

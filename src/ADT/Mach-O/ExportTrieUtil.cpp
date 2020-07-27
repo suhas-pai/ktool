@@ -141,7 +141,7 @@ namespace MachO {
     ExportTrieExportCollection::Open(
         const MachO::ConstExportTrieExportList &Trie,
         const MachO::SegmentInfoCollection *SegmentCollection,
-        Error *Error)
+        Error *Error) noexcept
     {
         auto Result = ExportTrieExportCollection();
         for (auto &Iter : Trie) {

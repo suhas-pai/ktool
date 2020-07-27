@@ -37,9 +37,13 @@ namespace DscImage {
         }
 
         [[nodiscard]] inline const SectionInfo *
-        FindSectionWithImageRelativeAddress(uint64_t Address) const noexcept {
+        FindSectionWithImageRelativeAddress(
+            uint64_t Address,
+            const SegmentInfo **SegmentOut = nullptr) const noexcept
+        {
             const auto FullAddr = ImageAddress + Address;
             if (const auto Segment = FindSegmentContainingAddress(FullAddr)) {
+                *SegmentOut = Segment;
                 return Segment->FindSectionContainingAddress(FullAddr);
             }
 

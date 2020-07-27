@@ -119,7 +119,7 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
             for (const auto &Sort : Options.SortKindList) {
                 const auto Compare = CompareInfosBySortKind(Lhs, Rhs, Sort);
                 if (Compare != 0) {
-                    return (Compare <= 0);
+                    return (Compare < 0);
                 }
             }
 
