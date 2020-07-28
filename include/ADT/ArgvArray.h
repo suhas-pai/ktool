@@ -13,10 +13,10 @@
 
 #include "BasicContiguousList.h"
 
-struct ArgvArrayIterator : public BasicContiguousIterator<const char *> {
+struct ArgvArrayIterator : public BasicContiguousIterator<const char *const> {
     friend struct ArgvArrayList;
 private:
-    using Base = BasicContiguousIterator<const char *>;
+    using Base = BasicContiguousIterator<const char *const>;
 protected:
     const char *const *End;
 public:
@@ -81,7 +81,7 @@ public:
         return (front() == '/');
     }
 
-    [[nodiscard]] inline const char **getPtr() const noexcept {
+    [[nodiscard]] inline const char *const *getPtr() const noexcept {
         return Item;
     }
 
