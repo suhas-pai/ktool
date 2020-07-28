@@ -17,18 +17,46 @@
 #include "ADT/MemoryMap.h"
 
 namespace DscImage {
-    struct DeVirtualizer {
+    struct ConstDeVirtualizer {
     protected:
-        uint8_t *Map;
+        const uint8_t *Map;
         LocationRange MappingsRange;
     public:
         explicit
-        DeVirtualizer(uint8_t *Map, const LocationRange &MappingsRange) noexcept
+        ConstDeVirtualizer(const uint8_t *Map,
+                           const LocationRange &MappingsRange) noexcept
         : Map(Map), MappingsRange(MappingsRange) {}
 
         [[nodiscard]] inline
         uint64_t getFileOffsetFromVmAddr(uint64_t VmAddr) const noexcept {
             return (VmAddr - MappingsRange.getBegin());
+        }
+
+        [[nodiscard]] inline const uint8_t *getMap() const noexcept {
+            return Map;
+        }
+
+        [[nodiscard]] inline const uint8_t *getBegin() const noexcept {
+            return Map + MappingsRange.getBegin();
+        }
+
+        [[nodiscard]] inline const uint8_t *getEnd() const noexcept {
+            return Map + MappingsRange.getEnd();
+        }
+
+        template <typename T>
+        [[nodiscard]] inline const T *getBeginAs() const noexcept {
+            return reinterpret_cast<const T *>(getBegin());
+        }
+
+        template <typename T>
+        [[nodiscard]] inline const T *getEndAs() const noexcept {
+            return reinterpret_cast<const T *>(getEnd());
+        }
+
+        [[nodiscard]]
+        inline const LocationRange &getMappingsRange() const noexcept {
+            return MappingsRange;
         }
 
         template <typename T>
@@ -51,34 +79,8 @@ namespace DscImage {
             return Result;
         }
 
-        [[nodiscard]] inline uint8_t *getMap() const noexcept {
-            return Map;
-        }
-
-        [[nodiscard]] inline uint8_t *getBegin() const noexcept {
-            return Map + MappingsRange.getBegin();
-        }
-
-        [[nodiscard]] inline const uint8_t *getEnd() const noexcept {
-            return Map + MappingsRange.getEnd();
-        }
-
-        template <typename T>
-        [[nodiscard]] inline T *getBeginAs() const noexcept {
-            return reinterpret_cast<T *>(getBegin());
-        }
-
-        template <typename T>
-        [[nodiscard]] inline T *getEndAs() const noexcept {
-            return reinterpret_cast<T *>(getEnd());
-        }
-
-        [[nodiscard]] inline LocationRange getMappingsRange() const noexcept {
-            return MappingsRange;
-        }
-
         [[nodiscard]]
-        std::optional<std::string_view>
+        inline std::optional<std::string_view>
         GetStringAtAddress(uint64_t Address) const noexcept {
             const auto Ptr = GetDataAtVmAddr<const char>(Address);
             if (Ptr == nullptr) {
@@ -93,32 +95,27 @@ namespace DscImage {
         }
     };
 
-    struct ConstDeVirtualizer : public DeVirtualizer {
+    struct DeVirtualizer : public ConstDeVirtualizer {
     public:
         explicit
-        ConstDeVirtualizer(const uint8_t *Map,
-                           const LocationRange &MappingsRange) noexcept
-        : DeVirtualizer(const_cast<uint8_t *>(Map), MappingsRange) {}
+        DeVirtualizer(uint8_t *Map, const LocationRange &MappingsRange) noexcept
+        : ConstDeVirtualizer(const_cast<uint8_t *>(Map), MappingsRange) {}
 
-        [[nodiscard]] inline const uint8_t *getMap() const noexcept {
-            return Map;
+        [[nodiscard]] inline uint8_t *getMap() const noexcept {
+            return const_cast<uint8_t *>(Map);
         }
 
-        [[nodiscard]] inline const uint8_t *getBegin() const noexcept {
-            return Map + MappingsRange.getBegin();
-        }
-
-        [[nodiscard]] inline const uint8_t *getEnd() const noexcept {
-            return Map + MappingsRange.getEnd();
+        [[nodiscard]] inline uint8_t *getBegin() const noexcept {
+            return const_cast<uint8_t *>(Map) + MappingsRange.getBegin();
         }
 
         template <typename T>
-        [[nodiscard]] inline const T *getBeginAs() const noexcept {
+        [[nodiscard]] inline T *getBeginAs() const noexcept {
             return reinterpret_cast<T *>(getBegin());
         }
 
         template <typename T>
-        [[nodiscard]] inline const T *getEndAs() const noexcept {
+        [[nodiscard]] inline T *getEndAs() const noexcept {
             return reinterpret_cast<T *>(getEnd());
         }
     };
