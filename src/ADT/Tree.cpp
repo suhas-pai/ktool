@@ -39,7 +39,13 @@ CalculateLongestNode(BasicTreeNode &Node,
                      BasicTreeNode *End = nullptr) noexcept
 {
     auto Longest = &Node;
-    BASIC_TREE_NODE_ITERATE_SIBLINGS_TILL_END(*Node.getNextSibling(), End) {
+    const auto NextSibling = Node.getNextSibling();
+
+    if (NextSibling == nullptr) {
+        return Node;
+    }
+
+    BASIC_TREE_NODE_ITERATE_SIBLINGS_TILL_END(*NextSibling, End) {
         if (Longest->GetLength() < Sibling->GetLength()) {
             Longest = Sibling;
         }
