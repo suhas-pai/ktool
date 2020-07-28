@@ -45,11 +45,11 @@ std::optional<uint64_t> FileDescriptor::GetSize() const noexcept {
     assert(IsOpen());
 
     struct stat Sbuf = {};
-    if (fstat(Fd, &Sbuf) == 0) {
-        return Sbuf.st_size;
+    if (fstat(Fd, &Sbuf) != 0) {
+        return std::nullopt;
     }
 
-    return std::nullopt;
+    return Sbuf.st_size;;
 }
 
 FileDescriptor &FileDescriptor::operator=(FileDescriptor &&Rhs) noexcept {

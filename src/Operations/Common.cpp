@@ -288,27 +288,27 @@ OperationCommon::PrintDylibOrdinalInfo(
     bool Verbose) noexcept
 {
     const auto DylibIndex = DylibOrdinal - 1;
-    if (DylibOrdinal > 0) {
-        if (IndexOutOfBounds(DylibIndex, Collection.size())) {
-            fprintf(OutFile,
-                    "Dylib-Ordinal %02" PRId64 " (Out Of Bounds!)",
-                    DylibOrdinal);
-        } else {
-            if (Verbose) {
-                const auto &Path = Collection.at(DylibIndex).Path;
-                fprintf(OutFile,
-                        "Dylib-Ordinal %02" PRId64 " - \"%s\"",
-                        DylibOrdinal,
-                        Path.data());
-            } else {
-                fprintf(OutFile, "Dylib-Ordinal %02" PRId64, DylibOrdinal);
-            }
-        }
-
+    if (DylibOrdinal <= 0) {
+        OperationCommon::PrintSpecialDylibOrdinal(OutFile, DylibOrdinal);
         return;
     }
 
-    OperationCommon::PrintSpecialDylibOrdinal(OutFile, DylibOrdinal);
+    if (IndexOutOfBounds(DylibIndex, Collection.size())) {
+        fprintf(OutFile,
+                "Dylib-Ordinal %02" PRId64 " (Out Of Bounds!)",
+                DylibOrdinal);
+        return;
+    }
+
+    if (Verbose) {
+        const auto &Path = Collection.at(DylibIndex).Path;
+        fprintf(OutFile,
+                "Dylib-Ordinal %02" PRId64 " - \"%s\"",
+                DylibOrdinal,
+                Path.data());
+    } else {
+        fprintf(OutFile, "Dylib-Ordinal %02" PRId64, DylibOrdinal);
+    }
 }
 
 using namespace std::literals;
@@ -449,11 +449,6 @@ OperationCommon::GetBindActionCollection(
 {
     const auto IsBigEndian = LoadCmdStorage.IsBigEndian();
 
-    auto FoundDyldInfo = false;
-    auto BindActionList = static_cast<MachO::BindActionList *>(nullptr);
-    auto LazyBindActionList = static_cast<MachO::LazyBindActionList *>(nullptr);
-    auto WeakBindActionList = static_cast<MachO::WeakBindActionList *>(nullptr);
-
     auto DyldInfoCmd = static_cast<const MachO::DyldInfoCommand *>(nullptr);
     const auto GetDyldInfoCmdResult =
         OperationCommon::GetDyldInfoCommand(ErrFile,
@@ -464,51 +459,23 @@ OperationCommon::GetBindActionCollection(
         return GetDyldInfoCmdResult;
     }
 
-    for (const auto &LoadCmd : LoadCmdStorage) {
-        const auto *DyldInfo =
-            dyn_cast<MachO::DyldInfoCommand>(LoadCmd, IsBigEndian);
+    const auto BindActionOpt =
+        DyldInfoCmd->GetBindActionList(Map,
+                                       SegmentCollection,
+                                       IsBigEndian,
+                                       Is64Bit);
 
-        if (DyldInfo == nullptr) {
-            continue;
-        }
+    const auto LazyBindActionOpt =
+        DyldInfoCmd->GetLazyBindActionList(Map,
+                                           SegmentCollection,
+                                           IsBigEndian,
+                                           Is64Bit);
 
-        auto BindActionOpt =
-            DyldInfo->GetBindActionList(Map,
-                                        SegmentCollection,
-                                        IsBigEndian,
-                                        Is64Bit);
-
-        if (BindActionOpt.hasPtr()) {
-            BindActionList = BindActionOpt.getPtr();
-        }
-
-        auto LazyBindActionOpt =
-            DyldInfo->GetLazyBindActionList(Map,
-                                            SegmentCollection,
-                                            IsBigEndian,
-                                            Is64Bit);
-
-        if (LazyBindActionOpt.hasPtr()) {
-            LazyBindActionList = LazyBindActionOpt.getPtr();
-        }
-
-        auto WeakBindActionOpt =
-            DyldInfo->GetWeakBindActionList(Map,
-                                            SegmentCollection,
-                                            IsBigEndian,
-                                            Is64Bit);
-
-        if (WeakBindActionOpt.hasPtr()) {
-            WeakBindActionList = WeakBindActionOpt.getPtr();
-        }
-
-        BindActionOpt.clear();
-        LazyBindActionOpt.clear();
-        WeakBindActionOpt.clear();
-
-        FoundDyldInfo = true;
-        break;
-    }
+    const auto WeakBindActionOpt =
+        DyldInfoCmd->GetWeakBindActionList(Map,
+                                           SegmentCollection,
+                                           IsBigEndian,
+                                           Is64Bit);
 
     auto BindCollectionError = MachO::BindActionCollection::Error::None;
     auto BindCollectionParseError =
@@ -516,9 +483,9 @@ OperationCommon::GetBindActionCollection(
 
     BindCollection =
         MachO::BindActionCollection::Open(SegmentCollection,
-                                          BindActionList,
-                                          LazyBindActionList,
-                                          WeakBindActionList,
+                                          BindActionOpt.getPtr(),
+                                          LazyBindActionOpt.getPtr(),
+                                          WeakBindActionOpt.getPtr(),
                                           &BindCollectionParseError,
                                           &BindCollectionError);
 

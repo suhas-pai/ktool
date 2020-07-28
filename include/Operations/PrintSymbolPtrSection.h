@@ -14,8 +14,8 @@ public:
     constexpr static const auto OpKind = OperationKind::PrintSymbolPtrSection;
 
     [[nodiscard]]
-    constexpr static inline bool IsOfKind(const Operation &Opt) noexcept {
-        return (Opt.getKind() == OpKind);
+    constexpr static inline bool IsOfKind(const Operation &Op) noexcept {
+        return (Op.getKind() == OpKind);
     }
 
     struct Options : public Operation::Options {

@@ -41,7 +41,10 @@ public:
     }
 
     [[nodiscard]] constexpr inline T *getPtr() const noexcept {
-        assert(!hasError());
+        if (hasError()) {
+            return nullptr;
+        }
+
         return Ptr;
     }
 

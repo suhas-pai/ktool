@@ -24,7 +24,7 @@ public:
 
     [[nodiscard]] constexpr inline T *getPtr() const noexcept {
         if (hasFlag()) {
-            return (reinterpret_cast<uint64_t &>(Ptr) &= ~1);
+            return (reinterpret_cast<uint64_t>(Ptr) & ~1);
         }
 
         return Ptr;
