@@ -21,7 +21,7 @@ struct OperationCommon {
                                FILE *ErrFile) noexcept;
 
     constexpr static auto InvalidLCString =
-        "(Invalid LoadCommand-String)"sv;
+        std::string_view("(Invalid LoadCommand-String)");
 
     static const std::string_view &
     GetLoadCommandStringValue(

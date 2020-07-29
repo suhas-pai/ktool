@@ -108,7 +108,7 @@ public:
             reinterpret_cast<const DyldSharedCache::ImageInfo *>(
                 DscMap.getBegin() + getDscHeaderV0().ImagesOffset);
 
-        return &ImageInfo - List;
+        return static_cast<uint32_t>(&ImageInfo - List);
     }
 
     [[nodiscard]] inline uint64_t getFileOffset() const noexcept {
