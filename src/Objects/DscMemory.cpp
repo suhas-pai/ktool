@@ -319,14 +319,12 @@ ConstDscMemoryObject::GetImageWithInfo(
 {
     if (const auto Ptr = GetPtrForAddress(ImageInfo.Address)) {
         const auto Map = getMap();
-        const auto ImageIndex = &ImageInfo - getImageInfoList().getBegin();
         const auto End = ValidateImageMapAndGetEnd(Ptr);
 
         if (End != nullptr && End <= Map.getEnd()) {
             const auto Result =
                 new ConstDscImageMemoryObject(Map,
                                               ImageInfo,
-                                              static_cast<uint32_t>(ImageIndex),
                                               Ptr,
                                               End);
 

@@ -99,29 +99,37 @@ namespace DyldSharedCache {
         uint64_t DyldSectionAddr;
 
         [[nodiscard]]
-        ImageInfoExtra &getImageInfoExtraAtIndex(uint32_t I) noexcept {
-            const auto Map = reinterpret_cast<uint8_t *>(this);
-            const auto ImageInfoExtraTable =
-                reinterpret_cast<ImageInfoExtra *>(Map + ImageExtrasOffset);
+        ImageInfoExtra &getImageInfoExtraAtIndex(uint32_t Index) noexcept {
+            auto &Result =
+                const_cast<ImageInfoExtra &>(
+                    getConstImageInfoExtraAtIndex(Index));
 
-            return ImageInfoExtraTable[I];
+            return Result;
+        }
+
+        [[nodiscard]]
+        const ImageInfoExtra &
+        getImageInfoExtraAtIndex(uint32_t Index) const noexcept {
+            return getConstImageInfoExtraAtIndex(Index);
         }
 
         [[nodiscard]] const ImageInfoExtra &
-        getImageInfoExtraAtIndex(uint32_t I) const noexcept {
+        getConstImageInfoExtraAtIndex(uint32_t Index) const noexcept {
+            assert(!IndexOutOfBounds(Index, ImageExtrasCount));
+
             const auto Map = reinterpret_cast<const uint8_t *>(this);
             const auto ImageInfoExtraTable =
                 reinterpret_cast<const ImageInfoExtra *>(
                     Map + ImageExtrasOffset);
 
-            return ImageInfoExtraTable[I];
+            return ImageInfoExtraTable[Index];
         }
     };
 
     using ImageList = BasicContiguousList<ImageInfo>;
     using ConstImageList = BasicContiguousList<const ImageInfo>;
 
-    using MappingList = BasicContiguousList<const MappingInfo>;
+    using MappingList = BasicContiguousList<MappingInfo>;
     using ConstMappingList = BasicContiguousList<const MappingInfo>;
 
     // Apple doesn't provide versions for their dyld_shared_caches, so we have
@@ -240,7 +248,7 @@ namespace DyldSharedCache {
         }
     };
 
-    bool ImageInfo::IsAlias(const uint8_t *Map) const noexcept {
+    inline bool ImageInfo::IsAlias(const uint8_t *Map) const noexcept {
         const auto Header = reinterpret_cast<const HeaderV0 *>(Map);
         const auto MappingList = Header->getConstMappingInfoList();
         const auto FirstMappingFileOff = MappingList.front().FileOffset;

@@ -18,13 +18,10 @@ public:
     friend struct ConstDscMemoryObject;
 protected:
     ConstMemoryMap DscMap;
-
     const DyldSharedCache::ImageInfo &ImageInfo;
-    uint32_t ImageIndex;
 
     ConstDscImageMemoryObject(const ConstMemoryMap &DscMap,
                               const DyldSharedCache::ImageInfo &ImageInfo,
-                              uint32_t ImageIndex,
                               const uint8_t *Begin,
                               const uint8_t *End) noexcept;
 public:
@@ -107,7 +104,11 @@ public:
     }
 
     [[nodiscard]] inline uint32_t getImageIndex() const noexcept {
-        return ImageIndex;
+        const auto List =
+            reinterpret_cast<const DyldSharedCache::ImageInfo *>(
+                DscMap.getBegin() + getDscHeaderV0().ImagesOffset);
+
+        return &ImageInfo - List;
     }
 
     [[nodiscard]] inline uint64_t getFileOffset() const noexcept {
@@ -134,7 +135,6 @@ struct DscImageMemoryObject : public ConstDscImageMemoryObject {
 protected:
     DscImageMemoryObject(const MemoryMap &DscMap,
                          const DyldSharedCache::ImageInfo &ImageInfo,
-                         uint32_t ImageIndex,
                          uint8_t *Begin,
                          uint8_t *End) noexcept;
 public:
@@ -192,6 +192,11 @@ public:
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
         const auto End = const_cast<uint8_t *>(this->End);
         return MemoryMap(const_cast<uint8_t *>(Map), End);
+    }
+
+    [[nodiscard]]
+    inline DyldSharedCache::ImageInfo &getImageInfo() const noexcept {
+        return const_cast<DyldSharedCache::ImageInfo &>(ImageInfo);
     }
 
     [[nodiscard]] inline MachO::Header &getHeader() noexcept { return *Header; }
