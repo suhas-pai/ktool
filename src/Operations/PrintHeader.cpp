@@ -646,7 +646,7 @@ PrintAcceleratorInfo(
     fprintf(OutFile, "%" PRIu32 "\n", Info.ImageExtrasCount);
 
     PrintAcceleratorKey(OutFile, "Image-Extras Offset");
-    PrintUtilsWriteOffset(OutFile, Info.ImageExtrasOffset,  true, "", "\n");
+    PrintUtilsWriteOffset(OutFile, Info.ImageExtrasOffset, true, "", "\n");
 
     PrintAcceleratorKey(OutFile, "Bottom-Up List-Offset");
     PrintUtilsWriteOffset(OutFile, Info.BottomUpListOffset, true,  "", "\n");

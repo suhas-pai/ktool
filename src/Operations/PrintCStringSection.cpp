@@ -266,9 +266,8 @@ PrintCStringSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
                 break;
             }
 
-            const auto ArgumentString = Argument.GetStringView();
             OperationCommon::ParseSegmentSectionPair(Options.ErrFile,
-                                                     ArgumentString,
+                                                     Argument.GetStringView(),
                                                      Options.SegmentName,
                                                      Options.SectionName);
 

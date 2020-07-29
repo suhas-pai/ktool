@@ -154,7 +154,11 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
                 fputs("Alias, ", Options.OutFile);
             }
 
-            PrintUtilsWriteOffset(Options.OutFile, Info.Address, "Address: ");
+            PrintUtilsWriteOffset(Options.OutFile,
+                                  Info.Address,
+                                  true,
+                                  "Address: ");
+
             fprintf(Options.OutFile,
                     ", Modification-Time: %s, Inode: %" PRIu64 ">",
                     GetHumanReadableTimestamp(Info.ModTime).data(),
