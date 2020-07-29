@@ -66,9 +66,7 @@ OperationCommon::GetLoadCommandStringValue(
 {
     using namespace std::literals;
     if (Result.hasError()) {
-        constexpr static const auto InvalidString =
-            "(Invalid LoadCommand-String)"sv;
-        return InvalidString;
+        return InvalidLCString;
     }
 
     return Result.getString();

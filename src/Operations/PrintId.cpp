@@ -48,6 +48,11 @@ PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
         const auto &Name =
             OperationCommon::GetLoadCommandStringValue(NameResult);
 
+        if (Name == OperationCommon::InvalidLCString) {
+            fputs("Provided file has an invalid Id-name\n", Options.ErrFile);
+            return 1;
+        }
+
         if (!Id.empty() && Id != Name) {
             fputs("Provided file has multiple (differing) Id-Names\n",
                   Options.ErrFile);

@@ -20,6 +20,9 @@ struct OperationCommon {
     GetConstLoadCommandStorage(const ConstMachOMemoryObject &Object,
                                FILE *ErrFile) noexcept;
 
+    constexpr static auto InvalidLCString =
+        "(Invalid LoadCommand-String)"sv;
+
     static const std::string_view &
     GetLoadCommandStringValue(
         const MachO::LoadCommandString::GetValueResult &) noexcept;

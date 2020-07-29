@@ -14,7 +14,7 @@ ConstDscImageMemoryObject::ConstDscImageMemoryObject(
     const uint8_t *Begin,
     const uint8_t *End) noexcept
 : ConstMachOMemoryObject(ObjKind, ConstMemoryMap(Begin, End)), DscMap(DscMap),
-ImageInfo(ImageInfo) {}
+  ImageInfo(ImageInfo) {}
 
 DscImageMemoryObject::DscImageMemoryObject(
     const MemoryMap &DscMap,
