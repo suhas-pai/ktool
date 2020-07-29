@@ -44,6 +44,20 @@ namespace MachO {
              bool Is64Bit,
              Error *ErrorOut) noexcept;
 
+        [[nodiscard]] static std::unique_ptr<SegmentInfo>
+        OpenSegmentInfoWithName(const ConstLoadCommandStorage &LoadCmdStorage,
+                                bool Is64Bit,
+                                const std::string_view &Name,
+                                Error *ErrorOut) noexcept;
+
+        [[nodiscard]] static std::unique_ptr<SectionInfo>
+        OpenSectionInfoWithName(const ConstLoadCommandStorage &LoadCmdStorage,
+                                bool Is64Bit,
+                                const std::string_view &SegmentName,
+                                const std::string_view &SectionName,
+                                std::unique_ptr<SegmentInfo> *SegmentOut,
+                                Error *ErrorOut) noexcept;
+
         [[nodiscard]] const SegmentInfo *
         GetInfoForName(const std::string_view &Name) const noexcept;
 

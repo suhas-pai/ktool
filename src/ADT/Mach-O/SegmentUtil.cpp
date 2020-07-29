@@ -146,57 +146,7 @@ namespace MachO {
                     break;
                 }
 
-                case MachO::LoadCommand::Kind::SymbolTable:
-                case MachO::LoadCommand::Kind::SymbolSegment:
-                case MachO::LoadCommand::Kind::Thread:
-                case MachO::LoadCommand::Kind::UnixThread:
-                case MachO::LoadCommand::Kind::LoadFixedVMSharedLibrary:
-                case MachO::LoadCommand::Kind::IdFixedVMSharedLibrary:
-                case MachO::LoadCommand::Kind::Ident:
-                case MachO::LoadCommand::Kind::FixedVMFile:
-                case MachO::LoadCommand::Kind::PrePage:
-                case MachO::LoadCommand::Kind::DynamicSymbolTable:
-                case MachO::LoadCommand::Kind::LoadDylib:
-                case MachO::LoadCommand::Kind::IdDylib:
-                case MachO::LoadCommand::Kind::LoadDylinker:
-                case MachO::LoadCommand::Kind::IdDylinker:
-                case MachO::LoadCommand::Kind::PreBoundDylib:
-                case MachO::LoadCommand::Kind::Routines:
-                case MachO::LoadCommand::Kind::SubFramework:
-                case MachO::LoadCommand::Kind::SubUmbrella:
-                case MachO::LoadCommand::Kind::SubClient:
-                case MachO::LoadCommand::Kind::SubLibrary:
-                case MachO::LoadCommand::Kind::TwoLevelHints:
-                case MachO::LoadCommand::Kind::PrebindChecksum:
-                case MachO::LoadCommand::Kind::LoadWeakDylib:
-                case MachO::LoadCommand::Kind::Routines64:
-                case MachO::LoadCommand::Kind::Uuid:
-                case MachO::LoadCommand::Kind::Rpath:
-                case MachO::LoadCommand::Kind::CodeSignature:
-                case MachO::LoadCommand::Kind::SegmentSplitInfo:
-                case MachO::LoadCommand::Kind::ReexportDylib:
-                case MachO::LoadCommand::Kind::LazyLoadDylib:
-                case MachO::LoadCommand::Kind::EncryptionInfo:
-                case MachO::LoadCommand::Kind::DyldInfo:
-                case MachO::LoadCommand::Kind::DyldInfoOnly:
-                case MachO::LoadCommand::Kind::LoadUpwardDylib:
-                case MachO::LoadCommand::Kind::VersionMinimumMacOSX:
-                case MachO::LoadCommand::Kind::VersionMinimumIPhoneOS:
-                case MachO::LoadCommand::Kind::FunctionStarts:
-                case MachO::LoadCommand::Kind::DyldEnvironment:
-                case MachO::LoadCommand::Kind::Main:
-                case MachO::LoadCommand::Kind::DataInCode:
-                case MachO::LoadCommand::Kind::SourceVersion:
-                case MachO::LoadCommand::Kind::DylibCodeSignDRS:
-                case MachO::LoadCommand::Kind::EncryptionInfo64:
-                case MachO::LoadCommand::Kind::LinkerOption:
-                case MachO::LoadCommand::Kind::LinkerOptimizationHint:
-                case MachO::LoadCommand::Kind::VersionMinimumTvOS:
-                case MachO::LoadCommand::Kind::VersionMinimumWatchOS:
-                case MachO::LoadCommand::Kind::Note:
-                case MachO::LoadCommand::Kind::BuildVersion:
-                case MachO::LoadCommand::Kind::DyldExportsTrie:
-                case MachO::LoadCommand::Kind::DyldChainedFixups:
+                default:
                     break;
             }
         }
@@ -269,6 +219,187 @@ namespace MachO {
         return Result;
     }
 
+    std::unique_ptr<SegmentInfo>
+    SegmentInfoCollection::OpenSegmentInfoWithName(
+        const ConstLoadCommandStorage &LoadCmdStorage,
+        bool Is64Bit,
+        const std::string_view &Name,
+        Error *ErrorOut) noexcept
+    {
+        const auto IsBigEndian = LoadCmdStorage.IsBigEndian();
+        for (const auto &LoadCmd : LoadCmdStorage) {
+            switch (LoadCmd.getKind(IsBigEndian)) {
+                case LoadCommand::Kind::Segment: {
+                    if (Is64Bit) {
+                        continue;
+                    }
+
+                    auto Info = std::make_unique<SegmentInfo>();
+                    const auto &Segment =
+                        LoadCmd.cast<LoadCommand::Kind::Segment>(IsBigEndian);
+
+                    if (Name.compare(0, 16, Segment.Name) != 0) {
+                        continue;
+                    }
+
+                    if (ParseSegmentInfo(Segment,
+                                         *Info.get(),
+                                         IsBigEndian,
+                                         ErrorOut))
+                    {
+                        return nullptr;
+                    }
+
+                    return Info;
+                }
+                case LoadCommand::Kind::Segment64: {
+                    if (!Is64Bit) {
+                        continue;
+                    }
+
+                    auto Info = std::make_unique<SegmentInfo>();
+                    const auto &Segment =
+                        LoadCmd.cast<LoadCommand::Kind::Segment64>(IsBigEndian);
+
+                    if (Name.compare(0, 16, Segment.Name) != 0) {
+                        continue;
+                    }
+
+                    if (ParseSegmentInfo(Segment,
+                                         *Info.get(),
+                                         IsBigEndian,
+                                         ErrorOut))
+                    {
+                        return Info;
+                    }
+
+                    return nullptr;
+                }
+
+                default:
+                    break;
+            }
+        }
+
+        return nullptr;
+    }
+
+    std::unique_ptr<SectionInfo>
+    SegmentInfoCollection::OpenSectionInfoWithName(
+        const ConstLoadCommandStorage &LoadCmdStorage,
+        bool Is64Bit,
+        const std::string_view &SegmentName,
+        const std::string_view &SectionName,
+        std::unique_ptr<SegmentInfo> *SegmentOut,
+        Error *ErrorOut) noexcept
+    {
+        const auto IsBigEndian = LoadCmdStorage.IsBigEndian();
+        for (const auto &LoadCmd : LoadCmdStorage) {
+            switch (LoadCmd.getKind(IsBigEndian)) {
+                case LoadCommand::Kind::Segment: {
+                    if (Is64Bit) {
+                        continue;
+                    }
+
+                    const auto &Segment =
+                        LoadCmd.cast<LoadCommand::Kind::Segment>(IsBigEndian);
+
+                    const auto &SegName = Segment.Name;
+                    if (SegmentName.compare(0, SegmentName.length(), SegName)) {
+                        continue;
+                    }
+
+                    auto Info = std::make_unique<SegmentInfo>();
+                    if (!ParseSegmentInfo(Segment,
+                                          *Info.get(),
+                                          IsBigEndian,
+                                          ErrorOut))
+                    {
+                        return nullptr;
+                    }
+
+                    *SegmentOut = std::move(Info);
+                    const auto SectionList =
+                        Segment.GetConstSectionList(IsBigEndian);
+
+                    for (const auto &Sect : SectionList) {
+                        if (strncmp(SectionName.data(), Sect.Name, 16) != 0) {
+                            continue;
+                        }
+
+                        auto SectInfo = std::make_unique<SectionInfo>();
+                        const auto ParseSectResult =
+                            ParseSectionInfo(Sect,
+                                             *SectInfo.get(),
+                                             IsBigEndian,
+                                             ErrorOut);
+
+                        if (!ParseSectResult) {
+                            return nullptr;
+                        }
+
+                        return SectInfo;
+                    }
+
+                    return nullptr;
+                }
+                    
+                case LoadCommand::Kind::Segment64: {
+                    if (!Is64Bit) {
+                        continue;
+                    }
+
+                    const auto &Segment =
+                        LoadCmd.cast<LoadCommand::Kind::Segment64>(IsBigEndian);
+
+                    const auto &SegName = Segment.Name;
+                    if (SegmentName.compare(0, SegmentName.length(), SegName)) {
+                        continue;
+                    }
+
+                    auto Info = std::make_unique<SegmentInfo>();
+                    if (!ParseSegmentInfo(Segment,
+                                          *Info.get(),
+                                          IsBigEndian,
+                                          ErrorOut))
+                    {
+                        return nullptr;
+                    }
+
+                    *SegmentOut = std::move(Info);
+                    const auto SectionList =
+                        Segment.GetConstSectionList(IsBigEndian);
+
+                    for (const auto &Sect : SectionList) {
+                        if (strncmp(SectionName.data(), Sect.Name, 16) != 0) {
+                            continue;
+                        }
+
+                        auto SectInfo = std::make_unique<SectionInfo>();
+                        const auto ParseSectResult =
+                            ParseSectionInfo(Sect,
+                                             *SectInfo.get(),
+                                             IsBigEndian,
+                                             ErrorOut);
+
+                        if (!ParseSectResult) {
+                            return nullptr;
+                        }
+
+                        return SectInfo;
+                    }
+
+                    return nullptr;
+                }
+
+                default:
+                    break;
+            }
+        }
+
+        return nullptr;
+    }
+
     const SegmentInfo *
     SegmentInfoCollection::GetInfoForName(
         const std::string_view &Name) const noexcept
@@ -282,7 +413,7 @@ namespace MachO {
         return nullptr;
     }
 
-    [[nodiscard]] const SectionInfo *
+    const SectionInfo *
     SegmentInfo::FindSectionWithName(
         const std::string_view &Name) const noexcept
     {

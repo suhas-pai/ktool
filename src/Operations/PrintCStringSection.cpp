@@ -48,15 +48,15 @@ inline bool ShouldExcludeString(const std::string_view &String) noexcept {
 static void
 GetCStringList(FILE *OutFile,
                const uint8_t *Map,
-               const MachO::SectionInfo *Section,
+               const MachO::SectionInfo &Section,
                std::vector<StringInfo> &StringList,
                LargestIntHelper<uint64_t> &LongestStringLength) noexcept
 {
-    const auto Begin = Section->getData<const char>(Map);
-    const auto End = Section->getDataEnd<const char>(Map);
+    const auto Begin = Section.getData<const char>(Map);
+    const auto End = Section.getDataEnd<const char>(Map);
 
-    auto FileOffset = Section->File.getBegin();
-    auto VmAddr = Section->Memory.getBegin();
+    auto FileOffset = Section.File.getBegin();
+    auto VmAddr = Section.Memory.getBegin();
 
     auto Length = uint64_t();
     for (auto String = Begin;
@@ -84,26 +84,39 @@ GetCStringList(FILE *OutFile,
 static int
 PrintCStringList(
     const uint8_t *MapBegin,
-    const MachO::SegmentInfoCollection &SegmentCollection,
+    const MachO::ConstLoadCommandStorage &LoadCmdStorage,
     bool Is64Bit,
     const struct PrintCStringSectionOperation::Options &Options) noexcept
 {
-    const auto Segment = SegmentCollection.GetInfoForName(Options.SegmentName);
+    auto Error = MachO::SegmentInfoCollection::Error::None;
+    auto Segment = std::unique_ptr<MachO::SegmentInfo>();
+
+    const auto Section =
+        MachO::SegmentInfoCollection::OpenSectionInfoWithName(
+            LoadCmdStorage,
+            Is64Bit,
+            Options.SegmentName,
+            Options.SectionName,
+            &Segment,
+            &Error);
+
+    OperationCommon::HandleSegmentCollectionError(Options.ErrFile, Error);
     if (Segment == nullptr) {
         fprintf(Options.ErrFile,
-                "Provided file has no segment with name \"%s\"\n",
+                "Provided file has no segment with name \"%.*s\"\n",
+                static_cast<int>(Options.SegmentName.length()),
                 Options.SegmentName.data());
         return 1;
     }
 
     if (Segment->Flags.IsProtected()) {
         fprintf(Options.ErrFile,
-                "Provided segment \"%s\" is protected (encrypted)\n",
+                "Provided segment \"%.*s\" is protected (encrypted)\n",
+                static_cast<int>(Options.SegmentName.length()),
                 Options.SegmentName.data());
         return 1;
     }
 
-    const auto Section = Segment->FindSectionWithName(Options.SectionName);
     if (Section == nullptr) {
         fprintf(Options.ErrFile,
                 "Provided file has no section with name \"%s\" in provided "
@@ -131,7 +144,7 @@ PrintCStringList(
 
     GetCStringList(Options.OutFile,
                    MapBegin,
-                   Section,
+                   *Section.get(),
                    InfoList,
                    LongestStringLength);
 
@@ -196,22 +209,10 @@ PrintCStringSectionOperation::Run(const ConstDscImageMemoryObject &Object,
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
-    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
-
-    const auto Is64Bit = Object.Is64Bit();
-    const auto SegmentCollection =
-        DscImage::SegmentInfoCollection::Open(Object.getAddress(),
-                                              LoadCmdStorage,
-                                              Is64Bit,
-                                              &SegmentCollectionError);
-
-    OperationCommon::HandleSegmentCollectionError(Options.ErrFile,
-                                                  SegmentCollectionError);
-
     const auto Result =
         PrintCStringList(Object.getDscMap().getBegin(),
-                         SegmentCollection,
-                         Is64Bit,
+                         LoadCmdStorage,
+                         Object.Is64Bit(),
                          Options);
 
     return Result;
@@ -225,21 +226,10 @@ PrintCStringSectionOperation::Run(const ConstMachOMemoryObject &Object,
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
-    auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
-
-    const auto Is64Bit = Object.Is64Bit();
-    const auto SegmentCollection =
-        MachO::SegmentInfoCollection::Open(LoadCmdStorage,
-                                           Is64Bit,
-                                           &SegmentCollectionError);
-
-    OperationCommon::HandleSegmentCollectionError(Options.ErrFile,
-                                                  SegmentCollectionError);
-
     const auto Result =
         PrintCStringList(Object.getMap().getBegin(),
-                         SegmentCollection,
-                         Is64Bit,
+                         LoadCmdStorage,
+                         Object.Is64Bit(),
                          Options);
 
     return Result;
