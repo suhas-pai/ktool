@@ -20,7 +20,7 @@ PrintBindOpcodeListOperation::PrintBindOpcodeListOperation(
 : Operation(OpKind), Options(Options) {}
 
 static void PrintFlags(FILE *OutFile, MachO::BindSymbolFlags Flags) noexcept {
-    fputc('(', OutFile);
+    fputs(" - <", OutFile);
 
     if (!Flags.empty()) {
         const auto HasNonWeakDefinition = Flags.hasNonWeakDefinition();
@@ -39,7 +39,7 @@ static void PrintFlags(FILE *OutFile, MachO::BindSymbolFlags Flags) noexcept {
         fputs("None", OutFile);
     }
 
-    fputc(')', OutFile);
+    fputc('>', OutFile);
 }
 
 struct BindOpcodeInfo : public MachO::BindOpcodeIterateInfo {
@@ -132,6 +132,7 @@ CollectBindOpcodeList(
                     break;
                 }
 
+                OpcodeInfo.AddAddr = IterInfo.AddAddr;
                 GetSegmentAndSection(SegmentCollection,
                                      OpcodeInfo.SegmentIndex,
                                      OpcodeInfo.AddrInSeg,
@@ -177,6 +178,7 @@ CollectBindOpcodeList(
                     continue;
                 }
 
+                OpcodeInfo.AddAddr = IterInfo.AddAddr;
                 GetSegmentAndSection(SegmentCollection,
                                      OpcodeInfo.SegmentIndex,
                                      OpcodeInfo.AddrInSeg,
@@ -301,7 +303,7 @@ PrintBindOpcodeList(
                                         Is64Bit,
                                         Iter.AddrInSeg + Add,
                                         false,
-                                        " - (Segment-Address: ",
+                                        " - <Segment-Address: ",
                                         ", ");
 
             const auto FullAddr =
@@ -312,7 +314,7 @@ PrintBindOpcodeList(
                                         FullAddr,
                                         false,
                                         "Full-Address: ",
-                                        ")");
+                                        ">");
         };
 
         switch (Byte.getOpcode()) {
@@ -338,7 +340,7 @@ PrintBindOpcodeList(
                 break;
             case MachO::BindByte::Opcode::SetSymbolTrailingFlagsImm:
                 fprintf(Options.OutFile,
-                        "(\"%s\", %" PRIu8,
+                        "(\"%s\", 0x%" PRIx8,
                         Iter.SymbolName.data(),
                         Iter.Flags.value());
 
@@ -378,8 +380,8 @@ PrintBindOpcodeList(
                                                            Iter.Segment,
                                                            Iter.Section,
                                                            false,
-                                                           " - (",
-                                                           ")");
+                                                           " - <",
+                                                           ">");
                 }
 
                 PrintUtilsWriteOffset32Or64(Options.OutFile,
@@ -398,8 +400,8 @@ PrintBindOpcodeList(
                                                     Is64Bit,
                                                     FullAddr,
                                                     false,
-                                                    " (Full Address: ",
-                                                    ")");
+                                                    " <Full Address: ",
+                                                    ">");
                     }
                 }
 

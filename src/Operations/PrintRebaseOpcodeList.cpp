@@ -95,6 +95,7 @@ CollectRebaseOpcodeList(
                     break;
                 }
 
+                OpcodeInfo.AddAddr = IterInfo.AddAddr;
                 GetSegmentAndSection(SegmentCollection,
                                      OpcodeInfo.SegmentIndex,
                                      OpcodeInfo.AddrInSeg,
@@ -122,6 +123,7 @@ CollectRebaseOpcodeList(
                     continue;
                 }
 
+                OpcodeInfo.AddAddr = IterInfo.AddAddr;
                 GetSegmentAndSection(SegmentCollection,
                                      OpcodeInfo.SegmentIndex,
                                      OpcodeInfo.AddrInSeg,
@@ -297,7 +299,7 @@ PrintRebaseOpcodeList(
                                         Is64Bit,
                                         Iter.AddrInSeg + Add,
                                         false,
-                                        " - (Segment-Address: ",
+                                        " - <Segment-Address: ",
                                         ", ");
 
             const auto FullAddr =
@@ -308,7 +310,7 @@ PrintRebaseOpcodeList(
                                         FullAddr,
                                         true,
                                         "Full-Address: ",
-                                        ")");
+                                        ">");
         };
 
         switch (Byte.getOpcode()) {
@@ -331,8 +333,8 @@ PrintRebaseOpcodeList(
                                                            Iter.Segment,
                                                            Iter.Section,
                                                            false,
-                                                           " - (",
-                                                           "), ");
+                                                           " - <",
+                                                           ">, ");
                 }
 
                 PrintUtilsWriteOffset32Or64(Options.OutFile,
