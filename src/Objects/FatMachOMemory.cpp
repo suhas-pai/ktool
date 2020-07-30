@@ -75,7 +75,7 @@ ValidateArchList(const MachO::FatHeader &Header, uint64_t MapSize) noexcept {
 [[nodiscard]] static ConstFatMachOMemoryObject::Error
 ValidateMap(const ConstMemoryMap &Map) noexcept {
     const auto MapSize = Map.size();
-    const auto Header =
+    const auto &Header =
         *reinterpret_cast<const MachO::FatHeader *>(Map.getBegin());
 
     if (MapSize < sizeof(Header)) {
