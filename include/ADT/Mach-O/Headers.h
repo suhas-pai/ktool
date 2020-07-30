@@ -1051,14 +1051,11 @@ namespace MachO {
         using ConstArch32List = BasicContiguousList<const Arch32>;
         using ConstArch64List = BasicContiguousList<const Arch64>;
 
-        [[nodiscard]] Arch32List getArch32List(bool IsBigEndian) noexcept;
-        [[nodiscard]] Arch64List getArch64List(bool IsBigEndian) noexcept;
+        [[nodiscard]] Arch32List getArch32List() noexcept;
+        [[nodiscard]] Arch64List getArch64List() noexcept;
 
-        [[nodiscard]]
-        ConstArch32List getConstArch32List(bool IsBigEndian) const noexcept;
-
-        [[nodiscard]]
-        ConstArch64List getConstArch64List(bool IsBigEndian) const noexcept;
+        [[nodiscard]] ConstArch32List getConstArch32List() const noexcept;
+        [[nodiscard]] ConstArch64List getConstArch64List() const noexcept;
 
         [[nodiscard]] inline bool hasValidMagic() const noexcept {
             return MagicIsValid(Magic);

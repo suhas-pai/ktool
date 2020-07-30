@@ -18,32 +18,38 @@
 #include "MachO.h"
 
 namespace MachO {
-    FatHeader::Arch32List FatHeader::getArch32List(bool IsBigEndian) noexcept {
+    FatHeader::Arch32List FatHeader::getArch32List() noexcept {
+        assert(!Is64Bit());
+
         const auto Entries = reinterpret_cast<Arch32 *>(this + 1);
-        const auto Count = SwitchEndianIf(NFatArch, IsBigEndian);
+        const auto Count = SwitchEndianIf(NFatArch, this->IsBigEndian());
 
         return Arch32List(Entries, Count);
     }
 
-    FatHeader::Arch64List FatHeader::getArch64List(bool IsBigEndian) noexcept {
+    FatHeader::Arch64List FatHeader::getArch64List() noexcept {
+        assert(Is64Bit());
+
         const auto Entries = reinterpret_cast<Arch64 *>(this + 1);
-        const auto Count = SwitchEndianIf(NFatArch, IsBigEndian);
+        const auto Count = SwitchEndianIf(NFatArch, this->IsBigEndian());
 
         return Arch64List(Entries, Count);
     }
 
-    FatHeader::ConstArch32List
-    FatHeader::getConstArch32List(bool IsBigEndian) const noexcept {
+    FatHeader::ConstArch32List FatHeader::getConstArch32List() const noexcept {
+        assert(!Is64Bit());
+
         const auto Entries = reinterpret_cast<const Arch32 *>(this + 1);
-        const auto Count = SwitchEndianIf(NFatArch, IsBigEndian);
+        const auto Count = SwitchEndianIf(NFatArch, this->IsBigEndian());
 
         return ConstArch32List(Entries, Count);
     }
 
-    FatHeader::ConstArch64List
-    FatHeader::getConstArch64List(bool IsBigEndian) const noexcept {
+    FatHeader::ConstArch64List FatHeader::getConstArch64List() const noexcept {
+        assert(Is64Bit());
+
         const auto Entries = reinterpret_cast<const Arch64 *>(this + 1);
-        const auto Count = SwitchEndianIf(NFatArch, IsBigEndian);
+        const auto Count = SwitchEndianIf(NFatArch, this->IsBigEndian());
 
         return ConstArch64List(Entries, Count);
     }

@@ -103,14 +103,12 @@ public:
     using ConstArch32List = MachO::FatHeader::ConstArch32List;
     using ConstArch64List = MachO::FatHeader::ConstArch64List;
 
-    [[nodiscard]]
-    inline ConstArch32List getConstArch32List(bool IsBigEndian) const noexcept {
-        return Header->getConstArch32List(IsBigEndian);
+    [[nodiscard]] inline ConstArch32List getConstArch32List() const noexcept {
+        return Header->getConstArch32List();
     }
 
-    [[nodiscard]]
-    inline ConstArch64List getConstArch64List(bool IsBigEndian) const noexcept {
-        return Header->getConstArch64List(IsBigEndian);
+    [[nodiscard]] inline ConstArch64List getConstArch64List() const noexcept {
+        return Header->getConstArch64List();
     }
 
     struct ArchInfo {
@@ -175,12 +173,12 @@ public:
     using ConstArch32List = MachO::FatHeader::ConstArch32List;
     using ConstArch64List = MachO::FatHeader::ConstArch64List;
 
-    [[nodiscard]] inline Arch32List getArch32List(bool IsBigEndian) noexcept {
-        return getHeader().getArch32List(IsBigEndian);
+    [[nodiscard]] inline Arch32List getArch32List() noexcept {
+        return getHeader().getArch32List();
     }
 
-    [[nodiscard]] inline Arch64List getArch64List(bool IsBigEndian) noexcept {
-        return getHeader().getArch64List(IsBigEndian);
+    [[nodiscard]] inline Arch64List getArch64List() noexcept {
+        return getHeader().getArch64List();
     }
 
     using ArchInfo = ConstFatMachOMemoryObject::ArchInfo;

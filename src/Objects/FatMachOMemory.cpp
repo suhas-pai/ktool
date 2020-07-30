@@ -16,104 +16,55 @@
 #include "FatMachOMemory.h"
 #include "MachOMemory.h"
 
-FatMachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) {
-    const auto MapSize = Map.size();
-    const auto Header =
-        reinterpret_cast<const MachO::FatHeader *>(Map.getBegin());
+template <PointerKind Kind>
+[[nodiscard]] static ConstFatMachOMemoryObject::Error
+ValidateArchList(const MachO::FatHeader &Header, uint64_t MapSize) noexcept {
+    using ArchType =
+        typename std::conditional<PointerKindIs64Bit(Kind),
+                                  MachO::FatHeader::Arch64,
+                                  MachO::FatHeader::Arch32>::type;
 
-    if (MapSize < sizeof(*Header)) {
-        return ConstFatMachOMemoryObject::Error::SizeTooSmall;
-    }
+    using AddrType = PointerAddrTypeFromKind<Kind>;
 
-    if (!Header->hasValidMagic()) {
-        return ConstFatMachOMemoryObject::Error::WrongFormat;
-    }
-
-    const auto IsBigEndian = Header->IsBigEndian();
-    const auto ArchCount = SwitchEndianIf(Header->NFatArch, IsBigEndian);
+    const auto IsBigEndian = Header.IsBigEndian();
+    const auto ArchCount = SwitchEndianIf(Header.NFatArch, IsBigEndian);
 
     if (ArchCount == 0) {
         return ConstFatMachOMemoryObject::Error::ZeroArchitectures;
     }
 
-    const auto Is64Bit = Header->Is64Bit();
-    const auto SingleArchSize =
-        (Is64Bit) ?
-            sizeof(MachO::FatHeader::Arch64) :
-            sizeof(MachO::FatHeader::Arch32);
-
     auto TotalHeaderSize = uint64_t();
-    if (Is64Bit) {
-        if (DoesMultiplyAndAddOverflow(SingleArchSize, ArchCount,
-                                       sizeof(*Header), &TotalHeaderSize))
-        {
-            return ConstFatMachOMemoryObject::Error::TooManyArchitectures;
-        }
-    } else {
-        if (DoesMultiplyAndAddOverflow<uint32_t>(SingleArchSize, ArchCount,
-                                                 sizeof(*Header),
-                                                 &TotalHeaderSize))
-        {
-            return ConstFatMachOMemoryObject::Error::TooManyArchitectures;
-        }
+    if (DoesMultiplyAndAddOverflow<AddrType>(sizeof(ArchType), ArchCount,
+                                             sizeof(Header), &TotalHeaderSize))
+    {
+        return ConstFatMachOMemoryObject::Error::TooManyArchitectures;
     }
 
     if (TotalHeaderSize > MapSize) {
         return ConstFatMachOMemoryObject::Error::SizeTooSmall;
     }
 
-    if (Is64Bit) {
-        const auto Begin =
-            reinterpret_cast<const MachO::FatHeader::Arch64 *>(Header + 1);
+    const auto ArchListBegin = reinterpret_cast<const ArchType *>(&Header + 1);
+    const auto ArchListEnd = ArchListBegin + ArchCount;
 
-        for (const auto &Arch : BasicContiguousList(Begin, ArchCount)) {
-            const auto ArchOffset = SwitchEndianIf(Arch.Offset, IsBigEndian);
-            const auto ArchSize = SwitchEndianIf(Arch.Size, IsBigEndian);
-            const auto ArchRange =
-                LocationRange::CreateWithSize(ArchOffset, ArchSize);
+    for (const auto &Arch : BasicContiguousList(ArchListBegin, ArchListEnd)) {
+        const auto ArchOffset = SwitchEndianIf(Arch.Offset, IsBigEndian);
+        const auto ArchSize = SwitchEndianIf(Arch.Size, IsBigEndian);
+        const auto ArchRange =
+            LocationRange::CreateWithSize(ArchOffset, ArchSize);
 
-            if (!ArchRange || ArchRange->goesPastEnd(MapSize)) {
-                return ConstFatMachOMemoryObject::Error::ArchOutOfBounds;
-            }
-
-            for (const auto &Inner : BasicContiguousList(Begin, &Arch)) {
-                const auto InnerOffset =
-                    SwitchEndianIf(Inner.Offset, IsBigEndian);
-
-                const auto InnerSize = SwitchEndianIf(Inner.Size, IsBigEndian);
-                const auto InnerRange =
-                    LocationRange::CreateWithSize(InnerOffset, InnerSize);
-
-                if (ArchRange->overlaps(InnerRange.value())) {
-                    return ConstFatMachOMemoryObject::Error::ArchOverlapsArch;
-                }
-            }
+        if (!ArchRange || ArchRange->goesPastEnd(MapSize)) {
+            return ConstFatMachOMemoryObject::Error::ArchOutOfBounds;
         }
-    } else {
-        const auto Begin =
-            reinterpret_cast<const MachO::FatHeader::Arch32 *>(Header + 1);
 
-        for (const auto &Arch : BasicContiguousList(Begin, ArchCount)) {
-            const auto ArchOffset = SwitchEndianIf(Arch.Offset, IsBigEndian);
-            const auto ArchSize = SwitchEndianIf(Arch.Size, IsBigEndian);
-            const auto ArchRange =
-                LocationRange::CreateWithSize(ArchOffset, ArchSize);
+        for (const auto &Inner : BasicContiguousList(ArchListBegin, &Arch)) {
+            const auto InnerOffset = SwitchEndianIf(Inner.Offset, IsBigEndian);
+            const auto InnerSize = SwitchEndianIf(Inner.Size, IsBigEndian);
+            const auto InnerRange =
+                LocationRange::CreateWithSize(InnerOffset, InnerSize);
 
-            if (!ArchRange || ArchRange->goesPastEnd(MapSize)) {
-                return ConstFatMachOMemoryObject::Error::ArchOutOfBounds;
-            }
-
-            for (const auto &Inner : BasicContiguousList(Begin, &Arch)) {
-                const auto InnerOffset =
-                    SwitchEndianIf(Inner.Offset, IsBigEndian);
-
-                const auto InnerSize = SwitchEndianIf(Inner.Size, IsBigEndian);
-                const auto InnerRange =
-                    LocationRange::CreateWithSize(InnerOffset, InnerSize);
-
-                if (ArchRange->overlaps(InnerRange.value())) {
-                    return ConstFatMachOMemoryObject::Error::ArchOverlapsArch;
-                }
+            if (ArchRange->overlaps(InnerRange.value())) {
+                return ConstFatMachOMemoryObject::Error::ArchOverlapsArch;
             }
         }
     }
@@ -121,14 +72,32 @@ FatMachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) {
     return ConstFatMachOMemoryObject::Error::None;
 }
 
-FatMachOMemoryObject
-FatMachOMemoryObject::Open(const MemoryMap &Map) noexcept {
-    const auto Error = ValidateMap(Map);
+[[nodiscard]] static ConstFatMachOMemoryObject::Error
+ValidateMap(const ConstMemoryMap &Map) noexcept {
+    const auto MapSize = Map.size();
+    const auto Header =
+        *reinterpret_cast<const MachO::FatHeader *>(Map.getBegin());
+
+    if (MapSize < sizeof(Header)) {
+        return ConstFatMachOMemoryObject::Error::SizeTooSmall;
+    }
+
+    if (!Header.hasValidMagic()) {
+        return ConstFatMachOMemoryObject::Error::WrongFormat;
+    }
+
+    auto Error = ConstFatMachOMemoryObject::Error::None;
+    if (Header.Is64Bit()) {
+        Error = ValidateArchList<PointerKind::s64Bit>(Header, MapSize);
+    } else {
+        Error = ValidateArchList<PointerKind::s32Bit>(Header, MapSize);
+    }
+
     if (Error != ConstFatMachOMemoryObject::Error::None) {
         return Error;
     }
 
-    return FatMachOMemoryObject(Map);
+    return ConstFatMachOMemoryObject::Error::None;
 }
 
 ConstFatMachOMemoryObject
@@ -139,6 +108,16 @@ ConstFatMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
     }
 
     return ConstFatMachOMemoryObject(Map);
+}
+
+FatMachOMemoryObject
+FatMachOMemoryObject::Open(const MemoryMap &Map) noexcept {
+    const auto Error = ValidateMap(Map);
+    if (Error != ConstFatMachOMemoryObject::Error::None) {
+        return Error;
+    }
+
+    return FatMachOMemoryObject(Map);
 }
 
 ConstFatMachOMemoryObject::ConstFatMachOMemoryObject(
@@ -205,17 +184,17 @@ GetArchInfoAtIndexImpl(const ListType &List,
 
 ConstFatMachOMemoryObject::ArchInfo
 ConstFatMachOMemoryObject::GetArchInfoAtIndex(uint32_t Index) const noexcept {
-    assert(!IndexOutOfBounds(Index, getArchCount()));
+    assert(!IndexOutOfBounds(Index, this->getArchCount()));
 
     auto Info = ArchInfo();
     const auto IsBigEndian = this->IsBigEndian();
 
     if (this->Is64Bit()) {
-        Info = GetArchInfoAtIndexImpl(Header->getConstArch64List(IsBigEndian),
+        Info = GetArchInfoAtIndexImpl(Header->getConstArch64List(),
                                       Index,
                                       IsBigEndian);
     } else {
-        Info = GetArchInfoAtIndexImpl(Header->getConstArch32List(IsBigEndian),
+        Info = GetArchInfoAtIndexImpl(Header->getConstArch32List(),
                                       Index,
                                       IsBigEndian);
     }

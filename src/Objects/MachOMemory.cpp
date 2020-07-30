@@ -28,16 +28,16 @@ MachOMemoryObject::MachOMemoryObject(const MemoryMap &Map) noexcept
 : ConstMachOMemoryObject(Map) {}
 
 static
-MachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) noexcept {
+ConstMachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) noexcept {
     const auto Header = reinterpret_cast<const MachO::Header *>(Map.getBegin());
     const auto MapSize = Map.size();
 
     if (MapSize < sizeof(*Header)) {
-        return MachOMemoryObject::Error::SizeTooSmall;
+        return ConstMachOMemoryObject::Error::SizeTooSmall;
     }
 
     if (!Header->hasValidMagic()) {
-        return MachOMemoryObject::Error::WrongFormat;
+        return ConstMachOMemoryObject::Error::WrongFormat;
     }
 
     auto HeaderAndLCSize = uint64_t();
@@ -48,18 +48,18 @@ MachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) noexcept {
 
     if (Is64Bit) {
         if (DoesAddOverflow(Header->size(), SizeOfCmds, &HeaderAndLCSize)) {
-            return MachOMemoryObject::Error::TooManyLoadCommands;
+            return ConstMachOMemoryObject::Error::TooManyLoadCommands;
         }
     } else {
         if (DoesAddOverflow<uint32_t>(Header->size(), SizeOfCmds,
                                       &HeaderAndLCSize))
         {
-            return MachOMemoryObject::Error::TooManyLoadCommands;
+            return ConstMachOMemoryObject::Error::TooManyLoadCommands;
         }
     }
 
     if (HeaderAndLCSize > MapSize) {
-        return MachOMemoryObject::Error::TooManyLoadCommands;
+        return ConstMachOMemoryObject::Error::TooManyLoadCommands;
     }
 
     // Basic check with Ncmds.
@@ -69,23 +69,14 @@ MachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) noexcept {
     const auto LCSize = sizeof(MachO::LoadCommand);
 
     if (DoesMultiplyOverflow(LCSize, Ncmds, &MinSizeOfCmds)) {
-        return MachOMemoryObject::Error::TooManyLoadCommands;
+        return ConstMachOMemoryObject::Error::TooManyLoadCommands;
     }
 
     if (SizeOfCmds < MinSizeOfCmds) {
-        return MachOMemoryObject::Error::TooManyLoadCommands;
+        return ConstMachOMemoryObject::Error::TooManyLoadCommands;
     }
 
-    return MachOMemoryObject::Error::None;
-}
-
-MachOMemoryObject MachOMemoryObject::Open(const MemoryMap &Map) noexcept {
-    const auto Error = ValidateMap(Map);
-    if (Error != Error::None) {
-        return Error;
-    }
-
-    return MachOMemoryObject(Map);
+    return ConstMachOMemoryObject::Error::None;
 }
 
 ConstMachOMemoryObject
@@ -98,14 +89,24 @@ ConstMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
     return ConstMachOMemoryObject(Map);
 }
 
-static bool MatchesFormat(MachOMemoryObject::Error Error) noexcept {
+MachOMemoryObject MachOMemoryObject::Open(const MemoryMap &Map) noexcept {
+    const auto Error = ValidateMap(Map);
+    if (Error != Error::None) {
+        return Error;
+    }
+
+    return MachOMemoryObject(Map);
+}
+
+[[nodiscard]]
+static bool MatchesFormat(ConstMachOMemoryObject::Error Error) noexcept {
     switch (Error) {
-        case MachOMemoryObject::Error::None:
+        case ConstMachOMemoryObject::Error::None:
             return true;
-        case MachOMemoryObject::Error::WrongFormat:
-        case MachOMemoryObject::Error::SizeTooSmall:
+        case ConstMachOMemoryObject::Error::WrongFormat:
+        case ConstMachOMemoryObject::Error::SizeTooSmall:
             return false;
-        case MachOMemoryObject::Error::TooManyLoadCommands:
+        case ConstMachOMemoryObject::Error::TooManyLoadCommands:
             return true;
     }
 
@@ -139,12 +140,6 @@ ConstMachOMemoryObject::GetLoadCommands(bool Verify) const noexcept {
                                              Is64Bit,
                                              Verify);
     return Obj;
-}
-
-MachO::ConstLoadCommandStorage
-MachOMemoryObject::GetConstLoadCommands(bool Verify) const noexcept {
-    assert(!hasError());
-    return ConstMachOMemoryObject::GetLoadCommands(Verify);
 }
 
 MachO::LoadCommandStorage

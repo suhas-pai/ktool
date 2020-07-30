@@ -227,13 +227,12 @@ int main(int Argc, const char *Argv[]) {
                 return 1;
             }
 
-            const auto OpsKind = Ops->getKind();
             fprintf(stdout,
                     "Usage: ktool %s [Options] [Path] [Path-Options]\n"
                     "Options:\n",
                     Argv[1]);
 
-            Operation::PrintOptionHelpMenu(OpsKind, stdout, "\t");
+            Operation::PrintOptionHelpMenu(Ops->getKind(), stdout, "\t");
             return 0;
         }
     }

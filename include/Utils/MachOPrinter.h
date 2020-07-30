@@ -293,7 +293,7 @@ struct MachOTypePrinter<MachO::FatHeader> {
         auto I = static_cast<uint32_t>(1);
 
         if (Header.Is64Bit()) {
-            for (const auto &Arch : Header.getConstArch64List(IsBigEndian)) {
+            for (const auto &Arch : Header.getConstArch64List()) {
                 WrittenOut +=
                     fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
 
@@ -304,7 +304,7 @@ struct MachOTypePrinter<MachO::FatHeader> {
                 I++;
             }
         } else {
-            for (const auto &Arch : Header.getConstArch32List(IsBigEndian)) {
+            for (const auto &Arch : Header.getConstArch32List()) {
                 WrittenOut +=
                     fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
 
@@ -332,7 +332,7 @@ struct MachOTypePrinter<MachO::FatHeader> {
         auto I = static_cast<uint32_t>(1);
 
         if (Header.Is64Bit()) {
-            for (const auto &Arch : Header.getConstArch64List(IsBigEndian)) {
+            for (const auto &Arch : Header.getConstArch64List()) {
                 WrittenOut +=
                     fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
 
@@ -343,7 +343,7 @@ struct MachOTypePrinter<MachO::FatHeader> {
                 I++;
             }
         } else {
-            for (const auto &Arch : Header.getConstArch32List(IsBigEndian)) {
+            for (const auto &Arch : Header.getConstArch32List()) {
                 WrittenOut +=
                     fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
 

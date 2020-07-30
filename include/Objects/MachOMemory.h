@@ -124,5 +124,7 @@ public:
     GetLoadCommands(bool Verify = true) noexcept;
 
     [[nodiscard]] MachO::ConstLoadCommandStorage
-    GetConstLoadCommands(bool Verify = true) const noexcept;
+    GetConstLoadCommands(bool Verify = true) const noexcept {
+        return ConstMachOMemoryObject::GetLoadCommands(Verify);
+    }
 };
