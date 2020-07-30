@@ -194,11 +194,6 @@ public:
         return MemoryMap(const_cast<uint8_t *>(Map), End);
     }
 
-    [[nodiscard]]
-    inline DyldSharedCache::ImageInfo &getImageInfo() const noexcept {
-        return const_cast<DyldSharedCache::ImageInfo &>(ImageInfo);
-    }
-
     [[nodiscard]] inline MachO::Header &getHeader() noexcept { return *Header; }
 
     [[nodiscard]] inline MachO::LoadCommandStorage
