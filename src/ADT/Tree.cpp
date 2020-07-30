@@ -92,7 +92,7 @@ void BasicTreeNode::ValidateChildArray() const noexcept {
         return;
     }
 
-    auto Prev = getFirstChild();
+    auto Prev = FirstChild;
     BASIC_TREE_NODE_ITERATE_SIBLINGS(*SecondChild) {
         assert(Sibling->getPrevSibling() == Prev);
         Prev = Sibling;
@@ -370,7 +370,7 @@ BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
             return getRoot()->getFirstChild();
         }
 
-        setRoot(getRoot()->createNew());
+        setRoot(Node.createNew());
         Node.setParent(getRoot());
 
         BasicIsolate(Node);
