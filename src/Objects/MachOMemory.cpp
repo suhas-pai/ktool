@@ -27,7 +27,7 @@ MachOMemoryObject::MachOMemoryObject(Error Error) noexcept
 MachOMemoryObject::MachOMemoryObject(const MemoryMap &Map) noexcept
 : ConstMachOMemoryObject(Map) {}
 
-static
+[[nodiscard]] static
 ConstMachOMemoryObject::Error ValidateMap(const ConstMemoryMap &Map) noexcept {
     const auto Header = reinterpret_cast<const MachO::Header *>(Map.getBegin());
     const auto MapSize = Map.size();
@@ -149,7 +149,7 @@ MachOMemoryObject::GetLoadCommands(bool Verify) noexcept {
     const auto IsBigEndian = Header->IsBigEndian();
     const auto Is64Bit = Header->Is64Bit();
 
-    const auto Begin = Header->getLoadCmdBuffer();
+    const auto Begin = getHeader().getLoadCmdBuffer();
     const auto Ncmds = SwitchEndianIf(Header->Ncmds, IsBigEndian);
     const auto SizeOfCmds = SwitchEndianIf(Header->SizeOfCmds, IsBigEndian);
 

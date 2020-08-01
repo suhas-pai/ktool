@@ -29,7 +29,7 @@ public:
 protected:
     union {
         const uint8_t *Map;
-        MachO::Header *Header;
+        const MachO::Header *Header;
         PointerErrorStorage<Error> ErrorStorage;
     };
 
@@ -63,6 +63,7 @@ public:
     }
 
     [[nodiscard]] inline ConstMemoryMap getMap() const noexcept {
+        assert(!hasError());
         return ConstMemoryMap(Map, End);
     }
 
@@ -71,14 +72,17 @@ public:
     }
 
     [[nodiscard]] inline RelativeRange getRange() const noexcept override {
+        assert(!hasError());
         return RelativeRange(End - Map);
     }
 
     [[nodiscard]] inline const MachO::Header &getHeader() const noexcept {
+        assert(!hasError());
         return *Header;
     }
 
     [[nodiscard]] inline const MachO::Header &getConstHeader() const noexcept {
+        assert(!hasError());
         return *Header;
     }
 
@@ -86,11 +90,11 @@ public:
     GetLoadCommands(bool Verify = true) const noexcept;
 
     [[nodiscard]] inline bool IsBigEndian() const noexcept {
-        return Header->IsBigEndian();
+        return getConstHeader().IsBigEndian();
     }
 
     [[nodiscard]] inline bool Is64Bit() const noexcept {
-        return Header->Is64Bit();
+        return getConstHeader().Is64Bit();
     }
 
     [[nodiscard]] inline enum MachO::Header::Magic getMagic() const noexcept {
@@ -114,11 +118,15 @@ protected:
 public:
     [[nodiscard]] static MachOMemoryObject Open(const MemoryMap &Map) noexcept;
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
+        assert(!hasError());
+        
         const auto End = const_cast<uint8_t *>(this->End);
         return MemoryMap(const_cast<uint8_t *>(Map), End);
     }
 
-    [[nodiscard]] inline MachO::Header &getHeader() noexcept { return *Header; }
+    [[nodiscard]] inline MachO::Header &getHeader() noexcept {
+        return const_cast<MachO::Header &>(getConstHeader());
+    }
 
     [[nodiscard]] MachO::LoadCommandStorage
     GetLoadCommands(bool Verify = true) noexcept;

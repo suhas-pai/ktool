@@ -195,7 +195,7 @@ namespace DyldSharedCache {
                 const auto Offset =
                     Mapping.getFileOffsetFromAddr(Addr, MaxSizeOut);
 
-                if (Offset) {
+                if (Offset.has_value()) {
                     return Offset;
                 }
             }

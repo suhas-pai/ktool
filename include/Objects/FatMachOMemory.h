@@ -67,32 +67,36 @@ public:
     }
 
     [[nodiscard]] inline ConstMemoryMap getConstMap() const noexcept override {
+        assert(!hasError());
         return ConstMemoryMap(Map, End);
     }
 
     [[nodiscard]] inline RelativeRange getRange() const noexcept override {
+        assert(!hasError());
         return RelativeRange(End - Map);
     }
 
     [[nodiscard]] inline const MachO::FatHeader &getHeader() noexcept {
+        assert(!hasError());
         return *Header;
     }
 
     [[nodiscard]]
     inline const MachO::FatHeader &getConstHeader() const noexcept {
+        assert(!hasError());
         return *Header;
     }
 
     [[nodiscard]] inline bool IsBigEndian() const noexcept {
-        return Header->IsBigEndian();
+        return getConstHeader().IsBigEndian();
     }
 
     [[nodiscard]] inline bool Is64Bit() const noexcept {
-        return Header->Is64Bit();
+        return getConstHeader().Is64Bit();
     }
 
     [[nodiscard]] inline uint32_t getArchCount() const noexcept {
-        return SwitchEndianIf(Header->NFatArch, this->IsBigEndian());
+        return SwitchEndianIf(getConstHeader().NFatArch, this->IsBigEndian());
     }
 
     [[nodiscard]]
@@ -104,11 +108,11 @@ public:
     using ConstArch64List = MachO::FatHeader::ConstArch64List;
 
     [[nodiscard]] inline ConstArch32List getConstArch32List() const noexcept {
-        return Header->getConstArch32List();
+        return getConstHeader().getConstArch32List();
     }
 
     [[nodiscard]] inline ConstArch64List getConstArch64List() const noexcept {
-        return Header->getConstArch64List();
+        return getConstHeader().getConstArch64List();
     }
 
     struct ArchInfo {
@@ -159,12 +163,14 @@ public:
     static FatMachOMemoryObject Open(const MemoryMap &Map) noexcept;
 
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
+        assert(!hasError());
+        
         const auto End = const_cast<uint8_t *>(this->End);
         return MemoryMap(const_cast<uint8_t *>(Map), End);
     }
 
     [[nodiscard]] inline MachO::FatHeader &getHeader() noexcept {
-        return const_cast<MachO::FatHeader &>(*Header);
+        return const_cast<MachO::FatHeader &>(getConstHeader());
     }
 
     using Arch32List = MachO::FatHeader::Arch32List;

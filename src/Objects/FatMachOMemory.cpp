@@ -133,7 +133,9 @@ FatMachOMemoryObject::FatMachOMemoryObject(const MemoryMap &Map) noexcept
 FatMachOMemoryObject::FatMachOMemoryObject(Error Error) noexcept
 : ConstFatMachOMemoryObject(Error) {}
 
-static bool MatchesFormat(ConstFatMachOMemoryObject::Error Error) noexcept {
+[[nodiscard]]
+static inline
+bool MatchesFormat(ConstFatMachOMemoryObject::Error Error) noexcept {
     switch (Error) {
         case ConstFatMachOMemoryObject::Error::None:
             return true;
@@ -164,7 +166,7 @@ enum class ArchKind {
 };
 
 template <typename ListType>
-static ConstFatMachOMemoryObject::ArchInfo
+[[nodiscard]] static ConstFatMachOMemoryObject::ArchInfo
 GetArchInfoAtIndexImpl(const ListType &List,
                        uint32_t Index,
                        bool IsBigEndian) noexcept
@@ -202,6 +204,7 @@ ConstFatMachOMemoryObject::GetArchInfoAtIndex(uint32_t Index) const noexcept {
     return Info;
 }
 
+[[nodiscard]]
 static FatMachOMemoryObject::GetObjectResult
 GetMachOObjectResult(MemoryObject *ArchObject,
                      Mach::CpuKind CpuKind,

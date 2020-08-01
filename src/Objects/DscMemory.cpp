@@ -28,7 +28,7 @@ DscMemoryObject::DscMemoryObject(Error Error) noexcept
 DscMemoryObject::DscMemoryObject(const MemoryMap &Map, CpuKind CpuKind) noexcept
 : ConstDscMemoryObject(Map, CpuKind) {}
 
-static ConstDscMemoryObject::Error
+[[nodiscard]] static ConstDscMemoryObject::Error
 ValidateMap(const ConstMemoryMap &Map,
             DscMemoryObject::CpuKind &CpuKind) noexcept
 {
@@ -248,6 +248,7 @@ ConstDscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
     assert(0 && "Unrecognized Cpu-Kind");
 }
 
+[[nodiscard]]
 static const uint8_t *ValidateImageMapAndGetEnd(const uint8_t *Map) noexcept {
     const auto Header = reinterpret_cast<const MachO::Header *>(Map);
     if (!Header->hasValidMagic()) {

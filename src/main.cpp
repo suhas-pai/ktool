@@ -46,8 +46,8 @@ static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
 
         if (LongName == (Arg + 1)) {
             PrintUnrecognizedOptionError(Arg);
-            fprintf(stderr, "Did you mean option \"--%s\"?\n", LongName.data());
 
+            fprintf(stderr, "Did you mean option \"--%s\"?\n", LongName.data());
             exit(1);
         }
     } else if (LongName == (Arg + 2)) {
@@ -56,8 +56,8 @@ static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
 
     if (!ShortName.empty() && ShortName == (Arg + 2)) {
         PrintUnrecognizedOptionError(Arg);
-        fprintf(stderr, "Did you mean option \"-%s\"?\n", ShortName.data());
 
+        fprintf(stderr, "Did you mean option \"-%s\"?\n", ShortName.data());
         exit(1);
     }
 

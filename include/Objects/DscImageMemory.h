@@ -190,11 +190,15 @@ public:
     }
 
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
+        assert(!hasError());
+
         const auto End = const_cast<uint8_t *>(this->End);
         return MemoryMap(const_cast<uint8_t *>(Map), End);
     }
 
-    [[nodiscard]] inline MachO::Header &getHeader() noexcept { return *Header; }
+    [[nodiscard]] inline MachO::Header &getHeader() noexcept {
+        return const_cast<MachO::Header &>(getConstHeader());
+    }
 
     [[nodiscard]] inline MachO::LoadCommandStorage
     GetLoadCommands(bool Verify = true) noexcept {
