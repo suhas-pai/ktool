@@ -63,7 +63,7 @@ namespace MachO {
 
         template <Kind Kind>
         [[nodiscard]] inline LoadCommandPtrTypeFromKind<Kind>
-        dyn_cast(bool IsBigEndian) noexcept {
+        dynCast(bool IsBigEndian) noexcept {
             if (isa<Kind>(IsBigEndian)) {
                 return &cast<Kind>(IsBigEndian);
             }
@@ -73,7 +73,7 @@ namespace MachO {
 
         template <Kind Kind>
         [[nodiscard]] inline const LoadCommandConstPtrTypeFromKind<Kind>
-        dyn_cast(bool IsBigEndian) const noexcept {
+        dynCast(bool IsBigEndian) const noexcept {
             if (isa<Kind>(IsBigEndian)) {
                 return &cast<Kind>(IsBigEndian);
             }

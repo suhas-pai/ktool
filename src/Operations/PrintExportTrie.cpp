@@ -326,7 +326,7 @@ FindExportTrieList(
             TrieList = DyldInfo->GetConstExportTrieList(Map, IsBigEndian);
         } else {
             const auto *DyldExportsTrie =
-                LoadCmd.dyn_cast<MachO::LoadCommand::Kind::DyldExportsTrie>(
+                LoadCmd.dynCast<MachO::LoadCommand::Kind::DyldExportsTrie>(
                     IsBigEndian);
 
             if (DyldExportsTrie != nullptr) {

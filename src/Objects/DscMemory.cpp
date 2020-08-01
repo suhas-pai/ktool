@@ -250,17 +250,17 @@ ConstDscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
 
 [[nodiscard]]
 static const uint8_t *ValidateImageMapAndGetEnd(const uint8_t *Map) noexcept {
-    const auto Header = reinterpret_cast<const MachO::Header *>(Map);
-    if (!Header->hasValidMagic()) {
+    const auto &Header = *reinterpret_cast<const MachO::Header *>(Map);
+    if (!Header.hasValidMagic()) {
         return nullptr;
     }
 
-    const auto IsBigEndian = Header->IsBigEndian();
-    const auto Is64Bit = Header->Is64Bit();
+    const auto IsBigEndian = Header.IsBigEndian();
+    const auto Is64Bit = Header.Is64Bit();
 
-    const auto Ncmds = SwitchEndianIf(Header->Ncmds, IsBigEndian);
-    const auto Begin = Map + Header->size();
-    const auto SizeOfCmds = SwitchEndianIf(Header->SizeOfCmds, IsBigEndian);
+    const auto Ncmds = SwitchEndianIf(Header.Ncmds, IsBigEndian);
+    const auto Begin = Map + Header.size();
+    const auto SizeOfCmds = SwitchEndianIf(Header.SizeOfCmds, IsBigEndian);
 
     const auto LoadCmdStorage =
         MachO::ConstLoadCommandStorage::Open(Begin,
@@ -278,7 +278,7 @@ static const uint8_t *ValidateImageMapAndGetEnd(const uint8_t *Map) noexcept {
     if (Is64Bit) {
         for (const auto &LoadCmd : LoadCmdStorage) {
             const auto Segment =
-                LoadCmd.dyn_cast<MachO::LoadCommand::Kind::Segment64>(
+                LoadCmd.dynCast<MachO::LoadCommand::Kind::Segment64>(
                     IsBigEndian);
 
             if (Segment != nullptr) {
@@ -288,8 +288,7 @@ static const uint8_t *ValidateImageMapAndGetEnd(const uint8_t *Map) noexcept {
     } else {
         for (const auto &LoadCmd : LoadCmdStorage) {
             const auto Segment =
-                LoadCmd.dyn_cast<MachO::LoadCommand::Kind::Segment>(
-                    IsBigEndian);
+                LoadCmd.dynCast<MachO::LoadCommand::Kind::Segment>(IsBigEndian);
 
             if (Segment != nullptr) {
                 End += Segment->FileSize;

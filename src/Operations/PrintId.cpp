@@ -33,7 +33,7 @@ PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
 
     for (const auto &LoadCmd : LoadCmdStorage) {
         const auto *DylibCmd =
-            LoadCmd.dyn_cast<MachO::LoadCommand::Kind::IdDylib>(IsBigEndian);
+            LoadCmd.dynCast<MachO::LoadCommand::Kind::IdDylib>(IsBigEndian);
 
         if (DylibCmd == nullptr) {
             continue;
