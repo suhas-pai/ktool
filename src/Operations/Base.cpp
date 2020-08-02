@@ -576,14 +576,14 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
     LongestOptionNameLength = UsageOption.length();
 
     fprintf(OutFile,
-            "\t%5s--%s,%*s Print this Menu\n",
+            "\t%5s--%s,%" PRINTF_LEFTPAD_FMT "s Print this Menu\n",
             "",
             HelpOption.data(),
             static_cast<int>(LongestOptionNameLength - HelpOption.length()),
             "");
 
     fprintf(OutFile,
-            "\t%5s--%s,%*s Print this Menu\n\n",
+            "\t%5s--%s,%" PRINTF_LEFTPAD_FMT "s Print this Menu\n\n",
             "",
             UsageOption.data(),
             static_cast<int>(LongestOptionNameLength - UsageOption.length()),

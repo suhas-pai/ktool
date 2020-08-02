@@ -76,6 +76,10 @@
     PackedVersion.getMinor(), \
     PackedVersion.getRevision()
 
+#define STRING_VIEW_FMT "%*s"
+#define STRING_VIEW_FMT_ARGS(STR) \
+    static_cast<int>((STR).length()), (STR).data()
+
 inline int
 PrintUtilsCharMultTimes(FILE *OutFile, char Ch, int Times) noexcept {
     assert(Times >= 0 && "PrintUtilsCharMultTimes(): Times less than 0");

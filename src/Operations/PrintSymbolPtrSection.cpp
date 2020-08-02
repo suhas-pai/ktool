@@ -198,17 +198,17 @@ PrintSymbolPtrList(
     const auto Segment = SegmentCollection.GetInfoForName(Options.SegmentName);
     if (Segment == nullptr) {
         fprintf(Options.ErrFile,
-                "Provided file has no segment with name \"%.*s\"\n",
-                static_cast<int>(Options.SegmentName.length()),
-                Options.SegmentName.data());
+                "Provided file has no segment with name \"" STRING_VIEW_FMT
+                "\"\n",
+                STRING_VIEW_FMT_ARGS(Options.SegmentName));
         return 1;
     }
 
     if (Segment->Flags.IsProtected()) {
         fprintf(Options.ErrFile,
-                "Provided segment \"%.*s\" is protected (encrypted)\n",
-                static_cast<int>(Options.SegmentName.length()),
-                Options.SegmentName.data());
+                "Provided segment \"" STRING_VIEW_FMT "\" is protected "
+                "(encrypted)\n",
+                STRING_VIEW_FMT_ARGS(Options.SegmentName));
         return 1;
     }
 
