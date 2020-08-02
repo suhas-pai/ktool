@@ -20,26 +20,28 @@ struct CastChecks {
 private:
     using ToType = typename TypeTraits::RemovePointersAndRefs<To>::Type;
 public:
-    static inline bool CanCast(const From &Fr) { return ToType::IsOfKind(Fr); }
+    [[nodiscard]] static inline bool CanCast(const From &Fr) {
+        return ToType::IsOfKind(Fr);
+    }
 };
 
 template <typename From, typename To>
 struct CastChecks<From, To,
                   typename std::enable_if_t<std::is_base_of_v<To, From>>>
 {
-    static inline bool CanCast(const From &Fr) { return true; }
+    [[nodiscard]] static inline bool CanCast(const From &Fr) { return true; }
 };
 
 template <typename From, typename To>
 struct CastChecks<From *, To> {
-    static inline bool CanCast(const From *Fr) {
+    [[nodiscard]] static inline bool CanCast(const From *Fr) {
         return CastChecks<From, To>::CanCast(*Fr);
     }
 };
 
 template <typename From, typename To>
 struct CastChecks<const From *, To> {
-    static inline bool CanCast(const From *Fr) {
+    [[nodiscard]] static inline bool CanCast(const From *Fr) {
         return CastChecks<From, To>::CanCast(*Fr);
     }
 };
@@ -47,7 +49,7 @@ struct CastChecks<const From *, To> {
 template <typename From, typename To>
 struct CastChecks<TypedAllocation<From>, To>
 {
-    static inline bool CanCast(const TypedAllocation<From> &Fr) {
+    [[nodiscard]] static inline bool CanCast(const TypedAllocation<From> &Fr) {
         return CastChecks<From, std::remove_pointer_t<To>>::CanCast(*Fr.get());
     }
 };
@@ -55,25 +57,25 @@ struct CastChecks<TypedAllocation<From>, To>
 template <typename From, typename To>
 struct CastChecks<const TypedAllocation<From>, To>
 {
-    static inline bool CanCast(const TypedAllocation<From> &Fr) {
+    [[nodiscard]] static inline bool CanCast(const TypedAllocation<From> &Fr) {
         return CastChecks<From, std::remove_pointer_t<To>>::CanCast(*Fr.get());
     }
 };
 
 template <typename To, typename From>
-static inline bool isa(const From &Obj) {
+[[nodiscard]] static inline bool isa(const From &Obj) {
     return CastChecks<From, To>::CanCast(Obj);
 }
 
 template <typename To, typename From>
-static inline bool isa(const From *Obj) {
+[[nodiscard]] static inline bool isa(const From *Obj) {
     return CastChecks<From, To>::CanCast(Obj);
 }
 
 template <typename From, typename To, typename Enabler = void>
 struct CastReturnTypeCalculator {
     using Type = To;
-    static inline Type Convert(From &Fr) {
+   [[nodiscard]] static inline Type Convert(From &Fr) {
         return reinterpret_cast<Type>(Fr);
     }
 };
@@ -85,7 +87,7 @@ struct CastReturnTypeCalculator<From, To *,
                                     !IsTypedAllocation<From>::Value>>
 {
     using Type = To *;
-    static inline Type Convert(From &Fr) {
+    [[nodiscard]] static inline Type Convert(From &Fr) {
         return reinterpret_cast<Type>(&Fr);
     }
 };
@@ -96,7 +98,7 @@ struct CastReturnTypeCalculator<From, To &,
                                     !IsTypedAllocation<From>::Value>>
 {
     using Type = To &;
-    static inline Type Convert(From &Fr) {
+    [[nodiscard]] static inline Type Convert(From &Fr) {
         return reinterpret_cast<Type>(Fr);
     }
 };
@@ -107,7 +109,7 @@ struct CastReturnTypeCalculator<From, const To &,
                                     !IsTypedAllocation<From>::Value>>
 {
     using Type = const To &;
-    static inline Type Convert(const From &Fr) {
+    [[nodiscard]] static inline Type Convert(const From &Fr) {
         return *reinterpret_cast<const To *>(&Fr);
     }
 };
@@ -115,7 +117,7 @@ struct CastReturnTypeCalculator<From, const To &,
 template <typename From, typename To>
 struct CastReturnTypeCalculator<From *, To *> {
     using Type = To *;
-    static inline Type Convert(From *Fr) {
+    [[nodiscard]] static inline Type Convert(From *Fr) {
         return reinterpret_cast<Type>(Fr);
     }
 };
@@ -125,7 +127,7 @@ struct CastReturnTypeCalculator<const From *, const To *,
                                 TypeTraits::DisableIfNotConst<From>>
 {
     using Type = const To *;
-    static inline Type Convert(const From *Fr) {
+    [[nodiscard]] static inline Type Convert(const From *Fr) {
         return reinterpret_cast<Type>(Fr);
     }
 };
@@ -136,7 +138,7 @@ private:
     using ToType = typename std::remove_pointer_t<To>;
 public:
     using Type = TypedAllocation<ToType>;
-    static inline Type Convert(const TypedAllocation<From> &Fr) {
+    [[nodiscard]] static inline Type Convert(const TypedAllocation<From> &Fr) {
         return Type(reinterpret_cast<ToType *>(Fr.get()));
     }
 };
@@ -147,6 +149,8 @@ private:
     using ToType = typename std::remove_pointer_t<To>;
 public:
     using Type = TypedAllocation<ToType>;
+
+    [[nodiscard]]
     static inline Type Convert(const TypedAllocation<const From> &Fr) {
         return Type(reinterpret_cast<const ToType *>(Fr.get()));
     }
@@ -163,7 +167,7 @@ auto CastReturnTypeConvert(Args&&... args) -> CastReturnType<From, To> {
 }
 
 template <typename To, typename From>
-static inline CastReturnType<From &, To> cast(From &Fr) {
+[[nodiscard]] static inline CastReturnType<From &, To> cast(From &Fr) {
     assert(isa<To>(Fr));
     return CastReturnTypeConvert<From &, To>(Fr);
 }
@@ -171,13 +175,14 @@ static inline CastReturnType<From &, To> cast(From &Fr) {
 template <typename To, typename From,
           typename = TypeTraits::DisableIfNotConst<From>>
 
+[[nodiscard]]
 static inline CastReturnType<const From &, To> cast(const From &Fr) {
     assert(isa<To>(Fr));
     return CastReturnTypeConvert<const From &, To>(Fr);
 }
 
 template <typename To, typename From>
-static inline CastReturnType<From *, To> cast(From *Fr) {
+[[nodiscard]] static inline CastReturnType<From *, To> cast(From *Fr) {
     assert(isa<To>(Fr));
     return CastReturnTypeConvert<From *, To>(Fr);
 }
@@ -185,6 +190,7 @@ static inline CastReturnType<From *, To> cast(From *Fr) {
 template <typename To, typename From,
           typename = TypeTraits::DisableIfNotConst<From>>
 
+[[nodiscard]]
 static inline CastReturnType<const From *, To> cast(const From *Fr) {
     assert(isa<To>(Fr));
     return CastReturnTypeConvert<const From *, To>(Fr);
@@ -193,7 +199,7 @@ static inline CastReturnType<const From *, To> cast(const From *Fr) {
 template <typename To, typename From,
           typename ToType = std::remove_pointer_t<To>>
 
-static inline CastReturnType<TypedAllocation<From>, To>
+[[nodiscard]] static inline CastReturnType<TypedAllocation<From>, To>
 cast(const TypedAllocation<From> &Fr) {
     assert(isa<To>(Fr));
     return CastReturnTypeConvert<TypedAllocation<From>, To>(Fr);
@@ -202,7 +208,7 @@ cast(const TypedAllocation<From> &Fr) {
 template <typename To, typename From,
           typename ToType = std::remove_pointer_t<To>>
 
-static inline CastReturnType<TypedAllocation<const From>, To>
+[[nodiscard]] static inline CastReturnType<TypedAllocation<const From>, To>
 cast(const TypedAllocation<const From> &Fr) {
     assert(isa<To>(Fr));
     return CastReturnTypeConvert<TypedAllocation<const From>, To>(Fr);
@@ -211,7 +217,7 @@ cast(const TypedAllocation<const From> &Fr) {
 template <typename To, typename From,
           typename = std::enable_if_t<!IsTypedAllocation<From>::Value>>
 
-static inline To *dyn_cast(From &Fr) {
+[[nodiscard]] static inline To *dyn_cast(From &Fr) {
     if (isa<To>(Fr)) {
         return cast<To>(Fr);
     }
@@ -222,7 +228,7 @@ static inline To *dyn_cast(From &Fr) {
 template <typename To, typename From,
           typename = TypeTraits::DisableIfNotConst<From>>
 
-static inline const To *dyn_cast(const From &Fr) {
+[[nodiscard]] static inline const To *dyn_cast(const From &Fr) {
     if (isa<To>(Fr)) {
         return cast<To>(Fr);
     }
@@ -231,7 +237,7 @@ static inline const To *dyn_cast(const From &Fr) {
 }
 
 template <typename To, typename From>
-static inline To *dyn_cast(From *Fr) {
+[[nodiscard]] static inline To *dyn_cast(From *Fr) {
     if (isa<To>(Fr)) {
         return cast<To>(Fr);
     }
@@ -242,7 +248,7 @@ static inline To *dyn_cast(From *Fr) {
 template <typename To, typename From,
           typename = TypeTraits::DisableIfNotConst<From>>
 
-static inline const To *dyn_cast(const From *Fr) {
+[[nodiscard]] static inline const To *dyn_cast(const From *Fr) {
     if (isa<To>(Fr)) {
         return cast<To>(Fr);
     }
@@ -251,6 +257,7 @@ static inline const To *dyn_cast(const From *Fr) {
 }
 
 template <typename To, typename From>
+[[nodiscard]]
 static inline TypedAllocation<To> dyn_cast(const TypedAllocation<From> &Fr) {
     if (isa<To>(Fr)) {
         return cast<To>(Fr);
