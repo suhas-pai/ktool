@@ -373,7 +373,7 @@ PrintDscHeaderV1Info(
     const ConstDscMemoryObject &Object,
     const struct PrintHeaderOperation::Options &Options) noexcept
 {
-    const auto Header = Object.getHeaderV1();
+    const auto &Header = Object.getHeaderV1();
     PrintDscSizeRange(Options.OutFile,
                       Object.getRange(),
                       "Code-Signature Offset",
@@ -398,7 +398,7 @@ PrintDscHeaderV2Info(
     const ConstDscMemoryObject &Object,
     const struct PrintHeaderOperation::Options &Options) noexcept
 {
-    const auto Header = Object.getHeaderV2();
+    const auto &Header = Object.getHeaderV2();
     PrintDscSizeRange(Options.OutFile,
                       Object.getRange(),
                       "Local-Symbols Offset",
@@ -419,7 +419,7 @@ PrintDscHeaderV3Info(
 {
     PrintDscKey(Options.OutFile, "Cache-Kind");
 
-    const auto Header = Object.getHeaderV3();
+    const auto &Header = Object.getHeaderV3();
     switch (Header.Kind) {
         case DyldSharedCache::CacheKind::Development:
             fputs("Development\n", Options.OutFile);
@@ -437,7 +437,7 @@ PrintDscHeaderV4Info(
     const ConstDscMemoryObject &Object,
     const struct PrintHeaderOperation::Options &Options) noexcept
 {
-    const auto Header = Object.getHeaderV4();
+    const auto &Header = Object.getHeaderV4();
 
     PrintDscKey(Options.OutFile, "Branch-Pools Offset");
     PrintUtilsWriteOffset(Options.OutFile, Header.BranchPoolsOffset);
@@ -483,7 +483,7 @@ PrintDscHeaderV5Info(
     const ConstDscMemoryObject &Object,
     const struct PrintHeaderOperation::Options &Options) noexcept
 {
-    const auto Header = Object.getHeaderV5();
+    const auto &Header = Object.getHeaderV5();
     PrintDscSizeRange(Options.OutFile,
                       Object.getRange(),
                       "Dylibs Image-Group Address",
@@ -571,7 +571,7 @@ PrintDscHeaderV6Info(
     const ConstDscMemoryObject &Object,
     const struct PrintHeaderOperation::Options &Options) noexcept
 {
-    const auto Header = Object.getHeaderV6();
+    const auto &Header = Object.getHeaderV6();
     PrintDscSizeRange(Options.OutFile,
                       Object.getRange(),
                       "Dylibs Image-Array Address",
