@@ -427,28 +427,31 @@ namespace MachO {
             return hasValueForMask(FlagType::ReadOnlyAfterFixup);
         }
 
-        constexpr inline SegmentFlags &setHighVM(bool Value) noexcept {
+        constexpr inline SegmentFlags &setHighVM(bool Value = true) noexcept {
             setValueForMask(FlagType::HighVM, Value);
             return *this;
         }
 
-        constexpr inline SegmentFlags &setFixedVMLibary(bool Value) noexcept {
+        constexpr
+        inline SegmentFlags &setFixedVMLibary(bool Value = true) noexcept {
             setValueForMask(FlagType::FixedVMLibary, Value);
             return *this;
         }
 
-        constexpr inline SegmentFlags &setNoRelocations(bool Value) noexcept {
+        constexpr
+        inline SegmentFlags &setNoRelocations(bool Value = true) noexcept {
             setValueForMask(FlagType::NoRelocations, Value);
             return *this;
         }
 
-        constexpr inline SegmentFlags &setProtected(bool Value) noexcept {
+        constexpr
+        inline SegmentFlags &setProtected(bool Value = true) noexcept {
             setValueForMask(FlagType::ProtectionVersion1, Value);
             return *this;
         }
 
         constexpr
-        inline SegmentFlags &setReadOnlyAfterFixup(bool Value) noexcept {
+        inline SegmentFlags &setReadOnlyAfterFixup(bool Value = true) noexcept {
             setValueForMask(FlagType::ReadOnlyAfterFixup, Value);
             return *this;
         }
@@ -964,7 +967,7 @@ namespace MachO {
         }
 
         constexpr inline
-        SegmentSectionAttributes &setIsAllInstructions(bool Value) noexcept {
+        SegmentSectionAttributes &setIsAllInstructions(bool Value = true) noexcept {
             setValueForMask(MaskType::IsAllInstructions, Value);
             return *this;
         }
@@ -975,50 +978,51 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline
-        SegmentSectionAttributes &setStripStaticSymbols(bool Value) noexcept {
+        constexpr inline SegmentSectionAttributes &
+        setStripStaticSymbols(bool Value = true) noexcept {
             setValueForMask(MaskType::StripStaticSymbols, Value);
             return *this;
         }
 
-        constexpr inline
-        SegmentSectionAttributes &setNoDeadStripping(bool Value) noexcept {
+        constexpr inline SegmentSectionAttributes &
+        setNoDeadStripping(bool Value = true) noexcept {
             setValueForMask(MaskType::NoDeadStripping, Value);
             return *this;
         }
 
-        constexpr
-        inline SegmentSectionAttributes &setLiveSupport(bool Value) noexcept {
+        constexpr inline
+        SegmentSectionAttributes &setLiveSupport(bool Value = true) noexcept {
             setValueForMask(MaskType::LiveSupport, Value);
             return *this;
         }
 
-        constexpr inline
-        SegmentSectionAttributes &setSelfModifyingCode(bool Value) noexcept {
+        constexpr inline SegmentSectionAttributes &
+        setSelfModifyingCode(bool Value = true) noexcept {
             setValueForMask(MaskType::SelfModifyingCode, Value);
             return *this;
         }
 
-        constexpr inline
-        SegmentSectionAttributes &setIsDebugSection(bool Value) noexcept {
+        constexpr inline SegmentSectionAttributes &
+        setIsDebugSection(bool Value = true) noexcept {
             setValueForMask(MaskType::IsDebugSection, Value);
             return *this;
         }
 
-        constexpr inline
-        SegmentSectionAttributes &setHasSomeInstructions(bool Value) noexcept {
+        constexpr inline SegmentSectionAttributes &
+        setHasSomeInstructions(bool Value = true) noexcept {
             setValueForMask(MaskType::HasSomeInstructions, Value);
             return *this;
         }
 
         constexpr inline SegmentSectionAttributes &
-        setHasExternalRelocEntries(bool Value) noexcept {
+        setHasExternalRelocEntries(bool Value = true) noexcept {
             setValueForMask(MaskType::HasExternalRelocEntries, Value);
             return *this;
         }
 
         constexpr inline
-        SegmentSectionAttributes &setHasLocalRelocEntries(bool Value) noexcept {
+        SegmentSectionAttributes &
+        setHasLocalRelocEntries(bool Value = true) noexcept {
             setValueForMask(MaskType::HasLocalRelocEntries, Value);
             return *this;
         }

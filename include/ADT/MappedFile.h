@@ -62,22 +62,23 @@ public:
             return this->hasValueForMask(MaskType::Execute);
         }
 
-        constexpr inline Protections &setCanRead(bool canRead) noexcept {
-            this->setValueForMask(MaskType::Read, canRead);
+        constexpr inline Protections &setCanRead(bool Value = true) noexcept {
+            this->setValueForMask(MaskType::Read, Value);
             return *this;
         }
 
-        constexpr inline Protections &setCanWrite(bool canWrite) noexcept {
-            this->setValueForMask(MaskType::Read, canWrite);
+        constexpr inline Protections &setCanWrite(bool Value = true) noexcept {
+            this->setValueForMask(MaskType::Read, Value);
             return *this;
         }
 
-        constexpr inline Protections &setCanExecute(bool canExecute) noexcept {
-            this->setValueForMask(MaskType::Execute, canExecute);
+        constexpr
+        inline Protections &setCanExecute(bool Value = true) noexcept {
+            this->setValueForMask(MaskType::Execute, Value);
             return *this;
         }
 
-        constexpr inline Protections clear() noexcept {
+        constexpr inline Protections &clear() noexcept {
             this->Base::clear();
             return *this;
         }
