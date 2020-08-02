@@ -156,6 +156,16 @@ public:
         return *Begin;
     }
 
+    [[nodiscard]] inline EntryType &back() noexcept {
+        assert(!empty());
+        return End[-1];
+    }
+
+    [[nodiscard]] inline const EntryType &back() const noexcept {
+        assert(!empty());
+        return End[-1];
+    }
+
     [[nodiscard]] inline uint64_t count() const noexcept {
         return (End - Begin);
     }

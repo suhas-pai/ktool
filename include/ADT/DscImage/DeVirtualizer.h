@@ -13,6 +13,7 @@
 #include <optional>
 #include <string_view>
 
+#include "ADT/DyldSharedCache.h"
 #include "ADT/LocationRange.h"
 #include "ADT/MemoryMap.h"
 
@@ -20,16 +21,18 @@ namespace DscImage {
     struct ConstDeVirtualizer {
     protected:
         const uint8_t *Map;
-        LocationRange MappingsRange;
+        DyldSharedCache::ConstMappingList MappingList;
     public:
         explicit
-        ConstDeVirtualizer(const uint8_t *Map,
-                           const LocationRange &MappingsRange) noexcept
-        : Map(Map), MappingsRange(MappingsRange) {}
+        ConstDeVirtualizer(
+            const uint8_t *Map,
+            const DyldSharedCache::ConstMappingList &MappingList) noexcept
+        : Map(Map), MappingList(MappingList) {}
 
-        [[nodiscard]] inline
-        uint64_t getFileOffsetFromVmAddr(uint64_t VmAddr) const noexcept {
-            return (VmAddr - getBeginAddr());
+        [[nodiscard]]
+        inline const DyldSharedCache::ConstMappingList &
+        getMappingsList() const noexcept {
+            return MappingList;
         }
 
         [[nodiscard]] inline const uint8_t *getMap() const noexcept {
@@ -41,11 +44,12 @@ namespace DscImage {
         }
 
         [[nodiscard]] inline uint64_t getBeginAddr() const noexcept {
-            return getMappingsRange().getBegin();
+            return getMappingsList().front().Address;
         }
 
         [[nodiscard]] inline uint64_t getEndAddr() const noexcept {
-            return getMappingsRange().getEnd();
+            const auto &Back = getMappingsList().back();
+            return Back.Address + Back.Size;
         }
 
         [[nodiscard]] inline const uint8_t *getEnd() const noexcept {
@@ -62,9 +66,17 @@ namespace DscImage {
             return reinterpret_cast<const T *>(getEnd());
         }
 
-        [[nodiscard]]
-        inline const LocationRange &getMappingsRange() const noexcept {
-            return MappingsRange;
+        [[nodiscard]] inline const DyldSharedCache::MappingInfo *
+        GetMappingInfoForRange(const LocationRange &Range) const noexcept {
+            for (const auto &Mapping : getMappingsList()) {
+                if (const auto MapRange = Mapping.getAddressRange()) {
+                    if (MapRange->contains(Range)) {
+                        return &Mapping;
+                    }
+                }
+            }
+
+            return nullptr;
         }
 
         template <typename T>
@@ -72,19 +84,15 @@ namespace DscImage {
         GetDataAtVmAddr(uint64_t VmAddr,
                         uint64_t Size = sizeof(T)) const noexcept
         {
-            if (!getMappingsRange().containsLocation(VmAddr)) {
-                return nullptr;
+            const auto Range = LocationRange::CreateWithSize(VmAddr, Size);
+            if (const auto Info = GetMappingInfoForRange(Range.value())) {
+                const auto Offset = VmAddr - Info->Address;
+                const auto Result = reinterpret_cast<const T *>(Map + Offset);
+
+                return Result;
             }
 
-            const auto Offset = getFileOffsetFromVmAddr(VmAddr);
-            const auto Result = reinterpret_cast<const T *>(Map + Offset);
-            const auto End = getEndAs<T>();
-
-            if ((End - Result) < Size) {
-                return nullptr;
-            }
-
-            return Result;
+            return nullptr;
         }
 
         [[nodiscard]]
@@ -106,8 +114,10 @@ namespace DscImage {
     struct DeVirtualizer : public ConstDeVirtualizer {
     public:
         explicit
-        DeVirtualizer(uint8_t *Map, const LocationRange &MappingsRange) noexcept
-        : ConstDeVirtualizer(const_cast<uint8_t *>(Map), MappingsRange) {}
+        DeVirtualizer(
+            uint8_t *Map,
+            const DyldSharedCache::ConstMappingList &MappingList) noexcept
+        : ConstDeVirtualizer(const_cast<uint8_t *>(Map), MappingList) {}
 
         [[nodiscard]] inline uint8_t *getMap() const noexcept {
             return const_cast<uint8_t *>(Map);
