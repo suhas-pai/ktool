@@ -121,8 +121,8 @@ namespace MachO {
 
     using DyldInfoByteMasksAndShiftsHandler =
         BasicMasksAndShiftsHandler<DyldInfoByteMasks,
-                                    DyldInfoByteShifts,
-                                    uint8_t>;
+                                   DyldInfoByteShifts,
+                                   uint8_t>;
 
     struct NakedOpcodeList {
     protected:
@@ -320,18 +320,21 @@ namespace MachO {
             return hasValueForMask(Masks::Execute);
         }
 
-        constexpr inline MemoryProtections &setReadable() noexcept {
-            setValueForMask(Masks::Read, true);
+        constexpr
+        inline MemoryProtections &setReadable(bool Value = true) noexcept {
+            setValueForMask(Masks::Read, Value);
             return *this;
         }
 
-        constexpr inline MemoryProtections &setWritable() noexcept {
-            setValueForMask(Masks::Write, true);
+        constexpr
+        inline MemoryProtections &setWritable(bool Value = true) noexcept {
+            setValueForMask(Masks::Write, Value);
             return *this;
         }
 
-        constexpr inline MemoryProtections &setExecutable() noexcept {
-            setValueForMask(Masks::Execute, true);
+        constexpr
+        inline MemoryProtections &setExecutable(bool Value = true) noexcept {
+            setValueForMask(Masks::Execute, Value);
             return *this;
         }
     };
