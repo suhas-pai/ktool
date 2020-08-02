@@ -213,8 +213,8 @@ struct MachOTypePrinter<MachO::FatHeader::Arch64> {
     Print(FILE *OutFile,
           const Type &Arch,
           bool IsBigEndian,
-          const char *LinePrefix,
-          const char *LineSuffix) noexcept
+          const char *LinePrefix = "",
+          const char *LineSuffix = "") noexcept
     {
         const auto CpuKind = Arch.getCpuKind(IsBigEndian);
         const auto CpuSubKind = SwitchEndianIf(Arch.CpuSubKind, IsBigEndian);
@@ -283,8 +283,8 @@ struct MachOTypePrinter<MachO::FatHeader> {
     static int
     PrintArchList(FILE *OutFile,
                   const Type &Header,
-                  const char *LinePrefix,
-                  const char *LineSuffix) noexcept
+                  const char *LinePrefix = "",
+                  const char *LineSuffix = "") noexcept
     {
         const auto IsBigEndian = Header.IsBigEndian();
 
@@ -322,8 +322,8 @@ struct MachOTypePrinter<MachO::FatHeader> {
     static int
     PrintArchListVerbose(FILE *OutFile,
                          const Type &Header,
-                         const char *LinePrefix,
-                         const char *LineSuffix) noexcept
+                         const char *LinePrefix = "",
+                         const char *LineSuffix = "") noexcept
     {
         const auto IsBigEndian = Header.IsBigEndian();
 
@@ -367,8 +367,8 @@ struct MachOTypePrinter<MachO::PackedVersion> {
     static int
     Print(FILE *OutFile,
           const Type &Version,
-          const char *LinePrefix,
-          const char *LineSuffix) noexcept
+          const char *LinePrefix = "",
+          const char *LineSuffix = "") noexcept
     {
         auto WrittenOut = fprintf(OutFile, "%s", LinePrefix);
         const auto PackedVersionWrittenOut =
@@ -394,8 +394,8 @@ struct MachOTypePrinter<MachO::PackedVersion> {
     static inline int
     PrintWithoutZeros(FILE *OutFile,
                       const Type &Version,
-                      const char *LinePrefix,
-                      const char *LineSuffix)
+                      const char *LinePrefix = "",
+                      const char *LineSuffix = "")
     {
         const auto Major = Version.getMajor();
         const auto Minor = Version.getMinor();
@@ -441,8 +441,8 @@ struct MachOTypePrinter<MachO::PackedVersion> {
     static inline int
     PrintOrZero(FILE *OutFile,
                 const Type &Version,
-                const char *LinePrefix,
-                const char *LineSuffix)
+                const char *LinePrefix = "",
+                const char *LineSuffix = "")
     {
         const auto Major = Version.getMajor();
         const auto Minor = Version.getMinor();
@@ -492,8 +492,8 @@ struct MachOTypePrinter<struct MachO::DylibCommand::Info> {
           const Type &Info,
           bool IsBigEndian,
           bool TimestampAligned,
-          const char *LinePrefix,
-          const char *LineSuffix) noexcept
+          const char *LinePrefix = "",
+          const char *LineSuffix = "") noexcept
     {
         auto WrittenOut =
             fprintf(OutFile, "%sCurrent Version:       ", LinePrefix);
@@ -529,8 +529,8 @@ struct MachOTypePrinter<struct MachO::DylibCommand::Info> {
                    const Type &Info,
                    bool IsBigEndian,
                    bool Verbose,
-                   const char *LinePrefix,
-                   const char *LineSuffix) noexcept
+                   const char *LinePrefix = "",
+                   const char *LineSuffix = "") noexcept
     {
         auto WrittenOut = fprintf(OutFile, "%sCurrent-Version: ", LinePrefix);
         WrittenOut +=

@@ -72,7 +72,7 @@ PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
     fprintf(Options.OutFile, "\"%s\"\n", Id.data());
     if (Options.Verbose) {
         MachOTypePrinter<struct MachO::DylibCommand::Info>::Print(
-            Options.OutFile, Info, IsBigEndian, true, "\t", "");
+            Options.OutFile, Info, IsBigEndian, true, "\t");
     }
 
     return 0;

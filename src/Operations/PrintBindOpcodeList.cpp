@@ -388,8 +388,7 @@ PrintBindOpcodeList(
                                             Is64Bit,
                                             Iter.AddrInSeg,
                                             false,
-                                            ", ",
-                                            "");
+                                            ", ");
 
                 if (Options.Verbose) {
                     if (Iter.Segment != nullptr) {

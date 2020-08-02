@@ -175,7 +175,7 @@ __MLCP_WritePastEOFWarning(FILE *OutFile,
                            const RelativeRange &FileRange,
                            uint64_t End,
                            bool Pad,
-                           const char *LineSuffix) noexcept
+                           const char *LineSuffix = "") noexcept
 {
     using namespace std::literals;
     constexpr auto Warning = " (Past EOF!)"sv;
@@ -494,7 +494,7 @@ __MLCP_WriteLCOffsetSizePair(FILE *OutFile,
     PrintUtilsWriteFormattedSize(OutFile, Size, " (", ")");
 
     if constexpr (PrintEOF) {
-        __MLCP_WritePastEOFWarning(OutFile, FileRange, End, false, "");
+        __MLCP_WritePastEOFWarning(OutFile, FileRange, End, false);
     }
 
     if (EndOut != nullptr) {
@@ -805,7 +805,7 @@ MachOLoadCommandPrinterWriteDylibCommand(
 
     if (Verbose) {
         MachOTypePrinter<struct MachO::DylibCommand::Info>::Print(OutFile,
-            Dylib.Info, IsBigEndian, false, "\t", "");
+            Dylib.Info, IsBigEndian, false, "\t");
     }
 }
 
@@ -1623,12 +1623,12 @@ MachOLoadCommandPrinterWriteVersionMinimumCmd(
     fputs("\tVersion: ", OutFile);
 
     MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
-        OutFile, VersionMin.getVersion(IsBigEndian), "", "");
+        OutFile, VersionMin.getVersion(IsBigEndian));
 
     fputs("\tSDK: ", OutFile);
 
     MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
-        OutFile, VersionMin.getSdk(IsBigEndian), "", "");
+        OutFile, VersionMin.getSdk(IsBigEndian));
 
     fputc('\n', OutFile);
 }
@@ -2034,12 +2034,12 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
                 PlatformDesc);
 
         MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
-            OutFile, BuildVersion.getMinOS(IsBigEndian), "", "");
+            OutFile, BuildVersion.getMinOS(IsBigEndian));
 
         fputs("\n\tSdk: ", OutFile);
 
         MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
-            OutFile, BuildVersion.getSdk(IsBigEndian), "", "");
+            OutFile, BuildVersion.getSdk(IsBigEndian));
 
         const auto &ToolList = BuildVersion.GetConstToolList(IsBigEndian);
         switch (ToolList.getError()) {

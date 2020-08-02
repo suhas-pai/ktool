@@ -38,10 +38,10 @@ PrintArchListOperation::Run(const ConstFatMachOMemoryObject &Object,
 
     if (Options.Verbose) {
         MachOTypePrinter<MachO::FatHeader>::PrintArchListVerbose(
-            Options.OutFile, Object.getConstHeader(), "\t", "");
+            Options.OutFile, Object.getConstHeader(), "\t");
     } else {
         MachOTypePrinter<MachO::FatHeader>::PrintArchList(Options.OutFile,
-            Object.getConstHeader(), "\t", "");
+            Object.getConstHeader(), "\t");
     }
 
     return 0;

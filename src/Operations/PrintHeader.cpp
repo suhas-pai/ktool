@@ -230,8 +230,7 @@ PrintHeaderOperation::Run(const ConstFatMachOMemoryObject &Object,
         fputs(":\n", Options.OutFile);
         MachOTypePrinter<MachO::FatHeader>::PrintArchList(Options.OutFile,
                                                           Header,
-                                                          "\t",
-                                                          "");
+                                                          "\t");
     } else {
         fputc('\n', Options.OutFile);
     }

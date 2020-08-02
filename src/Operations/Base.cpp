@@ -122,9 +122,7 @@ void PrintSelectArchMessage(const ConstFatMachOMemoryObject &Object) noexcept {
 
     fputs(":\n", stdout);
     MachOTypePrinter<MachO::FatHeader>::PrintArchList(stdout,
-                                                      Object.getConstHeader(),
-                                                      "",
-                                                      "");
+                                                      Object.getConstHeader());
 }
 
 static
