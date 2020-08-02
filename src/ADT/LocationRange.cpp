@@ -9,6 +9,6 @@
 #include "LocationRange.h"
 #include "RelativeRange.h"
 
-RelativeRange LocationRange::ToRelativeRange() const noexcept {
+RelativeRange LocationRange::toRelativeRange() const noexcept {
     return RelativeRange(size());
 }

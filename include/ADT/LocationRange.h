@@ -18,7 +18,6 @@
 
 struct RelativeRange;
 struct LocationRange {
-    friend class std::optional<LocationRange>;
 private:
     uint64_t Begin = 0;
     uint64_t End = 0;
@@ -33,7 +32,7 @@ public:
     CreateWithSize(uint64_t Begin, uint64_t Size) noexcept {
         auto End = T();
         if (DoesAddOverflow(Begin, Size, &End)) {
-            return std::optional<LocationRange>();
+            return std::nullopt;
         }
 
         return LocationRange(Begin, End);
@@ -42,10 +41,8 @@ public:
     template <typename T = uint64_t>
     [[nodiscard]] constexpr static std::optional<LocationRange>
     CreateWithSize(void *Begin, uint64_t Size) noexcept {
-        const auto Result =
-            LocationRange::CreateWithSize<T>(reinterpret_cast<uint64_t>(Begin),
-                                             Size);
-        return Result;
+        const auto BeginInt = reinterpret_cast<uint64_t>(Begin);
+        return LocationRange::CreateWithSize<T>(BeginInt, Size);
     }
 
     [[nodiscard]] constexpr static inline
@@ -54,12 +51,12 @@ public:
         return LocationRange(Begin, End);
     }
 
-    [[nodiscard]] static
-    inline LocationRange CreateWithEnd(void *Begin, void *End) noexcept {
-        const auto Result =
-            LocationRange::CreateWithEnd(reinterpret_cast<uint64_t>(Begin),
-                                         reinterpret_cast<uint64_t>(End));
-        return Result;
+    [[nodiscard]]
+    static inline LocationRange CreateWithEnd(void *Begin, void *End) noexcept {
+        const auto BeginInt = reinterpret_cast<uint64_t>(Begin);
+        const auto EndInt = reinterpret_cast<uint64_t>(End);
+
+        return LocationRange::CreateWithEnd(BeginInt, EndInt);
     }
 
     template <typename T = uint64_t>
@@ -197,5 +194,5 @@ public:
         return (End > Size);
     }
 
-    [[nodiscard]] RelativeRange ToRelativeRange() const noexcept;
+    [[nodiscard]] RelativeRange toRelativeRange() const noexcept;
 };
