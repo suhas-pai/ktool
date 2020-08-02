@@ -29,7 +29,7 @@ namespace DscImage {
 
         [[nodiscard]] inline
         uint64_t getFileOffsetFromVmAddr(uint64_t VmAddr) const noexcept {
-            return (VmAddr - MappingsRange.getBegin());
+            return (VmAddr - getBeginAddr());
         }
 
         [[nodiscard]] inline const uint8_t *getMap() const noexcept {
@@ -37,11 +37,19 @@ namespace DscImage {
         }
 
         [[nodiscard]] inline const uint8_t *getBegin() const noexcept {
-            return Map + MappingsRange.getBegin();
+            return Map + getBeginAddr();
+        }
+
+        [[nodiscard]] inline uint64_t getBeginAddr() const noexcept {
+            return getMappingsRange().getBegin();
+        }
+
+        [[nodiscard]] inline uint64_t getEndAddr() const noexcept {
+            return getMappingsRange().getEnd();
         }
 
         [[nodiscard]] inline const uint8_t *getEnd() const noexcept {
-            return Map + MappingsRange.getEnd();
+            return Map + getEndAddr();
         }
 
         template <typename T>
@@ -60,19 +68,19 @@ namespace DscImage {
         }
 
         template <typename T>
-        [[nodiscard]] inline T *
+        [[nodiscard]] inline const T *
         GetDataAtVmAddr(uint64_t VmAddr,
                         uint64_t Size = sizeof(T)) const noexcept
         {
-            if (VmAddr < MappingsRange.getBegin()) {
+            if (!getMappingsRange().containsLocation(VmAddr)) {
                 return nullptr;
             }
 
             const auto Offset = getFileOffsetFromVmAddr(VmAddr);
-            const auto Result = reinterpret_cast<T *>(Map + Offset);
+            const auto Result = reinterpret_cast<const T *>(Map + Offset);
             const auto End = getEndAs<T>();
 
-            if (Result >= End || (End - Result) < Size) {
+            if ((End - Result) < Size) {
                 return nullptr;
             }
 
@@ -106,7 +114,7 @@ namespace DscImage {
         }
 
         [[nodiscard]] inline uint8_t *getBegin() const noexcept {
-            return const_cast<uint8_t *>(Map) + MappingsRange.getBegin();
+            return const_cast<uint8_t *>(Map) + getBeginAddr();
         }
 
         template <typename T>
@@ -117,6 +125,17 @@ namespace DscImage {
         template <typename T>
         [[nodiscard]] inline T *getEndAs() const noexcept {
             return reinterpret_cast<T *>(getEnd());
+        }
+
+        template <typename T>
+        [[nodiscard]] inline T *
+        GetDataAtVmAddr(uint64_t VmAddr,
+                        uint64_t Size = sizeof(T)) const noexcept
+        {
+            const auto Result =
+                ConstDeVirtualizer::GetDataAtVmAddr<T>(VmAddr, Size);
+
+            return const_cast<T *>(Result);
         }
     };
 }
