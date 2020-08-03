@@ -723,12 +723,12 @@ namespace MachO {
             if (Is64Bit) {
                 using Type = PointerAddrTypeFromKind<PointerKind::s64Bit>;
                 ContainsPtr =
-                    Segment->File.containsTypeAtRelativeLocation<Type>(
+                    Segment.File.containsTypeAtRelativeLocation<Type>(
                         Info.AddrInSeg);
             } else {
                 using Type = PointerAddrTypeFromKind<PointerKind::s32Bit>;
                 ContainsPtr =
-                    Segment->File.containsTypeAtRelativeLocation<Type>(
+                    Segment.File.containsTypeAtRelativeLocation<Type>(
                         Info.AddrInSeg);
             }
 

@@ -58,6 +58,14 @@ namespace MachO {
                                 std::unique_ptr<SegmentInfo> *SegmentOut,
                                 Error *ErrorOut) noexcept;
 
+        [[nodiscard]] const SegmentInfo &front() const noexcept {
+            return *List.front().get();
+        }
+
+        [[nodiscard]] const SegmentInfo &back() const noexcept {
+            return *List.back().get();
+        }
+
         [[nodiscard]] const SegmentInfo *
         GetInfoForName(const std::string_view &Name) const noexcept;
 
@@ -171,7 +179,13 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        inline const SegmentInfo *at(uint64_t Index) const noexcept {
+        inline const SegmentInfo &at(uint64_t Index) const noexcept {
+            assert(IndexOutOfBounds(Index, size()));
+            return *List.at(Index).get();
+        }
+
+        [[nodiscard]]
+        inline const SegmentInfo *atOrNull(uint64_t Index) const noexcept {
             if (IndexOutOfBounds(Index, size())) {
                 return nullptr;
             }

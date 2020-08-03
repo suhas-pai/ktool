@@ -1197,7 +1197,7 @@ namespace MachO {
 
         constexpr inline BindOpcodeParseError Advance() noexcept {
             auto &Info = getInfo();
-            const auto AddChangeToSegmentAddress = [&](int64_t Add) {
+            const auto AddChangeToSegmentAddress = [&](int64_t Add) noexcept {
                 if (DoesAddOverflow(SegAddAddress, Add, &SegAddAddress)) {
                     return false;
                 }
@@ -1220,9 +1220,9 @@ namespace MachO {
             };
 
             const auto DoThreadedBind = [&]() noexcept {
-                const auto SegInfo = SegmentCollection.at(Info.SegmentIndex);
+                const auto &SegInfo = SegmentCollection.at(Info.SegmentIndex);
                 const auto SegVmAddr =
-                    SegInfo->Memory.getBegin() + Info.AddrInSeg;
+                    SegInfo.Memory.getBegin() + Info.AddrInSeg;
 
                 const auto PtrSize = PointerSize(Is64Bit);
                 const auto Data =

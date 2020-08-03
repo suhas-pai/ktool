@@ -98,9 +98,9 @@ PrintSymbolList(
     auto ListSizeDigitLength = PrintUtilsGetIntegerDigitLength(List.size());
     auto MaxIndexDigitLength = PrintUtilsGetIntegerDigitLength(LargestIndex);
 
-    const auto Segment = SegmentCollection.at(0);
-    const auto &SectionList = Segment->SectionList;
-    const auto SectionListSize = Segment->SectionList.size();
+    const auto &Segment = SegmentCollection.front();
+    const auto &SectionList = Segment.SectionList;
+    const auto SectionListSize = SectionList.size();
 
     for (const auto &Info : List) {
         fprintf(Options.OutFile,
@@ -112,10 +112,10 @@ PrintSymbolList(
             fprintf(Options.OutFile, "\"%s\"", Info->String->data());
 
         if (Options.Verbose) {
-            PrintUtilsRightPadSpaces(
-                Options.OutFile,
-                PrintLength,
-                static_cast<int>(LongestLength.value() + LENGTH_OF("\"\"")));
+            const auto RightPad =
+                static_cast<int>(LongestLength.value() + LENGTH_OF("\"\""));
+
+            PrintUtilsRightPadSpaces(Options.OutFile, PrintLength, RightPad);
 
             const auto &SymbolInfo = Info->SymbolInfo;
             const auto SymbolKind = SymbolInfo.getKind();
@@ -154,7 +154,7 @@ PrintSymbolList(
 
             fputs(", Section: ", Options.OutFile);
             PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
-                                                   Segment,
+                                                   &Segment,
                                                    Section,
                                                    false,
                                                    "",

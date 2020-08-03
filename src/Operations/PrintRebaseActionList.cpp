@@ -40,7 +40,7 @@ PrintRebaseAction(
             static_cast<int>(MachO::RebaseWriteKindGetLongestDescription()),
             MachO::RebaseWriteKindGetDescription(Action.Kind).data());
 
-    if (const auto *Segment = SegmentCollection.at(Action.SegmentIndex)) {
+    if (const auto *Segment = SegmentCollection.atOrNull(Action.SegmentIndex)) {
         const auto FullAddr = Segment->Memory.getBegin() + Action.AddrInSeg;
         const auto Section = Segment->FindSectionContainingAddress(FullAddr);
 

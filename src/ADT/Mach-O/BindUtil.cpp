@@ -71,7 +71,7 @@ namespace MachO {
             }
 
             if (SegmentIndex != Action.SegmentIndex) {
-                Segment = SegmentCollection.at(Action.SegmentIndex);
+                Segment = SegmentCollection.atOrNull(Action.SegmentIndex);
                 SegmentIndex = Action.SegmentIndex;
                 SegmentAddress = Segment->Memory.getBegin();
             }

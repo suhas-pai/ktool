@@ -36,7 +36,7 @@ GetSegmentAndSection(const MachO::SegmentInfoCollection &Collection,
                      const MachO::SegmentInfo **SegmentOut,
                      const MachO::SectionInfo **SectionOut) noexcept
 {
-    const auto *Segment = Collection.at(SegmentIndex);
+    const auto *Segment = Collection.atOrNull(SegmentIndex);
     const auto *Section = static_cast<const MachO::SectionInfo *>(nullptr);
 
     if (Segment != nullptr) {
