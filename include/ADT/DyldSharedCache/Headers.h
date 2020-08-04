@@ -46,9 +46,17 @@ namespace DyldSharedCache {
                 return std::nullopt;
             }
 
-            const auto Delta = Addr - Range->getBegin();
+            return getFileOffsetFromAddrUnsafe(Addr, MaxSizeOut);
+        }
+
+        [[nodiscard]] inline uint64_t
+        getFileOffsetFromAddrUnsafe(
+            uint64_t Addr,
+            uint64_t *MaxSizeOut = nullptr) const noexcept
+        {
+            const auto Delta = Addr - this->Address;
             if (MaxSizeOut != nullptr) {
-                *MaxSizeOut = Range->getEnd() - Addr;
+                *MaxSizeOut = (this->Address + this->Size) - Addr;
             }
 
             return FileOffset + Delta;

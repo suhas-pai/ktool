@@ -40,7 +40,7 @@ namespace DscImage {
         }
 
         [[nodiscard]] inline const uint8_t *getBegin() const noexcept {
-            return Map + getBeginAddr();
+            return getMap() + getBeginAddr();
         }
 
         [[nodiscard]] inline uint64_t getBeginAddr() const noexcept {
@@ -53,7 +53,7 @@ namespace DscImage {
         }
 
         [[nodiscard]] inline const uint8_t *getEnd() const noexcept {
-            return Map + getEndAddr();
+            return getMap() + getEndAddr();
         }
 
         template <typename T>
@@ -86,10 +86,8 @@ namespace DscImage {
         {
             const auto Range = LocationRange::CreateWithSize(VmAddr, Size);
             if (const auto Info = GetMappingInfoForRange(Range.value())) {
-                const auto Offset = VmAddr - Info->Address;
-                const auto Result = reinterpret_cast<const T *>(Map + Offset);
-
-                return Result;
+                const auto Offset = Info->getFileOffsetFromAddrUnsafe(VmAddr);
+                return reinterpret_cast<const T *>(getMap() + Offset);
             }
 
             return nullptr;
@@ -124,7 +122,7 @@ namespace DscImage {
         }
 
         [[nodiscard]] inline uint8_t *getBegin() const noexcept {
-            return const_cast<uint8_t *>(Map) + getBeginAddr();
+            return getMap() + getBeginAddr();
         }
 
         template <typename T>
