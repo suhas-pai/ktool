@@ -283,10 +283,9 @@ namespace MachO {
     {
         for (auto &Iter : List) {
             const auto &Info = Iter.second.get();
-            const auto SuperAddr =
-                reinterpret_cast<uint64_t>(Info->getSuper()) & 1;
+            const auto SuperAddr = reinterpret_cast<uint64_t>(Info->getSuper());
 
-            if (SuperAddr == 0) {
+            if ((SuperAddr & 1) == 0) {
                 continue;
             }
 
