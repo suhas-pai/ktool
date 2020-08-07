@@ -12,8 +12,7 @@ namespace MachO {
     static std::string *
     GetPtrForSymbol(
         const std::string_view &Symbol,
-        std::unordered_map<std::size_t,
-                           std::unique_ptr<std::string>> &SymbolList) noexcept
+        BindActionCollection::SymbolListType &SymbolList) noexcept
     {
         const auto Hash = std::hash<std::string_view>()(Symbol);
         const auto Iter = SymbolList.find(Hash);
@@ -31,27 +30,23 @@ namespace MachO {
         return InsertPtr;
     }
 
-    typedef
-        std::unordered_map<uint64_t,
-                           std::unique_ptr<BindActionCollection::Info>>
-        ActionListType;
-
     template <BindInfoKind BindKind, typename T>
     static bool
     CollectActionListFromTrie(
         const T &BindList,
         const SegmentInfoCollection &SegmentCollection,
-        std::unordered_map<size_t, std::unique_ptr<std::string>> &SymbolList,
-        ActionListType &ActionList,
+        BindActionCollection::SymbolListType &SymbolList,
+        BindActionCollection::ActionListType &ActionList,
+        const LocationRange &Range,
         BindActionCollection::ParseError *ParseErrorOut,
         BindActionCollection::Error *ErrorOut) noexcept
     {
-        auto Segment = static_cast<const MachO::SegmentInfo *>(nullptr);
+        auto Segment = static_cast<const SegmentInfo *>(nullptr);
         auto SegmentIndex = static_cast<int64_t>(-1);
         auto SegmentAddress = uint64_t();
 
-        auto Symbol = static_cast<std::string *>(nullptr);
         const auto End = BindList.end();
+        auto Symbol = static_cast<std::string *>(nullptr);
 
         for (auto Iter = BindList.begin(); Iter != End; Iter++) {
             const auto &Info = *Iter;
@@ -66,10 +61,6 @@ namespace MachO {
             }
 
             const auto &Action = Info.getAction();
-            if (Action.NewSymbolName) {
-                Symbol = GetPtrForSymbol(Action.SymbolName, SymbolList);
-            }
-
             if (SegmentIndex != Action.SegmentIndex) {
                 Segment = SegmentCollection.atOrNull(Action.SegmentIndex);
                 SegmentIndex = Action.SegmentIndex;
@@ -78,6 +69,16 @@ namespace MachO {
 
             const auto FullAddr = SegmentAddress + Action.AddrInSeg;
             const auto &ActionListIter = ActionList.find(FullAddr);
+
+            if (!Range.empty()) {
+                if (!Range.containsLocation(FullAddr)) {
+                    continue;
+                }
+            }
+
+            if (Action.NewSymbolName) {
+                Symbol = GetPtrForSymbol(Action.SymbolName, SymbolList);
+            }
 
             if (ActionListIter != ActionList.end()) {
                 if (*ActionListIter->second == Action) {
@@ -122,6 +123,7 @@ namespace MachO {
                                 BindActionList *BindList,
                                 LazyBindActionList *LazyBindList,
                                 WeakBindActionList *WeakBindList,
+                                const LocationRange &Range,
                                 ParseError *ParseErrorOut,
                                 Error *ErrorOut) noexcept
     {
@@ -133,6 +135,7 @@ namespace MachO {
                     SegmentCollection,
                     SymbolList,
                     ActionList,
+                    Range,
                     ParseErrorOut,
                     ErrorOut);
 
@@ -147,6 +150,7 @@ namespace MachO {
                                                               SegmentCollection,
                                                               SymbolList,
                                                               ActionList,
+                                                              Range,
                                                               ParseErrorOut,
                                                               ErrorOut);
 
@@ -161,6 +165,7 @@ namespace MachO {
                                                               SegmentCollection,
                                                               SymbolList,
                                                               ActionList,
+                                                              Range,
                                                               ParseErrorOut,
                                                               ErrorOut);
 

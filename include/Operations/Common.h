@@ -85,6 +85,7 @@ struct OperationCommon {
     GetBindActionCollection(
         FILE *ErrFile,
         const ConstMemoryMap &Map,
+        const LocationRange &Range,
         const MachO::ConstLoadCommandStorage &LoadCmdStorage,
         const MachO::SegmentInfoCollection &SegmentCollection,
         MachO::BindActionCollection &Collection,

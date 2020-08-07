@@ -440,6 +440,7 @@ int
 OperationCommon::GetBindActionCollection(
     FILE *ErrFile,
     const ConstMemoryMap &Map,
+    const LocationRange &Range,
     const MachO::ConstLoadCommandStorage &LoadCmdStorage,
     const MachO::SegmentInfoCollection &SegmentCollection,
     MachO::BindActionCollection &BindCollection,
@@ -484,6 +485,7 @@ OperationCommon::GetBindActionCollection(
                                           BindActionOpt.getPtr(),
                                           LazyBindActionOpt.getPtr(),
                                           WeakBindActionOpt.getPtr(),
+                                          Range,
                                           &BindCollectionParseError,
                                           &BindCollectionError);
 

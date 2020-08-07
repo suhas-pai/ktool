@@ -228,6 +228,7 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
     const auto GetBindActionResult =
         OperationCommon::GetBindActionCollection(Options.ErrFile,
                                                  Map,
+                                                 LocationRange::Empty(),
                                                  LoadCmdStorage,
                                                  SegmentCollection,
                                                  BindCollection,

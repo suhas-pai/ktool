@@ -79,6 +79,12 @@ namespace MachO {
             }
         };
 
+        using ActionListType =
+            std::unordered_map<uint64_t, std::unique_ptr<Info>>;
+
+        using SymbolListType =
+            std::unordered_map<size_t, std::unique_ptr<std::string>>;
+
         enum class Error {
             None,
             MultipleBindsForAddress
@@ -86,8 +92,8 @@ namespace MachO {
 
         using ParseError = BindOpcodeParseError;
     protected:
-        std::unordered_map<size_t, std::unique_ptr<std::string>> SymbolList;
-        std::unordered_map<uint64_t, std::unique_ptr<Info>> ActionList;
+        SymbolListType SymbolList;
+        ActionListType ActionList;
     public:
         BindActionCollection() noexcept = default;
 
@@ -96,6 +102,7 @@ namespace MachO {
               BindActionList *BindList,
               LazyBindActionList *LazyBindList,
               WeakBindActionList *WeakBindList,
+              const LocationRange &Range,
               ParseError *ParseErrorOut,
               Error *ErrorOut) noexcept;
 
@@ -104,6 +111,7 @@ namespace MachO {
              BindActionList *BindList,
              LazyBindActionList *LazyBindList,
              WeakBindActionList *WeakBindList,
+             const LocationRange &Range,
              ParseError *ParseErrorOut,
              Error *ErrorOut) noexcept
         {
@@ -112,6 +120,7 @@ namespace MachO {
                              BindList,
                              LazyBindList,
                              WeakBindList,
+                             Range,
                              ParseErrorOut,
                              ErrorOut);
 

@@ -26,6 +26,9 @@ private:
     : Begin(Begin), End(End) {}
 public:
     constexpr LocationRange() noexcept = default;
+    [[nodiscard]] static LocationRange Empty() noexcept {
+        return LocationRange(0, 0);
+    }
 
     template <typename T = uint64_t>
     [[nodiscard]] constexpr static std::optional<LocationRange>
