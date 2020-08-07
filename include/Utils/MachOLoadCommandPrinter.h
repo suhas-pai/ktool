@@ -630,8 +630,7 @@ struct MachOLoadCommandPrinter<
 };
 
 template <>
-struct MachOLoadCommandPrinter<
-    MachO::LoadCommand::Kind::IdFixedVMSharedLibrary>
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::IdFixedVMSharedLibrary>
 {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
@@ -755,13 +754,13 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DynamicSymbolTable> {
         const auto UndefinedSymbolsCount =
             SwitchEndianIf(DySymtab.NUndefinedSymbols, IsBigEndian);
 
-        if (LocalSymbolsCount) {
+        if (LocalSymbolsCount != 0) {
             fprintf(OutFile,
                     "\n\t%5d Local Symbols At Index     %" PRIu32,
                     LocalSymbolsCount,
                     LocalSymbolsIndex);
         } else {
-            fprintf(OutFile, "\n\t%-3s No Local Symbols", "");
+            fprintf(OutFile, "\n\t%-2s No Local Symbols", "");
         }
 
         if (ExternalSymbolsCount != 0) {
@@ -770,7 +769,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DynamicSymbolTable> {
                     ExternalSymbolsCount,
                     ExternalSymbolsIndex);
         } else {
-            fprintf(OutFile, "\n\t%-3s No External Symbols", "");
+            fprintf(OutFile, "\n\t%-2s No External Symbols", "");
         }
 
         if (UndefinedSymbolsCount != 0) {
@@ -779,7 +778,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DynamicSymbolTable> {
                     UndefinedSymbolsCount,
                     UndefinedSymbolsIndex);
         } else {
-            fprintf(OutFile, "\n\t%-3s No Undefined Symbols", "");
+            fprintf(OutFile, "\n\t%-2s No Undefined Symbols", "");
         }
 
         fputc('\n', OutFile);
@@ -788,11 +787,10 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DynamicSymbolTable> {
 
 template <typename LCKindInfo>
 static inline void
-MachOLoadCommandPrinterWriteDylibCommand(
-    FILE *OutFile,
-    const typename LCKindInfo::Type &Dylib,
-    bool IsBigEndian,
-    bool Verbose)
+MachOLoadCommandPrinterWriteDylibCommand(FILE *OutFile,
+                                         const typename LCKindInfo::Type &Dylib,
+                                         bool IsBigEndian,
+                                         bool Verbose) noexcept
 {
     static_assert(MachO::DylibCommand::IsOfKind(LCKindInfo::Kind),
                   "LoadCommand is not a DylibCommand");
