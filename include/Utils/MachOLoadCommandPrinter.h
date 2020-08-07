@@ -1470,7 +1470,7 @@ PrintDyldInfoField(FILE *OutFile,
                 "%" PRINTF_LEFTPAD_FMT "s"
                 "%" PRINTF_LEFTPAD_FMT "s"
                 "%s: "
-                "%" PRIu32 " Bytes at Offset " OFFSET_32_FMT " (",
+                "%5" PRIu32 " Bytes at Offset " OFFSET_32_FMT " (",
                 static_cast<int>(Prefix.length()),
                 "",
                 RightPadSize,
