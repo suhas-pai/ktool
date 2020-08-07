@@ -266,12 +266,10 @@ namespace MachO {
             const auto EntryList =
                 BasicContiguousList<EntryType>(NlistBegin, NlistCount);
 
-            auto I = 0;
             for (const auto &Index : IndexList) {
                 if (Index == IndirectSymbolAbsolute ||
                     Index == IndirectSymbolLocal)
                 {
-                    I++;
                     continue;
                 }
 
@@ -302,8 +300,6 @@ namespace MachO {
 
                     return *this;
                 }
-
-                I++;
             }
         } else {
             using EntryType =
@@ -409,11 +405,10 @@ namespace MachO {
 
         const auto SectionSize = Sect.File.size();
         const auto SectionIndexCount = SectionSize / PointerSize(Is64Bit);
-
         const auto SectionIndexRange =
             LocationRange::CreateWithSize(Sect.Reserved1, SectionIndexCount);
 
-        if (!SectionIndexRange) {
+        if (!SectionIndexRange.has_value()) {
             if (ErrorOut != nullptr) {
                 *ErrorOut = SymbolTableParseError::InvalidSection;
             }

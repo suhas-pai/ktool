@@ -116,7 +116,11 @@ protected:
     MachOMemoryObject(Error Error) noexcept;
     explicit MachOMemoryObject(const MemoryMap &Map) noexcept;
 public:
-    [[nodiscard]] static MachOMemoryObject Open(const MemoryMap &Map) noexcept;
+    [[nodiscard]] static MachOMemoryObject Open(const MemoryMap &Map) noexcept {
+        auto Result = ConstMachOMemoryObject::Open(Map);
+        return *reinterpret_cast<MachOMemoryObject *>(&Result);
+    }
+    
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
         assert(!hasError());
         

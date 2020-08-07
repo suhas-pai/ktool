@@ -110,16 +110,6 @@ ConstFatMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
     return ConstFatMachOMemoryObject(Map);
 }
 
-FatMachOMemoryObject
-FatMachOMemoryObject::Open(const MemoryMap &Map) noexcept {
-    const auto Error = ValidateMap(Map);
-    if (Error != ConstFatMachOMemoryObject::Error::None) {
-        return Error;
-    }
-
-    return FatMachOMemoryObject(Map);
-}
-
 ConstFatMachOMemoryObject::ConstFatMachOMemoryObject(
     const ConstMemoryMap &Map) noexcept
 : MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()) {}

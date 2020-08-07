@@ -89,15 +89,6 @@ ConstMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
     return ConstMachOMemoryObject(Map);
 }
 
-MachOMemoryObject MachOMemoryObject::Open(const MemoryMap &Map) noexcept {
-    const auto Error = ValidateMap(Map);
-    if (Error != Error::None) {
-        return Error;
-    }
-
-    return MachOMemoryObject(Map);
-}
-
 [[nodiscard]]
 static bool MatchesFormat(ConstMachOMemoryObject::Error Error) noexcept {
     switch (Error) {

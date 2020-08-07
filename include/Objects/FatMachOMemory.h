@@ -96,7 +96,7 @@ public:
     }
 
     [[nodiscard]] inline uint32_t getArchCount() const noexcept {
-        return SwitchEndianIf(getConstHeader().NFatArch, this->IsBigEndian());
+        return getConstHeader().getArchCount();
     }
 
     [[nodiscard]]
@@ -160,7 +160,10 @@ protected:
     FatMachOMemoryObject(Error Error) noexcept;
 public:
     [[nodiscard]]
-    static FatMachOMemoryObject Open(const MemoryMap &Map) noexcept;
+    static inline FatMachOMemoryObject Open(const MemoryMap &Map) noexcept {
+        auto Result = ConstFatMachOMemoryObject::Open(Map);
+        return *reinterpret_cast<FatMachOMemoryObject *>(&Result);
+    }
 
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
         assert(!hasError());

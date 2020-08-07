@@ -1087,7 +1087,7 @@ namespace MachO {
             return false;
         }
 
-        [[nodiscard]] inline uint32_t getArchsCount() const noexcept {
+        [[nodiscard]] inline uint32_t getArchCount() const noexcept {
             return SwitchEndianIf(NFatArch, this->IsBigEndian());
         }
     };
