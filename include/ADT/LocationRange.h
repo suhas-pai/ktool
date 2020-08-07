@@ -54,8 +54,8 @@ public:
         return LocationRange(Begin, End);
     }
 
-    [[nodiscard]]
-    static inline LocationRange CreateWithEnd(void *Begin, void *End) noexcept {
+    [[nodiscard]] static inline
+    LocationRange CreateWithEnd(const void *Begin, const void *End) noexcept {
         const auto BeginInt = reinterpret_cast<uint64_t>(Begin);
         const auto EndInt = reinterpret_cast<uint64_t>(End);
 
@@ -104,6 +104,16 @@ public:
         return (!empty() && (EndLocation > Begin && EndLocation <= End));
     }
 
+    [[nodiscard]] constexpr
+    inline bool containsLocation(const void *Location) const noexcept {
+        return containsLocation(reinterpret_cast<uint64_t>(Location));
+    }
+
+    [[nodiscard]] constexpr
+    inline bool containsEndLocation(const void *EndLocation) const noexcept {
+        return containsEndLocation(reinterpret_cast<uint64_t>(EndLocation));
+    }
+
     [[nodiscard]] constexpr inline
     bool containsRelativeEndLocation(uint64_t EndLocation) const noexcept {
         return (!empty() && (EndLocation <= End));
@@ -122,6 +132,12 @@ public:
              containsEndLocation(Location + sizeof(T)));
 
         return Result;
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr
+    inline bool containsTypeAtLocation(const void *Location) const noexcept {
+        return containsTypeAtLocation<T>(reinterpret_cast<uint64_t>(Location));
     }
 
     template <typename T>

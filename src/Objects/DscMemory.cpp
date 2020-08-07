@@ -248,9 +248,15 @@ ConstDscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
     assert(0 && "Unrecognized Cpu-Kind");
 }
 
-[[nodiscard]]
-static const uint8_t *ValidateImageMapAndGetEnd(const uint8_t *Map) noexcept {
-    const auto &Header = *reinterpret_cast<const MachO::Header *>(Map);
+[[nodiscard]] static
+const uint8_t * ValidateImageMapAndGetEnd(const ConstMemoryMap &Map) noexcept {
+    if (!Map.IsLargeEnoughForType<MachO::Header>()) {
+        return nullptr;
+    }
+
+    const auto MapBegin = Map.getBegin();
+    const auto &Header = *reinterpret_cast<const MachO::Header *>(MapBegin);
+
     if (!Header.hasValidMagic()) {
         return nullptr;
     }
@@ -259,8 +265,12 @@ static const uint8_t *ValidateImageMapAndGetEnd(const uint8_t *Map) noexcept {
     const auto Is64Bit = Header.Is64Bit();
 
     const auto Ncmds = SwitchEndianIf(Header.Ncmds, IsBigEndian);
-    const auto Begin = Map + Header.size();
+    const auto Begin = MapBegin + Header.size();
     const auto SizeOfCmds = SwitchEndianIf(Header.SizeOfCmds, IsBigEndian);
+
+    if (!Map.IsLargeEnoughForSize(sizeof(Header) + SizeOfCmds)) {
+        return nullptr;
+    }
 
     const auto LoadCmdStorage =
         MachO::ConstLoadCommandStorage::Open(Begin,
@@ -274,7 +284,7 @@ static const uint8_t *ValidateImageMapAndGetEnd(const uint8_t *Map) noexcept {
         return nullptr;
     }
 
-    auto End = Map;
+    auto End = MapBegin;
     if (Is64Bit) {
         for (const auto &LoadCmd : LoadCmdStorage) {
             const auto Segment =
@@ -282,7 +292,9 @@ static const uint8_t *ValidateImageMapAndGetEnd(const uint8_t *Map) noexcept {
                     IsBigEndian);
 
             if (Segment != nullptr) {
-                End += Segment->FileSize;
+                if (DoesAddOverflow(End, Segment->FileSize, &End)) {
+                    return nullptr;
+                }
             }
         }
     } else {
@@ -294,6 +306,10 @@ static const uint8_t *ValidateImageMapAndGetEnd(const uint8_t *Map) noexcept {
                 End += Segment->FileSize;
             }
         }
+    }
+
+    if (!Map.containsEndPtr(End)) {
+        return nullptr;
     }
 
     return End;
@@ -319,16 +335,10 @@ ConstDscMemoryObject::GetImageWithInfo(
 {
     if (const auto Ptr = GetPtrForAddress(ImageInfo.Address)) {
         const auto Map = getMap();
-        const auto End = ValidateImageMapAndGetEnd(Ptr);
+        const auto End = ValidateImageMapAndGetEnd(Map.mapFromPtr(Ptr));
 
-        if (End != nullptr && End <= Map.getEnd()) {
-            const auto Result =
-                new ConstDscImageMemoryObject(Map,
-                                              ImageInfo,
-                                              Ptr,
-                                              End);
-
-            return Result;
+        if (End != nullptr) {
+            return new ConstDscImageMemoryObject(Map, ImageInfo, Ptr, End);
         }
     }
 
