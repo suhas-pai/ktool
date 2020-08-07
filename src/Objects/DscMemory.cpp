@@ -68,7 +68,7 @@ ValidateMap(const ConstMemoryMap &Map,
     } else if (strncmp(CpuKindStr, "  arm64e", CpuKindMaxLength) == 0) {
         CpuKind = DscMemoryObject::CpuKind::Arm64e;
     } else if (memcmp(CpuKindStr, "arm64_32", CpuKindMaxLength) == 0) {
-        CpuKind = DscMemoryObject::CpuKind::Arm64e;
+        CpuKind = DscMemoryObject::CpuKind::Arm64_32;
     } else {
         return ConstDscMemoryObject::Error::UnknownCpuKind;
     }
