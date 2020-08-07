@@ -18,7 +18,9 @@
 
 template <PointerKind Kind>
 [[nodiscard]] static ConstFatMachOMemoryObject::Error
-ValidateArchList(const MachO::FatHeader &Header, uint64_t MapSize) noexcept {
+ValidateArchList(const ConstMemoryMap &Map,
+                 const MachO::FatHeader &Header) noexcept
+{
     using ArchType =
         typename std::conditional<PointerKindIs64Bit(Kind),
                                   MachO::FatHeader::Arch64,
@@ -40,7 +42,7 @@ ValidateArchList(const MachO::FatHeader &Header, uint64_t MapSize) noexcept {
         return ConstFatMachOMemoryObject::Error::TooManyArchitectures;
     }
 
-    if (TotalHeaderSize > MapSize) {
+    if (!Map.IsLargeEnoughForSize(TotalHeaderSize)) {
         return ConstFatMachOMemoryObject::Error::SizeTooSmall;
     }
 
@@ -53,7 +55,7 @@ ValidateArchList(const MachO::FatHeader &Header, uint64_t MapSize) noexcept {
         const auto ArchRange =
             LocationRange::CreateWithSize(ArchOffset, ArchSize);
 
-        if (!ArchRange || ArchRange->goesPastEnd(MapSize)) {
+        if (!ArchRange || ArchRange->goesPastEnd(Map.size())) {
             return ConstFatMachOMemoryObject::Error::ArchOutOfBounds;
         }
 
@@ -74,23 +76,22 @@ ValidateArchList(const MachO::FatHeader &Header, uint64_t MapSize) noexcept {
 
 [[nodiscard]] static ConstFatMachOMemoryObject::Error
 ValidateMap(const ConstMemoryMap &Map) noexcept {
-    const auto MapSize = Map.size();
-    const auto Header =
-        reinterpret_cast<const MachO::FatHeader *>(Map.getBegin());
-
-    if (MapSize < sizeof(*Header)) {
+    if (!Map.IsLargeEnoughForType<MachO::FatHeader>()) {
         return ConstFatMachOMemoryObject::Error::SizeTooSmall;
     }
 
-    if (!Header->hasValidMagic()) {
+    const auto &Header =
+        *reinterpret_cast<const MachO::FatHeader *>(Map.getBegin());
+
+    if (!Header.hasValidMagic()) {
         return ConstFatMachOMemoryObject::Error::WrongFormat;
     }
 
     auto Error = ConstFatMachOMemoryObject::Error::None;
-    if (Header->Is64Bit()) {
-        Error = ValidateArchList<PointerKind::s64Bit>(*Header, MapSize);
+    if (Header.Is64Bit()) {
+        Error = ValidateArchList<PointerKind::s64Bit>(Map, Header);
     } else {
-        Error = ValidateArchList<PointerKind::s32Bit>(*Header, MapSize);
+        Error = ValidateArchList<PointerKind::s32Bit>(Map, Header);
     }
 
     if (Error != ConstFatMachOMemoryObject::Error::None) {

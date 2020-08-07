@@ -32,16 +32,16 @@ DscMemoryObject::DscMemoryObject(const MemoryMap &Map, CpuKind CpuKind) noexcept
 ValidateMap(const ConstMemoryMap &Map,
             DscMemoryObject::CpuKind &CpuKind) noexcept
 {
-    if (Map.size() < sizeof(DyldSharedCache::HeaderV0)) {
+    if (!Map.IsLargeEnoughForType<DyldSharedCache::HeaderV0>()) {
         return ConstDscMemoryObject::Error::SizeTooSmall;
     }
 
-    const auto Begin = Map.getBeginAs<const char>();
-    if (memcmp(Begin, "dyld_v1", LENGTH_OF("dyld_v1")) != 0) {
+    const auto Magic = Map.getBeginAs<const char>();
+    if (memcmp(Magic, "dyld_v1", LENGTH_OF("dyld_v1")) != 0) {
         return ConstDscMemoryObject::Error::WrongFormat;
     }
 
-    const auto CpuKindStr = Begin + 7;
+    const auto CpuKindStr = Magic + 7;
     constexpr auto CpuKindMaxLength =
         sizeof(DyldSharedCache::HeaderV0::Magic) - 7;
 
@@ -83,14 +83,14 @@ ValidateMap(const ConstMemoryMap &Map,
                                    Header->MappingCount, MappingOffset,
                                    &MappingEnd))
     {
-        return ConstDscMemoryObject::Error::InvalidImageRange;
+        return ConstDscMemoryObject::Error::InvalidMappingRange;
     }
 
     const auto MappingRange =
         LocationRange::CreateWithEnd(MappingOffset, MappingEnd);
 
     if (!AllowedRange.contains(MappingRange)) {
-        return ConstDscMemoryObject::Error::InvalidImageRange;
+        return ConstDscMemoryObject::Error::InvalidMappingRange;
     }
 
     const auto ImageOffset = Header->ImagesOffset;
