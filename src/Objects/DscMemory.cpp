@@ -249,7 +249,7 @@ ConstDscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
 }
 
 [[nodiscard]] static
-const uint8_t * ValidateImageMapAndGetEnd(const ConstMemoryMap &Map) noexcept {
+const uint8_t *ValidateImageMapAndGetEnd(const ConstMemoryMap &Map) noexcept {
     if (!Map.IsLargeEnoughForType<MachO::Header>()) {
         return nullptr;
     }
@@ -261,16 +261,17 @@ const uint8_t * ValidateImageMapAndGetEnd(const ConstMemoryMap &Map) noexcept {
         return nullptr;
     }
 
+    const auto HeaderSize = Header.size();
     const auto IsBigEndian = Header.IsBigEndian();
-    const auto Is64Bit = Header.Is64Bit();
-
-    const auto Ncmds = SwitchEndianIf(Header.Ncmds, IsBigEndian);
-    const auto Begin = MapBegin + Header.size();
     const auto SizeOfCmds = SwitchEndianIf(Header.SizeOfCmds, IsBigEndian);
 
-    if (!Map.IsLargeEnoughForSize(sizeof(Header) + SizeOfCmds)) {
+    if (!Map.IsLargeEnoughForSize(HeaderSize + SizeOfCmds)) {
         return nullptr;
     }
+
+    const auto Begin = MapBegin + HeaderSize;
+    const auto Ncmds = SwitchEndianIf(Header.Ncmds, IsBigEndian);
+    const auto Is64Bit = Header.Is64Bit();
 
     const auto LoadCmdStorage =
         MachO::ConstLoadCommandStorage::Open(Begin,
