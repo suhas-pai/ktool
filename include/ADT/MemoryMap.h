@@ -53,6 +53,15 @@ public:
         return RelativeRange(size());
     }
 
+    [[nodiscard]] inline bool containsOffset(uint64_t Offset) const noexcept {
+        return getRange().containsLocation(Offset);
+    }
+
+    [[nodiscard]]
+    inline bool containsEndOffset(uint64_t EndOffset) const noexcept {
+        return getRange().containsEndLocation(EndOffset);
+    }
+
     [[nodiscard]] inline bool containsPtr(const void *Ptr) const noexcept {
         const auto Range = LocationRange::CreateWithEnd(getBegin(), getEnd());
         return Range.containsLocation(Ptr);
@@ -78,6 +87,12 @@ public:
     inline ConstMemoryMap mapFromPtr(const void *Begin) const noexcept {
         assert(containsPtr(Begin));
         return ConstMemoryMap(Begin, getEnd());
+    }
+
+    [[nodiscard]] constexpr
+    inline ConstMemoryMap mapFromOffset(uint64_t Offset) const noexcept {
+        assert(containsOffset(Offset));
+        return ConstMemoryMap(getBegin() + Offset, getEnd());
     }
 };
 
@@ -108,5 +123,11 @@ public:
     constexpr inline MemoryMap mapFromPtr(uint8_t *Begin) const noexcept {
         assert(containsPtr(Begin));
         return MemoryMap(Begin, getEnd());
+    }
+
+    [[nodiscard]]
+    constexpr inline MemoryMap mapFromOffset(uint64_t Offset) const noexcept {
+        assert(containsOffset(Offset));
+        return MemoryMap(getBegin() + Offset, getEnd());
     }
 };
