@@ -46,6 +46,7 @@ public:
          OpenType Type,
          Flags Flags = FileDescriptor::Flags()) noexcept;
 
+    [[nodiscard]]
     static FileDescriptor Create(const char *Path, int Mode) noexcept;
 
     [[nodiscard]] inline bool IsOpen() const noexcept { return (Fd != -1); }

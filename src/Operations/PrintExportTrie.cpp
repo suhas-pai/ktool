@@ -731,7 +731,6 @@ AddSegmentRequirement(
 
     const auto Pair = PrintExportTrieOperation::Options::SegmentSectionPair {
         .SegmentName = SegmentName,
-        .SectionName = ""
     };
 
     if (std::find(List.cbegin(), List.cend(), Pair) != List.cend()) {

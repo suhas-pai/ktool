@@ -18,7 +18,6 @@
 struct ConstDscMemoryObject : public MemoryObject {
 public:
     constexpr static auto ObjKind = ObjectKind::DyldSharedCache;
-
     enum class CpuKind {
         i386,
         x86_64,
@@ -234,11 +233,8 @@ public:
     }
 
     [[nodiscard]] inline DyldSharedCache::Header &getHeader() const noexcept {
-        auto &Result =
-            const_cast<DyldSharedCache::Header &>(
-                ConstDscMemoryObject::getHeader());
-
-        return Result;
+        auto &Result = ConstDscMemoryObject::getHeader();
+        return const_cast<DyldSharedCache::Header &>(Result);
     }
 
     [[nodiscard]]
