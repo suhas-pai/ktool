@@ -106,13 +106,13 @@ public:
     [[nodiscard]] inline uint32_t getImageIndex() const noexcept {
         const auto List =
             reinterpret_cast<const DyldSharedCache::ImageInfo *>(
-                DscMap.getBegin() + getDscHeaderV0().ImagesOffset);
+                getDscMap().getBegin() + getDscHeaderV0().ImagesOffset);
 
-        return static_cast<uint32_t>(&ImageInfo - List);
+        return static_cast<uint32_t>(&getImageInfo() - List);
     }
 
     [[nodiscard]] inline uint64_t getFileOffset() const noexcept {
-        return Map - getDscMap().getBegin();
+        return getMap().getBegin() - getDscMap().getBegin();
     }
 
     [[nodiscard]] inline uint64_t getAddress() const noexcept {
