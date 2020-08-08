@@ -405,7 +405,7 @@ namespace MachO {
             return HasError;
         }
 
-        inline Error getError() const noexcept {
+        [[nodiscard]] inline Error getError() const noexcept {
             if (!hasError()) {
                 return Error::None;
             }
@@ -413,7 +413,7 @@ namespace MachO {
             return Error(getStorage());
         }
 
-        inline const std::string_view &getString() const noexcept {
+        [[nodiscard]] inline const std::string_view &getString() const noexcept {
             assert(!hasError());
             return View;
         }
@@ -432,13 +432,15 @@ namespace MachO {
             EmptyString,
         };
 
-        bool
+        using GetValueResult = LoadCommandStringViewOrError<GetStringError>;
+
+        [[nodiscard]] bool
         IsOffsetValid(uint32_t MinSize,
                       uint32_t CmdSize,
                       bool IsBigEndian) const noexcept;
 
+        [[nodiscard]]
         uint32_t GetLength(uint32_t CmdSize, bool IsBigEndian) const noexcept;
-        using GetValueResult = LoadCommandStringViewOrError<GetStringError>;
     };
 
     enum class PackedVersionMasks : uint32_t {
@@ -618,8 +620,8 @@ namespace MachO {
     };
 
     struct SubClientCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::SubClient);
         }
 
@@ -640,8 +642,7 @@ namespace MachO {
 
         LoadCommandString Client;
 
-        [[nodiscard]]
-        bool IsClientOffsetValid(bool IsBigEndian) const noexcept;
+        [[nodiscard]] bool IsClientOffsetValid(bool IsBigEndian) const noexcept;
 
         [[nodiscard]] LoadCommandString::GetValueResult
         GetClient(bool IsBigEndian) const noexcept;
