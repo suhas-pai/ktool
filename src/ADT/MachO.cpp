@@ -22,35 +22,27 @@ namespace MachO {
         assert(!Is64Bit());
 
         const auto Entries = reinterpret_cast<Arch32 *>(this + 1);
-        const auto Count = SwitchEndianIf(NFatArch, this->IsBigEndian());
-
-        return Arch32List(Entries, Count);
+        return Arch32List(Entries, getArchCount());
     }
 
     FatHeader::Arch64List FatHeader::getArch64List() noexcept {
         assert(Is64Bit());
 
         const auto Entries = reinterpret_cast<Arch64 *>(this + 1);
-        const auto Count = SwitchEndianIf(NFatArch, this->IsBigEndian());
-
-        return Arch64List(Entries, Count);
+        return Arch64List(Entries, getArchCount());
     }
 
     FatHeader::ConstArch32List FatHeader::getConstArch32List() const noexcept {
         assert(!Is64Bit());
 
         const auto Entries = reinterpret_cast<const Arch32 *>(this + 1);
-        const auto Count = SwitchEndianIf(NFatArch, this->IsBigEndian());
-
-        return ConstArch32List(Entries, Count);
+        return ConstArch32List(Entries, getArchCount());
     }
 
     FatHeader::ConstArch64List FatHeader::getConstArch64List() const noexcept {
         assert(Is64Bit());
 
         const auto Entries = reinterpret_cast<const Arch64 *>(this + 1);
-        const auto Count = SwitchEndianIf(NFatArch, this->IsBigEndian());
-
-        return ConstArch64List(Entries, Count);
+        return ConstArch64List(Entries, getArchCount());
     }
 }

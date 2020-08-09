@@ -45,9 +45,9 @@ public:
         Shared = MAP_SHARED
     };
 
-    struct Protections : public BasicMasksHandler<ProtectionsEnum> {
+    struct Protections : public BasicFlags<ProtectionsEnum> {
     private:
-        using Base = BasicMasksHandler<ProtectionsEnum>;
+        using Base = BasicFlags<ProtectionsEnum>;
     public:
         using MaskType = ProtectionsEnum;
         [[nodiscard]] constexpr inline bool canRead() const noexcept {
@@ -55,11 +55,11 @@ public:
         }
 
         [[nodiscard]] constexpr inline bool canWrite() const noexcept {
-            return this->hasValueForMask(MaskType::Write);
+            return hasFlag(MaskType::Write);
         }
 
         [[nodiscard]] constexpr inline bool canExecute() const noexcept {
-            return this->hasValueForMask(MaskType::Execute);
+            return hasFlag(MaskType::Execute);
         }
 
         constexpr inline Protections &setCanRead(bool Value = true) noexcept {

@@ -139,12 +139,12 @@ namespace MachO {
     protected:
         explicit ExportTrieEntryCollection() noexcept = default;
 
-        virtual const SegmentInfo *
+        [[nodiscard]] virtual const SegmentInfo *
         LookupInfoForAddress(const MachO::SegmentInfoCollection *Collection,
                              uint64_t Address,
                              const SectionInfo **SectionOut) const noexcept;
 
-        ChildNode *
+        [[nodiscard]] ChildNode *
         GetNodeForEntryInfo(const MachO::ExportTrieIterateInfo &Info,
                             const SegmentInfoCollection *Collection) noexcept;
 

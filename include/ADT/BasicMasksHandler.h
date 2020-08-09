@@ -14,6 +14,41 @@
 #include "TypeTraits/IsEnumClass.h"
 #include "Utils/SwitchEndian.h"
 
+template <typename T = uint64_t>
+[[nodiscard]]
+constexpr static inline T GetValueForMask(T Integer, T Mask) noexcept {
+    static_assert(std::is_integral_v<T>, "T must be an integer-type");
+    return (Integer & Mask);
+}
+
+template <typename T = uint64_t>
+constexpr
+static inline T SetValueForMask(T &Integer, T Mask, T Value) noexcept {
+    static_assert(std::is_integral_v<T>, "T must be an integer-type");
+    assert((Value & Mask) == Value &&
+           "SetValueForMask(): Value falls outside mask");
+
+    Integer &= ~Mask;
+    Integer |= Value;
+
+    return Integer;
+}
+
+template <typename T = uint64_t>
+[[nodiscard]] constexpr static inline
+T GetValueForMaskAndShift(T Integer, T Mask, T Shift) noexcept {
+    static_assert(std::is_integral_v<T>, "T must be an integer-type");
+
+    const auto MaskedValue = GetValueForMask(Integer, Mask);
+    return (MaskedValue >> Shift);
+}
+
+template <typename T = uint64_t>
+constexpr static inline
+T SetValueForMaskAndShift(T &Integer, T Mask, T Shift, T Value) noexcept {
+    return SetValueForMask(Integer, Mask, (Value << Shift));
+}
+
 template <typename MaskType,
           typename IntegerTypeT = std::underlying_type_t<MaskType>>
 
@@ -35,7 +70,7 @@ public:
 
     [[nodiscard]] constexpr
     inline IntegerType getValueForMask(MaskType Mask) const noexcept {
-        return (Integer & static_cast<MaskIntegerType>(Mask));
+        return GetValueForMask(Integer, static_cast<MaskIntegerType>(Mask));
     }
 
     [[nodiscard]] constexpr inline bool empty() const noexcept {
@@ -47,32 +82,11 @@ public:
         return getValueForMask(Mask);
     }
 
-    constexpr inline BasicMasksHandler &add(const MaskType Mask) noexcept {
-        const auto MaskInteger = static_cast<MaskIntegerType>(Mask);
-        const auto MaskedInteger = (Integer | MaskInteger);
-
-        Integer = MaskedInteger;
-        return *this;
-    }
-
     constexpr inline BasicMasksHandler &
     setValueForMask(MaskType Mask, IntegerType Value) noexcept {
         const auto MaskValue = static_cast<MaskIntegerType>(Mask);
-        assert((Value & MaskValue) == Value &&
-               "SetValueForMask(): Value falls outside mask");
+        SetValueForMask(this->Integer, MaskValue, Value);
 
-        this->Integer &= ~MaskValue;
-        this->Integer |= Value;
-
-        return *this;
-    }
-
-    [[nodiscard]] constexpr inline BasicMasksHandler &
-    remove(const MaskType Mask, bool IsBigEndian) noexcept {
-        const auto MaskInteger = static_cast<MaskIntegerType>(Mask);
-        const auto MaskedInteger = (Integer & ~MaskInteger);
-
-        Integer = MaskedInteger;
         return *this;
     }
 
@@ -119,8 +133,8 @@ public:
         return BasicMasksHandler(Integer & Rhs.Integer);
     }
 
-    constexpr inline BasicMasksHandler &
-    operator&=(const BasicMasksHandler &Rhs) const noexcept {
+    constexpr inline
+    BasicMasksHandler &operator&=(const BasicMasksHandler &Rhs) const noexcept {
         return (*this = (*this & Rhs.Integer));
     }
 
@@ -177,10 +191,10 @@ public:
 
     [[nodiscard]] constexpr inline IntegerType
     getValueForMaskAndShift(MaskType Mask, ShiftType Shift) const noexcept {
-        const auto MaskedValue = Base::getValueForMask(Mask);
+        const auto MaskedValue = static_cast<MaskIntegerType>(Mask);
         const auto ShiftInteger = static_cast<ShiftIntegerType>(Shift);
 
-        return (MaskedValue >> ShiftInteger);
+        return GetValueForMaskAndShift(this->Integer, MaskedValue, ShiftInteger);
     }
 
     [[nodiscard]] constexpr inline IntegerType
@@ -220,6 +234,26 @@ struct BasicFlags : public BasicMasksHandler<FlagsType> {
     constexpr BasicFlags() noexcept = default;
     constexpr BasicFlags(IntegerType Integer) noexcept
     : BasicMasksHandler<FlagsType>(Integer) {};
+
+    constexpr inline BasicFlags &add(FlagsType Flag) noexcept {
+        this->setValueForMask(Flag, 1);
+        return *this;
+    }
+
+    constexpr inline BasicFlags &remove(FlagsType Flag) noexcept {
+        this->setValueForMask(Flag, 0);
+        return *this;
+    }
+
+    [[nodiscard]]
+    constexpr inline bool hasFlag(const FlagsType &Flag) const noexcept {
+        return this->getValueForMask(Flag);
+    }
+
+    [[nodiscard]] constexpr
+    inline bool setFlag(const FlagsType &Flag, bool Value) const noexcept {
+        return this->setValueForMask(Flag, static_cast<IntegerType>(Flag));
+    }
 
     [[nodiscard]]
     constexpr inline bool hasBitsSetAfterFlag(FlagsType Flag) const noexcept {

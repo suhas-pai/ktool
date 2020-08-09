@@ -759,7 +759,8 @@ namespace MachO {
                                    uint32_t CmdSize,
                                    uint32_t Offset)
     {
-        return (Offset >= MinSize && Offset < CmdSize);
+        const auto Range = LocationRange::CreateWithEnd(MinSize, CmdSize);
+        return Range.containsLocation(Offset);
     }
 
     [[nodiscard]] static inline uint32_t
@@ -791,11 +792,6 @@ namespace MachO {
         return LoadCommandStringGetLength(this, Offset, CmdSize);
     }
 
-    bool DylibCommand::IsNameOffsetValid(bool IsBigEndian) const noexcept {
-        const auto CmdSize = SwitchEndianIf(this->CmdSize, IsBigEndian);
-        return Info.Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
-    }
-
     [[nodiscard]] static LoadCommandString::GetValueResult
     LoadCmdGetStoredString(const LoadCommand *LC,
                            uint32_t MinSize,
@@ -818,13 +814,6 @@ namespace MachO {
 
         const auto Result = std::string_view(Data, Length);
         return Result;
-    }
-
-    bool
-    FixedVMSharedLibraryCommand::IsNameOffsetValid(bool IsBigEndian)
-    const noexcept {
-        const auto Offset = SwitchEndianIf(Info.Name.Offset, IsBigEndian);
-        return Info.Name.IsOffsetValid(sizeof(*this), Offset, CmdSize);
     }
 
     LoadCommandString::GetValueResult
@@ -852,14 +841,6 @@ namespace MachO {
         return Result;
     }
 
-    bool
-    SubFrameworkCommand::IsUmbrellaOffsetValid(
-        bool IsBigEndian) const noexcept
-    {
-        const auto CmdSize = SwitchEndianIf(this->CmdSize, IsBigEndian);
-        return Umbrella.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
-    }
-
     LoadCommandString::GetValueResult
     SubFrameworkCommand::GetUmbrella(bool IsBigEndian) const noexcept {
         const auto MinSize = sizeof(*this);
@@ -869,12 +850,6 @@ namespace MachO {
             LoadCmdGetStoredString(this, MinSize, CmdSize, NameOffset);
 
         return Result;
-    }
-
-    bool
-    SubClientCommand::IsClientOffsetValid(bool IsBigEndian) const noexcept {
-        const auto CmdSize = SwitchEndianIf(this->CmdSize, IsBigEndian);
-        return Client.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
     }
 
     LoadCommandString::GetValueResult
@@ -888,12 +863,6 @@ namespace MachO {
         return Result;
     }
 
-    bool
-    SubUmbrellaCommand::IsUmbrellaOffsetValid(bool IsBigEndian) const noexcept {
-        const auto CmdSize = SwitchEndianIf(this->CmdSize, IsBigEndian);
-        return Umbrella.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
-    }
-
     LoadCommandString::GetValueResult
     SubUmbrellaCommand::GetUmbrella(bool IsBigEndian) const noexcept {
         const auto MinSize = sizeof(*this);
@@ -904,13 +873,6 @@ namespace MachO {
 
         return Result;
     }
-
-    bool
-    SubLibraryCommand::IsLibraryOffsetValid(bool IsBigEndian) const noexcept {
-        const auto CmdSize = SwitchEndianIf(this->CmdSize, IsBigEndian);
-        return Library.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
-    }
-
     LoadCommandString::GetValueResult
     SubLibraryCommand::GetLibrary(bool IsBigEndian) const noexcept {
         const auto MinSize = sizeof(*this);
@@ -931,10 +893,10 @@ namespace MachO {
 
     static_assert(
         sizeof(NakedPreBoundDylibCommand) == sizeof(PreBoundDylibCommand),
-        "NakedPreBoundDylibCommand is not same as PreBoundDylibCommand");
+        "NakedPreBoundDylibCommand is not the same size as PreBoundDylibCommand");
 
-    bool PreBoundDylibCommand::IsNameOffsetValid(bool IsBigEndian)
-    const noexcept {
+    bool
+    PreBoundDylibCommand::IsNameOffsetValid(bool IsBigEndian) const noexcept {
         const auto CmdSize = offsetof(NakedPreBoundDylibCommand, NModules);
         return Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
     }
@@ -950,14 +912,6 @@ namespace MachO {
         return Result;
     }
 
-    bool
-    PreBoundDylibCommand::IsLinkedModulesOffsetValid(
-        bool IsBigEndian) const noexcept
-    {
-        const auto CmdSize = SwitchEndianIf(this->CmdSize, IsBigEndian);
-        return Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
-    }
-
     LoadCommandString::GetValueResult
     PreBoundDylibCommand::GetLinkedModules(bool IsBigEndian) const noexcept {
         const auto MinSize = sizeof(*this);
@@ -969,29 +923,17 @@ namespace MachO {
         return Result;
     }
 
-    bool
-    DylinkerCommand::IsNameOffsetValid(bool IsBigEndian) const noexcept {
-        const auto CmdSize = SwitchEndianIf(this->CmdSize, IsBigEndian);
-        return Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
-    }
-
     LoadCommandString::GetValueResult
     DylinkerCommand::GetName(bool IsBigEndian) const noexcept {
         const auto MinSize = sizeof(*this);
         const auto CmdSize = SwitchEndianIf(this->CmdSize, IsBigEndian);
         const auto NameOffset = SwitchEndianIf(Name.Offset, IsBigEndian);
-
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, NameOffset);
 
         return Result;
     }
-
-    SymbolTableEntryInfo::SymbolKind
-    SymbolTableEntryInfo::getKind() const noexcept {
-        return SymbolKind(getValueForMask(Masks::SymbolKind));
-    }
-
+    
     TypedAllocationOrError<SymTabCommand::Entry32List, SizeRangeError>
     SymTabCommand::GetEntry32List(const MemoryMap &Map,
                                   bool IsBigEndian) const noexcept
@@ -1457,11 +1399,6 @@ namespace MachO {
         return new ConstHintList(Entries, Count);
     }
 
-    bool RpathCommand::IsPathOffsetValid(bool IsBigEndian) const noexcept {
-        const auto CmdSize = SwitchEndianIf(this->CmdSize, IsBigEndian);
-        return Path.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
-    }
-
     LoadCommandString::GetValueResult
     RpathCommand::GetPath(bool IsBigEndian) const noexcept {
         const auto MinSize = sizeof(*this);
@@ -1516,12 +1453,6 @@ namespace MachO {
         }
 
         return new ConstToolList(Entries, Count);
-    }
-
-    bool
-    FixedVMFileCommand::IsNameOffsetValid(bool IsBigEndian) const noexcept {
-        const auto CmdSize = SwitchEndianIf(this->CmdSize, IsBigEndian);
-        return Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
     }
 
     LoadCommandString::GetValueResult

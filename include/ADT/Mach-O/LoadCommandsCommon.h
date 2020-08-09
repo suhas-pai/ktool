@@ -966,8 +966,8 @@ namespace MachO {
             return hasValueForMask(MaskType::HasLocalRelocEntries);
         }
 
-        constexpr inline
-        SegmentSectionAttributes &setIsAllInstructions(bool Value = true) noexcept {
+        constexpr inline SegmentSectionAttributes &
+        setIsAllInstructions(bool Value = true) noexcept {
             setValueForMask(MaskType::IsAllInstructions, Value);
             return *this;
         }
