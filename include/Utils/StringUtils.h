@@ -49,12 +49,12 @@ static inline T ParseNumber(const char *String) noexcept {
     for (auto Ch = *Iter; Ch != '\0'; Ch = *(++Iter)) {
         const auto Digit = ToDigit(Ch);
         if (!DigitIsValid(Digit)) {
-            fprintf(stdout, "%s is not a valid number\n", String);
+            fprintf(stdout, "\"%s\" is not a valid number\n", String);
             exit(1);
         }
 
         if (DoesMultiplyAndAddOverflow(Number, 10, Digit, &Number)) {
-            fprintf(stdout, "Number %s is too large\n", String);
+            fprintf(stdout, "Number \"%s\" is too large\n", String);
             exit(1);
         }
     }
