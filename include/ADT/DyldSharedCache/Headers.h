@@ -37,13 +37,13 @@ namespace DyldSharedCache {
             return LocationRange::CreateWithSize(FileOffset, Size);
         }
 
-        [[nodiscard]] inline std::optional<uint64_t>
+        [[nodiscard]] inline uint64_t
         getFileOffsetFromAddr(uint64_t Addr,
                               uint64_t *MaxSizeOut = nullptr) const noexcept
         {
             const auto Range = getAddressRange();
             if (!Range || !Range->containsLocation(Addr)) {
-                return std::nullopt;
+                return 0;
             }
 
             return getFileOffsetFromAddrUnsafe(Addr, MaxSizeOut);
@@ -134,11 +134,11 @@ namespace DyldSharedCache {
         }
     };
 
-    using ImageList = BasicContiguousList<ImageInfo>;
-    using ConstImageList = BasicContiguousList<const ImageInfo>;
+    using ImageInfoList = BasicContiguousList<ImageInfo>;
+    using ConstImageInfoList = BasicContiguousList<const ImageInfo>;
 
-    using MappingList = BasicContiguousList<MappingInfo>;
-    using ConstMappingList = BasicContiguousList<const MappingInfo>;
+    using MappingInfoList = BasicContiguousList<MappingInfo>;
+    using ConstMappingInfoList = BasicContiguousList<const MappingInfo>;
 
     // Apple doesn't provide versions for their dyld_shared_caches, so we have
     // to make up our own.
@@ -156,59 +156,60 @@ namespace DyldSharedCache {
 
         uint64_t DyldBaseAddress;
 
-        [[nodiscard]] inline ImageList getImageInfoList() noexcept {
+        [[nodiscard]] inline ImageInfoList getImageInfoList() noexcept {
             const auto Ptr = reinterpret_cast<uint8_t *>(this) + ImagesOffset;
             return BasicContiguousList<ImageInfo>(Ptr, ImagesCount);
         }
 
-        [[nodiscard]] inline ConstImageList getImageInfoList() const noexcept {
+        [[nodiscard]]
+        inline ConstImageInfoList getImageInfoList() const noexcept {
             return getConstImageInfoList();
         }
 
         [[nodiscard]]
-        inline ConstImageList getConstImageInfoList() const noexcept {
+        inline ConstImageInfoList getConstImageInfoList() const noexcept {
             const auto Map = reinterpret_cast<const uint8_t *>(this);
             const auto Ptr = Map + ImagesOffset;
 
-            return ConstImageList(Ptr, ImagesCount);
+            return ConstImageInfoList(Ptr, ImagesCount);
         }
 
-        [[nodiscard]] inline MappingList getMappingInfoList() noexcept {
+        [[nodiscard]] inline MappingInfoList getMappingInfoList() noexcept {
             const auto Ptr = reinterpret_cast<uint8_t *>(this) + MappingOffset;
-            return MappingList(Ptr, MappingCount);
+            return MappingInfoList(Ptr, MappingCount);
         }
 
         [[nodiscard]]
-        inline ConstMappingList getMappingInfoList() const noexcept {
+        inline ConstMappingInfoList getMappingInfoList() const noexcept {
             return getConstMappingInfoList();
         }
 
         [[nodiscard]]
-        inline ConstMappingList getConstMappingInfoList() const noexcept {
+        inline ConstMappingInfoList getConstMappingInfoList() const noexcept {
             const auto Map = reinterpret_cast<const uint8_t *>(this);
             const auto Ptr = Map + MappingOffset;
 
-            return ConstMappingList(Ptr, MappingCount);
+            return ConstMappingInfoList(Ptr, MappingCount);
         }
 
-        [[nodiscard]] std::optional<uint64_t>
+        [[nodiscard]] uint64_t
         GetFileOffsetForAddress(uint64_t Addr,
                                 uint64_t *MaxSizeOut = nullptr) const noexcept
         {
             if (Addr == 0) {
-                return std::nullopt;
+                return 0;
             }
 
             for (const auto &Mapping : getConstMappingInfoList()) {
                 const auto Offset =
                     Mapping.getFileOffsetFromAddr(Addr, MaxSizeOut);
 
-                if (Offset.has_value()) {
+                if (Offset != 0) {
                     return Offset;
                 }
             }
 
-            return std::nullopt;
+            return 0;
         }
 
         template <typename T = uint8_t>
@@ -220,7 +221,7 @@ namespace DyldSharedCache {
                 }
 
                 const auto Map = reinterpret_cast<uint8_t *>(this);
-                return reinterpret_cast<T *>(Map + Offset.value());
+                return reinterpret_cast<T *>(Map + Offset);
             }
 
             return nullptr;
@@ -236,7 +237,7 @@ namespace DyldSharedCache {
                 }
 
                 const auto Map = reinterpret_cast<const uint8_t *>(this);
-                return reinterpret_cast<const T *>(Map + Offset.value());
+                return reinterpret_cast<const T *>(Map + Offset);
             }
 
             return nullptr;

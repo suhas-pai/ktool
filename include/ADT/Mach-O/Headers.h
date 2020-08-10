@@ -17,6 +17,7 @@
 #include "Utils/Casting.h"
 #include "Utils/SwitchEndian.h"
 
+#include "LoadCommandStorage.h"
 #include "Types.h"
 
 namespace MachO {
@@ -887,6 +888,7 @@ namespace MachO {
             return false;
         }
 
+
         [[nodiscard]]
         constexpr inline Mach::CpuKind getCpuKind() const noexcept {
             return Mach::CpuKind(SwitchEndianIf(CpuKind, this->IsBigEndian()));
@@ -896,6 +898,14 @@ namespace MachO {
         constexpr inline enum FileKind getFileKind() const noexcept {
             const auto Value = SwitchEndianIf(FileKind, this->IsBigEndian());
             return static_cast<enum FileKind>(Value);
+        }
+
+        [[nodiscard]] inline uint32_t getLoadCommandsCount() const noexcept {
+            return SwitchEndianIf(Ncmds, this->IsBigEndian());
+        }
+
+        [[nodiscard]] inline uint32_t getLoadCommandsSize() const noexcept {
+            return SwitchEndianIf(SizeOfCmds, this->IsBigEndian());
         }
 
         [[nodiscard]] constexpr inline FlagsType getFlags() const noexcept {
@@ -910,10 +920,13 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline Header &setFileKind(enum FileKind Kind) noexcept {
-            const auto FileKind = static_cast<uint32_t>(Kind);
-            this->FileKind = SwitchEndianIf(FileKind, this->IsBigEndian());
+        constexpr inline Header &setLoadCommandsCount(uint32_t Count) noexcept {
+            this->Ncmds = SwitchEndianIf(Count, this->IsBigEndian());
+            return *this;
+        }
 
+        constexpr inline Header &setLoadCommandsSize(uint32_t Size) noexcept {
+            this->SizeOfCmds = SwitchEndianIf(Size, this->IsBigEndian());
             return *this;
         }
 
@@ -924,7 +937,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline uint64_t size() const noexcept {
+        [[nodiscard]] constexpr inline uint64_t size() const noexcept {
             if (this->Is64Bit()) {
                 return (sizeof(*this) + sizeof(uint32_t));
             }
@@ -945,6 +958,32 @@ namespace MachO {
                 reinterpret_cast<const uint8_t *>(this) + size();
 
             return LoadCmdBuffer;
+        }
+
+        [[nodiscard]] inline
+        LoadCommandStorage GetLoadCmdStorage(bool Verify = true) noexcept {
+            const auto Result =
+                LoadCommandStorage::Open(this->getLoadCmdBuffer(),
+                                         this->getLoadCommandsCount(),
+                                         this->getLoadCommandsSize(),
+                                         this->IsBigEndian(),
+                                         this->Is64Bit(),
+                                         Verify);
+
+            return Result;
+        }
+
+        [[nodiscard]] inline ConstLoadCommandStorage
+        GetConstLoadCmdStorage(bool Verify = true) const noexcept {
+            const auto Result =
+                ConstLoadCommandStorage::Open(this->getConstLoadCmdBuffer(),
+                                              this->getLoadCommandsCount(),
+                                              this->getLoadCommandsSize(),
+                                              this->IsBigEndian(),
+                                              this->Is64Bit(),
+                                              Verify);
+
+            return Result;
         }
     };
 

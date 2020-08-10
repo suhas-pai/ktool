@@ -21,16 +21,15 @@ namespace DscImage {
     struct ConstDeVirtualizer {
     protected:
         const uint8_t *Map;
-        DyldSharedCache::ConstMappingList MappingList;
+        DyldSharedCache::ConstMappingInfoList MappingList;
     public:
         explicit
         ConstDeVirtualizer(
             const uint8_t *Map,
-            const DyldSharedCache::ConstMappingList &MappingList) noexcept
+            const DyldSharedCache::ConstMappingInfoList &MappingList) noexcept
         : Map(Map), MappingList(MappingList) {}
 
-        [[nodiscard]]
-        inline const DyldSharedCache::ConstMappingList &
+        [[nodiscard]] inline const DyldSharedCache::ConstMappingInfoList &
         getMappingsList() const noexcept {
             return MappingList;
         }
@@ -40,11 +39,15 @@ namespace DscImage {
         }
 
         [[nodiscard]] inline const uint8_t *getBegin() const noexcept {
-            return getMap() + getBeginAddr();
+            return getMap() + getBeginOffset();
         }
 
         [[nodiscard]] inline uint64_t getBeginAddr() const noexcept {
             return getMappingsList().front().Address;
+        }
+
+        [[nodiscard]] inline uint64_t getBeginOffset() const noexcept {
+            return getMappingsList().front().FileOffset;
         }
 
         [[nodiscard]] inline uint64_t getEndAddr() const noexcept {
@@ -52,8 +55,13 @@ namespace DscImage {
             return Back.Address + Back.Size;
         }
 
+        [[nodiscard]] inline uint64_t getEndOffset() const noexcept {
+            const auto &Back = getMappingsList().back();
+            return Back.FileOffset + Back.Size;
+        }
+
         [[nodiscard]] inline const uint8_t *getEnd() const noexcept {
-            return getMap() + getEndAddr();
+            return getMap() + getEndOffset();
         }
 
         template <typename T>
@@ -114,7 +122,7 @@ namespace DscImage {
         explicit
         DeVirtualizer(
             uint8_t *Map,
-            const DyldSharedCache::ConstMappingList &MappingList) noexcept
+            const DyldSharedCache::ConstMappingInfoList &MappingList) noexcept
         : ConstDeVirtualizer(const_cast<uint8_t *>(Map), MappingList) {}
 
         [[nodiscard]] inline uint8_t *getMap() const noexcept {

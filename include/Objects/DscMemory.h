@@ -57,6 +57,8 @@ public:
         OverlappingImageMappingRange,
     };
 
+    [[nodiscard]] static const uint8_t *
+    ValidateImageMapAndGetEnd(const ConstMemoryMap &Map) noexcept;
 protected:
     union {
         const uint8_t *Map;
@@ -117,38 +119,50 @@ public:
 
     [[nodiscard]] inline
     const DyldSharedCache::HeaderV1 &getHeaderV1() const noexcept {
-        assert(getHeader().MappingOffset >= sizeof(DyldSharedCache::HeaderV1));
-        return getHeader();
+        const auto &Header = getHeader();
+
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV1));
+        return Header;
     }
 
     [[nodiscard]] inline
     const DyldSharedCache::HeaderV2 &getHeaderV2() const noexcept {
-        assert(getHeader().MappingOffset >= sizeof(DyldSharedCache::HeaderV2));
-        return getHeader();
+        const auto &Header = getHeader();
+
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV2));
+        return Header;
     }
 
     [[nodiscard]] inline
     const DyldSharedCache::HeaderV3 &getHeaderV3() const noexcept {
-        assert(getHeader().MappingOffset >= sizeof(DyldSharedCache::HeaderV3));
-        return getHeader();
+        const auto &Header = getHeader();
+
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV3));
+        return Header;
     }
 
     [[nodiscard]] inline
     const DyldSharedCache::HeaderV4 &getHeaderV4() const noexcept {
-        assert(getHeader().MappingOffset >= sizeof(DyldSharedCache::HeaderV4));
-        return getHeader();
+        const auto &Header = getHeader();
+
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV4));
+        return Header;
     }
 
     [[nodiscard]] inline
     const DyldSharedCache::HeaderV5 &getHeaderV5() const noexcept {
-        assert(getHeader().MappingOffset >= sizeof(DyldSharedCache::HeaderV5));
-        return getHeader();
+        const auto &Header = getHeader();
+
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV5));
+        return Header;
     }
 
     [[nodiscard]] inline
     const DyldSharedCache::HeaderV6 &getHeaderV6() const noexcept {
-        assert(getHeader().MappingOffset >= sizeof(DyldSharedCache::HeaderV6));
-        return getHeader();
+        const auto &Header = getHeader();
+
+        assert(Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV6));
+        return Header;
     }
 
     [[nodiscard]] inline uint32_t getImageCount() const noexcept {
@@ -165,25 +179,21 @@ public:
     getCpuKind(Mach::CpuKind &CpuKind, int32_t &CpuSubKind) const noexcept;
 
     [[nodiscard]] inline
-    BasicContiguousList<const DyldSharedCache::ImageInfo>
-    getImageInfoList() const noexcept {
+    DyldSharedCache::ConstImageInfoList getImageInfoList() const noexcept {
         return getHeaderV0().getImageInfoList();
     }
 
-    [[nodiscard]] inline
-    BasicContiguousList<const DyldSharedCache::ImageInfo>
+    [[nodiscard]] inline DyldSharedCache::ConstImageInfoList
     getConstImageInfoList() const noexcept {
         return getImageInfoList();
     }
 
-    [[nodiscard]]
-    inline BasicContiguousList<const DyldSharedCache::MappingInfo>
+    [[nodiscard]] inline DyldSharedCache::ConstMappingInfoList
     getMappingInfoList() const noexcept {
         return getHeaderV0().getMappingInfoList();
     }
 
-    [[nodiscard]]
-    inline BasicContiguousList<const DyldSharedCache::MappingInfo>
+    [[nodiscard]] inline DyldSharedCache::ConstMappingInfoList
     getConstMappingInfoList() const noexcept {
         return getMappingInfoList();
     }
@@ -279,22 +289,22 @@ public:
     }
 
     [[nodiscard]] inline
-    DyldSharedCache::ImageList getImageInfoList() const noexcept {
+    DyldSharedCache::ImageInfoList getImageInfoList() const noexcept {
         return getHeaderV0().getImageInfoList();
     }
 
     [[nodiscard]] inline
-    DyldSharedCache::MappingList getMappingInfoList() const noexcept {
+    DyldSharedCache::MappingInfoList getMappingInfoList() const noexcept {
         return getHeaderV0().getMappingInfoList();
     }
 
     [[nodiscard]] inline
-    DyldSharedCache::ConstImageList getConstImageInfoList() const noexcept {
+    DyldSharedCache::ConstImageInfoList getConstImageInfoList() const noexcept {
         return getHeaderV0().getConstImageInfoList();
     }
 
-    [[nodiscard]] inline
-    DyldSharedCache::ConstMappingList getConstMappingInfoList() const noexcept {
+    [[nodiscard]] inline DyldSharedCache::ConstMappingInfoList
+    getConstMappingInfoList() const noexcept {
         return getHeaderV0().getConstMappingInfoList();
     }
 

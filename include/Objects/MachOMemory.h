@@ -26,6 +26,8 @@ public:
 
         TooManyLoadCommands,
     };
+
+    [[nodiscard]] static Error ValidateMap(const ConstMemoryMap &Map) noexcept;
 protected:
     union {
         const uint8_t *Map;
@@ -82,12 +84,13 @@ public:
     }
 
     [[nodiscard]] inline const MachO::Header &getConstHeader() const noexcept {
-        assert(!hasError());
-        return *Header;
+        return getHeader();
     }
 
-    [[nodiscard]] MachO::ConstLoadCommandStorage
-    GetLoadCommands(bool Verify = true) const noexcept;
+    [[nodiscard]] inline MachO::ConstLoadCommandStorage
+    GetLoadCommands(bool Verify = true) const noexcept {
+        return getHeader().GetConstLoadCmdStorage(Verify);
+    }
 
     [[nodiscard]] inline bool IsBigEndian() const noexcept {
         return getConstHeader().IsBigEndian();
@@ -108,6 +111,19 @@ public:
     [[nodiscard]]
     inline enum MachO::Header::FileKind getFileKind() const noexcept {
         return getConstHeader().getFileKind();
+    }
+
+    [[nodiscard]]
+    inline MachO::Header::FlagsType getHeaderFlags() const noexcept {
+        return getConstHeader().getFlags();
+    }
+
+    [[nodiscard]] inline uint32_t getLoadCommandsCount() const noexcept {
+        return getConstHeader().getLoadCommandsCount();
+    }
+
+    [[nodiscard]] inline uint32_t getLoadCommandsSize() const noexcept {
+        return getConstHeader().getLoadCommandsSize();
     }
 };
 
@@ -132,10 +148,36 @@ public:
         return const_cast<MachO::Header &>(getConstHeader());
     }
 
-    [[nodiscard]] MachO::LoadCommandStorage
-    GetLoadCommands(bool Verify = true) noexcept;
+    constexpr inline MachOMemoryObject &
+    setCpuKind(Mach::CpuKind Kind) noexcept {
+        getHeader().setCpuKind(Kind);
+        return *this;
+    }
 
-    [[nodiscard]] MachO::ConstLoadCommandStorage
+    constexpr inline MachOMemoryObject &
+    setLoadCommandsCount(uint32_t Count) noexcept {
+        getHeader().setLoadCommandsCount(Count);
+        return *this;
+    }
+
+    constexpr inline MachOMemoryObject &
+    setLoadCommandsSize(uint32_t Size) noexcept {
+        getHeader().setLoadCommandsSize(Size);
+        return *this;
+    }
+
+    constexpr inline MachOMemoryObject &
+    setHeaderFlags(const MachO::Header::FlagsType &Flags) noexcept {
+        getHeader().setFlags(Flags);
+        return *this;
+    }
+
+    [[nodiscard]] inline MachO::LoadCommandStorage
+    GetLoadCommands(bool Verify = true) noexcept {
+        return getHeader().GetLoadCmdStorage(Verify);
+    }
+
+    [[nodiscard]] inline MachO::ConstLoadCommandStorage
     GetConstLoadCommands(bool Verify = true) const noexcept {
         return ConstMachOMemoryObject::GetLoadCommands(Verify);
     }

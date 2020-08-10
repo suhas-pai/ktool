@@ -284,12 +284,11 @@ PrintBindSymbolList(
     auto WeakBindSymbolActionList = std::vector<MachO::BindActionInfo>();
 
     const auto Comparator =
-        [&](const MachO::BindActionInfo &Lhs, const MachO::BindActionInfo &Rhs)
+        [&](const MachO::BindActionInfo &Lhs,
+            const MachO::BindActionInfo &Rhs) noexcept
     {
         for (const auto &SortKind : Options.SortKindList) {
-            const auto CmpResult =
-                CompareActionsBySortKind(Lhs, Rhs, SortKind);
-
+            const auto CmpResult = CompareActionsBySortKind(Lhs, Rhs, SortKind);
             if (CmpResult != 0) {
                 return (CmpResult < 0);
             }

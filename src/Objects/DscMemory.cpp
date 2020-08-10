@@ -248,39 +248,22 @@ ConstDscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
     assert(0 && "Unrecognized Cpu-Kind");
 }
 
-[[nodiscard]] static
-const uint8_t *ValidateImageMapAndGetEnd(const ConstMemoryMap &Map) noexcept {
-    if (!Map.IsLargeEnoughForType<MachO::Header>()) {
+const uint8_t *
+ConstDscMemoryObject::ValidateImageMapAndGetEnd(
+    const ConstMemoryMap &Map) noexcept
+{
+    const auto ValidateError = ConstMachOMemoryObject::ValidateMap(Map);
+    if (ValidateError != ConstMachOMemoryObject::Error::None) {
         return nullptr;
     }
 
     const auto MapBegin = Map.getBegin();
-    const auto &Header = *reinterpret_cast<const MachO::Header *>(MapBegin);
+    const auto &Header = *Map.getBeginAs<MachO::Header>();
 
-    if (!Header.hasValidMagic()) {
-        return nullptr;
-    }
-
-    const auto HeaderSize = Header.size();
-    const auto IsBigEndian = Header.IsBigEndian();
-    const auto SizeOfCmds = SwitchEndianIf(Header.SizeOfCmds, IsBigEndian);
-
-    if (!Map.IsLargeEnoughForSize(HeaderSize + SizeOfCmds)) {
-        return nullptr;
-    }
-
-    const auto Begin = MapBegin + HeaderSize;
-    const auto Ncmds = SwitchEndianIf(Header.Ncmds, IsBigEndian);
     const auto Is64Bit = Header.Is64Bit();
+    const auto IsBigEndian = Header.IsBigEndian();
 
-    const auto LoadCmdStorage =
-        MachO::ConstLoadCommandStorage::Open(Begin,
-                                             Ncmds,
-                                             SizeOfCmds,
-                                             IsBigEndian,
-                                             Is64Bit,
-                                             true);
-
+    const auto LoadCmdStorage = Header.GetConstLoadCmdStorage();
     if (LoadCmdStorage.hasError()) {
         return nullptr;
     }

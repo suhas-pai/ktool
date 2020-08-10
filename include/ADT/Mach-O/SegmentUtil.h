@@ -180,13 +180,13 @@ namespace MachO {
 
         [[nodiscard]]
         inline const SegmentInfo &at(uint64_t Index) const noexcept {
-            assert(IndexOutOfBounds(Index, size()));
+            assert(IndexOutOfBounds(Index, this->size()));
             return *List.at(Index).get();
         }
 
         [[nodiscard]]
         inline const SegmentInfo *atOrNull(uint64_t Index) const noexcept {
-            if (IndexOutOfBounds(Index, size())) {
+            if (IndexOutOfBounds(Index, this->size())) {
                 return nullptr;
             }
 

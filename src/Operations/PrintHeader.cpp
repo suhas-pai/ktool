@@ -33,9 +33,9 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
     const auto CpuKind = Object.getCpuKind();
     const auto CpuSubKind = SwitchEndianIf(Header.CpuSubKind, IsBigEndian);
     const auto FileKind = Object.getFileKind();
-    const auto Ncmds = SwitchEndianIf(Header.Ncmds, IsBigEndian);
-    const auto SizeOfCmds = SwitchEndianIf(Header.SizeOfCmds, IsBigEndian);
-    const auto Flags = Header.getFlags();
+    const auto Ncmds = Object.getLoadCommandsCount();
+    const auto SizeOfCmds = Object.getLoadCommandsSize();
+    const auto Flags = Object.getHeaderFlags();
 
     const auto MagicDesc = MachO::Header::MagicGetDescription(Magic).data();
     const auto FileKindName = MachO::Header::FileKindGetName(FileKind).data();

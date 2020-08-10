@@ -256,8 +256,7 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
 
             PrintUtilsRightPadSpaces(Options.OutFile, WrittenOut, RightPad);
             MachOTypePrinter<struct MachO::DylibCommand::Info>::PrintOnOneLine(
-                Options.OutFile, DylibInfo.Info, IsBigEndian, true, " (",
-                ")");
+                Options.OutFile, DylibInfo.Info, IsBigEndian, true, " (", ")");
         }
 
         fputc('\n', Options.OutFile);

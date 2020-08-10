@@ -152,21 +152,6 @@ CompareObjcClasses(
 };
 
 static void
-PrintOffset(FILE *OutFile,
-            uint64_t Offset,
-            bool IsExternal,
-            bool Is64Bit) noexcept
-{
-    if (IsExternal) {
-        PrintUtilsRightPadSpaces(OutFile,
-                                 fputs("<imported>", OutFile),
-                                 OFFSET_LEN(Is64Bit));
-    } else {
-        PrintUtilsWriteOffset32Or64(OutFile, Is64Bit, Offset);
-    }
-}
-
-static void
 PrintCategoryList(
     FILE *OutFile,
     const std::vector<MachO::ObjcClassCategoryInfo *> &CategoryList,
@@ -188,7 +173,7 @@ PrintCategoryList(
     for (const auto &Category : CategoryList) {
         fputs("\t\t", OutFile);
 
-        PrintOffset(OutFile, Category->Address, false, Is64Bit);
+        PrintUtilsWriteOffset32Or64(OutFile, Is64Bit, Category->Address);
         fprintf(OutFile, " \"%s\"\n", Category->Name.data());
     }
 }

@@ -29,7 +29,7 @@ ValidateArchList(const ConstMemoryMap &Map,
     using AddrType = PointerAddrTypeFromKind<Kind>;
 
     const auto IsBigEndian = Header.IsBigEndian();
-    const auto ArchCount = SwitchEndianIf(Header.NFatArch, IsBigEndian);
+    const auto ArchCount = Header.getArchCount();
 
     if (ArchCount == 0) {
         return ConstFatMachOMemoryObject::Error::ZeroArchitectures;
@@ -80,9 +80,7 @@ ValidateMap(const ConstMemoryMap &Map) noexcept {
         return ConstFatMachOMemoryObject::Error::SizeTooSmall;
     }
 
-    const auto &Header =
-        *reinterpret_cast<const MachO::FatHeader *>(Map.getBegin());
-
+    const auto &Header = *Map.getBeginAs<MachO::FatHeader>();
     if (!Header.hasValidMagic()) {
         return ConstFatMachOMemoryObject::Error::WrongFormat;
     }
