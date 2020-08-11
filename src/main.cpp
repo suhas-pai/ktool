@@ -83,7 +83,7 @@ GetImageWithPath(const ConstDscMemoryObject &Object,
     const auto ImageInfo = Object.GetImageInfoWithPath(Path);
     if (ImageInfo == nullptr) {
         fprintf(stderr,
-                "No Image with path \"%s\" was found\n",
+                "No Image was found for path \"%s\"\n",
                 Path.data());
         exit(0);
     }

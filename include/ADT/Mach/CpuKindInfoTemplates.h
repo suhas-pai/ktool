@@ -79,7 +79,7 @@ namespace Mach {
         constexpr static Mach::CpuKind CpuKind = Mach::CpuKind::i386;
 
         constexpr static auto Name = "CPU_TYPE_i386"sv;
-        constexpr static auto BrandName = "Intel"sv;
+        constexpr static auto BrandName = "Intel i386"sv;
         constexpr static auto Description = "i386"sv;
     };
 
@@ -88,7 +88,7 @@ namespace Mach {
         constexpr static Mach::CpuKind CpuKind = Mach::CpuKind::x86_64;
 
         constexpr static auto Name = "CPU_TYPE_X86_64"sv;
-        constexpr static auto BrandName = "Intel"sv;
+        constexpr static auto BrandName = "Intel x86_64"sv;
         constexpr static auto Description = "x86_64"sv;
     };
 

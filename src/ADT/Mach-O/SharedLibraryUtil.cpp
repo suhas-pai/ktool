@@ -107,8 +107,7 @@ namespace MachO {
                     .Index = LCIndex,
                     .Timestamp = Timestamp,
                     .CurrentVersion = Info.getCurrentVersion(IsBigEndian),
-                    .CompatibilityVersion =
-                        Info.getCompatVersion(IsBigEndian)
+                    .CompatibilityVersion = Info.getCompatVersion(IsBigEndian)
                 });
             }
 

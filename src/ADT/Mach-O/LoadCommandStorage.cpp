@@ -35,7 +35,7 @@ namespace MachO {
                 return ConstLoadCommandStorage::Error::CmdSizeTooSmall;
             }
 
-            if (CmdSize & AlignMask) {
+            if ((CmdSize & AlignMask) != 0) {
                 return ConstLoadCommandStorage::Error::CmdSizeNotAligned;
             }
 

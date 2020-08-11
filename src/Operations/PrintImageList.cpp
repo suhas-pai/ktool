@@ -173,9 +173,8 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
 }
 
 static inline bool
-ListHasSortKind(
-    std::vector<PrintImageListOperation::Options::SortKind> &List,
-    const PrintImageListOperation::Options::SortKind &Sort) noexcept
+ListHasSortKind(std::vector<PrintImageListOperation::Options::SortKind> &List,
+                const PrintImageListOperation::Options::SortKind &Sort) noexcept
 {
     const auto ListEnd = List.cend();
     return (std::find(List.cbegin(), ListEnd, Sort) != ListEnd);

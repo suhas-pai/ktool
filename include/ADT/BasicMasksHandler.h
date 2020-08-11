@@ -236,7 +236,7 @@ struct BasicFlags : public BasicMasksHandler<FlagsType> {
     : BasicMasksHandler<FlagsType>(Integer) {};
 
     constexpr inline BasicFlags &add(FlagsType Flag) noexcept {
-        this->setValueForMask(Flag, 1);
+        this->setValueForMask(Flag, static_cast<int>(Flag));
         return *this;
     }
 

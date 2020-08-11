@@ -888,7 +888,6 @@ namespace MachO {
             return false;
         }
 
-
         [[nodiscard]]
         constexpr inline Mach::CpuKind getCpuKind() const noexcept {
             return Mach::CpuKind(SwitchEndianIf(CpuKind, this->IsBigEndian()));

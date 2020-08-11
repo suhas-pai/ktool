@@ -71,7 +71,6 @@ namespace MachO {
 
         InfoIn.InitProt = Segment.getInitProt(IsBigEndian);
         InfoIn.MaxProt = Segment.getMaxProt(IsBigEndian);
-
         InfoIn.Flags = Segment.getFlags(IsBigEndian);
 
         const auto &SectionList = Segment.GetConstSectionList(IsBigEndian);
@@ -343,7 +342,7 @@ namespace MachO {
 
                     return nullptr;
                 }
-                    
+
                 case LoadCommand::Kind::Segment64: {
                     if (!Is64Bit) {
                         continue;

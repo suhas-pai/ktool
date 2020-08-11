@@ -62,11 +62,12 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
 
         const auto CpuKindName = Mach::CpuKindGetName(CpuKind).data();
         if (CpuKindName != nullptr) {
-            const auto CpuKindDesc = Mach::CpuKindGetDescripton(CpuKind).data();
+            const auto CpuKindBrandName =
+                Mach::CpuKindGetBrandName(CpuKind).data();
             const auto CpuSubKindName =
                 Mach::CpuSubKind::GetName(CpuKind, CpuSubKind).data();
-            const auto CpuSubKindDesc =
-                Mach::CpuSubKind::GetDescription(CpuKind, CpuSubKind).data();
+            const auto CpuSubKindBrandName =
+                Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data();
 
             fprintf(Options.OutFile,
                     "CpuType:\n"
@@ -74,7 +75,7 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
                     "\tDescription: %s\n"
                     "\tValue:       %" PRIu32 " (0x%" PRIX32 ")\n",
                     CpuKindName,
-                    CpuKindDesc,
+                    CpuKindBrandName,
                     CpuKindValue,
                     CpuKindValue);
 
@@ -85,14 +86,14 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
                         "\tDescription: %s\n"
                         "\tValue:       %" PRIu32 " (0x%" PRIX32 ")\n",
                         CpuSubKindName,
-                        CpuSubKindDesc,
+                        CpuSubKindBrandName,
                         CpuSubKind,
                         CpuSubKind);
             } else {
                 fprintf(Options.OutFile,
                         "CpuSubType:\n"
                         "\tUnrecognized\n"
-                        "\tValue; %" PRIu32 " (0x%" PRIX32 ")\n",
+                        "\tValue: %" PRIu32 " (0x%" PRIX32 ")\n",
                         CpuSubKind,
                         CpuSubKind);
             }
@@ -106,7 +107,7 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
             fprintf(Options.OutFile,
                     "CpuSubType:\n"
                     "\tUnknown\n"
-                    "\tValue; %" PRIu32 " (Value: 0x%" PRIX32 ")\n",
+                    "\tValue: %" PRIu32 " (Value: 0x%" PRIX32 ")\n",
                     CpuSubKind,
                     CpuSubKind);
         }
