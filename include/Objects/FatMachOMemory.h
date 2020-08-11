@@ -167,7 +167,7 @@ public:
 
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
         assert(!hasError());
-        
+
         const auto End = const_cast<uint8_t *>(this->End);
         return MemoryMap(const_cast<uint8_t *>(Map), End);
     }

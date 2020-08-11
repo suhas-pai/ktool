@@ -136,10 +136,10 @@ public:
         auto Result = ConstMachOMemoryObject::Open(Map);
         return *reinterpret_cast<MachOMemoryObject *>(&Result);
     }
-    
+
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
         assert(!hasError());
-        
+
         const auto End = const_cast<uint8_t *>(this->End);
         return MemoryMap(const_cast<uint8_t *>(Map), End);
     }

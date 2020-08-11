@@ -681,7 +681,7 @@ namespace MachO {
             const auto CmdSize = SwitchEndianIf(this->CmdSize, IsBigEndian);
             return Info.Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
-        
+
         [[nodiscard]] LoadCommandString::GetValueResult
         GetName(bool IsBigEndian) const noexcept;
     };
@@ -1486,7 +1486,7 @@ namespace MachO {
         [[nodiscard]] TypedAllocationOrError<ExportTrieList, SizeRangeError>
         GetExportTrieList(const MemoryMap &Map, bool IsBigEndian) noexcept {
             assert(isa<LoadCommand::Kind::DyldExportsTrie>(IsBigEndian) &&
-                   "Load Command is not a Dyld Export-Trie Load COmmand");
+                   "Load Command is not a Dyld Export-Trie Load Command");
 
             const auto Offset = SwitchEndianIf(DataOff, IsBigEndian);
             const auto Size = SwitchEndianIf(DataSize, IsBigEndian);
@@ -1501,7 +1501,7 @@ namespace MachO {
                                bool IsBigEndian) const noexcept
         {
             assert(isa<LoadCommand::Kind::DyldExportsTrie>(IsBigEndian) &&
-                   "Load Command is not a Dyld Export-Trie Load COmmand");
+                   "Load Command is not a Dyld Export-Trie Load Command");
 
             const auto Offset = SwitchEndianIf(DataOff, IsBigEndian);
             const auto Size = SwitchEndianIf(DataSize, IsBigEndian);
@@ -1516,7 +1516,7 @@ namespace MachO {
                                 bool IsBigEndian) noexcept
         {
             assert(isa<LoadCommand::Kind::DyldExportsTrie>(IsBigEndian) &&
-                   "Load Command is not a Dyld Export-Trie Load COmmand");
+                   "Load Command is not a Dyld Export-Trie Load Command");
 
             const auto Offset = SwitchEndianIf(DataOff, IsBigEndian);
             const auto Size = SwitchEndianIf(DataSize, IsBigEndian);
@@ -1531,7 +1531,7 @@ namespace MachO {
                                      bool IsBigEndian) const noexcept
         {
             assert(isa<LoadCommand::Kind::DyldExportsTrie>(IsBigEndian) &&
-                   "Load Command is not a Dyld Export-Trie Load COmmand");
+                   "Load Command is not a Dyld Export-Trie Load Command");
 
             const auto Offset = SwitchEndianIf(DataOff, IsBigEndian);
             const auto Size = SwitchEndianIf(DataSize, IsBigEndian);
@@ -1546,7 +1546,7 @@ namespace MachO {
             std::vector<ExportTrieExportInfo> &ExportListOut) noexcept
         {
             assert(isa<LoadCommand::Kind::DyldExportsTrie>(IsBigEndian) &&
-                   "Load Command is not a Dyld Export-Trie Load COmmand");
+                   "Load Command is not a Dyld Export-Trie Load Command");
 
             const auto Offset = SwitchEndianIf(DataOff, IsBigEndian);
             const auto Size = SwitchEndianIf(DataSize, IsBigEndian);

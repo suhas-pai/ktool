@@ -445,7 +445,7 @@ namespace MachO {
         }
 
         constexpr
-        inline SegmentFlags &setProtected(bool Value = true) noexcept {
+        inline SegmentFlags &setIsProtected(bool Value = true) noexcept {
             setValueForMask(FlagType::ProtectionVersion1, Value);
             return *this;
         }
