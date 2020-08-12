@@ -121,23 +121,22 @@ void PrintSelectArchMessage(const ConstFatMachOMemoryObject &Object) noexcept {
     }
 
     fputs(":\n", stdout);
-    MachOTypePrinter<MachO::FatHeader>::PrintArchList(stdout,
-                                                      Object.getConstHeader());
+
+    const auto &Header = Object.getConstHeader();
+    MachOTypePrinter<MachO::FatHeader>::PrintArchList(stdout, Header);
 }
 
 static
 void PrintSelectImageMessage(const ConstDscMemoryObject &Object) noexcept {
-    const auto ImageCount = Object.getImageCount();
     fprintf(stdout,
             "Please select one of %" PRIu32 " images.\n"
-            "Use option --list-images to see a list of images\n",
-            ImageCount);
+            "Use option --list-dsc-images to see a list of images\n",
+            Object.getImageCount());
 }
 
 void
-Operation::PrintObjectKindNotSupportedError(
-    OperationKind OpKind,
-    const MemoryObject &Object) noexcept
+Operation::PrintObjectKindNotSupportedError(OperationKind OpKind,
+                                            const MemoryObject &Object) noexcept
 {
     assert(OpKind != OperationKind::None);
     switch (Object.getKind()) {

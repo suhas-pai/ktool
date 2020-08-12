@@ -460,7 +460,7 @@ PrintBindActionListOperation::Run(const ConstMachOMemoryObject &Object,
 
 static inline bool
 ListHasSortKind(
-    std::vector<PrintBindActionListOperation::Options::SortKind> &List,
+    const std::vector<PrintBindActionListOperation::Options::SortKind> &List,
     const PrintBindActionListOperation::Options::SortKind &Sort) noexcept
 {
     const auto ListEnd = List.cend();
@@ -483,7 +483,9 @@ struct PrintBindActionListOperation::Options
 PrintBindActionListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                int *IndexOut) noexcept
 {
+    auto Index = int();
     struct Options Options;
+
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
@@ -515,7 +517,7 @@ PrintBindActionListOperation::ParseOptionsImpl(const ArgvArray &Argv,
             AddSortKind("--sort-by-type", Options, Options::SortKind::ByKind);
         } else if (!Argument.IsOption()) {
             if (IndexOut != nullptr) {
-                *IndexOut = Argv.indexOf(Argument);
+                *IndexOut = Index;
             }
 
             break;
@@ -526,6 +528,12 @@ PrintBindActionListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                     Argument.getString());
             exit(1);
         }
+
+        Index++;
+    }
+
+    if (IndexOut != nullptr) {
+        *IndexOut = Index;
     }
 
     return Options;

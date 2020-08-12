@@ -441,7 +441,7 @@ PrintSymbolPtrSectionOperation::Run(const ConstMachOMemoryObject &Object,
 
 static inline bool
 ListHasSortKind(
-    std::vector<PrintSymbolPtrSectionOperation::Options::SortKind> &List,
+    const std::vector<PrintSymbolPtrSectionOperation::Options::SortKind> &List,
     const PrintSymbolPtrSectionOperation::Options::SortKind &Sort) noexcept
 {
     const auto ListEnd = List.cend();
@@ -464,8 +464,10 @@ struct PrintSymbolPtrSectionOperation::Options
 PrintSymbolPtrSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                  int *IndexOut) noexcept
 {
-    auto DidGetInfo = false;
     struct Options Options;
+
+    auto DidGetInfo = false;
+    auto Index = int();
 
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
@@ -481,7 +483,7 @@ PrintSymbolPtrSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
         } else if (!Argument.IsOption()) {
             if (DidGetInfo) {
                 if (IndexOut != nullptr) {
-                    *IndexOut = Argv.indexOf(Argument);
+                    *IndexOut = Index;
                 }
 
                 break;
@@ -502,6 +504,12 @@ PrintSymbolPtrSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
                     Argument.getString());
             exit(1);
         }
+
+        Index++;
+    }
+
+    if (IndexOut != nullptr) {
+        *IndexOut = Index;
     }
 
     return Options;

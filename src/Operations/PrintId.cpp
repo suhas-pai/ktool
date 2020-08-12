@@ -106,13 +106,15 @@ struct PrintIdOperation::Options
 PrintIdOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                    int *IndexOut) noexcept
 {
+    auto Index = int();
     struct Options Options;
+
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
         } else if (!Argument.IsOption()) {
             if (IndexOut != nullptr) {
-                *IndexOut = Argv.indexOf(Argument);
+                *IndexOut = Index;
             }
 
             break;
@@ -123,6 +125,12 @@ PrintIdOperation::ParseOptionsImpl(const ArgvArray &Argv,
                     Argument.getString());
             exit(1);
         }
+
+        Index++;
+    }
+
+    if (IndexOut != nullptr) {
+        *IndexOut = Index;
     }
 
     return Options;

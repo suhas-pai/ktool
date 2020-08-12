@@ -143,7 +143,6 @@ CollectBindOpcodeList(
             }
             case MachO::BindByte::Opcode::DoBind:
                 InfoList.emplace_back(OpcodeInfo);
-
                 if (DoesAddOverflow(OpcodeInfo.AddrInSeg,
                                     PointerSize(Is64Bit),
                                     &OpcodeInfo.AddrInSeg))
@@ -161,7 +160,6 @@ CollectBindOpcodeList(
                 continue;
             case MachO::BindByte::Opcode::DoBindAddAddrUleb:
                 InfoList.emplace_back(OpcodeInfo);
-
                 if (DoesAddOverflow(OpcodeInfo.AddrInSeg,
                                     IterInfo.AddAddr,
                                     &OpcodeInfo.AddrInSeg))
@@ -697,7 +695,9 @@ struct PrintBindOpcodeListOperation::Options
 PrintBindOpcodeListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                int *IndexOut) noexcept
 {
+    auto Index = int();
     struct Options Options;
+
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
@@ -712,7 +712,7 @@ PrintBindOpcodeListOperation::ParseOptionsImpl(const ArgvArray &Argv,
             Options.PrintWeak = true;
         } else if (!Argument.IsOption()) {
             if (IndexOut != nullptr) {
-                *IndexOut = Argv.indexOf(Argument);
+                *IndexOut = Index;
             }
 
             break;
@@ -723,6 +723,12 @@ PrintBindOpcodeListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                     Argument.getString());
             exit(1);
         }
+
+        Index++;
+    }
+
+    if (IndexOut != nullptr) {
+        *IndexOut = Index;
     }
 
     return Options;

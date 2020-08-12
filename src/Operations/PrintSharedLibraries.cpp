@@ -268,7 +268,7 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
 
 static inline bool
 ListHasSortKind(
-    std::vector<PrintSharedLibrariesOperation::Options::SortKind> &List,
+    const std::vector<PrintSharedLibrariesOperation::Options::SortKind> &List,
     const PrintSharedLibrariesOperation::Options::SortKind &Sort) noexcept
 {
     const auto ListEnd = List.cend();
@@ -291,7 +291,9 @@ struct PrintSharedLibrariesOperation::Options
 PrintSharedLibrariesOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                 int *IndexOut) noexcept
 {
+    auto Index = int();
     struct Options Options;
+
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
@@ -307,7 +309,7 @@ PrintSharedLibrariesOperation::ParseOptionsImpl(const ArgvArray &Argv,
             AddSortKind(Options::SortKind::ByTimeStamp, Argument, Options);
         } else if (!Argument.IsOption()) {
             if (IndexOut != nullptr) {
-                *IndexOut = Argv.indexOf(Argument);
+                *IndexOut = Index;
             }
 
             break;
@@ -318,6 +320,12 @@ PrintSharedLibrariesOperation::ParseOptionsImpl(const ArgvArray &Argv,
                     Argument.getString());
             exit(1);
         }
+
+        Index++;
+    }
+
+    if (IndexOut != nullptr) {
+        *IndexOut = Index;
     }
 
     return Options;

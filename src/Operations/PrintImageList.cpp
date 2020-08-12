@@ -173,8 +173,9 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
 }
 
 static inline bool
-ListHasSortKind(std::vector<PrintImageListOperation::Options::SortKind> &List,
-                const PrintImageListOperation::Options::SortKind &Sort) noexcept
+ListHasSortKind(
+    const std::vector<PrintImageListOperation::Options::SortKind> &List,
+    const PrintImageListOperation::Options::SortKind &Sort) noexcept
 {
     const auto ListEnd = List.cend();
     return (std::find(List.cbegin(), ListEnd, Sort) != ListEnd);
@@ -196,7 +197,9 @@ struct PrintImageListOperation::Options
 PrintImageListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                           int *IndexOut) noexcept
 {
+    auto Index = int();
     struct Options Options;
+
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
@@ -212,7 +215,7 @@ PrintImageListOperation::ParseOptionsImpl(const ArgvArray &Argv,
             AddSortKind(Options::SortKind::ByName, Argument, Options);
         } else if (!Argument.IsOption()) {
             if (IndexOut != nullptr) {
-                *IndexOut = Argv.indexOf(Argument);
+                *IndexOut = Index;
             }
 
             break;
@@ -223,11 +226,17 @@ PrintImageListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                     Argument.getString());
             exit(1);
         }
+
+        Index++;
     }
 
     if (Options.OnlyCount && !Options.SortKindList.empty()) {
         fputs("Error: Provided --sort-by-* when only printing count\n", stderr);
         exit(1);
+    }
+
+    if (IndexOut != nullptr) {
+        *IndexOut = Index;
     }
 
     return Options;

@@ -171,9 +171,11 @@ PrintCategoryList(
     }
 
     for (const auto &Category : CategoryList) {
-        fputs("\t\t", OutFile);
+        PrintUtilsWriteOffset32Or64(OutFile,
+                                    Is64Bit,
+                                    Category->Address,
+                                    "\t\t");
 
-        PrintUtilsWriteOffset32Or64(OutFile, Is64Bit, Category->Address);
         fprintf(OutFile, " \"%s\"\n", Category->Name.data());
     }
 }
@@ -271,7 +273,9 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
 
     if (Options.PrintTree) {
         if (!Options.SortKindList.empty()) {
-            ObjcClassCollection.Sort([&](const auto &Lhs, const auto &Rhs) {
+            ObjcClassCollection.Sort([&](const auto &Lhs,
+                                         const auto &Rhs) noexcept
+            {
                 return CompareObjcClasses(Lhs, Rhs, Options);
             });
         }
@@ -403,7 +407,7 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
 
 static inline bool
 ListHasSortKind(
-    std::vector<PrintObjcClassListOperation::Options::SortKind> &List,
+    const std::vector<PrintObjcClassListOperation::Options::SortKind> &List,
     const PrintObjcClassListOperation::Options::SortKind &Sort) noexcept
 {
     const auto ListEnd = List.cend();
@@ -426,6 +430,7 @@ struct PrintObjcClassListOperation::Options
 PrintObjcClassListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                               int *IndexOut) noexcept
 {
+    auto Index = int();
     struct Options Options;
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
@@ -442,7 +447,7 @@ PrintObjcClassListOperation::ParseOptionsImpl(const ArgvArray &Argv,
             Options.PrintTree = true;
         } else if (!Argument.IsOption()) {
             if (IndexOut != nullptr) {
-                *IndexOut = Argv.indexOf(Argument);
+                *IndexOut = Index;
             }
 
             break;
@@ -453,12 +458,18 @@ PrintObjcClassListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                     Argument.getString());
             exit(1);
         }
+
+        Index++;
     }
 
     if (Options.PrintTree && Options.PrintCategories) {
         fputs("Cannot both print a tree and print categories\n",
               Options.OutFile);
         exit(1);
+    }
+
+    if (IndexOut != nullptr) {
+        *IndexOut = Index;
     }
 
     return Options;

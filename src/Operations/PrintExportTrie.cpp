@@ -40,11 +40,10 @@ FindSegmentAndSectionForAddr(const MachO::SegmentInfoCollection &Collection,
 }
 
 static bool
-ExportMeetsRequirements(
-    const MachO::ExportTrieExportKind Kind,
-    const std::string_view &SegmentName,
-    const std::string_view &SectionName,
-    const struct PrintExportTrieOperation::Options &Options)
+ExportMeetsRequirements(const MachO::ExportTrieExportKind Kind,
+                        const std::string_view &SegmentName,
+                        const std::string_view &SectionName,
+                        const struct PrintExportTrieOperation::Options &Options)
 {
     if (!Options.KindRequirements.empty()) {
         auto MeetsReq = false;
@@ -783,7 +782,9 @@ struct PrintExportTrieOperation::Options
 PrintExportTrieOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                            int *IndexOut) noexcept
 {
+    auto Index = int();
     struct Options Options;
+
     for (auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
@@ -805,7 +806,7 @@ PrintExportTrieOperation::ParseOptionsImpl(const ArgvArray &Argv,
             Options.PrintTree = true;
         } else if (!Argument.IsOption()) {
             if (IndexOut != nullptr) {
-                *IndexOut = Argv.indexOf(Argument);
+                *IndexOut = Index;
             }
 
             break;
@@ -816,6 +817,12 @@ PrintExportTrieOperation::ParseOptionsImpl(const ArgvArray &Argv,
                     Argument.getString());
             exit(1);
         }
+
+        Index++;
+    }
+
+    if (IndexOut != nullptr) {
+        *IndexOut = Index;
     }
 
     return Options;
