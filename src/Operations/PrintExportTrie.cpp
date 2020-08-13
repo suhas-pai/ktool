@@ -93,16 +93,6 @@ ExportMeetsRequirements(const MachO::ExportTrieExportKind Kind,
 
 constexpr static auto TabLength = 8;
 
-[[nodiscard]] static uint64_t
-GetLineLengthForSymbolLength(uint64_t DepthLevel,
-                             uint64_t SymbolLength) noexcept
-{
-    const auto DepthIndex = (DepthLevel - 1);
-    const auto Length = (SymbolLength + (TabLength * DepthIndex));
-
-    return Length;
-}
-
 static void
 PrintTreeExportInfo(
     const MachO::ExportTrieExportChildNode &Export,
@@ -174,8 +164,7 @@ GetSymbolLengthForLongestPrintedLine(
         }
 
         const auto Length =
-            GetLineLengthForSymbolLength(Iter.getDepthLevel(),
-                                         Iter->String.length());
+            Iter.getPrintLineLength(TabLength) + Iter->String.length();
 
         LongestLength = Length;
     }

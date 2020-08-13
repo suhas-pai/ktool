@@ -43,6 +43,11 @@ public:
         return DepthLevel;
     }
 
+    [[nodiscard]]
+    inline uint64_t getPrintLineLength(uint64_t TabLength) noexcept {
+        return (TabLength * (getDepthLevel() - 1));
+    }
+
     [[nodiscard]] inline bool IsAtEnd() const noexcept {
         return (Current == End);
     }
@@ -293,6 +298,8 @@ public:
     [[nodiscard]] BasicTreeNode *FindNextNodeForIterator() const noexcept;
 
     inline BasicTreeNode &setFirstChild(BasicTreeNode *Node) noexcept {
+        assert(this != Node);
+
         FirstChild = Node;
         return *this;
     }
@@ -311,8 +318,10 @@ public:
         return *this;
     }
 
-    inline BasicTreeNode &setLongestChild(BasicTreeNode *Longest) noexcept {
-        LongestChild = Longest;
+    inline BasicTreeNode &setLongestChild(BasicTreeNode *Node) noexcept {
+        assert(this != Node);
+
+        LongestChild = Node;
         return *this;
     }
 
@@ -452,9 +461,10 @@ public:
             Rhs.setPrevSibling(LPrevSibling);
             Lhs.setNextSibling(RNextSibling);
 
-            const auto Parent = Lhs.getParent();
-            if (Parent->getFirstChild() == &Lhs) {
-                Parent->setFirstChild(&Rhs);
+            if (const auto Parent = Lhs.getParent()) {
+                if (Parent->getFirstChild() == &Lhs) {
+                    Parent->setFirstChild(&Rhs);
+                }
             }
 
             if (LPrevSibling != nullptr) {

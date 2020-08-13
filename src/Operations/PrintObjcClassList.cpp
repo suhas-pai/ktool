@@ -162,21 +162,73 @@ PrintCategoryList(
             return;
 
         case 1:
-            fputs("1 Category:\n", OutFile);
+            fputs("\t1 Category:\n", OutFile);
             break;
 
         default:
-            fprintf(OutFile, "%" PRIuPTR " Categories\n", CategoryList.size());
+            fprintf(OutFile,
+                    "\t%" PRIuPTR " Categories:\n",
+                    CategoryList.size());
             break;
     }
 
-    for (const auto &Category : CategoryList) {
-        PrintUtilsWriteOffset32Or64(OutFile,
-                                    Is64Bit,
-                                    Category->Address,
-                                    "\t\t");
+    auto Index = static_cast<uint64_t>(1);
+    const auto CategoryListSizeDigitLength =
+        PrintUtilsGetIntegerDigitLength(CategoryList.size());
 
+    for (const auto &Category : CategoryList) {
+        fprintf(OutFile,
+                "\t\tObjc-Class Category %0*" PRIu64 ": ",
+                CategoryListSizeDigitLength,
+                Index);
+
+        PrintUtilsWriteOffset32Or64(OutFile, Is64Bit, Category->Address);
         fprintf(OutFile, " \"%s\"\n", Category->Name.data());
+
+        Index++;
+    }
+}
+
+static void
+PrintClassVerboseInfo(
+    FILE *OutFile,
+    const MachO::SharedLibraryInfoCollection &SharedLibraryCollection,
+    uint64_t LongestLength,
+    const MachO::ObjcClassInfo &Node,
+    bool IsTree,
+    int WrittenOut) noexcept
+{
+    if (!Node.IsExternal && !Node.IsSwift && Node.Flags.empty()) {
+        return;
+    }
+
+    const auto RightPad =
+        static_cast<int>(LongestLength + LENGTH_OF("\"\" -"));
+
+    fputc(' ', OutFile);
+    PrintUtilsCharMultTimes(OutFile,
+                            '-',
+                            static_cast<int>(RightPad - WrittenOut - 1));
+
+    if (Node.IsExternal) {
+        fputs("> ", OutFile);
+        if (IsTree) {
+            fputs("Imported - ", OutFile);
+        }
+
+        OperationCommon::PrintDylibOrdinalInfo(OutFile,
+                                               SharedLibraryCollection,
+                                               Node.DylibOrdinal,
+                                               true);
+    } else {
+        fputs("> ", OutFile);
+        if (Node.IsSwift) {
+            fputs("<Swift> ", OutFile);
+        }
+
+        if (!Node.Flags.empty()) {
+            PrintClassRoFlags(OutFile, Node.Flags);
+        }
     }
 }
 
@@ -253,9 +305,11 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
         return 0;
     }
 
-    auto LongestLength = LargestIntHelper();
-
     const auto End = ObjcClassCollection.end();
+
+    auto LongestLength = LargestIntHelper();
+    auto LongestName = LargestIntHelper();
+
     for (auto Iter = ObjcClassCollection.begin(); Iter != End; Iter++) {
         if (Iter->IsNull) {
             continue;
@@ -265,10 +319,11 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
             continue;
         }
 
-        const auto DepthIndex = Iter.getDepthLevel() - 1;
-        const auto Length = (Iter->Name.length() + (TabLength * DepthIndex));
+        const auto NameLength = Iter->Name.length();
+        const auto Length = Iter.getPrintLineLength(TabLength) + NameLength;
 
         LongestLength = Length;
+        LongestName = NameLength;
     }
 
     if (Options.PrintTree) {
@@ -298,35 +353,12 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
                 return true;
             }
 
-            if (!Node.IsExternal && Node.Flags.empty() && !Node.IsSwift) {
-                return true;
-            }
-
-            const auto RightPad =
-                static_cast<int>(LongestLength + LENGTH_OF("\"\" -"));
-
-            fputc(' ', OutFile);
-            PrintUtilsCharMultTimes(
-                OutFile,
-                '-',
-                static_cast<int>(RightPad - WrittenOut - 1));
-
-            if (Node.IsExternal) {
-                fputs("> Imported - ", Options.OutFile);
-                OperationCommon::PrintDylibOrdinalInfo(OutFile,
-                                                       SharedLibraryCollection,
-                                                       Node.DylibOrdinal,
-                                                       Options.Verbose);
-            } else {
-                fputs("> ", Options.OutFile);
-                if (Node.IsSwift) {
-                    fputs("<Swift> ", Options.OutFile);
-                }
-
-                if (!Node.Flags.empty()) {
-                    PrintClassRoFlags(Options.OutFile, Node.Flags);
-                }
-            }
+            PrintClassVerboseInfo(OutFile,
+                                  SharedLibraryCollection,
+                                  LongestLength,
+                                  Node,
+                                  true,
+                                  WrittenOut);
 
             return true;
         };
@@ -353,9 +385,7 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
 
         auto I = static_cast<uint64_t>(1);
         for (const auto &Iter : ObjcClassList) {
-            const auto &Node =
-                reinterpret_cast<const MachO::ObjcClassInfo &>(*Iter);
-
+            const auto &Node = *Iter;
             if (Node.IsNull) {
                 I++;
                 continue;
@@ -379,19 +409,12 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
             const auto NamePrintLength =
                 fprintf(Options.OutFile, " \"%s\"", Node.Name.data());
 
-            if (Node.IsExternal) {
-                const auto RightPad =
-                    static_cast<int>(LongestLength + LENGTH_OF(" \"\""));
-
-                PrintUtilsRightPadSpaces(Options.OutFile,
-                                         NamePrintLength,
-                                         RightPad);
-
-                OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
-                                                       SharedLibraryCollection,
-                                                       Node.DylibOrdinal,
-                                                       Options.Verbose);
-            }
+            PrintClassVerboseInfo(Options.OutFile,
+                                  SharedLibraryCollection,
+                                  LongestName,
+                                  Node,
+                                  false,
+                                  NamePrintLength - 1);
 
             fputc('\n', Options.OutFile);
             if (Options.PrintCategories) {
@@ -432,6 +455,7 @@ PrintObjcClassListOperation::ParseOptionsImpl(const ArgvArray &Argv,
 {
     auto Index = int();
     struct Options Options;
+
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
