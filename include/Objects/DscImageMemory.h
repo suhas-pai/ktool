@@ -11,7 +11,6 @@
 #include "ADT/DyldSharedCache.h"
 #include "MachOMemory.h"
 
-struct DscMemoryObject;
 struct ConstDscImageMemoryObject : public ConstMachOMemoryObject {
 public:
     constexpr static auto ObjKind = ObjectKind::DscImage;

@@ -58,10 +58,6 @@ PrintArchListOperation::ParseOptionsImpl(const ArgvArray &Argv,
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
         } else if (!Argument.IsOption()) {
-            if (IndexOut != nullptr) {
-                *IndexOut = Index;
-            }
-
             break;
         } else {
             fprintf(stderr,

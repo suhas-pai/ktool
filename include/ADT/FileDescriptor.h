@@ -30,7 +30,12 @@ public:
         Truncate = O_TRUNC
     };
 
-    struct Flags : public BasicMasksHandler<FlagsEnum> {};
+    struct Flags : public BasicMasksHandler<FlagsEnum> {
+    private:
+        using Base = BasicMasksHandler<FlagsEnum>;
+    public:
+        using Base::Base;
+    };
 
     constexpr FileDescriptor() noexcept = default;
     explicit FileDescriptor(const FileDescriptor &) noexcept = delete;

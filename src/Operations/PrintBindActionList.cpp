@@ -516,10 +516,6 @@ PrintBindActionListOperation::ParseOptionsImpl(const ArgvArray &Argv,
         } else if (strcmp(Argument, "--sort-by-type") == 0) {
             AddSortKind("--sort-by-type", Options, Options::SortKind::ByKind);
         } else if (!Argument.IsOption()) {
-            if (IndexOut != nullptr) {
-                *IndexOut = Index;
-            }
-
             break;
         } else {
             fprintf(stderr,

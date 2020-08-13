@@ -232,10 +232,6 @@ PrintRebaseActionListOperation::ParseOptionsImpl(const ArgvArray &Argv,
         } else if (strcmp(Argument, "--sort") == 0) {
             Options.Sort = true;
         } else if (!Argument.IsOption()) {
-            if (IndexOut != nullptr) {
-                *IndexOut = Index;
-            }
-
             break;
         } else {
             fprintf(stderr,

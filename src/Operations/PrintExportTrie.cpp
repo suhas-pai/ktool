@@ -805,10 +805,6 @@ PrintExportTrieOperation::ParseOptionsImpl(const ArgvArray &Argv,
         } else if (strcmp(Argument, "--tree") == 0) {
             Options.PrintTree = true;
         } else if (!Argument.IsOption()) {
-            if (IndexOut != nullptr) {
-                *IndexOut = Index;
-            }
-
             break;
         } else {
             fprintf(stderr,

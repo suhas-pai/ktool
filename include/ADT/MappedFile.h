@@ -49,32 +49,34 @@ public:
     private:
         using Base = BasicFlags<ProtectionsEnum>;
     public:
-        using MaskType = ProtectionsEnum;
+        using Base::Base;
+
+        using Flags = ProtectionsEnum;
         [[nodiscard]] constexpr inline bool canRead() const noexcept {
-            return this->hasValueForMask(MaskType::Read);
+            return hasFlag(Flags::Read);
         }
 
         [[nodiscard]] constexpr inline bool canWrite() const noexcept {
-            return hasFlag(MaskType::Write);
+            return hasFlag(Flags::Write);
         }
 
         [[nodiscard]] constexpr inline bool canExecute() const noexcept {
-            return hasFlag(MaskType::Execute);
+            return hasFlag(Flags::Execute);
         }
 
         constexpr inline Protections &setCanRead(bool Value = true) noexcept {
-            this->setValueForMask(MaskType::Read, Value);
+            setValueForFlag(Flags::Read, Value);
             return *this;
         }
 
         constexpr inline Protections &setCanWrite(bool Value = true) noexcept {
-            this->setValueForMask(MaskType::Read, Value);
+            setValueForFlag(Flags::Read, Value);
             return *this;
         }
 
         constexpr
         inline Protections &setCanExecute(bool Value = true) noexcept {
-            this->setValueForMask(MaskType::Execute, Value);
+            setValueForFlag(Flags::Execute, Value);
             return *this;
         }
 

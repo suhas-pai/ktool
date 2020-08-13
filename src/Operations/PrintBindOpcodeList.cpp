@@ -711,10 +711,6 @@ PrintBindOpcodeListOperation::ParseOptionsImpl(const ArgvArray &Argv,
             Options.PrintAll = 0;
             Options.PrintWeak = true;
         } else if (!Argument.IsOption()) {
-            if (IndexOut != nullptr) {
-                *IndexOut = Index;
-            }
-
             break;
         } else {
             fprintf(stderr,

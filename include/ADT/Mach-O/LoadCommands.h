@@ -90,10 +90,6 @@ namespace MachO {
             return (static_cast<uint32_t>(Kind) & KindRequiredByDyld);
         }
 
-        [[nodiscard]] constexpr inline bool IsRequiredByDyld() noexcept {
-            return KindIsRequiredByDyld(getKind());
-        }
-
         [[nodiscard]]
         constexpr static inline bool KindIsValid(Kind Kind) noexcept {
             switch (Kind) {

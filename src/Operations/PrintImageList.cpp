@@ -214,10 +214,6 @@ PrintImageListOperation::ParseOptionsImpl(const ArgvArray &Argv,
         } else if (strcmp(Argument, "--sort-by-name") == 0) {
             AddSortKind(Options::SortKind::ByName, Argument, Options);
         } else if (!Argument.IsOption()) {
-            if (IndexOut != nullptr) {
-                *IndexOut = Index;
-            }
-
             break;
         } else {
             fprintf(stderr,

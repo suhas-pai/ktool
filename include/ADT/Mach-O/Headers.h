@@ -843,7 +843,7 @@ namespace MachO {
             return EmptyStringValue;
         }
 
-        using FlagsType = BasicMasksHandler<FlagsEnum>;
+        using FlagsType = BasicFlags<FlagsEnum>;
 
         Magic Magic;
         int32_t CpuKind;

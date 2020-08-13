@@ -46,6 +46,7 @@ T GetValueForMaskAndShift(T Integer, T Mask, T Shift) noexcept {
 template <typename T = uint64_t>
 constexpr static inline
 T SetValueForMaskAndShift(T &Integer, T Mask, T Shift, T Value) noexcept {
+    static_assert(std::is_integral_v<T>, "T must be an integer-type");
     return SetValueForMask(Integer, Mask, (Value << Shift));
 }
 
@@ -250,9 +251,10 @@ struct BasicFlags : public BasicMasksHandler<FlagsType> {
         return this->getValueForMask(Flag);
     }
 
-    [[nodiscard]] constexpr
-    inline bool setFlag(const FlagsType &Flag, bool Value) const noexcept {
-        return this->setValueForMask(Flag, static_cast<IntegerType>(Flag));
+    constexpr inline
+    BasicFlags &setValueForFlag(const FlagsType &Flag, bool Value) noexcept {
+        this->setValueForMask(Flag, static_cast<IntegerType>(Flag));
+        return *this;
     }
 
     [[nodiscard]]

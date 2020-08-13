@@ -51,7 +51,7 @@ namespace MachO {
         }
     };
 
-    enum class ObjcClassRoMasks : uint32_t {
+    enum class ObjcClassRoFlagsEnum : uint32_t {
         IsMeta                   = 1 << 0,
         IsRoot                   = 1 << 1,
         HasCxxStructors          = 1 << 2,
@@ -67,63 +67,133 @@ namespace MachO {
         IsRealized               = static_cast<uint32_t>(1 << 31),
     };
 
-    struct ObjcClassRoFlags : public BasicFlags<ObjcClassRoMasks> {
+    struct ObjcClassRoFlags : public BasicFlags<ObjcClassRoFlagsEnum> {
     private:
-        using Super = BasicFlags<ObjcClassRoMasks>;
+        using Base = BasicFlags<ObjcClassRoFlagsEnum>;
     public:
-        using Super::Super;
-        using Masks = ObjcClassRoMasks;
+        using Base::Base;
+        using Flags = ObjcClassRoFlagsEnum;
 
         [[nodiscard]] inline bool IsMeta() const noexcept {
-            return hasValueForMask(Masks::IsMeta);
+            return hasFlag(Flags::IsMeta);
         }
 
         [[nodiscard]] inline bool IsRoot() const noexcept {
-            return hasValueForMask(Masks::IsRoot);
+            return hasFlag(Flags::IsRoot);
         }
 
         [[nodiscard]] inline bool hasCxxStructors() const noexcept {
-            return hasValueForMask(Masks::HasCxxStructors);
+            return hasFlag(Flags::HasCxxStructors);
         }
 
         [[nodiscard]] inline bool IsHidden() const noexcept {
-            return hasValueForMask(Masks::IsHidden);
+            return hasFlag(Flags::IsHidden);
         }
 
         [[nodiscard]] inline bool IsException() const noexcept {
-            return hasValueForMask(Masks::IsException);
+            return hasFlag(Flags::IsException);
         }
 
         [[nodiscard]] inline bool hasSwiftInitializer() const noexcept {
-            return hasValueForMask(Masks::HasSwiftInitializer);
+            return hasFlag(Flags::HasSwiftInitializer);
         }
 
         [[nodiscard]] inline bool IsARC() const noexcept {
-            return hasValueForMask(Masks::IsARC);
+            return hasFlag(Flags::IsARC);
         }
 
         [[nodiscard]] inline bool hasCxxDestructorOnly() const noexcept {
-            return hasValueForMask(Masks::HasCxxDestructorOnly);
+            return hasFlag(Flags::HasCxxDestructorOnly);
         }
 
         [[nodiscard]] inline bool hasWeakWithoutARC() const noexcept {
-            return hasValueForMask(Masks::HasWeakWithoutARC);
+            return hasFlag(Flags::HasWeakWithoutARC);
         }
 
         [[nodiscard]] inline bool forbidsAssociatedObjects() const noexcept {
-            return hasValueForMask(Masks::ForbidsAssociatedObjects);
+            return hasFlag(Flags::ForbidsAssociatedObjects);
         }
 
         [[nodiscard]] inline bool IsFromBundle() const noexcept {
-            return hasValueForMask(Masks::IsFromBundle);
+            return hasFlag(Flags::IsFromBundle);
         }
 
         [[nodiscard]] inline bool IsFuture() const noexcept {
-            return hasValueForMask(Masks::IsFuture);
+            return hasFlag(Flags::IsFuture);
         }
 
         [[nodiscard]] inline bool IsRealized() const noexcept {
-            return hasValueForMask(Masks::IsRealized);
+            return hasFlag(Flags::IsRealized);
+        }
+
+        inline ObjcClassRoFlags &setIsMeta(bool Value = true) noexcept {
+            setValueForFlag(Flags::IsMeta, Value);
+            return *this;
+        }
+
+        inline ObjcClassRoFlags &setIsRoot(bool Value = true) noexcept {
+            setValueForFlag(Flags::IsRoot, Value);
+            return *this;
+        }
+
+        inline
+        ObjcClassRoFlags &setHasCxxStructors(bool Value = true) noexcept {
+            setValueForFlag(Flags::HasCxxStructors, Value);
+            return *this;
+        }
+
+        inline ObjcClassRoFlags &setIsHidden(bool Value = true) noexcept {
+            setValueForFlag(Flags::IsHidden, Value);
+            return *this;
+        }
+
+        inline ObjcClassRoFlags &setIsException(bool Value = true) noexcept {
+            setValueForFlag(Flags::IsException, Value);
+            return *this;
+        }
+
+        inline
+        ObjcClassRoFlags &setHasSwiftInitializer(bool Value = true) noexcept {
+            setValueForFlag(Flags::HasSwiftInitializer, Value);
+            return *this;
+        }
+
+        inline ObjcClassRoFlags &setIsARC(bool Value = true) noexcept {
+            setValueForFlag(Flags::IsARC, Value);
+            return *this;
+        }
+
+        inline
+        ObjcClassRoFlags &setHasCxxDestructorOnly(bool Value = true) noexcept {
+            setValueForFlag(Flags::HasCxxDestructorOnly, Value);
+            return *this;
+        }
+
+        inline
+        ObjcClassRoFlags &setHasWeakWithoutARC(bool Value = true) noexcept {
+            setValueForFlag(Flags::HasWeakWithoutARC, Value);
+            return *this;
+        }
+
+        inline ObjcClassRoFlags &
+        setForbidsAssociatedObjects(bool Value = true) noexcept {
+            setValueForFlag(Flags::ForbidsAssociatedObjects, Value);
+            return *this;
+        }
+
+        inline ObjcClassRoFlags &setIsFromBundle(bool Value = true) noexcept {
+            setValueForFlag(Flags::IsFromBundle, Value);
+            return *this;
+        }
+
+        inline ObjcClassRoFlags &setIsFuture(bool Value = true) noexcept {
+            setValueForFlag(Flags::IsFuture, Value);
+            return *this;
+        }
+
+        inline ObjcClassRoFlags &setIsRealized(bool Value = true) noexcept {
+            setValueForFlag(Flags::IsRealized, Value);
+            return *this;
         }
     };
 

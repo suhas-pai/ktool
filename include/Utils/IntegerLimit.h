@@ -15,7 +15,7 @@ using IntegerLimitDefaultType = void;
 
 template <typename ValueType, typename MaxValueType = uint64_t>
 using IntegerLimitRealValueType =
-        typename std::conditional<
-            std::is_same_v<ValueType, IntegerLimitDefaultType>,
-            MaxValueType,
-            ValueType>::type;
+    typename std::conditional<
+        std::is_same_v<ValueType, IntegerLimitDefaultType>,
+        MaxValueType,
+        ValueType>::type;

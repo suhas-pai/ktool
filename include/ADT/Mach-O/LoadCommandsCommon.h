@@ -730,76 +730,62 @@ namespace MachO {
 
     constexpr std::string_view
     SegmentSectionKindGetName(SegmentSectionKind Type) noexcept {
+        using Enum = SegmentSectionKind;
         switch (Type) {
             case SegmentSectionKind::Regular:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::Regular>::Name;
+                return SegmentSectionKindInfo<Enum::Regular>::Name;
             case SegmentSectionKind::ZeroFillOnDemand:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::ZeroFillOnDemand>::Name;
+                return SegmentSectionKindInfo<Enum::ZeroFillOnDemand>::Name;
             case SegmentSectionKind::CStringLiterals:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::CStringLiterals>::Name;
+                return SegmentSectionKindInfo<Enum::CStringLiterals>::Name;
             case SegmentSectionKind::FourByteLiterals:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::FourByteLiterals>::Name;
+                return SegmentSectionKindInfo<Enum::FourByteLiterals>::Name;
             case SegmentSectionKind::EightByteLiterals:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::EightByteLiterals>::Name;
+                return SegmentSectionKindInfo<Enum::EightByteLiterals>::Name;
             case SegmentSectionKind::LiteralPointers:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::LiteralPointers>::Name;
+                return SegmentSectionKindInfo<Enum::LiteralPointers>::Name;
             case SegmentSectionKind::NonLazySymbolPointers:
                 return SegmentSectionKindInfo<
-                    SegmentSectionKind::NonLazySymbolPointers>::Name;
+                    Enum::NonLazySymbolPointers>::Name;
             case SegmentSectionKind::LazySymbolPointers:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::LazySymbolPointers>::Name;
+                return SegmentSectionKindInfo<Enum::LazySymbolPointers>::Name;
             case SegmentSectionKind::SymbolStubs:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::SymbolStubs>::Name;
+                return SegmentSectionKindInfo<Enum::SymbolStubs>::Name;
             case SegmentSectionKind::ModInitFunctionPointers:
                 return SegmentSectionKindInfo<
-                    SegmentSectionKind::ModInitFunctionPointers>::Name;
+                    Enum::ModInitFunctionPointers>::Name;
             case SegmentSectionKind::ModTermFunctionPointers:
                 return SegmentSectionKindInfo<
-                    SegmentSectionKind::ModTermFunctionPointers>::Name;
+                    Enum::ModTermFunctionPointers>::Name;
             case SegmentSectionKind::CoalescedSymbols:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::CoalescedSymbols>::Name;
+                return SegmentSectionKindInfo<Enum::CoalescedSymbols>::Name;
             case SegmentSectionKind::ZeroFillOnDemandGigaBytes:
                 return SegmentSectionKindInfo<
-                    SegmentSectionKind::ZeroFillOnDemandGigaBytes>::Name;
+                    Enum::ZeroFillOnDemandGigaBytes>::Name;
             case SegmentSectionKind::InterposingFunctions:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::InterposingFunctions>::Name;
+                return SegmentSectionKindInfo<Enum::InterposingFunctions>::Name;
             case SegmentSectionKind::SixteenByteLiterals:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::SixteenByteLiterals>::Name;
+                return SegmentSectionKindInfo<Enum::SixteenByteLiterals>::Name;
             case SegmentSectionKind::DTraceDOF:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::DTraceDOF>::Name;
+                return SegmentSectionKindInfo<Enum::DTraceDOF>::Name;
             case SegmentSectionKind::LazyDylibSymbolPointers:
                 return SegmentSectionKindInfo<
-                    SegmentSectionKind::LazyDylibSymbolPointers>::Name;
+                    Enum::LazyDylibSymbolPointers>::Name;
             case SegmentSectionKind::ThreadLocalRegular:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::ThreadLocalRegular>::Name;
+                return SegmentSectionKindInfo<Enum::ThreadLocalRegular>::Name;
             case SegmentSectionKind::ThreadLocalZeroFill:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::ThreadLocalZeroFill>::Name;
+                return SegmentSectionKindInfo<Enum::ThreadLocalZeroFill>::Name;
             case SegmentSectionKind::TheradLocalVariables:
-                return SegmentSectionKindInfo<
-                    SegmentSectionKind::TheradLocalVariables>::Name;
+                return SegmentSectionKindInfo<Enum::TheradLocalVariables>::Name;
             case SegmentSectionKind::ThreadLocalVariablePointers:
                 return SegmentSectionKindInfo<
-                    SegmentSectionKind::ThreadLocalVariablePointers>::Name;
+                    Enum::ThreadLocalVariablePointers>::Name;
             case SegmentSectionKind::ThreadLocalInitFunctionPointers:
                 return SegmentSectionKindInfo<
-                    SegmentSectionKind::ThreadLocalInitFunctionPointers>::Name;
+                    Enum::ThreadLocalInitFunctionPointers>::Name;
             case SegmentSectionKind::InitFunction32BitOffsets:
                 return SegmentSectionKindInfo<
-                    SegmentSectionKind::InitFunction32BitOffsets>::Name;
+                    Enum::InitFunction32BitOffsets>::Name;
         }
 
         return std::string_view();
@@ -913,9 +899,7 @@ namespace MachO {
         using MaskType = SegmentSectionAttributesMasks;
         using MaskIntegerType = std::underlying_type_t<MaskType>;
 
-        constexpr SegmentSectionAttributes() noexcept = default;
-        constexpr SegmentSectionAttributes(MaskIntegerType Attributes)
-        : Base(Attributes) {}
+        using Base::Base;
 
         [[nodiscard]]
         constexpr inline bool IsAllInstructions() const noexcept {
@@ -1044,9 +1028,7 @@ namespace MachO {
         using Kind = SegmentSectionKind;
         using Attributes = SegmentSectionAttributes;
 
-        constexpr SegmentSectionFlags() noexcept = default;
-        constexpr SegmentSectionFlags(MaskIntegerType Integer) noexcept
-        : Base(Integer) {}
+        using Base::Base;
 
         [[nodiscard]]
         constexpr inline Attributes getAttributes() const noexcept {

@@ -106,7 +106,7 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
 
     auto LCIndex = uint32_t();
     auto DylibList = std::vector<DylibInfo>();
-    auto MaxDylibNameLength = std::string_view::size_type();
+    auto MaxDylibNameLength = LargestIntHelper();
 
     for (const auto &LoadCmd : LoadCmdStorage) {
         const auto LCKind = LoadCmd.getKind(IsBigEndian);
@@ -149,10 +149,7 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
                 const auto &Name =
                     OperationCommon::GetLoadCommandStringValue(GetNameResult);
 
-                if (MaxDylibNameLength < Name.length()) {
-                    MaxDylibNameLength = Name.length();
-                }
-
+                MaxDylibNameLength = Name.length();
                 DylibList.push_back({
                     .Index = LCIndex,
                     .Kind = LCKind,
@@ -308,10 +305,6 @@ PrintSharedLibrariesOperation::ParseOptionsImpl(const ArgvArray &Argv,
         } else if (strcmp(Argument, "--sort-by-timestamp") == 0) {
             AddSortKind(Options::SortKind::ByTimeStamp, Argument, Options);
         } else if (!Argument.IsOption()) {
-            if (IndexOut != nullptr) {
-                *IndexOut = Index;
-            }
-
             break;
         } else {
             fprintf(stderr,

@@ -145,7 +145,7 @@ namespace MachO {
             case Enum::None:
                 return EmptyStringValue;
             case Enum::Regular:
-                return ExportTrieExportKindInfo< Enum::Regular>::Name;
+                return ExportTrieExportKindInfo<Enum::Regular>::Name;
             case Enum::Absolute:
                 return ExportTrieExportKindInfo<Enum::Absolute>::Name;
             case Enum::Reexport:

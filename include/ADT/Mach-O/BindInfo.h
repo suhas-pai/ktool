@@ -482,9 +482,7 @@ namespace MachO {
         using Base = BasicMasksHandler<BindSymbolFlagsEnum>;
     public:
         using Enum = BindSymbolFlagsEnum;
-
-        constexpr BindSymbolFlags() noexcept = default;
-        constexpr BindSymbolFlags(uint8_t Byte) noexcept : Base(Byte) {}
+        using Base::Base;
 
         [[nodiscard]] constexpr inline bool IsWeakImport() const noexcept {
             return this->hasValueForMask(Enum::WeakImport);

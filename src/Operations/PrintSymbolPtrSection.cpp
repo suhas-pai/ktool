@@ -482,10 +482,6 @@ PrintSymbolPtrSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
             AddSortKind(Options::SortKind::BySymbol, Argument, Options);
         } else if (!Argument.IsOption()) {
             if (DidGetInfo) {
-                if (IndexOut != nullptr) {
-                    *IndexOut = Index;
-                }
-
                 break;
             }
 

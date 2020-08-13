@@ -251,10 +251,6 @@ PrintCStringSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
             Options.Sort = true;
         } else if (!Argument.IsOption()) {
             if (DidGetInfo) {
-                if (IndexOut != nullptr) {
-                    *IndexOut = Index;
-                }
-
                 break;
             }
 

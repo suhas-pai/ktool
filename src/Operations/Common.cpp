@@ -538,7 +538,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -553,7 +553,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -566,7 +566,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -579,7 +579,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -592,7 +592,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -605,7 +605,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -620,7 +620,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -635,7 +635,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -650,7 +650,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -665,7 +665,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -680,7 +680,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -693,7 +693,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -708,7 +708,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -723,7 +723,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -736,7 +736,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -751,7 +751,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -764,7 +764,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -779,7 +779,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -792,7 +792,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -805,7 +805,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -820,7 +820,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -833,7 +833,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
                 Header::FlagInfo<
                     Header::FlagsEnum::PositionIndependentExecutable>;
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -848,7 +848,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -863,7 +863,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -878,7 +878,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -893,7 +893,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -908,7 +908,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -923,7 +923,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
@@ -936,7 +936,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
             static_assert(FlagInfo::Name.length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
-            if (Flags.hasValueForMask(FlagInfo::Kind)) {
+            if (Flags.hasFlag(FlagInfo::Kind)) {
                 FlagInfoList.push_back({
                     .Name = FlagInfo::Name,
                     .Description = FlagInfo::Description,
