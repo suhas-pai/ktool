@@ -233,7 +233,11 @@ protected:
     DscMemoryObject(Error Error) noexcept;
     explicit DscMemoryObject(const MemoryMap &Map, CpuKind CpuKind) noexcept;
 public:
-    [[nodiscard]] static DscMemoryObject Open(const MemoryMap &Map) noexcept;
+    [[nodiscard]]
+    static inline DscMemoryObject Open(const MemoryMap &Map) noexcept {
+        auto Result = ConstDscMemoryObject::Open(Map);
+        return *reinterpret_cast<DscMemoryObject *>(&Result);
+    }
 
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
         assert(!hasError());

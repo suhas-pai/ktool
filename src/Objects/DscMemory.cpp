@@ -127,17 +127,6 @@ ConstDscMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
     return ConstDscMemoryObject(Map, CpuKind);
 }
 
-DscMemoryObject DscMemoryObject::Open(const MemoryMap &Map) noexcept {
-    auto CpuKind = DscMemoryObject::CpuKind::i386;
-    const auto Error = ValidateMap(Map, CpuKind);
-
-    if (Error != Error::None) {
-        return Error;
-    }
-
-    return DscMemoryObject(Map, CpuKind);
-}
-
 bool ConstDscMemoryObject::DidMatchFormat() const noexcept {
     switch (ErrorStorage.getValue()) {
         case Error::None:

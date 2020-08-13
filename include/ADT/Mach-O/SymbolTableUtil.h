@@ -33,6 +33,7 @@ namespace MachO {
     enum class SymbolTableParseError {
         None,
         InvalidStringOffset,
+        NoNullTerminator,
         OutOfBoundsIndirectIndex,
         InvalidSection
     };

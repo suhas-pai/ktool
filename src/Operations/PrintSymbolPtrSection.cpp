@@ -386,6 +386,11 @@ PrintSymbolPtrList(
                   "(String-Index is out-of-bounds)\n",
                   Options.ErrFile);
             return 1;
+        case MachO::SymbolTableParseError::NoNullTerminator:
+            fputs("Provided file has an invalid symbol-table entry "
+                  "(String has no null-terminator)\n",
+                  Options.ErrFile);
+            return 1;
         case MachO::SymbolTableParseError::OutOfBoundsIndirectIndex:
             fputs("Provided Section points to an invalid indirect-symbol\n",
                   Options.ErrFile);
@@ -492,7 +497,6 @@ PrintSymbolPtrSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                      Options.SectionName);
 
             DidGetInfo = true;
-            continue;
         } else {
             fprintf(stderr,
                     "Unrecognized argument for operation %s: %s\n",

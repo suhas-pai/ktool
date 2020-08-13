@@ -60,7 +60,7 @@ GetCStringList(FILE *OutFile,
 
     auto Length = uint64_t();
     for (auto String = Begin;
-         String <= End;
+         String < End;
          String += (Length + 1),
          FileOffset += (Length + 1),
          VmAddr += (Length + 1))
@@ -260,7 +260,6 @@ PrintCStringSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                      Options.SectionName);
 
             DidGetInfo = true;
-            continue;
         } else {
             fprintf(stderr,
                     "Unrecognized argument for operation %s: %s\n",

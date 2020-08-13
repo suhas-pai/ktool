@@ -82,7 +82,10 @@ namespace MachO {
             return nullptr;
         }
 
+        [[nodiscard]]
         static const std::string_view &KindGetName(Kind Kind) noexcept;
+
+        [[nodiscard]]
         static const std::string_view &KindGetDescription(Kind Kind) noexcept;
 
         [[nodiscard]]
@@ -161,7 +164,6 @@ namespace MachO {
                 case Kind::LazyLoadDylib:
                 case Kind::LoadUpwardDylib:
                     return true;
-
                 case Kind::Segment:
                 case Kind::SymbolTable:
                 case Kind::SymbolSegment:
@@ -1116,10 +1118,55 @@ namespace MachO {
         }
 
         inline SymbolTableEntry32 &
-        setDylibOrdinal(uint16_t DylibOrdinal) noexcept {
-            const auto Desc = reinterpret_cast<uint16_t *>(&this->Desc);
+        setDylibOrdinal(uint16_t DylibOrdinal, bool IsBigEndian) noexcept {
+            auto Desc = static_cast<uint16_t>(getDesc(IsBigEndian));
 
-            SetDylibOrdinal(*Desc, DylibOrdinal);
+            SetDylibOrdinal(Desc, DylibOrdinal);
+            setDesc(Desc, IsBigEndian);
+
+            return *this;
+        }
+
+        [[nodiscard]]
+        inline uint32_t getIndex(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(Index, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        inline uint8_t getSection(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(Section, IsBigEndian);
+        }
+
+        [[nodiscard]] inline int16_t getDesc(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(Desc, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        inline uint32_t getValue(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(Value, IsBigEndian);
+        }
+
+        inline SymbolTableEntry32 &
+        setIndex(uint32_t Value, bool IsBigEndian) noexcept {
+            Index = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline SymbolTableEntry32 &
+        setSection(uint8_t Value, bool IsBigEndian) noexcept {
+            Section = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline
+        SymbolTableEntry32 &setDesc(int16_t Value, bool IsBigEndian) noexcept {
+            Desc = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline SymbolTableEntry32 &
+        setValue(uint32_t Value, bool IsBigEndian) noexcept {
+            Value = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
     };
@@ -1136,9 +1183,56 @@ namespace MachO {
             return GetDylibOrdinal(Desc);
         }
 
-        constexpr inline
-        SymbolTableEntry64 &setDylibOrdinal(uint16_t DylibOrdinal) noexcept {
+        constexpr inline SymbolTableEntry64 &
+        setDylibOrdinal(uint16_t DylibOrdinal, bool IsBigEndian) noexcept {
+            auto Desc = getDesc(IsBigEndian);
+
             SetDylibOrdinal(Desc, DylibOrdinal);
+            setDesc(Desc, IsBigEndian);
+
+            return *this;
+        }
+
+        [[nodiscard]]
+        inline uint32_t getIndex(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(Index, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        inline uint8_t getSection(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(Section, IsBigEndian);
+        }
+
+        [[nodiscard]] inline uint16_t getDesc(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(Desc, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        inline uint64_t getValue(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(Value, IsBigEndian);
+        }
+
+        inline SymbolTableEntry64 &
+        setIndex(uint32_t Value, bool IsBigEndian) noexcept {
+            Index = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline SymbolTableEntry64 &
+        setSection(uint8_t Value, bool IsBigEndian) noexcept {
+            Section = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline
+        SymbolTableEntry64 &setDesc(uint16_t Value, bool IsBigEndian) noexcept {
+            Desc = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline SymbolTableEntry64 &
+        setValue(uint64_t Value, bool IsBigEndian) noexcept {
+            Value = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
     };
@@ -1172,6 +1266,50 @@ namespace MachO {
         uint32_t Nsyms;
         uint32_t StrOff;
         uint32_t StrSize;
+
+        [[nodiscard]]
+        inline uint32_t getSymbolTableOffset(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(SymOff, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        inline uint32_t getSymbolsCount(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(Nsyms, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        inline uint32_t getStringTableOffset(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(StrOff, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        inline uint32_t getStringTableSize(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(StrSize, IsBigEndian);
+        }
+
+        [[nodiscard]] inline SymTabCommand &
+        setSymbolTableOffset(uint32_t Value, bool IsBigEndian) noexcept {
+            SymOff = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        [[nodiscard]] inline SymTabCommand &
+        setSymbolsCount(uint32_t Value, bool IsBigEndian) noexcept {
+            Nsyms = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        [[nodiscard]] inline SymTabCommand &
+        setStringTableOffset(uint32_t Value, bool IsBigEndian) noexcept {
+            StrOff = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        [[nodiscard]] inline SymTabCommand &
+        setStringTableSize(uint32_t Value, bool IsBigEndian) noexcept {
+            StrSize = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
 
         using Entry32 = SymbolTableEntry32;
         using Entry64 = SymbolTableEntry64;
@@ -1248,6 +1386,218 @@ namespace MachO {
 
         uint32_t LocalRelocationsOff;
         uint32_t NLocalRelocations;
+
+        [[nodiscard]]
+        inline uint32_t getLocalSymbolsIndex(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(ILocalSymbols, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        inline uint32_t getLocalSymbolsCount(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(NLocalSymbols, IsBigEndian);
+        }
+
+        [[nodiscard]] inline
+        uint32_t getExternalSymbolsIndex(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(IExternallyDefinedSymbols, IsBigEndian);
+        }
+
+        [[nodiscard]] inline
+        uint32_t getExternalSymbolsCount(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(NExternallyDefinedSymbols, IsBigEndian);
+        }
+
+        [[nodiscard]] inline
+        uint32_t getUndefinedSymbolsIndex(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(IUndefinedSymbols, IsBigEndian);
+        }
+
+        [[nodiscard]] inline
+        uint32_t getUndefinedSymbolsCount(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(NUndefinedSymbols, IsBigEndian);
+        }
+
+        [[nodiscard]] inline
+        uint32_t getTableOfContentsOffset(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(TableOfContentsOff, IsBigEndian);
+        }
+
+        [[nodiscard]] inline
+        uint32_t getTableOfContentsCount(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(NTableOfContentsEntries, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        inline uint32_t getModuleTableOffset(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(ModuleTableOff, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        inline uint32_t getModuleTableCount(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(NModuleTableEntries, IsBigEndian);
+        }
+
+        [[nodiscard]] inline uint32_t
+        getExternalRefSymbolTableOffset(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(ExternalReferenceSymbolTableoff, IsBigEndian);
+        }
+
+        [[nodiscard]] inline uint32_t
+        getExternalRefSymbolTableCount(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(NExtReferencedSymbols, IsBigEndian);
+        }
+
+        [[nodiscard]] inline
+        uint32_t getIndirectSymbolTableOffset(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(IndirectSymbolTableOff, IsBigEndian);
+        }
+
+        [[nodiscard]] inline
+        uint32_t getIndirectSymbolTableCount(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(NIndirectSymbols, IsBigEndian);
+        }
+
+        [[nodiscard]] inline
+        uint32_t getExternalRelocationsOffset(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(ExternalRelocationsOff, IsBigEndian);
+        }
+
+        [[nodiscard]] inline
+        uint32_t getExternalRelocationsCount(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(NExternalRelocations, IsBigEndian);
+        }
+
+        [[nodiscard]] inline
+        uint32_t getLocalRelocationsOffset(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(LocalRelocationsOff, IsBigEndian);
+        }
+
+        [[nodiscard]] inline
+        uint32_t getLocalRelocationsCount(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(NLocalRelocations, IsBigEndian);
+        }
+
+        inline DynamicSymTabCommand &
+        setLocalSymbolsIndex(uint32_t Value, bool IsBigEndian) noexcept {
+            ILocalSymbols = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+
+        inline DynamicSymTabCommand &
+        setLocalSymbolsCount(uint32_t Value, bool IsBigEndian) noexcept {
+            NLocalSymbols = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        setExternalSymbolsIndex(uint32_t Value, bool IsBigEndian) noexcept {
+            IExternallyDefinedSymbols = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        setExternalSymbolsCount(uint32_t Value, bool IsBigEndian) noexcept {
+            NExternallyDefinedSymbols = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        setUndefinedSymbolsIndex(uint32_t Value, bool IsBigEndian) noexcept {
+            IUndefinedSymbols = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        setUndefinedSymbolsCount(uint32_t Value, bool IsBigEndian) noexcept {
+            NUndefinedSymbols = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        setTableOfContentsOffset(uint32_t Value, bool IsBigEndian) noexcept {
+            TableOfContentsOff = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        setTableOfContentsCount(uint32_t Value, bool IsBigEndian) noexcept {
+            NTableOfContentsEntries = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+
+        inline DynamicSymTabCommand &
+        getModuleTableOffset(uint32_t Value, bool IsBigEndian) noexcept {
+            ModuleTableOff = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+
+        inline DynamicSymTabCommand &
+        getModuleTableCount(uint32_t Value, bool IsBigEndian) noexcept {
+            NModuleTableEntries = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        getExternslRefSymbolTableOffset(uint32_t Value,
+                                        bool IsBigEndian) noexcept
+        {
+            ExternalReferenceSymbolTableoff =
+                SwitchEndianIf(Value, IsBigEndian);
+
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        getExternslRefSymbolTableCount(uint32_t Value,
+                                       bool IsBigEndian) noexcept
+        {
+            NExtReferencedSymbols = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        setIndirectSymbolTableOffset(uint32_t Value,
+                                     bool IsBigEndian) noexcept
+        {
+            IndirectSymbolTableOff = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        setIndirectSymbolTableCount(uint32_t Value, bool IsBigEndian) noexcept {
+            NIndirectSymbols = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        setExternalRelocationsOffset(uint32_t Value,
+                                     bool IsBigEndian) noexcept
+        {
+            ExternalRelocationsOff = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        setExternalRelocationsCount(uint32_t Value, bool IsBigEndian) noexcept {
+            NExternalRelocations = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        setLocalRelocationsOffset(uint32_t Value, bool IsBigEndian) noexcept {
+            LocalRelocationsOff = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
+        inline DynamicSymTabCommand &
+        setLocalRelocationsCount(uint32_t Value, bool IsBigEndian) noexcept {
+            NLocalRelocations = SwitchEndianIf(Value, IsBigEndian);
+            return *this;
+        }
+
 
         using Entry32 = SymbolTableEntry32;
         using Entry64 = SymbolTableEntry64;
@@ -1699,8 +2049,7 @@ namespace MachO {
     struct PlatformKindInfo<PlatformKind::macOS> {
         constexpr static const auto Kind = PlatformKind::macOS;
 
-        constexpr static const auto Name =
-            std::string_view("PLATFORM_MACOS");
+        constexpr static const auto Name = std::string_view("PLATFORM_MACOS");
         constexpr static const auto Description = std::string_view("macOS");
     };
 
@@ -1793,28 +2142,28 @@ namespace MachO {
 
     [[nodiscard]] constexpr static const std::string_view &
     PlatformKindGetName(PlatformKind Kind) noexcept {
+        using Enum = PlatformKind;
         switch (Kind) {
             case PlatformKind::macOS:
-                return PlatformKindInfo<PlatformKind::macOS>::Name;
+                return PlatformKindInfo<Enum::macOS>::Name;
             case PlatformKind::iOS:
-                return PlatformKindInfo<PlatformKind::iOS>::Name;
+                return PlatformKindInfo<Enum::iOS>::Name;
             case PlatformKind::tvOS:
-                return PlatformKindInfo<PlatformKind::tvOS>::Name;
+                return PlatformKindInfo<Enum::tvOS>::Name;
             case PlatformKind::watchOS:
-                return PlatformKindInfo<PlatformKind::watchOS>::Name;
+                return PlatformKindInfo<Enum::watchOS>::Name;
             case PlatformKind::bridgeOS:
-                return PlatformKindInfo<PlatformKind::bridgeOS>::Name;
+                return PlatformKindInfo<Enum::bridgeOS>::Name;
             case PlatformKind::iOSMac:
-                return PlatformKindInfo<PlatformKind::iOSMac>::Name;
+                return PlatformKindInfo<Enum::iOSMac>::Name;
             case PlatformKind::iOSSimulator:
-                return PlatformKindInfo<PlatformKind::iOSSimulator>::Name;
+                return PlatformKindInfo<Enum::iOSSimulator>::Name;
             case PlatformKind::tvOSSimulator:
-                return PlatformKindInfo<PlatformKind::tvOSSimulator>::Name;
+                return PlatformKindInfo<Enum::tvOSSimulator>::Name;
             case PlatformKind::watchOSSimulator:
-                return
-                    PlatformKindInfo<PlatformKind::watchOSSimulator>::Name;
+                return PlatformKindInfo<Enum::watchOSSimulator>::Name;
             case PlatformKind::DriverKit:
-                return PlatformKindInfo<PlatformKind::DriverKit>::Name;
+                return PlatformKindInfo<Enum::DriverKit>::Name;
         }
 
         return EmptyStringValue;
@@ -1822,35 +2171,28 @@ namespace MachO {
 
     [[nodiscard]] constexpr static const std::string_view &
     PlatformKindGetDescription(PlatformKind Kind) noexcept {
+        using Enum = PlatformKind;
         switch (Kind) {
             case PlatformKind::macOS:
-                return PlatformKindInfo<PlatformKind::macOS>::Description;
+                return PlatformKindInfo<Enum::macOS>::Description;
             case PlatformKind::iOS:
-                return PlatformKindInfo<PlatformKind::iOS>::Description;
+                return PlatformKindInfo<Enum::iOS>::Description;
             case PlatformKind::tvOS:
-                return PlatformKindInfo<PlatformKind::tvOS>::Description;
+                return PlatformKindInfo<Enum::tvOS>::Description;
             case PlatformKind::watchOS:
-                return PlatformKindInfo<PlatformKind::watchOS>::Description;
+                return PlatformKindInfo<Enum::watchOS>::Description;
             case PlatformKind::bridgeOS:
-                return
-                    PlatformKindInfo<PlatformKind::bridgeOS>::Description;
+                return PlatformKindInfo<Enum::bridgeOS>::Description;
             case PlatformKind::iOSMac:
-                return PlatformKindInfo<PlatformKind::iOSMac>::Description;
+                return PlatformKindInfo<Enum::iOSMac>::Description;
             case PlatformKind::iOSSimulator:
-                return
-                    PlatformKindInfo<PlatformKind::iOSSimulator>
-                        ::Description;
+                return PlatformKindInfo<Enum::iOSSimulator>::Description;
             case PlatformKind::tvOSSimulator:
-                return
-                    PlatformKindInfo<PlatformKind::tvOSSimulator>
-                    ::Description;
+                return PlatformKindInfo<Enum::tvOSSimulator>::Description;
             case PlatformKind::watchOSSimulator:
-                return
-                    PlatformKindInfo<PlatformKind::watchOSSimulator>
-                        ::Description;
+                return PlatformKindInfo<Enum::watchOSSimulator>::Description;
             case PlatformKind::DriverKit:
-                return
-                    PlatformKindInfo<PlatformKind::DriverKit>::Description;
+                return PlatformKindInfo<Enum::DriverKit>::Description;
         }
 
         return EmptyStringValue;
@@ -1905,7 +2247,7 @@ namespace MachO {
             uint32_t Version;
 
             [[nodiscard]] constexpr
-            inline enum Kind GetKind(bool IsBigEndian) const noexcept {
+            inline enum Kind getKind(bool IsBigEndian) const noexcept {
                 const auto Integer = SwitchEndianIf(Kind, IsBigEndian);
                 return static_cast<enum Kind>(Integer);
             }
@@ -2000,6 +2342,11 @@ namespace MachO {
             return SwitchEndianIf(Sdk, IsBigEndian);
         }
 
+        [[nodiscard]] constexpr
+        inline uint32_t getToolCount(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(NTools, IsBigEndian);
+        }
+
         constexpr inline BuildVersionCommand &
         setPlatform(PlatformKind Platform, bool IsBigEndian) noexcept {
             const auto Value = static_cast<uint32_t>(Platform);
@@ -2009,7 +2356,7 @@ namespace MachO {
         }
 
         constexpr inline BuildVersionCommand &
-        getMinOS(const PackedVersion &MinOS, bool IsBigEndian) noexcept {
+        setMinOS(const PackedVersion &MinOS, bool IsBigEndian) noexcept {
             this->MinOS = SwitchEndianIf(MinOS.value(), IsBigEndian);
             return *this;
         }
@@ -2017,6 +2364,12 @@ namespace MachO {
         constexpr inline BuildVersionCommand &
         setSdk(const PackedVersion &Sdk, bool IsBigEndian) noexcept {
             this->Sdk = SwitchEndianIf(Sdk.value(), IsBigEndian);
+            return *this;
+        }
+
+        [[nodiscard]] constexpr inline BuildVersionCommand &
+        setToolCount(uint32_t Value, bool IsBigEndian) noexcept {
+            NTools = SwitchEndianIf(NTools, IsBigEndian);
             return *this;
         }
 

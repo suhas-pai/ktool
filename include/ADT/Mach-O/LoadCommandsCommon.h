@@ -309,32 +309,32 @@ namespace MachO {
         : ::BasicFlags<MemoryProtectionsEnum>(Integer) {}
 
         [[nodiscard]] constexpr inline bool IsReadable() const noexcept {
-            return hasValueForMask(Masks::Read);
+            return hasFlag(Masks::Read);
         }
 
         [[nodiscard]] constexpr inline bool IsWritable() const noexcept {
-            return hasValueForMask(Masks::Write);
+            return hasFlag(Masks::Write);
         }
 
         [[nodiscard]] constexpr inline bool IsExecutable() const noexcept {
-            return hasValueForMask(Masks::Execute);
+            return hasFlag(Masks::Execute);
         }
 
         constexpr
         inline MemoryProtections &setReadable(bool Value = true) noexcept {
-            setValueForMask(Masks::Read, Value);
+            setValueForFlag(Masks::Read, Value);
             return *this;
         }
 
         constexpr
         inline MemoryProtections &setWritable(bool Value = true) noexcept {
-            setValueForMask(Masks::Write, Value);
+            setValueForFlag(Masks::Write, Value);
             return *this;
         }
 
         constexpr
         inline MemoryProtections &setExecutable(bool Value = true) noexcept {
-            setValueForMask(Masks::Execute, Value);
+            setValueForFlag(Masks::Execute, Value);
             return *this;
         }
     };
@@ -407,52 +407,52 @@ namespace MachO {
         : Base(Integer) {}
 
         [[nodiscard]] constexpr inline bool IsHighVM() const noexcept {
-            return hasValueForMask(FlagType::HighVM);
+            return hasFlag(FlagType::HighVM);
         }
 
         [[nodiscard]] constexpr inline bool IsFixedVMLibary() const noexcept {
-            return hasValueForMask(FlagType::FixedVMLibary);
+            return hasFlag(FlagType::FixedVMLibary);
         }
 
         [[nodiscard]] constexpr inline bool IsNoRelocations() const noexcept {
-            return hasValueForMask(FlagType::NoRelocations);
+            return hasFlag(FlagType::NoRelocations);
         }
 
         [[nodiscard]] constexpr inline bool IsProtected() const noexcept {
-            return hasValueForMask(FlagType::ProtectionVersion1);
+            return hasFlag(FlagType::ProtectionVersion1);
         }
 
         [[nodiscard]]
         constexpr inline bool IsReadOnlyAfterFixup() const noexcept {
-            return hasValueForMask(FlagType::ReadOnlyAfterFixup);
+            return hasFlag(FlagType::ReadOnlyAfterFixup);
         }
 
         constexpr inline SegmentFlags &setHighVM(bool Value = true) noexcept {
-            setValueForMask(FlagType::HighVM, Value);
+            setValueForFlag(FlagType::HighVM, Value);
             return *this;
         }
 
         constexpr
         inline SegmentFlags &setFixedVMLibary(bool Value = true) noexcept {
-            setValueForMask(FlagType::FixedVMLibary, Value);
+            setValueForFlag(FlagType::FixedVMLibary, Value);
             return *this;
         }
 
         constexpr
         inline SegmentFlags &setNoRelocations(bool Value = true) noexcept {
-            setValueForMask(FlagType::NoRelocations, Value);
+            setValueForFlag(FlagType::NoRelocations, Value);
             return *this;
         }
 
         constexpr
         inline SegmentFlags &setIsProtected(bool Value = true) noexcept {
-            setValueForMask(FlagType::ProtectionVersion1, Value);
+            setValueForFlag(FlagType::ProtectionVersion1, Value);
             return *this;
         }
 
         constexpr
         inline SegmentFlags &setReadOnlyAfterFixup(bool Value = true) noexcept {
-            setValueForMask(FlagType::ReadOnlyAfterFixup, Value);
+            setValueForFlag(FlagType::ReadOnlyAfterFixup, Value);
             return *this;
         }
 

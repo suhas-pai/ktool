@@ -27,7 +27,7 @@ namespace MachO {
                            const MachO::SymbolTableEntry32>;
 
     template <PointerKind Kind>
-    static SymbolTableParseError
+    [[nodiscard]] static SymbolTableParseError
     ParseSymbol(
         const MachOSymbolTableEntryTypeCalculator<Kind> &Entry,
         uint64_t Index,
@@ -90,9 +90,16 @@ namespace MachO {
 
         if (StringIter == StringMap.end()) {
             const auto String = StrTab + StringIndex;
+            const auto MaxLength = (StrTabEnd - StrTab) - StringIndex;
+            const auto Length = strnlen(String, MaxLength);
+
+            if (Length == MaxLength) {
+                return SymbolTableParseError::NoNullTerminator;
+            }
+
             const auto &Pair = StringMap.insert({
                 StringIndex,
-                std::make_unique<std::string>(String)
+                std::make_unique<std::string>(String, Length)
             });
 
             StringPtr = Pair.first->second.get();
@@ -103,11 +110,11 @@ namespace MachO {
         auto SymbolInfo = SymbolTableEntryCollection::EntryInfo {
             .SymbolInfo = Entry.Info,
             .String = StringPtr,
-            .Section = SwitchEndianIf(Entry.Section, IsBigEndian),
+            .Section = Entry.getSection(IsBigEndian),
             .Desc =
-                static_cast<uint16_t>(SwitchEndianIf(Entry.Desc, IsBigEndian)),
+                static_cast<uint16_t>(Entry.getDesc(IsBigEndian)),
             .Index = Index,
-            .Value = SwitchEndianIf(Entry.Value, IsBigEndian)
+            .Value = Entry.getValue(IsBigEndian)
         };
 
         auto Ptr =
@@ -129,7 +136,7 @@ namespace MachO {
     }
 
     template <PointerKind Kind>
-    static SymbolTableEntryCollection::Error
+    [[nodiscard]] static SymbolTableEntryCollection::Error
     ParseList(const uint8_t *Begin,
               const uint64_t Count,
               uint64_t NlistStartIndex,
@@ -221,13 +228,11 @@ namespace MachO {
                                       ParseOptions Options,
                                       Error *ErrorOut) noexcept
     {
-        const auto NlistCount = SwitchEndianIf(SymTab.Nsyms, IsBigEndian);
-        const auto NlistBegin =
-            Map + SwitchEndianIf(SymTab.SymOff, IsBigEndian);
+        const auto NlistCount = SymTab.getSymbolsCount(IsBigEndian);
+        const auto NlistBegin = Map + SymTab.getSymbolTableOffset(IsBigEndian);
 
-        const auto StrTab = Map + SwitchEndianIf(SymTab.StrOff, IsBigEndian);
-        const auto StrEnd =
-            StrTab + SwitchEndianIf(SymTab.StrSize, IsBigEndian);
+        const auto StrTab = Map + SymTab.getStringTableOffset(IsBigEndian);
+        const auto StrEnd = StrTab + SymTab.getStringTableSize(IsBigEndian);
 
         Parse(NlistBegin,
               NlistCount,
@@ -355,17 +360,15 @@ namespace MachO {
         Error *ErrorOut) noexcept
     {
         const auto IndexListCount =
-            SwitchEndianIf(DySymTab.NIndirectSymbols, IsBigEndian);
+            DySymTab.getIndirectSymbolTableCount(IsBigEndian);
         const auto IndexListBegin =
-            Map + SwitchEndianIf(DySymTab.IndirectSymbolTableOff, IsBigEndian);
+            Map + DySymTab.getIndirectSymbolTableOffset(IsBigEndian);
 
-        const auto NlistCount = SwitchEndianIf(SymTab.Nsyms, IsBigEndian);
-        const auto NlistBegin =
-            Map + SwitchEndianIf(SymTab.SymOff, IsBigEndian);
+        const auto NlistCount = SymTab.getSymbolsCount(IsBigEndian);
+        const auto NlistBegin = Map + SymTab.getSymbolTableOffset(IsBigEndian);
 
-        const auto StrTab = Map + SwitchEndianIf(SymTab.StrOff, IsBigEndian);
-        const auto StrEnd =
-            StrTab + SwitchEndianIf(SymTab.StrSize, IsBigEndian);
+        const auto StrTab = Map + SymTab.getStringTableOffset(IsBigEndian);
+        const auto StrEnd = StrTab + SymTab.getStringTableSize(IsBigEndian);
 
         ParseIndirectSymbolIndexTable(
             NlistBegin,
@@ -395,10 +398,10 @@ namespace MachO {
         ParseOptions Options,
         Error *ErrorOut) noexcept
     {
-        const auto IndexListCount =
-            SwitchEndianIf(DySymTab.NIndirectSymbols, IsBigEndian);
         const auto IndexListOffset =
-            SwitchEndianIf(DySymTab.IndirectSymbolTableOff, IsBigEndian);
+            DySymTab.getIndirectSymbolTableOffset(IsBigEndian);
+        const auto IndexListCount =
+            DySymTab.getIndirectSymbolTableCount(IsBigEndian);
 
         const auto IndexListMap = Map + IndexListOffset;
         const auto IndexListRange = RelativeRange(IndexListCount);
@@ -424,13 +427,11 @@ namespace MachO {
             return *this;
         }
 
-        const auto NlistCount = SwitchEndianIf(SymTab.Nsyms, IsBigEndian);
-        const auto NlistBegin =
-            Map + SwitchEndianIf(SymTab.SymOff, IsBigEndian);
+        const auto NlistCount = SymTab.getSymbolsCount(IsBigEndian);
+        const auto NlistBegin = Map + SymTab.getSymbolTableOffset(IsBigEndian);
 
-        const auto StrTab = Map + SwitchEndianIf(SymTab.StrOff, IsBigEndian);
-        const auto StrEnd =
-            StrTab + SwitchEndianIf(SymTab.StrSize, IsBigEndian);
+        const auto StrTab = Map + SymTab.getStringTableOffset(IsBigEndian);
+        const auto StrEnd = StrTab + SymTab.getStringTableSize(IsBigEndian);
 
         ParseIndirectSymbolIndexTable(
             NlistBegin,

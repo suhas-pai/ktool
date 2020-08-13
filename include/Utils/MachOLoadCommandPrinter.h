@@ -2016,10 +2016,9 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
           bool Is64Bit,
           bool Verbose) noexcept
     {
-        const auto NTools = SwitchEndianIf(BuildVersion.NTools, IsBigEndian);
         const auto Platform = BuildVersion.getPlatform(IsBigEndian);
-
         auto PlatformDesc = MachO::PlatformKindGetDescription(Platform).data();
+
         if (PlatformDesc == nullptr) {
             PlatformDesc = "(Unrecognized)";
         }
@@ -2040,6 +2039,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
             OutFile, BuildVersion.getSdk(IsBigEndian));
 
         const auto &ToolList = BuildVersion.GetConstToolList(IsBigEndian);
+        const auto ToolCount = BuildVersion.getToolCount(IsBigEndian);
+
         switch (ToolList.getError()) {
             case MachO::SizeRangeError::None:
             case MachO::SizeRangeError::Empty:
@@ -2049,11 +2050,11 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
                 fprintf(OutFile,
                         "Error: Tool-Count (%d) too high for LoadCommand "
                         "CmdSize",
-                        NTools);
+                        ToolCount);
                 return;
         }
 
-        switch (NTools) {
+        switch (ToolCount) {
             case 0:
                 fputs("\n\t0 Tools\n", OutFile);
                 return;
@@ -2061,13 +2062,13 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
                 fputs("\n\t1 Tool:\n", OutFile);
                 break;
             default:
-                fprintf(OutFile, "\n\t%" PRIu32 " Tools:\n", NTools);
+                fprintf(OutFile, "\n\t%" PRIu32 " Tools:\n", ToolCount);
                 break;
         }
 
         for (const auto &Tool : ToolList.getRef()) {
             auto KindDesc =
-                Tool.KindGetDescription(Tool.GetKind(IsBigEndian)).data();
+                Tool.KindGetDescription(Tool.getKind(IsBigEndian)).data();
 
             if (KindDesc == nullptr) {
                 KindDesc = "Unrecognized";
