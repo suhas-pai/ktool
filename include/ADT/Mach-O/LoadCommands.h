@@ -54,9 +54,10 @@ namespace MachO {
         template <Kind Kind>
         [[nodiscard]] inline const LoadCommandTypeFromKind<Kind> &
         cast(bool IsBigEndian) const noexcept {
+            using Type = LoadCommandTypeFromKind<Kind>;
+
             assert(isa<Kind>(IsBigEndian));
-            const auto &Result =
-                reinterpret_cast<const LoadCommandTypeFromKind<Kind> &>(*this);
+            const auto &Result = reinterpret_cast<const Type &>(*this);
 
             return Result;
         }
@@ -85,12 +86,16 @@ namespace MachO {
         static const std::string_view &KindGetDescription(Kind Kind) noexcept;
 
         [[nodiscard]]
-        constexpr static bool KindIsRequiredByDyld(Kind Kind) noexcept {
+        constexpr inline static bool KindIsRequiredByDyld(Kind Kind) noexcept {
             return (static_cast<uint32_t>(Kind) & KindRequiredByDyld);
         }
 
+        [[nodiscard]] constexpr inline bool IsRequiredByDyld() noexcept {
+            return KindIsRequiredByDyld(getKind());
+        }
+
         [[nodiscard]]
-        constexpr static bool KindIsValid(Kind Kind) noexcept {
+        constexpr static inline bool KindIsValid(Kind Kind) noexcept {
             switch (Kind) {
                 case Kind::Segment:
                 case Kind::SymbolTable:
@@ -480,7 +485,8 @@ namespace MachO {
             return Error(getStorage());
         }
 
-        [[nodiscard]] inline const std::string_view &getString() const noexcept {
+        [[nodiscard]]
+        inline const std::string_view &getString() const noexcept {
             assert(!hasError());
             return View;
         }

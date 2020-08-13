@@ -36,7 +36,6 @@ protected:
     };
 
     const uint8_t *End;
-
     ConstMachOMemoryObject(Error Error) noexcept;
 
     explicit ConstMachOMemoryObject(const ConstMemoryMap &Map) noexcept;
