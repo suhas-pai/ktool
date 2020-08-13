@@ -28,7 +28,7 @@ std::string PathUtil::Absolutify(const std::string_view &Path) noexcept {
         const auto CdString = getcwd(nullptr, 0);
         if (CdString == nullptr) {
             fprintf(stderr,
-                    "Failed to get current-directory. Error: %s\n",
+                    "Failed to get current-directory. Error: \"%s\"\n",
                     strerror(errno));
             exit(1);
         }
