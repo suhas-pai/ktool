@@ -44,7 +44,12 @@ OperationCommon::GetLoadCommandStorage(MachOMemoryObject &Object,
                                        FILE *ErrFile) noexcept
 {
     const auto LoadCommandStorage = Object.GetLoadCommands();
-    HandleLoadCommandStorageError(ErrFile, LoadCommandStorage.getError());
+    const auto Error = LoadCommandStorage.getError();
+
+    if (Error != MachO::ConstLoadCommandStorage::Error::None) {
+        HandleLoadCommandStorageError(ErrFile, Error);
+        exit(1);
+    }
 
     return LoadCommandStorage;
 }
@@ -55,7 +60,12 @@ OperationCommon::GetConstLoadCommandStorage(
     FILE *ErrFile) noexcept
 {
     const auto LoadCommandStorage = Object.GetLoadCommands();
-    HandleLoadCommandStorageError(ErrFile, LoadCommandStorage.getError());
+    const auto Error = LoadCommandStorage.getError();
+
+    if (Error != MachO::ConstLoadCommandStorage::Error::None) {
+        HandleLoadCommandStorageError(ErrFile, Error);
+        exit(1);
+    }
 
     return LoadCommandStorage;
 }
