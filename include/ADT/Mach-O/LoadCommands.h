@@ -2957,13 +2957,14 @@ inline bool isa(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
 }
 
 template <typename T>
-[[nodiscard]] T &cast(MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
+[[nodiscard]]
+inline T &cast(MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
     assert(isa<T>(LoadCmd, IsBigEndian));
     return reinterpret_cast<T &>(LoadCmd);
 }
 
 template <typename T>
-[[nodiscard]]
+[[nodiscard]] inline
 const T &cast(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
     assert(isa<T>(LoadCmd, IsBigEndian));
     return reinterpret_cast<const T &>(LoadCmd);
@@ -2971,7 +2972,7 @@ const T &cast(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
 
 template <typename T>
 [[nodiscard]]
-T *dyn_cast(MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
+inline T *dyn_cast(MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
     if (isa<T>(LoadCmd, IsBigEndian)) {
         return reinterpret_cast<T *>(&LoadCmd);
     }
@@ -2980,8 +2981,7 @@ T *dyn_cast(MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
 }
 
 template <typename T>
-[[nodiscard]]
-const T *
+[[nodiscard]] inline const T *
 dyn_cast(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
     if (isa<T>(LoadCmd, IsBigEndian)) {
         return reinterpret_cast<const T *>(&LoadCmd);
