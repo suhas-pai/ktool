@@ -255,7 +255,7 @@ PrintUtilsWriteOffsetSizeRange(FILE *OutFile,
                                const char *Suffix = "") noexcept
 {
     auto End = uint32_t();
-    auto Result = 0;
+    auto Result = int();
 
     if (DoesAddOverflow(Begin, Size, &End)) {
         Result =
@@ -279,7 +279,7 @@ PrintUtilsWriteOffsetSizeRange(FILE *OutFile,
                                const char *Suffix = "") noexcept
 {
     auto End = uint64_t();
-    auto Result = 0;
+    auto Result = int();
 
     if (DoesAddOverflow(Begin, Size, &End)) {
         Result =

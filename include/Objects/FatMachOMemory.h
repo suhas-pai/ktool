@@ -72,8 +72,7 @@ public:
     }
 
     [[nodiscard]] inline RelativeRange getRange() const noexcept override {
-        assert(!hasError());
-        return RelativeRange(End - Map);
+        return getMap().getRange();
     }
 
     [[nodiscard]] inline const MachO::FatHeader &getHeader() noexcept {
