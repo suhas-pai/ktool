@@ -124,6 +124,11 @@ public:
     }
 
     [[nodiscard]]
+    inline const DyldSharedCache::Header &getConstHeader() const noexcept {
+        return getHeader();
+    }
+
+    [[nodiscard]]
     inline const DyldSharedCache::HeaderV0 &getHeaderV0() const noexcept {
         return getHeader();
     }
