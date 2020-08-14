@@ -57,8 +57,15 @@ public:
         OverlappingImageMappingRange,
     };
 
-    [[nodiscard]] static const uint8_t *
-    ValidateImageMapAndGetEnd(const ConstMemoryMap &Map) noexcept;
+    enum class DscImageOpenError {
+        None,
+        InvalidAddress,
+        NotAMachO,
+        InvalidMachO,
+        InvalidLoadCommands,
+        NotADylib,
+        SizeTooLarge,
+    };
 protected:
     union {
         const uint8_t *Map;
@@ -67,6 +74,11 @@ protected:
     };
 
     const uint8_t *End;
+
+    [[nodiscard]] static
+    PointerOrError<const uint8_t, DscImageOpenError>
+    ValidateImageMapAndGetEnd(const ConstMemoryMap &Map) noexcept;
+
     CpuKind sCpuKind;
     ConstDscMemoryObject(Error Error) noexcept;
 
@@ -223,7 +235,7 @@ public:
     const DyldSharedCache::ImageInfo *
     GetImageInfoWithPath(const std::string_view &Path) const noexcept;
 
-    ConstDscImageMemoryObject *
+    PointerOrError<ConstDscImageMemoryObject, DscImageOpenError>
     GetImageWithInfo(const DyldSharedCache::ImageInfo &Info) const noexcept;
 };
 
@@ -333,9 +345,9 @@ public:
         return const_cast<DyldSharedCache::ImageInfo *>(Result);
     }
 
-    [[nodiscard]] inline DscImageMemoryObject *
+    [[nodiscard]] inline PointerOrError<DscImageMemoryObject, DscImageOpenError>
     GetImageWithInfo(const DyldSharedCache::ImageInfo &Info) const noexcept {
         const auto Result = ConstDscMemoryObject::GetImageWithInfo(Info);
-        return reinterpret_cast<DscImageMemoryObject *>(Result);
+        return reinterpret_cast<DscImageMemoryObject *>(Result.value());
     }
 };

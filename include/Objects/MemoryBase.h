@@ -23,7 +23,7 @@ private:
 protected:
     explicit MemoryObject(ObjectKind Kind) noexcept;
 public:
-    [[nodiscard]] static inline bool IsOfKind(ObjectKind Kind) {
+    [[nodiscard]] static inline bool IsOfKind(ObjectKind Kind) noexcept {
         assert(0 && "IsOfKind() called on base-class");
     }
 

@@ -2482,7 +2482,8 @@ namespace MachO {
         {
             const auto Offset = SwitchEndianIf(BindOff, IsBigEndian);
             const auto Size = SwitchEndianIf(BindSize, IsBigEndian);
-            const auto Result =
+
+            auto Result =
                 ::MachO::GetBindActionList(Map,
                                            Collection,
                                            Offset,
@@ -2512,7 +2513,8 @@ namespace MachO {
         {
             const auto Offset = SwitchEndianIf(LazyBindOff, IsBigEndian);
             const auto Size = SwitchEndianIf(LazyBindSize, IsBigEndian);
-            const auto Result =
+
+            auto Result =
                 ::MachO::GetLazyBindActionList(Map,
                                                Collection,
                                                Offset,
@@ -2542,7 +2544,8 @@ namespace MachO {
         {
             const auto Offset = SwitchEndianIf(WeakBindOff, IsBigEndian);
             const auto Size = SwitchEndianIf(WeakBindSize, IsBigEndian);
-            const auto Result =
+
+            auto Result =
                 ::MachO::GetWeakBindActionList(Map,
                                                Collection,
                                                Offset,

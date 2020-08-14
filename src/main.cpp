@@ -34,6 +34,40 @@ static void PrintUnrecognizedOptionError(const char *Option) noexcept {
     fprintf(stderr, "Unrecognized Option: \"%s\"\n", Option);
 }
 
+static void
+HandleDscImageOpenError(ConstDscMemoryObject::DscImageOpenError Error) noexcept
+{
+    if (Error == ConstDscMemoryObject::DscImageOpenError::None) {
+        return;
+    }
+
+    fputs("Could not open image. Error: ", stderr);
+    switch (Error) {
+        case ConstDscMemoryObject::DscImageOpenError::None:
+            break;
+        case ConstDscMemoryObject::DscImageOpenError::InvalidAddress:
+            fputs("Invalid Image-Address\n", stderr);
+            break;
+        case ConstDscMemoryObject::DscImageOpenError::NotAMachO:
+            fputs("Not a Mach-O\n", stderr);
+            break;
+        case ConstDscMemoryObject::DscImageOpenError::InvalidMachO:
+            fputs("Not a valid Mach-O\n", stderr);
+            break;
+        case ConstDscMemoryObject::DscImageOpenError::InvalidLoadCommands:
+            fputs("Invalid Load-Commands\n", stderr);
+            break;
+        case ConstDscMemoryObject::DscImageOpenError::NotADylib:
+            fputs("Not a Mach-O Dynamic Library\n", stderr);
+            break;
+        case ConstDscMemoryObject::DscImageOpenError::SizeTooLarge:
+            fputs("Image-Size too large\n", stderr);
+            break;
+    }
+
+    exit(1);
+}
+
 [[nodiscard]]
 static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
     const auto ShortName = Operation::GetOptionShortName(Kind);
@@ -88,7 +122,10 @@ GetImageWithPath(const ConstDscMemoryObject &Object,
         exit(0);
     }
 
-    return Object.GetImageWithInfo(*ImageInfo);
+    const auto ObjectOrError = Object.GetImageWithInfo(*ImageInfo);
+    HandleDscImageOpenError(ObjectOrError.getError());
+
+    return ObjectOrError.getPtr();
 }
 
 constexpr static auto UsageString =
@@ -301,11 +338,11 @@ int main(int Argc, const char *Argv[]) {
             case ObjectKind::MachO: {
                 const auto RealObject = cast<ObjectKind::MachO>(Object);
                 switch (RealObject->getError()) {
-                    case MachOMemoryObject::Error::None:
-                    case MachOMemoryObject::Error::WrongFormat:
-                    case MachOMemoryObject::Error::SizeTooSmall:
+                    case ConstMachOMemoryObject::Error::None:
+                    case ConstMachOMemoryObject::Error::WrongFormat:
+                    case ConstMachOMemoryObject::Error::SizeTooSmall:
                         assert(0 && "Got Unhandled errors in main");
-                    case MachOMemoryObject::Error::TooManyLoadCommands:
+                    case ConstMachOMemoryObject::Error::TooManyLoadCommands:
                         fputs("Provided File has an invalid LoadCommands "
                               "buffer\n", stderr);
                         return 1;
@@ -317,23 +354,23 @@ int main(int Argc, const char *Argv[]) {
             case ObjectKind::FatMachO: {
                 const auto RealObject = cast<ObjectKind::FatMachO>(Object);
                 switch (RealObject->getError()) {
-                    case FatMachOMemoryObject::Error::None:
-                    case FatMachOMemoryObject::Error::WrongFormat:
-                    case FatMachOMemoryObject::Error::SizeTooSmall:
+                    case ConstFatMachOMemoryObject::Error::None:
+                    case ConstFatMachOMemoryObject::Error::WrongFormat:
+                    case ConstFatMachOMemoryObject::Error::SizeTooSmall:
                         assert(0 && "Got Unhandled errors in main");
-                    case FatMachOMemoryObject::Error::ZeroArchitectures:
+                    case ConstFatMachOMemoryObject::Error::ZeroArchitectures:
                         fputs("Provided File has zero architectures\n",
                               stderr);
                         return 1;
-                    case FatMachOMemoryObject::Error::TooManyArchitectures:
+                    case ConstFatMachOMemoryObject::Error::TooManyArchitectures:
                         fputs("Provided has too many architectures for its "
                               "size", stderr);
                         return 1;
-                    case FatMachOMemoryObject::Error::ArchOutOfBounds:
+                    case ConstFatMachOMemoryObject::Error::ArchOutOfBounds:
                         fputs("Provided file has architecture(s) out of "
                               "bounds\n", stderr);
                         return 1;
-                    case FatMachOMemoryObject::Error::ArchOverlapsArch:
+                    case ConstFatMachOMemoryObject::Error::ArchOverlapsArch:
                         fputs("Provided file has overlapping architectures\n",
                               stderr);
                         return 1;
@@ -347,21 +384,21 @@ int main(int Argc, const char *Argv[]) {
                     cast<ObjectKind::DyldSharedCache>(Object);
 
                 switch (RealObject->getError()) {
-                    case DscMemoryObject::Error::None:
-                    case DscMemoryObject::Error::WrongFormat:
-                    case DscMemoryObject::Error::SizeTooSmall:
+                    case ConstDscMemoryObject::Error::None:
+                    case ConstDscMemoryObject::Error::WrongFormat:
+                    case ConstDscMemoryObject::Error::SizeTooSmall:
                         assert(0 && "Got Unhandled errors in main");
                     case DscMemoryObject::Error::UnknownCpuKind:
                         fputs("Provided file is a dyld-shared-cache file with "
                               "an unknown cpu-kind\n",
                               stderr);
                         return 1;
-                    case DscMemoryObject::Error::InvalidMappingRange:
+                    case ConstDscMemoryObject::Error::InvalidMappingRange:
                         fputs("Provided file is a dyld-shared-cache file with "
                               "an invalid mapping-range\n",
                               stderr);
                         return 1;
-                    case DscMemoryObject::Error::InvalidImageRange:
+                    case ConstDscMemoryObject::Error::InvalidImageRange:
                         fputs("Provided file is a dyld-shared-cache file with "
                               "an unknown image-range\n",
                               stderr);
@@ -480,8 +517,11 @@ int main(int Argc, const char *Argv[]) {
                 }
 
                 const auto &ImageInfo = DscObj->getImageInfoAtIndex(ImageIndex);
-                Object = DscObj->GetImageWithInfo(ImageInfo);
+                const auto ObjectOrError = DscObj->GetImageWithInfo(ImageInfo);
 
+                HandleDscImageOpenError(ObjectOrError.getError());
+
+                Object = ObjectOrError.getPtr();
                 if (Object == nullptr) {
                     fprintf(stderr,
                             "Image at Index %" PRIu32 " is invalid and cannot "

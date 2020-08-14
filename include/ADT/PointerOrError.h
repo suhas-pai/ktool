@@ -15,6 +15,8 @@
 
 template <typename T, typename ErrorType>
 struct PointerOrError {
+    static_assert(TypeTraits::IsEnumClassValue<ErrorType>,
+                  "ErrorType must be an enum-class");
 protected:
     union {
         PointerErrorStorage<ErrorType> ErrorStorage;
@@ -58,13 +60,13 @@ public:
         return *this;
     }
 
-    constexpr inline PointerOrError &SetPtr(T *Ptr) const noexcept {
+    constexpr inline PointerOrError &setPtr(T *Ptr) const noexcept {
         this->Ptr = Ptr;
         return *this;
     }
 
-    [[nodiscard]] constexpr inline operator T *() const noexcept {
-        return getPtr();
+    [[nodiscard]] constexpr inline uint64_t value() const noexcept {
+        return reinterpret_cast<uint64_t>(Ptr);
     }
 
     constexpr inline PointerOrError &clear() noexcept {
@@ -94,11 +96,9 @@ public:
     constexpr TypedAllocationOrError(const std::nullptr_t &) noexcept = delete;
     constexpr TypedAllocationOrError(T *Ptr) noexcept : Base(Ptr) {}
 
-    explicit
     TypedAllocationOrError(const TypedAllocationOrError &) noexcept = delete;
-
-    constexpr
-    explicit TypedAllocationOrError(TypedAllocationOrError &&) noexcept;
+    TypedAllocationOrError(TypedAllocationOrError &&Ty) noexcept
+    : Base(reinterpret_cast<T *>(Ty.value())) {}
 
     TypedAllocationOrError &
     operator=(const TypedAllocationOrError &) noexcept = delete;

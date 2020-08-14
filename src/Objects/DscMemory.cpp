@@ -237,24 +237,35 @@ ConstDscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
     assert(0 && "Unrecognized Cpu-Kind");
 }
 
-const uint8_t *
+PointerOrError<const uint8_t, ConstDscMemoryObject::DscImageOpenError>
 ConstDscMemoryObject::ValidateImageMapAndGetEnd(
     const ConstMemoryMap &Map) noexcept
 {
     const auto ValidateError = ConstMachOMemoryObject::ValidateMap(Map);
-    if (ValidateError != ConstMachOMemoryObject::Error::None) {
-        return nullptr;
+    switch (ValidateError) {
+        case ConstMachOMemoryObject::Error::None:
+            break;
+        case ConstMachOMemoryObject::Error::WrongFormat:
+            return DscImageOpenError::NotAMachO;
+        case ConstMachOMemoryObject::Error::SizeTooSmall:
+            return DscImageOpenError::InvalidMachO;
+        case ConstMachOMemoryObject::Error::TooManyLoadCommands:
+            return DscImageOpenError::InvalidLoadCommands;
     }
 
     const auto MapBegin = Map.getBegin();
     const auto &Header = *Map.getBeginAs<MachO::Header>();
+
+    if (Header.getFileKind() != MachO::Header::FileKind::Dylib) {
+        return DscImageOpenError::NotADylib;
+    }
 
     const auto Is64Bit = Header.Is64Bit();
     const auto IsBigEndian = Header.IsBigEndian();
 
     const auto LoadCmdStorage = Header.GetConstLoadCmdStorage();
     if (LoadCmdStorage.hasError()) {
-        return nullptr;
+        return DscImageOpenError::InvalidLoadCommands;
     }
 
     auto End = MapBegin;
@@ -265,7 +276,7 @@ ConstDscMemoryObject::ValidateImageMapAndGetEnd(
 
             if (Segment != nullptr) {
                 if (DoesAddOverflow(End, Segment->FileSize, &End)) {
-                    return nullptr;
+                    return DscImageOpenError::SizeTooLarge;
                 }
             }
         }
@@ -281,7 +292,7 @@ ConstDscMemoryObject::ValidateImageMapAndGetEnd(
     }
 
     if (!Map.containsEndPtr(End)) {
-        return nullptr;
+        return DscImageOpenError::SizeTooLarge;
     }
 
     return End;
@@ -301,18 +312,21 @@ ConstDscMemoryObject::GetImageInfoWithPath(
     return nullptr;
 }
 
-ConstDscImageMemoryObject *
+PointerOrError<ConstDscImageMemoryObject,
+               ConstDscMemoryObject::DscImageOpenError>
+
 ConstDscMemoryObject::GetImageWithInfo(
     const DyldSharedCache::ImageInfo &ImageInfo) const noexcept
 {
     if (const auto Ptr = GetPtrForAddress(ImageInfo.Address)) {
         const auto Map = getMap();
-        const auto End = ValidateImageMapAndGetEnd(Map.mapFromPtr(Ptr));
+        const auto EndOrError = ValidateImageMapAndGetEnd(Map.mapFromPtr(Ptr));
 
-        if (End != nullptr) {
+        if (EndOrError.hasPtr()) {
+            const auto End = EndOrError.getPtr();
             return new ConstDscImageMemoryObject(Map, ImageInfo, Ptr, End);
         }
     }
 
-    return nullptr;
+    return DscImageOpenError::InvalidAddress;
 }
