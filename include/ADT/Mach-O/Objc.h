@@ -213,6 +213,12 @@ namespace MachO {
         inline ObjcClassRoFlags getFlags(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Flags, IsBigEndian);
         }
+
+        inline ObjcClassRo &
+        setFlags(const ObjcClassRoFlags &Flags, bool IsBigEndian) noexcept {
+            this->Flags = SwitchEndianIf(Flags.value(), IsBigEndian);
+            return *this;
+        }
     };
 
     struct ObjcClassRo64 {
@@ -231,6 +237,12 @@ namespace MachO {
         [[nodiscard]]
         inline ObjcClassRoFlags getFlags(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Flags, IsBigEndian);
+        }
+
+        inline ObjcClassRo64 &
+        setFlags(const ObjcClassRoFlags &Flags, bool IsBigEndian) noexcept {
+            this->Flags = SwitchEndianIf(Flags.value(), IsBigEndian);
+            return *this;
         }
     };
 
