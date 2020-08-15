@@ -14,6 +14,7 @@
 
 #include "Utils/PrintUtils.h"
 
+struct BasicTreeNode;
 struct Tree;
 
 template <typename T>
@@ -54,7 +55,9 @@ public:
 
     [[nodiscard]] T *GetParentAtIndex(uint64_t DepthIndex) const noexcept {
         auto Parent = Current;
-        auto MoveCount = (DepthLevel - 1 - DepthIndex);
+
+        const auto ThisDepthIndex = DepthLevel - 1;
+        const auto MoveCount = ThisDepthIndex - DepthIndex;
 
         for (auto I = uint64_t(); I != MoveCount; I++) {
             Parent = T::get(Parent->getParent());
@@ -295,7 +298,18 @@ public:
     BasicTreeNode &
     SetChildrenFromList(const std::vector<BasicTreeNode *> &List) noexcept;
 
-    [[nodiscard]] BasicTreeNode *FindNextNodeForIterator() const noexcept;
+    [[nodiscard]] const BasicTreeNode *
+    FindPrevNodeForIterator(const BasicTreeNode *End = nullptr,
+                            uint64_t *DepthChangeOut = nullptr) const noexcept;
+
+    [[nodiscard]] const BasicTreeNode *
+    FindNextSiblingForIterator(
+        const BasicTreeNode *End = nullptr,
+        uint64_t *DepthChangeOut = nullptr) const noexcept;
+
+    [[nodiscard]] const BasicTreeNode *
+    FindNextNodeForIterator(const BasicTreeNode *End = nullptr,
+                            int64_t *DepthChangeOut = nullptr) const noexcept;
 
     inline BasicTreeNode &setFirstChild(BasicTreeNode *Node) noexcept {
         assert(this != Node);
@@ -337,7 +351,7 @@ public:
     [[nodiscard]] ConstIterator cend() const noexcept;
 
     template <typename NodePrinter>
-    void
+    const BasicTreeNode &
     PrintHorizontal(FILE *OutFile,
                     int TabLength,
                     const NodePrinter &NodePrinterFunc) const noexcept
@@ -387,6 +401,8 @@ public:
             NodePrinterFunc(OutFile, WrittenOut, DepthLevel, *Info);
             fputc('\n', OutFile);
         }
+
+        return *this;
     }
 };
 

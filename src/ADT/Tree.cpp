@@ -343,14 +343,65 @@ ConstBasicTree::ConstIterator ConstBasicTree::cend() const noexcept {
     return ConstIterator(nullptr);
 }
 
-BasicTreeNode *BasicTreeNode::FindNextNodeForIterator() const noexcept {
-    for (auto Node = this; Node != nullptr; Node = Node->getParent()) {
-        if (const auto NextSibling = Node->getNextSibling()) {
-            return NextSibling;
+const BasicTreeNode *
+BasicTreeNode::FindPrevNodeForIterator(const BasicTreeNode *End,
+                                       uint64_t *DepthChangeOut) const noexcept
+{
+    auto DepthChange = uint64_t();
+    for (auto Node = this; Node != End; Node = Node->getParent()) {
+        if (const auto PrevSibling = Node->getPrevSibling()) {
+            if (DepthChangeOut != nullptr) {
+                *DepthChangeOut = DepthChange;
+            }
+
+            return PrevSibling;
         }
+
+        DepthChange++;
     }
 
-    return nullptr;
+    return End;
+}
+
+const BasicTreeNode *
+BasicTreeNode::FindNextSiblingForIterator(
+    const BasicTreeNode *End,
+    uint64_t *DepthChangeOut) const noexcept
+{
+    auto DepthChange = uint64_t();
+    for (auto Node = this; Node != End; Node = Node->getParent()) {
+        if (const auto NextSibling = Node->getNextSibling()) {
+            if (DepthChangeOut != nullptr) {
+                *DepthChangeOut = DepthChange;
+            }
+
+            return NextSibling;
+        }
+
+        DepthChange++;
+    }
+
+    if (DepthChangeOut != nullptr) {
+        *DepthChangeOut = DepthChange;
+    }
+
+    return End;
+}
+
+const BasicTreeNode *
+BasicTreeNode::FindNextNodeForIterator(const BasicTreeNode *End,
+                                       int64_t *DepthChangeOut) const noexcept
+{
+    if (const auto FirstChild = getFirstChild()) {
+        if (DepthChangeOut != nullptr) {
+            *DepthChangeOut = -1;
+        }
+
+        return FirstChild;
+    }
+
+    const auto Out = reinterpret_cast<uint64_t *>(DepthChangeOut);
+    return FindNextSiblingForIterator(End, Out);
 }
 
 BasicTreeNode *
@@ -379,10 +430,7 @@ BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
         return getRoot()->getFirstChild();
     }
 
-    auto NextNode = Node.getFirstChild();
-    if (NextNode == nullptr) {
-        NextNode = Node.FindNextNodeForIterator();
-    }
+    auto NextNode = const_cast<BasicTreeNode *>(Node.FindNextNodeForIterator());
 
     Node.IsolateAndRemoveFromParent(RemoveParentLeafs);
     return NextNode;
