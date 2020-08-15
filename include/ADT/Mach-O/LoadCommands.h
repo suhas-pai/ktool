@@ -2236,7 +2236,7 @@ namespace MachO {
 
             template <>
             struct KindInfo<Kind::Ld> {
-                constexpr static const auto Kind = Kind::Clang;
+                constexpr static const auto Kind = Kind::Ld;
                 constexpr static const auto Name =
                     std::string_view("TOOL_LD");
                 constexpr static const auto Description =

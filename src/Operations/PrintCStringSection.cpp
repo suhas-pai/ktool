@@ -111,9 +111,8 @@ PrintCStringList(
 
     if (Segment->Flags.IsProtected()) {
         fprintf(Options.ErrFile,
-                "Provided segment \"" STRING_VIEW_FMT "\" is protected "
-                "(encrypted)\n",
-                STRING_VIEW_FMT_ARGS(Options.SegmentName));
+                "Provided segment \"%s\" is protected (encrypted)\n",
+                Segment->Name.data());
         return 1;
     }
 

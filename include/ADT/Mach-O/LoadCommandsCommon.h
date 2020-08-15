@@ -1018,7 +1018,7 @@ namespace MachO {
     };
 
     struct SegmentSectionFlags :
-        public  BasicMasksHandler<SegmentSectionMasks> {
+        public BasicMasksHandler<SegmentSectionMasks> {
     private:
         using Base = BasicMasksHandler<SegmentSectionMasks>;
     public:
