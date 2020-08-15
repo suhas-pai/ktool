@@ -46,10 +46,16 @@ namespace MachO {
         Info->StackList.emplace_back(std::move(*NextStack));
     }
 
-    void ExportTrieIterator::MoveUptoParentNode() noexcept {
-        auto &Top = Info->getStack();
+    bool ExportTrieIterator::MoveUptoParentNode() noexcept {
+        auto &StackList = Info->StackList;
+        if (StackList.size() == 1) {
+            StackList.clear();
+            return false;
+        }
+
+        auto &Top = StackList.back();
         const auto EraseToLength =
-            (Info->String.length() - Info->getNode().Prefix.length());
+            (Info->String.length() - Top.Node.Prefix.length());
 
         Info->String.erase(EraseToLength);
         if (Top.RangeListSize != 0) {
@@ -58,12 +64,10 @@ namespace MachO {
                             RangeList.cend());
         }
 
-        auto &StackList = Info->StackList;
-
         StackList.pop_back();
-        if (!StackList.empty()) {
-            StackList.back().ChildOrdinal += 1;
-        }
+        StackList.back().ChildOrdinal += 1;
+
+        return true;
     }
 
     ExportTrieIterator::Error
@@ -94,7 +98,9 @@ namespace MachO {
         const auto Range = LocationRange::CreateWithEnd(Offset, OffsetEnd);
         const auto RangeListEnd = Info->RangeList.cend();
 
-        const auto Predicate = [&Range](const LocationRange &RhsRange) {
+        const auto Predicate =
+            [&Range](const LocationRange &RhsRange) noexcept
+        {
             return Range.overlaps(RhsRange);
         };
 
@@ -145,6 +151,10 @@ namespace MachO {
 
         auto &StackList = Info->StackList;
         if (!StackList.empty()) {
+            if (StackList.size() == 128) {
+                return Error::TooDeep;
+            }
+
             auto &PrevStack = StackList.back();
             const auto &PrevNode = PrevStack.Node;
 
@@ -163,15 +173,7 @@ namespace MachO {
             SetupInfoForNewStack();
         }
 
-        if (StackList.size() > 128) {
-            return Error::TooDeep;
-        }
-
         do {
-            if (StackList.empty()) {
-                return Error::None;
-            }
-
             auto &Stack = StackList.back();
             auto &Node = Stack.Node;
             auto &Export = Info->Export;
@@ -183,11 +185,11 @@ namespace MachO {
                 Node.Offset = (Ptr - this->Begin);
             };
 
-            const auto IsExportInfo = (NodeSize != 0);
             constexpr const auto MarkerValue =
                 std::numeric_limits<uint16_t>::max();
 
             if (Stack.ChildOrdinal == 0) {
+                const auto IsExportInfo = (NodeSize != 0);
                 if (IsExportInfo) {
                     if (Info->String.empty()) {
                         return Error::EmptyExport;
@@ -296,12 +298,11 @@ namespace MachO {
                         break;
                     }
 
-                    if (StackList.empty()) {
-                        break;
+                    if (MoveUptoParentNode()) {
+                        continue;
                     }
 
-                    MoveUptoParentNode();
-                    continue;
+                    break;
                 }
 
                 // Skip the byte storing the child-count.
@@ -318,12 +319,11 @@ namespace MachO {
 
             // We've finished with this node if ChildOrdinal is past ChildCount.
             if (Stack.ChildOrdinal == (Node.ChildCount + 1)) {
-                if (StackList.empty()) {
-                    break;
+                if (MoveUptoParentNode()) {
+                    continue;
                 }
 
-                MoveUptoParentNode();
-                continue;
+                break;
             }
 
             // Prepare the next-stack before returning.
@@ -344,10 +344,11 @@ namespace MachO {
                 break;
             }
 
-            SetupInfoForNewStack();
-            if (StackList.size() > 128) {
+            if (StackList.size() == 128) {
                 return Error::TooDeep;
             }
+
+            SetupInfoForNewStack();
         } while (true);
 
         return Error::None;

@@ -152,13 +152,14 @@ PrintTreeExportInfo(
 }
 
 [[nodiscard]] static uint64_t
-GetSymbolLengthForLongestPrintedLine(
-    const MachO::ExportTrieEntryCollection &Collection) noexcept
+GetSymbolLengthForLongestPrintedLineAndCount(
+    const MachO::ExportTrieEntryCollection &Collection,
+    uint64_t &Count) noexcept
 {
     auto LongestLength = LargestIntHelper();
 
     const auto End = Collection.end();
-    for (auto Iter = Collection.begin(); Iter != End; Iter++) {
+    for (auto Iter = Collection.begin(); Iter != End; Iter++, Count++) {
         if (!Iter->IsExport()) {
             continue;
         }
@@ -236,9 +237,9 @@ HandleTreeOption(
         });
     }
 
-    const auto Count = EntryCollection.GetCount();
+    auto Count = uint64_t();
     const auto LongestLength =
-        GetSymbolLengthForLongestPrintedLine(EntryCollection);
+        GetSymbolLengthForLongestPrintedLineAndCount(EntryCollection, Count);
 
     const auto PrintNode =
         [&](FILE *OutFile,

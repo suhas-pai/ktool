@@ -401,7 +401,7 @@ namespace MachO {
         std::unique_ptr<StackInfo> NextStack;
 
         void SetupInfoForNewStack() noexcept;
-        void MoveUptoParentNode() noexcept;
+        bool MoveUptoParentNode() noexcept;
 
         Error ParseNode(const uint8_t *Begin, NodeInfo *InfoOut) noexcept;
         Error ParseNextNode(const uint8_t *& Ptr, NodeInfo *InfoOut) noexcept;
