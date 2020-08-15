@@ -144,8 +144,8 @@ public:
     [[nodiscard]] constexpr inline
     bool containsTypeAtRelativeLocation(uint64_t Location) const noexcept {
         const auto Result =
-            (containsLocation(Location) &&
-             containsEndLocation(Location + sizeof(T)));
+            (containsRelativeLocation(Location) &&
+             containsRelativeEndLocation(Location + sizeof(T)));
 
         return Result;
     }
