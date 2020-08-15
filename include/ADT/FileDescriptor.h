@@ -63,6 +63,7 @@ public:
     bool Write(const void *Buf, size_t Size) noexcept;
     bool TruncateToSize(uint64_t Length) noexcept;
 
+    [[nodiscard]] std::optional<struct stat> GetInfo() const noexcept;
     [[nodiscard]] std::optional<uint64_t> GetSize() const noexcept;
 
     FileDescriptor &operator=(const FileDescriptor &) noexcept = delete;

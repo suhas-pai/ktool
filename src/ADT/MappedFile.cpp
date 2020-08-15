@@ -21,13 +21,18 @@ MappedFile::MappedFile(MappedFile &&Rhs) noexcept
 MappedFile
 MappedFile::Open(const FileDescriptor &Fd, Protections Prot, Type Type) noexcept
 {
-    const auto OptSize = Fd.GetSize();
-    if (!OptSize) {
-        return OpenError::FailedToGetSize;
+    const auto OptInfo = Fd.GetInfo();
+    if (!OptInfo.has_value()) {
+        return OpenError::FailedToGetInfo;
+    }
+
+    const auto Mode = OptInfo->st_mode;
+    if (!S_ISREG(Mode) && !S_ISLNK(Mode)) {
+        return OpenError::NotAFile;
     }
 
     const auto FdV = Fd.getDescriptor();
-    const auto Size = OptSize.value();
+    const auto Size = OptInfo->st_size;
 
     if (Size == 0) {
         return OpenError::EmptyFile;

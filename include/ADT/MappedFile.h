@@ -9,6 +9,8 @@
 #pragma once
 
 #include <sys/mman.h>
+#include <sys/stat.h>
+
 #include <cstdint>
 
 #include "ADT/BasicMasksHandler.h"
@@ -21,7 +23,8 @@ struct MappedFile {
 public:
     enum class OpenError {
         None,
-        FailedToGetSize,
+        FailedToGetInfo,
+        NotAFile,
         EmptyFile,
         MmapCallFailed,
     };

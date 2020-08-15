@@ -310,10 +310,13 @@ int main(int Argc, const char *Argv[]) {
     switch (FileMap.getError()) {
         case MappedFile::OpenError::None:
             break;
-        case MappedFile::OpenError::FailedToGetSize:
+        case MappedFile::OpenError::FailedToGetInfo:
             fprintf(stderr,
-                    "Failed to get file-size of provided file. Error: %s\n",
+                    "Failed to get file-info of provided file. Error: %s\n",
                     strerror(errno));
+            return 1;
+        case MappedFile::OpenError::NotAFile:
+            fputs("Provided path does not point to a file\n", stderr);
             return 1;
         case MappedFile::OpenError::EmptyFile:
             fputs("Provided file is empty\n", stderr);

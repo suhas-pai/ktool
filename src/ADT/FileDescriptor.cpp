@@ -41,7 +41,7 @@ bool FileDescriptor::TruncateToSize(uint64_t Size) noexcept {
     return (ftruncate(Fd, Size) == 0);
 }
 
-std::optional<uint64_t> FileDescriptor::GetSize() const noexcept {
+std::optional<struct stat> FileDescriptor::GetInfo() const noexcept {
     assert(IsOpen());
 
     struct stat Sbuf = {};
@@ -49,7 +49,15 @@ std::optional<uint64_t> FileDescriptor::GetSize() const noexcept {
         return std::nullopt;
     }
 
-    return Sbuf.st_size;;
+    return Sbuf;
+}
+
+std::optional<uint64_t> FileDescriptor::GetSize() const noexcept {
+    if (const auto Info = GetInfo()) {
+        return Info->st_size;
+    }
+
+    return std::nullopt;
 }
 
 FileDescriptor &FileDescriptor::operator=(FileDescriptor &&Rhs) noexcept {
