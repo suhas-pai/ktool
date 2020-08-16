@@ -405,20 +405,28 @@ PrintSymbolPtrList(
         return 1;
     }
 
-    std::sort(List.begin(), List.end(), [&](const auto &Lhs, const auto &Rhs) {
-        if (!Options.SortKindList.empty()) {
+    if (!Options.SortKindList.empty()) {
+        std::sort(List.begin(),
+                  List.end(),
+                  [&](const auto &Lhs, const auto &Rhs) noexcept
+        {
             for (const auto &Sort : Options.SortKindList) {
                 const auto Compare = CompareEntriesBySortKind(*Lhs, *Rhs, Sort);
                 if (Compare != 0) {
                     return (Compare < 0);
                 }
             }
-        } else if (Lhs->Index < Rhs->Index) {
-            return true;
-        }
-
-        return false;
-    });
+        });
+    } else {
+        std::sort(List.begin(),
+                  List.end(),
+                  [&](const auto &Lhs, const auto &Rhs) noexcept
+        {
+            if (Lhs->Index < Rhs->Index) {
+                return true;
+            }
+        });
+    }
 
     PrintSymbolList(Options,
                     SegmentCollection,
