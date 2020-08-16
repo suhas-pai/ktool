@@ -416,15 +416,15 @@ PrintSymbolPtrList(
                     return (Compare < 0);
                 }
             }
+
+            return false;
         });
     } else {
         std::sort(List.begin(),
                   List.end(),
                   [&](const auto &Lhs, const auto &Rhs) noexcept
         {
-            if (Lhs->Index < Rhs->Index) {
-                return true;
-            }
+            return (Lhs->Index < Rhs->Index);
         });
     }
 
