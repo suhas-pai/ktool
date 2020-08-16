@@ -83,33 +83,35 @@ namespace MachO {
 
         for (const auto &LoadCmd : LoadCmdStorage) {
             const auto LCKind = LoadCmd.getKind(IsBigEndian);
-            if (IsSharedLibraryLoadCommand(LCKind)) {
-                const auto &DylibCmd =
-                    cast<DylibCommand>(LoadCmd, IsBigEndian);
-
-                const auto GetNameResult = DylibCmd.GetName(IsBigEndian);
-                const auto &Name =
-                    (GetNameResult.hasError()) ?
-                        EmptyStringValue :
-                        GetNameResult.getString();
-
-                if (GetNameResult.hasError()) {
-                    Error = Error::InvalidPath;
-                }
-
-                const auto &Info = DylibCmd.Info;
-                const auto Timestamp =
-                    SwitchEndianIf(Info.Timestamp, IsBigEndian);
-
-                Result.List.emplace_back(SharedLibraryInfo {
-                    .Kind = LCKind,
-                    .Path = std::string(Name),
-                    .Index = LCIndex,
-                    .Timestamp = Timestamp,
-                    .CurrentVersion = Info.getCurrentVersion(IsBigEndian),
-                    .CompatibilityVersion = Info.getCompatVersion(IsBigEndian)
-                });
+            if (!IsSharedLibraryLoadCommand(LCKind)) {
+                continue;
             }
+
+            const auto &DylibCmd =
+                cast<DylibCommand>(LoadCmd, IsBigEndian);
+
+            const auto GetNameResult = DylibCmd.GetName(IsBigEndian);
+            const auto &Name =
+                (GetNameResult.hasError()) ?
+                    EmptyStringValue :
+                    GetNameResult.getString();
+
+            if (GetNameResult.hasError()) {
+                Error = Error::InvalidPath;
+            }
+
+            const auto &Info = DylibCmd.Info;
+            const auto Timestamp =
+                SwitchEndianIf(Info.Timestamp, IsBigEndian);
+
+            Result.List.emplace_back(SharedLibraryInfo {
+                .Kind = LCKind,
+                .Path = std::string(Name),
+                .Index = LCIndex,
+                .Timestamp = Timestamp,
+                .CurrentVersion = Info.getCurrentVersion(IsBigEndian),
+                .CompatibilityVersion = Info.getCompatVersion(IsBigEndian)
+            });
 
             LCIndex++;
         }
