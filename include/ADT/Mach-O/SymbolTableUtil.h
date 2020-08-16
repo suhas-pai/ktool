@@ -12,6 +12,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "LoadCommands.h"
 #include "SegmentInfo.h"
 
 namespace MachO {
