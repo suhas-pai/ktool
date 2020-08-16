@@ -183,7 +183,7 @@ namespace MachO {
         }
     }
 
-    [[nodiscard]] constexpr static ExportTrieExportKind
+    [[nodiscard]] constexpr ExportTrieExportKind
     ExportTrieExportKindFromString(const std::string_view &String) noexcept {
         using Enum = ExportTrieExportKind;
 
@@ -227,8 +227,8 @@ namespace MachO {
         return Enum::None;
     }
 
-    [[nodiscard]] constexpr
-    static const uint64_t ExportTrieExportKindGetLongestNameLength() noexcept {
+    [[nodiscard]]
+    constexpr uint64_t ExportTrieExportKindGetLongestNameLength() noexcept {
         const auto Result =
             EnumHelper<ExportTrieExportKind>::GetLongestAssocLength(
                 ExportTrieExportKindGetName);
@@ -236,8 +236,8 @@ namespace MachO {
         return Result;
     }
 
-    [[nodiscard]] constexpr static
-    const uint64_t ExportTrieExportKindGetLongestDescriptionLength() noexcept {
+    [[nodiscard]] constexpr
+    uint64_t ExportTrieExportKindGetLongestDescriptionLength() noexcept {
         const auto Result =
             EnumHelper<ExportTrieExportKind>::GetLongestAssocLength(
                 ExportTrieExportKindGetDescription);
@@ -381,14 +381,23 @@ namespace MachO {
         }
     };
 
+    struct ExportTrieParseOptions {
+        uint64_t RangeListReserveSize = 128;
+        uint64_t StackListReserveSize = 16;
+        uint64_t StringReserveSize = 128;
+        uint64_t MaxDepth = 128;
+    };
+
     struct ExportTrieIteratorEnd {};
     struct ExportTrieIterator {
     public:
+        using Error = ExportTrieParseError;
+
         using NodeInfo = ExportTrieNodeInfo;
         using StackInfo = ExportTrieStackInfo;
         using IterateInfo = ExportTrieIterateInfo;
 
-        using Error = ExportTrieParseError;
+        using ParseOptions = ExportTrieParseOptions;
     protected:
         union {
             PointerErrorStorage<Error> ParseError;
@@ -396,6 +405,7 @@ namespace MachO {
         };
 
         const uint8_t *End;
+        uint64_t MaxDepth;
 
         std::unique_ptr<ExportTrieIterateInfo> Info;
         std::unique_ptr<StackInfo> NextStack;
@@ -409,7 +419,10 @@ namespace MachO {
         Error Advance() noexcept;
     public:
         explicit
-        ExportTrieIterator(const uint8_t *Begin, const uint8_t *End) noexcept;
+        ExportTrieIterator(
+            const uint8_t *Begin,
+            const uint8_t *End,
+            const ParseOptions &Options = ParseOptions()) noexcept;
 
         [[nodiscard]] inline ExportTrieIterateInfo &getInfo() noexcept {
             return *Info;
@@ -479,11 +492,14 @@ namespace MachO {
     };
 
     struct ExportTrieList {
+    public:
+        using ParseOptions = ExportTrieParseOptions;
     protected:
         uint8_t *Begin;
         uint8_t *End;
     public:
-        explicit ExportTrieList(uint8_t *Begin, uint8_t *End) noexcept
+        explicit
+        ExportTrieList(uint8_t *Begin, uint8_t *End) noexcept
         : Begin(Begin), End(End) {}
 
         using IteratorType = ExportTrieIterator;
@@ -494,6 +510,16 @@ namespace MachO {
 
         [[nodiscard]] IteratorType cbegin() const noexcept {
             return IteratorType(Begin, End);
+        }
+
+        [[nodiscard]]
+        IteratorType begin(const ParseOptions &Options) const noexcept {
+            return IteratorType(Begin, End, Options);
+        }
+
+        [[nodiscard]]
+        IteratorType cbegin(const ParseOptions &Options) const noexcept {
+            return IteratorType(Begin, End, Options);
         }
 
         [[nodiscard]] ExportTrieIteratorEnd end() const noexcept {
@@ -507,8 +533,8 @@ namespace MachO {
 
     struct ConstExportTrieList : public ExportTrieList {
     public:
-        explicit ConstExportTrieList(const uint8_t *Begin,
-                                     const uint8_t *End) noexcept
+        explicit
+        ConstExportTrieList(const uint8_t *Begin, const uint8_t *End) noexcept
         : ExportTrieList(const_cast<uint8_t *>(Begin),
                          const_cast<uint8_t *>(End)) {}
 
@@ -520,6 +546,16 @@ namespace MachO {
 
         [[nodiscard]] IteratorType cbegin() const noexcept {
             return IteratorType(Begin, End);
+        }
+
+        [[nodiscard]]
+        IteratorType begin(const ParseOptions &Options) const noexcept {
+            return IteratorType(Begin, End, Options);
+        }
+
+        [[nodiscard]]
+        IteratorType cbegin(const ParseOptions &Options) const noexcept {
+            return IteratorType(Begin, End, Options);
         }
 
         [[nodiscard]] ExportTrieIteratorEnd end() const noexcept {

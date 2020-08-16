@@ -156,7 +156,7 @@ namespace MachO {
         static ExportTrieEntryCollection
         Open(const MachO::ConstExportTrieList &Trie,
              const MachO::SegmentInfoCollection *SegmentCollection,
-             Error *Error);
+             Error *ErrorOut = nullptr);
 
         [[nodiscard]] inline ChildNode *getRoot() const noexcept {
             return reinterpret_cast<ChildNode *>(Root);
@@ -201,22 +201,22 @@ namespace MachO {
              const MachO::SegmentInfoCollection *SegmentCollection,
              Error *Error) noexcept;
 
-        using Iterator = std::vector<EntryInfo>::const_iterator;
+        using Iterator = std::vector<EntryInfo>::iterator;
         using ConstIterator = std::vector<EntryInfo>::const_iterator;
 
-        [[nodiscard]] inline Iterator begin() const noexcept {
+        [[nodiscard]] inline Iterator begin() noexcept {
             return EntryList.begin();
         }
 
-        [[nodiscard]] inline Iterator end() const noexcept {
+        [[nodiscard]] inline Iterator end() noexcept {
             return EntryList.end();
         }
 
-        [[nodiscard]] inline ConstIterator cbegin() const noexcept {
+        [[nodiscard]] inline ConstIterator begin() const noexcept {
             return EntryList.cbegin();
         }
 
-        [[nodiscard]] inline ConstIterator cend() const noexcept {
+        [[nodiscard]] inline ConstIterator end() const noexcept {
             return EntryList.cend();
         }
     };

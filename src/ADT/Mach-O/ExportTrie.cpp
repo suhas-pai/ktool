@@ -14,14 +14,15 @@
 
 namespace MachO {
     ExportTrieIterator::ExportTrieIterator(const uint8_t *Begin,
-                                           const uint8_t *End) noexcept
-    : Begin(Begin), End(End)
+                                           const uint8_t *End,
+                                           const ParseOptions &Options) noexcept
+    : Begin(Begin), End(End), MaxDepth(Options.MaxDepth)
     {
         Info = std::make_unique<ExportTrieIterateInfo>();
 
-        Info->RangeList.reserve(128);
-        Info->StackList.reserve(16);
-        Info->String.reserve(64);
+        Info->RangeList.reserve(Options.RangeListReserveSize);
+        Info->StackList.reserve(Options.StackListReserveSize);
+        Info->String.reserve(Options.StringReserveSize);
 
         auto Node = NodeInfo();
         this->ParseError = ParseNode(Begin, &Node);
@@ -151,7 +152,7 @@ namespace MachO {
 
         auto &StackList = Info->StackList;
         if (!StackList.empty()) {
-            if (StackList.size() == 128) {
+            if (StackList.size() == MaxDepth) {
                 return Error::TooDeep;
             }
 
@@ -344,7 +345,7 @@ namespace MachO {
                 break;
             }
 
-            if (StackList.size() == 128) {
+            if (StackList.size() == MaxDepth) {
                 return Error::TooDeep;
             }
 
