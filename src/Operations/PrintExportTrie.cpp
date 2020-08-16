@@ -144,7 +144,6 @@ PrintTreeExportInfo(
                                                    SharedLibraryCollection,
                                                    DylibOrdinal,
                                                    Options.Verbose);
-            fputc(')', Options.OutFile);
         }
     }
 
