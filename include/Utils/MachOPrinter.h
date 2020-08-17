@@ -407,7 +407,8 @@ struct MachOTypePrinter<MachO::PackedVersion> {
         if (Revision == 0) {
             if (Minor == 0) {
                 if (Major == 0) {
-                    PackedVersionWrittenOut = fprintf(OutFile, "0");
+                    fputc('0', OutFile);
+                    PackedVersionWrittenOut = 1;
                 } else {
                     PackedVersionWrittenOut =
                         fprintf(OutFile, "%" PRIu16, Major);
@@ -475,6 +476,7 @@ struct MachOTypePrinter<MachO::PackedVersion> {
                 PrintUtilsRightPadSpaces(OutFile,
                                          PackedVersionWrittenOut,
                                          MACHO_PACKED_VERSION_LEN);
+
             return MACHO_PACKED_VERSION_LEN;
         }
 

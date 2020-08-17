@@ -656,6 +656,11 @@ namespace MachO {
                 return SwitchEndianIf(CompatibilityVersion, IsBigEndian);
             }
 
+            [[nodiscard]] constexpr
+            inline uint32_t getTimestamp(bool IsBigEndian) const noexcept {
+                return SwitchEndianIf(Timestamp, IsBigEndian);
+            }
+
             constexpr inline Info &
             setCurrentVersion(const PackedVersion &Version,
                               bool IsBigEndian) noexcept
@@ -673,6 +678,12 @@ namespace MachO {
                 const auto Value = Version.value();
                 this->CompatibilityVersion = SwitchEndianIf(Value, IsBigEndian);
 
+                return *this;
+            }
+
+            constexpr inline
+            Info &setTimestamp(uint32_t Timestamp, bool IsBigEndian) noexcept {
+                this->Timestamp = SwitchEndianIf(Timestamp, IsBigEndian);
                 return *this;
             }
         };
@@ -1700,12 +1711,34 @@ namespace MachO {
         uint32_t Offset;
         uint32_t NHints;
 
+        [[nodiscard]] constexpr
+        inline uint32_t getHintsOffset(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(Offset, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        inline uint32_t getHintsCount(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(NHints, IsBigEndian);
+        }
+
         [[nodiscard]] TypedAllocationOrError<HintList, SizeRangeError>
         GetHintList(const MemoryMap &Map, bool IsBigEndian) noexcept;
 
         [[nodiscard]] TypedAllocationOrError<ConstHintList, SizeRangeError>
         GetConstHintList(const ConstMemoryMap &Map,
                          bool IsBigEndian) const noexcept;
+
+        constexpr inline TwoLevelHintsCommand &
+        setHintsOffset(uint32_t Offset, bool IsBigEndian) noexcept {
+            this->Offset =  SwitchEndianIf(Offset, IsBigEndian);
+            return *this;
+        }
+
+        constexpr inline TwoLevelHintsCommand &
+        setHintsCount(uint32_t Count, bool IsBigEndian) noexcept {
+            this->NHints = SwitchEndianIf(Count, IsBigEndian);
+            return *this;
+        }
     };
 
     struct PrebindChecksumCommand : public LoadCommand {

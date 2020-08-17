@@ -6,6 +6,7 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#include <string.h>
 #include "Utils/PointerUtils.h"
 
 #include "LoadCommands.h"
@@ -111,8 +112,7 @@ namespace MachO {
             .SymbolInfo = Entry.Info,
             .String = StringPtr,
             .Section = Entry.getSection(IsBigEndian),
-            .Desc =
-                static_cast<uint16_t>(Entry.getDesc(IsBigEndian)),
+            .Desc = static_cast<uint16_t>(Entry.getDesc(IsBigEndian)),
             .Index = Index,
             .Value = Entry.getValue(IsBigEndian)
         };

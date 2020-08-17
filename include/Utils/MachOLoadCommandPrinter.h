@@ -2054,27 +2054,28 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
                 return;
         }
 
+        fputs("\n\t", OutFile);
         switch (ToolCount) {
             case 0:
-                fputs("\n\t0 Tools\n", OutFile);
+                fputs("0 Tools\n", OutFile);
                 return;
             case 1:
-                fputs("\n\t1 Tool:\n", OutFile);
+                fputs("1 Tool:\n", OutFile);
                 break;
             default:
-                fprintf(OutFile, "\n\t%" PRIu32 " Tools:\n", ToolCount);
+                fprintf(OutFile, "%" PRIu32 " Tools:\n", ToolCount);
                 break;
         }
 
         for (const auto &Tool : ToolList.getRef()) {
-            auto KindDesc =
-                Tool.KindGetDescription(Tool.getKind(IsBigEndian)).data();
+            const auto ToolKind = Tool.getKind(IsBigEndian);
+            auto KindDesc = Tool.KindGetDescription(ToolKind).data();
 
             if (KindDesc == nullptr) {
                 KindDesc = "Unrecognized";
             }
 
-            fprintf(OutFile,"\t\tKind:    %s\n\t\tVersion: ", KindDesc);
+            fprintf(OutFile, "\t\tKind:    %s\n\t\tVersion: ", KindDesc);
             MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(OutFile,
                 Tool.getVersion(IsBigEndian), "", "");
 

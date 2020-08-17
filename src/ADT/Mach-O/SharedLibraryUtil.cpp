@@ -87,8 +87,7 @@ namespace MachO {
                 continue;
             }
 
-            const auto &DylibCmd =
-                cast<DylibCommand>(LoadCmd, IsBigEndian);
+            const auto &DylibCmd = cast<DylibCommand>(LoadCmd, IsBigEndian);
 
             const auto GetNameResult = DylibCmd.GetName(IsBigEndian);
             const auto &Name =
@@ -101,14 +100,11 @@ namespace MachO {
             }
 
             const auto &Info = DylibCmd.Info;
-            const auto Timestamp =
-                SwitchEndianIf(Info.Timestamp, IsBigEndian);
-
             Result.List.emplace_back(SharedLibraryInfo {
                 .Kind = LCKind,
                 .Path = std::string(Name),
                 .Index = LCIndex,
-                .Timestamp = Timestamp,
+                .Timestamp = Info.getTimestamp(IsBigEndian),
                 .CurrentVersion = Info.getCurrentVersion(IsBigEndian),
                 .CompatibilityVersion = Info.getCompatVersion(IsBigEndian)
             });

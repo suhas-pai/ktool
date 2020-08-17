@@ -399,60 +399,60 @@ namespace MachO {
     private:
         using Base = ::BasicFlags<SegmentFlagsEnum>;
     public:
-        using FlagType = SegmentFlagsEnum;
-        using FlagIntegerType = std::underlying_type_t<FlagType>;
+        using FlagEnum = SegmentFlagsEnum;
+        using FlagIntegerType = std::underlying_type_t<FlagEnum>;
 
         constexpr SegmentFlags() noexcept = default;
         constexpr SegmentFlags(FlagIntegerType Integer) noexcept
         : Base(Integer) {}
 
         [[nodiscard]] constexpr inline bool IsHighVM() const noexcept {
-            return hasFlag(FlagType::HighVM);
+            return hasFlag(FlagEnum::HighVM);
         }
 
         [[nodiscard]] constexpr inline bool IsFixedVMLibary() const noexcept {
-            return hasFlag(FlagType::FixedVMLibary);
+            return hasFlag(FlagEnum::FixedVMLibary);
         }
 
         [[nodiscard]] constexpr inline bool IsNoRelocations() const noexcept {
-            return hasFlag(FlagType::NoRelocations);
+            return hasFlag(FlagEnum::NoRelocations);
         }
 
         [[nodiscard]] constexpr inline bool IsProtected() const noexcept {
-            return hasFlag(FlagType::ProtectionVersion1);
+            return hasFlag(FlagEnum::ProtectionVersion1);
         }
 
         [[nodiscard]]
         constexpr inline bool IsReadOnlyAfterFixup() const noexcept {
-            return hasFlag(FlagType::ReadOnlyAfterFixup);
+            return hasFlag(FlagEnum::ReadOnlyAfterFixup);
         }
 
         constexpr inline SegmentFlags &setHighVM(bool Value = true) noexcept {
-            setValueForFlag(FlagType::HighVM, Value);
+            setValueForFlag(FlagEnum::HighVM, Value);
             return *this;
         }
 
         constexpr
         inline SegmentFlags &setFixedVMLibary(bool Value = true) noexcept {
-            setValueForFlag(FlagType::FixedVMLibary, Value);
+            setValueForFlag(FlagEnum::FixedVMLibary, Value);
             return *this;
         }
 
         constexpr
         inline SegmentFlags &setNoRelocations(bool Value = true) noexcept {
-            setValueForFlag(FlagType::NoRelocations, Value);
+            setValueForFlag(FlagEnum::NoRelocations, Value);
             return *this;
         }
 
         constexpr
         inline SegmentFlags &setIsProtected(bool Value = true) noexcept {
-            setValueForFlag(FlagType::ProtectionVersion1, Value);
+            setValueForFlag(FlagEnum::ProtectionVersion1, Value);
             return *this;
         }
 
         constexpr
         inline SegmentFlags &setReadOnlyAfterFixup(bool Value = true) noexcept {
-            setValueForFlag(FlagType::ReadOnlyAfterFixup, Value);
+            setValueForFlag(FlagEnum::ReadOnlyAfterFixup, Value);
             return *this;
         }
 

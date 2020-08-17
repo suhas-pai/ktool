@@ -264,8 +264,8 @@ ConstDscMemoryObject::ValidateImageMapAndGetEnd(
 
     const auto Is64Bit = Header.Is64Bit();
     const auto IsBigEndian = Header.IsBigEndian();
-
     const auto LoadCmdStorage = Header.GetConstLoadCmdStorage();
+
     if (LoadCmdStorage.hasError()) {
         return DscImageOpenError::InvalidLoadCommands;
     }

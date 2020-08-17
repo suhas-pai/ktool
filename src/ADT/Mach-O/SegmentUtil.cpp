@@ -482,8 +482,9 @@ namespace MachO {
         uint64_t SectionIndex) const noexcept
     {
         for (const auto &Segment : List) {
-            if (IndexOutOfBounds(SectionIndex, Segment->SectionList.size())) {
-                SectionIndex -= Segment->SectionList.size();
+            const auto SectionListSize = Segment->SectionList.size();
+            if (IndexOutOfBounds(SectionIndex, SectionListSize)) {
+                SectionIndex -= SectionListSize;
                 continue;
             }
 
@@ -547,13 +548,13 @@ namespace MachO {
         return (Map + Info.File.getBegin());
     }
 
-    template <typename PtrType>
-    static inline PtrType
+    template <typename T>
+    static inline T *
     GetDataForVirtualAddrImpl(const SegmentInfoCollection &Collection,
-                              const PtrType &Map,
+                              T *Map,
                               uint64_t Addr,
                               uint64_t Size,
-                              PtrType *EndOut) noexcept
+                              T **EndOut) noexcept
     {
         if (Addr == 0) {
             return nullptr;
@@ -579,7 +580,7 @@ namespace MachO {
 
                 if (EndOut != nullptr) {
                     const auto SectionSize = Section->File.size();
-                    *EndOut = reinterpret_cast<PtrType>(Data + SectionSize);
+                    *EndOut = reinterpret_cast<T *>(Data + SectionSize);
                 }
 
                 return (Data + Offset);
@@ -589,14 +590,13 @@ namespace MachO {
         return nullptr;
     }
 
-    template <typename PtrType>
-    static inline PtrType
-    GetDataForVirtualAddrImplNoSections(
-        const SegmentInfoCollection &Collection,
-        const PtrType &Map,
-        uint64_t Addr,
-        uint64_t Size,
-        PtrType *EndOut) noexcept
+    template <typename T>
+    static inline T *
+    GetDataForVirtualAddrImplNoSections(const SegmentInfoCollection &Collection,
+                                        T *Map,
+                                        uint64_t Addr,
+                                        uint64_t Size,
+                                        T **EndOut) noexcept
     {
         if (Addr == 0) {
             return nullptr;
@@ -613,7 +613,7 @@ namespace MachO {
 
             if (EndOut != nullptr) {
                 const auto SegmentSize = Segment->File.size();
-                *EndOut = reinterpret_cast<PtrType>(Data + SegmentSize);
+                *EndOut = reinterpret_cast<T *>(Data + SegmentSize);
             }
 
             return (Data + Offset);
@@ -630,11 +630,11 @@ namespace MachO {
         uint8_t **EndOut) const noexcept
     {
         const auto Data =
-            GetDataForVirtualAddrImpl<uint8_t *>(*this,
-                                                 Map,
-                                                 Addr,
-                                                 Size,
-                                                 EndOut);
+            GetDataForVirtualAddrImpl<uint8_t>(*this,
+                                               Map,
+                                               Addr,
+                                               Size,
+                                               EndOut);
         return Data;
     }
 
@@ -646,11 +646,11 @@ namespace MachO {
         const uint8_t **EndOut) const noexcept
     {
         const auto Data =
-            GetDataForVirtualAddrImpl<const uint8_t *>(*this,
-                                                       Map,
-                                                       Addr,
-                                                       Size,
-                                                       EndOut);
+            GetDataForVirtualAddrImpl<const uint8_t>(*this,
+                                                     Map,
+                                                     Addr,
+                                                     Size,
+                                                     EndOut);
         return Data;
     }
 
@@ -662,11 +662,11 @@ namespace MachO {
         uint8_t **EndOut) const noexcept
     {
         const auto Data =
-            GetDataForVirtualAddrImplNoSections<uint8_t *>(*this,
-                                                           Map,
-                                                           Addr,
-                                                           Size,
-                                                           EndOut);
+            GetDataForVirtualAddrImplNoSections<uint8_t>(*this,
+                                                         Map,
+                                                         Addr,
+                                                         Size,
+                                                         EndOut);
         return Data;
     }
 
@@ -678,11 +678,11 @@ namespace MachO {
         const uint8_t **EndOut) const noexcept
     {
         const auto Data =
-            GetDataForVirtualAddrImplNoSections<const uint8_t *>(*this,
-                                                                 Map,
-                                                                 Addr,
-                                                                 Size,
-                                                                 EndOut);
+            GetDataForVirtualAddrImplNoSections<const uint8_t>(*this,
+                                                               Map,
+                                                               Addr,
+                                                               Size,
+                                                               EndOut);
         return Data;
     }
 }

@@ -118,7 +118,7 @@ template <typename T>
 constexpr inline T SwitchEndianIf(T Value, bool ShouldSwitch) noexcept {
     static_assert(std::is_integral_v<T>, "T must be an integer-type");
     if (ShouldSwitch) {
-        Value = EndianSwitcher<T>::SwitchEndian(Value);
+        Value = SwitchEndian(Value);
     }
 
     return Value;

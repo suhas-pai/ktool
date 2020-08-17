@@ -348,7 +348,7 @@ namespace MachO {
         return ObjcParseError::None;
     }
 
-    ObjcClassInfo
+    [[nodiscard]] static ObjcClassInfo
     CreateExternalClass(const std::string_view &Name,
                         uint64_t DylibOrdinal,
                         uint64_t BindAddr) noexcept
@@ -566,16 +566,15 @@ namespace MachO {
 
     ObjcClassInfo *
     ObjcClassInfoCollection::AddExternalClass(const std::string_view &Name,
-                                        uint64_t DylibOrdinal,
-                                        uint64_t BindAddr) noexcept
+                                              uint64_t DylibOrdinal,
+                                              uint64_t BindAddr) noexcept
     {
         auto NewInfo = CreateExternalClass(Name, DylibOrdinal, BindAddr);
         return CreateClassForList(List, std::move(NewInfo));
     }
 
     ObjcClassInfo *
-    ObjcClassInfoCollection::GetInfoForAddress(
-        uint64_t Address) const noexcept
+    ObjcClassInfoCollection::GetInfoForAddress(uint64_t Address) const noexcept
     {
         const auto Iter = List.find(Address);
         if (Iter != List.end()) {
@@ -646,6 +645,14 @@ namespace MachO {
                 const auto Category =
                     DeVirtualizer.GetDataAtAddressIgnoreSections<
                         ObjcCategoryType>(SwitchedAddr);
+
+                if (Category == nullptr) {
+                    Info->Address = SwitchedAddr;
+                    Info->IsNull = true;
+
+                    CategoryList.emplace_back(Info);
+                    continue;
+                }
 
                 const auto NameAddr =
                     SwitchEndianIf(Category->Name, IsBigEndian);

@@ -81,7 +81,7 @@ public:
     inline bool IsLargeEnoughForType(uint64_t Count = 1) const noexcept {
         return IsLargeEnoughForSize(sizeof(T) * Count);
     }
-    
+
     [[nodiscard]]
     constexpr inline bool IsLargeEnoughForSize(uint64_t Size) const noexcept {
         return (size() >= Size);
@@ -129,9 +129,19 @@ public:
         return MemoryMap(Begin, getEnd());
     }
 
+    [[nodiscard]] constexpr
+    inline ConstMemoryMap constMapFromPtr(uint8_t *Begin) const noexcept {
+        return ConstMemoryMap::mapFromPtr(Begin);
+    }
+
     [[nodiscard]]
     constexpr inline MemoryMap mapFromOffset(uint64_t Offset) const noexcept {
         assert(containsOffset(Offset));
         return MemoryMap(getBegin() + Offset, getEnd());
+    }
+
+    [[nodiscard]] constexpr
+    inline ConstMemoryMap constMapFromOffset(uint64_t Offset) const noexcept {
+        return ConstMemoryMap::mapFromOffset(Offset);
     }
 };

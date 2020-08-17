@@ -12,6 +12,7 @@
 
 #include "ADT/MachO.h"
 
+#include "LoadCommandsCommon.h"
 #include "Utils/Leb128.h"
 #include "Utils/MiscTemplates.h"
 #include "Utils/PointerUtils.h"
@@ -933,15 +934,19 @@ namespace MachO {
 
         return Result;
     }
-    
+
     TypedAllocationOrError<SymTabCommand::Entry32List, SizeRangeError>
     SymTabCommand::GetEntry32List(const MemoryMap &Map,
                                   bool IsBigEndian) const noexcept
     {
-        const auto Nsyms = SwitchEndianIf(this->Nsyms, IsBigEndian);
-        const auto SymOff = SwitchEndianIf(this->SymOff, IsBigEndian);
+        const auto Nsyms = getSymbolsCount(IsBigEndian);
+        if (Nsyms == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto SymOff = getSymbolTableOffset(IsBigEndian);
         auto SymEnd = uint64_t();
+
         if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry32),
                                        Nsyms, SymOff, &SymEnd))
         {
@@ -958,10 +963,14 @@ namespace MachO {
     SymTabCommand::GetEntry64List(const MemoryMap &Map,
                                   bool IsBigEndian) const noexcept
     {
-        const auto Nsyms = SwitchEndianIf(this->Nsyms, IsBigEndian);
-        const auto SymOff = SwitchEndianIf(this->SymOff, IsBigEndian);
+        const auto Nsyms = getSymbolsCount(IsBigEndian);
+        if (Nsyms == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto SymOff = getSymbolTableOffset(IsBigEndian);
         auto SymEnd = uint64_t();
+
         if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry64),
                                        Nsyms, SymOff, &SymEnd))
         {
@@ -978,10 +987,14 @@ namespace MachO {
     SymTabCommand::GetConstEntry32List(const ConstMemoryMap &Map,
                                        bool IsBigEndian) const noexcept
     {
-        const auto Nsyms = SwitchEndianIf(this->Nsyms, IsBigEndian);
-        const auto SymOff = SwitchEndianIf(this->SymOff, IsBigEndian);
+        const auto Nsyms = getSymbolsCount(IsBigEndian);
+        if (Nsyms == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto SymOff = getSymbolTableOffset(IsBigEndian);
         auto SymEnd = uint64_t();
+
         if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry32), Nsyms,
                                        SymOff, &SymEnd))
         {
@@ -1004,10 +1017,14 @@ namespace MachO {
     SymTabCommand::GetConstEntry64List(const ConstMemoryMap &Map,
                                        bool IsBigEndian) const noexcept
     {
-        const auto Nsyms = SwitchEndianIf(this->Nsyms, IsBigEndian);
-        const auto SymOff = SwitchEndianIf(this->SymOff, IsBigEndian);
+        const auto Nsyms = getSymbolsCount(IsBigEndian);
+        if (Nsyms == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto SymOff = getSymbolTableOffset(IsBigEndian);
         auto SymEnd = uint64_t();
+
         if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry64), Nsyms,
                                        SymOff, &SymEnd))
         {
@@ -1031,12 +1048,14 @@ namespace MachO {
                                           uint32_t SymOff,
                                           bool IsBigEndian) noexcept
     {
-        const auto Index =
-            SwitchEndianIf(IExternallyDefinedSymbols, IsBigEndian);
-        const auto Count =
-            SwitchEndianIf(NExternallyDefinedSymbols, IsBigEndian);
+        const auto Count = getExternalSymbolsCount(IsBigEndian);
+        if (Count == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto Index = getExternalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
+
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry32), Index,
                             &ByteIndex))
         {
@@ -1064,12 +1083,14 @@ namespace MachO {
                                           uint32_t SymOff,
                                           bool IsBigEndian) noexcept
     {
-        const auto Index =
-            SwitchEndianIf(IExternallyDefinedSymbols, IsBigEndian);
-        const auto Count =
-            SwitchEndianIf(NExternallyDefinedSymbols, IsBigEndian);
+        const auto Count = getExternalSymbolsCount(IsBigEndian);
+        if (Count == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto Index = getExternalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
+
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry64), Index,
                             &ByteIndex))
         {
@@ -1099,12 +1120,14 @@ namespace MachO {
                                                uint32_t SymOff,
                                                bool IsBigEndian) const noexcept
     {
-        const auto Index =
-            SwitchEndianIf(IExternallyDefinedSymbols, IsBigEndian);
-        const auto Count =
-            SwitchEndianIf(NExternallyDefinedSymbols, IsBigEndian);
+        const auto Count = getExternalSymbolsCount(IsBigEndian);
+        if (Count == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto Index = getExternalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
+
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry32), Index,
                             &ByteIndex))
         {
@@ -1134,12 +1157,14 @@ namespace MachO {
                                                uint32_t SymOff,
                                                bool IsBigEndian) const noexcept
     {
-        const auto Index =
-            SwitchEndianIf(IExternallyDefinedSymbols, IsBigEndian);
-        const auto Count =
-            SwitchEndianIf(NExternallyDefinedSymbols, IsBigEndian);
+        const auto Count = getExternalSymbolsCount(IsBigEndian);
+        if (Count == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto Index = getExternalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
+
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry64), Index,
                             &ByteIndex))
         {
@@ -1168,12 +1193,14 @@ namespace MachO {
                                                uint32_t SymOff,
                                                bool IsBigEndian) noexcept
     {
-        const auto Index =
-            SwitchEndianIf(IExternallyDefinedSymbols, IsBigEndian);
-        const auto Count =
-            SwitchEndianIf(NExternallyDefinedSymbols, IsBigEndian);
+        const auto Count = getLocalSymbolsCount(IsBigEndian);
+        if (Count == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto Index = getLocalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
+
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry32), Index,
                             &ByteIndex))
         {
@@ -1201,12 +1228,14 @@ namespace MachO {
                                                uint32_t SymOff,
                                                bool IsBigEndian) noexcept
     {
-        const auto Index =
-            SwitchEndianIf(IExternallyDefinedSymbols, IsBigEndian);
-        const auto Count =
-            SwitchEndianIf(NExternallyDefinedSymbols, IsBigEndian);
+        const auto Count = getLocalSymbolsCount(IsBigEndian);
+        if (Count == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto Index = getLocalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
+
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry64), Index,
                             &ByteIndex))
         {
@@ -1237,12 +1266,14 @@ namespace MachO {
         uint32_t SymOff,
         bool IsBigEndian) const noexcept
     {
-        const auto Index =
-            SwitchEndianIf(IExternallyDefinedSymbols, IsBigEndian);
-        const auto Count =
-            SwitchEndianIf(NExternallyDefinedSymbols, IsBigEndian);
+        const auto Count = getLocalSymbolsCount(IsBigEndian);
+        if (Count == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto Index = getLocalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
+
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry32), Index,
                             &ByteIndex))
         {
@@ -1274,12 +1305,14 @@ namespace MachO {
         uint32_t SymOff,
         bool IsBigEndian) const noexcept
     {
-        const auto Index =
-            SwitchEndianIf(IExternallyDefinedSymbols, IsBigEndian);
-        const auto Count =
-            SwitchEndianIf(NExternallyDefinedSymbols, IsBigEndian);
+        const auto Count = getLocalSymbolsCount(IsBigEndian);
+        if (Count == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto Index = getLocalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
+
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry64), Index,
                             &ByteIndex))
         {
@@ -1308,10 +1341,14 @@ namespace MachO {
         const MemoryMap &Map,
         bool IsBigEndian) noexcept
     {
-        const auto Offset = SwitchEndianIf(IndirectSymbolTableOff, IsBigEndian);
-        const auto Count = SwitchEndianIf(NIndirectSymbols, IsBigEndian);
+        const auto Count = getIndirectSymbolTableCount(IsBigEndian);
+        if (Count == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto Offset = getIndirectSymbolTableOffset(IsBigEndian);
         auto End = uint64_t();
+
         if (DoesMultiplyAndAddOverflow(sizeof(uint32_t), Count, Offset, &End)) {
             return SizeRangeError::Overflows;
         }
@@ -1327,7 +1364,6 @@ namespace MachO {
         return new BasicContiguousList<uint32_t>(Entries, Count);
     }
 
-    [[nodiscard]]
     TypedAllocationOrError<BasicContiguousList<const uint32_t>,
                            SizeRangeError>
 
@@ -1335,10 +1371,14 @@ namespace MachO {
         const ConstMemoryMap &Map,
         bool IsBigEndian) noexcept
     {
-        const auto Offset = SwitchEndianIf(IndirectSymbolTableOff, IsBigEndian);
-        const auto Count = SwitchEndianIf(NIndirectSymbols, IsBigEndian);
+        const auto Count = getIndirectSymbolTableCount(IsBigEndian);
+        if (Count == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto Offset = getIndirectSymbolTableOffset(IsBigEndian);
         auto End = uint64_t();
+
         if (DoesMultiplyAndAddOverflow(sizeof(uint32_t), Count, Offset, &End)) {
             return SizeRangeError::Overflows;
         }
@@ -1355,12 +1395,17 @@ namespace MachO {
     }
 
     TypedAllocationOrError<TwoLevelHintsCommand::HintList, SizeRangeError>
-    TwoLevelHintsCommand::GetHintList(const MemoryMap &Map, bool IsBigEndian)
-    noexcept {
-        const auto Offset = SwitchEndianIf(this->Offset, IsBigEndian);
-        const auto Count = SwitchEndianIf(NHints, IsBigEndian);
+    TwoLevelHintsCommand::GetHintList(
+        const MemoryMap &Map, bool IsBigEndian) noexcept
+    {
+        const auto Count = getHintsCount(IsBigEndian);
+        if (Count == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto Offset = getHintsOffset(IsBigEndian);
         auto End = uint64_t();
+
         if (DoesMultiplyAndAddOverflow(sizeof(Hint), Count, Offset, &End)) {
             return SizeRangeError::PastEnd;
         }
@@ -1380,10 +1425,14 @@ namespace MachO {
     TwoLevelHintsCommand::GetConstHintList(const ConstMemoryMap &Map,
                                            bool IsBigEndian) const noexcept
     {
-        const auto Offset = SwitchEndianIf(this->Offset, IsBigEndian);
-        const auto Count = SwitchEndianIf(NHints, IsBigEndian);
+        const auto Count = getHintsCount(IsBigEndian);
+        if (Count == 0) {
+            return SizeRangeError::Empty;
+        }
 
+        const auto Offset = getHintsOffset(IsBigEndian);
         auto End = uint64_t();
+
         if (DoesMultiplyAndAddOverflow(sizeof(Hint), Count, Offset, &End)) {
             return SizeRangeError::PastEnd;
         }
@@ -1412,9 +1461,11 @@ namespace MachO {
 
     TypedAllocationOrError<BuildVersionCommand::ToolList, SizeRangeError>
     BuildVersionCommand::GetToolList(bool IsBigEndian) noexcept {
+        const auto Count = getToolCount(IsBigEndian);
+        if (Count == 0) {
+            return SizeRangeError::Empty;
+        }
         auto End = uint64_t();
-
-        const auto Count = SwitchEndianIf(NTools, IsBigEndian);
         const auto Entries = reinterpret_cast<Tool *>(this + 1);
 
         if (DoesMultiplyAndAddOverflow(sizeof(Tool), Count, sizeof(*this),
@@ -1433,7 +1484,7 @@ namespace MachO {
 
     TypedAllocationOrError<BuildVersionCommand::ConstToolList, SizeRangeError>
     BuildVersionCommand::GetConstToolList(bool IsBigEndian) const noexcept {
-        const auto Count = SwitchEndianIf(NTools, IsBigEndian);
+        const auto Count = getToolCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
