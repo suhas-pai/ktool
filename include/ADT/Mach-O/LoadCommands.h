@@ -33,7 +33,6 @@
 #include "LoadCommandTemplates.h"
 #include "RebaseInfo.h"
 #include "SegmentUtil.h"
-#include "Types.h"
 
 namespace MachO {
     struct LoadCommand {
@@ -1036,8 +1035,8 @@ namespace MachO {
         return EmptyStringValue;
     }
 
-    [[nodiscard]] constexpr
-    static const uint64_t SymbolTableEntrySymbolKindGetLongestName() noexcept {
+    [[nodiscard]]
+    constexpr uint64_t SymbolTableEntrySymbolKindGetLongestName() noexcept {
         const auto Result =
             EnumHelper<SymbolTableEntrySymbolKind>::GetLongestAssocLength(
                 SymbolTableEntrySymbolKindGetName);
@@ -2140,7 +2139,7 @@ namespace MachO {
             std::string_view("DriverKit");
     };
 
-    [[nodiscard]] constexpr static const std::string_view &
+    [[nodiscard]] constexpr const std::string_view &
     PlatformKindGetName(PlatformKind Kind) noexcept {
         using Enum = PlatformKind;
         switch (Kind) {
@@ -2169,7 +2168,7 @@ namespace MachO {
         return EmptyStringValue;
     }
 
-    [[nodiscard]] constexpr static const std::string_view &
+    [[nodiscard]] constexpr const std::string_view &
     PlatformKindGetDescription(PlatformKind Kind) noexcept {
         using Enum = PlatformKind;
         switch (Kind) {

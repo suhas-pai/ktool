@@ -172,7 +172,7 @@ namespace MachO {
         constexpr static const auto Description = "Threaded"sv;
     };
 
-    [[nodiscard]] constexpr static const std::string_view &
+    [[nodiscard]] constexpr const std::string_view &
     BindByteOpcodeGetName(BindByteOpcode Opcode) noexcept {
         switch (Opcode) {
             case BindByteOpcode::Done:
@@ -223,7 +223,7 @@ namespace MachO {
         return EmptyStringValue;
     }
 
-    [[nodiscard]] constexpr static std::string_view
+    [[nodiscard]] constexpr std::string_view
     BindByteOpcodeGetDescription(BindByteOpcode Opcode) noexcept {
         switch (Opcode) {
             case BindByteOpcode::Done:
@@ -337,10 +337,8 @@ namespace MachO {
         return EmptyStringValue;
     }
 
-    [[nodiscard]] constexpr static
-    const std::string_view &BindWriteKindGetDescription(
-        BindWriteKind Type) noexcept
-    {
+    [[nodiscard]] constexpr const std::string_view &
+    BindWriteKindGetDescription(BindWriteKind Type) noexcept {
         switch (Type) {
             case BindWriteKind::None:
                 return EmptyStringValue;
@@ -358,8 +356,8 @@ namespace MachO {
         return EmptyStringValue;
     }
 
-    [[nodiscard]] constexpr
-    static const uint64_t BindWriteKindGetLongestDescription() noexcept {
+    [[nodiscard]]
+    constexpr uint64_t BindWriteKindGetLongestDescription() noexcept {
         const auto Result =
             EnumHelper<BindWriteKind>::GetLongestAssocLength(
                 BindWriteKindGetName);
@@ -422,9 +420,10 @@ namespace MachO {
         constexpr static const auto Description = "Weak-Lookup"sv;
     };
 
-    [[nodiscard]] constexpr static const std::string_view &
-    BindByteDylibSpecialOrdinalGetName(BindByteDylibSpecialOrdinal Ordinal)
-    noexcept {
+    [[nodiscard]] constexpr const std::string_view &
+    BindByteDylibSpecialOrdinalGetName(
+        BindByteDylibSpecialOrdinal Ordinal) noexcept
+    {
         switch (Ordinal) {
             case BindByteDylibSpecialOrdinal::DylibSelf:
                 return
@@ -445,7 +444,7 @@ namespace MachO {
         }
     }
 
-    [[nodiscard]] constexpr static const std::string_view &
+    [[nodiscard]] constexpr const std::string_view &
     BindByteDylibSpecialOrdinalGetDescription(
         BindByteDylibSpecialOrdinal Ordinal) noexcept
     {
@@ -521,8 +520,9 @@ namespace MachO {
         }
 
         constexpr inline BindByte &setOpcode(Opcode Opcode) noexcept {
-            setValueForMaskNoShift(Masks::Opcode,
-                                   static_cast<IntegerType>(Opcode));
+            const auto OpcodeInt = static_cast<IntegerType>(Opcode);
+
+            setValueForMaskNoShift(Masks::Opcode, OpcodeInt);
             return *this;
         }
 

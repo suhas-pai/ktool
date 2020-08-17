@@ -18,7 +18,6 @@
 #include "Utils/SwitchEndian.h"
 
 #include "LoadCommandStorage.h"
-#include "Types.h"
 
 namespace MachO {
     using namespace std::literals;

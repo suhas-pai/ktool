@@ -119,7 +119,7 @@ namespace MachO {
             "Do Rebase Uleb128 times Skipping Uleb128 Bytes"sv;
     };
 
-    [[nodiscard]] constexpr static const std::string_view &
+    [[nodiscard]] constexpr const std::string_view &
     RebaseByteOpcodeGetName(RebaseByteOpcode Opcode) noexcept {
         switch (Opcode) {
             case RebaseByteOpcode::Done:
@@ -158,7 +158,7 @@ namespace MachO {
         return EmptyStringValue;
     }
 
-    [[nodiscard]] constexpr static std::string_view
+    [[nodiscard]] constexpr std::string_view
     RebaseByteOpcodeGetDescription(RebaseByteOpcode Opcode) noexcept {
         switch (Opcode) {
             case RebaseByteOpcode::Done:
@@ -257,9 +257,8 @@ namespace MachO {
         return EmptyStringValue;
     }
 
-    [[nodiscard]] constexpr static
-    const std::string_view &RebaseWriteKindGetDescription(RebaseWriteKind Type)
-    noexcept {
+    [[nodiscard]] constexpr const std::string_view &
+    RebaseWriteKindGetDescription(RebaseWriteKind Type) noexcept {
         switch (Type) {
             case RebaseWriteKind::None:
                 return EmptyStringValue;
@@ -278,8 +277,8 @@ namespace MachO {
         return EmptyStringValue;
     }
 
-    [[nodiscard]] constexpr
-    static const uint64_t RebaseWriteKindGetLongestDescription() noexcept {
+    [[nodiscard]]
+    constexpr uint64_t RebaseWriteKindGetLongestDescription() noexcept {
         const auto Result =
             EnumHelper<RebaseWriteKind>::GetLongestAssocLength(
                 RebaseWriteKindGetName);
