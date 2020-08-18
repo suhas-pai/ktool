@@ -219,7 +219,7 @@ namespace MachO {
     public:
         using Info = ObjcClassCategoryInfo;
     protected:
-        std::vector<Info *> List;
+        std::vector<std::unique_ptr<Info>> List;
     public:
         ObjcClassCategoryCollection() noexcept = default;
         using Error = ObjcParseError;

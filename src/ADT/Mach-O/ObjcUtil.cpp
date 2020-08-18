@@ -625,7 +625,7 @@ namespace MachO {
         const ConstDeVirtualizer &DeVirtualizer,
         const BindActionCollection &BindCollection,
         ObjcClassInfoCollection *ClassInfoTree,
-        std::vector<ObjcClassCategoryInfo *> &CategoryList,
+        std::vector<std::unique_ptr<ObjcClassCategoryInfo>> &CategoryList,
         bool IsBigEndian) noexcept
     {
         using PtrAddrType = PointerAddrConstTypeFromKind<Kind>;
@@ -639,7 +639,7 @@ namespace MachO {
 
         if (ClassInfoTree != nullptr) {
             for (const auto &Addr : List) {
-                auto Info = new ObjcClassCategoryInfo();
+                auto Info = std::make_unique<ObjcClassCategoryInfo>();
 
                 const auto SwitchedAddr = SwitchEndianIf(Addr, IsBigEndian);
                 const auto Category =
@@ -650,7 +650,7 @@ namespace MachO {
                     Info->Address = SwitchedAddr;
                     Info->IsNull = true;
 
-                    CategoryList.emplace_back(Info);
+                    CategoryList.emplace_back(std::move(Info));
                     continue;
                 }
 
@@ -684,17 +684,17 @@ namespace MachO {
                     }
                 }
 
-                Class->CategoryList.emplace_back(Info);
-
                 Info->Address = SwitchedAddr;
                 Info->Class = Class;
 
                 ListAddr += PointerSize<Kind>();
-                CategoryList.emplace_back(Info);
+
+                Class->CategoryList.emplace_back(Info.get());
+                CategoryList.emplace_back(std::move(Info));
             }
         } else {
             for (const auto &Addr : List) {
-                auto Info = new ObjcClassCategoryInfo();
+                auto Info = std::make_unique<ObjcClassCategoryInfo>();
 
                 auto SwitchedAddr = SwitchEndianIf(Addr, IsBigEndian);
                 const auto Category =
@@ -705,7 +705,7 @@ namespace MachO {
                     Info->Address = SwitchedAddr;
                     Info->IsNull = true;
 
-                    CategoryList.emplace_back(Info);
+                    CategoryList.emplace_back(std::move(Info));
                     continue;
                 }
 
@@ -726,8 +726,8 @@ namespace MachO {
 
                 Info->Address = SwitchedAddr;
 
+                CategoryList.emplace_back(std::move(Info));
                 ListAddr += PointerSize<Kind>();
-                CategoryList.emplace_back(Info);
             }
         }
 
