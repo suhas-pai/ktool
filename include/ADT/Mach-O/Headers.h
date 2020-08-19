@@ -699,68 +699,66 @@ namespace MachO {
 
         [[nodiscard]] constexpr static
         const std::string_view &FlagsEnumGetName(FlagsEnum Flag) noexcept {
+            using Enum = FlagsEnum;
             switch (Flag) {
-                case FlagsEnum::NoUndefinedReferences:
-                    return FlagInfo<FlagsEnum::NoUndefinedReferences>::Name;
-                case FlagsEnum::IncrementalLink:
-                    return FlagInfo<FlagsEnum::IncrementalLink>::Name;
-                case FlagsEnum::DyldLink:
-                    return FlagInfo<FlagsEnum::DyldLink>::Name;
-                case FlagsEnum::BindAtLoad:
-                    return FlagInfo<FlagsEnum::BindAtLoad>::Name;
-                case FlagsEnum::PreBound:
-                    return FlagInfo<FlagsEnum::PreBound>::Name;
-                case FlagsEnum::SplitSegments:
-                    return FlagInfo<FlagsEnum::SplitSegments>::Name;
-                case FlagsEnum::LazyInitialization:
-                    return FlagInfo<FlagsEnum::LazyInitialization>::Name;
-                case FlagsEnum::TwoLevelNamespaceBindings:
-                    return FlagInfo<FlagsEnum::TwoLevelNamespaceBindings>::Name;
-                case FlagsEnum::ForceFlatNamespaces:
-                    return FlagInfo<FlagsEnum::ForceFlatNamespaces>::Name;
-                case FlagsEnum::NoMultipleDefinitions:
-                    return FlagInfo<FlagsEnum::NoMultipleDefinitions>::Name;
-                case FlagsEnum::NoFixPrebinding:
-                    return FlagInfo<FlagsEnum::NoFixPrebinding>::Name;
-                case FlagsEnum::Prebindable:
-                    return FlagInfo<FlagsEnum::Prebindable>::Name;
-                case FlagsEnum::AllModulesBound:
-                    return FlagInfo<FlagsEnum::AllModulesBound>::Name;
-                case FlagsEnum::SubsectionsViaSymbols:
-                    return FlagInfo<FlagsEnum::SubsectionsViaSymbols>::Name;
-                case FlagsEnum::Canonical:
-                    return FlagInfo<FlagsEnum::Canonical>::Name;
-                case FlagsEnum::WeakDefinitions:
-                    return FlagInfo<FlagsEnum::WeakDefinitions>::Name;
-                case FlagsEnum::BindsToWeak:
-                    return FlagInfo<FlagsEnum::BindsToWeak>::Name;
-                case FlagsEnum::AllowStackExecution:
-                    return FlagInfo<FlagsEnum::AllowStackExecution>::Name;
-                case FlagsEnum::RootSafe:
-                    return FlagInfo<FlagsEnum::RootSafe>::Name;
-                case FlagsEnum::SetuidSafe:
-                    return FlagInfo<FlagsEnum::SetuidSafe>::Name;
-                case FlagsEnum::NoReexportedDylibs:
-                    return FlagInfo<FlagsEnum::NoReexportedDylibs>::Name;
-                case FlagsEnum::PositionIndependentExecutable:
-                    return
-                        FlagInfo<FlagsEnum::PositionIndependentExecutable>
-                            ::Name;
-                case FlagsEnum::DeadStrippableDylib:
-                    return FlagInfo<FlagsEnum::DeadStrippableDylib>::Name;
-                case FlagsEnum::HasTlvDescriptors:
-                    return FlagInfo<FlagsEnum::HasTlvDescriptors>::Name;
-                case FlagsEnum::NoHeapExecution:
-                    return FlagInfo<FlagsEnum::NoHeapExecution>::Name;
-                case FlagsEnum::AppExtensionSafe:
-                    return FlagInfo<FlagsEnum::AppExtensionSafe>::Name;
-                case FlagsEnum::NlistOutOfSyncWithDyldInfo:
-                    return
-                        FlagInfo<FlagsEnum::NlistOutOfSyncWithDyldInfo>::Name;
-                case FlagsEnum::SimulatorSupport:
-                    return FlagInfo<FlagsEnum::SimulatorSupport>::Name;
-                case FlagsEnum::DylibInCache:
-                    return FlagInfo<FlagsEnum::DylibInCache>::Name;
+                case Enum::NoUndefinedReferences:
+                    return FlagInfo<Enum::NoUndefinedReferences>::Name;
+                case Enum::IncrementalLink:
+                    return FlagInfo<Enum::IncrementalLink>::Name;
+                case Enum::DyldLink:
+                    return FlagInfo<Enum::DyldLink>::Name;
+                case Enum::BindAtLoad:
+                    return FlagInfo<Enum::BindAtLoad>::Name;
+                case Enum::PreBound:
+                    return FlagInfo<Enum::PreBound>::Name;
+                case Enum::SplitSegments:
+                    return FlagInfo<Enum::SplitSegments>::Name;
+                case Enum::LazyInitialization:
+                    return FlagInfo<Enum::LazyInitialization>::Name;
+                case Enum::TwoLevelNamespaceBindings:
+                    return FlagInfo<Enum::TwoLevelNamespaceBindings>::Name;
+                case Enum::ForceFlatNamespaces:
+                    return FlagInfo<Enum::ForceFlatNamespaces>::Name;
+                case Enum::NoMultipleDefinitions:
+                    return FlagInfo<Enum::NoMultipleDefinitions>::Name;
+                case Enum::NoFixPrebinding:
+                    return FlagInfo<Enum::NoFixPrebinding>::Name;
+                case Enum::Prebindable:
+                    return FlagInfo<Enum::Prebindable>::Name;
+                case Enum::AllModulesBound:
+                    return FlagInfo<Enum::AllModulesBound>::Name;
+                case Enum::SubsectionsViaSymbols:
+                    return FlagInfo<Enum::SubsectionsViaSymbols>::Name;
+                case Enum::Canonical:
+                    return FlagInfo<Enum::Canonical>::Name;
+                case Enum::WeakDefinitions:
+                    return FlagInfo<Enum::WeakDefinitions>::Name;
+                case Enum::BindsToWeak:
+                    return FlagInfo<Enum::BindsToWeak>::Name;
+                case Enum::AllowStackExecution:
+                    return FlagInfo<Enum::AllowStackExecution>::Name;
+                case Enum::RootSafe:
+                    return FlagInfo<Enum::RootSafe>::Name;
+                case Enum::SetuidSafe:
+                    return FlagInfo<Enum::SetuidSafe>::Name;
+                case Enum::NoReexportedDylibs:
+                    return FlagInfo<Enum::NoReexportedDylibs>::Name;
+                case Enum::PositionIndependentExecutable:
+                    return FlagInfo<Enum::PositionIndependentExecutable>::Name;
+                case Enum::DeadStrippableDylib:
+                    return FlagInfo<Enum::DeadStrippableDylib>::Name;
+                case Enum::HasTlvDescriptors:
+                    return FlagInfo<Enum::HasTlvDescriptors>::Name;
+                case Enum::NoHeapExecution:
+                    return FlagInfo<Enum::NoHeapExecution>::Name;
+                case Enum::AppExtensionSafe:
+                    return FlagInfo<Enum::AppExtensionSafe>::Name;
+                case Enum::NlistOutOfSyncWithDyldInfo:
+                    return FlagInfo<Enum::NlistOutOfSyncWithDyldInfo>::Name;
+                case Enum::SimulatorSupport:
+                    return FlagInfo<Enum::SimulatorSupport>::Name;
+                case Enum::DylibInCache:
+                    return FlagInfo<Enum::DylibInCache>::Name;
             }
 
             return EmptyStringValue;
@@ -768,75 +766,70 @@ namespace MachO {
 
         [[nodiscard]] constexpr static const std::string_view &
         FlagsEnumGetDescription(FlagsEnum Flag) noexcept {
+            using Enum = FlagsEnum;
             switch (Flag) {
-                case FlagsEnum::NoUndefinedReferences:
+                case Enum::NoUndefinedReferences:
+                    return FlagInfo<Enum::NoUndefinedReferences>::Description;
+                case Enum::IncrementalLink:
+                    return FlagInfo<Enum::IncrementalLink>::Description;
+                case Enum::DyldLink:
+                    return FlagInfo<Enum::DyldLink>::Description;
+                case Enum::BindAtLoad:
+                    return FlagInfo<Enum::BindAtLoad>::Description;
+                case Enum::PreBound:
+                    return FlagInfo<Enum::PreBound>::Description;
+                case Enum::SplitSegments:
+                    return FlagInfo<Enum::SplitSegments>::Description;
+                case Enum::LazyInitialization:
+                    return FlagInfo<Enum::LazyInitialization>::Description;
+                case Enum::TwoLevelNamespaceBindings:
                     return
-                        FlagInfo<FlagsEnum::NoUndefinedReferences>::Description;
-                case FlagsEnum::IncrementalLink:
-                    return FlagInfo<FlagsEnum::IncrementalLink>::Description;
-                case FlagsEnum::DyldLink:
-                    return FlagInfo<FlagsEnum::DyldLink>::Description;
-                case FlagsEnum::BindAtLoad:
-                    return FlagInfo<FlagsEnum::BindAtLoad>::Description;
-                case FlagsEnum::PreBound:
-                    return FlagInfo<FlagsEnum::PreBound>::Description;
-                case FlagsEnum::SplitSegments:
-                    return FlagInfo<FlagsEnum::SplitSegments>::Description;
-                case FlagsEnum::LazyInitialization:
-                    return FlagInfo<FlagsEnum::LazyInitialization>::Description;
-                case FlagsEnum::TwoLevelNamespaceBindings:
+                        FlagInfo<Enum::TwoLevelNamespaceBindings>::Description;
+                case Enum::ForceFlatNamespaces:
+                    return FlagInfo<Enum::ForceFlatNamespaces>::Description;
+                case Enum::NoMultipleDefinitions:
+                    return FlagInfo<Enum::NoMultipleDefinitions>::Description;
+                case Enum::NoFixPrebinding:
+                    return FlagInfo<Enum::NoFixPrebinding>::Description;
+                case Enum::Prebindable:
+                    return FlagInfo<Enum::Prebindable>::Description;
+                case Enum::AllModulesBound:
+                    return FlagInfo<Enum::AllModulesBound>::Description;
+                case Enum::SubsectionsViaSymbols:
+                    return FlagInfo<Enum::SubsectionsViaSymbols>::Description;
+                case Enum::Canonical:
+                    return FlagInfo<Enum::Canonical>::Description;
+                case Enum::WeakDefinitions:
+                    return FlagInfo<Enum::WeakDefinitions>::Description;
+                case Enum::BindsToWeak:
+                    return FlagInfo<Enum::BindsToWeak>::Description;
+                case Enum::AllowStackExecution:
+                    return FlagInfo<Enum::AllowStackExecution>::Description;
+                case Enum::RootSafe:
+                    return FlagInfo<Enum::RootSafe>::Description;
+                case Enum::SetuidSafe:
+                    return FlagInfo<Enum::SetuidSafe>::Description;
+                case Enum::NoReexportedDylibs:
+                    return FlagInfo<Enum::NoReexportedDylibs>::Description;
+                case Enum::PositionIndependentExecutable:
                     return
-                        FlagInfo<FlagsEnum::TwoLevelNamespaceBindings>
+                        FlagInfo<Enum::PositionIndependentExecutable>
                             ::Description;
-                case FlagsEnum::ForceFlatNamespaces:
+                case Enum::DeadStrippableDylib:
+                    return FlagInfo<Enum::DeadStrippableDylib>::Description;
+                case Enum::HasTlvDescriptors:
+                    return FlagInfo<Enum::HasTlvDescriptors>::Description;
+                case Enum::NoHeapExecution:
+                    return FlagInfo<Enum::NoHeapExecution>::Description;
+                case Enum::AppExtensionSafe:
+                    return FlagInfo<Enum::AppExtensionSafe>::Description;
+                case Enum::NlistOutOfSyncWithDyldInfo:
                     return
-                        FlagInfo<FlagsEnum::ForceFlatNamespaces>::Description;
-                case FlagsEnum::NoMultipleDefinitions:
-                    return
-                        FlagInfo<FlagsEnum::NoMultipleDefinitions>::Description;
-                case FlagsEnum::NoFixPrebinding:
-                    return FlagInfo<FlagsEnum::NoFixPrebinding>::Description;
-                case FlagsEnum::Prebindable:
-                    return FlagInfo<FlagsEnum::Prebindable>::Description;
-                case FlagsEnum::AllModulesBound:
-                    return FlagInfo<FlagsEnum::AllModulesBound>::Description;
-                case FlagsEnum::SubsectionsViaSymbols:
-                    return
-                        FlagInfo<FlagsEnum::SubsectionsViaSymbols>::Description;
-                case FlagsEnum::Canonical:
-                    return FlagInfo<FlagsEnum::Canonical>::Description;
-                case FlagsEnum::WeakDefinitions:
-                    return FlagInfo<FlagsEnum::WeakDefinitions>::Description;
-                case FlagsEnum::BindsToWeak:
-                    return FlagInfo<FlagsEnum::BindsToWeak>::Description;
-                case FlagsEnum::AllowStackExecution:
-                    return FlagInfo<FlagsEnum::AllowStackExecution>::Description;
-                case FlagsEnum::RootSafe:
-                    return FlagInfo<FlagsEnum::RootSafe>::Description;
-                case FlagsEnum::SetuidSafe:
-                    return FlagInfo<FlagsEnum::SetuidSafe>::Description;
-                case FlagsEnum::NoReexportedDylibs:
-                    return FlagInfo<FlagsEnum::NoReexportedDylibs>::Description;
-                case FlagsEnum::PositionIndependentExecutable:
-                    return
-                        FlagInfo<FlagsEnum::PositionIndependentExecutable>
-                            ::Name;
-                case FlagsEnum::DeadStrippableDylib:
-                    return FlagInfo<FlagsEnum::DeadStrippableDylib>::Description;
-                case FlagsEnum::HasTlvDescriptors:
-                    return FlagInfo<FlagsEnum::HasTlvDescriptors>::Description;
-                case FlagsEnum::NoHeapExecution:
-                    return FlagInfo<FlagsEnum::NoHeapExecution>::Description;
-                case FlagsEnum::AppExtensionSafe:
-                    return FlagInfo<FlagsEnum::AppExtensionSafe>::Description;
-                case FlagsEnum::NlistOutOfSyncWithDyldInfo:
-                    return
-                        FlagInfo<FlagsEnum::NlistOutOfSyncWithDyldInfo>
-                            ::Description;
-                case FlagsEnum::SimulatorSupport:
-                    return FlagInfo<FlagsEnum::SimulatorSupport>::Description;
-                case FlagsEnum::DylibInCache:
-                    return FlagInfo<FlagsEnum::DylibInCache>::Description;
+                        FlagInfo<Enum::NlistOutOfSyncWithDyldInfo>::Description;
+                case Enum::SimulatorSupport:
+                    return FlagInfo<Enum::SimulatorSupport>::Description;
+                case Enum::DylibInCache:
+                    return FlagInfo<Enum::DylibInCache>::Description;
             }
 
             return EmptyStringValue;
