@@ -46,29 +46,29 @@ ValidateMap(const ConstMemoryMap &Map,
         sizeof(DyldSharedCache::HeaderV0::Magic) - 7;
 
     if (strncmp(CpuKindStr, "    i386", CpuKindMaxLength) == 0) {
-        CpuKind = DscMemoryObject::CpuKind::i386;
+        CpuKind= ConstDscMemoryObject::CpuKind::i386;
     } else if (strncmp(CpuKindStr, "  x86_64", CpuKindMaxLength) == 0) {
-        CpuKind = DscMemoryObject::CpuKind::x86_64;
+        CpuKind= ConstDscMemoryObject::CpuKind::x86_64;
     } else if (strncmp(CpuKindStr, " x86_64h", CpuKindMaxLength) == 0) {
-        CpuKind = DscMemoryObject::CpuKind::x86_64h;
+        CpuKind= ConstDscMemoryObject::CpuKind::x86_64h;
     } else if (strncmp(CpuKindStr, "   armv5", CpuKindMaxLength) == 0) {
-        CpuKind = DscMemoryObject::CpuKind::Armv5;
+        CpuKind= ConstDscMemoryObject::CpuKind::Armv5;
     } else if (strncmp(CpuKindStr, "   armv6", CpuKindMaxLength) == 0) {
-        CpuKind = DscMemoryObject::CpuKind::Armv6;
+        CpuKind= ConstDscMemoryObject::CpuKind::Armv6;
     } else if (strncmp(CpuKindStr, "   armv7", CpuKindMaxLength) == 0) {
-        CpuKind = DscMemoryObject::CpuKind::Armv7;
+        CpuKind= ConstDscMemoryObject::CpuKind::Armv7;
     } else if (strncmp(CpuKindStr, "  armv7f", CpuKindMaxLength) == 0) {
-        CpuKind = DscMemoryObject::CpuKind::Armv7f;
+        CpuKind= ConstDscMemoryObject::CpuKind::Armv7f;
     } else if (strncmp(CpuKindStr, "  armv7k", CpuKindMaxLength) == 0) {
-        CpuKind = DscMemoryObject::CpuKind::Armv7k;
+        CpuKind= ConstDscMemoryObject::CpuKind::Armv7k;
     } else if (strncmp(CpuKindStr, "  armv7s", CpuKindMaxLength) == 0) {
-        CpuKind = DscMemoryObject::CpuKind::Armv7s;
+        CpuKind= ConstDscMemoryObject::CpuKind::Armv7s;
     } else if (strncmp(CpuKindStr, "  arm64", CpuKindMaxLength) == 0) {
-        CpuKind = DscMemoryObject::CpuKind::Arm64;
+        CpuKind= ConstDscMemoryObject::CpuKind::Arm64;
     } else if (strncmp(CpuKindStr, "  arm64e", CpuKindMaxLength) == 0) {
-        CpuKind = DscMemoryObject::CpuKind::Arm64e;
+        CpuKind= ConstDscMemoryObject::CpuKind::Arm64e;
     } else if (memcmp(CpuKindStr, "arm64_32", CpuKindMaxLength) == 0) {
-        CpuKind = DscMemoryObject::CpuKind::Arm64_32;
+        CpuKind= ConstDscMemoryObject::CpuKind::Arm64_32;
     } else {
         return ConstDscMemoryObject::Error::UnknownCpuKind;
     }
@@ -260,6 +260,10 @@ ConstDscMemoryObject::ValidateImageMapAndGetEnd(
 
     if (Header.getFileKind() != MachO::Header::FileKind::Dylib) {
         return DscImageOpenError::NotADylib;
+    }
+
+    if (!Header.getFlags().hasFlag(MachO::Header::FlagsEnum::DylibInCache)) {
+        return DscImageOpenError::NotMarkedAsImage;
     }
 
     const auto Is64Bit = Header.Is64Bit();

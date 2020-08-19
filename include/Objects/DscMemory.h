@@ -64,6 +64,7 @@ public:
         InvalidMachO,
         InvalidLoadCommands,
         NotADylib,
+        NotMarkedAsImage,
         SizeTooLarge,
     };
 protected:

@@ -60,6 +60,9 @@ HandleDscImageOpenError(ConstDscMemoryObject::DscImageOpenError Error) noexcept
         case ConstDscMemoryObject::DscImageOpenError::NotADylib:
             fputs("Not a Mach-O Dynamic Library\n", stderr);
             break;
+        case ConstDscMemoryObject::DscImageOpenError::NotMarkedAsImage:
+            fputs("Image is not marked as one\n", stderr);
+            break;
         case ConstDscMemoryObject::DscImageOpenError::SizeTooLarge:
             fputs("Image-Size too large\n", stderr);
             break;
