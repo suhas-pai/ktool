@@ -384,7 +384,7 @@ namespace MachO {
         }
 
         const auto List = BasicContiguousList<PointerAddrType>(Begin, End);
-        auto ListAddr = SectionInfo->Memory.getBegin();
+        auto ListAddr = SectionInfo->getMemoryRange().getBegin();
 
         for (const auto &Addr : List) {
             if (const auto *It = BindCollection.GetInfoForAddress(ListAddr)) {
@@ -635,7 +635,7 @@ namespace MachO {
         auto End = SectInfo->getDataEnd(Map);
 
         const auto List = BasicContiguousList<PtrAddrType>(Begin, End);
-        auto ListAddr = SectInfo->Memory.getBegin();
+        auto ListAddr = SectInfo->getMemoryRange().getBegin();
 
         if (ClassInfoTree != nullptr) {
             for (const auto &Addr : List) {

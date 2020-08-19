@@ -305,7 +305,8 @@ PrintBindOpcodeList(
                                         ", ");
 
             const auto FullAddr =
-                Iter.Segment->Memory.getBegin() + Iter.AddrInSeg + Add;
+                Iter.Segment->getMemoryRange().getBegin() +
+                Iter.AddrInSeg + Add;
 
             PrintUtilsWriteOffset32Or64(Options.OutFile,
                                         Is64Bit,
@@ -391,7 +392,8 @@ PrintBindOpcodeList(
                 if (Options.Verbose) {
                     if (Iter.Segment != nullptr) {
                         const auto FullAddr =
-                            Iter.Segment->Memory.getBegin() + Iter.AddrInSeg;
+                            Iter.Segment->getMemoryRange().getBegin() +
+                            Iter.AddrInSeg;
 
                         PrintUtilsWriteOffset32Or64(Options.OutFile,
                                                     Is64Bit,

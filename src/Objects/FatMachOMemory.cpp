@@ -122,9 +122,8 @@ FatMachOMemoryObject::FatMachOMemoryObject(const MemoryMap &Map) noexcept
 FatMachOMemoryObject::FatMachOMemoryObject(Error Error) noexcept
 : ConstFatMachOMemoryObject(Error) {}
 
-[[nodiscard]]
-static inline
-bool MatchesFormat(ConstFatMachOMemoryObject::Error Error) noexcept {
+[[nodiscard]] static
+inline bool MatchesFormat(ConstFatMachOMemoryObject::Error Error) noexcept {
     switch (Error) {
         case ConstFatMachOMemoryObject::Error::None:
             return true;
@@ -193,8 +192,7 @@ ConstFatMachOMemoryObject::GetArchInfoAtIndex(uint32_t Index) const noexcept {
     return Info;
 }
 
-[[nodiscard]]
-static FatMachOMemoryObject::GetObjectResult
+[[nodiscard]] static FatMachOMemoryObject::GetObjectResult
 GetMachOObjectResult(MemoryObject *ArchObject,
                      Mach::CpuKind CpuKind,
                      int32_t CpuSubKind) noexcept

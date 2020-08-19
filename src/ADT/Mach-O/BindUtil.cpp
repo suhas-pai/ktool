@@ -64,7 +64,7 @@ namespace MachO {
             if (SegmentIndex != Action.SegmentIndex) {
                 Segment = SegmentCollection.atOrNull(Action.SegmentIndex);
                 SegmentIndex = Action.SegmentIndex;
-                SegmentAddress = Segment->Memory.getBegin();
+                SegmentAddress = Segment->getMemoryRange().getBegin();
             }
 
             const auto FullAddr = SegmentAddress + Action.AddrInSeg;

@@ -406,10 +406,11 @@ namespace MachO {
         const auto IndexListMap = Map + IndexListOffset;
         const auto IndexListRange = RelativeRange(IndexListCount);
 
-        const auto SectionSize = Sect.File.size();
+        const auto SectionSize = Sect.getFileRange().size();
         const auto SectionIndexCount = SectionSize / PointerSize(Is64Bit);
         const auto SectionIndexRange =
-            LocationRange::CreateWithSize(Sect.Reserved1, SectionIndexCount);
+            LocationRange::CreateWithSize(Sect.getReserved1(),
+                                          SectionIndexCount);
 
         if (!SectionIndexRange.has_value()) {
             if (ErrorOut != nullptr) {
@@ -432,11 +433,12 @@ namespace MachO {
 
         const auto StrTab = Map + SymTab.getStringTableOffset(IsBigEndian);
         const auto StrEnd = StrTab + SymTab.getStringTableSize(IsBigEndian);
+        const auto Index = Sect.getReserved1();
 
         ParseIndirectSymbolIndexTable(
             NlistBegin,
             NlistCount,
-            reinterpret_cast<const uint32_t *>(IndexListMap) + Sect.Reserved1,
+            reinterpret_cast<const uint32_t *>(IndexListMap) + Index,
             SectionIndexCount,
             reinterpret_cast<const char *>(StrTab),
             reinterpret_cast<const char *>(StrEnd),

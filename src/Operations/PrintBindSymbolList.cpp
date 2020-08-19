@@ -73,7 +73,8 @@ PrintBindAction(
             Counter);
 
     if (const auto *Segment = SegmentCollection.atOrNull(Action.SegmentIndex)) {
-        const auto FullAddr = Segment->Memory.getBegin() + Action.AddrInSeg;
+        const auto &MemoryRange = Segment->getMemoryRange();
+        const auto FullAddr = MemoryRange.getBegin() + Action.AddrInSeg;
         const auto Section = Segment->FindSectionContainingAddress(FullAddr);
 
         PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,

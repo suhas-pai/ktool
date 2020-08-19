@@ -73,11 +73,11 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
     auto SectionName = static_cast<const char *>(nullptr);
 
     if (Segment != nullptr) {
-        SegmentName = Segment->Name.data();
+        SegmentName = Segment->getName().data();
     }
 
     if (Section != nullptr) {
-        SectionName = Section->Name.data();
+        SectionName = Section->getName().data();
     }
 
     const auto Result =

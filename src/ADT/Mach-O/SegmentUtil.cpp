@@ -13,7 +13,7 @@
 
 namespace MachO {
     template <typename SectionType>
-    static bool
+    [[nodiscard]] static bool
     ParseSectionInfo(const SectionType &Section,
                      SectionInfo &InfoIn,
                      bool IsBigEndian,
@@ -24,27 +24,29 @@ namespace MachO {
         const auto VmAddr = SwitchEndianIf(Section.Addr, IsBigEndian);
 
         if (const auto FilRange = LocationRange::CreateWithSize(Offset, Size)) {
-            InfoIn.File = FilRange.value();
+            InfoIn.setFileRange(FilRange.value());
         } else {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSection;
         }
 
         if (const auto MemRange = LocationRange::CreateWithSize(VmAddr, Size)) {
-            InfoIn.Memory = MemRange.value();
+            InfoIn.setMemoryRange(MemRange.value());
         } else {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSection;
         }
 
-        InfoIn.Name = std::string_view(Section.Name, strnlen(Section.Name, 16));
-        InfoIn.Flags = Section.getFlags(IsBigEndian);
-        InfoIn.Reserved1 = SwitchEndianIf(Section.Reserved1, IsBigEndian);
-        InfoIn.Reserved2 = SwitchEndianIf(Section.Reserved2, IsBigEndian);
+        auto Name = std::string(Section.Name, strnlen(Section.Name, 16));
+
+        InfoIn.setName(std::move(Name));
+        InfoIn.setFlags(Section.getFlags(IsBigEndian));
+        InfoIn.setReserved1(SwitchEndianIf(Section.Reserved1, IsBigEndian));
+        InfoIn.setReserved2(SwitchEndianIf(Section.Reserved2, IsBigEndian));
 
         return true;
     }
 
     template <typename SegmentType>
-    static bool
+    [[nodiscard]] static bool
     ParseSegmentInfo(const SegmentType &Segment,
                      SegmentInfo &InfoIn,
                      bool IsBigEndian,
@@ -61,19 +63,23 @@ namespace MachO {
         }
 
         if (const auto MemRange = LocationRange::CreateWithSize(VmAddr, Size)) {
-            InfoIn.Memory = MemRange.value();
+            InfoIn.setMemoryRange(MemRange.value());
         } else {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSegment;
         }
 
-        InfoIn.File = FileRange.value();
-        InfoIn.Name = std::string_view(Segment.Name, strnlen(Segment.Name, 16));
+        auto Name = std::string(Segment.Name, strnlen(Segment.Name, 16));
 
-        InfoIn.InitProt = Segment.getInitProt(IsBigEndian);
-        InfoIn.MaxProt = Segment.getMaxProt(IsBigEndian);
-        InfoIn.Flags = Segment.getFlags(IsBigEndian);
+        InfoIn.setFileRange(FileRange.value());
+        InfoIn.setName(std::move(Name));
 
+        InfoIn.setInitProt(Segment.getInitProt(IsBigEndian));
+        InfoIn.setMaxProt(Segment.getMaxProt(IsBigEndian));
+        InfoIn.setFlags(Segment.getFlags(IsBigEndian));
+
+        auto SectionOutList = SegmentInfo::SectionListType();
         const auto &SectionList = Segment.GetConstSectionList(IsBigEndian);
+
         for (const auto &Section : SectionList) {
             auto SectInfo = std::make_unique<SectionInfo>();
             const auto ParseSectResult =
@@ -86,10 +92,11 @@ namespace MachO {
                 continue;
             }
 
-            SectInfo->Segment = &InfoIn;
-            InfoIn.SectionList.emplace_back(std::move(SectInfo));
+            SectInfo->setSegment(&InfoIn);
+            SectionOutList.emplace_back(std::move(SectInfo));
         }
 
+        InfoIn.setSectionList(std::move(SectionOutList));
         return true;
     }
 
@@ -157,43 +164,56 @@ namespace MachO {
             const auto &ItSegment = *It;
             for (auto Jt = List.cbegin(); Jt != It; Jt++) {
                 const auto &JtSegment = *Jt;
-                if (ItSegment->File.overlaps(JtSegment->File)) {
+                const auto JtSegFileRange = JtSegment->getFileRange();
+
+                if (ItSegment->getFileRange().overlaps(JtSegFileRange)) {
                     Error = Error::OverlappingSegments;
                     goto done;
                 }
 
-                if (ItSegment->Memory.overlaps(JtSegment->Memory)) {
+                const auto JtSegMemoryRange = JtSegment->getMemoryRange();
+                if (ItSegment->getMemoryRange().overlaps(JtSegMemoryRange)) {
                     Error = Error::OverlappingSegments;
                     goto done;
                 }
             }
 
-            const auto SectionListEnd = ItSegment->SectionList.cend();
-            for (auto SectIter = ItSegment->SectionList.cbegin();
+            const auto &SectionList = ItSegment->getSectionList();
+
+            const auto SectionListBegin = SectionList.cbegin();
+            const auto SectionListEnd = SectionList.cend();
+
+            for (auto SectIter = SectionListBegin;
                  SectIter != SectionListEnd;
                  SectIter++)
             {
                 const auto &ItSection = *SectIter;
-                if (ItSection->File.getBegin() == 0) {
+                const auto &ItSectFileRange = ItSection->getFileRange();
+
+                if (ItSectFileRange.getBegin() == 0) {
                     continue;
                 }
 
-                if (!ItSegment->File.contains(ItSection->File)) {
+                if (!ItSegment->getFileRange().contains(ItSectFileRange)) {
                     Error = Error::InvalidSection;
                     goto done;
                 }
 
-                for (auto SectJter = ItSegment->SectionList.cbegin();
+                const auto &ItSectMemoryRange = ItSection->getFileRange();
+                for (auto SectJter = SectionListBegin;
                      SectJter != SectIter;
                      SectJter++)
                 {
                     const auto &JtSection = *SectJter;
-                    if (ItSection->File.overlaps(JtSection->File)) {
+                    if (ItSectFileRange.overlaps(JtSection->getFileRange())) {
                         Error = Error::OverlappingSections;
                         goto done;
                     }
 
-                    if (ItSection->Memory.overlaps(JtSection->Memory)) {
+                    const auto &JtSectMemoryRange =
+                        JtSection->getMemoryRange();
+
+                    if (ItSectMemoryRange.overlaps(JtSectMemoryRange)) {
                         Error = Error::OverlappingSections;
                         goto done;
                     }
@@ -404,7 +424,7 @@ namespace MachO {
         const std::string_view &Name) const noexcept
     {
         for (const auto &SegInfo : *this) {
-            if (SegInfo->Name == Name) {
+            if (SegInfo->getName() == Name) {
                 return SegInfo.get();
             }
         }
@@ -417,7 +437,7 @@ namespace MachO {
         const std::string_view &Name) const noexcept
     {
         for (const auto &SectInfo : SectionList) {
-            if (SectInfo->Name == Name) {
+            if (SectInfo->getName() == Name) {
                 return SectInfo.get();
             }
         }
@@ -432,8 +452,8 @@ namespace MachO {
     {
         const auto *SegmentInfo = GetInfoForName(SegmentName);
         if (SegmentInfo != nullptr) {
-            for (const auto &SectInfo : SegmentInfo->SectionList) {
-                if (SectInfo->Name == Name) {
+            for (const auto &SectInfo : SegmentInfo->getSectionList()) {
+                if (SectInfo->getName() == Name) {
                     return SectInfo.get();
                 }
             }
@@ -482,13 +502,15 @@ namespace MachO {
         uint64_t SectionIndex) const noexcept
     {
         for (const auto &Segment : List) {
-            const auto SectionListSize = Segment->SectionList.size();
+            const auto &SectionList = Segment->getSectionList();
+            const auto SectionListSize = SectionList.size();
+
             if (IndexOutOfBounds(SectionIndex, SectionListSize)) {
                 SectionIndex -= SectionListSize;
                 continue;
             }
 
-            return Segment->SectionList.at(SectionIndex).get();
+            return SectionList.at(SectionIndex).get();
         }
 
         return nullptr;
@@ -499,7 +521,7 @@ namespace MachO {
         uint64_t Address) const noexcept
     {
         for (const auto &Segment : *this) {
-            if (Segment->Memory.containsLocation(Address)) {
+            if (Segment->getMemoryRange().containsLocation(Address)) {
                 return Segment.get();
             }
         }
@@ -510,7 +532,7 @@ namespace MachO {
     const SectionInfo *
     SegmentInfo::FindSectionContainingAddress(uint64_t Address) const noexcept {
         for (const auto &Section : SectionList) {
-            if (Section->Memory.containsLocation(Address)) {
+            if (Section->getMemoryRange().containsLocation(Address)) {
                 return Section.get();
             }
         }
@@ -522,34 +544,36 @@ namespace MachO {
     SegmentInfo::FindSectionContainingRelativeAddress(
         uint64_t Address) const noexcept
     {
-        if (!Memory.containsRelativeLocation(Address)) {
+        if (!getMemoryRange().containsRelativeLocation(Address)) {
             return nullptr;
         }
 
-        const auto FullAddr = Memory.getBegin() + Address;
+        const auto FullAddr = getMemoryRange().getBegin() + Address;
         return FindSectionContainingAddress(FullAddr);
     }
 
+    [[nodiscard]]
     uint8_t *GetDataForSegment(uint8_t *Map, const SegmentInfo &Info) noexcept {
-        return (Map + Info.File.getBegin());
+        return (Map + Info.getFileRange().getBegin());
     }
 
-    const uint8_t *
+    [[nodiscard]] const uint8_t *
     GetDataForSegment(const uint8_t *Map, const SegmentInfo &Info) noexcept {
-        return (Map + Info.File.getBegin());
+        return (Map + Info.getFileRange().getBegin());
     }
 
+    [[nodiscard]]
     uint8_t *GetDataForSection(uint8_t *Map, const SectionInfo &Info) noexcept {
-        return (Map + Info.File.getBegin());
+        return (Map + Info.getFileRange().getBegin());
     }
 
-    const uint8_t *
+    [[nodiscard]] const uint8_t *
     GetDataForSection(const uint8_t *Map, const SectionInfo &Info) noexcept {
-        return (Map + Info.File.getBegin());
+        return (Map + Info.getFileRange().getBegin());
     }
 
     template <typename T>
-    static inline T *
+    [[nodiscard]] static inline T *
     GetDataForVirtualAddrImpl(const SegmentInfoCollection &Collection,
                               T *Map,
                               uint64_t Addr,
@@ -562,24 +586,26 @@ namespace MachO {
 
         const auto DataRange = LocationRange::CreateWithEnd(Addr, Addr + Size);
         for (const auto &Segment : Collection) {
-            if (!Segment->Memory.contains(DataRange)) {
+            if (!Segment->getMemoryRange().contains(DataRange)) {
                 continue;
             }
 
-            for (const auto &Section : Segment->SectionList) {
-                if (!Section->Memory.contains(DataRange)) {
+            for (const auto &Section : Segment->getSectionList()) {
+                const auto &SectMemoryRange = Section->getMemoryRange();
+                if (!SectMemoryRange.contains(DataRange)) {
                     continue;
                 }
 
                 const auto Data = GetDataForSection(Map, *Section.get());
-                const auto Offset = (Addr - Section->Memory.getBegin());
+                const auto Offset = (Addr - SectMemoryRange.getBegin());
+                const auto &SectFileRange = Section->getFileRange();
 
-                if (!Section->File.containsRelativeLocation(Offset)) {
+                if (!SectFileRange.containsRelativeLocation(Offset)) {
                     return nullptr;
                 }
 
                 if (EndOut != nullptr) {
-                    const auto SectionSize = Section->File.size();
+                    const auto SectionSize = SectFileRange.size();
                     *EndOut = reinterpret_cast<T *>(Data + SectionSize);
                 }
 
@@ -591,7 +617,7 @@ namespace MachO {
     }
 
     template <typename T>
-    static inline T *
+    [[nodiscard]] static inline T *
     GetDataForVirtualAddrImplNoSections(const SegmentInfoCollection &Collection,
                                         T *Map,
                                         uint64_t Addr,
@@ -604,15 +630,15 @@ namespace MachO {
 
         const auto DataRange = LocationRange::CreateWithEnd(Addr, Addr + Size);
         for (const auto &Segment : Collection) {
-            if (!Segment->Memory.contains(DataRange)) {
+            if (!Segment->getMemoryRange().contains(DataRange)) {
                 continue;
             }
 
             const auto Data = GetDataForSegment(Map, *Segment.get());
-            const auto Offset = (Addr - Segment->Memory.getBegin());
+            const auto Offset = (Addr - Segment->getMemoryRange().getBegin());
 
             if (EndOut != nullptr) {
-                const auto SegmentSize = Segment->File.size();
+                const auto SegmentSize = Segment->getFileRange().size();
                 *EndOut = reinterpret_cast<T *>(Data + SegmentSize);
             }
 

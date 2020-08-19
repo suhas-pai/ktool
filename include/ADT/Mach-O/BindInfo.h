@@ -1220,7 +1220,7 @@ namespace MachO {
             const auto DoThreadedBind = [&]() noexcept {
                 const auto &SegInfo = SegmentCollection.at(Info.SegmentIndex);
                 const auto SegVmAddr =
-                    SegInfo.Memory.getBegin() + Info.AddrInSeg;
+                    SegInfo.getMemoryRange().getBegin() + Info.AddrInSeg;
 
                 const auto PtrSize = PointerSize(Is64Bit);
                 const auto Data =

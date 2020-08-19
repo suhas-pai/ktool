@@ -201,11 +201,11 @@ HandleTreeOption(
 
             if (Kind != MachO::ExportTrieExportKind::Reexport) {
                 if (const auto ExportSegment = ExportNode->getSegment()) {
-                    Segment = ExportSegment->Name;
+                    Segment = ExportSegment->getName();
                 }
 
                 if (const auto ExportSection = ExportNode->getSection()) {
-                    Section = ExportSection->Name;
+                    Section = ExportSection->getName();
                 }
             }
 
@@ -396,9 +396,9 @@ PrintExportTrie(
                                          SectionInfo);
 
             if (SegmentInfo != nullptr) {
-                SegmentName = SegmentInfo->Name;
+                SegmentName = SegmentInfo->getName();
                 if (SectionInfo != nullptr) {
-                    SectionName = SectionInfo->Name;
+                    SectionName = SectionInfo->getName();
                 }
             }
         }

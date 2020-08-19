@@ -55,8 +55,8 @@ GetCStringList(FILE *OutFile,
     const auto Begin = Section.getData<const char>(Map);
     const auto End = Section.getDataEnd<const char>(Map);
 
-    auto FileOffset = Section.File.getBegin();
-    auto VmAddr = Section.Memory.getBegin();
+    auto FileOffset = Section.getFileRange().getBegin();
+    auto VmAddr = Section.getMemoryRange().getBegin();
 
     auto Length = uint64_t();
     for (auto String = Begin;
@@ -109,10 +109,10 @@ PrintCStringList(
         return 1;
     }
 
-    if (Segment->Flags.IsProtected()) {
+    if (Segment->getFlags().IsProtected()) {
         fprintf(Options.ErrFile,
                 "Provided segment \"%s\" is protected (encrypted)\n",
-                Segment->Name.data());
+                Segment->getName().data());
         return 1;
     }
 
@@ -128,12 +128,12 @@ PrintCStringList(
         fprintf(Options.OutFile,
                 "Provided Segment-Section \"%s\",\"%s\" is not a C-String "
                 "Literal Section\n",
-                Segment->Name.data(),
-                Section->Name.data());
+                Segment->getName().data(),
+                Section->getName().data());
         return 0;
     }
 
-    if (Section->File.empty()) {
+    if (Section->getFileRange().empty()) {
         fputs("C-String Section is empty\n", Options.OutFile);
         return 0;
     }

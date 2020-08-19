@@ -25,7 +25,7 @@ namespace DscImage {
 
         if (Section != nullptr) {
             *SectionOut = Section;
-            return Section->Segment;
+            return Section->getSegment();
         }
 
         return nullptr;

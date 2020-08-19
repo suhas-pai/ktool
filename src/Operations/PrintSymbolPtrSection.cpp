@@ -84,8 +84,8 @@ PrintSymbolList(
 
         LargestIndex = Info->Index;
         LongestLength = Info->String->length();
-        LongestSegment = SectionInfo->Segment->Name.length();
-        LongestSection = SectionInfo->Name.length();
+        LongestSegment = SectionInfo->getSegment()->getName().length();
+        LongestSection = SectionInfo->getName().length();
         LongestKind = SymbolKindName.length();
     }
 
@@ -99,7 +99,7 @@ PrintSymbolList(
     auto MaxIndexDigitLength = PrintUtilsGetIntegerDigitLength(LargestIndex);
 
     const auto &Segment = SegmentCollection.front();
-    const auto &SectionList = Segment.SectionList;
+    const auto &SectionList = Segment.getSectionList();
     const auto SectionListSize = SectionList.size();
 
     for (const auto &Info : List) {
@@ -204,10 +204,10 @@ PrintSymbolPtrList(
         return 1;
     }
 
-    if (Segment->Flags.IsProtected()) {
+    if (Segment->getFlags().IsProtected()) {
         fprintf(Options.ErrFile,
                 "Provided segment \"%s\" is protected (encrypted)\n",
-                Segment->Name.data());
+                Segment->getName().data());
         return 1;
     }
 
@@ -227,8 +227,8 @@ PrintSymbolPtrList(
         fprintf(Options.OutFile,
                 "Provided Segment-Section \"%s\",\"%s\" is neither a Non-Lazy "
                 "nor a Lazy Symbol-Pointer Section\n",
-                Segment->Name.data(),
-                Section->Name.data());
+                Segment->getName().data(),
+                Section->getName().data());
         return 0;
     }
 
