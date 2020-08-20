@@ -81,6 +81,7 @@ PrintRebaseActionList(
         }
 
         if (FoundDyldInfo != nullptr) {
+            // Compare without swapping as they both have the same endian.
             if (DyldInfo->RebaseOff != FoundDyldInfo->RebaseOff ||
                 DyldInfo->RebaseSize != FoundDyldInfo->RebaseSize)
             {

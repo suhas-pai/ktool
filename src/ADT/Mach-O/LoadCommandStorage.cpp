@@ -30,7 +30,7 @@ namespace MachO {
             const auto LoadCmd =
                 reinterpret_cast<const MachO::LoadCommand *>(Iter);
 
-            const auto CmdSize = SwitchEndianIf(LoadCmd->CmdSize, IsBigEndian);
+            const auto CmdSize = LoadCmd->getCmdSize(IsBigEndian);
             if (CmdSize < sizeof(*LoadCmd)) {
                 return ConstLoadCommandStorage::Error::CmdSizeTooSmall;
             }

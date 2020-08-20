@@ -19,17 +19,13 @@ namespace MachO {
                      bool IsBigEndian,
                      SegmentInfoCollection::Error *ErrorOut) noexcept
     {
-        const auto Offset = SwitchEndianIf(Section.Offset, IsBigEndian);
-        const auto Size = SwitchEndianIf(Section.Size, IsBigEndian);
-        const auto VmAddr = SwitchEndianIf(Section.Addr, IsBigEndian);
-
-        if (const auto FilRange = LocationRange::CreateWithSize(Offset, Size)) {
+        if (const auto FilRange = Section.getFileRange(IsBigEndian)) {
             InfoIn.setFileRange(FilRange.value());
         } else {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSection;
         }
 
-        if (const auto MemRange = LocationRange::CreateWithSize(VmAddr, Size)) {
+        if (const auto MemRange = Section.getMemoryRange(IsBigEndian)) {
             InfoIn.setMemoryRange(MemRange.value());
         } else {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSection;
@@ -39,8 +35,8 @@ namespace MachO {
 
         InfoIn.setName(std::move(Name));
         InfoIn.setFlags(Section.getFlags(IsBigEndian));
-        InfoIn.setReserved1(SwitchEndianIf(Section.Reserved1, IsBigEndian));
-        InfoIn.setReserved2(SwitchEndianIf(Section.Reserved2, IsBigEndian));
+        InfoIn.setReserved1(Section.getReserved1(IsBigEndian));
+        InfoIn.setReserved2(Section.getReserved2(IsBigEndian));
 
         return true;
     }
@@ -52,17 +48,13 @@ namespace MachO {
                      bool IsBigEndian,
                      SegmentInfoCollection::Error *ErrorOut) noexcept
     {
-        const auto Offset = SwitchEndianIf(Segment.FileOff, IsBigEndian);
-        const auto Size = SwitchEndianIf(Segment.FileSize, IsBigEndian);
-        const auto VmAddr = SwitchEndianIf(Segment.VmAddr, IsBigEndian);
-
-        auto FileRange = LocationRange::CreateWithSize(Offset, Size);
+        auto FileRange = Segment.getFileRange(IsBigEndian);
         if (!FileRange) {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSegment;
             return false;
         }
 
-        if (const auto MemRange = LocationRange::CreateWithSize(VmAddr, Size)) {
+        if (const auto MemRange = Segment.getVmRange(IsBigEndian)) {
             InfoIn.setMemoryRange(MemRange.value());
         } else {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSegment;

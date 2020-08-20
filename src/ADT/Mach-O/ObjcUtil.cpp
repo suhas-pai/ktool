@@ -124,8 +124,8 @@ namespace MachO {
             return ObjcParseError::None;
         }
 
-        const auto SuperAddr = SwitchEndianIf(Class->SuperClass, IsBigEndian);
-        const auto RoAddr = SwitchEndianIf(Class->Data, IsBigEndian);
+        const auto SuperAddr = Class->getSuperClassAddress(IsBigEndian);
+        const auto RoAddr = Class->getData(IsBigEndian);
         const auto ClassRo =
             DeVirtualizer.GetDataAtAddressIgnoreSections<ClassRoType>(RoAddr);
 
@@ -136,7 +136,7 @@ namespace MachO {
             return ObjcParseError::None;
         }
 
-        const auto NameAddr = SwitchEndianIf(ClassRo->Name, IsBigEndian);
+        const auto NameAddr = ClassRo->getNameAddress(IsBigEndian);
         if (auto String = DeVirtualizer.GetStringAtAddress(NameAddr)) {
             Info.Name = String.value();
         }
@@ -654,10 +654,9 @@ namespace MachO {
                     continue;
                 }
 
-                const auto NameAddr =
-                    SwitchEndianIf(Category->Name, IsBigEndian);
-
+                const auto NameAddr = Category->getNameAddress(IsBigEndian);
                 const auto Name = DeVirtualizer.GetStringAtAddress(NameAddr);
+
                 if (Name.has_value()) {
                     Info->Name = Name.value();
                 }
@@ -676,7 +675,7 @@ namespace MachO {
                                                             It->Address);
                     }
                 } else {
-                    ClassAddr = SwitchEndianIf(Category->Class, IsBigEndian);
+                    ClassAddr = Category->getClassAddress(IsBigEndian);
                     Class = ClassInfoTree->GetInfoForAddress(Addr);
 
                     if (Class == nullptr) {
@@ -709,10 +708,9 @@ namespace MachO {
                     continue;
                 }
 
-                const auto NameAddr =
-                    SwitchEndianIf(Category->Name, IsBigEndian);
-
+                const auto NameAddr = Category->getNameAddress(IsBigEndian);
                 const auto Name = DeVirtualizer.GetStringAtAddress(NameAddr);
+
                 if (Name.has_value()) {
                     Info->Name = Name.value();
                 }
@@ -721,7 +719,7 @@ namespace MachO {
                 if (auto *It = BindCollection.GetInfoForAddress(ClassAddr)) {
                     SwitchedAddr = static_cast<PtrAddrType>(It->Address);
                 } else {
-                    ClassAddr = SwitchEndianIf(Category->Class, IsBigEndian);
+                    ClassAddr = Category->getClassAddress(IsBigEndian);
                 }
 
                 Info->Address = SwitchedAddr;

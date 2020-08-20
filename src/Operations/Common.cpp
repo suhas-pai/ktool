@@ -405,6 +405,7 @@ OperationCommon::GetDyldInfoCommand(
         }
 
         if (FoundDyldInfo != nullptr) {
+            // Compare without swapping as they are all the same endian.
             if (DyldInfo->BindOff != FoundDyldInfo->BindOff ||
                 DyldInfo->BindSize != FoundDyldInfo->BindSize)
             {

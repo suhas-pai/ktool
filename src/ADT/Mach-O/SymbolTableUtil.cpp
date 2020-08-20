@@ -80,7 +80,7 @@ namespace MachO {
         }
 
         const auto StrTabRange = RelativeRange(StrTabEnd - StrTab);
-        const auto StringIndex = SwitchEndianIf(Entry.Index, IsBigEndian);
+        const auto StringIndex = Entry.getIndex(IsBigEndian);
 
         if (!StrTabRange.containsLocation(StringIndex)) {
             return SymbolTableParseError::InvalidStringOffset;
@@ -228,7 +228,7 @@ namespace MachO {
                                       ParseOptions Options,
                                       Error *ErrorOut) noexcept
     {
-        const auto NlistCount = SymTab.getSymbolsCount(IsBigEndian);
+        const auto NlistCount = SymTab.getSymbolCount(IsBigEndian);
         const auto NlistBegin = Map + SymTab.getSymbolTableOffset(IsBigEndian);
 
         const auto StrTab = Map + SymTab.getStringTableOffset(IsBigEndian);
@@ -364,7 +364,7 @@ namespace MachO {
         const auto IndexListBegin =
             Map + DySymTab.getIndirectSymbolTableOffset(IsBigEndian);
 
-        const auto NlistCount = SymTab.getSymbolsCount(IsBigEndian);
+        const auto NlistCount = SymTab.getSymbolCount(IsBigEndian);
         const auto NlistBegin = Map + SymTab.getSymbolTableOffset(IsBigEndian);
 
         const auto StrTab = Map + SymTab.getStringTableOffset(IsBigEndian);
@@ -428,7 +428,7 @@ namespace MachO {
             return *this;
         }
 
-        const auto NlistCount = SymTab.getSymbolsCount(IsBigEndian);
+        const auto NlistCount = SymTab.getSymbolCount(IsBigEndian);
         const auto NlistBegin = Map + SymTab.getSymbolTableOffset(IsBigEndian);
 
         const auto StrTab = Map + SymTab.getStringTableOffset(IsBigEndian);

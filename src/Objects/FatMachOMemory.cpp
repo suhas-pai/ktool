@@ -50,8 +50,8 @@ ValidateArchList(const ConstMemoryMap &Map,
     const auto ArchListEnd = ArchListBegin + ArchCount;
 
     for (const auto &Arch : BasicContiguousList(ArchListBegin, ArchListEnd)) {
-        const auto ArchOffset = SwitchEndianIf(Arch.Offset, IsBigEndian);
-        const auto ArchSize = SwitchEndianIf(Arch.Size, IsBigEndian);
+        const auto ArchOffset = Arch.getFileOffset(IsBigEndian);
+        const auto ArchSize = Arch.getFileSize(IsBigEndian);
         const auto ArchRange =
             LocationRange::CreateWithSize(ArchOffset, ArchSize);
 
@@ -60,8 +60,8 @@ ValidateArchList(const ConstMemoryMap &Map,
         }
 
         for (const auto &Inner : BasicContiguousList(ArchListBegin, &Arch)) {
-            const auto InnerOffset = SwitchEndianIf(Inner.Offset, IsBigEndian);
-            const auto InnerSize = SwitchEndianIf(Inner.Size, IsBigEndian);
+            const auto InnerOffset = Inner.getFileOffset(IsBigEndian);
+            const auto InnerSize = Inner.getFileSize(IsBigEndian);
             const auto InnerRange =
                 LocationRange::CreateWithSize(InnerOffset, InnerSize);
 
@@ -163,11 +163,11 @@ GetArchInfoAtIndexImpl(const ListType &List,
     const auto &Arch = List.at(Index);
 
     Info.CpuKind = Arch.getCpuKind(IsBigEndian);
-    Info.CpuSubKind = SwitchEndianIf(Arch.CpuSubKind, IsBigEndian);
+    Info.CpuSubKind = Arch.getCpuSubKind(IsBigEndian);
 
-    Info.Offset = SwitchEndianIf(Arch.Offset, IsBigEndian);
-    Info.Size = SwitchEndianIf(Arch.Size, IsBigEndian);
-    Info.Align = SwitchEndianIf(Arch.Align, IsBigEndian);
+    Info.Offset = Arch.getFileOffset(IsBigEndian);
+    Info.Size = Arch.getFileSize(IsBigEndian);
+    Info.Align = Arch.getAlign(IsBigEndian);
 
     return Info;
 }
@@ -202,10 +202,9 @@ GetMachOObjectResult(MemoryObject *ArchObject,
 
     const auto MachOObject = cast<ObjectKind::MachO>(ArchObject);
     const auto Header = MachOObject->getConstHeader();
-    const auto IsBigEndian = MachOObject->IsBigEndian();
 
     const auto ArchCpuKind = MachOObject->getCpuKind();
-    const auto ArchCpuSubKind = SwitchEndianIf(Header.CpuSubKind, IsBigEndian);
+    const auto ArchCpuSubKind = Header.getCpuSubKind();
 
     if ((ArchCpuKind != CpuKind) || (ArchCpuSubKind != CpuSubKind)) {
         return GetObjectResult(MachOObject, WarningEnum::MachOCpuKindMismatch);

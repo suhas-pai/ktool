@@ -41,7 +41,7 @@ namespace MachO {
 
         using DifferenceType = std::ptrdiff_t;
         inline LoadCommandStorageIteratorBase &operator++() noexcept {
-            this->Item += SwitchEndianIf(getLoadCmd()->CmdSize, IsBigEndian);
+            this->Item += getLoadCmd()->getCmdSize(IsBigEndian);
             return *this;
         }
 

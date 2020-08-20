@@ -106,6 +106,10 @@ public:
         return getConstHeader().getCpuKind();
     }
 
+    [[nodiscard]] inline int32_t getCpuSubKind() const noexcept {
+        return getConstHeader().getCpuSubKind();
+    }
+
     [[nodiscard]]
     inline enum MachO::Header::FileKind getFileKind() const noexcept {
         return getConstHeader().getFileKind();

@@ -26,12 +26,9 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
 {
     fputs("Mach-O Single Architecture File\n", stdout);
 
-    const auto &Header = Object.getConstHeader();
-    const auto IsBigEndian = Object.IsBigEndian();
-
     const auto Magic = Object.getMagic();
     const auto CpuKind = Object.getCpuKind();
-    const auto CpuSubKind = SwitchEndianIf(Header.CpuSubKind, IsBigEndian);
+    const auto CpuSubKind = Object.getCpuSubKind();
     const auto FileKind = Object.getFileKind();
     const auto Ncmds = Object.getLoadCommandsCount();
     const auto SizeOfCmds = Object.getLoadCommandsSize();

@@ -298,8 +298,7 @@ namespace MachO {
         constexpr static const auto Decription = std::string_view("Execute");
     };
 
-    struct MemoryProtections :
-        public ::BasicFlags<MemoryProtectionsEnum> {
+    struct MemoryProtections : public ::BasicFlags<MemoryProtectionsEnum> {
     public:
         using Masks = MemoryProtectionsEnum;
         using MaskIntegerType = std::underlying_type_t<MemoryProtectionsEnum>;

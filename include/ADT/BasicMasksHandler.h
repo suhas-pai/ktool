@@ -91,11 +91,8 @@ public:
         return *this;
     }
 
-    [[nodiscard]]
-    constexpr inline uint64_t GetSetCount(bool IsBigEndian) const noexcept {
-        const auto Integer = SwitchEndianIf(this->Integer, IsBigEndian);
+    [[nodiscard]] constexpr inline uint64_t GetSetCount() const noexcept {
         const auto BitSet = std::bitset<sizeof(IntegerType) * 8>(Integer);
-
         return BitSet.count();
     }
 

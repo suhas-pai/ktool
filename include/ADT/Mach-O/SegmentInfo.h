@@ -57,7 +57,7 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr inline SegmentSectionKind getKind() const noexcept {
-            return Flags.getKind();
+            return getFlags().getKind();
         }
 
         [[nodiscard]] constexpr inline uint32_t getReserved1() const noexcept {
