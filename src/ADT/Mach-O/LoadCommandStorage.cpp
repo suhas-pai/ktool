@@ -12,12 +12,12 @@ namespace MachO {
     static ConstLoadCommandStorage::Error
     VerifyLoadCommands(const uint8_t *Begin,
                        const uint8_t *End,
-                       uint32_t Ncmds,
+                       uint32_t Count,
                        bool IsBigEndian,
                        bool Is64Bit,
-                       uint32_t *SizeOfCmdsOut) noexcept
+                       uint32_t *SizeOut) noexcept
     {
-        if (Ncmds == 0) {
+        if (Count == 0) {
             return ConstLoadCommandStorage::Error::NoLoadCommands;
         }
 
@@ -41,12 +41,12 @@ namespace MachO {
 
             Iter += CmdSize;
             if (Iter > End) {
-                return ConstLoadCommandStorage::Error::SizeOfCmdsTooSmall;
+                return ConstLoadCommandStorage::Error::StorageSizeTooSmall;
             }
 
-            if (I != (Ncmds - 1)) {
+            if (I != (Count - 1)) {
                 if (Iter == End) {
-                    return ConstLoadCommandStorage::Error::SizeOfCmdsTooSmall;
+                    return ConstLoadCommandStorage::Error::StorageSizeTooSmall;
                 }
 
                 I++;
@@ -56,10 +56,10 @@ namespace MachO {
         } while (true);
 
         if (Iter != End) {
-            return ConstLoadCommandStorage::Error::SizeOfCmdsTooSmall;
+            return ConstLoadCommandStorage::Error::StorageSizeTooSmall;
         }
 
-        *SizeOfCmdsOut = static_cast<uint32_t>(Iter - Begin);
+        *SizeOut = static_cast<uint32_t>(Iter - Begin);
         return ConstLoadCommandStorage::Error::None;
     }
 
@@ -68,48 +68,48 @@ namespace MachO {
 
     ConstLoadCommandStorage::ConstLoadCommandStorage(const uint8_t *Begin,
                                                      const uint8_t *End,
-                                                     const uint32_t Ncmds,
+                                                     const uint32_t Count,
                                                      bool IsBigEndian) noexcept
-    : Begin(Begin), End(End), Ncmds(Ncmds), sIsBigEndian(IsBigEndian) {}
+    : Begin(Begin), End(End), Count(Count), sIsBigEndian(IsBigEndian) {}
 
     LoadCommandStorage::LoadCommandStorage(Error Error) noexcept
     : ConstLoadCommandStorage(Error) {}
 
     LoadCommandStorage::LoadCommandStorage(uint8_t *Begin,
                                            uint8_t *End,
-                                           uint32_t Ncmds,
+                                           uint32_t Count,
                                            bool IsBigEndian) noexcept
-    : ConstLoadCommandStorage(Begin, End, Ncmds, IsBigEndian) {}
+    : ConstLoadCommandStorage(Begin, End, Count, IsBigEndian) {}
 
     ConstLoadCommandStorage
     ConstLoadCommandStorage::Open(const uint8_t *Begin,
-                                  uint32_t Ncmds,
-                                  uint32_t SizeOfCmds,
+                                  uint32_t Count,
+                                  uint32_t Size,
                                   bool IsBigEndian,
                                   bool Is64Bit,
                                   bool Verify) noexcept
     {
-        if (SizeOfCmds < sizeof(MachO::LoadCommand)) {
-            return Error::SizeOfCmdsTooSmall;
+        if (Size < sizeof(MachO::LoadCommand)) {
+            return Error::StorageSizeTooSmall;
         }
 
-        auto End = Begin + SizeOfCmds;
+        auto End = Begin + Size;
         if (Verify) {
             const auto Error =
                 VerifyLoadCommands(Begin,
                                    End,
-                                   Ncmds,
+                                   Count,
                                    IsBigEndian,
                                    Is64Bit,
-                                   &SizeOfCmds);
+                                   &Size);
 
             if (Error != Error::None) {
                 return Error;
             }
 
-            End = Begin + SizeOfCmds;
+            End = Begin + Size;
         }
 
-       return ConstLoadCommandStorage(Begin, End, Ncmds, IsBigEndian);
+       return ConstLoadCommandStorage(Begin, End, Count, IsBigEndian);
     }
 }

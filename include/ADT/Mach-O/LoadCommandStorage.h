@@ -99,7 +99,7 @@ namespace MachO {
             CmdSizeTooSmall,
             CmdSizeNotAligned,
 
-            SizeOfCmdsTooSmall,
+            StorageSizeTooSmall,
         };
     protected:
         union {
@@ -108,7 +108,7 @@ namespace MachO {
         };
 
         const uint8_t *End;
-        uint8_t Ncmds;
+        uint32_t Count;
         bool sIsBigEndian : 1;
 
         ConstLoadCommandStorage(Error Error) noexcept;
@@ -116,13 +116,13 @@ namespace MachO {
         explicit
         ConstLoadCommandStorage(const uint8_t *Begin,
                                 const uint8_t *End,
-                                uint32_t Ncmds,
+                                uint32_t Count,
                                 bool IsBigEndian) noexcept;
     public:
         [[nodiscard]] static ConstLoadCommandStorage
         Open(const uint8_t *Begin,
-             uint32_t Ncmds,
-             uint32_t SizeOfCmds,
+             uint32_t Count,
+             uint32_t Size,
              bool IsBigEndian,
              bool Is64Bit,
              bool Verify) noexcept;
@@ -152,7 +152,7 @@ namespace MachO {
             return ConstEndIterator(End);
         }
 
-        [[nodiscard]] inline uint32_t count() const noexcept { return Ncmds; }
+        [[nodiscard]] inline uint32_t count() const noexcept { return Count; }
         [[nodiscard]] inline uint32_t size() const noexcept {
             return static_cast<uint32_t>(End - Begin);
         }
@@ -191,21 +191,21 @@ namespace MachO {
         explicit
         LoadCommandStorage(uint8_t *Begin,
                            uint8_t *End,
-                           uint32_t Ncmds,
+                           uint32_t Count,
                            bool IsBigEndian) noexcept;
     public:
         [[nodiscard]] static inline LoadCommandStorage
         Open(uint8_t *Begin,
-             uint32_t Ncmds,
-             uint32_t SizeOfCmds,
+             uint32_t Count,
+             uint32_t Size,
              bool IsBigEndian,
              bool Is64Bit,
              bool Verify) noexcept
         {
             const auto Result =
                 ConstLoadCommandStorage::Open(Begin,
-                                              Ncmds,
-                                              SizeOfCmds,
+                                              Count,
+                                              Size,
                                               IsBigEndian,
                                               Is64Bit,
                                               Verify);

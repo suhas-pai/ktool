@@ -201,10 +201,9 @@ GetMachOObjectResult(MemoryObject *ArchObject,
     using GetObjectResult = ConstFatMachOMemoryObject::GetObjectResult;
 
     const auto MachOObject = cast<ObjectKind::MachO>(ArchObject);
-    const auto Header = MachOObject->getConstHeader();
 
     const auto ArchCpuKind = MachOObject->getCpuKind();
-    const auto ArchCpuSubKind = Header.getCpuSubKind();
+    const auto ArchCpuSubKind = MachOObject->getCpuSubKind();
 
     if ((ArchCpuKind != CpuKind) || (ArchCpuSubKind != CpuSubKind)) {
         return GetObjectResult(MachOObject, WarningEnum::MachOCpuKindMismatch);

@@ -33,7 +33,7 @@ HandleLoadCommandStorageError(FILE *ErrFile,
                     "LoadCommands Buffer has an invalid LoadCommand (CmdSize "
                     "Not Aligned)\n");
             break;
-        case MachO::LoadCommandStorage::Error::SizeOfCmdsTooSmall:
+        case MachO::LoadCommandStorage::Error::StorageSizeTooSmall:
             fprintf(ErrFile, "LoadCommands Buffer is too small\n");
             break;
     }

@@ -55,10 +55,10 @@ HandleDscImageOpenError(ConstDscMemoryObject::DscImageOpenError Error) noexcept
             fputs("Not a valid Mach-O\n", stderr);
             break;
         case ConstDscMemoryObject::DscImageOpenError::InvalidLoadCommands:
-            fputs("Invalid Load-Commands\n", stderr);
+            fputs("Invalid Mach-O Load-Commands\n", stderr);
             break;
         case ConstDscMemoryObject::DscImageOpenError::NotADylib:
-            fputs("Not a Mach-O Dynamic Library\n", stderr);
+            fputs("Not a Mach-O Dynamic Library (Dylib)\n", stderr);
             break;
         case ConstDscMemoryObject::DscImageOpenError::NotMarkedAsImage:
             fputs("Image is not marked as one\n", stderr);
@@ -69,6 +69,22 @@ HandleDscImageOpenError(ConstDscMemoryObject::DscImageOpenError Error) noexcept
     }
 
     exit(1);
+}
+
+[[nodiscard]] static ConstDscImageMemoryObject *
+GetImageWithPath(const ConstDscMemoryObject &Object,
+                 const std::string_view &Path) noexcept
+{
+    const auto ImageInfo = Object.GetImageInfoWithPath(Path);
+    if (ImageInfo == nullptr) {
+        fprintf(stderr, "No Image was found for path \"%s\"\n", Path.data());
+        exit(0);
+    }
+
+    const auto ObjectOrError = Object.GetImageWithInfo(*ImageInfo);
+    HandleDscImageOpenError(ObjectOrError.getError());
+
+    return ObjectOrError.getPtr();
 }
 
 [[nodiscard]]
@@ -111,24 +127,6 @@ static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
         (Operation::UsageOption == (Arg + 2));
 
     return Result;
-}
-
-[[nodiscard]] static ConstDscImageMemoryObject *
-GetImageWithPath(const ConstDscMemoryObject &Object,
-                 const std::string_view &Path) noexcept
-{
-    const auto ImageInfo = Object.GetImageInfoWithPath(Path);
-    if (ImageInfo == nullptr) {
-        fprintf(stderr,
-                "No Image was found for path \"%s\"\n",
-                Path.data());
-        exit(0);
-    }
-
-    const auto ObjectOrError = Object.GetImageWithInfo(*ImageInfo);
-    HandleDscImageOpenError(ObjectOrError.getError());
-
-    return ObjectOrError.getPtr();
 }
 
 constexpr static auto UsageString =

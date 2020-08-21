@@ -732,25 +732,25 @@ namespace MachO {
     SegmentCommand::ConstSectionList
     SegmentCommand::GetConstSectionList(bool IsBigEndian) const noexcept {
         const auto Ptr = reinterpret_cast<const Section *>(this + 1);
-        const auto Nsects = getSectionCount(IsBigEndian);
+        const auto Count = getSectionCount(IsBigEndian);
 
-        return SegmentCommand::ConstSectionList(Ptr, Nsects);
+        return SegmentCommand::ConstSectionList(Ptr, Count);
     }
 
     SegmentCommand64::SectionList
     SegmentCommand64::GetSectionList(bool IsBigEndian) noexcept {
         const auto Ptr = reinterpret_cast<Section *>(this + 1);
-        const auto Nsects = getSectionCount(IsBigEndian);
+        const auto Count = getSectionCount(IsBigEndian);
 
-        return SegmentCommand64::SectionList(Ptr, Nsects);
+        return SegmentCommand64::SectionList(Ptr, Count);
     }
 
     SegmentCommand64::ConstSectionList
     SegmentCommand64::GetConstSectionList(bool IsBigEndian) const noexcept {
         const auto Ptr = reinterpret_cast<const Section *>(this + 1);
-        const auto Nsects = getSectionCount(IsBigEndian);
+        const auto Count = getSectionCount(IsBigEndian);
 
-        return SegmentCommand64::ConstSectionList(Ptr, Nsects);
+        return SegmentCommand64::ConstSectionList(Ptr, Count);
     }
 
     [[nodiscard]] static inline bool
@@ -872,6 +872,7 @@ namespace MachO {
 
         return Result;
     }
+
     LoadCommandString::GetValueResult
     SubLibraryCommand::GetLibrary(bool IsBigEndian) const noexcept {
         const auto MinSize = sizeof(*this);
@@ -937,8 +938,8 @@ namespace MachO {
     SymTabCommand::GetEntry32List(const MemoryMap &Map,
                                   bool IsBigEndian) const noexcept
     {
-        const auto Nsyms = getSymbolCount(IsBigEndian);
-        if (Nsyms == 0) {
+        const auto SymCount = getSymbolCount(IsBigEndian);
+        if (SymCount == 0) {
             return SizeRangeError::Empty;
         }
 
@@ -946,7 +947,7 @@ namespace MachO {
         auto SymEnd = uint64_t();
 
         if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry32),
-                                       Nsyms, SymOff, &SymEnd))
+                                       SymCount, SymOff, &SymEnd))
         {
             return SizeRangeError::PastEnd;
         }
@@ -954,15 +955,15 @@ namespace MachO {
         const auto Entries =
             reinterpret_cast<SymbolTableEntry32 *>(Map.getBegin() + SymOff);
 
-        return new Entry32List(Entries, Nsyms);
+        return new Entry32List(Entries, SymCount);
     }
 
     TypedAllocationOrError<SymTabCommand::Entry64List, SizeRangeError>
     SymTabCommand::GetEntry64List(const MemoryMap &Map,
                                   bool IsBigEndian) const noexcept
     {
-        const auto Nsyms = getSymbolCount(IsBigEndian);
-        if (Nsyms == 0) {
+        const auto SymCount = getSymbolCount(IsBigEndian);
+        if (SymCount == 0) {
             return SizeRangeError::Empty;
         }
 
@@ -970,7 +971,7 @@ namespace MachO {
         auto SymEnd = uint64_t();
 
         if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry64),
-                                       Nsyms, SymOff, &SymEnd))
+                                       SymCount, SymOff, &SymEnd))
         {
             return SizeRangeError::PastEnd;
         }
@@ -978,22 +979,22 @@ namespace MachO {
         const auto Entries =
             reinterpret_cast<SymbolTableEntry64 *>(Map.getBegin() + SymOff);
 
-        return new Entry64List(Entries, Nsyms);
+        return new Entry64List(Entries, SymCount);
     }
 
     TypedAllocationOrError<SymTabCommand::ConstEntry32List, SizeRangeError>
     SymTabCommand::GetConstEntry32List(const ConstMemoryMap &Map,
                                        bool IsBigEndian) const noexcept
     {
-        const auto Nsyms = getSymbolCount(IsBigEndian);
-        if (Nsyms == 0) {
+        const auto SymCount = getSymbolCount(IsBigEndian);
+        if (SymCount == 0) {
             return SizeRangeError::Empty;
         }
 
         const auto SymOff = getSymbolTableOffset(IsBigEndian);
         auto SymEnd = uint64_t();
 
-        if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry32), Nsyms,
+        if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry32), SymCount,
                                        SymOff, &SymEnd))
         {
             return SizeRangeError::Overflows;
@@ -1008,22 +1009,22 @@ namespace MachO {
             reinterpret_cast<const SymbolTableEntry32 *>(
                 Map.getBegin() + SymOff);
 
-        return new ConstEntry32List(Entries, Nsyms);
+        return new ConstEntry32List(Entries, SymCount);
     }
 
     TypedAllocationOrError<SymTabCommand::ConstEntry64List, SizeRangeError>
     SymTabCommand::GetConstEntry64List(const ConstMemoryMap &Map,
                                        bool IsBigEndian) const noexcept
     {
-        const auto Nsyms = getSymbolCount(IsBigEndian);
-        if (Nsyms == 0) {
+        const auto SymCount = getSymbolCount(IsBigEndian);
+        if (SymCount == 0) {
             return SizeRangeError::Empty;
         }
 
         const auto SymOff = getSymbolTableOffset(IsBigEndian);
         auto SymEnd = uint64_t();
 
-        if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry64), Nsyms,
+        if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry64), SymCount,
                                        SymOff, &SymEnd))
         {
             return SizeRangeError::Overflows;
@@ -1038,7 +1039,7 @@ namespace MachO {
             reinterpret_cast<const SymbolTableEntry64 *>(
                 Map.getBegin() + SymOff);
 
-        return new ConstEntry64List(Entries, Nsyms);
+        return new ConstEntry64List(Entries, SymCount);
     }
 
     TypedAllocationOrError<DynamicSymTabCommand::Entry32List, SizeRangeError>
@@ -1463,6 +1464,7 @@ namespace MachO {
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
+
         auto End = uint64_t();
         const auto Entries = reinterpret_cast<Tool *>(this + 1);
 

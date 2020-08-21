@@ -255,9 +255,7 @@ ConstDscMemoryObject::ValidateImageMapAndGetEnd(
             return DscImageOpenError::InvalidLoadCommands;
     }
 
-    const auto MapBegin = Map.getBegin();
     const auto &Header = *Map.getBeginAs<MachO::Header>();
-
     if (Header.getFileKind() != MachO::Header::FileKind::Dylib) {
         return DscImageOpenError::NotADylib;
     }
@@ -274,7 +272,7 @@ ConstDscMemoryObject::ValidateImageMapAndGetEnd(
         return DscImageOpenError::InvalidLoadCommands;
     }
 
-    auto End = MapBegin;
+    auto End = Map.getBegin();
     if (Is64Bit) {
         for (const auto &LoadCmd : LoadCmdStorage) {
             const auto Segment =

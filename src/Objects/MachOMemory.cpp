@@ -41,15 +41,14 @@ ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept {
     auto HeaderAndLCSize = uint64_t();
 
     const auto Is64Bit = Header.Is64Bit();
-    const auto SizeOfCmds = Header.getLoadCommandsSize();
+    const auto LCSize = Header.getLoadCommandsSize();
 
     if (Is64Bit) {
-        if (DoesAddOverflow(Header.size(), SizeOfCmds, &HeaderAndLCSize)) {
+        if (DoesAddOverflow(Header.size(), LCSize, &HeaderAndLCSize)) {
             return ConstMachOMemoryObject::Error::TooManyLoadCommands;
         }
     } else {
-        if (DoesAddOverflow<uint32_t>(Header.size(), SizeOfCmds,
-                                      &HeaderAndLCSize))
+        if (DoesAddOverflow<uint32_t>(Header.size(), LCSize, &HeaderAndLCSize))
         {
             return ConstMachOMemoryObject::Error::TooManyLoadCommands;
         }
@@ -59,17 +58,17 @@ ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept {
         return ConstMachOMemoryObject::Error::TooManyLoadCommands;
     }
 
-    // Basic check with Ncmds.
-    auto MinSizeOfCmds = uint32_t();
+    // Basic check with Load-Command Count.
+    auto MinLCSize = uint32_t();
 
-    const auto Ncmds = Header.getLoadCommandsCount();
-    const auto LCSize = sizeof(MachO::LoadCommand);
+    const auto LCCount = Header.getLoadCommandsCount();
+    const auto SingleLCSize = sizeof(MachO::LoadCommand);
 
-    if (DoesMultiplyOverflow(LCSize, Ncmds, &MinSizeOfCmds)) {
+    if (DoesMultiplyOverflow(SingleLCSize, LCCount, &MinLCSize)) {
         return ConstMachOMemoryObject::Error::TooManyLoadCommands;
     }
 
-    if (SizeOfCmds < MinSizeOfCmds) {
+    if (LCSize < MinLCSize) {
         return ConstMachOMemoryObject::Error::TooManyLoadCommands;
     }
 

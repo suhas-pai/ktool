@@ -428,21 +428,21 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SymbolTable> {
         const auto StrSize = SymTab.getStringTableSize(IsBigEndian);
 
         const auto SymOff = SymTab.getSymbolTableOffset(IsBigEndian);
-        const auto Nsyms = SymTab.getSymbolCount(IsBigEndian);
+        const auto SymCount = SymTab.getSymbolCount(IsBigEndian);
 
         auto SymOverflows = false;
         auto SymEnd = uint64_t();
 
         if (Is64Bit) {
             if (DoesMultiplyAndAddOverflow(
-                    sizeof(MachO::SymTabCommand::Entry64), Nsyms, StrOff,
+                    sizeof(MachO::SymTabCommand::Entry64), SymCount, StrOff,
                     &SymEnd))
             {
                 SymOverflows = true;
             }
         } else {
             if (DoesMultiplyAndAddOverflow<uint32_t>(
-                    sizeof(MachO::SymTabCommand::Entry32), Nsyms, StrOff,
+                    sizeof(MachO::SymTabCommand::Entry32), SymCount, StrOff,
                     &SymEnd))
             {
                 SymOverflows = true;
@@ -474,7 +474,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SymbolTable> {
             PrintUtilsWriteOffsetRange32(OutFile, SymOff, SymEnd, Is64Bit);
         }
 
-        fprintf(OutFile, " (%" PRIu32 " Symbols)", Nsyms);
+        fprintf(OutFile, " (%" PRIu32 " Symbols)", SymCount);
         __MLCP_WritePastEOFWarning(OutFile, FileRange, SymTabEnd, false, "\n");
     }
 };
@@ -1120,18 +1120,18 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::TwoLevelHints>
           bool Verbose) noexcept
     {
         const auto Offset = TwoLevelHints.getHintsOffset(IsBigEndian);
-        const auto NHints = TwoLevelHints.getHintsCount(IsBigEndian);
+        const auto Count = TwoLevelHints.getHintsCount(IsBigEndian);
         const auto HintSize = sizeof(MachO::TwoLevelHintsCommand::Hint);
 
         auto End = uint64_t();
         auto Overflows = false;
 
         if (Is64Bit) {
-            if (DoesMultiplyAndAddOverflow(HintSize, NHints, Offset, &End)) {
+            if (DoesMultiplyAndAddOverflow(HintSize, Count, Offset, &End)) {
                 Overflows = true;
             }
         } else {
-            if (DoesMultiplyAndAddOverflow<uint32_t>(HintSize, NHints, Offset,
+            if (DoesMultiplyAndAddOverflow<uint32_t>(HintSize, Count, Offset,
                                                      &End))
             {
                 Overflows = false;
@@ -1146,7 +1146,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::TwoLevelHints>
             PrintUtilsWriteOffsetRange32(OutFile, Offset, End, Is64Bit, "\t");
         }
 
-        fprintf(OutFile, "%" PRIu32 " Hints\n", NHints);
+        fprintf(OutFile, "%" PRIu32 " Hints\n", Count);
     }
 };
 
