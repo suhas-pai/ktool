@@ -7,8 +7,17 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-    runs-on: [macos-latest, ubuntu-latest]
+  macBuild:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: make
+      run: |
+        make clean
+        make
+        
+  linuxBuild:  
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: make
