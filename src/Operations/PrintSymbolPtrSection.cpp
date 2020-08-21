@@ -371,8 +371,8 @@ PrintSymbolPtrList(
             *SymtabCommand,
             *DySymtabCommand,
             *Section,
-            Is64Bit,
             IsBigEndian,
+            Is64Bit,
             SymbolTableKeyKind,
             SymbolTableParseOptions,
             &SymbolTableParseError);

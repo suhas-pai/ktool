@@ -179,8 +179,8 @@ namespace MachO {
                                       const uint64_t NlistCount,
                                       const char *StrTab,
                                       const char *StrEnd,
-                                      bool Is64Bit,
                                       bool IsBigEndian,
+                                      bool Is64Bit,
                                       enum KeyKindEnum KeyKind,
                                       ParseOptions Options,
                                       Error *ErrorOut) noexcept
@@ -222,8 +222,8 @@ namespace MachO {
     SymbolTableEntryCollection &
     SymbolTableEntryCollection::Parse(const uint8_t *Map,
                                       const SymTabCommand &SymTab,
-                                      bool Is64Bit,
                                       bool IsBigEndian,
+                                      bool Is64Bit,
                                       KeyKindEnum KeyKind,
                                       ParseOptions Options,
                                       Error *ErrorOut) noexcept
@@ -238,8 +238,8 @@ namespace MachO {
               NlistCount,
               reinterpret_cast<const char *>(StrTab),
               reinterpret_cast<const char *>(StrEnd),
-              Is64Bit,
               IsBigEndian,
+              Is64Bit,
               KeyKind,
               Options,
               ErrorOut);
@@ -255,8 +255,8 @@ namespace MachO {
         uint64_t IndexCount,
         const char *StrTab,
         const char *StrEnd,
-        bool Is64Bit,
         bool IsBigEndian,
+        bool Is64Bit,
         KeyKindEnum KeyKind,
         ParseOptions Options,
         Error *ErrorOut) noexcept
@@ -353,8 +353,8 @@ namespace MachO {
         const uint8_t *Map,
         const SymTabCommand &SymTab,
         const DynamicSymTabCommand &DySymTab,
-        bool Is64Bit,
         bool IsBigEndian,
+        bool Is64Bit,
         KeyKindEnum KeyKind,
         ParseOptions Options,
         Error *ErrorOut) noexcept
@@ -377,8 +377,8 @@ namespace MachO {
             IndexListCount,
             reinterpret_cast<const char *>(StrTab),
             reinterpret_cast<const char *>(StrEnd),
-            Is64Bit,
             IsBigEndian,
+            Is64Bit,
             KeyKind,
             Options,
             ErrorOut);
@@ -392,8 +392,8 @@ namespace MachO {
         const SymTabCommand &SymTab,
         const DynamicSymTabCommand &DySymTab,
         const SectionInfo &Sect,
-        bool Is64Bit,
         bool IsBigEndian,
+        bool Is64Bit,
         KeyKindEnum KeyKind,
         ParseOptions Options,
         Error *ErrorOut) noexcept
@@ -442,8 +442,8 @@ namespace MachO {
             SectionIndexCount,
             reinterpret_cast<const char *>(StrTab),
             reinterpret_cast<const char *>(StrEnd),
-            Is64Bit,
             IsBigEndian,
+            Is64Bit,
             KeyKind,
             Options,
             ErrorOut);

@@ -945,8 +945,8 @@ namespace MachO {
         const ConstDeVirtualizer &DeVirtualizer,
         const BindActionCollection &BindCollection,
         ObjcClassInfoCollection *ClassInfoTree,
-        bool Is64Bit,
         bool IsBigEndian,
+        bool Is64Bit,
         Error *ErrorOut) noexcept
     {
         const auto ObjcClassCategorySection =
