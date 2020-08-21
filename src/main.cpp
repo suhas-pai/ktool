@@ -89,8 +89,8 @@ GetImageWithPath(const ConstDscMemoryObject &Object,
 
 [[nodiscard]]
 static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
-    const auto ShortName = Operation::GetOptionShortName(Kind);
-    const auto LongName = Operation::GetOptionName(Kind);
+    const auto ShortName = OperationKindGetOptionShortName(Kind);
+    const auto LongName = OperationKindGetOptionName(Kind);
 
     if (Arg[0] == '-' && Arg[1] != '-') {
         if (!ShortName.empty() && ShortName == (Arg + 1)) {
@@ -257,22 +257,26 @@ int main(int Argc, const char *Argv[]) {
     }
 
     const auto OpsArgv = ArgvArr.fromIndex(2);
-    if (!OpsArgv.empty()) {
-        const auto &Front = OpsArgv.front();
-        if (strcmp(Front, "--help") == 0) {
-            if (OpsArgv.count() != 1) {
-                fputs("Option --help should be run separately\n", stderr);
-                return 1;
-            }
+    if (OpsArgv.empty()) {
+        fprintf(stderr,
+                "Please provide a file for operation %s\n",
+                Ops->getName().data());
+        return 1;
+    }
 
-            fprintf(stdout,
-                    "Usage: ktool %s [Options] [Path] [Path-Options]\n"
-                    "Options:\n",
-                    Argv[1]);
-
-            Operation::PrintOptionHelpMenu(Ops->getKind(), stdout, "\t");
-            return 0;
+    const auto &Front = OpsArgv.front();
+    if (strcmp(Front, "--help") == 0) {
+        if (OpsArgv.count() != 1) {
+            fputs("Option --help should be run alone\n", stderr);
+            return 1;
         }
+
+        fprintf(stdout,
+                "Usage: ktool %s [Options] [Path] [Path-Options]\nOptions:\n",
+                Argv[1]);
+
+        Operation::PrintOptionHelpMenu(Ops->getKind(), stdout, "\t");
+        return 0;
     }
 
     Ops->ParseOptions(OpsArgv, &PathIndex);
@@ -281,12 +285,6 @@ int main(int Argc, const char *Argv[]) {
     // here to get the full index.
 
     PathIndex += 2;
-    if (PathIndex == Argc) {
-        fprintf(stderr,
-                "Please provide a file for operation %s\n",
-                OperationKindGetName(Ops->getKind()).data());
-        return 1;
-    }
 
     const auto Path = PathUtil::Absolutify(Argv[PathIndex]);
     const auto Fd =

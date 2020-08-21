@@ -196,116 +196,6 @@ Operation::PrintObjectKindNotSupportedError(OperationKind OpKind,
     assert(0 && "Reached end of PrintObjectKindNotSupportedError()");
 }
 
-std::string_view Operation::GetOptionShortName(OperationKind Kind) noexcept {
-    switch (Kind) {
-        case OperationKind::None:
-            assert(0 && "Object-Kind is None");
-        case OperationKind::PrintHeader:
-            return "h"sv;
-        case OperationKind::PrintLoadCommands:
-            return "l"sv;
-        case OperationKind::PrintSharedLibraries:
-            return "L"sv;
-        case OperationKind::PrintId:
-            return "Id"sv;
-        case OperationKind::PrintArchList:
-        case OperationKind::PrintExportTrie:
-        case OperationKind::PrintObjcClassList:
-        case OperationKind::PrintBindActionList:
-        case OperationKind::PrintBindOpcodeList:
-        case OperationKind::PrintBindSymbolList:
-        case OperationKind::PrintRebaseActionList:
-        case OperationKind::PrintRebaseOpcodeList:
-        case OperationKind::PrintCStringSection:
-        case OperationKind::PrintSymbolPtrSection:
-        case OperationKind::PrintImageList:
-            return std::string_view();
-    }
-}
-
-std::string_view Operation::GetOptionName(OperationKind Kind) noexcept {
-    switch (Kind) {
-        case OperationKind::None:
-            assert(0 && "Object-Kind is None");
-        case OperationKind::PrintHeader:
-            return "header"sv;
-        case OperationKind::PrintLoadCommands:
-            return "lc"sv;
-        case OperationKind::PrintSharedLibraries:
-            return "libraries"sv;
-        case OperationKind::PrintId:
-            return "Identity"sv;
-        case OperationKind::PrintArchList:
-            return "list-archs"sv;
-        case OperationKind::PrintExportTrie:
-            return "list-export-trie"sv;
-        case OperationKind::PrintObjcClassList:
-            return "list-objc-classes"sv;
-        case OperationKind::PrintBindActionList:
-            return "list-bind-actions"sv;
-        case OperationKind::PrintBindOpcodeList:
-            return "list-bind-opcodes"sv;
-        case OperationKind::PrintBindSymbolList:
-            return "list-bind-symbols"sv;
-        case OperationKind::PrintRebaseActionList:
-            return "list-rebase-actions"sv;
-        case OperationKind::PrintRebaseOpcodeList:
-            return "list-rebase-opcodes"sv;
-        case OperationKind::PrintCStringSection:
-            return "list-c-string-section"sv;
-        case OperationKind::PrintSymbolPtrSection:
-            return "list-symbol-ptr-section"sv;
-        case OperationKind::PrintImageList:
-            return "list-dsc-images"sv;
-    }
-}
-
-std::string_view
-Operation::GetOptionDescription(OperationKind Kind) noexcept {
-    switch (Kind) {
-        case OperationKind::None:
-            assert(0 && "Object-Kind is None");
-        case OperationKind::PrintHeader:
-            return "Print header of a Mach-O File"sv;
-        case OperationKind::PrintLoadCommands:
-            return "Print Load-commands of a Thin Mach-O File"sv;
-        case OperationKind::PrintSharedLibraries:
-            return "Print imported Shared-Libraries of a Thin Mach-O File"sv;
-        case OperationKind::PrintId:
-            return "Print Identification of a Thin Mach-O File"sv;
-        case OperationKind::PrintArchList:
-            return "List Archs of a FAT Mach-O File"sv;
-        case OperationKind::PrintExportTrie:
-            return "List Export-Trie of a Thin Mach-O File"sv;
-        case OperationKind::PrintObjcClassList:
-            return "List Objc-Classes of a Thin Mach-O File"sv;
-        case OperationKind::PrintBindActionList:
-            return "List Bind-Actions of a Thin Mach-O File"sv;
-        case OperationKind::PrintBindOpcodeList:
-            return "List Bind-Opcodes of a Thin Mach-O File"sv;
-        case OperationKind::PrintBindSymbolList:
-            return "List Bind-Symbols of a Thin Mach-O File"sv;
-        case OperationKind::PrintRebaseActionList:
-            return "List Rebase-Actions of a Thin Mach-O File"sv;
-        case OperationKind::PrintRebaseOpcodeList:
-            return "List Rebase-Opcodes of a Thin Mach-O File"sv;
-        case OperationKind::PrintCStringSection: {
-            const auto Desc =
-                "List C-Strings of a C-String Section of a Thin Mach-O File"sv;
-
-            return Desc;
-        }
-        case OperationKind::PrintSymbolPtrSection: {
-            const auto Desc =
-                "List Symbols of a Symbol-Ptr Section of a Thin Mach-O File"sv;
-
-            return Desc;
-        }
-        case OperationKind::PrintImageList:
-            return "List Images of a Dyld Shared-Cache File"sv;
-    }
-}
-
 void
 Operation::PrintOptionHelpMenu(OperationKind Kind,
                                FILE *OutFile,
@@ -547,9 +437,9 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
     for (auto Iter = Begin; Iter != End; Iter++) {
         const auto &IKind = *Iter;
 
-        const auto ShortName = GetOptionShortName(IKind);
-        const auto Name = GetOptionName(IKind);
-        const auto Description = GetOptionDescription(IKind);
+        const auto ShortName = OperationKindGetOptionShortName(IKind);
+        const auto Name = OperationKindGetOptionName(IKind);
+        const auto Description = OperationKindGetDescription(IKind);
 
         assert(!Name.empty() && !Description.empty());
 
@@ -560,11 +450,11 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
         for (auto Jter = Begin; Jter != Iter; Jter++) {
             const auto &JKind = *Jter;
             if (!ShortName.empty()) {
-                assert(ShortName != GetOptionShortName(JKind));
+                assert(ShortName != OperationKindGetOptionShortName(JKind));
             }
 
-            assert(Name != GetOptionName(JKind));
-            assert(Description != GetOptionDescription(JKind));
+            assert(Name != OperationKindGetName(JKind));
+            assert(Description != OperationKindGetDescription(JKind));
         }
     }
 
@@ -591,7 +481,7 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
             continue;
         }
 
-        const auto &ShortName = GetOptionShortName(Kind);
+        const auto &ShortName = OperationKindGetOptionShortName(Kind);
         if (!ShortName.empty()) {
             fprintf(OutFile, "\t-%s, ", ShortName.data());
         } else {
@@ -602,12 +492,12 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
                                  static_cast<int>(ShortName.size()),
                                  MaxShortOptionNameLength);
 
-        const auto &Name = GetOptionName(Kind);
+        const auto &Name = OperationKindGetName(Kind);
         PrintUtilsRightPadSpaces(OutFile,
                                  fprintf(OutFile, "--%s,", Name.data()),
                                  LongestOptionNameLength + LENGTH_OF("--,"));
 
-        fprintf(OutFile, " %s\n", GetOptionDescription(Kind).data());
+        fprintf(OutFile, " %s\n", OperationKindGetDescription(Kind).data());
         PrintOptionHelpMenu(Kind, stdout, "\t\t\t");
 
         if (Iter != (End - 1)) {
