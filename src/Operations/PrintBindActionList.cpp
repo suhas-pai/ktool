@@ -262,7 +262,7 @@ PrintBindActionList(
             continue;
         }
 
-        return false;
+        return true;
     };
 
     if (ShouldPrintBindList) {

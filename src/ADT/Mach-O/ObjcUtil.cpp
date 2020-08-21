@@ -633,7 +633,7 @@ namespace MachO {
 
         if (ObjcClassRefsSection != nullptr) {
             const auto BindCollectionRange =
-                ObjcClassRefsSection->getFileRange();
+                ObjcClassRefsSection->getMemoryRange();
 
             auto BindCollection = BindActionCollection();
             const auto GetBindActionCollectionResult =
@@ -692,7 +692,7 @@ namespace MachO {
 
         if (ObjcClassListSection != nullptr) {
             const auto BindCollectionRange =
-                ObjcClassListSection->getFileRange();
+                ObjcClassListSection->getMemoryRange();
 
             auto BindCollection = BindActionCollection();
             const auto GetBindActionCollectionResult =
@@ -1016,7 +1016,7 @@ namespace MachO {
         }
 
         const auto BindCollectionRange =
-            ObjcClassCategorySection->getFileRange();
+            ObjcClassCategorySection->getMemoryRange();
 
         auto BindCollection = BindActionCollection();
         const auto GetBindActionCollectionResult =

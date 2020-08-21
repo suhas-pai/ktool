@@ -264,8 +264,7 @@ int main(int Argc, const char *Argv[]) {
         return 1;
     }
 
-    const auto &Front = OpsArgv.front();
-    if (strcmp(Front, "--help") == 0) {
+    if (strcmp(OpsArgv.front(), "--help") == 0) {
         if (OpsArgv.count() != 1) {
             fputs("Option --help should be run alone\n", stderr);
             return 1;

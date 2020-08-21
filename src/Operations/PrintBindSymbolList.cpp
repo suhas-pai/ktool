@@ -295,7 +295,7 @@ PrintBindSymbolList(
             }
         }
 
-        return false;
+        return true;
     };
 
     if (ShouldPrintBind) {

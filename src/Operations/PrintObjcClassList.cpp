@@ -148,7 +148,7 @@ CompareObjcClasses(
         continue;
     }
 
-    return false;
+    return true;
 };
 
 static void

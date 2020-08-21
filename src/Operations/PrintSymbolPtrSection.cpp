@@ -417,7 +417,7 @@ PrintSymbolPtrList(
                 }
             }
 
-            return false;
+            return true;
         });
     } else {
         std::sort(List.begin(),

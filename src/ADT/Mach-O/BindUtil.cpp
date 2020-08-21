@@ -46,7 +46,7 @@ namespace MachO {
         auto SegmentAddress = uint64_t();
 
         const auto End = BindList.end();
-        auto Symbol = static_cast<std::string *>(nullptr);
+        auto NewSymbol = true;
 
         for (auto Iter = BindList.begin(); Iter != End; Iter++) {
             const auto &Info = *Iter;
@@ -61,6 +61,10 @@ namespace MachO {
             }
 
             const auto &Action = Info.getAction();
+            if (Action.NewSymbolName) {
+                NewSymbol = Action.NewSymbolName;
+            }
+
             if (SegmentIndex != Action.SegmentIndex) {
                 Segment = SegmentCollection.atOrNull(Action.SegmentIndex);
                 SegmentIndex = Action.SegmentIndex;
@@ -76,10 +80,6 @@ namespace MachO {
                 }
             }
 
-            if (Action.NewSymbolName || Symbol == nullptr) {
-                Symbol = GetPtrForSymbol(Action.SymbolName, SymbolList);
-            }
-
             if (ActionListIter != ActionList.end()) {
                 if (*ActionListIter->second == Action) {
                     continue;
@@ -93,20 +93,26 @@ namespace MachO {
                 return false;
             }
 
-            const auto NewAction = BindActionCollection::Info {
+            auto NewAction = BindActionCollection::Info {
                 .Kind = BindKind,
                 .WriteKind = Action.WriteKind,
                 .Addend = Action.Addend,
                 .DylibOrdinal = Action.DylibOrdinal,
-                .Symbol = Symbol,
                 .SegmentIndex = Action.SegmentIndex,
                 .SegOffset = Action.SegOffset,
                 .Address = FullAddr,
                 .OpcodeAddress = Iter.getOffset(BindList.getBegin()),
                 .AddrInSeg = Action.AddrInSeg,
-                .NewSymbolName = Action.NewSymbolName,
+                .NewSymbolName = NewSymbol,
                 .Flags = Action.Flags
             };
+
+            if (NewSymbol) {
+                NewAction.Symbol =
+                    GetPtrForSymbol(Action.SymbolName, SymbolList);
+
+                NewSymbol = false;
+            }
 
             ActionList.insert({
                 FullAddr,
@@ -181,6 +187,10 @@ namespace MachO {
     BindActionCollection::GetInfoForAddress(uint64_t Address) const noexcept {
         const auto Iter = ActionList.find(Address);
         if (Iter != ActionList.end()) {
+            if (Iter->first != Address) {
+                printf("");
+            }
+            
             return Iter->second.get();
         }
 

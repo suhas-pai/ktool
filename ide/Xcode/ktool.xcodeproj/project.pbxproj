@@ -103,6 +103,7 @@
 		F33EC4FB24C27D9D00A8DB06 /* SegmentUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SegmentUtil.h; path = ../../include/ADT/DscImage/SegmentUtil.h; sourceTree = "<group>"; };
 		F33EC4FD24C27E1900A8DB06 /* SegmentUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SegmentUtil.cpp; path = ../../src/ADT/DscImage/SegmentUtil.cpp; sourceTree = "<group>"; };
 		F33EC50124C2A76A00A8DB06 /* DscImage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DscImage.h; path = ../../include/ADT/DscImage.h; sourceTree = "<group>"; };
+		F3418A1B24F085B300A3B8CE /* Info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Info.h; path = ../../include/Operations/Info.h; sourceTree = "<group>"; };
 		F348C8A324AB4527007D83CB /* PrintCStringSection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintCStringSection.h; path = ../../include/Operations/PrintCStringSection.h; sourceTree = "<group>"; };
 		F348C8A424AB457C007D83CB /* PrintCStringSection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintCStringSection.cpp; path = ../../src/Operations/PrintCStringSection.cpp; sourceTree = "<group>"; };
 		F35FF7EF24486A4800BEF782 /* PrintLoadCommands.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintLoadCommands.cpp; path = ../../src/Operations/PrintLoadCommands.cpp; sourceTree = "<group>"; };
@@ -141,7 +142,6 @@
 		F3856A9A244A9F73007980C9 /* PrintUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintUtils.h; path = ../../include/Utils/PrintUtils.h; sourceTree = "<group>"; };
 		F3856A9B244ABDA1007980C9 /* LoadCommands.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadCommands.h; path = "../../include/ADT/Mach-O/LoadCommands.h"; sourceTree = "<group>"; };
 		F3856A9C244ABDA1007980C9 /* LoadCommandStorage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadCommandStorage.h; path = "../../include/ADT/Mach-O/LoadCommandStorage.h"; sourceTree = "<group>"; };
-		F3856A9D244ABDA1007980C9 /* Types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Types.h; path = "../../include/ADT/Mach-O/Types.h"; sourceTree = "<group>"; };
 		F3856A9E244ABDA1007980C9 /* LoadCommandTemplates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadCommandTemplates.h; path = "../../include/ADT/Mach-O/LoadCommandTemplates.h"; sourceTree = "<group>"; };
 		F3856A9F244BA5F3007980C9 /* MachOPrinter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MachOPrinter.h; path = ../../include/Utils/MachOPrinter.h; sourceTree = "<group>"; };
 		F3856AA2244BBB5C007980C9 /* Macros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Macros.h; path = ../../include/Utils/Macros.h; sourceTree = "<group>"; };
@@ -415,7 +415,6 @@
 				F3BB308E2477061D00706267 /* SharedLibraryInfo.h */,
 				F3BB308D2477051B00706267 /* SharedLibraryUtil.h */,
 				F314A9DF24B01DA900796991 /* SymbolTableUtil.h */,
-				F3856A9D244ABDA1007980C9 /* Types.h */,
 			);
 			name = "Mach-O";
 			sourceTree = "<group>";
@@ -528,6 +527,7 @@
 				F3B1962C2439B32500AE997A /* Base.h */,
 				F3DC4DA82452722F0063906C /* Common.h */,
 				F3A5C2312443BC10000DE1B9 /* Kind.h */,
+				F3418A1B24F085B300A3B8CE /* Info.h */,
 				F3D66211245770A300270435 /* Operation.h */,
 				F3D66212245770AB00270435 /* PrintArchList.h */,
 				F3B1962E2439B32500AE997A /* PrintHeader.h */,

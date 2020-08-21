@@ -170,23 +170,15 @@ BasicTreeNode &
 BasicTreeNode::SetChildrenFromList(
     const std::vector<BasicTreeNode *> &List) noexcept
 {
-    assert(!List.empty());
-    setFirstChild(List.front());
-
-    const auto End = List.cend();
-    auto PrevChild = FirstChild;
-
-    for (auto Iter = List.cbegin() + 1; Iter != End; Iter++) {
-        auto Node = *Iter;
-        assert(Node != nullptr);
-
-        PrevChild->setNextSibling(Node);
-        Node->setPrevSibling(PrevChild);
-
-        PrevChild = Node;
+    if (List.empty()) {
+        return *this;
     }
 
-    PrevChild->setNextSibling(nullptr);
+    const auto End = List.cend();
+    for (auto Iter = List.cbegin() + 1; Iter != End; Iter++) {
+        AddChild(**Iter);
+    }
+
     return *this;
 }
 
