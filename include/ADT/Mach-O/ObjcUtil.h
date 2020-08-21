@@ -15,6 +15,7 @@
 
 #include "BindUtil.h"
 #include "DeVirtualizer.h"
+#include "LoadCommands.h"
 #include "Objc.h"
 #include "SegmentUtil.h"
 
@@ -135,17 +136,30 @@ namespace MachO {
               const SegmentInfoCollection &SegmentCollection,
               const ConstDeVirtualizer &DeVirtualizer,
               const BindActionCollection &BindCollection,
-              bool Is64Bit,
               bool IsBigEndian,
+              bool Is64Bit,
               Error *ErrorOut) noexcept;
 
-        static inline ObjcClassInfoCollection
+        ObjcClassInfoCollection &
+        Parse(const ConstMemoryMap &Map,
+              const SegmentInfoCollection &SegmentCollection,
+              const ConstDeVirtualizer &DeVirtualizer,
+              const BindActionList *BindList,
+              const LazyBindActionList *LazyBindList,
+              const WeakBindActionList *WeakBindList,
+              bool IsBigEndian,
+              bool Is64Bit,
+              Error *ErrorOut,
+              BindOpcodeParseError *ParseErrorOut,
+              BindActionCollection::Error *CollectionErrorOut) noexcept;
+
+        [[nodiscard]] static inline ObjcClassInfoCollection
         Open(const uint8_t *Map,
              const SegmentInfoCollection &SegmentCollection,
              const ConstDeVirtualizer &DeVirtualizer,
              const BindActionCollection &BindCollection,
-             bool Is64Bit,
              bool IsBigEndian,
+             bool Is64Bit,
              Error *ErrorOut) noexcept
         {
             auto Result = ObjcClassInfoCollection();
@@ -153,9 +167,38 @@ namespace MachO {
                          SegmentCollection,
                          DeVirtualizer,
                          BindCollection,
-                         Is64Bit,
                          IsBigEndian,
+                         Is64Bit,
                          ErrorOut);
+
+            return Result;
+        }
+
+        [[nodiscard]] static inline ObjcClassInfoCollection
+        Open(const ConstMemoryMap &Map,
+             const SegmentInfoCollection &SegmentCollection,
+             const ConstDeVirtualizer &DeVirtualizer,
+             const BindActionList *BindList,
+             const LazyBindActionList *LazyBindList,
+             const WeakBindActionList *WeakBindList,
+             bool IsBigEndian,
+             bool Is64Bit,
+             Error *ErrorOut,
+             BindOpcodeParseError *ParseErrorOut,
+             BindActionCollection::Error *CollectionErrorOut) noexcept
+        {
+            auto Result = ObjcClassInfoCollection();
+            Result.Parse(Map,
+                         SegmentCollection,
+                         DeVirtualizer,
+                         BindList,
+                         LazyBindList,
+                         WeakBindList,
+                         IsBigEndian,
+                         Is64Bit,
+                         ErrorOut,
+                         ParseErrorOut,
+                         CollectionErrorOut);
 
             return Result;
         }
@@ -192,11 +235,11 @@ namespace MachO {
         using Iterator = TreeIterator<ObjcClassInfo>;
         using ConstIterator = TreeIterator<const ObjcClassInfo>;
 
-        Iterator begin() const noexcept;
-        Iterator end() const noexcept;
+        [[nodiscard]] Iterator begin() const noexcept;
+        [[nodiscard]] Iterator end() const noexcept;
 
-        ConstIterator cbegin() const noexcept;
-        ConstIterator cend() const noexcept;
+        [[nodiscard]] ConstIterator cbegin() const noexcept;
+        [[nodiscard]] ConstIterator cend() const noexcept;
 
         [[nodiscard]] inline uint64_t size() const noexcept {
             return List.size();
@@ -217,12 +260,12 @@ namespace MachO {
 
     struct ObjcClassCategoryCollection {
     public:
+        using Error = ObjcParseError;
         using Info = ObjcClassCategoryInfo;
     protected:
         std::vector<std::unique_ptr<Info>> List;
     public:
         ObjcClassCategoryCollection() noexcept = default;
-        using Error = ObjcParseError;
 
         ObjcClassCategoryCollection &
         CollectFrom(const uint8_t *Map,
@@ -230,11 +273,25 @@ namespace MachO {
                     const ConstDeVirtualizer &DeVirtualizer,
                     const BindActionCollection &BindCollection,
                     ObjcClassInfoCollection *ClassInfoTree,
-                    bool Is64Bit,
                     bool IsBigEndian,
+                    bool Is64Bit,
                     Error *ErrorOut) noexcept;
 
-        static inline ObjcClassCategoryCollection
+        ObjcClassCategoryCollection &
+        CollectFrom(const ConstMemoryMap &Map,
+                    const SegmentInfoCollection &SegmentCollection,
+                    const ConstDeVirtualizer &DeVirtualizer,
+                    ObjcClassInfoCollection *ClassInfoTree,
+                    const BindActionList *BindList,
+                    const LazyBindActionList *LazyBindList,
+                    const WeakBindActionList *WeakBindList,
+                    bool IsBigEndian,
+                    bool Is64Bit,
+                    Error *ErrorOut,
+                    BindOpcodeParseError *ParseErrorOut,
+                    BindActionCollection::Error *CollectionErrorOut) noexcept;
+
+        [[nodiscard]] static inline ObjcClassCategoryCollection
         Open(const uint8_t *Map,
              const SegmentInfoCollection &SegmentCollection,
              const ConstDeVirtualizer &DeVirtualizer,
@@ -253,6 +310,37 @@ namespace MachO {
                                Is64Bit,
                                IsBigEndian,
                                ErrorOut);
+
+            return Result;
+        }
+
+        [[nodiscard]] static inline ObjcClassCategoryCollection
+        Open(const ConstMemoryMap &Map,
+             const SegmentInfoCollection &SegmentCollection,
+             const ConstDeVirtualizer &DeVirtualizer,
+             ObjcClassInfoCollection *ClassInfoTree,
+             const BindActionList *BindList,
+             const LazyBindActionList *LazyBindList,
+             const WeakBindActionList *WeakBindList,
+             bool IsBigEndian,
+             bool Is64Bit,
+             Error *ErrorOut,
+             BindOpcodeParseError *ParseErrorOut,
+             BindActionCollection::Error *CollectionErrorOut) noexcept
+        {
+            auto Result = ObjcClassCategoryCollection();
+            Result.CollectFrom(Map,
+                               SegmentCollection,
+                               DeVirtualizer,
+                               ClassInfoTree,
+                               BindList,
+                               LazyBindList,
+                               WeakBindList,
+                               IsBigEndian,
+                               Is64Bit,
+                               ErrorOut,
+                               ParseErrorOut,
+                               CollectionErrorOut);
 
             return Result;
         }

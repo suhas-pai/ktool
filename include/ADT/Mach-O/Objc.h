@@ -7,6 +7,7 @@
 //
 
 #pragma once
+
 #include "ADT/BasicMasksHandler.h"
 #include "Utils/SwitchEndian.h"
 
@@ -660,8 +661,8 @@ namespace MachO {
             return SwitchEndianIf(ClassMethods, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr inline
-        uint32_t getProtocolsAddress(bool IsBigEndian) const noexcept {
+        [[nodiscard]] constexpr
+        inline uint32_t getProtocolsAddress(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Protocols, IsBigEndian);
         }
 
@@ -760,8 +761,8 @@ namespace MachO {
             return SwitchEndianIf(ClassMethods, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr inline
-        uint64_t getProtocolsAddress(bool IsBigEndian) const noexcept {
+        [[nodiscard]] constexpr
+        inline uint64_t getProtocolsAddress(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Protocols, IsBigEndian);
         }
 

@@ -99,18 +99,18 @@ namespace MachO {
 
         BindActionCollection &
         Parse(const SegmentInfoCollection &SegmentCollection,
-              BindActionList *BindList,
-              LazyBindActionList *LazyBindList,
-              WeakBindActionList *WeakBindList,
+              const BindActionList *BindList,
+              const LazyBindActionList *LazyBindList,
+              const WeakBindActionList *WeakBindList,
               const LocationRange &Range,
               ParseError *ParseErrorOut,
               Error *ErrorOut) noexcept;
 
         [[nodiscard]] inline static BindActionCollection
         Open(const SegmentInfoCollection &SegmentCollection,
-             BindActionList *BindList,
-             LazyBindActionList *LazyBindList,
-             WeakBindActionList *WeakBindList,
+             const BindActionList *BindList,
+             const LazyBindActionList *LazyBindList,
+             const WeakBindActionList *WeakBindList,
              const LocationRange &Range,
              ParseError *ParseErrorOut,
              Error *ErrorOut) noexcept

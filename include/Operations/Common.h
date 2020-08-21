@@ -82,6 +82,18 @@ struct OperationCommon {
         const MachO::DyldInfoCommand *&DyldInfoCommandOut) noexcept;
 
     static int
+    GetBindActionLists(
+        FILE *ErrFile,
+        const ConstMemoryMap &Map,
+        const MachO::SegmentInfoCollection &SegmentCollection,
+        const MachO::DyldInfoCommand &DyldInfo,
+        bool IsBigEndian,
+        bool Is64Bit,
+        const MachO::BindActionList *& BindList,
+        const MachO::LazyBindActionList *& LazyBindList,
+        const MachO::WeakBindActionList *& WeakBindList) noexcept;
+
+    static int
     GetBindActionCollection(
         FILE *ErrFile,
         const ConstMemoryMap &Map,

@@ -76,7 +76,7 @@ namespace MachO {
                 }
             }
 
-            if (Action.NewSymbolName) {
+            if (Action.NewSymbolName || Symbol == nullptr) {
                 Symbol = GetPtrForSymbol(Action.SymbolName, SymbolList);
             }
 
@@ -120,9 +120,9 @@ namespace MachO {
 
     BindActionCollection &
     BindActionCollection::Parse(const SegmentInfoCollection &SegmentCollection,
-                                BindActionList *BindList,
-                                LazyBindActionList *LazyBindList,
-                                WeakBindActionList *WeakBindList,
+                                const BindActionList *BindList,
+                                const LazyBindActionList *LazyBindList,
+                                const WeakBindActionList *WeakBindList,
                                 const LocationRange &Range,
                                 ParseError *ParseErrorOut,
                                 Error *ErrorOut) noexcept

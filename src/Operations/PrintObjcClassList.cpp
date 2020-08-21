@@ -261,43 +261,70 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
         MachO::SharedLibraryInfoCollection::Open(LoadCmdStorage,
                                                  &SharedLibraryCollectionError);
 
-    auto BindCollection = MachO::BindActionCollection();
+    auto DyldInfo = static_cast<const MachO::DyldInfoCommand *>(nullptr);
 
     const auto Map = Object.getMap();
-    const auto GetBindActionResult =
-        OperationCommon::GetBindActionCollection(Options.ErrFile,
-                                                 Map,
-                                                 LocationRange::Empty(),
-                                                 LoadCmdStorage,
-                                                 SegmentCollection,
-                                                 BindCollection,
-                                                 Is64Bit);
+    const auto GetDyldInfoResult =
+        OperationCommon::GetDyldInfoCommand(Options.ErrFile,
+                                            LoadCmdStorage,
+                                            DyldInfo);
 
-    if (GetBindActionResult != 0) {
-        return GetBindActionResult;
+    if (GetDyldInfoResult != 0) {
+        return GetDyldInfoResult;
+    }
+
+    auto BindList = static_cast<const MachO::BindActionList *>(nullptr);
+    auto LazyBindList = static_cast<const MachO::LazyBindActionList *>(nullptr);
+    auto WeakBindList = static_cast<const MachO::WeakBindActionList *>(nullptr);
+
+    const auto GetBindListsResult =
+        OperationCommon::GetBindActionLists(Options.ErrFile,
+                                            Map,
+                                            SegmentCollection,
+                                            *DyldInfo,
+                                            IsBigEndian,
+                                            Is64Bit,
+                                            BindList,
+                                            LazyBindList,
+                                            WeakBindList);
+
+    if (GetBindListsResult != 0) {
+        return GetBindListsResult;
     }
 
     auto DeVirtualizer = MachO::ConstDeVirtualizer(Map, SegmentCollection);
-    auto Error = MachO::ObjcClassInfoCollection::Error();
+    auto Error = MachO::ObjcClassInfoCollection::Error::None;
+    auto CollectionError = MachO::BindActionCollection::Error::None;
+    auto ParseError = MachO::BindOpcodeParseError::None;
 
     auto ObjcClassCollection =
-        MachO::ObjcClassInfoCollection::Open(Map.getBegin(),
+        MachO::ObjcClassInfoCollection::Open(Map,
                                              SegmentCollection,
                                              DeVirtualizer,
-                                             BindCollection,
-                                             Is64Bit,
+                                             BindList,
+                                             LazyBindList,
+                                             WeakBindList,
                                              IsBigEndian,
-                                             &Error);
+                                             Is64Bit,
+                                             &Error,
+                                             &ParseError,
+                                             &CollectionError);
 
+    auto CategoryCollection = MachO::ObjcClassCategoryCollection();
     if (Options.PrintCategories) {
-        MachO::ObjcClassCategoryCollection::Open(Map.getBegin(),
-                                                 SegmentCollection,
-                                                 DeVirtualizer,
-                                                 BindCollection,
-                                                 &ObjcClassCollection,
-                                                 Is64Bit,
-                                                 IsBigEndian,
-                                                 &Error);
+        CategoryCollection =
+            MachO::ObjcClassCategoryCollection::Open(Map,
+                                                     SegmentCollection,
+                                                     DeVirtualizer,
+                                                     &ObjcClassCollection,
+                                                     BindList,
+                                                     LazyBindList,
+                                                     WeakBindList,
+                                                     IsBigEndian,
+                                                     Is64Bit,
+                                                     &Error,
+                                                     &ParseError,
+                                                     &CollectionError);
     }
 
     if (ObjcClassCollection.empty()) {

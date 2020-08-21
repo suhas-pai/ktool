@@ -551,8 +551,7 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
         const auto Name = GetOptionName(IKind);
         const auto Description = GetOptionDescription(IKind);
 
-        assert(!Name.empty());
-        assert(!Description.empty());
+        assert(!Name.empty() && !Description.empty());
 
         assert(ShortName != Description && Name != Description);
         assert(ShortName.size() <= MaxShortOptionNameLength);

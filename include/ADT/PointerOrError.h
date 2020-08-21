@@ -100,6 +100,13 @@ public:
     TypedAllocationOrError(TypedAllocationOrError &&Ty) noexcept
     : Base(reinterpret_cast<T *>(Ty.value())) {}
 
+    [[nodiscard]] constexpr inline T *getAndClaimPtr() noexcept {
+        const auto Result = this->getPtr();
+        clear();
+
+        return Result;
+    }
+
     TypedAllocationOrError &
     operator=(const TypedAllocationOrError &) noexcept = delete;
 

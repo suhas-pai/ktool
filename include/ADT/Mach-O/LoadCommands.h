@@ -2791,8 +2791,8 @@ namespace MachO {
             return SwitchEndianIf(MinOS, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        inline PackedVersion getSdk(bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr inline PackedVersion getSdk(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Sdk, IsBigEndian);
         }
 

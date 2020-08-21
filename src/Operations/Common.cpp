@@ -6,10 +6,12 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#include <cstdio>
 #include <cstring>
 #include <unistd.h>
 #include <string_view>
 
+#include "ADT/MemoryMap.h"
 #include "Utils/PrintUtils.h"
 #include "Common.h"
 
@@ -444,6 +446,73 @@ OperationCommon::GetDyldInfoCommand(
     }
 
     DyldInfoCommandOut = FoundDyldInfo;
+    return 0;
+}
+
+int
+OperationCommon::GetBindActionLists(
+    FILE *ErrFile,
+    const ConstMemoryMap &Map,
+    const MachO::SegmentInfoCollection &SegmentCollection,
+    const MachO::DyldInfoCommand &DyldInfo,
+    bool IsBigEndian,
+    bool Is64Bit,
+    const MachO::BindActionList *& BindList,
+    const MachO::LazyBindActionList *& LazyBindList,
+    const MachO::WeakBindActionList *& WeakBindList) noexcept
+{
+    auto BindActionOpt =
+        DyldInfo.GetBindActionList(Map,
+                                   SegmentCollection,
+                                   IsBigEndian,
+                                   Is64Bit);
+
+    switch (BindActionOpt.getError()) {
+        case MachO::SizeRangeError::None:
+        case MachO::SizeRangeError::Empty:
+            break;
+        case MachO::SizeRangeError::Overflows:
+        case MachO::SizeRangeError::PastEnd:
+            fputs("Bind-List goes past end of file\n", ErrFile);
+            return 1;
+    }
+
+    auto LazyBindActionOpt =
+        DyldInfo.GetLazyBindActionList(Map,
+                                       SegmentCollection,
+                                       IsBigEndian,
+                                       Is64Bit);
+
+    switch (LazyBindActionOpt.getError()) {
+        case MachO::SizeRangeError::None:
+        case MachO::SizeRangeError::Empty:
+            break;
+        case MachO::SizeRangeError::Overflows:
+        case MachO::SizeRangeError::PastEnd:
+            fputs("Lazy-Bind List goes past end of file\n", ErrFile);
+            return 1;
+    }
+
+    auto WeakBindActionOpt =
+        DyldInfo.GetWeakBindActionList(Map,
+                                       SegmentCollection,
+                                       IsBigEndian,
+                                       Is64Bit);
+
+    switch (WeakBindActionOpt.getError()) {
+        case MachO::SizeRangeError::None:
+        case MachO::SizeRangeError::Empty:
+            break;
+        case MachO::SizeRangeError::Overflows:
+        case MachO::SizeRangeError::PastEnd:
+            fputs("Weak-Bind goes past end of file\n", ErrFile);
+            return 1;
+    }
+
+    BindList = BindActionOpt.getAndClaimPtr();
+    LazyBindList = LazyBindActionOpt.getAndClaimPtr();
+    WeakBindList = WeakBindActionOpt.getAndClaimPtr();
+
     return 0;
 }
 

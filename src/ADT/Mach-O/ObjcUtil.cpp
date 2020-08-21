@@ -7,8 +7,11 @@
 //
 
 #include "ADT/BasicContiguousList.h"
+#include "ADT/LocationRange.h"
+#include "ADT/MemoryMap.h"
 #include "Utils/PointerUtils.h"
 
+#include "BindUtil.h"
 #include "DeVirtualizer.h"
 #include "ObjcUtil.h"
 
@@ -542,6 +545,209 @@ namespace MachO {
         return *this;
     }
 
+    [[nodiscard]] static int
+    GetBindCollection(const SegmentInfoCollection &SegmentCollection,
+                      const BindActionList *BindList,
+                      const LazyBindActionList *LazyBindList,
+                      const WeakBindActionList *WeakBindList,
+                      const LocationRange &Range,
+                      BindActionCollection &CollectionOut,
+                      BindOpcodeParseError *ParseErrorOut,
+                      BindActionCollection::Error *CollectionErrorOut) noexcept
+    {
+        auto ParseError = BindOpcodeParseError::None;
+        auto CollectionError = BindActionCollection::Error::None;
+
+        CollectionOut =
+            BindActionCollection::Open(SegmentCollection,
+                                       BindList,
+                                       LazyBindList,
+                                       WeakBindList,
+                                       Range,
+                                       &ParseError,
+                                       &CollectionError);
+
+        if (ParseError != BindOpcodeParseError::None) {
+            if (ParseErrorOut != nullptr) {
+                *ParseErrorOut = ParseError;
+            }
+
+            return 1;
+        }
+
+        if (CollectionError != BindActionCollection::Error::None) {
+            if (CollectionErrorOut != nullptr) {
+                *CollectionErrorOut = CollectionError;
+            }
+
+            return 1;
+        }
+
+        return 0;
+    }
+
+    ObjcClassInfoCollection &
+    ObjcClassInfoCollection::Parse(
+        const ConstMemoryMap &Map,
+        const SegmentInfoCollection &SegmentCollection,
+        const ConstDeVirtualizer &DeVirtualizer,
+        const BindActionList *BindList,
+        const LazyBindActionList *LazyBindList,
+        const WeakBindActionList *WeakBindList,
+        bool IsBigEndian,
+        bool Is64Bit,
+        Error *ErrorOut,
+        BindOpcodeParseError *ParseErrorOut,
+        BindActionCollection::Error *CollectionErrorOut) noexcept
+    {
+        auto Error = ObjcParseError::None;
+        auto ExternalAndRootClassList = std::vector<Info *>();
+
+        const auto AdjustExternalAndRootClassList = [&]() noexcept {
+            assert(!ExternalAndRootClassList.empty() &&
+                   "Objc Root-Class list is empty");
+
+            if (ExternalAndRootClassList.size() != 1) {
+                Root = CreateClassForList(List, Info());
+
+                getRoot()->IsNull = true;
+                getRoot()->SetChildrenFromList(
+                    reinterpret_cast<std::vector<BasicTreeNode *> &> (
+                        ExternalAndRootClassList));
+            } else {
+                Root = ExternalAndRootClassList.front();
+            }
+
+            if (Error != Error::None) {
+                if (ErrorOut != nullptr) {
+                    *ErrorOut = Error;
+                }
+            }
+        };
+
+        const auto ObjcClassRefsSection =
+            SegmentCollection.FindSectionWithName({
+                { "__OBJC2", { "__class_refs"     } },
+                { "__DATA",  { "__objc_classrefs" } },
+            });
+
+        if (ObjcClassRefsSection != nullptr) {
+            const auto BindCollectionRange =
+                ObjcClassRefsSection->getFileRange();
+
+            auto BindCollection = BindActionCollection();
+            const auto GetBindActionCollectionResult =
+                GetBindCollection(SegmentCollection,
+                                  BindList,
+                                  LazyBindList,
+                                  WeakBindList,
+                                  BindCollectionRange,
+                                  BindCollection,
+                                  ParseErrorOut,
+                                  CollectionErrorOut);
+
+            if (GetBindActionCollectionResult != 0) {
+                return *this;
+            }
+
+            if (Is64Bit) {
+                Error =
+                    ParseObjcClassRefsSection<PointerKind::s64Bit>(
+                        Map.getBegin(),
+                        ObjcClassRefsSection,
+                        DeVirtualizer,
+                        BindCollection,
+                        List,
+                        ExternalAndRootClassList,
+                        IsBigEndian);
+            } else {
+                Error =
+                    ParseObjcClassRefsSection<PointerKind::s32Bit>(
+                        Map.getBegin(),
+                        ObjcClassRefsSection,
+                        DeVirtualizer,
+                        BindCollection,
+                        List,
+                        ExternalAndRootClassList,
+                        IsBigEndian);
+            }
+
+            if (Error == Error::None) {
+                if (ErrorOut != nullptr) {
+                    *ErrorOut = Error::None;
+                }
+            }
+
+            AdjustExternalAndRootClassList();
+            return *this;
+        }
+
+        const auto ObjcClassListSection =
+            SegmentCollection.FindSectionWithName({
+                { "__OBJC2",      { "__class_list"     } },
+                { "__DATA_CONST", { "__objc_classlist" } },
+                { "__DATA",       { "__objc_classlist" } },
+                { "__DATA_DIRTY", { "__objc_classlist" } },
+            });
+
+        if (ObjcClassListSection != nullptr) {
+            const auto BindCollectionRange =
+                ObjcClassListSection->getFileRange();
+
+            auto BindCollection = BindActionCollection();
+            const auto GetBindActionCollectionResult =
+                GetBindCollection(SegmentCollection,
+                                  BindList,
+                                  LazyBindList,
+                                  WeakBindList,
+                                  BindCollectionRange,
+                                  BindCollection,
+                                  ParseErrorOut,
+                                  CollectionErrorOut);
+
+            if (GetBindActionCollectionResult != 0) {
+                return *this;
+            }
+
+            if (Is64Bit) {
+                Error =
+                    ParseObjcClassListSection<PointerKind::s64Bit>(
+                        ObjcClassListSection->getData(Map.getBegin()),
+                        ObjcClassListSection->getDataEnd(Map.getBegin()),
+                        DeVirtualizer,
+                        BindCollection,
+                        List,
+                        ExternalAndRootClassList,
+                        IsBigEndian);
+            } else {
+                Error =
+                    ParseObjcClassListSection<PointerKind::s32Bit>(
+                        ObjcClassListSection->getData(Map.getBegin()),
+                        ObjcClassListSection->getDataEnd(Map.getBegin()),
+                        DeVirtualizer,
+                        BindCollection,
+                        List,
+                        ExternalAndRootClassList,
+                        IsBigEndian);
+            }
+
+            if (Error == Error::None) {
+                if (ErrorOut != nullptr) {
+                    *ErrorOut = Error::None;
+                }
+            }
+
+            AdjustExternalAndRootClassList();
+            return *this;
+        }
+
+        if (ErrorOut != nullptr) {
+            *ErrorOut = Error::NoObjcData;
+        }
+
+        return *this;
+    }
+
     std::vector<ObjcClassInfo *>
     ObjcClassInfoCollection::GetAsList() const noexcept {
         auto Result = std::vector<Info *>();
@@ -686,10 +892,10 @@ namespace MachO {
                 Info->Address = SwitchedAddr;
                 Info->Class = Class;
 
-                ListAddr += PointerSize<Kind>();
-
                 Class->CategoryList.emplace_back(Info.get());
                 CategoryList.emplace_back(std::move(Info));
+
+                ListAddr += PointerSize<Kind>();
             }
         } else {
             for (const auto &Addr : List) {
@@ -769,6 +975,76 @@ namespace MachO {
         } else {
             ParseObjcClassCategorySection<PointerKind::s32Bit>(
                 Map,
+                ObjcClassCategorySection,
+                DeVirtualizer,
+                BindCollection,
+                ClassInfoTree,
+                List,
+                IsBigEndian);
+        }
+
+        return *this;
+    }
+
+    ObjcClassCategoryCollection &
+    ObjcClassCategoryCollection::CollectFrom(
+        const ConstMemoryMap &Map,
+        const SegmentInfoCollection &SegmentCollection,
+        const ConstDeVirtualizer &DeVirtualizer,
+        ObjcClassInfoCollection *ClassInfoTree,
+        const BindActionList *BindList,
+        const LazyBindActionList *LazyBindList,
+        const WeakBindActionList *WeakBindList,
+        bool IsBigEndian,
+        bool Is64Bit,
+        Error *ErrorOut,
+        BindOpcodeParseError *ParseErrorOut,
+        BindActionCollection::Error *CollectionErrorOut) noexcept
+    {
+        const auto ObjcClassCategorySection =
+            SegmentCollection.FindSectionWithName({
+                { "__DATA_CONST",  { "__objc_catlist" } },
+                { "__DATA",        { "__objc_catlist" } },
+            });
+
+        if (ObjcClassCategorySection == nullptr) {
+            if (ErrorOut != nullptr) {
+                *ErrorOut = Error::NoObjcData;
+            }
+
+            return *this;
+        }
+
+        const auto BindCollectionRange =
+            ObjcClassCategorySection->getFileRange();
+
+        auto BindCollection = BindActionCollection();
+        const auto GetBindActionCollectionResult =
+            GetBindCollection(SegmentCollection,
+                              BindList,
+                              LazyBindList,
+                              WeakBindList,
+                              BindCollectionRange,
+                              BindCollection,
+                              ParseErrorOut,
+                              CollectionErrorOut);
+
+        if (GetBindActionCollectionResult != 0) {
+            return *this;
+        }
+
+        if (Is64Bit) {
+            ParseObjcClassCategorySection<PointerKind::s64Bit>(
+                Map.getBegin(),
+                ObjcClassCategorySection,
+                DeVirtualizer,
+                BindCollection,
+                ClassInfoTree,
+                List,
+                IsBigEndian);
+        } else {
+            ParseObjcClassCategorySection<PointerKind::s32Bit>(
+                Map.getBegin(),
                 ObjcClassCategorySection,
                 DeVirtualizer,
                 BindCollection,
