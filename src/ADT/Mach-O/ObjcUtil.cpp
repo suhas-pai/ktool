@@ -770,10 +770,10 @@ namespace MachO {
     ObjcClassInfoCollection::AddNullClass(uint64_t Address) noexcept {
         auto NewInfo = Info();
 
-        NewInfo.Addr = Address;
+        NewInfo.setAddr(Address);
         NewInfo.setIsNull();
 
-        return CreateClassForList(List, std::move(NewInfo));
+        return CreateClassForList(List, std::move(NewInfo), Address);
     }
 
     ObjcClassInfo *
@@ -782,7 +782,7 @@ namespace MachO {
                                               uint64_t BindAddr) noexcept
     {
         auto NewInfo = CreateExternalClass(Name, DylibOrdinal, BindAddr);
-        return CreateClassForList(List, std::move(NewInfo));
+        return CreateClassForList(List, std::move(NewInfo), BindAddr);
     }
 
     ObjcClassInfo *
@@ -802,7 +802,7 @@ namespace MachO {
     {
         for (const auto &Iter : List) {
             const auto &Info = Iter.second;
-            if (Info->Name == Name) {
+            if (Info->getName() == Name) {
                 return Info.get();
             }
         }
@@ -859,8 +859,8 @@ namespace MachO {
                         ObjcCategoryType>(SwitchedAddr);
 
                 if (Category == nullptr) {
-                    Info->Address = SwitchedAddr;
-                    Info->IsNull = true;
+                    Info->setAddress(SwitchedAddr);
+                    Info->setIsNull();
 
                     CategoryList.emplace_back(std::move(Info));
                     continue;
@@ -870,10 +870,10 @@ namespace MachO {
                 const auto Name = DeVirtualizer.GetStringAtAddress(NameAddr);
 
                 if (Name.has_value()) {
-                    Info->Name = Name.value();
+                    Info->setName(std::string(Name.value()));
                 }
 
-                auto ClassAddr = Addr + PointerSize<Kind>();
+                auto ClassAddr = SwitchedAddr + PointerSize<Kind>();
                 auto Class = static_cast<ObjcClassInfo *>(nullptr);
 
                 if (auto *It = BindCollection.GetInfoForAddress(ClassAddr)) {
@@ -890,15 +890,15 @@ namespace MachO {
                     }
                 } else {
                     ClassAddr = Category->getClassAddress(IsBigEndian);
-                    Class = ClassInfoTree->GetInfoForAddress(Addr);
+                    Class = ClassInfoTree->GetInfoForAddress(ClassAddr);
 
                     if (Class == nullptr) {
                         Class = ClassInfoTree->AddNullClass(ClassAddr);
                     }
                 }
 
-                Info->Address = SwitchedAddr;
-                Info->Class = Class;
+                Info->setAddress(SwitchedAddr);
+                Info->setClass(Class);
 
                 Class->getCategoryList().emplace_back(Info.get());
                 CategoryList.emplace_back(std::move(Info));
@@ -915,8 +915,8 @@ namespace MachO {
                         ObjcCategoryType>(SwitchedAddr);
 
                 if (Category == nullptr) {
-                    Info->Address = SwitchedAddr;
-                    Info->IsNull = true;
+                    Info->setAddress(SwitchedAddr);
+                    Info->setIsNull();
 
                     CategoryList.emplace_back(std::move(Info));
                     continue;
@@ -926,19 +926,19 @@ namespace MachO {
                 const auto Name = DeVirtualizer.GetStringAtAddress(NameAddr);
 
                 if (Name.has_value()) {
-                    Info->Name = Name.value();
+                    Info->setName(std::string(Name.value()));
                 }
 
-                auto ClassAddr = Addr + PointerSize<Kind>();
+                auto ClassAddr = SwitchedAddr + PointerSize<Kind>();
                 if (auto *It = BindCollection.GetInfoForAddress(ClassAddr)) {
                     SwitchedAddr = static_cast<PtrAddrType>(It->getAddress());
                 } else {
                     ClassAddr = Category->getClassAddress(IsBigEndian);
                 }
 
-                Info->Address = SwitchedAddr;
-
+                Info->setAddress(SwitchedAddr);
                 CategoryList.emplace_back(std::move(Info));
+
                 ListAddr += PointerSize<Kind>();
             }
         }

@@ -182,8 +182,8 @@ PrintCategoryList(
                 CategoryListSizeDigitLength,
                 Index);
 
-        PrintUtilsWriteOffset32Or64(OutFile, Is64Bit, Category->Address);
-        fprintf(OutFile, " \"%s\"\n", Category->Name.data());
+        PrintUtilsWriteOffset32Or64(OutFile, Is64Bit, Category->getAddress());
+        fprintf(OutFile, " \"%s\"\n", Category->getName().data());
 
         Index++;
     }

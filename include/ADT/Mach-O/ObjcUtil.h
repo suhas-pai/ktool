@@ -190,14 +190,14 @@ namespace MachO {
             return *this;
         }
 
-        inline ObjcClassInfo &setAddr(uint64_t Value = true) noexcept {
+        inline ObjcClassInfo &setAddr(uint64_t Value) noexcept {
             assert(!this->IsExternal());
 
             this->Addr = Value;
             return *this;
         }
 
-        inline ObjcClassInfo &setBindAddr(uint64_t Value = true) noexcept {
+        inline ObjcClassInfo &setBindAddr(uint64_t Value) noexcept {
             assert(this->IsExternal());
 
             this->BindAddr = Value;
@@ -347,15 +347,55 @@ namespace MachO {
     };
 
     struct ObjcClassCategoryInfo {
+    protected:
         std::string Name;
-        ObjcClassInfo *Class = nullptr;
+        const ObjcClassInfo *Class = nullptr;
+        uint64_t Address = 0;
+        bool sIsNull : 1;
+    public:
+        ObjcClassCategoryInfo() : sIsNull(false) {}
 
-        union {
-            uint64_t Address = 0;
-            uint64_t BindAddr;
-        };
+        [[nodiscard]]
+        constexpr inline std::string_view getName() const noexcept {
+            return Name;
+        }
 
-        bool IsNull : 1;
+        [[nodiscard]]
+        constexpr inline const ObjcClassInfo *getClass() const noexcept {
+            return Class;
+        }
+
+        [[nodiscard]] constexpr inline uint64_t getAddress() const noexcept {
+            return Address;
+        }
+
+        [[nodiscard]] constexpr inline bool IsNull() const noexcept {
+            return sIsNull;
+        }
+
+        constexpr inline
+        ObjcClassCategoryInfo &setName(const std::string &Value) noexcept {
+            this->Name = Value;
+            return *this;
+        }
+
+        constexpr inline
+        ObjcClassCategoryInfo &setClass(const ObjcClassInfo *Value) noexcept {
+            this->Class = Value;
+            return *this;
+        }
+
+        constexpr inline
+        ObjcClassCategoryInfo &setAddress(uint64_t Value) noexcept {
+            this->Address = Value;
+            return *this;
+        }
+
+        constexpr
+        inline ObjcClassCategoryInfo &setIsNull(bool Value = true) noexcept {
+            this->sIsNull = Value;
+            return *this;
+        }
     };
 
     struct ObjcClassCategoryCollection {

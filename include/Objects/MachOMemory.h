@@ -18,7 +18,7 @@
 struct ConstMachOMemoryObject : public MemoryObject {
 public:
     constexpr static auto ObjKind = ObjectKind::MachO;
-    enum class Error : uintptr_t {
+    enum class Error {
         None,
 
         WrongFormat,
