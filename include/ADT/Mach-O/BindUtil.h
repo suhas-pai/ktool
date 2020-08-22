@@ -17,61 +17,178 @@ namespace MachO {
     struct BindActionCollection {
     public:
         struct Info {
+        protected:
             BindInfoKind Kind;
             BindWriteKind WriteKind;
 
             int64_t Addend = 0;
-            int64_t DylibOrdinal = -1;
+            uint32_t DylibOrdinal = 0;
 
-            std::string *Symbol;
+            const std::string *Symbol;
 
-            int64_t SegmentIndex = -1;
-            uint64_t SegOffset = 0;
+            uint32_t SegmentIndex = 0;
+            uint64_t SegmentOffset = 0;
 
             uint64_t Address = 0;
             uint64_t OpcodeAddress = 0;
             uint64_t AddrInSeg = 0;
 
-            bool NewSymbolName : 1;
+            bool sIsNewSymbolName : 1;
             BindSymbolFlags Flags;
+        public:
+            [[nodiscard]]
+            constexpr inline BindInfoKind getKind() const noexcept {
+                return Kind;
+            }
 
-            [[nodiscard]] inline bool hasDylibOrdinal() const noexcept {
-                return (DylibOrdinal != -1);
+            [[nodiscard]]
+            constexpr inline BindWriteKind getWriteKind() const noexcept {
+                return WriteKind;
+            }
+
+            [[nodiscard]] constexpr inline int64_t getAddend() const noexcept {
+                return Addend;
+            }
+
+            [[nodiscard]]
+            constexpr inline int64_t getDylibOrdinal() const noexcept {
+                return DylibOrdinal;
+            }
+
+            [[nodiscard]]
+            constexpr inline const std::string &getSymbol() const noexcept {
+                return *Symbol;
+            }
+
+            [[nodiscard]]
+            constexpr inline uint32_t getSegmentIndex() const noexcept {
+                return SegmentIndex;
+            }
+
+            [[nodiscard]]
+            constexpr inline uint64_t getSegmentOffset() const noexcept {
+                return SegmentOffset;
+            }
+
+            [[nodiscard]]
+            constexpr inline uint64_t getAddress() const noexcept {
+                return Address;
+            }
+
+            [[nodiscard]]
+            constexpr inline uint64_t getOpcodeAddress() const noexcept {
+                return OpcodeAddress;
+            }
+
+            [[nodiscard]]
+            constexpr inline uint64_t getAddrInSeg() const noexcept {
+                return AddrInSeg;
+            }
+
+            [[nodiscard]]
+            constexpr inline bool IsNewSymbolName() const noexcept {
+                return sIsNewSymbolName;
+            }
+
+            [[nodiscard]]
+            constexpr inline BindSymbolFlags getFlags() const noexcept {
+                return Flags;
+            }
+
+            constexpr inline Info &setKind(BindInfoKind Value) noexcept {
+                this->Kind = Value;
+                return *this;
+            }
+
+            constexpr inline Info &setWriteKind(BindWriteKind Value) noexcept {
+                this->WriteKind = Value;
+                return *this;
+            }
+
+            constexpr inline Info &setDylibOrdinal(uint32_t Value) noexcept {
+                this->DylibOrdinal = Value;
+                return *this;
+            }
+
+            constexpr inline Info &setAddend(int64_t Value) noexcept {
+                this->Addend = Value;
+                return *this;
+            }
+
+            constexpr
+            inline Info &setSymbol(const std::string *Value) noexcept {
+                this->Symbol = Value;
+                return *this;
+            }
+
+            constexpr inline Info &setSegmentIndex(uint32_t Value) noexcept {
+                this->SegmentIndex = Value;
+                return *this;
+            }
+
+            constexpr inline Info &setSegmentOffset(uint64_t Value) noexcept {
+                this->SegmentOffset = Value;
+                return *this;
+            }
+
+            constexpr inline Info &setAddress(uint64_t Value) noexcept {
+                this->SegmentOffset = Value;
+                return *this;
+            }
+
+            constexpr inline Info &setOpcodeAddress(uint64_t Value) noexcept {
+                this->SegmentOffset = Value;
+                return *this;
+            }
+
+            constexpr inline Info &setAddrInSeg(uint64_t Value) noexcept {
+                this->AddrInSeg = Value;
+                return *this;
+            }
+
+            constexpr
+            inline Info &setIsNewSymbolName(bool Value = true) noexcept {
+                this->sIsNewSymbolName = Value;
+                return *this;
+            }
+
+            constexpr
+            inline Info &setFlags(const BindSymbolFlags &Value) noexcept {
+                this->Flags = Value;
+                return *this;
             }
 
             [[nodiscard]] inline
             bool operator==(const MachO::BindActionInfo &Info) const noexcept {
-                if (Info.WriteKind != WriteKind) {
+                if (Info.WriteKind != getWriteKind()) {
                     return false;
                 }
 
-                if (Info.Addend != Addend) {
+                if (Info.Addend != getAddend()) {
                     return false;
                 }
 
-                if (Info.hasDylibOrdinal() && hasDylibOrdinal()) {
-                    if (Info.DylibOrdinal != DylibOrdinal) {
-                        return false;
-                    }
-                }
-
-                if (Info.SymbolName != *Symbol) {
+                if (Info.DylibOrdinal != getDylibOrdinal()) {
                     return false;
                 }
 
-                if (Info.SegmentIndex != SegmentIndex) {
+                if (Info.SymbolName != getSymbol()) {
                     return false;
                 }
 
-                if (Info.SegOffset != SegOffset) {
+                if (Info.SegmentIndex != getSegmentIndex()) {
                     return false;
                 }
 
-                if (Info.AddrInSeg != AddrInSeg) {
+                if (Info.SegOffset != getSegmentOffset()) {
                     return false;
                 }
 
-                if (Info.Flags != Flags) {
+                if (Info.AddrInSeg != getAddrInSeg()) {
+                    return false;
+                }
+
+                if (Info.Flags != getFlags()) {
                     return false;
                 }
 

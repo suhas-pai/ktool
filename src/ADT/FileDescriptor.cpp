@@ -27,22 +27,22 @@ FileDescriptor::~FileDescriptor() noexcept {
 }
 
 bool FileDescriptor::Read(void *Buf, size_t Size) const noexcept {
-    assert(IsOpen());
+    assert(this->IsOpen());
     return (static_cast<size_t>(read(Fd, Buf, Size)) == Size);
 }
 
 bool FileDescriptor::Write(const void *Buf, size_t Size) noexcept {
-    assert(IsOpen());
+    assert(this->IsOpen());
     return (static_cast<size_t>(write(Fd, Buf, Size)) == Size);
 }
 
 bool FileDescriptor::TruncateToSize(uint64_t Size) noexcept {
-    assert(IsOpen());
+    assert(this->IsOpen());
     return (ftruncate(Fd, Size) == 0);
 }
 
 std::optional<struct stat> FileDescriptor::GetInfo() const noexcept {
-    assert(IsOpen());
+    assert(this->IsOpen());
 
     struct stat Sbuf = {};
     if (fstat(Fd, &Sbuf) != 0) {

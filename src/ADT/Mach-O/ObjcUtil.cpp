@@ -37,11 +37,12 @@ namespace MachO {
     ObjcClassInfo *
     CreateClassForList(
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
-        ObjcClassInfo &&Class) noexcept
+        ObjcClassInfo &&Class,
+        uint64_t ClassAddr = uint64_t()) noexcept
     {
         const auto Ptr =
             List.insert({
-                Class.Addr,
+                ClassAddr,
                 std::make_unique<ObjcClassInfo>(Class)
             }).first->second.get();
 
@@ -76,13 +77,15 @@ namespace MachO {
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
         std::vector<ObjcClassInfo *> &ExternalAndRootClassList) noexcept
     {
-        const auto ActionSymbol = GetNameFromBindActionSymbol(*Action.Symbol);
+        const auto ActionSymbol =
+            GetNameFromBindActionSymbol(Action.getSymbol());
+
         const auto Pred = [&](const auto &Lhs) noexcept {
-            if (Lhs->DylibOrdinal != Action.DylibOrdinal) {
+            if (Lhs->getDylibOrdinal() != Action.getDylibOrdinal()) {
                 return false;
             }
 
-            return (Lhs->Name == ActionSymbol);
+            return (Lhs->getName() == ActionSymbol);
         };
 
         const auto Begin = ExternalAndRootClassList.cbegin();
@@ -96,11 +99,12 @@ namespace MachO {
 
         auto SuperInfo = ObjcClassInfo(ActionSymbol);
 
-        SuperInfo.BindAddr = Action.Address;
-        SuperInfo.DylibOrdinal = Action.DylibOrdinal;
-        SuperInfo.IsExternal = true;
+        SuperInfo.setIsExternal();
+        SuperInfo.setBindAddr(Action.getAddress());
+        SuperInfo.setDylibOrdinal(Action.getDylibOrdinal());
 
-        const auto Ptr = CreateClassForList(List, std::move(SuperInfo));
+        const auto Ptr =
+            CreateClassForList(List, std::move(SuperInfo), Action.getAddress());
 
         SetSuperClassForClassInfo(Ptr, Info);
         ExternalAndRootClassList.emplace_back(Ptr);
@@ -121,8 +125,8 @@ namespace MachO {
             DeVirtualizer.GetDataAtAddressIgnoreSections<ClassType>(Addr);
 
         if (Class == nullptr) {
-            Info.Addr = Addr;
-            Info.IsNull = true;
+            Info.setAddr(Addr);
+            Info.setIsNull();
 
             return ObjcParseError::None;
         }
@@ -133,20 +137,20 @@ namespace MachO {
             DeVirtualizer.GetDataAtAddressIgnoreSections<ClassRoType>(RoAddr);
 
         if (ClassRo == nullptr) {
-            Info.Addr = Addr;
-            Info.IsNull = true;
+            Info.setAddr(Addr);
+            Info.setIsNull();
 
             return ObjcParseError::None;
         }
 
         const auto NameAddr = ClassRo->getNameAddress(IsBigEndian);
         if (auto String = DeVirtualizer.GetStringAtAddress(NameAddr)) {
-            Info.Name = String.value();
+            Info.setName(std::string(String.value()));
         }
 
-        Info.Addr = Addr;
-        Info.Flags = ClassRo->getFlags(IsBigEndian);
-        Info.IsSwift = Class->IsSwift(IsBigEndian);
+        Info.setAddr(Addr);
+        Info.setFlags(ClassRo->getFlags(IsBigEndian));
+        Info.setIsSwift(Class->IsSwift(IsBigEndian));
         Info.setSuper(reinterpret_cast<ObjcClassInfo *>(SuperAddr | 1));
 
         return ObjcParseError::None;
@@ -183,7 +187,7 @@ namespace MachO {
     {
         // BindAddr points to the superclass field inside ObjcClass[64]
 
-        const auto BindAddr = Info->Addr + PointerSize<Kind>();
+        const auto BindAddr = Info->getAddr() + PointerSize<Kind>();
         if (const auto *Action = BindCollection.GetInfoForAddress(BindAddr)) {
             SetSuperWithBindAction(Info,
                                    *Action,
@@ -226,9 +230,10 @@ namespace MachO {
             return Error;
         }
 
-        const auto Ptr = CreateClassForList(List, std::move(SuperInfo));
-        SetSuperClassForClassInfo(Ptr, Info);
+        const auto Ptr =
+            CreateClassForList(List, std::move(SuperInfo), SuperAddr);
 
+        SetSuperClassForClassInfo(Ptr, Info);
         const auto FixSuperError =
             FixSuperForClassInfo<Kind>(Ptr,
                                        DeVirtualizer,
@@ -271,7 +276,7 @@ namespace MachO {
             return Error;
         }
 
-        CreateClassForList(List, std::move(Info));
+        CreateClassForList(List, std::move(Info), SwitchedAddr);
         return ObjcParseError::None;
     }
 
@@ -292,7 +297,7 @@ namespace MachO {
                 continue;
             }
 
-            if (Info->IsExternal) {
+            if (Info->IsExternal()) {
                 continue;
             }
 
@@ -358,10 +363,11 @@ namespace MachO {
     {
         auto NewInfo = ObjcClassInfo();
 
-        NewInfo.Name = Name;
-        NewInfo.DylibOrdinal = DylibOrdinal;
-        NewInfo.BindAddr = BindAddr;
-        NewInfo.IsExternal = true;
+        NewInfo.setName(std::string(Name));
+        NewInfo.setDylibOrdinal(DylibOrdinal);
+
+        NewInfo.setIsExternal();
+        NewInfo.setBindAddr(BindAddr);
 
         return NewInfo;
     }
@@ -391,11 +397,11 @@ namespace MachO {
 
         for (const auto &Addr : List) {
             if (const auto *It = BindCollection.GetInfoForAddress(ListAddr)) {
-                const auto Name = GetNameFromBindActionSymbol(*It->Symbol);
+                const auto Name = GetNameFromBindActionSymbol(It->getSymbol());
                 auto NewInfo =
-                    CreateExternalClass(Name, It->DylibOrdinal, It->Address);
+                    CreateExternalClass(Name, It->getDylibOrdinal(), ListAddr);
                 const auto Ptr =
-                    CreateClassForList(ClassList, std::move(NewInfo));
+                    CreateClassForList(ClassList, std::move(NewInfo), ListAddr);
 
                 ExternalAndRootClassList.emplace_back(Ptr);
             } else {
@@ -443,7 +449,7 @@ namespace MachO {
             if (ExternalAndRootClassList.size() != 1) {
                 Root = CreateClassForList(List, Info());
 
-                getRoot()->IsNull = true;
+                getRoot()->setIsNull();
                 getRoot()->SetChildrenFromList(
                     reinterpret_cast<std::vector<BasicTreeNode *> &> (
                         ExternalAndRootClassList));
@@ -610,7 +616,7 @@ namespace MachO {
             if (ExternalAndRootClassList.size() != 1) {
                 Root = CreateClassForList(List, Info());
 
-                getRoot()->IsNull = true;
+                getRoot()->setIsNull();
                 getRoot()->SetChildrenFromList(
                     reinterpret_cast<std::vector<BasicTreeNode *> &> (
                         ExternalAndRootClassList));
@@ -765,7 +771,7 @@ namespace MachO {
         auto NewInfo = Info();
 
         NewInfo.Addr = Address;
-        NewInfo.IsNull = true;
+        NewInfo.setIsNull();
 
         return CreateClassForList(List, std::move(NewInfo));
     }
@@ -871,14 +877,16 @@ namespace MachO {
                 auto Class = static_cast<ObjcClassInfo *>(nullptr);
 
                 if (auto *It = BindCollection.GetInfoForAddress(ClassAddr)) {
-                    const auto Name = GetNameFromBindActionSymbol(*It->Symbol);
+                    const auto Name =
+                        GetNameFromBindActionSymbol(It->getSymbol());
 
                     Class = ClassInfoTree->GetInfoForClassName(Name);
                     if (Class == nullptr) {
                         Class =
-                            ClassInfoTree->AddExternalClass(Name,
-                                                            It->DylibOrdinal,
-                                                            It->Address);
+                            ClassInfoTree->AddExternalClass(
+                                Name,
+                                It->getDylibOrdinal(),
+                                It->getAddress());
                     }
                 } else {
                     ClassAddr = Category->getClassAddress(IsBigEndian);
@@ -892,7 +900,7 @@ namespace MachO {
                 Info->Address = SwitchedAddr;
                 Info->Class = Class;
 
-                Class->CategoryList.emplace_back(Info.get());
+                Class->getCategoryList().emplace_back(Info.get());
                 CategoryList.emplace_back(std::move(Info));
 
                 ListAddr += PointerSize<Kind>();
@@ -923,7 +931,7 @@ namespace MachO {
 
                 auto ClassAddr = Addr + PointerSize<Kind>();
                 if (auto *It = BindCollection.GetInfoForAddress(ClassAddr)) {
-                    SwitchedAddr = static_cast<PtrAddrType>(It->Address);
+                    SwitchedAddr = static_cast<PtrAddrType>(It->getAddress());
                 } else {
                     ClassAddr = Category->getClassAddress(IsBigEndian);
                 }

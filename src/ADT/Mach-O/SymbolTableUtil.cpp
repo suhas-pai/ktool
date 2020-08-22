@@ -428,8 +428,8 @@ namespace MachO {
             return *this;
         }
 
-        const auto NlistCount = SymTab.getSymbolCount(IsBigEndian);
         const auto NlistBegin = Map + SymTab.getSymbolTableOffset(IsBigEndian);
+        const auto NlistCount = SymTab.getSymbolCount(IsBigEndian);
 
         const auto StrTab = Map + SymTab.getStringTableOffset(IsBigEndian);
         const auto StrEnd = StrTab + SymTab.getStringTableSize(IsBigEndian);
@@ -452,9 +452,8 @@ namespace MachO {
     }
 
     SymbolTableEntryCollection::EntryInfo *
-    SymbolTableEntryCollection::GetInfoWithKey(
-        KeyKindEnum KeyKind,
-        uint64_t Value) const noexcept
+    SymbolTableEntryCollection::GetInfoWithKey(KeyKindEnum KeyKind,
+                                               uint64_t Value) const noexcept
     {
         assert(this->KeyKind == KeyKind);
 

@@ -105,18 +105,18 @@ CompareActionsBySortKind(
         case PrintObjcClassListOperation::Options::SortKind::None:
             assert(0 && "Unrecognized Sort-Kind");
         case PrintObjcClassListOperation::Options::SortKind::ByName:
-            return Lhs.Name.compare(Rhs.Name);
+            return Lhs.getName().compare(Rhs.getName());
         case PrintObjcClassListOperation::Options::SortKind::ByDylibOrdinal:
-            if (Lhs.DylibOrdinal < Rhs.DylibOrdinal) {
+            if (Lhs.getDylibOrdinal() < Rhs.getDylibOrdinal()) {
                 return -1;
-            } else if (Lhs.DylibOrdinal == Rhs.DylibOrdinal) {
+            } else if (Lhs.getDylibOrdinal() == Rhs.getDylibOrdinal()) {
                 return 0;
             }
 
             return 1;
         case PrintObjcClassListOperation::Options::SortKind::ByKind: {
-            if (Lhs.IsExternal) {
-                if (Rhs.IsExternal) {
+            if (Lhs.IsExternal()) {
+                if (Rhs.IsExternal()) {
                     return 0;
                 }
 
@@ -148,7 +148,7 @@ CompareObjcClasses(
         continue;
     }
 
-    return true;
+    return false;
 };
 
 static void
@@ -198,7 +198,11 @@ PrintClassVerboseInfo(
     bool IsTree,
     int WrittenOut) noexcept
 {
-    if (!Node.IsExternal && !Node.IsSwift && Node.Flags.empty()) {
+    const auto IsExternal = Node.IsExternal();
+    const auto IsSwift = Node.IsSwift();
+    const auto &Flags = Node.getFlags();
+
+    if (!IsExternal && !IsSwift && Flags.empty()) {
         return;
     }
 
@@ -210,7 +214,7 @@ PrintClassVerboseInfo(
                             '-',
                             static_cast<int>(RightPad - WrittenOut - 1));
 
-    if (Node.IsExternal) {
+    if (IsExternal) {
         fputs("> ", OutFile);
         if (IsTree) {
             fputs("Imported - ", OutFile);
@@ -218,16 +222,16 @@ PrintClassVerboseInfo(
 
         OperationCommon::PrintDylibOrdinalInfo(OutFile,
                                                SharedLibraryCollection,
-                                               Node.DylibOrdinal,
+                                               Node.getDylibOrdinal(),
                                                true);
     } else {
         fputs("> ", OutFile);
-        if (Node.IsSwift) {
+        if (IsSwift) {
             fputs("<Swift> ", OutFile);
         }
 
-        if (!Node.Flags.empty()) {
-            PrintClassRoFlags(OutFile, Node.Flags);
+        if (!Flags.empty()) {
+            PrintClassRoFlags(OutFile, Flags);
         }
     }
 }
@@ -338,15 +342,16 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
     auto LongestName = LargestIntHelper();
 
     for (auto Iter = ObjcClassCollection.begin(); Iter != End; Iter++) {
-        if (Iter->IsNull) {
+        if (Iter->IsNull()) {
             continue;
         }
 
-        if (!Iter->IsExternal && Iter->Flags.empty() && !Iter->IsSwift) {
+        const auto IsExternal = Iter->IsExternal();
+        if (!IsExternal && Iter->getFlags().empty() && !Iter->IsSwift()) {
             continue;
         }
 
-        const auto NameLength = Iter->Name.length();
+        const auto NameLength = Iter->getName().length();
         const auto Length = Iter.getPrintLineLength(TabLength) + NameLength;
 
         LongestLength = Length;
@@ -371,11 +376,11 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
             const auto &Node =
                 reinterpret_cast<const MachO::ObjcClassInfo &>(TreeNode);
 
-            if (Node.IsNull) {
+            if (Node.IsNull()) {
                 return false;
             }
 
-            WrittenOut += fprintf(OutFile, "\"%s\"", Node.Name.data());
+            WrittenOut += fprintf(OutFile, "\"%s\"", Node.getName().data());
             if (!Options.Verbose) {
                 return true;
             }
@@ -413,7 +418,7 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
         auto I = static_cast<uint64_t>(1);
         for (const auto &Iter : ObjcClassList) {
             const auto &Node = *Iter;
-            if (Node.IsNull) {
+            if (Node.IsNull()) {
                 I++;
                 continue;
             }
@@ -423,18 +428,18 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
                     MaxDigitLength,
                     I);
 
-            if (Node.IsExternal) {
+            if (Node.IsExternal()) {
                 PrintUtilsRightPadSpaces(Options.OutFile,
                                          fputs("<imported>", Options.OutFile),
                                          OFFSET_LEN(Is64Bit));
             } else {
                 PrintUtilsWriteOffset32Or64(Options.OutFile,
                                             Is64Bit,
-                                            Node.Addr);
+                                            Node.getAddr());
             }
 
             const auto NamePrintLength =
-                fprintf(Options.OutFile, " \"%s\"", Node.Name.data());
+                fprintf(Options.OutFile, " \"%s\"", Node.getName().data());
 
             PrintClassVerboseInfo(Options.OutFile,
                                   SharedLibraryCollection,
@@ -445,7 +450,8 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
 
             fputc('\n', Options.OutFile);
             if (Options.PrintCategories) {
-                PrintCategoryList(Options.OutFile, Node.CategoryList, Is64Bit);
+                const auto &CategoryList = Node.getCategoryList();
+                PrintCategoryList(Options.OutFile, CategoryList, Is64Bit);
             }
 
             I++;

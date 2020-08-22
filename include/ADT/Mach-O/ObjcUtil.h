@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <cassert>
 #include <unordered_map>
 #include <vector>
 
@@ -25,6 +26,8 @@ namespace MachO {
     struct ObjcClassInfo : public BasicTreeNode {
         friend ObjcClassInfoCollection;
     public:
+        using CategoryListType = std::vector<ObjcClassCategoryInfo *>;
+    protected:
         union {
             uint64_t Addr = 0;
             uint64_t BindAddr;
@@ -33,17 +36,17 @@ namespace MachO {
         std::string Name;
         uint64_t DylibOrdinal = 0;
 
-        bool IsExternal : 1;
-        bool IsNull : 1;
-        bool IsSwift : 1;
+        bool sIsExternal : 1;
+        bool sIsNull : 1;
+        bool sIsSwift : 1;
 
         ObjcClassRoFlags Flags;
-        std::vector<ObjcClassCategoryInfo *> CategoryList;
-
-        ObjcClassInfo() noexcept : IsExternal(false), IsNull(false) {}
+        CategoryListType CategoryList;
+    public:
+        ObjcClassInfo() noexcept : sIsExternal(false), sIsNull(false) {}
 
         explicit ObjcClassInfo(const std::string_view &Name) noexcept
-        : Name(Name), IsExternal(false), IsNull(false) {}
+        : Name(Name), sIsExternal(false), sIsNull(false) {}
 
         [[nodiscard]]
         inline BasicTreeNode *createNew() const noexcept override {
@@ -110,8 +113,105 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        inline bool operator==(const ObjcClassInfo &Rhs) noexcept {
+        constexpr inline std::string_view getName() const noexcept {
+            return Name;
+        }
+
+        [[nodiscard]]
+        constexpr inline uint64_t getDylibOrdinal() const noexcept {
+            return DylibOrdinal;
+        }
+
+        [[nodiscard]] constexpr inline bool IsExternal() const noexcept {
+            return sIsExternal;
+        }
+
+        [[nodiscard]] constexpr inline bool IsNull() const noexcept {
+            return sIsNull;
+        }
+
+        [[nodiscard]] constexpr inline bool IsSwift() const noexcept {
+            return sIsSwift;
+        }
+
+        [[nodiscard]]
+        constexpr inline const ObjcClassRoFlags &getFlags() const noexcept {
+            return Flags;
+        }
+
+        [[nodiscard]] constexpr inline uint64_t getAddr() const noexcept {
+            assert(!this->IsExternal());
+            return Addr;
+        }
+
+        [[nodiscard]] constexpr inline uint64_t getBindAddr() const noexcept {
+            assert(this->IsExternal());
+            return BindAddr;
+        }
+
+        [[nodiscard]] constexpr
+        inline const CategoryListType &getCategoryList() const noexcept {
+            return CategoryList;
+        }
+
+        [[nodiscard]]
+        constexpr inline CategoryListType &getCategoryList() noexcept {
+            return CategoryList;
+        }
+
+        inline ObjcClassInfo &setName(const std::string &Value) noexcept {
+            this->Name = Value;
+            return *this;
+        }
+
+        inline ObjcClassInfo &setDylibOrdinal(uint64_t Value) noexcept {
+            this->DylibOrdinal = Value;
+            return *this;
+        }
+
+        inline ObjcClassInfo &setIsExternal(bool Value = true) noexcept {
+            this->sIsExternal = Value;
+            return *this;
+        }
+
+        inline ObjcClassInfo &setIsNull(bool Value = true) noexcept {
+            this->sIsNull = Value;
+            return *this;
+        }
+
+        inline ObjcClassInfo &setIsSwift(bool Value = true) noexcept {
+            this->sIsSwift = Value;
+            return *this;
+        }
+
+        constexpr
+        inline ObjcClassInfo &setFlags(const ObjcClassRoFlags &Value) noexcept {
+            this->Flags = Value;
+            return *this;
+        }
+
+        inline ObjcClassInfo &setAddr(uint64_t Value = true) noexcept {
+            assert(!this->IsExternal());
+
+            this->Addr = Value;
+            return *this;
+        }
+
+        inline ObjcClassInfo &setBindAddr(uint64_t Value = true) noexcept {
+            assert(this->IsExternal());
+
+            this->BindAddr = Value;
+            return *this;
+        }
+
+        [[nodiscard]]
+        constexpr inline bool operator==(const ObjcClassInfo &Rhs) noexcept {
             return (Addr == Rhs.Addr);
+        }
+
+        [[nodiscard]]
+        constexpr inline bool operator!=(const ObjcClassInfo &Rhs) noexcept {
+            return !(*this == Rhs);
         }
     };
 

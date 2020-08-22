@@ -52,12 +52,33 @@ namespace MachO {
             const auto &Info = *Iter;
             const auto ParseError = Info.getError();
 
-            if (!Info.canIgnoreError(ParseError)) {
-                if (ParseErrorOut != nullptr) {
-                    *ParseErrorOut = ParseError;
-                }
+            switch (BindKind) {
+                case BindInfoKind::Normal:
+                    if (ParseError != BindOpcodeParseError::None) {
+                        if (ParseErrorOut != nullptr) {
+                            *ParseErrorOut = ParseError;
+                        }
 
-                return false;
+                        return false;
+                    }
+
+                    break;
+
+                case BindInfoKind::Lazy:
+                    if (ParseError != BindOpcodeParseError::None &&
+                        ParseError != BindOpcodeParseError::NoWriteKind)
+                    {
+                        if (ParseErrorOut != nullptr) {
+                            *ParseErrorOut = ParseError;
+                        }
+
+                        return false;
+                    }
+
+                    break;
+
+                case BindInfoKind::Weak:
+                    break;
             }
 
             const auto &Action = Info.getAction();
@@ -93,24 +114,25 @@ namespace MachO {
                 return false;
             }
 
-            auto NewAction = BindActionCollection::Info {
-                .Kind = BindKind,
-                .WriteKind = Action.WriteKind,
-                .Addend = Action.Addend,
-                .DylibOrdinal = Action.DylibOrdinal,
-                .SegmentIndex = Action.SegmentIndex,
-                .SegOffset = Action.SegOffset,
-                .Address = FullAddr,
-                .OpcodeAddress = Iter.getOffset(BindList.getBegin()),
-                .AddrInSeg = Action.AddrInSeg,
-                .NewSymbolName = NewSymbol,
-                .Flags = Action.Flags
-            };
+            auto NewAction = BindActionCollection::Info();
+
+            NewAction.setKind(BindKind),
+            NewAction.setWriteKind(Action.WriteKind);
+            NewAction.setAddend(Action.Addend);
+            NewAction.setDylibOrdinal(static_cast<uint32_t>(Action.DylibOrdinal));
+            NewAction.setSegmentIndex(static_cast<uint32_t>(Action.SegmentIndex));
+            NewAction.setSegmentOffset(Action.SegOffset);
+            NewAction.setAddress(FullAddr);
+            NewAction.setOpcodeAddress(Iter.getOffset(BindList.getBegin()));
+            NewAction.setAddrInSeg(Action.AddrInSeg);
+            NewAction.setIsNewSymbolName(NewSymbol);
+            NewAction.setFlags(Action.Flags);
 
             if (NewSymbol) {
-                NewAction.Symbol =
+                const auto Symbol =
                     GetPtrForSymbol(Action.SymbolName, SymbolList);
 
+                NewAction.setSymbol(Symbol);
                 NewSymbol = false;
             }
 
@@ -200,7 +222,7 @@ namespace MachO {
     const std::string *
     BindActionCollection::GetSymbolForAddress(uint64_t Address) const noexcept {
         if (const auto *Info = GetInfoForAddress(Address)) {
-            return Info->Symbol;
+            return &Info->getSymbol();
         }
 
         return nullptr;
