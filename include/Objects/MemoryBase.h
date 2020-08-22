@@ -33,7 +33,7 @@ public:
     virtual ~MemoryObject() noexcept = default;
 
     virtual bool hasError() const noexcept = 0;
-    virtual bool DidMatchFormat() const noexcept = 0;
+    virtual bool didMatchFormat() const noexcept = 0;
 
     virtual ConstMemoryMap getConstMap() const noexcept = 0;
     virtual RelativeRange getRange() const noexcept = 0;

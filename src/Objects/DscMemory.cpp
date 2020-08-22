@@ -127,7 +127,7 @@ ConstDscMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
     return ConstDscMemoryObject(Map, CpuKind);
 }
 
-bool ConstDscMemoryObject::DidMatchFormat() const noexcept {
+bool ConstDscMemoryObject::didMatchFormat() const noexcept {
     switch (ErrorStorage.getValue()) {
         case Error::None:
             return true;

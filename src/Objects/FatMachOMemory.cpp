@@ -140,7 +140,7 @@ inline bool MatchesFormat(ConstFatMachOMemoryObject::Error Error) noexcept {
     return false;
 }
 
-bool ConstFatMachOMemoryObject::DidMatchFormat() const noexcept {
+bool ConstFatMachOMemoryObject::didMatchFormat() const noexcept {
     return MatchesFormat(getError());
 }
 
@@ -223,7 +223,7 @@ ConstFatMachOMemoryObject::GetArchObjectFromInfo(
         case ArchKind::None:
         case ArchKind::MachO:
             const auto Object = ConstMachOMemoryObject::Open(ArchMap);
-            if (Object.DidMatchFormat()) {
+            if (Object.didMatchFormat()) {
                 const auto Result =
                     GetMachOObjectResult(Object.ToPtr(),
                                          Info.CpuKind,

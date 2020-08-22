@@ -23,21 +23,21 @@ MemoryObject *MemoryObject::Open(const ConstMemoryMap &Map) noexcept {
         case ObjectKind::None:
         case ObjectKind::MachO: {
             const auto Object = ConstMachOMemoryObject::Open(Map);
-            if (Object.DidMatchFormat()) {
+            if (Object.didMatchFormat()) {
                 return Object.ToPtr();
             }
         }
 
         case ObjectKind::FatMachO: {
             const auto Object = ConstFatMachOMemoryObject::Open(Map);
-            if (Object.DidMatchFormat()) {
+            if (Object.didMatchFormat()) {
                 return Object.ToPtr();
             }
         }
 
         case ObjectKind::DyldSharedCache: {
             const auto Object = ConstDscMemoryObject::Open(Map);
-            if (Object.DidMatchFormat()) {
+            if (Object.didMatchFormat()) {
                 return Object.ToPtr();
             }
         }

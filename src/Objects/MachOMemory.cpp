@@ -100,7 +100,7 @@ static bool MatchesFormat(ConstMachOMemoryObject::Error Error) noexcept {
     return false;
 }
 
-bool ConstMachOMemoryObject::DidMatchFormat() const noexcept {
+bool ConstMachOMemoryObject::didMatchFormat() const noexcept {
     return MatchesFormat(getError());
 }
 

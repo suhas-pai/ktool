@@ -52,7 +52,7 @@ public:
 
     virtual ~ConstMachOMemoryObject() noexcept = default;
 
-    [[nodiscard]] bool DidMatchFormat() const noexcept override;
+    [[nodiscard]] bool didMatchFormat() const noexcept override;
     [[nodiscard]] MemoryObject *ToPtr() const noexcept override;
 
     [[nodiscard]] inline Error getError() const noexcept {
