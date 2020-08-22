@@ -24,8 +24,8 @@ namespace MachO {
     template <PointerKind Kind>
     using MachOSymbolTableEntryTypeCalculator =
         std::conditional_t<PointerKindIs64Bit(Kind),
-                           const MachO::SymbolTableEntry64,
-                           const MachO::SymbolTableEntry32>;
+                           const SymbolTableEntry64,
+                           const SymbolTableEntry32>;
 
     template <PointerKind Kind>
     [[nodiscard]] static SymbolTableParseError

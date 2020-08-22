@@ -28,7 +28,7 @@ namespace MachO {
 
         do {
             const auto LoadCmd =
-                reinterpret_cast<const MachO::LoadCommand *>(Iter);
+                reinterpret_cast<const LoadCommand *>(Iter);
 
             const auto CmdSize = LoadCmd->getCmdSize(IsBigEndian);
             if (CmdSize < sizeof(*LoadCmd)) {
@@ -89,7 +89,7 @@ namespace MachO {
                                   bool Is64Bit,
                                   bool Verify) noexcept
     {
-        if (Size < sizeof(MachO::LoadCommand)) {
+        if (Size < sizeof(LoadCommand)) {
             return Error::StorageSizeTooSmall;
         }
 

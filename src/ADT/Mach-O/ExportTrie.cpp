@@ -20,9 +20,9 @@ namespace MachO {
     {
         Info = std::make_unique<ExportTrieIterateInfo>();
 
-        Info->RangeList.reserve(Options.RangeListReserveSize);
-        Info->StackList.reserve(Options.StackListReserveSize);
-        Info->String.reserve(Options.StringReserveSize);
+        Info->getRangeList().reserve(Options.RangeListReserveSize);
+        Info->getStackList().reserve(Options.StackListReserveSize);
+        Info->getString().reserve(Options.StringReserveSize);
 
         auto Node = NodeInfo();
         this->ParseError = ParseNode(Begin, &Node);
@@ -43,12 +43,12 @@ namespace MachO {
     }
 
     void ExportTrieIterator::SetupInfoForNewStack() noexcept {
-        Info->String.append(NextStack->Node.Prefix);
-        Info->StackList.emplace_back(std::move(*NextStack));
+        Info->getString().append(NextStack->getNode().getPrefix());
+        Info->getStackList().emplace_back(std::move(*NextStack));
     }
 
     bool ExportTrieIterator::MoveUptoParentNode() noexcept {
-        auto &StackList = Info->StackList;
+        auto &StackList = Info->getStackList();
         if (StackList.size() == 1) {
             StackList.clear();
             return false;
@@ -56,17 +56,17 @@ namespace MachO {
 
         auto &Top = StackList.back();
         const auto EraseToLength =
-            (Info->String.length() - Top.Node.Prefix.length());
+            (Info->getString().length() - Top.getNode().getPrefix().length());
 
-        Info->String.erase(EraseToLength);
-        if (Top.RangeListSize != 0) {
-            auto &RangeList = Info->RangeList;
-            RangeList.erase(RangeList.cbegin() + Top.RangeListSize,
+        Info->getString().erase(EraseToLength);
+        if (Top.getRangeListSize() != 0) {
+            auto &RangeList = Info->getRangeList();
+            RangeList.erase(RangeList.cbegin() + Top.getRangeListSize(),
                             RangeList.cend());
         }
 
         StackList.pop_back();
-        StackList.back().ChildOrdinal += 1;
+        StackList.back().getChildOrdinal() += 1;
 
         return true;
     }
@@ -97,7 +97,8 @@ namespace MachO {
         }
 
         const auto Range = LocationRange::CreateWithEnd(Offset, OffsetEnd);
-        const auto RangeListEnd = Info->RangeList.cend();
+        auto &RangeList = Info->getRangeList();
+        const auto RangeListEnd = RangeList.cend();
 
         const auto Predicate =
             [&Range](const LocationRange &RhsRange) noexcept
@@ -105,18 +106,18 @@ namespace MachO {
             return Range.overlaps(RhsRange);
         };
 
-        if (std::find_if(Info->RangeList.cbegin(), RangeListEnd, Predicate) !=
+        if (std::find_if(RangeList.cbegin(), RangeListEnd, Predicate) !=
             RangeListEnd)
         {
             return Error::OverlappingRanges;
         }
 
         const auto ChildCount = *ExpectedEnd;
-        Info->RangeList.emplace_back(Range);
+        Info->getRangeList().emplace_back(Range);
 
-        InfoOut->Offset = (Ptr - Begin);
-        InfoOut->Size = NodeSize;
-        InfoOut->ChildCount = ChildCount;
+        InfoOut->setOffset(Ptr - Begin);
+        InfoOut->setSize(NodeSize);
+        InfoOut->setChildCount(ChildCount);
 
         return Error::None;
     }
@@ -143,33 +144,35 @@ namespace MachO {
             return Error::InvalidFormat;
         }
 
-        InfoOut->Prefix = std::string_view(StringPtr, StringLength);
+        InfoOut->setPrefix(std::string_view(StringPtr, StringLength));
         return ParseNode(Begin + Next, InfoOut);
     }
 
     ExportTrieIterator::Error ExportTrieIterator::Advance() noexcept {
         using ExportInfoKind = ExportTrieExportInfo::Kind;
 
-        auto &StackList = Info->StackList;
+        auto &StackList = Info->getStackList();
         if (!StackList.empty()) {
             if (StackList.size() == MaxDepth) {
                 return Error::TooDeep;
             }
 
             auto &PrevStack = StackList.back();
-            const auto &PrevNode = PrevStack.Node;
+            const auto &PrevNode = PrevStack.getNode();
 
             if (PrevNode.IsExport()) {
-                Info->Export.clearExclusiveInfo();
-                Info->Kind = ExportTrieExportKind::None;
+                Info->getExportInfo().clearExclusiveInfo();
+                Info->setKind(ExportTrieExportKind::None);
 
-                if (PrevNode.ChildCount == 0) {
-                    MoveUptoParentNode();
+                if (PrevNode.getChildCount() == 0) {
+                    if (!MoveUptoParentNode()) {
+                        return Error::None;
+                    }
                 }
 
-                PrevStack.ChildOrdinal = 1;
+                PrevStack.setChildOrdinal(1);
             } else {
-                PrevStack.ChildOrdinal += 1;
+                PrevStack.getChildOrdinal() += 1;
                 SetupInfoForNewStack();
             }
         } else {
@@ -178,20 +181,20 @@ namespace MachO {
 
         do {
             auto &Stack = StackList.back();
-            auto &Node = Stack.Node;
-            auto &Export = Info->Export;
-            auto Ptr = this->Begin + Node.Offset;
+            auto &Node = Stack.getNode();
+            auto &Export = Info->getExportInfo();
+            auto Ptr = this->Begin + Node.getOffset();
 
-            const auto NodeSize = Node.Size;
+            const auto NodeSize = Node.getSize();
             const auto ExpectedEnd = Ptr + NodeSize;
             const auto UpdateOffset = [&]() noexcept {
-                Node.Offset = (Ptr - this->Begin);
+                Node.setOffset(Ptr - this->Begin);
             };
 
-            if (Stack.ChildOrdinal == 0) {
+            if (Stack.getChildOrdinal() == 0) {
                 const auto IsExportInfo = (NodeSize != 0);
                 if (IsExportInfo) {
-                    if (Info->String.empty()) {
+                    if (Info->getString().empty()) {
                         return Error::EmptyExport;
                     }
 
@@ -204,14 +207,12 @@ namespace MachO {
                         return Error::InvalidFormat;
                     }
 
-                    Export.Flags = ExportTrieFlags(Flags);
+                    Export.setFlags(Flags);
                     UpdateOffset();
 
-                    if (Export.Flags.IsReexport()) {
-                        Ptr =
-                            ReadUleb128(Ptr,
-                                        End,
-                                        &Export.ReexportDylibOrdinal);
+                    if (Export.IsReexport()) {
+                        auto ReexportDylibOrdinal = uint64_t();
+                        Ptr = ReadUleb128(Ptr, End, &ReexportDylibOrdinal);
 
                         if (Ptr == nullptr) {
                             return Error::InvalidUleb128;
@@ -221,6 +222,7 @@ namespace MachO {
                             return Error::InvalidFormat;
                         }
 
+                        Export.setReexportDylibOrdinal(ReexportDylibOrdinal);
                         UpdateOffset();
 
                         if (*Ptr != '\0') {
@@ -234,30 +236,35 @@ namespace MachO {
                                 return Error::InvalidFormat;
                             }
 
-                            Export.ReexportImportName.append(String, Length);
+                            auto ImportName = std::string(String, Length);
+                            Export.setReexportImportName(std::move(ImportName));
+
                             Ptr += (Length + 1);
                         } else {
                             Ptr += 1;
                         }
                     } else {
-                        Ptr = ReadUleb128(Ptr, End, &Export.ImageOffset);
+                        auto ImageOffset = uint64_t();
+                        Ptr = ReadUleb128(Ptr, End, &ImageOffset);
+
                         if (Ptr == nullptr) {
                             return Error::InvalidUleb128;
                         }
 
-                        if (Export.Flags.IsStubAndResolver()) {
+                        Export.setImageOffset(ImageOffset);
+                        if (Export.IsStubAndResolver()) {
                             if (Ptr == End) {
                                 return Error::InvalidFormat;
                             }
 
-                            Ptr =
-                                ReadUleb128(Ptr,
-                                            End,
-                                            &Export.ResolverStubAddress);
+                            auto ResolverStubAddress = uint64_t();
+                            Ptr = ReadUleb128(Ptr, End, &ResolverStubAddress);
 
                             if (Ptr == nullptr) {
                                 return Error::InvalidUleb128;
                             }
+
+                            Export.setResolverStubAddress(ResolverStubAddress);
                         }
                     }
 
@@ -266,22 +273,22 @@ namespace MachO {
                         return Error::InvalidUleb128;
                     }
 
-                    switch (Export.Flags.getKind()) {
+                    switch (Export.getKind()) {
                         case ExportSymbolKind::Regular:
-                            if (Export.Flags.IsStubAndResolver()) {
-                                Info->Kind = ExportInfoKind::StubAndResolver;
-                            } else if (Export.Flags.IsReexport()) {
-                                Info->Kind = ExportInfoKind::Reexport;
+                            if (Export.IsStubAndResolver()) {
+                                Info->setKind(ExportInfoKind::StubAndResolver);
+                            } else if (Export.IsReexport()) {
+                                Info->setKind(ExportInfoKind::Reexport);
                             } else {
-                                Info->Kind = ExportInfoKind::Regular;
+                                Info->setKind(ExportInfoKind::Regular);
                             }
 
                             break;
                         case ExportSymbolKind::ThreadLocal:
-                            Info->Kind = ExportInfoKind::ThreadLocal;
+                            Info->setKind(ExportInfoKind::ThreadLocal);
                             break;
                         case ExportSymbolKind::Absolute:
-                            Info->Kind = ExportInfoKind::Absolute;
+                            Info->setKind(ExportInfoKind::Absolute);
                             break;
                     }
 
@@ -294,7 +301,7 @@ namespace MachO {
                 // parent-stack. If we don't have a parent-stack, we've reached
                 // the end of the export-trie.
 
-                if (Node.ChildCount == 0) {
+                if (Node.getChildCount() == 0) {
                     if (IsExportInfo) {
                         break;
                     }
@@ -316,7 +323,7 @@ namespace MachO {
             }
 
             // We've finished with this node if ChildOrdinal is past ChildCount.
-            if (Stack.ChildOrdinal == (Node.ChildCount + 1)) {
+            if (Stack.getChildOrdinal() == (Node.getChildCount() + 1)) {
                 if (MoveUptoParentNode()) {
                     continue;
                 }
@@ -326,19 +333,19 @@ namespace MachO {
 
             // Prepare the next-stack before returning.
 
-            const auto Error = ParseNextNode(Ptr, &NextStack->Node);
+            const auto Error = ParseNextNode(Ptr, &NextStack->getNode());
             UpdateOffset();
 
             if (Error != Error::None) {
                 return Error;
             }
 
-            NextStack->RangeListSize = Info->RangeList.size();
+            NextStack->setRangeListSize(Info->getRangeList().size());
 
             // We've already returned this node once if our Child-Ordinal is not
             // zero.
 
-            if (Stack.ChildOrdinal == 0) {
+            if (Stack.getChildOrdinal() == 0) {
                 break;
             }
 

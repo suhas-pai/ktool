@@ -104,7 +104,7 @@ PrintTreeExportInfo(
     const struct PrintExportTrieOperation::Options &Options) noexcept
 {
     auto RightPad = static_cast<int>(LongestLength + LENGTH_OF("\"\" -"));
-    auto KindDesc = ExportTrieExportKindGetDescription(Export.Kind).data();
+    auto KindDesc = ExportTrieExportKindGetDescription(Export.getKind()).data();
 
     if (KindDesc == nullptr) {
         KindDesc = "<unrecognized>";
@@ -121,7 +121,7 @@ PrintTreeExportInfo(
             KindDesc);
 
     if (Options.Verbose) {
-        if (Export.Kind != MachO::ExportTrieExportKind::Reexport) {
+        if (!Export.IsReexport()) {
             PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
                                                    Export.getSegment(),
                                                    Export.getSection(),
@@ -129,17 +129,19 @@ PrintTreeExportInfo(
                                                    " - ",
                                                    " - ");
 
-            const auto ImageOffset = Export.Info.getImageOffset();
+            const auto ImageOffset = Export.getInfo().getImageOffset();
             PrintUtilsWriteOffset32Or64(Options.OutFile, Is64Bit, ImageOffset);
         } else {
             fputs(" - ", Options.OutFile);
-            if (!Export.Info.getReexportImportName().empty()) {
+            if (!Export.getInfo().getReexportImportName().empty()) {
                 fprintf(Options.OutFile,
                         "As \"%s\" - ",
-                        Export.Info.getReexportImportName().data());
+                        Export.getInfo().getReexportImportName().data());
             }
 
-            const auto DylibOrdinal = Export.Info.getReexportDylibOrdinal();
+            const auto DylibOrdinal =
+                Export.getInfo().getReexportDylibOrdinal();
+
             OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
                                                    SharedLibraryCollection,
                                                    DylibOrdinal,
@@ -164,7 +166,7 @@ GetSymbolLengthForLongestPrintedLineAndCount(
         }
 
         const auto Length =
-            Iter.getPrintLineLength(TabLength) + Iter->String.length();
+            Iter.getPrintLineLength(TabLength) + Iter->getString().length();
 
         LongestLength = Length;
     }
@@ -194,7 +196,7 @@ HandleTreeOption(
             }
 
             const auto ExportNode = Iter->getAsExportNode();
-            const auto Kind = ExportNode->Kind;
+            const auto Kind = ExportNode->getKind();
 
             auto Segment = std::string_view();
             auto Section = std::string_view();
@@ -232,7 +234,7 @@ HandleTreeOption(
             const auto &Right =
                 reinterpret_cast<const MachO::ExportTrieChildNode &>(Rhs);
 
-            return (Left.String <= Right.String);
+            return (Left.getString() <= Right.getString());
         });
     }
 
@@ -249,7 +251,7 @@ HandleTreeOption(
         const auto &Info =
             reinterpret_cast<const MachO::ExportTrieChildNode &>(Node);
 
-        WrittenOut += fprintf(OutFile, "\"%s\"", Info.String.data());
+        WrittenOut += fprintf(OutFile, "\"%s\"", Info.getString().data());
         if (Info.IsExport()) {
             const auto &ExportInfo =
                 reinterpret_cast<const MachO::ExportTrieExportChildNode &>(
@@ -376,7 +378,7 @@ PrintExportTrie(
             continue;
         }
 
-        const auto String = Info.String;
+        const auto String = Info.getString();
         const auto StringLength = String.length();
 
         LongestExportLength = StringLength;
@@ -384,8 +386,8 @@ PrintExportTrie(
         auto SegmentName = std::string_view();
         auto SectionName = std::string_view();
 
-        if (!Info.Export.getFlags().IsReexport()) {
-            const auto Addr = Base + Info.Export.getImageOffset();
+        if (!Info.getExportInfo().getFlags().IsReexport()) {
+            const auto Addr = Base + Info.getExportInfo().getImageOffset();
 
             auto SegmentInfo = static_cast<const MachO::SegmentInfo *>(nullptr);
             auto SectionInfo = static_cast<const MachO::SectionInfo *>(nullptr);
@@ -403,17 +405,17 @@ PrintExportTrie(
             }
         }
 
-        const auto &Kind = Info.Kind;
+        const auto &Kind = Info.getKind();
         if (!ExportMeetsRequirements(Kind, SegmentName, SectionName, Options)) {
             continue;
         }
 
         ExportList.emplace_back(ExportInfo {
             .Kind = Kind,
-            .Info = Info.Export,
+            .Info = Info.getExportInfo(),
             .SegmentName = SegmentName,
             .SectionName = SectionName,
-            .String = Info.String
+            .String = Info.getString()
         });
     }
 

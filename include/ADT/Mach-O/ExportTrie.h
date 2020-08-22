@@ -63,6 +63,29 @@ namespace MachO {
             return hasValueForMask(Masks::StubAndResolver);
         }
 
+        constexpr inline ExportTrieFlags &setKind(Kind Value) noexcept {
+            setValueForMask(Masks::KindMask, static_cast<uint64_t>(Value));
+            return *this;
+        }
+
+        constexpr
+        inline ExportTrieFlags &setIsWeak(bool Value = true) noexcept {
+            setValueForMask(Masks::WeakDefinition, Value);
+            return *this;
+        }
+
+        constexpr
+        inline ExportTrieFlags &setIsReexport(bool Value = true) noexcept {
+            setValueForMask(Masks::Reexport, Value);
+            return *this;
+        }
+
+        constexpr inline
+        ExportTrieFlags &setIsStubAndResolver(bool Value = true) noexcept {
+            setValueForMask(Masks::StubAndResolver, Value);
+            return *this;
+        }
+
         constexpr inline ExportTrieFlags &clear() noexcept {
             this->Integer = 0;
             return *this;
@@ -249,8 +272,6 @@ namespace MachO {
     struct ExportTrieExportIterator;
 
     struct ExportTrieExportInfo {
-        friend struct ExportTrieIterator;
-        friend struct ExportTrieExportIterator;
     public:
         using Kind = ExportTrieExportKind;
     protected:
@@ -268,36 +289,100 @@ namespace MachO {
 
         ExportTrieFlags Flags;
     public:
-        [[nodiscard]] inline std::string_view getString() const noexcept {
+        [[nodiscard]]
+        constexpr inline std::string_view getString() const noexcept {
             return String;
         }
 
-        [[nodiscard]]
+        [[nodiscard]] constexpr
         inline std::string_view getReexportImportName() const noexcept {
-            assert(Flags.IsReexport());
+            assert(getFlags().IsReexport());
             return ReexportImportName;
         }
 
-        [[nodiscard]] inline uint32_t getReexportDylibOrdinal() const noexcept {
-            assert(Flags.IsReexport());
+        [[nodiscard]]
+        constexpr inline uint32_t getReexportDylibOrdinal() const noexcept {
+            assert(IsReexport());
             return ReexportDylibOrdinal;
         }
 
-        [[nodiscard]] inline uint64_t getResolverStubAddress() const noexcept {
-            assert(Flags.IsStubAndResolver());
+        [[nodiscard]]
+        constexpr inline uint64_t getResolverStubAddress() const noexcept {
+            assert(IsStubAndResolver());
             return ResolverStubAddress;
         }
 
-        [[nodiscard]] inline uint64_t getImageOffset() const noexcept {
-            assert(!Flags.IsReexport());
+        [[nodiscard]]
+        constexpr inline uint64_t getImageOffset() const noexcept {
+            assert(!IsReexport());
             return ImageOffset;
         }
 
-        [[nodiscard]] inline ExportTrieFlags getFlags() const noexcept {
+        [[nodiscard]]
+        constexpr inline ExportTrieFlags getFlags() const noexcept {
             return Flags;
         }
 
-        inline ExportTrieExportInfo &clearExclusiveInfo() noexcept {
+        [[nodiscard]]
+        constexpr inline ExportSymbolKind getKind() const noexcept {
+            return getFlags().getKind();
+        }
+
+        [[nodiscard]] constexpr inline bool IsReexport() const noexcept {
+            return getFlags().IsReexport();
+        }
+
+        [[nodiscard]] constexpr inline bool IsStubAndResolver() const noexcept {
+            return getFlags().IsStubAndResolver();
+        }
+
+        [[nodiscard]] constexpr inline bool IsWeak() const noexcept {
+            return getFlags().IsWeak();
+        }
+
+        constexpr inline ExportTrieExportInfo &
+        setString(const std::string &Value) noexcept {
+            this->String = Value;
+            return *this;
+        }
+
+        constexpr inline ExportTrieExportInfo &
+        setReexportImportName(const std::string &Value) noexcept {
+            this->ReexportImportName = Value;
+            return *this;
+        }
+
+        constexpr inline
+        ExportTrieExportInfo &setReexportDylibOrdinal(uint32_t Value) noexcept {
+            assert(this->IsReexport());
+
+            this->ReexportDylibOrdinal = Value;
+            return *this;
+        }
+
+        constexpr inline
+        ExportTrieExportInfo &setResolverStubAddress(uint64_t Value) noexcept {
+            assert(this->IsStubAndResolver());
+
+            this->ResolverStubAddress = Value;
+            return *this;
+        }
+
+        constexpr
+        inline ExportTrieExportInfo &setImageOffset(uint64_t Value) noexcept {
+            assert(!this->IsReexport());
+
+            this->ImageOffset = Value;
+            return *this;
+        }
+
+        constexpr inline
+        ExportTrieExportInfo &setFlags(const ExportTrieFlags &Value) noexcept {
+            this->Flags = Value;
+            return *this;
+        }
+
+        constexpr inline ExportTrieExportInfo &clearExclusiveInfo() noexcept {
             ImageOffset = 0;
             ReexportDylibOrdinal = 0;
             ResolverStubAddress = 0;
@@ -319,11 +404,52 @@ namespace MachO {
     };
 
     struct ExportTrieNodeInfo {
+    protected:
         uint64_t Offset = 0;
         uint64_t Size = 0;
         uint8_t ChildCount = 0;
-
         std::string_view Prefix;
+    public:
+        [[nodiscard]] constexpr inline uint64_t getOffset() const noexcept {
+            return Offset;
+        }
+
+        [[nodiscard]] constexpr inline uint64_t getSize() const noexcept {
+            return Size;
+        }
+
+        [[nodiscard]] constexpr inline uint16_t getChildCount() const noexcept {
+            return ChildCount;
+        }
+
+        [[nodiscard]]
+        constexpr inline std::string_view getPrefix() const noexcept {
+            return Prefix;
+        }
+
+        constexpr
+        inline ExportTrieNodeInfo &setOffset(uint64_t Value) noexcept {
+            this->Offset = Value;
+            return *this;
+        }
+
+        constexpr
+        inline ExportTrieNodeInfo &setSize(uint64_t Value) noexcept {
+            this->Size = Value;
+            return *this;
+        }
+
+        constexpr
+        inline ExportTrieNodeInfo &setChildCount(uint16_t Value) noexcept {
+            this->ChildCount = Value;
+            return *this;
+        }
+
+        constexpr
+        inline ExportTrieNodeInfo &setPrefix(std::string_view Value) noexcept {
+            this->Prefix = Value;
+            return *this;
+        }
 
         [[nodiscard]] constexpr inline bool IsExport() const noexcept {
             return (Size != 0);
@@ -331,21 +457,56 @@ namespace MachO {
     };
 
     struct ExportTrieStackInfo {
+    public:
         using NodeInfo = ExportTrieNodeInfo;
-
+    protected:
+        NodeInfo Node;
+        uint16_t ChildOrdinal = 0;
+        std::vector<LocationRange>::size_type RangeListSize = 0;
+    public:
         ExportTrieStackInfo() noexcept = default;
         ExportTrieStackInfo(const NodeInfo &Node) noexcept : Node(Node) {}
 
-        NodeInfo Node;
-        uint16_t ChildOrdinal = 0;
+        [[nodiscard]]
+        constexpr inline const NodeInfo &getNode() const noexcept {
+            return Node;
+        }
 
-        std::vector<LocationRange>::size_type RangeListSize = 0;
+        [[nodiscard]] constexpr inline NodeInfo &getNode() noexcept {
+            return Node;
+        }
+
+        [[nodiscard]]
+        constexpr inline uint16_t getChildOrdinal() const noexcept {
+            return ChildOrdinal;
+        }
+
+        [[nodiscard]] constexpr inline uint16_t &getChildOrdinal() noexcept {
+            return ChildOrdinal;
+        }
+
+        [[nodiscard]] constexpr
+        inline decltype(RangeListSize) getRangeListSize() const noexcept {
+            return RangeListSize;
+        }
+
+        constexpr
+        inline ExportTrieStackInfo &setChildOrdinal(uint16_t Value) noexcept {
+            this->ChildOrdinal = Value;
+            return *this;
+        }
+
+        constexpr inline ExportTrieStackInfo &
+        setRangeListSize(decltype(RangeListSize) Value) noexcept {
+            this->RangeListSize = Value;
+            return *this;
+        }
     };
 
     struct ExportTrieIterateInfo {
         using NodeInfo = ExportTrieNodeInfo;
         using StackInfo = ExportTrieStackInfo;
-
+    protected:
         std::string String;
 
         std::vector<LocationRange> RangeList;
@@ -353,6 +514,56 @@ namespace MachO {
 
         ExportTrieExportKind Kind;
         ExportTrieExportInfo Export;
+    public:
+        [[nodiscard]]
+        constexpr inline const std::string &getString() const noexcept {
+            return String;
+        }
+
+        [[nodiscard]] constexpr inline std::string &getString() noexcept {
+            return String;
+        }
+
+        [[nodiscard]] constexpr
+        inline const std::vector<LocationRange> &getRangeList() const noexcept {
+            return RangeList;
+        }
+
+        [[nodiscard]]
+        constexpr inline std::vector<LocationRange> &getRangeList() noexcept {
+            return RangeList;
+        }
+
+        [[nodiscard]] constexpr
+        inline const std::vector<StackInfo> &getStackList() const noexcept {
+            return StackList;
+        }
+
+        [[nodiscard]]
+        constexpr inline std::vector<StackInfo> &getStackList() noexcept {
+            return StackList;
+        }
+
+        [[nodiscard]]
+        constexpr inline ExportTrieExportKind getKind() const noexcept {
+            return Kind;
+        }
+
+        [[nodiscard]] constexpr
+        inline const ExportTrieExportInfo &getExportInfo() const noexcept {
+            return Export;
+        }
+
+        [[nodiscard]]
+        constexpr inline ExportTrieExportInfo &getExportInfo() noexcept {
+            return Export;
+        }
+
+        constexpr inline
+        ExportTrieIterateInfo &setKind(ExportTrieExportKind Value) noexcept {
+            this->Kind = Value;
+            return *this;
+        }
 
         [[nodiscard]] inline StackInfo &getStack() noexcept {
             assert(!StackList.empty());
@@ -365,15 +576,15 @@ namespace MachO {
         }
 
         [[nodiscard]] inline NodeInfo &getNode() noexcept {
-            return getStack().Node;
+            return getStack().getNode();
         }
 
         [[nodiscard]] inline const NodeInfo &getNode() const noexcept {
-            return getStack().Node;
+            return getStack().getNode();
         }
 
-        [[nodiscard]] inline bool IsExport() const noexcept {
-            return getNode().IsExport();
+        [[nodiscard]] constexpr inline bool IsExport() const noexcept {
+            return (Kind != ExportTrieExportKind::None);
         }
 
         [[nodiscard]] inline uint8_t getDepthLevel() const noexcept {
@@ -412,11 +623,10 @@ namespace MachO {
         std::unique_ptr<StackInfo> NextStack;
 
         void SetupInfoForNewStack() noexcept;
-        bool MoveUptoParentNode() noexcept;
+        [[nodiscard]] bool MoveUptoParentNode() noexcept;
 
         Error ParseNode(const uint8_t *Begin, NodeInfo *InfoOut) noexcept;
         Error ParseNextNode(const uint8_t *& Ptr, NodeInfo *InfoOut) noexcept;
-
         Error Advance() noexcept;
     public:
         explicit
@@ -435,10 +645,10 @@ namespace MachO {
         }
 
         [[nodiscard]] inline bool IsAtEnd() const noexcept {
-            return Info->StackList.empty();
+            return Info->getStackList().empty();
         }
 
-        [[nodiscard]] inline bool hasError() const noexcept {
+        [[nodiscard]] constexpr inline bool hasError() const noexcept {
             return ParseError.hasValue();
         }
 

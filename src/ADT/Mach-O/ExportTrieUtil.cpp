@@ -11,7 +11,7 @@
 namespace MachO {
     const SegmentInfo *
     ExportTrieEntryCollection::LookupInfoForAddress(
-        const MachO::SegmentInfoCollection *Collection,
+        const SegmentInfoCollection *Collection,
         uint64_t Address,
         const SectionInfo **SectionOut) const noexcept
     {
@@ -25,7 +25,7 @@ namespace MachO {
 
     ExportTrieEntryCollection::ChildNode *
     ExportTrieEntryCollection::GetNodeForEntryInfo(
-        const MachO::ExportTrieIterateInfo &Info,
+        const ExportTrieIterateInfo &Info,
         const SegmentInfoCollection *Collection) noexcept
     {
         auto Node = static_cast<ChildNode *>(nullptr);
@@ -35,22 +35,26 @@ namespace MachO {
             Node = new ChildNode();
         }
 
-        Node->Kind = Info.Kind;
-        Node->String = Info.String;
+        Node->Kind = Info.getKind();
+        Node->String = Info.getString();
 
         if (Info.IsExport()) {
             auto ExportNode = reinterpret_cast<ExportChildNode *>(Node);
-            if (!Info.Export.getFlags().IsReexport()) {
-                const auto Addr = Info.Export.getImageOffset();
+            const auto &ExportInfo = Info.getExportInfo();
+
+            if (!ExportInfo.IsReexport()) {
+                const auto Addr = ExportInfo.getImageOffset();
                 if (Collection != nullptr) {
-                    ExportNode->Segment =
-                        LookupInfoForAddress(Collection,
-                                             Addr,
-                                             &ExportNode->Section);
+                    auto Section = static_cast<const SectionInfo *>(nullptr);
+                    const auto Segment =
+                        LookupInfoForAddress(Collection, Addr, &Section);
+
+                    ExportNode->setSegment(Segment);
+                    ExportNode->setSection(Section);
                 }
             }
 
-            ExportNode->Info = Info.Export;
+            ExportNode->setInfo(ExportInfo);
         }
 
         return Node;
@@ -58,8 +62,8 @@ namespace MachO {
 
     void
     ExportTrieEntryCollection::ParseFromTrie(
-        const MachO::ConstExportTrieList &Trie,
-        const MachO::SegmentInfoCollection *SegmentCollection,
+        const ConstExportTrieList &Trie,
+        const SegmentInfoCollection *SegmentCollection,
         Error *Error) noexcept
     {
         auto Iter = Trie.begin();
@@ -97,7 +101,7 @@ namespace MachO {
             const auto Current = GetNodeForEntryInfo(*Iter, SegmentCollection);
 
             Parent->AddChild(*Current);
-            if (Iter->getNode().ChildCount != 0) {
+            if (Iter->getNode().getChildCount() != 0) {
                 Parent = Current;
             }
 
@@ -107,8 +111,8 @@ namespace MachO {
 
     ExportTrieEntryCollection
     ExportTrieEntryCollection::Open(
-        const MachO::ConstExportTrieList &Trie,
-        const MachO::SegmentInfoCollection *SegmentCollection,
+        const ConstExportTrieList &Trie,
+        const SegmentInfoCollection *SegmentCollection,
         Error *Error)
     {
         auto Result = ExportTrieEntryCollection();
@@ -139,27 +143,32 @@ namespace MachO {
 
     ExportTrieExportCollection
     ExportTrieExportCollection::Open(
-        const MachO::ConstExportTrieExportList &Trie,
-        const MachO::SegmentInfoCollection *SegmentCollection,
+        const ConstExportTrieExportList &Trie,
+        const SegmentInfoCollection *SegmentCollection,
         Error *Error) noexcept
     {
         auto Result = ExportTrieExportCollection();
         for (auto &Iter : Trie) {
             auto Entry = EntryInfo();
-            if (!Iter.Export.getFlags().IsReexport()) {
+            const auto &ExportInfo = Iter.getExportInfo();
+
+            if (!ExportInfo.getFlags().IsReexport()) {
                 if (SegmentCollection != nullptr) {
-                    const auto Addr = Iter.Export.getImageOffset();
-                    Entry.Segment =
+                    const auto Addr = ExportInfo.getImageOffset();
+                    const auto Segment =
                         SegmentCollection->FindSegmentContainingAddress(Addr);
 
-                    if (Entry.Segment != nullptr) {
-                        Entry.Section =
-                            Entry.Segment->FindSectionContainingAddress(Addr);
+                    auto Section = static_cast<const SectionInfo *>(nullptr);
+                    if (Segment != nullptr) {
+                        Section = Segment->FindSectionContainingAddress(Addr);
                     }
+
+                    Entry.setSegment(Segment);
+                    Entry.setSection(Section);
                 }
             }
 
-            Result.EntryList.emplace_back(std::move(Entry));
+            Result.EntryList.emplace_back(std::make_unique<EntryInfo>(Entry));
         }
 
         return Result;

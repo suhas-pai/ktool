@@ -15,6 +15,7 @@
 #include "ADT/Tree.h"
 
 #include "ExportTrie.h"
+#include "SegmentInfo.h"
 #include "SegmentUtil.h"
 
 namespace MachO {
@@ -22,12 +23,12 @@ namespace MachO {
     struct ExportTrieExportChildNode;
     struct ExportTrieChildNode : public BasicTreeNode {
         friend ExportTrieEntryCollection;
+    protected:
+        ExportTrieExportKind Kind;
+        std::string String;
     public:
         ~ExportTrieChildNode() noexcept = default;
         using BasicTreeNode::BasicTreeNode;
-
-        MachO::ExportTrieExportKind Kind;
-        std::string String;
 
         [[nodiscard]]
         inline BasicTreeNode *createNew() const noexcept override {
@@ -82,19 +83,33 @@ namespace MachO {
             return String.length();
         }
 
-        [[nodiscard]] inline bool IsExport() const noexcept {
-            return (Kind != MachO::ExportTrieExportKind::None);
+        [[nodiscard]]
+        constexpr inline ExportTrieExportKind getKind() const noexcept {
+            return Kind;
+        }
+
+        [[nodiscard]]
+        constexpr inline std::string_view getString() const noexcept {
+            return String;
+        }
+
+        [[nodiscard]] constexpr inline bool IsExport() const noexcept {
+            return (getKind() != ExportTrieExportKind::None);
+        }
+
+        [[nodiscard]] constexpr inline bool IsReexport() const noexcept {
+            return (getKind() == ExportTrieExportKind::Reexport);
         }
 
         [[nodiscard]]
         inline ExportTrieExportChildNode *getAsExportNode() noexcept {
-            assert(IsExport());
+            assert(this->IsExport());
             return reinterpret_cast<ExportTrieExportChildNode *>(this);
         }
 
         [[nodiscard]] inline
         const ExportTrieExportChildNode *getAsExportNode() const noexcept {
-            assert(IsExport());
+            assert(this->IsExport());
             return reinterpret_cast<const ExportTrieExportChildNode *>(this);
         }
 
@@ -106,28 +121,56 @@ namespace MachO {
     };
 
     struct ExportTrieExportChildNode : public ExportTrieChildNode {
-        friend ExportTrieEntryCollection;
     protected:
-        const MachO::SegmentInfo *Segment = nullptr;
-        const MachO::SectionInfo *Section = nullptr;
+        ExportTrieExportInfo Info;
+
+        const SegmentInfo *Segment = nullptr;
+        const SectionInfo *Section = nullptr;
     public:
         using ExportTrieChildNode::ExportTrieChildNode;
-        MachO::ExportTrieExportInfo Info;
 
         [[nodiscard]]
-        inline const MachO::SegmentInfo *getSegment() const noexcept {
-            assert(Kind != MachO::ExportTrieExportKind::Reexport);
-            return Segment;
+        constexpr inline const ExportTrieExportInfo &getInfo() const noexcept {
+            return Info;
         }
-        [[nodiscard]]
-        inline const MachO::SectionInfo *getSection() const noexcept {
-            assert(Kind != MachO::ExportTrieExportKind::Reexport);
-            return Section;
+
+        constexpr inline ExportTrieExportChildNode &
+        setInfo(const ExportTrieExportInfo &Value) noexcept {
+            this->Info = Value;
+            return *this;
         }
 
         [[nodiscard]]
         inline BasicTreeNode *createNew() const noexcept override {
             return new ExportTrieExportChildNode;
+        }
+
+        [[nodiscard]]
+        inline const SegmentInfo *getSegment() const noexcept {
+            assert(!this->IsReexport());
+            return Segment;
+        }
+
+        [[nodiscard]]
+        inline const SectionInfo *getSection() const noexcept {
+            assert(!this->IsReexport());
+            return Section;
+        }
+
+        constexpr inline ExportTrieChildNode &
+        setSegment(const SegmentInfo *Value) noexcept {
+            assert(!this->IsReexport());
+
+            this->Segment = Value;
+            return *this;
+        }
+
+        constexpr inline ExportTrieChildNode &
+        setSection(const SectionInfo *Value) noexcept {
+            assert(!this->IsReexport());
+
+            this->Section = Value;
+            return *this;
         }
     };
 
@@ -140,22 +183,22 @@ namespace MachO {
         explicit ExportTrieEntryCollection() noexcept = default;
 
         [[nodiscard]] virtual const SegmentInfo *
-        LookupInfoForAddress(const MachO::SegmentInfoCollection *Collection,
+        LookupInfoForAddress(const SegmentInfoCollection *Collection,
                              uint64_t Address,
                              const SectionInfo **SectionOut) const noexcept;
 
         [[nodiscard]] ChildNode *
-        GetNodeForEntryInfo(const MachO::ExportTrieIterateInfo &Info,
+        GetNodeForEntryInfo(const ExportTrieIterateInfo &Info,
                             const SegmentInfoCollection *Collection) noexcept;
 
         void
-        ParseFromTrie(const MachO::ConstExportTrieList &Trie,
-                      const MachO::SegmentInfoCollection *SegmentCollection,
+        ParseFromTrie(const ConstExportTrieList &Trie,
+                      const SegmentInfoCollection *SegmentCollection,
                       Error *Error) noexcept;
     public:
         static ExportTrieEntryCollection
-        Open(const MachO::ConstExportTrieList &Trie,
-             const MachO::SegmentInfoCollection *SegmentCollection,
+        Open(const ConstExportTrieList &Trie,
+             const SegmentInfoCollection *SegmentCollection,
              Error *ErrorOut = nullptr);
 
         [[nodiscard]] inline ChildNode *getRoot() const noexcept {
@@ -181,28 +224,62 @@ namespace MachO {
     };
 
     struct ExportTrieExportCollectionEntryInfo {
-        MachO::ExportTrieExportInfo Export;
+    protected:
+        ExportTrieExportInfo Export;
 
-        const MachO::SegmentInfo *Segment = nullptr;
-        const MachO::SectionInfo *Section = nullptr;
+        const SegmentInfo *Segment = nullptr;
+        const SectionInfo *Section = nullptr;
+    public:
+        [[nodiscard]]
+        constexpr inline const ExportTrieExportInfo &getInfo() const noexcept {
+            return Export;
+        }
+
+        [[nodiscard]]
+        constexpr inline ExportTrieExportInfo &getInfo() noexcept {
+            return Export;
+        }
+
+        [[nodiscard]]
+        constexpr inline const SegmentInfo *getSegment() const noexcept {
+            return Segment;
+        }
+
+        [[nodiscard]]
+        constexpr inline const SectionInfo *getSection() const noexcept {
+            return Section;
+        }
+
+        constexpr inline ExportTrieExportCollectionEntryInfo &
+        setSegment(const SegmentInfo *Value) noexcept {
+            this->Segment = Value;
+            return *this;
+        }
+
+        constexpr inline ExportTrieExportCollectionEntryInfo &
+        setSection(const SectionInfo *Value) noexcept {
+            this->Section = Value;
+            return *this;
+        }
     };
 
     struct ExportTrieExportCollection : public BasicTree {
     public:
         using EntryInfo = ExportTrieExportCollectionEntryInfo;
         using Error = ExportTrieParseError;
+        using EntryListType = std::vector<std::unique_ptr<EntryInfo>>;
     private:
         explicit ExportTrieExportCollection() noexcept = default;
     protected:
-        std::vector<EntryInfo> EntryList;
+        EntryListType EntryList;
     public:
         static ExportTrieExportCollection
-        Open(const MachO::ConstExportTrieExportList &Trie,
-             const MachO::SegmentInfoCollection *SegmentCollection,
+        Open(const ConstExportTrieExportList &Trie,
+             const SegmentInfoCollection *SegmentCollection,
              Error *Error) noexcept;
 
-        using Iterator = std::vector<EntryInfo>::iterator;
-        using ConstIterator = std::vector<EntryInfo>::const_iterator;
+        using Iterator = EntryListType::iterator;
+        using ConstIterator = EntryListType::const_iterator;
 
         [[nodiscard]] inline Iterator begin() noexcept {
             return EntryList.begin();
