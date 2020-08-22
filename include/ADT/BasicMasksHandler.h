@@ -35,8 +35,8 @@ static inline T SetValueForMask(T &Integer, T Mask, T Value) noexcept {
 }
 
 template <typename T = uint64_t>
-[[nodiscard]] constexpr static inline
-T GetValueForMaskAndShift(T Integer, T Mask, T Shift) noexcept {
+[[nodiscard]] constexpr
+static inline T GetValueForMaskAndShift(T Integer, T Mask, T Shift) noexcept {
     static_assert(std::is_integral_v<T>, "T must be an integer-type");
 
     const auto MaskedValue = GetValueForMask(Integer, Mask);
@@ -151,8 +151,7 @@ public:
         return BasicMasksHandler(~Integer);
     }
 
-    [[nodiscard]]
-    constexpr inline IntegerType value() const noexcept {
+    [[nodiscard]] constexpr inline IntegerType value() const noexcept {
         return Integer;
     }
 

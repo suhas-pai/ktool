@@ -355,6 +355,7 @@ namespace MachO {
         ExportTrieExportInfo Export;
 
         [[nodiscard]] inline StackInfo &getStack() noexcept {
+            assert(!StackList.empty());
             return StackList.back();
         }
 

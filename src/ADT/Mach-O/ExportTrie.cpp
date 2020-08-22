@@ -166,6 +166,8 @@ namespace MachO {
                 if (PrevNode.ChildCount == 0) {
                     MoveUptoParentNode();
                 }
+
+                PrevStack.ChildOrdinal = 1;
             } else {
                 PrevStack.ChildOrdinal += 1;
                 SetupInfoForNewStack();
@@ -185,9 +187,6 @@ namespace MachO {
             const auto UpdateOffset = [&]() noexcept {
                 Node.Offset = (Ptr - this->Begin);
             };
-
-            constexpr const auto MarkerValue =
-                std::numeric_limits<uint16_t>::max();
 
             if (Stack.ChildOrdinal == 0) {
                 const auto IsExportInfo = (NodeSize != 0);
@@ -209,8 +208,10 @@ namespace MachO {
                     UpdateOffset();
 
                     if (Export.Flags.IsReexport()) {
-                        auto DylibOrdinal = uint32_t();
-                        Ptr = ReadUleb128(Ptr, End, &DylibOrdinal);
+                        Ptr =
+                            ReadUleb128(Ptr,
+                                        End,
+                                        &Export.ReexportDylibOrdinal);
 
                         if (Ptr == nullptr) {
                             return Error::InvalidUleb128;
@@ -221,7 +222,6 @@ namespace MachO {
                         }
 
                         UpdateOffset();
-                        Export.ReexportDylibOrdinal = DylibOrdinal;
 
                         if (*Ptr != '\0') {
                             const auto String =
@@ -250,14 +250,14 @@ namespace MachO {
                                 return Error::InvalidFormat;
                             }
 
-                            auto ResolverStubAddress = uint64_t();
-                            Ptr = ReadUleb128(Ptr, End, &ResolverStubAddress);
+                            Ptr =
+                                ReadUleb128(Ptr,
+                                            End,
+                                            &Export.ResolverStubAddress);
 
                             if (Ptr == nullptr) {
                                 return Error::InvalidUleb128;
                             }
-
-                            Export.ResolverStubAddress = ResolverStubAddress;
                         }
                     }
 
@@ -311,11 +311,8 @@ namespace MachO {
                 UpdateOffset();
 
                 if (IsExportInfo) {
-                    Stack.ChildOrdinal = MarkerValue;
                     break;
                 }
-            } else if (Stack.ChildOrdinal == MarkerValue) {
-                Stack.ChildOrdinal = 1;
             }
 
             // We've finished with this node if ChildOrdinal is past ChildCount.

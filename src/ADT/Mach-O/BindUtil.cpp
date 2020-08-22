@@ -119,8 +119,10 @@ namespace MachO {
             NewAction.setKind(BindKind),
             NewAction.setWriteKind(Action.WriteKind);
             NewAction.setAddend(Action.Addend);
-            NewAction.setDylibOrdinal(static_cast<uint32_t>(Action.DylibOrdinal));
-            NewAction.setSegmentIndex(static_cast<uint32_t>(Action.SegmentIndex));
+            NewAction.setDylibOrdinal(
+                static_cast<uint32_t>(Action.DylibOrdinal));
+            NewAction.setSegmentIndex(
+                static_cast<uint32_t>(Action.SegmentIndex));
             NewAction.setSegmentOffset(Action.SegOffset);
             NewAction.setAddress(FullAddr);
             NewAction.setOpcodeAddress(Iter.getOffset(BindList.getBegin()));
@@ -209,10 +211,6 @@ namespace MachO {
     BindActionCollection::GetInfoForAddress(uint64_t Address) const noexcept {
         const auto Iter = ActionList.find(Address);
         if (Iter != ActionList.end()) {
-            if (Iter->first != Address) {
-                printf("");
-            }
-            
             return Iter->second.get();
         }
 

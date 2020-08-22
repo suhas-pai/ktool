@@ -160,10 +160,9 @@ PrintSymbolList(
                                                    "",
                                                    ", ");
 
-            const auto DylibOrdinal = Info->getDylibOrdinal();
             OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
                                                    SharedLibraryCollection,
-                                                   DylibOrdinal,
+                                                   Info->getDylibOrdinal(),
                                                    true);
 
             fputc('>', Options.OutFile);
@@ -277,57 +276,7 @@ PrintSymbolPtrList(
 
                 break;
 
-            case MachO::LoadCommand::Kind::LoadDylib:
-            case MachO::LoadCommand::Kind::LoadWeakDylib:
-            case MachO::LoadCommand::Kind::ReexportDylib:
-            case MachO::LoadCommand::Kind::LazyLoadDylib:
-            case MachO::LoadCommand::Kind::LoadUpwardDylib:
-            case MachO::LoadCommand::Kind::Segment:
-            case MachO::LoadCommand::Kind::SymbolSegment:
-            case MachO::LoadCommand::Kind::Thread:
-            case MachO::LoadCommand::Kind::UnixThread:
-            case MachO::LoadCommand::Kind::LoadFixedVMSharedLibrary:
-            case MachO::LoadCommand::Kind::IdFixedVMSharedLibrary:
-            case MachO::LoadCommand::Kind::Ident:
-            case MachO::LoadCommand::Kind::FixedVMFile:
-            case MachO::LoadCommand::Kind::PrePage:
-            case MachO::LoadCommand::Kind::IdDylib:
-            case MachO::LoadCommand::Kind::LoadDylinker:
-            case MachO::LoadCommand::Kind::IdDylinker:
-            case MachO::LoadCommand::Kind::PreBoundDylib:
-            case MachO::LoadCommand::Kind::Routines:
-            case MachO::LoadCommand::Kind::SubFramework:
-            case MachO::LoadCommand::Kind::SubUmbrella:
-            case MachO::LoadCommand::Kind::SubClient:
-            case MachO::LoadCommand::Kind::SubLibrary:
-            case MachO::LoadCommand::Kind::TwoLevelHints:
-            case MachO::LoadCommand::Kind::PrebindChecksum:
-            case MachO::LoadCommand::Kind::Segment64:
-            case MachO::LoadCommand::Kind::Routines64:
-            case MachO::LoadCommand::Kind::Uuid:
-            case MachO::LoadCommand::Kind::Rpath:
-            case MachO::LoadCommand::Kind::CodeSignature:
-            case MachO::LoadCommand::Kind::SegmentSplitInfo:
-            case MachO::LoadCommand::Kind::EncryptionInfo:
-            case MachO::LoadCommand::Kind::DyldInfo:
-            case MachO::LoadCommand::Kind::DyldInfoOnly:
-            case MachO::LoadCommand::Kind::VersionMinimumMacOSX:
-            case MachO::LoadCommand::Kind::VersionMinimumIPhoneOS:
-            case MachO::LoadCommand::Kind::FunctionStarts:
-            case MachO::LoadCommand::Kind::DyldEnvironment:
-            case MachO::LoadCommand::Kind::Main:
-            case MachO::LoadCommand::Kind::DataInCode:
-            case MachO::LoadCommand::Kind::SourceVersion:
-            case MachO::LoadCommand::Kind::DylibCodeSignDRS:
-            case MachO::LoadCommand::Kind::EncryptionInfo64:
-            case MachO::LoadCommand::Kind::LinkerOption:
-            case MachO::LoadCommand::Kind::LinkerOptimizationHint:
-            case MachO::LoadCommand::Kind::VersionMinimumTvOS:
-            case MachO::LoadCommand::Kind::VersionMinimumWatchOS:
-            case MachO::LoadCommand::Kind::Note:
-            case MachO::LoadCommand::Kind::BuildVersion:
-            case MachO::LoadCommand::Kind::DyldExportsTrie:
-            case MachO::LoadCommand::Kind::DyldChainedFixups:
+            default:
                 break;
         }
     }
