@@ -6,6 +6,7 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#include <cassert>
 #include <cstdio>
 
 #include "Utils/MachOPrinter.h"
@@ -17,7 +18,9 @@
 #include "PrintId.h"
 #include "PrintArchList.h"
 
-Operation::Operation(OperationKind Kind) noexcept : Kind(Kind) {}
+Operation::Operation(OperationKind Kind) noexcept : Kind(Kind) {
+    assert(Kind != OperationKind::None);
+}
 
 static bool
 OperationKindSupportsObjectKind(OperationKind OpKind,

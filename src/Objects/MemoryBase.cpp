@@ -6,12 +6,17 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#include <cassert>
+
 #include "DscMemory.h"
 #include "FatMachOMemory.h"
 #include "MachOMemory.h"
 #include "MemoryBase.h"
 
-MemoryObject::MemoryObject(ObjectKind Kind) noexcept : Kind(Kind) {}
+MemoryObject::MemoryObject(ObjectKind Kind) noexcept : Kind(Kind) {
+    assert(Kind != ObjectKind::None);
+}
+
 MemoryObject *MemoryObject::Open(const ConstMemoryMap &Map) noexcept {
     const auto Kind = ObjectKind::None;
     switch (Kind) {
