@@ -43,11 +43,12 @@ public:
         };
 
         Options() noexcept
-        : Operation::Options(OpKind), Sort(false), PrintTree(false),
-          Verbose(false) {}
+        : Operation::Options(OpKind), PrintTree(false), OnlyCount(false),
+          Sort(false), Verbose(false) {}
 
-        bool Sort : 1;
         bool PrintTree : 1;
+        bool OnlyCount : 1;
+        bool Sort : 1;
         bool Verbose : 1;
 
         std::vector<SegmentSectionPair> SectionRequirements;

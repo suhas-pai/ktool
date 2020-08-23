@@ -6,6 +6,7 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#include <cstdio>
 #include <cstring>
 
 #include "ADT/MachO.h"
@@ -227,6 +228,17 @@ HandleTreeOption(
         }
     }
 
+    auto Count = uint64_t();
+    const auto LongestLength =
+        GetSymbolLengthForLongestPrintedLineAndCount(EntryCollection, Count);
+
+    if (Options.OnlyCount) {
+        fprintf(Options.OutFile,
+                "Provided file's export-trie has %" PRIu64 " nodes\n",
+                Count);
+        return 0;
+    }
+
     if (Options.Sort) {
         EntryCollection.Sort([](const auto &Lhs, const auto &Rhs) noexcept {
             const auto &Left =
@@ -237,10 +249,6 @@ HandleTreeOption(
             return (Left.getString() <= Right.getString());
         });
     }
-
-    auto Count = uint64_t();
-    const auto LongestLength =
-        GetSymbolLengthForLongestPrintedLineAndCount(EntryCollection, Count);
 
     const auto PrintNode =
         [&](FILE *OutFile,
@@ -355,6 +363,17 @@ FindExportTrieList(
     return 0;
 }
 
+static void
+PrintExportTrieCount(FILE *OutFile,
+                     uint64_t Size,
+                     bool PrintColon = true) noexcept
+{
+    fprintf(OutFile, "Provided file has %" PRIu64 " exports\n", Size);
+    if (PrintColon) {
+        fputc(':', OutFile);
+    }
+}
+
 int
 PrintExportTrie(
     const ConstMachOMemoryObject &Object,
@@ -365,6 +384,7 @@ PrintExportTrie(
     uint64_t Base,
     const struct PrintExportTrieOperation::Options &Options) noexcept
 {
+    auto ExportListCount = uint64_t();
     auto ExportList = std::vector<ExportInfo>();
     auto LongestExportLength = LargestIntHelper();
 
@@ -375,6 +395,11 @@ PrintExportTrie(
 
     for (const auto &Info : TrieList.getRef()) {
         if (!Info.IsExport()) {
+            continue;
+        }
+
+        if (Options.OnlyCount && Options.SectionRequirements.empty()) {
+            ExportListCount++;
             continue;
         }
 
@@ -410,6 +435,11 @@ PrintExportTrie(
             continue;
         }
 
+        if (Options.OnlyCount) {
+            ExportListCount++;
+            continue;
+        }
+
         ExportList.emplace_back(ExportInfo {
             .Kind = Kind,
             .Info = Info.getExportInfo(),
@@ -417,6 +447,11 @@ PrintExportTrie(
             .SectionName = SectionName,
             .String = Info.getString()
         });
+    }
+
+    if (Options.OnlyCount) {
+        PrintExportTrieCount(Options.OutFile, ExportListCount, false);
+        return 0;
     }
 
     if (ExportList.empty()) {
@@ -435,9 +470,7 @@ PrintExportTrie(
     }
 
     Operation::PrintLineSpamWarning(Options.OutFile, ExportList.size());
-    fprintf(Options.OutFile,
-            "Provided file has %" PRIuPTR " exports:\n",
-            ExportList.size());
+    PrintExportTrieCount(Options.OutFile, ExportList.size());
 
     auto Counter = static_cast<uint32_t>(1);
 
@@ -779,6 +812,8 @@ PrintExportTrieOperation::ParseOptionsImpl(const ArgvArray &Argv,
     for (auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
+        } else if (strcmp(Argument, "--only-count") == 0) {
+            Options.OnlyCount = true;
         } else if (strcmp(Argument, "--require-kind") == 0) {
             AddKindRequirement(Options.ErrFile,
                                Options.KindRequirements,
@@ -806,6 +841,12 @@ PrintExportTrieOperation::ParseOptionsImpl(const ArgvArray &Argv,
         }
 
         Index++;
+    }
+
+    if (Options.OnlyCount && Options.Sort) {
+        fputs("Error: Provided option --sort when only printing count\n",
+              Options.ErrFile);
+        exit(1);
     }
 
     if (IndexOut != nullptr) {

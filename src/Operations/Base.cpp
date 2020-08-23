@@ -243,6 +243,10 @@ Operation::PrintOptionHelpMenu(OperationKind Kind,
             break;
         case OperationKind::PrintExportTrie:
             fprintf(OutFile,
+                    "%s    --only-count,      Only print the count of "
+                    "exports, or with --tree, print the number of nodes\n",
+                    Prefix);
+            fprintf(OutFile,
                     "%s    --require-kind,    Only print exports with a "
                     "specific kind\n",
                     Prefix);
