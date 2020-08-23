@@ -12,15 +12,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: make
-      run: |
-        make clean
-        make
+      run: make
         
   linuxBuild:  
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: make
-      run: |
-        make clean
-        make
+      run: make
