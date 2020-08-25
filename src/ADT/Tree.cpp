@@ -54,12 +54,6 @@ CalculateLongestNode(BasicTreeNode &Node,
     return *Longest;
 }
 
-static inline void RecalculateLongestChild(BasicTreeNode &Node) noexcept {
-    if (const auto FirstChild = Node.getFirstChild()) {
-        Node.setLongestChild(&CalculateLongestNode(*FirstChild));
-    }
-}
-
 BasicTreeNode *BasicTreeNode::getLastChild() const noexcept {
     auto Back = FirstChild;
     BASIC_TREE_NODE_ITERATE_SIBLINGS(*Back) {
@@ -212,7 +206,7 @@ static void BasicIsolate(BasicTreeNode &Node) noexcept {
     const auto FirstChild = Node.getFirstChild();
 
     // We try to merge Node's children with Node's siblings.
-    
+
     if (FirstChild != nullptr)  {
         if (const auto PrevSibling = Node.getPrevSibling()) {
             if (ParentPtr != nullptr) {
@@ -245,7 +239,8 @@ static void BasicIsolate(BasicTreeNode &Node) noexcept {
         }
 
         if (Parent.getLongestChild() == &Node) {
-            RecalculateLongestChild(Parent);
+            auto &FirstChild = *Parent.getFirstChild();
+            Parent.setLongestChild(&CalculateLongestNode(FirstChild));
         }
     } else if (Node.IsLeaf()) {
         // If Node is a leaf, and ParentHasOnlyThisNode is true, then Parent

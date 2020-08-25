@@ -1116,7 +1116,7 @@ namespace MachO {
                 return LocationRange::CreateWithSize(Offset, Size);
             }
 
-            [[nodiscard]] constexpr inline
+            constexpr inline
             Arch32 &setCpuKind(Mach::CpuKind Kind, bool IsBigEndian) noexcept {
                 const auto Value = static_cast<int32_t>(Kind);
                 this->CpuKind = SwitchEndianIf(Value, IsBigEndian);
@@ -1189,7 +1189,7 @@ namespace MachO {
                 return LocationRange::CreateWithSize(Offset, Size);
             }
 
-            [[nodiscard]] constexpr inline
+            constexpr inline
             Arch64 &setCpuKind(Mach::CpuKind Kind, bool IsBigEndian) noexcept {
                 const auto Value = static_cast<int32_t>(Kind);
                 this->CpuKind = SwitchEndianIf(Value, IsBigEndian);
