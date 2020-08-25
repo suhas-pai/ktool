@@ -142,7 +142,7 @@ CompareObjcClasses(
     for (const auto &SortKind : Options.SortKindList) {
         const auto CmpResult = CompareActionsBySortKind(Lhs, Rhs, SortKind);
         if (CmpResult != 0) {
-            return (CmpResult < 0);
+            return (CmpResult <= 0);
         }
 
         continue;
@@ -206,8 +206,7 @@ PrintClassVerboseInfo(
         return;
     }
 
-    const auto RightPad =
-        static_cast<int>(LongestLength + LENGTH_OF("\"\" -"));
+    const auto RightPad = static_cast<int>(LongestLength + LENGTH_OF("\"\" -"));
 
     fputc(' ', OutFile);
     PrintUtilsCharMultTimes(OutFile,

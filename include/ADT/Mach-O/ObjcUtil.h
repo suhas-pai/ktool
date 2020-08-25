@@ -385,8 +385,8 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline
-        ObjcClassCategoryInfo &setAddress(uint64_t Value) noexcept {
+        constexpr
+        inline ObjcClassCategoryInfo &setAddress(uint64_t Value) noexcept {
             this->Address = Value;
             return *this;
         }
