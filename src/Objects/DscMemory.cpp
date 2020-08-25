@@ -146,28 +146,6 @@ MemoryObject *ConstDscMemoryObject::ToPtr() const noexcept {
     return new ConstDscMemoryObject(ConstMemoryMap(Map, End), sCpuKind);
 }
 
-ConstDscMemoryObject::Version
-ConstDscMemoryObject::getVersion() const noexcept {
-    auto &Header = getConstHeader();
-    auto Version = Version::v0;
-
-    if (Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV6)) {
-        Version = Version::v6;
-    } else if (Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV5)) {
-        Version = Version::v5;
-    } else if (Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV4)) {
-        Version = Version::v4;
-    } else if (Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV3)) {
-        Version = Version::v3;
-    } else if (Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV2)) {
-        Version = Version::v2;
-    } else if (Header.MappingOffset >= sizeof(DyldSharedCache::HeaderV1)) {
-        Version = Version::v1;
-    }
-
-    return Version;
-}
-
 const ConstDscMemoryObject &
 ConstDscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
                                  int32_t &CpuSubKind) const noexcept

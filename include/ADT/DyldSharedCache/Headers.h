@@ -20,6 +20,17 @@
      SizeOfField(DyldCacheHeader, Field)))
 
 namespace DyldSharedCache {
+    enum class HeaderVersion {
+        V0,
+        V1,
+        V2,
+        V3,
+        V4,
+        V5,
+        V6,
+        V7
+    };
+
     struct MappingInfo {
         uint64_t Address;
         uint64_t Size;
@@ -87,6 +98,13 @@ namespace DyldSharedCache {
         uint32_t ReExportsStartArrayIndex;
     };
 
+    struct ImageTextInfo {
+        uint8_t Uuid[16];
+        uint64_t LoadAddress;
+        uint32_t TextSegmentSize;
+        uint32_t PathOffset;
+    };
+
     struct AcceleratorInfo {
         uint32_t Version;
         uint32_t ImageExtrasCount;
@@ -106,7 +124,7 @@ namespace DyldSharedCache {
         uint32_t RangeTableCount;
         uint64_t DyldSectionAddr;
 
-        [[nodiscard]]
+        [[nodiscard]] inline
         ImageInfoExtra &getImageInfoExtraAtIndex(uint32_t Index) noexcept {
             auto &Result =
                 const_cast<ImageInfoExtra &>(
@@ -116,12 +134,12 @@ namespace DyldSharedCache {
         }
 
         [[nodiscard]]
-        const ImageInfoExtra &
+        inline const ImageInfoExtra &
         getImageInfoExtraAtIndex(uint32_t Index) const noexcept {
             return getConstImageInfoExtraAtIndex(Index);
         }
 
-        [[nodiscard]] const ImageInfoExtra &
+        [[nodiscard]] inline const ImageInfoExtra &
         getConstImageInfoExtraAtIndex(uint32_t Index) const noexcept {
             assert(!IndexOutOfBounds(Index, ImageExtrasCount));
 
@@ -140,6 +158,9 @@ namespace DyldSharedCache {
     using MappingInfoList = BasicContiguousList<MappingInfo>;
     using ConstMappingInfoList = BasicContiguousList<const MappingInfo>;
 
+    using ImageTextInfoList = BasicContiguousList<ImageTextInfo>;
+    using ConstImageTextInfoList = BasicContiguousList<const ImageTextInfo>;
+    
     // Apple doesn't provide versions for their dyld_shared_caches, so we have
     // to make up our own.
 
@@ -155,6 +176,32 @@ namespace DyldSharedCache {
         uint32_t ImagesCount;
 
         uint64_t DyldBaseAddress;
+        
+        [[nodiscard]] inline HeaderVersion getVersion() const noexcept;
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getImageInfoListRange() const noexcept {
+            auto End = uint64_t();
+            if (DoesMultiplyAndAddOverflow(ImagesCount, sizeof(ImageInfo),
+                                           ImagesOffset, &End))
+            {
+                return std::nullopt;
+            }
+            
+            return LocationRange::CreateWithEnd(ImagesOffset, End);
+        }
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getMappingInfoListRange() const noexcept {
+            auto End = uint64_t();
+            if (DoesMultiplyAndAddOverflow(MappingCount, sizeof(MappingInfo),
+                                           MappingOffset, &End))
+            {
+                return std::nullopt;
+            }
+            
+            return LocationRange::CreateWithEnd(MappingOffset, End);
+        }
 
         [[nodiscard]] inline ImageInfoList getImageInfoList() noexcept {
             const auto Ptr = reinterpret_cast<uint8_t *>(this) + ImagesOffset;
@@ -273,6 +320,23 @@ namespace DyldSharedCache {
 
         uint64_t SlideInfoOffset;
         uint64_t SlideInfoSize;
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getCodeSignatureRange() const noexcept {
+            const auto Range =
+                LocationRange::CreateWithSize(CodeSignatureOffset,
+                                              CodeSignatureSize);
+            
+            return Range;
+        }
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getSlideInfoRange() const noexcept {
+            const auto Range =
+                LocationRange::CreateWithSize(SlideInfoOffset, SlideInfoSize);
+            
+            return Range;
+        }
     };
 
     // From dyld v239.3
@@ -282,6 +346,15 @@ namespace DyldSharedCache {
         uint64_t LocalSymbolsSize;
 
         uint8_t Uuid[16];
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getLocalSymbolInfoRange() const noexcept {
+            const auto Range =
+                LocationRange::CreateWithSize(LocalSymbolsOffset,
+                                              LocalSymbolsSize);
+            
+            return Range;
+        }
     };
 
     // From dyld v360.14
@@ -309,7 +382,7 @@ namespace DyldSharedCache {
         uint64_t ImagesTextOffset;
         uint64_t ImagesTextCount;
 
-        [[nodiscard]] AcceleratorInfo *GetAcceleratorInfo() noexcept {
+        [[nodiscard]] inline AcceleratorInfo *GetAcceleratorInfo() noexcept {
             if (AccelerateInfoAddr == 0 || AccelerateInfoSize == 0) {
                 return nullptr;
             }
@@ -317,13 +390,55 @@ namespace DyldSharedCache {
             return GetPtrForAddress<AcceleratorInfo>(AccelerateInfoAddr);
         }
 
-        [[nodiscard]]
+        [[nodiscard]] inline
         const AcceleratorInfo *GetAcceleratorInfo() const noexcept {
             if (AccelerateInfoAddr == 0 || AccelerateInfoSize == 0) {
                 return nullptr;
             }
 
             return GetPtrForAddress<AcceleratorInfo>(AccelerateInfoAddr);
+        }
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getAcceleratorInfoRange() const noexcept {
+            const auto Range =
+                LocationRange::CreateWithSize(AccelerateInfoAddr,
+                                              AccelerateInfoSize);
+            
+            return Range;
+        }
+        
+        [[nodiscard]] inline std::optional<LocationRange>
+        getImageTextInfoListRange() const noexcept {
+            auto End = uint64_t();
+            if (DoesMultiplyAndAddOverflow(sizeof(ImageTextInfo),
+                                           ImagesTextOffset, ImagesTextCount,
+                                           &End))
+            {
+                return std::nullopt;
+            }
+            
+            return LocationRange::CreateWithEnd(ImagesTextOffset, End);
+        }
+        
+        [[nodiscard]] inline ImageTextInfoList getImageTextInfoList() noexcept {
+            const auto Map = reinterpret_cast<uint8_t *>(this);
+            const auto Ptr = Map + ImagesTextOffset;
+
+            return ImageTextInfoList(Ptr, ImagesTextCount);
+        }
+        
+        [[nodiscard]] inline
+        ConstImageTextInfoList getConstImageTextInfoList() const noexcept {
+            const auto Map = reinterpret_cast<const uint8_t *>(this);
+            const auto Ptr = Map + ImagesTextOffset;
+
+            return ConstImageTextInfoList(Ptr, ImagesTextCount);
+        }
+        
+        [[nodiscard]]
+        inline ConstImageTextInfoList getImageTextInfoList() const noexcept {
+            return getConstImageTextInfoList();
         }
     };
 
@@ -352,8 +467,52 @@ namespace DyldSharedCache {
 
         uint64_t SharedRegionStart;
         uint64_t SharedRegionSize;
-
         uint64_t MaxSlide;
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getDylibsImageGroupRange() const noexcept {
+            const auto Range =
+                LocationRange::CreateWithSize(DylibsImageGroupAddr,
+                                              DylibsImageGroupSize);
+            
+            return Range;
+        }
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getOtherImageGroupRange() const noexcept {
+            const auto Range =
+                LocationRange::CreateWithSize(OtherImageGroupAddr,
+                                              OtherImageGroupSize);
+            
+            return Range;
+        }
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getProgClosuresRange() const noexcept {
+            const auto Range =
+                LocationRange::CreateWithSize(ProgClosuresAddr,
+                                              ProgClosuresSize);
+            
+            return Range;
+        }
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getProgClosuresTrieRange() const noexcept {
+            const auto Range =
+                LocationRange::CreateWithSize(ProgClosuresTrieAddr,
+                                              ProgClosuresTrieSize);
+            
+            return Range;
+        }
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getSharedRegionRange() const noexcept {
+            const auto Range =
+                LocationRange::CreateWithSize(SharedRegionStart,
+                                              SharedRegionSize);
+            
+            return Range;
+        }
     };
 
     // From dyld v625.13
@@ -370,7 +529,55 @@ namespace DyldSharedCache {
 
         uint64_t OtherTrieAddr;
         uint64_t OtherTrieSize;
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getDylibsImageArrayRange() const noexcept {
+            const auto Range =
+                LocationRange::CreateWithSize(DylibsImageArrayAddr,
+                                              DylibsImageArraySize);
+            
+            return Range;
+        }
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getDylibsTrieRange() const noexcept {
+            return LocationRange::CreateWithSize(DylibsTrieAddr,
+                                                 DylibsTrieSize);
+        }
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getOtherImageArrayRange() const noexcept {
+            const auto Range =
+                LocationRange::CreateWithSize(OtherImageArrayAddr,
+                                              OtherImageArraySize);
+            
+            return Range;
+        }
+        
+        [[nodiscard]] inline
+        std::optional<LocationRange> getOtherTrieRange() const noexcept {
+            return LocationRange::CreateWithSize(OtherTrieAddr, OtherTrieSize);
+        }
     };
+
+    HeaderVersion HeaderV0::getVersion() const noexcept {
+        auto Version = HeaderVersion::V0;
+        if (MappingOffset >= sizeof(HeaderV6)) {
+            Version = HeaderVersion::V6;
+        } else if (MappingOffset >= sizeof(HeaderV5)) {
+            Version = HeaderVersion::V5;
+        } else if (MappingOffset >= sizeof(HeaderV4)) {
+            Version = HeaderVersion::V4;
+        } else if (MappingOffset >= sizeof(HeaderV3)) {
+            Version = HeaderVersion::V3;
+        } else if (MappingOffset >= sizeof(HeaderV2)) {
+            Version = HeaderVersion::V2;
+        } else if (MappingOffset >= sizeof(HeaderV1)) {
+            Version = HeaderVersion::V1;
+        }
+        
+        return Version;
+    }
 
     using Header = HeaderV6;
 }

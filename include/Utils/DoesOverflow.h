@@ -198,20 +198,6 @@ inline bool DoesAddAndMultiplyOverflow(T Lhs, U Rhs, V Multiply) {
     return DoesMultiplyOverflow(Result, Multiply, &Result);
 }
 
-template <typename W = uint64_t, typename T, typename U, typename V>
-inline bool DoesAddAndMultiplyOverflow(T Lhs, U Rhs, V Multiply) {
-    static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
-                  std::is_integral_v<V> && std::is_integral_v<W>,
-                  "Types must be Integer-Types");
-
-    auto Result = W();
-    if (DoesAddOverflow(Lhs, Rhs, &Result)) {
-        return true;
-    }
-
-    return DoesMultiplyOverflow(Result, Multiply, &Result);
-}
-
 template <typename T, typename U>
 inline bool DoesAddOverflow(T *Lhs, U Rhs) {
     static_assert(std::is_integral_v<U>, "Types must be Integer-Types");
