@@ -22,7 +22,11 @@ $(TARGET): $(OBJS)
 	@strip $(TARGET)
 
 clean:
-	@$(RM) -rf $(OBJ)
+	@find obj -name '*.o' -type f -delete
+	@$(RM) $(TARGET)
+
+debug_clean:
+	@find obj -name '*.d.o' -type f -delete
 	@$(RM) $(TARGET)
 
 debug: $(DEBUGTARGET)
