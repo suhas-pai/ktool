@@ -320,10 +320,7 @@ namespace MachO {
                 if (IsExportInfo) {
                     break;
                 }
-            }
-
-            // We've finished with this node if ChildOrdinal is past ChildCount.
-            if (Stack.getChildOrdinal() == (Node.getChildCount() + 1)) {
+            } else if (Stack.getChildOrdinal() == (Node.getChildCount() + 1)) {
                 if (MoveUptoParentNode()) {
                     continue;
                 }
