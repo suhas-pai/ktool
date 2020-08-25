@@ -242,30 +242,30 @@ enum class DscRangeKind {
     // HeaderV0
     MappingInfoList,
     ImageInfoList,
-    
+
     // HeaderV1
     CodeSignature,
     SlideInfo,
-    
+
     // HeaderV2
     LocalSymbolInfo,
-    
+
     // HeaderV4
     AcceleratorInfo,
     ImageTextInfoList,
-    
+
     // HeaderV5
     DylibsImageGroup,
     OtherImageGroup,
     ProgClosures,
     ProgClosuresTrie,
-    
+
     // HeaderV6
     DylibsImageArray,
     DylibsTrie,
     OtherImageArray,
     OtherTrie,
-    
+
     End,
 };
 
@@ -282,12 +282,12 @@ static void AddRangeToList(DscRangeList &List, DscRange &&DscRange) noexcept {
         if (DscRange.Kind < IterKind) {
             continue;
         }
-        
+
         if (DscRange.Range.overlaps(Iter.second.Range)) {
             DscRange.OverlapKindSet.set(static_cast<int>(IterKind) - 1);
         }
     };
-    
+
     List.insert({ DscRange.Kind, std::move(DscRange) });
 }
 
@@ -297,7 +297,7 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
 {
     auto Kind = DscRangeKind::None;
     auto Result = DscRangeList();
-    
+
     switch (Kind) {
         case DscRangeKind::None:
         case DscRangeKind::MappingInfoList: {
@@ -308,7 +308,7 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         case DscRangeKind::ImageInfoList: {
             if (const auto Range = Header.getImageInfoListRange()) {
                 AddRangeToList(Result, DscRange {
@@ -317,11 +317,11 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         if (Version < DyldSharedCache::HeaderVersion::V1) {
             return Result;
         }
-            
+
         case DscRangeKind::CodeSignature: {
             if (const auto Range = Header.getCodeSignatureRange()) {
                 AddRangeToList(Result, DscRange {
@@ -330,7 +330,7 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         case DscRangeKind::SlideInfo: {
             if (const auto Range = Header.getSlideInfoRange()) {
                 AddRangeToList(Result, DscRange {
@@ -339,11 +339,11 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         if (Version < DyldSharedCache::HeaderVersion::V2) {
             return Result;
         }
-            
+
         case DscRangeKind::LocalSymbolInfo: {
             if (const auto Range = Header.getLocalSymbolInfoRange()) {
                 AddRangeToList(Result, DscRange {
@@ -352,11 +352,11 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         if (Version < DyldSharedCache::HeaderVersion::V4) {
             return Result;
         }
-            
+
         case DscRangeKind::AcceleratorInfo: {
             if (const auto Range = Header.getAcceleratorInfoRange()) {
                 AddRangeToList(Result, DscRange {
@@ -365,7 +365,7 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         case DscRangeKind::ImageTextInfoList: {
             if (const auto Range = Header.getImageTextInfoListRange()) {
                 AddRangeToList(Result, DscRange {
@@ -374,11 +374,11 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         if (Version < DyldSharedCache::HeaderVersion::V5) {
             return Result;
         }
-            
+
         case DscRangeKind::DylibsImageGroup: {
             if (const auto Range = Header.getDylibsImageGroupRange()) {
                 AddRangeToList(Result, DscRange {
@@ -387,7 +387,7 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         case DscRangeKind::OtherImageGroup: {
             if (const auto Range = Header.getOtherImageGroupRange()) {
                 AddRangeToList(Result, DscRange {
@@ -396,7 +396,7 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         case DscRangeKind::ProgClosures: {
             if (const auto Range = Header.getProgClosuresRange()) {
                 AddRangeToList(Result, DscRange {
@@ -405,7 +405,7 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         case DscRangeKind::ProgClosuresTrie: {
             if (const auto Range = Header.getProgClosuresTrieRange()) {
                 AddRangeToList(Result, DscRange {
@@ -414,11 +414,11 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         if (Version < DyldSharedCache::HeaderVersion::V6) {
             return Result;
         }
-            
+
         case DscRangeKind::DylibsImageArray: {
             if (const auto Range = Header.getDylibsImageArrayRange()) {
                 AddRangeToList(Result, DscRange {
@@ -427,7 +427,7 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         case DscRangeKind::DylibsTrie: {
             if (const auto Range = Header.getDylibsTrieRange()) {
                 AddRangeToList(Result, DscRange {
@@ -436,7 +436,7 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         case DscRangeKind::OtherImageArray: {
             if (const auto Range = Header.getOtherImageArrayRange()) {
                 AddRangeToList(Result, DscRange {
@@ -445,7 +445,7 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         case DscRangeKind::OtherTrie: {
             if (const auto Range = Header.getOtherTrieRange()) {
                 AddRangeToList(Result, DscRange {
@@ -454,11 +454,11 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
                 });
             }
         }
-            
+
         case DscRangeKind::End:
             break;
     }
-        
+
     return Result;
 }
 
@@ -472,32 +472,32 @@ PrintDscRangeOverlapsErrorOrNewline(
         fputc('\n', Options.OutFile);
         return;
     }
-    
+
     const auto End = List.cend();
     const auto Iter = List.find(Kind);
-    
+
     if (Iter == End) {
         fputc('\n', Options.OutFile);
         return;
     }
-    
+
     const auto &OverlapKindSet = Iter->second.OverlapKindSet;
     if (OverlapKindSet.none()) {
         fputc('\n', Options.OutFile);
         return;
     }
-    
+
     fputs(" (Overlaps with ", Options.ErrFile);
-    
+
     auto Count = uint8_t();
     auto OverlapKindSetCount = OverlapKindSet.count();
-    
-    for (auto KindInt = static_cast<int>(DscRangeKind::None);; KindInt++) {
+
+    for (auto KindInt = static_cast<int>(DscRangeKind::None) + 1;; KindInt++) {
         const auto Kind = static_cast<DscRangeKind>(KindInt);
-        if (!OverlapKindSet[KindInt]) {
+        if (!OverlapKindSet[KindInt - 1]) {
             continue;
         }
-        
+
         switch (Kind) {
             case DscRangeKind::None:
                 assert(0 && "Overlap-Kind None is set");
@@ -551,7 +551,7 @@ PrintDscRangeOverlapsErrorOrNewline(
                 assert(0 && "Overlap-Kind End is set");
                 break;
         }
-        
+
         Count++;
         if (Count == OverlapKindSetCount) {
             fputs(")\n", Options.ErrFile);
@@ -655,10 +655,9 @@ PrintDscSizeRange(FILE *OutFile,
     PrintKeyFunc(OutFile, AddressName);
     PrintUtilsWriteOffset(OutFile, Address);
 
-    if (Size != 0) {
-        if (Verbose) {
-            PrintUtilsWriteOffsetSizeRange(OutFile, Address, Size, " (", ")");
-        }
+    const auto VerboseAndNonZeroSize = (Verbose && Size != 0);
+    if (VerboseAndNonZeroSize) {
+        PrintUtilsWriteOffsetSizeRange(OutFile, Address, Size, " (", ")");
     }
 
     if (IsOffset) {
@@ -679,7 +678,7 @@ PrintDscSizeRange(FILE *OutFile,
         SizeMaxLength = OFFSET_32_LEN;
     }
 
-    if (Verbose && Size != 0) {
+    if (VerboseAndNonZeroSize) {
         PrintUtilsRightPadSpaces(OutFile, SizeWrittenOut, SizeMaxLength);
         PrintUtilsWriteFormattedSize(OutFile, Size, " (", ")");
     }
@@ -704,7 +703,7 @@ PrintDscHeaderV1Info(
                       Header.CodeSignatureSize,
                       Options.Verbose,
                       true);
-    
+
     PrintDscRangeOverlapsErrorOrNewline(Options,
                                         List,
                                         DscRangeKind::CodeSignature);
@@ -717,7 +716,7 @@ PrintDscHeaderV1Info(
                       Header.SlideInfoSize,
                       Options.Verbose,
                       true);
-    
+
     PrintDscRangeOverlapsErrorOrNewline(Options, List, DscRangeKind::SlideInfo);
     fputc('\n', Options.OutFile);
 }
@@ -737,7 +736,7 @@ PrintDscHeaderV2Info(
                       Header.LocalSymbolsSize,
                       Options.Verbose,
                       true);
-    
+
     PrintDscRangeOverlapsErrorOrNewline(Options,
                                         List,
                                         DscRangeKind::LocalSymbolInfo);
@@ -794,7 +793,7 @@ PrintDscHeaderV4Info(
                       Header.AccelerateInfoAddr,
                       Header.AccelerateInfoSize,
                       Options.Verbose);
-    
+
     PrintDscRangeOverlapsErrorOrNewline(Options,
                                         List,
                                         DscRangeKind::AcceleratorInfo);
@@ -809,18 +808,18 @@ PrintDscHeaderV4Info(
 
     PrintDscKey(Options.OutFile, "Images-Text Count");
     fprintf(Options.OutFile, "%" PRIu64, Header.ImagesTextCount);
-    
+
     if (Header.ImagesTextCount != Header.ImagesCount) {
         fprintf(Options.OutFile,
                 " (Invalid: %" PRIu64 " Image-Texts vs %" PRIu32 " Images",
                 Header.ImagesTextCount,
                 Header.ImagesCount);
     }
-    
+
     PrintDscRangeOverlapsErrorOrNewline(Options,
                                         List,
                                         DscRangeKind::ImageTextInfoList);
-    
+
     fputc('\n', Options.OutFile);
 }
 
@@ -846,7 +845,7 @@ PrintDscHeaderV5Info(
                       Header.DylibsImageGroupAddr,
                       Header.DylibsImageGroupSize,
                       Options.Verbose);
-    
+
     PrintDscRangeOverlapsErrorOrNewline(Options,
                                         List,
                                         DscRangeKind::DylibsImageGroup);
@@ -858,7 +857,7 @@ PrintDscHeaderV5Info(
                       Header.OtherImageGroupAddr,
                       Header.OtherImageGroupSize,
                       Options.Verbose);
-    
+
     PrintDscRangeOverlapsErrorOrNewline(Options,
                                         List,
                                         DscRangeKind::OtherImageGroup);
@@ -870,7 +869,7 @@ PrintDscHeaderV5Info(
                       Header.ProgClosuresAddr,
                       Header.ProgClosuresSize,
                       Options.Verbose);
-    
+
     PrintDscRangeOverlapsErrorOrNewline(Options,
                                         List,
                                         DscRangeKind::ProgClosures);
@@ -882,7 +881,7 @@ PrintDscHeaderV5Info(
                       Header.ProgClosuresTrieAddr,
                       Header.ProgClosuresTrieSize,
                       Options.Verbose);
-    
+
     PrintDscRangeOverlapsErrorOrNewline(Options,
                                         List,
                                         DscRangeKind::ProgClosuresTrie);
@@ -953,7 +952,7 @@ PrintDscHeaderV6Info(
                       Header.DylibsImageArrayAddr,
                       Header.DylibsImageArraySize,
                       Options.Verbose);
-    
+
     PrintDscRangeOverlapsErrorOrNewline(Options,
                                         List,
                                         DscRangeKind::DylibsImageGroup);
@@ -965,7 +964,7 @@ PrintDscHeaderV6Info(
                       Header.DylibsTrieAddr,
                       Header.DylibsTrieSize,
                       Options.Verbose);
-    
+
     PrintDscRangeOverlapsErrorOrNewline(Options,
                                         List,
                                         DscRangeKind::DylibsTrie);
@@ -977,7 +976,7 @@ PrintDscHeaderV6Info(
                       Header.DylibsImageArrayAddr,
                       Header.DylibsImageArraySize,
                       Options.Verbose);
-    
+
     PrintDscRangeOverlapsErrorOrNewline(Options,
                                         List,
                                         DscRangeKind::OtherImageArray);
@@ -989,7 +988,7 @@ PrintDscHeaderV6Info(
                       Header.DylibsTrieAddr,
                       Header.DylibsTrieSize,
                       Options.Verbose);
-    
+
     PrintDscRangeOverlapsErrorOrNewline(Options, List, DscRangeKind::OtherTrie);
 }
 
@@ -1095,7 +1094,7 @@ PrintHeaderOperation::Run(const ConstDscMemoryObject &Object,
 
     const auto Version = Object.getVersion();
     const auto List = CollectDscRangeList(Object.getHeader(), Version);
-    
+
     PrintDscHeaderV0Info(Options, Object);
     if (Version < DyldSharedCache::HeaderVersion::V1) {
         return 0;
