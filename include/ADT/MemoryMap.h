@@ -41,10 +41,6 @@ public:
 
     template <typename T>
     [[nodiscard]] inline const T *getBeginAs() const noexcept {
-        if (!IsLargeEnoughForType<T>()) {
-            return nullptr;
-        }
-
         return reinterpret_cast<const T *>(getBegin());
     }
 
