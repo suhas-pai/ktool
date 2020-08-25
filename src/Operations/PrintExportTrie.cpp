@@ -817,14 +817,17 @@ PrintExportTrieOperation::ParseOptionsImpl(const ArgvArray &Argv,
             AddKindRequirement(Options.ErrFile,
                                Options.KindRequirements,
                                Argument.advance());
+            Index++;
         } else if (strcmp(Argument, "--require-segment") == 0) {
             AddSegmentRequirement(Options.ErrFile,
                                   Options.SectionRequirements,
                                   Argument.advance());
+            Index++;
         } else if (strcmp(Argument, "--require-section") == 0) {
             AddSectionRequirement(Options.ErrFile,
                                   Options.SectionRequirements,
                                   Argument.advance());
+            Index++;
         } else if (strcmp(Argument, "--sort") == 0) {
             Options.Sort = true;
         } else if (strcmp(Argument, "--tree") == 0) {
