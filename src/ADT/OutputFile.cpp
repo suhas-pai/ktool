@@ -19,17 +19,17 @@ OutputFile::OutputFile() noexcept {
 }
 
 bool OutputFile::Read(void *Buf, size_t Size) const noexcept {
-    assert(IsOpen() && "OutputFile must be open");
+    assert(this->IsOpen() && "OutputFile must be open");
     return Tmp.Read(Buf, Size);
 }
 
 bool OutputFile::Write(const void *Buf, size_t Size) noexcept {
-    assert(IsOpen() && "OutputFile must be open");
+    assert(this->IsOpen() && "OutputFile must be open");
     return Tmp.Write(Buf, Size);
 }
 
 bool OutputFile::TruncateToSize(uint64_t Length) noexcept {
-    assert(IsOpen() && "OutputFile must be open");
+    assert(this->IsOpen() && "OutputFile must be open");
     return Tmp.TruncateToSize(Length);
 }
 

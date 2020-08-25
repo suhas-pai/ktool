@@ -29,16 +29,15 @@ namespace MachO {
 
     template <PointerKind Kind>
     [[nodiscard]] static SymbolTableParseError
-    ParseSymbol(
-        const MachOSymbolTableEntryTypeCalculator<Kind> &Entry,
-        uint64_t Index,
-        const char *StrTab,
-        const char *StrTabEnd,
-        InfoMap &InfoMap,
-        StringMap &StringMap,
-        const enum SymbolTableEntryCollection::KeyKindEnum KeyKind,
-        const SymbolTableEntryCollection::ParseOptions &Options,
-        bool IsBigEndian) noexcept
+    ParseSymbol(const MachOSymbolTableEntryTypeCalculator<Kind> &Entry,
+                uint64_t Index,
+                const char *StrTab,
+                const char *StrTabEnd,
+                InfoMap &InfoMap,
+                StringMap &StringMap,
+                const enum SymbolTableEntryCollection::KeyKindEnum KeyKind,
+                const SymbolTableEntryCollection::ParseOptions &Options,
+                bool IsBigEndian) noexcept
     {
         if (Entry.Info.IsExternal()) {
             if (Options.IgnoreExternal) {
