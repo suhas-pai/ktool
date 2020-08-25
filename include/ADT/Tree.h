@@ -232,7 +232,7 @@ protected:
     BasicTreeNode *NextSibling = nullptr;
     BasicTreeNode *LongestChild = nullptr;
 
-    void clear() noexcept;
+    void clearAndDestroy() noexcept;
 public:
     BasicTreeNode() noexcept = default;
 
@@ -283,7 +283,7 @@ public:
 
     void ValidateChildArray() const noexcept;
 
-    BasicTreeNode &
+    void
     IsolateAndRemoveFromParent(bool RemoveLeafParents = false,
                                BasicTreeNode *Root = nullptr) noexcept;
 
@@ -337,6 +337,10 @@ public:
 
         LongestChild = Node;
         return *this;
+    }
+
+    [[nodiscard]] inline bool IsLeaf() const noexcept {
+        return (getFirstChild() == nullptr);
     }
 
     [[nodiscard]] virtual uint64_t GetLength() const noexcept = 0;
@@ -493,11 +497,11 @@ public:
         };
 
         for (const auto &Node : *this) {
-            auto FirstChild = Node->getFirstChild();
-            if (FirstChild == nullptr) {
+            if (Node->IsLeaf()) {
                 continue;
             }
 
+            auto FirstChild = Node->getFirstChild();
             for (auto IChild = FirstChild->getNextSibling();
                  IChild != nullptr;
                  IChild = IChild->getNextSibling())
