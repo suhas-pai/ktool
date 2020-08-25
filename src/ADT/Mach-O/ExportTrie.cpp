@@ -321,6 +321,9 @@ namespace MachO {
                     break;
                 }
             } else if (Stack.getChildOrdinal() == (Node.getChildCount() + 1)) {
+                // We've finished with this node if ChildOrdinal is past
+                // ChildCount.
+
                 if (MoveUptoParentNode()) {
                     continue;
                 }
