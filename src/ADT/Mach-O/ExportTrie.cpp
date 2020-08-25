@@ -211,7 +211,7 @@ namespace MachO {
                     UpdateOffset();
 
                     if (Export.IsReexport()) {
-                        auto ReexportDylibOrdinal = uint64_t();
+                        auto ReexportDylibOrdinal = uint32_t();
                         Ptr = ReadUleb128(Ptr, End, &ReexportDylibOrdinal);
 
                         if (Ptr == nullptr) {

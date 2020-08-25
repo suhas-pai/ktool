@@ -152,7 +152,7 @@ namespace MachO {
             auto Entry = EntryInfo();
             const auto &ExportInfo = Iter.getExportInfo();
 
-            if (!ExportInfo.getFlags().IsReexport()) {
+            if (!ExportInfo.IsReexport()) {
                 if (SegmentCollection != nullptr) {
                     const auto Addr = ExportInfo.getImageOffset();
                     const auto Segment =

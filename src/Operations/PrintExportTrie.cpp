@@ -411,7 +411,7 @@ PrintExportTrie(
         auto SegmentName = std::string_view();
         auto SectionName = std::string_view();
 
-        if (!Info.getExportInfo().getFlags().IsReexport()) {
+        if (!Info.IsReexport()) {
             const auto Addr = Base + Info.getExportInfo().getImageOffset();
 
             auto SegmentInfo = static_cast<const MachO::SegmentInfo *>(nullptr);
@@ -490,8 +490,7 @@ PrintExportTrie(
             static_cast<int>(
                 MachO::ExportTrieExportKindGetLongestDescriptionLength());
 
-        const auto IsReexport = Export.Info.getFlags().IsReexport();
-        if (!IsReexport) {
+        if (!Export.Info.IsReexport()) {
             PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
                                                    Export.SegmentName.data(),
                                                    Export.SectionName.data(),
@@ -522,7 +521,7 @@ PrintExportTrie(
                                          Export.String.data()),
                                  RightPad);
 
-        if (IsReexport) {
+        if (Export.Info.IsReexport()) {
             const auto DylibOrdinal = Export.Info.getReexportDylibOrdinal();
             const auto ImportName = Export.Info.getReexportImportName();
 

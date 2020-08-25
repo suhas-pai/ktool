@@ -332,11 +332,7 @@ PrintDscSizeRange(FILE *OutFile,
 
     if (Size != 0) {
         if (Verbose) {
-            PrintUtilsWriteOffsetSizeRange(OutFile,
-                                           Address,
-                                           Size,
-                                           " (",
-                                           ")");
+            PrintUtilsWriteOffsetSizeRange(OutFile, Address, Size, " (", ")");
         }
     }
 

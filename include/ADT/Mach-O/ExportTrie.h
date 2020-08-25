@@ -51,8 +51,8 @@ namespace MachO {
             return Kind(getValueForMask(Masks::KindMask));
         }
 
-        [[nodiscard]] constexpr inline bool IsWeak() const noexcept {
-            return hasValueForMask(Masks::WeakDefinition);
+        [[nodiscard]] constexpr inline bool IsAbsolute() const noexcept {
+            return (getKind() == ExportSymbolKind::Absolute);
         }
 
         [[nodiscard]] constexpr inline bool IsReexport() const noexcept {
@@ -63,15 +63,21 @@ namespace MachO {
             return hasValueForMask(Masks::StubAndResolver);
         }
 
+        [[nodiscard]] constexpr inline bool IsThreadLocal() const noexcept {
+            return (getKind() == ExportSymbolKind::ThreadLocal);
+        }
+
+        [[nodiscard]] constexpr inline bool IsWeak() const noexcept {
+            return hasValueForMask(Masks::WeakDefinition);
+        }
+
         constexpr inline ExportTrieFlags &setKind(Kind Value) noexcept {
             setValueForMask(Masks::KindMask, static_cast<uint64_t>(Value));
             return *this;
         }
 
-        constexpr
-        inline ExportTrieFlags &setIsWeak(bool Value = true) noexcept {
-            setValueForMask(Masks::WeakDefinition, Value);
-            return *this;
+        constexpr inline ExportTrieFlags &setIsAbsolute() noexcept {
+            return setKind(ExportSymbolKind::Absolute);
         }
 
         constexpr
@@ -83,6 +89,16 @@ namespace MachO {
         constexpr inline
         ExportTrieFlags &setIsStubAndResolver(bool Value = true) noexcept {
             setValueForMask(Masks::StubAndResolver, Value);
+            return *this;
+        }
+
+        constexpr inline ExportTrieFlags &setIsThreadLocal() noexcept {
+            return setKind(ExportSymbolKind::ThreadLocal);
+        }
+
+        constexpr
+        inline ExportTrieFlags &setIsWeak(bool Value = true) noexcept {
+            setValueForMask(Masks::WeakDefinition, Value);
             return *this;
         }
 
@@ -296,25 +312,25 @@ namespace MachO {
 
         [[nodiscard]] constexpr
         inline std::string_view getReexportImportName() const noexcept {
-            assert(getFlags().IsReexport());
+            assert(this->IsReexport());
             return ReexportImportName;
         }
 
         [[nodiscard]]
         constexpr inline uint32_t getReexportDylibOrdinal() const noexcept {
-            assert(IsReexport());
+            assert(this->IsReexport());
             return ReexportDylibOrdinal;
         }
 
         [[nodiscard]]
         constexpr inline uint64_t getResolverStubAddress() const noexcept {
-            assert(IsStubAndResolver());
+            assert(this->IsStubAndResolver());
             return ResolverStubAddress;
         }
 
         [[nodiscard]]
         constexpr inline uint64_t getImageOffset() const noexcept {
-            assert(!IsReexport());
+            assert(!this->IsReexport());
             return ImageOffset;
         }
 
@@ -328,12 +344,20 @@ namespace MachO {
             return getFlags().getKind();
         }
 
+        [[nodiscard]] constexpr inline bool IsAbsolute() const noexcept {
+            return getFlags().IsAbsolute();
+        }
+
         [[nodiscard]] constexpr inline bool IsReexport() const noexcept {
             return getFlags().IsReexport();
         }
 
         [[nodiscard]] constexpr inline bool IsStubAndResolver() const noexcept {
             return getFlags().IsStubAndResolver();
+        }
+
+        [[nodiscard]] constexpr inline bool IsThreadLocal() const noexcept {
+            return getFlags().IsThreadLocal();
         }
 
         [[nodiscard]] constexpr inline bool IsWeak() const noexcept {
@@ -566,13 +590,13 @@ namespace MachO {
         }
 
         [[nodiscard]] inline StackInfo &getStack() noexcept {
-            assert(!StackList.empty());
-            return StackList.back();
+            assert(!getStackList().empty());
+            return getStackList().back();
         }
 
         [[nodiscard]] inline const StackInfo &getStack() const noexcept {
-            assert(!StackList.empty());
-            return StackList.back();
+            assert(!getStackList().empty());
+            return getStackList().back();
         }
 
         [[nodiscard]] inline NodeInfo &getNode() noexcept {
@@ -584,12 +608,32 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr inline bool IsExport() const noexcept {
-            return (Kind != ExportTrieExportKind::None);
+            return (getKind() != ExportTrieExportKind::None);
+        }
+
+        [[nodiscard]] constexpr inline bool IsAbsolute() const noexcept {
+            return (getKind() == ExportTrieExportKind::Absolute);
+        }
+
+        [[nodiscard]] constexpr inline bool IsReexport() const noexcept {
+            return (getKind() == ExportTrieExportKind::Reexport);
+        }
+
+        [[nodiscard]] constexpr inline bool IsStubAndResolver() const noexcept {
+            return (getKind() == ExportTrieExportKind::StubAndResolver);
+        }
+
+        [[nodiscard]] constexpr inline bool IsWeak() const noexcept {
+            return (getKind() == ExportTrieExportKind::WeakDefinition);
+        }
+
+        [[nodiscard]] constexpr inline bool IsThreadLocal() const noexcept {
+            return (getKind() == ExportTrieExportKind::ThreadLocal);
         }
 
         [[nodiscard]] inline uint8_t getDepthLevel() const noexcept {
-            assert(!StackList.empty());
-            return StackList.size();
+            assert(!getStackList().empty());
+            return getStackList().size();
         }
     };
 

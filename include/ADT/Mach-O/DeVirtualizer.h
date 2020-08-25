@@ -132,10 +132,7 @@ namespace MachO {
                          T **EndOut = nullptr) const noexcept
         {
             const auto Result =
-                Collection.GetPtrForVirtualAddr<T>(Map,
-                                                   Address,
-                                                   Size,
-                                                   EndOut);
+                Collection.GetPtrForVirtualAddr<T>(Map, Address, Size, EndOut);
             return Result;
         }
     };

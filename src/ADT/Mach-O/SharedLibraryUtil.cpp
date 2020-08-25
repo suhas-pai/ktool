@@ -100,15 +100,17 @@ namespace MachO {
             }
 
             const auto &Info = DylibCmd.Info;
-            Result.List.emplace_back(SharedLibraryInfo {
-                .Kind = LCKind,
-                .Path = std::string(Name),
-                .Index = LCIndex,
-                .Timestamp = Info.getTimestamp(IsBigEndian),
-                .CurrentVersion = Info.getCurrentVersion(IsBigEndian),
-                .CompatibilityVersion = Info.getCompatVersion(IsBigEndian)
-            });
+            auto LibInfo =
+                std::make_unique<SharedLibraryInfo>(SharedLibraryInfo {
+                    .Kind = LCKind,
+                    .Path = std::string(Name),
+                    .Index = LCIndex,
+                    .Timestamp = Info.getTimestamp(IsBigEndian),
+                    .CurrentVersion = Info.getCurrentVersion(IsBigEndian),
+                    .CompatibilityVersion = Info.getCompatVersion(IsBigEndian)
+                });
 
+            Result.List.emplace_back(std::move(LibInfo));
             LCIndex++;
         }
 

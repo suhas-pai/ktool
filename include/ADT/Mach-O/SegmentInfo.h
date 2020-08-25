@@ -182,6 +182,11 @@ namespace MachO {
             return SectionList;
         }
 
+        [[nodiscard]]
+        constexpr inline SectionListType &getSectionList() noexcept {
+            return SectionList;
+        }
+
         constexpr
         inline SegmentInfo &setName(const std::string &Name) noexcept {
             this->Name = Name;
@@ -216,13 +221,7 @@ namespace MachO {
             this->Flags = Flags;
             return *this;
         }
-
-        constexpr
-        inline SegmentInfo &setSectionList(SectionListType &&List) noexcept {
-            this->SectionList = std::move(List);
-            return *this;
-        }
-
+        
         [[nodiscard]] const SectionInfo *
         FindSectionWithName(const std::string_view &Name) const noexcept;
 

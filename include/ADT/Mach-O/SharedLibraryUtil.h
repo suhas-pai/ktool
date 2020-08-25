@@ -23,7 +23,7 @@ namespace MachO {
             InvalidPath
         };
     protected:
-        std::vector<SharedLibraryInfo> List;
+        std::vector<std::unique_ptr<SharedLibraryInfo>> List;
         SharedLibraryInfoCollection() noexcept = default;
     public:
         [[nodiscard]] static SharedLibraryInfoCollection
@@ -32,8 +32,8 @@ namespace MachO {
 
         [[nodiscard]]
         const SharedLibraryInfo &at(uint64_t Index) const noexcept {
-            assert(!IndexOutOfBounds(Index, size()));
-            return List.at(Index);
+            assert(!IndexOutOfBounds(Index, this->size()));
+            return *List.at(Index).get();
         }
 
         [[nodiscard]]

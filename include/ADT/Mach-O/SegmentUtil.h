@@ -216,16 +216,4 @@ namespace MachO {
     CollectSegmentInfoList(const ConstLoadCommandStorage &LoadCmdStorage,
                            bool Is64Bit,
                            SegmentInfoCollection &CollectionOut) noexcept;
-
-    [[nodiscard]] uint8_t *
-    GetDataForSegment(uint8_t *Map, const SegmentInfo &Info) noexcept;
-
-    [[nodiscard]] const uint8_t *
-    GetDataForSegment(const uint8_t *Map, const SegmentInfo &Info) noexcept;
-
-    [[nodiscard]] uint8_t *
-    GetDataForSection(uint8_t *Map, const SectionInfo &Info) noexcept;
-
-    [[nodiscard]] const uint8_t *
-    GetDataForSection(const uint8_t *Map, const SectionInfo &Info) noexcept;
 }

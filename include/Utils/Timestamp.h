@@ -11,4 +11,4 @@
 #include <ctime>
 #include <string>
 
-std::string GetHumanReadableTimestamp(time_t Timestamp) noexcept;
+[[nodiscard]] std::string GetHumanReadableTimestamp(time_t Timestamp) noexcept;

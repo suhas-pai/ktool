@@ -69,7 +69,7 @@ namespace MachO {
         InfoIn.setMaxProt(Segment.getMaxProt(IsBigEndian));
         InfoIn.setFlags(Segment.getFlags(IsBigEndian));
 
-        auto SectionOutList = SegmentInfo::SectionListType();
+        auto &SectionOutList = InfoIn.getSectionList();
         const auto &SectionList = Segment.GetConstSectionList(IsBigEndian);
 
         for (const auto &Section : SectionList) {
@@ -88,7 +88,6 @@ namespace MachO {
             SectionOutList.emplace_back(std::move(SectInfo));
         }
 
-        InfoIn.setSectionList(std::move(SectionOutList));
         return true;
     }
 
@@ -544,26 +543,6 @@ namespace MachO {
         return FindSectionContainingAddress(FullAddr);
     }
 
-    [[nodiscard]]
-    uint8_t *GetDataForSegment(uint8_t *Map, const SegmentInfo &Info) noexcept {
-        return (Map + Info.getFileRange().getBegin());
-    }
-
-    [[nodiscard]] const uint8_t *
-    GetDataForSegment(const uint8_t *Map, const SegmentInfo &Info) noexcept {
-        return (Map + Info.getFileRange().getBegin());
-    }
-
-    [[nodiscard]]
-    uint8_t *GetDataForSection(uint8_t *Map, const SectionInfo &Info) noexcept {
-        return (Map + Info.getFileRange().getBegin());
-    }
-
-    [[nodiscard]] const uint8_t *
-    GetDataForSection(const uint8_t *Map, const SectionInfo &Info) noexcept {
-        return (Map + Info.getFileRange().getBegin());
-    }
-
     template <typename T>
     [[nodiscard]] static inline T *
     GetDataForVirtualAddrImpl(const SegmentInfoCollection &Collection,
@@ -588,7 +567,7 @@ namespace MachO {
                     continue;
                 }
 
-                const auto Data = GetDataForSection(Map, *Section.get());
+                const auto Data = Section->getData(Map);
                 const auto Offset = (Addr - SectMemoryRange.getBegin());
                 const auto &SectFileRange = Section->getFileRange();
 
@@ -626,7 +605,7 @@ namespace MachO {
                 continue;
             }
 
-            const auto Data = GetDataForSegment(Map, *Segment.get());
+            const auto Data = Segment->getData(Map);
             const auto Offset = (Addr - Segment->getMemoryRange().getBegin());
 
             if (EndOut != nullptr) {
