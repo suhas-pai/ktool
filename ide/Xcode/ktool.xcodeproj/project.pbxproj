@@ -224,6 +224,7 @@
 		F3F08B7A244D27CB007F3271 /* CpuSubKindInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CpuSubKindInfo.h; path = ../../include/ADT/Mach/CpuSubKindInfo.h; sourceTree = "<group>"; };
 		F3F08B7B244D27CB007F3271 /* CpuKindInfoTemplates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CpuKindInfoTemplates.h; path = ../../include/ADT/Mach/CpuKindInfoTemplates.h; sourceTree = "<group>"; };
 		F3F08B7C244D2834007F3271 /* Info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Info.h; path = ../../include/ADT/Mach/Info.h; sourceTree = "<group>"; };
+		F3FBAE6D24F6153F00B9CC7A /* MemoryProtections.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MemoryProtections.h; path = "../../include/ADT/Mach-O/MemoryProtections.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -407,6 +408,7 @@
 				F33E8CD12473AAA0009C4EA0 /* LoadCommandsCommon.h */,
 				F3856A9C244ABDA1007980C9 /* LoadCommandStorage.h */,
 				F3856A9E244ABDA1007980C9 /* LoadCommandTemplates.h */,
+				F3FBAE6D24F6153F00B9CC7A /* MemoryProtections.h */,
 				F3BA28BD2470F3CD009B6BCE /* Objc.h */,
 				F3A2D2962495A71D005DA2D0 /* ObjcUtil.h */,
 				F33E8CD72473BFB7009C4EA0 /* RebaseInfo.h */,

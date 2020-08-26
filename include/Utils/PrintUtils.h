@@ -50,13 +50,20 @@
 
 #define OFFSET_32_OVERFLOW_FMT OFFSET_32_FMT "-(Overflows)"
 #define OFFSET_64_OVERFLOW_FMT OFFSET_64_FMT "-(Overflows)"
+
 #define OFFSET_0x0 "0x0"
+#define OFFSET_0x0_LEN LENGTH_OF("0x0")
 
 #define MEM_PROT_FMT "%c%c%c"
 #define MEM_PROT_FMT_ARGS(Obj) \
     (Obj.IsReadable() ? 'r' : '-'), \
     (Obj.IsWritable() ? 'w' : '-'), \
     (Obj.IsExecutable() ? 'x' : '-')
+
+#define MEM_PROT_INIT_MAX_RNG_FMT MEM_PROT_FMT "/" MEM_PROT_FMT
+#define MEM_PROT_INIT_MAX_RNG_FMT_ARGS(INIT, MAX) \
+    MEM_PROT_FMT_ARGS(INIT), \
+    MEM_PROT_FMT_ARGS(MAX)
 
 #define MEM_PROT_LEN LENGTH_OF("rwx")
 
@@ -303,12 +310,16 @@ PrintUtilsWriteOffset(FILE *OutFile,
                       const char *Suffix = "") noexcept
 {
     if (Offset == 0) {
-        auto WrittenOut =
-            fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
+        auto WrittenOut = fprintf(OutFile, "%s", Prefix);
 
+        WrittenOut += fputs(OFFSET_0x0, OutFile);
+        WrittenOut += fprintf(OutFile, "%s", Suffix);
+        
         if (Pad) {
             WrittenOut +=
-                PrintUtilsRightPadSpaces(OutFile, WrittenOut, OFFSET_32_LEN);
+                PrintUtilsRightPadSpaces(OutFile,
+                                         OFFSET_0x0_LEN,
+                                         OFFSET_64_LEN);
         }
 
         return WrittenOut;
@@ -325,12 +336,16 @@ PrintUtilsWriteOffset(FILE *OutFile,
                       const char *Suffix = "") noexcept
 {
     if (Offset == 0) {
-        auto WrittenOut =
-            fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
+        auto WrittenOut = fprintf(OutFile, "%s", Prefix);
 
+        WrittenOut += fputs(OFFSET_0x0, OutFile);
+        WrittenOut += fprintf(OutFile, "%s", Suffix);
+        
         if (Pad) {
             WrittenOut +=
-                PrintUtilsRightPadSpaces(OutFile, WrittenOut, OFFSET_64_LEN);
+                PrintUtilsRightPadSpaces(OutFile,
+                                         OFFSET_0x0_LEN,
+                                         OFFSET_64_LEN);
         }
 
         return WrittenOut;

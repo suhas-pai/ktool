@@ -589,6 +589,59 @@ WarnIfOutOfRange(FILE *OutFile,
 }
 
 static void
+PrintMappingInfoList(const struct PrintHeaderOperation::Options &Options,
+                     const ConstDscMemoryObject &Object)
+{
+    const auto MappingCountDigitLength =
+        PrintUtilsGetIntegerDigitLength(Object.getMappingCount());
+    
+    auto Index = static_cast<int>(1);
+    for (const auto &Mapping : Object.getMappingInfoList()) {
+        fprintf(Options.OutFile,
+                "\tMapping %0*d: " MEM_PROT_INIT_MAX_RNG_FMT " \n",
+                MappingCountDigitLength,
+                Index,
+                MEM_PROT_INIT_MAX_RNG_FMT_ARGS(Mapping.getInitProt(),
+                                               Mapping.getMaxProt()));
+        
+        PrintUtilsWriteOffset(Options.OutFile,
+                              Mapping.FileOffset,
+                              true,
+                              "\t\tFile-Offset: ");
+        
+        PrintUtilsWriteOffsetSizeRange(Options.OutFile,
+                                       Mapping.FileOffset,
+                                       Mapping.Size,
+                                       " (",
+                                       ")\n");
+        
+        PrintUtilsWriteOffset(Options.OutFile,
+                              Mapping.Address,
+                              true,
+                              "\t\tAddress:     ");
+        
+        PrintUtilsWriteOffsetSizeRange(Options.OutFile,
+                                       Mapping.Address,
+                                       Mapping.Size,
+                                       " (",
+                                       ")\n");
+        
+        const auto RightPad = LENGTH_OF("\t\tSize:        ") + OFFSET_64_LEN;
+        PrintUtilsRightPadSpaces(Options.OutFile,
+                                 fprintf(Options.OutFile,
+                                         "\t\tSize:        %" PRIu64,
+                                         Mapping.Size),
+                                 RightPad);
+        
+        PrintUtilsWriteFormattedSize(Options.OutFile,
+                                     Mapping.Size,
+                                     " (",
+                                     ")\n");
+        Index++;
+    }
+}
+
+static void
 PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
                      const ConstDscMemoryObject &Object) noexcept
 {
@@ -618,6 +671,10 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
 
     PrintDscKey(Options.OutFile, "Mapping Count");
     fprintf(Options.OutFile, "%" PRIu32 "\n", Header.MappingCount);
+
+    if (Object.getMappingCount() <= 3) {
+        PrintMappingInfoList(Options, Object);
+    }
 
     PrintDscKey(Options.OutFile, "Images Offset");
     PrintUtilsWriteOffset(Options.OutFile,

@@ -15,6 +15,8 @@
 #include "ADT/LargestIntHelper.h"
 #include "ADT/LocationRange.h"
 
+#include "ADT/Mach-O/MemoryProtections.h"
+
 #define DscHeaderHasField(Header, Field) \
     (Header->MappingOffset >= (offsetof(DyldCacheHeader, Field) + \
      SizeOfField(DyldCacheHeader, Field)))
@@ -37,6 +39,16 @@ namespace DyldSharedCache {
         uint64_t FileOffset;
         uint32_t MaxProt;
         uint32_t InitProt;
+        
+        [[nodiscard]]
+        inline MachO::MemoryProtections getMaxProt() const noexcept {
+            return MaxProt;
+        }
+        
+        [[nodiscard]]
+        inline MachO::MemoryProtections getInitProt() const noexcept {
+            return InitProt;
+        }
 
         [[nodiscard]] inline
         std::optional<LocationRange> getAddressRange() const noexcept {

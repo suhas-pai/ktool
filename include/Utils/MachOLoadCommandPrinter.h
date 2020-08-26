@@ -301,9 +301,9 @@ MachOLoadCommandPrinterWriteSegmentCommand(FILE *OutFile,
 
     fprintf(OutFile, "\t\"" CHAR_ARR_FMT(16) "\"", Segment.Name);
     fprintf(OutFile,
-            "\t" MEM_PROT_FMT "/" MEM_PROT_FMT "\n",
-            MEM_PROT_FMT_ARGS(Segment.getInitProt(IsBigEndian)),
-            MEM_PROT_FMT_ARGS(Segment.getMaxProt(IsBigEndian)));
+            "\t" MEM_PROT_INIT_MAX_RNG_FMT "\n",
+            MEM_PROT_INIT_MAX_RNG_FMT_ARGS(Segment.getInitProt(IsBigEndian),
+                                           Segment.getMaxProt(IsBigEndian)));
 
     MachOLoadCommandPrinterWriteFileAndVmRange<false>(OutFile,
                                                       FileRange,
