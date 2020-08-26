@@ -520,6 +520,6 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
           OutFile);
 
     fputs("\t--image <path-or-ordinal>, Select image (at path or ordinal) of a "
-          "Apple dyld_shared_cache_file\n",
+          "Apple dyld_shared_cache file\n",
           OutFile);
 }
