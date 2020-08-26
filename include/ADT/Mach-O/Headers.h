@@ -906,8 +906,7 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr inline FlagsType getFlags() const noexcept {
-            const auto Flags = SwitchEndianIf(this->Flags, this->IsBigEndian());
-            return Flags;
+            return SwitchEndianIf(this->Flags, this->IsBigEndian());
         }
 
         constexpr inline Header &setCpuKind(Mach::CpuKind Kind) noexcept {

@@ -207,7 +207,7 @@ OperationCommon::HandleBindOpcodeParseError(
             fputs("Invalid Bind-Info: Segment-Index not set\n", ErrFile);
             return 1;
         case MachO::BindOpcodeParseError::NoWriteKind:
-            fputs("Invalid Bind-Info: Bind-Type not set\n", ErrFile);
+            fputs("Invalid Bind-Info: Bind Write-Kind not set\n", ErrFile);
             return 1;
     }
 

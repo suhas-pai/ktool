@@ -69,7 +69,7 @@ CollectRebaseOpcodeList(
         switch (Byte.getOpcode()) {
             case MachO::RebaseByte::Opcode::Done:
                 break;
-            case MachO::RebaseByte::Opcode::SetTypeImm:
+            case MachO::RebaseByte::Opcode::SetKindImm:
                 OpcodeInfo.Kind = IterInfo.Kind;
                 break;
             case MachO::RebaseByte::Opcode::SetSegmentAndOffsetUleb: {
@@ -318,7 +318,7 @@ PrintRebaseOpcodeList(
             case MachO::RebaseByte::Opcode::Done:
                 fputc('\n', Options.OutFile);
                 break;
-            case MachO::RebaseByte::Opcode::SetTypeImm: {
+            case MachO::RebaseByte::Opcode::SetKindImm: {
                 auto KindName = MachO::RebaseWriteKindGetName(Iter.Kind).data();
                 if (KindName == nullptr) {
                     KindName = "<unrecognized>";

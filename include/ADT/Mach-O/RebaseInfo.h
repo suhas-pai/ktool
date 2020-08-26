@@ -20,7 +20,7 @@
 namespace MachO {
     enum class RebaseByteOpcode : uint8_t {
         Done,
-        SetTypeImm                = 0x10,
+        SetKindImm                = 0x10,
         SetSegmentAndOffsetUleb   = 0x20,
         AddAddrUleb               = 0x30,
         AddAddrImmScaled          = 0x40,
@@ -44,8 +44,8 @@ namespace MachO {
     };
 
     template <>
-    struct RebaseByteOpcodeInfo<RebaseByteOpcode::SetTypeImm> {
-        constexpr static const auto Kind = RebaseByteOpcode::SetTypeImm;
+    struct RebaseByteOpcodeInfo<RebaseByteOpcode::SetKindImm> {
+        constexpr static const auto Kind = RebaseByteOpcode::SetKindImm;
 
         constexpr static const auto Name = "REBASE_OPCODE_SET_TYPE_IMM"sv;
         constexpr static const auto Description =
@@ -124,8 +124,8 @@ namespace MachO {
         switch (Opcode) {
             case RebaseByteOpcode::Done:
                 return RebaseByteOpcodeInfo<RebaseByteOpcode::Done>::Name;
-            case RebaseByteOpcode::SetTypeImm:
-                return RebaseByteOpcodeInfo<RebaseByteOpcode::SetTypeImm>::Name;
+            case RebaseByteOpcode::SetKindImm:
+                return RebaseByteOpcodeInfo<RebaseByteOpcode::SetKindImm>::Name;
             case RebaseByteOpcode::SetSegmentAndOffsetUleb:
                 return
                     RebaseByteOpcodeInfo<
@@ -164,9 +164,9 @@ namespace MachO {
             case RebaseByteOpcode::Done:
                 return
                     RebaseByteOpcodeInfo<RebaseByteOpcode::Done>::Description;
-            case RebaseByteOpcode::SetTypeImm:
+            case RebaseByteOpcode::SetKindImm:
                 return
-                    RebaseByteOpcodeInfo<RebaseByteOpcode::SetTypeImm>
+                    RebaseByteOpcodeInfo<RebaseByteOpcode::SetKindImm>
                         ::Description;
             case RebaseByteOpcode::SetSegmentAndOffsetUleb:
                 return
@@ -242,8 +242,8 @@ namespace MachO {
     };
 
     [[nodiscard]] constexpr static const std::string_view &
-    RebaseWriteKindGetName(RebaseWriteKind Type) noexcept {
-        switch (Type) {
+    RebaseWriteKindGetName(RebaseWriteKind Kind) noexcept {
+        switch (Kind) {
             case RebaseWriteKind::None:
                 return EmptyStringValue;
             case RebaseWriteKind::Pointer:
@@ -258,8 +258,8 @@ namespace MachO {
     }
 
     [[nodiscard]] constexpr const std::string_view &
-    RebaseWriteKindGetDescription(RebaseWriteKind Type) noexcept {
-        switch (Type) {
+    RebaseWriteKindGetDescription(RebaseWriteKind Kind) noexcept {
+        switch (Kind) {
             case RebaseWriteKind::None:
                 return EmptyStringValue;
             case RebaseWriteKind::Pointer:
@@ -531,7 +531,7 @@ namespace MachO {
                 case RebaseByte::Opcode::Done:
                     ReachedEnd = true;
                     return ErrorEnum::None;
-                case RebaseByte::Opcode::SetTypeImm:
+                case RebaseByte::Opcode::SetKindImm:
                     Info->Kind = RebaseByte::WriteKind(Byte.getImmediate());
                     switch (Info->Kind) {
                         case RebaseByte::WriteKind::None:
@@ -685,7 +685,7 @@ namespace MachO {
         : Iter(Begin, End, std::make_unique<RebaseActionIterateInfo>()),
           Is64Bit(Is64Bit)
         {
-            LastByte.SetOpcode(RebaseByte::Opcode::SetTypeImm);
+            LastByte.SetOpcode(RebaseByte::Opcode::SetKindImm);
             ++(*this);
         }
 
@@ -817,7 +817,7 @@ namespace MachO {
                         }
 
                         Info.AddrInSeg += AddAmt;
-                        LastByte.SetOpcode(RebaseByte::Opcode::SetTypeImm);
+                        LastByte.SetOpcode(RebaseByte::Opcode::SetKindImm);
 
                         Iter++;
                         break;
@@ -825,7 +825,7 @@ namespace MachO {
 
                 case RebaseByte::Opcode::DoRebaseAddAddrUleb:
                     // Clear the Last-Opcode.
-                    LastByte.SetOpcode(RebaseByte::Opcode::SetTypeImm);
+                    LastByte.SetOpcode(RebaseByte::Opcode::SetKindImm);
                     FinalizeChangesForSegmentAddress();
                     Iter++;
 
@@ -834,7 +834,7 @@ namespace MachO {
                 case RebaseByte::Opcode::Done:
                     return ErrorEnum::None;
 
-                case RebaseByte::Opcode::SetTypeImm:
+                case RebaseByte::Opcode::SetKindImm:
                 case RebaseByte::Opcode::SetSegmentAndOffsetUleb:
                 case RebaseByte::Opcode::AddAddrImmScaled:
                 case RebaseByte::Opcode::AddAddrUleb:
@@ -876,7 +876,7 @@ namespace MachO {
 
                 switch (Byte.getOpcode()) {
                     case RebaseByte::Opcode::Done:
-                    case RebaseByte::Opcode::SetTypeImm:
+                    case RebaseByte::Opcode::SetKindImm:
                         continue;
                     case RebaseByte::Opcode::SetSegmentAndOffsetUleb:
                         Info.AddrInSeg = IterInfo.SegOffset;

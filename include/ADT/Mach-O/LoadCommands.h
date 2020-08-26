@@ -215,14 +215,14 @@ namespace MachO {
             }
         }
 
-        enum class CmdSizeInvalidType {
+        enum class CmdSizeInvalidKind {
             None,
             TooSmall,
             TooLarge
         };
 
         [[nodiscard]]
-        LoadCommand::CmdSizeInvalidType
+        LoadCommand::CmdSizeInvalidKind
         ValidateCmdsize(const LoadCommand *LoadCmd, bool IsBigEndian) noexcept;
 
         uint32_t Cmd;
@@ -259,19 +259,19 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::Segment);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SegmentCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         struct Section {
@@ -497,19 +497,19 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::Segment64);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SegmentCommand64)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         struct Section {
@@ -873,19 +873,19 @@ namespace MachO {
             return IsOfKind;
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(FixedVMSharedLibraryCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         FixedVmSharedLibraryInfo Info;
@@ -914,19 +914,19 @@ namespace MachO {
             return IsOfKind;
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(DylibCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         struct Info {
@@ -1007,19 +1007,19 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::SubFramework);
         }
 
-        [[nodiscard]] constexpr inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] constexpr inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SubFrameworkCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         LoadCommandString Umbrella;
@@ -1040,19 +1040,19 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::SubClient);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SubClientCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         LoadCommandString Client;
@@ -1073,19 +1073,19 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::SubUmbrella);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SubUmbrellaCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         LoadCommandString Umbrella;
@@ -1106,19 +1106,19 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::SubLibrary);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SubLibraryCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         LoadCommandString Library;
@@ -1139,19 +1139,19 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::PreBoundDylib);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(PreBoundDylibCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         LoadCommandString Name;
@@ -1184,19 +1184,19 @@ namespace MachO {
             return IsOfKind;
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(DylinkerCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         LoadCommandString Name;
@@ -1221,19 +1221,19 @@ namespace MachO {
             return IsOfKind;
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(ThreadCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
     };
 
@@ -1243,23 +1243,23 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::Routines);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(RoutinesCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(RoutinesCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint32_t InitAddress;
@@ -1279,23 +1279,23 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::Routines64);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(RoutinesCommand64)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(RoutinesCommand64)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint64_t InitAddress;
@@ -1554,23 +1554,23 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::SymbolTable);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]]
-        constexpr static inline LoadCommand::CmdSizeInvalidType
+        constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SymTabCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(SymTabCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint32_t SymOff;
@@ -1652,23 +1652,23 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::DynamicSymbolTable);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(DynamicSymTabCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(DynamicSymTabCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint32_t ILocalSymbols;
@@ -1982,23 +1982,23 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::TwoLevelHints);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(TwoLevelHintsCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(TwoLevelHintsCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         struct Hint {
@@ -2048,23 +2048,23 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::PrebindChecksum);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(PrebindChecksumCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(PrebindChecksumCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint32_t CheckSum;
@@ -2087,23 +2087,23 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::Uuid);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(UuidCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(UuidCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint8_t Uuid[16];
@@ -2115,19 +2115,19 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::Rpath);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(RpathCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         LoadCommandString Path;
@@ -2158,22 +2158,22 @@ namespace MachO {
             return IsOfKind;
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(LinkeditDataCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(LinkeditDataCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint32_t DataOff;
@@ -2283,22 +2283,22 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::EncryptionInfo);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(EncryptionInfoCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(EncryptionInfoCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint32_t CryptOff;
@@ -2345,22 +2345,22 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::EncryptionInfo64);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(EncryptionInfoCommand64)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(EncryptionInfoCommand64)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint32_t CryptOff;
@@ -2425,23 +2425,23 @@ namespace MachO {
             return IsOfKind;
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(VersionMinimumCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(VersionMinimumCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint32_t Version;
@@ -2740,12 +2740,12 @@ namespace MachO {
             }
         };
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             const auto InvalidType =
                 hasValidCmdSize(getCmdSize(IsBigEndian));
 
-            if (InvalidType != LoadCommand::CmdSizeInvalidType::None) {
+            if (InvalidType != LoadCommand::CmdSizeInvalidKind::None) {
                 return InvalidType;
             }
 
@@ -2753,26 +2753,26 @@ namespace MachO {
             if (DoesMultiplyAndAddOverflow(sizeof(Tool), NTools, sizeof(*this),
                                            &ExpectedSize))
             {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > ExpectedSize) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             } else if (CmdSize < ExpectedSize) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(BuildVersionCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint32_t Platform;
@@ -2847,22 +2847,22 @@ namespace MachO {
             return IsOfKind;
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(DyldInfoCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(DyldInfoCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint32_t RebaseOff;
@@ -3227,19 +3227,19 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::LinkerOption);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(LinkerOptionCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint32_t Offset;
@@ -3274,23 +3274,23 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::SymbolSegment);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SymbolSegmentCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(SymbolSegmentCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint32_t Offset;
@@ -3325,19 +3325,19 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::Ident);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(IdentCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
     };
 
@@ -3347,19 +3347,19 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::FixedVMFile);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(FixedVMFileCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         LoadCommandString Name;
@@ -3392,23 +3392,23 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::Main);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(EntryPointCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(EntryPointCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint64_t EntryOffset;
@@ -3527,23 +3527,23 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::SourceVersion);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SourceVersionCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(SourceVersionCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         uint64_t Version;
@@ -3566,23 +3566,23 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::Note);
         }
 
-        [[nodiscard]] inline LoadCommand::CmdSizeInvalidType
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidType
+        static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(NoteCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooSmall;
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
             }
 
             if (CmdSize > sizeof(NoteCommand)) {
-                return LoadCommand::CmdSizeInvalidType::TooLarge;
+                return LoadCommand::CmdSizeInvalidKind::TooLarge;
             }
 
-            return LoadCommand::CmdSizeInvalidType::None;
+            return LoadCommand::CmdSizeInvalidKind::None;
         }
 
         char DataOwner[16];

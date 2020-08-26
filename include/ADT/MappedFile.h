@@ -43,7 +43,7 @@ public:
         Execute = PROT_EXEC
     };
 
-    enum class Type {
+    enum class MapKind {
         Private = MAP_PRIVATE,
         Shared = MAP_SHARED
     };
@@ -97,7 +97,7 @@ public:
     inline ~MappedFile() noexcept { Close(); }
 
     [[nodiscard]] static MappedFile
-    Open(const FileDescriptor &Fd, Protections Prot, Type Type) noexcept;
+    Open(const FileDescriptor &Fd, Protections Prot, MapKind MapKind) noexcept;
 
     [[nodiscard]] inline bool IsEmpty() const noexcept {
         return (Map == nullptr);

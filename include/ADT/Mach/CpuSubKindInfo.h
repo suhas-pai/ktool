@@ -18,7 +18,7 @@
 
 namespace Mach {
     struct CpuSubKindInfo {
-        DefaultStructVariable<int32_t> SubType;
+        DefaultStructVariable<int32_t> SubKind;
 
         DefaultStructVariable<std::string_view> Name;
         DefaultStructVariable<std::string_view> FullName;
@@ -35,14 +35,14 @@ namespace Mach {
         DefaultStructVariable<std::string_view> BrandName;
         DefaultStructVariable<std::string_view> Description;
 
-        DefaultStructVariable<const CpuSubKindInfo *> SubTypeTable;
+        DefaultStructVariable<const CpuSubKindInfo *> SubKindTable;
     };
 
     using namespace CpuSubKind;
 
     constexpr struct CpuSubKindInfo AnyCpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Any::Multiple),
+            .SubKind = static_cast<int32_t>(Any::Multiple),
             .Name = CpuSubKindAnyInfo<Any::Multiple>::Name,
             .FullName = CpuSubKindAnyInfo<Any::Multiple>::FullName,
             .Description = CpuSubKindAnyInfo<Any::Multiple>::Description,
@@ -50,7 +50,7 @@ namespace Mach {
             .IsBigEndian = false,
         },
         {
-            .SubType = static_cast<int32_t>(Any::LittleEndian),
+            .SubKind = static_cast<int32_t>(Any::LittleEndian),
             .Name = CpuSubKindAnyInfo<Any::LittleEndian>::Name,
             .FullName = CpuSubKindAnyInfo<Any::LittleEndian>::FullName,
             .Description = CpuSubKindAnyInfo<Any::LittleEndian>::Description,
@@ -58,7 +58,7 @@ namespace Mach {
             .IsBigEndian = false,
         },
         {
-            .SubType = static_cast<int32_t>(Any::BigEndian),
+            .SubKind = static_cast<int32_t>(Any::BigEndian),
             .Name = CpuSubKindAnyInfo<Any::BigEndian>::Name,
             .FullName = CpuSubKindAnyInfo<Any::BigEndian>::FullName,
             .Description = CpuSubKindAnyInfo<Any::BigEndian>::Description,
@@ -69,7 +69,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo VaxCpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Vax::All),
+            .SubKind = static_cast<int32_t>(Vax::All),
             .Name = CpuSubKindVaxInfo<Vax::All>::Name,
             .FullName = CpuSubKindVaxInfo<Vax::All>::FullName,
             .Description = CpuSubKindVaxInfo<Vax::All>::Description,
@@ -77,7 +77,7 @@ namespace Mach {
             .IsBigEndian = false,
         },
         {
-            .SubType = static_cast<int32_t>(Vax::n780),
+            .SubKind = static_cast<int32_t>(Vax::n780),
             .Name = CpuSubKindVaxInfo<Vax::n780>::Name,
             .FullName = CpuSubKindVaxInfo<Vax::n780>::FullName,
             .Description = CpuSubKindVaxInfo<Vax::n780>::Description,
@@ -85,7 +85,7 @@ namespace Mach {
             .IsBigEndian = false,
         },
         {
-            .SubType = static_cast<int32_t>(Vax::n785),
+            .SubKind = static_cast<int32_t>(Vax::n785),
             .Name = CpuSubKindVaxInfo<Vax::n785>::Name,
             .FullName = CpuSubKindVaxInfo<Vax::n785>::FullName,
             .Description = CpuSubKindVaxInfo<Vax::n785>::Description,
@@ -93,7 +93,7 @@ namespace Mach {
             .IsBigEndian = false,
         },
         {
-            .SubType = static_cast<int32_t>(Vax::n750),
+            .SubKind = static_cast<int32_t>(Vax::n750),
             .Name = CpuSubKindVaxInfo<Vax::n750>::Name,
             .FullName = CpuSubKindVaxInfo<Vax::n750>::FullName,
             .Description = CpuSubKindVaxInfo<Vax::n750>::Description,
@@ -101,7 +101,7 @@ namespace Mach {
             .IsBigEndian = false,
         },
         {
-            .SubType = static_cast<int32_t>(Vax::n730),
+            .SubKind = static_cast<int32_t>(Vax::n730),
             .Name = CpuSubKindVaxInfo<Vax::n730>::Name,
             .FullName = CpuSubKindVaxInfo<Vax::n730>::FullName,
             .Description = CpuSubKindVaxInfo<Vax::n730>::Description,
@@ -109,7 +109,7 @@ namespace Mach {
             .IsBigEndian = false,
         },
         {
-            .SubType = static_cast<int32_t>(Vax::UvaXI),
+            .SubKind = static_cast<int32_t>(Vax::UvaXI),
             .Name = CpuSubKindVaxInfo<Vax::UvaXI>::Name,
             .FullName = CpuSubKindVaxInfo<Vax::UvaXI>::FullName,
             .Description = CpuSubKindVaxInfo<Vax::UvaXI>::Description,
@@ -117,7 +117,7 @@ namespace Mach {
             .IsBigEndian = false,
         },
         {
-            .SubType = static_cast<int32_t>(Vax::n8200),
+            .SubKind = static_cast<int32_t>(Vax::n8200),
             .Name = CpuSubKindVaxInfo<Vax::n8200>::Name,
             .FullName = CpuSubKindVaxInfo<Vax::n8200>::FullName,
             .Description = CpuSubKindVaxInfo<Vax::n8200>::Description,
@@ -125,7 +125,7 @@ namespace Mach {
             .IsBigEndian = false,
         },
         {
-            .SubType = static_cast<int32_t>(Vax::n8500),
+            .SubKind = static_cast<int32_t>(Vax::n8500),
             .Name = CpuSubKindVaxInfo<Vax::n8500>::Name,
             .FullName = CpuSubKindVaxInfo<Vax::n8500>::FullName,
             .Description = CpuSubKindVaxInfo<Vax::n8500>::Description,
@@ -133,7 +133,7 @@ namespace Mach {
             .IsBigEndian = false,
         },
         {
-            .SubType = static_cast<int32_t>(Vax::n8650),
+            .SubKind = static_cast<int32_t>(Vax::n8650),
             .Name = CpuSubKindVaxInfo<Vax::n8650>::Name,
             .FullName = CpuSubKindVaxInfo<Vax::n8650>::FullName,
             .Description = CpuSubKindVaxInfo<Vax::n8650>::Description,
@@ -141,7 +141,7 @@ namespace Mach {
             .IsBigEndian = false,
         },
         {
-            .SubType = static_cast<int32_t>(Vax::n8800),
+            .SubKind = static_cast<int32_t>(Vax::n8800),
             .Name = CpuSubKindVaxInfo<Vax::n8500>::Name,
             .FullName = CpuSubKindVaxInfo<Vax::n8500>::FullName,
             .Description = CpuSubKindVaxInfo<Vax::n8500>::Description,
@@ -149,7 +149,7 @@ namespace Mach {
             .IsBigEndian = false,
         },
         {
-            .SubType = static_cast<int32_t>(Vax::UvaXII),
+            .SubKind = static_cast<int32_t>(Vax::UvaXII),
             .Name = CpuSubKindVaxInfo<Vax::UvaXII>::Name,
             .FullName = CpuSubKindVaxInfo<Vax::UvaXII>::FullName,
             .Description = CpuSubKindVaxInfo<Vax::UvaXII>::Description,
@@ -157,7 +157,7 @@ namespace Mach {
             .IsBigEndian = false,
         },
         {
-            .SubType = static_cast<int32_t>(Vax::UvaXIII),
+            .SubKind = static_cast<int32_t>(Vax::UvaXIII),
             .Name = CpuSubKindVaxInfo<Vax::UvaXIII>::Name,
             .FullName = CpuSubKindVaxInfo<Vax::UvaXIII>::FullName,
             .Description = CpuSubKindVaxInfo<Vax::UvaXIII>::Description,
@@ -168,7 +168,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo RompCpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Romp::All),
+            .SubKind = static_cast<int32_t>(Romp::All),
             .Name = CpuSubKindRompInfo<Romp::All>::Name,
             .FullName = CpuSubKindRompInfo<Romp::All>::FullName,
             .Description = CpuSubKindRompInfo<Romp::All>::Description,
@@ -176,7 +176,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Romp::Pc),
+            .SubKind = static_cast<int32_t>(Romp::Pc),
             .Name = CpuSubKindRompInfo<Romp::Pc>::Name,
             .FullName = CpuSubKindRompInfo<Romp::Pc>::FullName,
             .Description = CpuSubKindRompInfo<Romp::Pc>::Description,
@@ -184,7 +184,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Romp::Apc),
+            .SubKind = static_cast<int32_t>(Romp::Apc),
             .Name = CpuSubKindRompInfo<Romp::Apc>::Name,
             .FullName = CpuSubKindRompInfo<Romp::Apc>::FullName,
             .Description = CpuSubKindRompInfo<Romp::Apc>::Description,
@@ -192,7 +192,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Romp::n135),
+            .SubKind = static_cast<int32_t>(Romp::n135),
             .Name = CpuSubKindRompInfo<Romp::All>::Name,
             .FullName = CpuSubKindRompInfo<Romp::All>::FullName,
             .Description = CpuSubKindRompInfo<Romp::All>::Description,
@@ -203,7 +203,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo MmaxCpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Mmax::All),
+            .SubKind = static_cast<int32_t>(Mmax::All),
             .Name = CpuSubKindMmaxInfo<Mmax::All>::Name,
             .FullName = CpuSubKindMmaxInfo<Mmax::All>::FullName,
             .Description = CpuSubKindMmaxInfo<Mmax::All>::Description,
@@ -211,7 +211,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Mmax::Dpc),
+            .SubKind = static_cast<int32_t>(Mmax::Dpc),
             .Name = CpuSubKindMmaxInfo<Mmax::All>::Name,
             .FullName = CpuSubKindMmaxInfo<Mmax::All>::FullName,
             .Description = CpuSubKindMmaxInfo<Mmax::All>::Description,
@@ -219,7 +219,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Mmax::Sqt),
+            .SubKind = static_cast<int32_t>(Mmax::Sqt),
             .Name = CpuSubKindMmaxInfo<Mmax::All>::Name,
             .FullName = CpuSubKindMmaxInfo<Mmax::All>::FullName,
             .Description = CpuSubKindMmaxInfo<Mmax::All>::Description,
@@ -227,7 +227,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Mmax::ApcFPU),
+            .SubKind = static_cast<int32_t>(Mmax::ApcFPU),
             .Name = CpuSubKindMmaxInfo<Mmax::All>::Name,
             .FullName = CpuSubKindMmaxInfo<Mmax::All>::FullName,
             .Description = CpuSubKindMmaxInfo<Mmax::All>::Description,
@@ -235,7 +235,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Mmax::ApcFPA),
+            .SubKind = static_cast<int32_t>(Mmax::ApcFPA),
             .Name = CpuSubKindMmaxInfo<Mmax::All>::Name,
             .FullName = CpuSubKindMmaxInfo<Mmax::All>::FullName,
             .Description = CpuSubKindMmaxInfo<Mmax::All>::Description,
@@ -243,7 +243,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Mmax::Xpc),
+            .SubKind = static_cast<int32_t>(Mmax::Xpc),
             .Name = CpuSubKindMmaxInfo<Mmax::All>::Name,
             .FullName = CpuSubKindMmaxInfo<Mmax::All>::FullName,
             .Description = CpuSubKindMmaxInfo<Mmax::All>::Description,
@@ -254,7 +254,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo i386CpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(i386::All),
+            .SubKind = static_cast<int32_t>(i386::All),
             .Name = CpuSubKindi386Info<i386::All>::Name,
             .FullName = CpuSubKindi386Info<i386::All>::FullName,
             .Description = CpuSubKindi386Info<i386::All>::Description,
@@ -262,7 +262,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(i386::n486),
+            .SubKind = static_cast<int32_t>(i386::n486),
             .Name = CpuSubKindi386Info<i386::n486>::Name,
             .FullName = CpuSubKindi386Info<i386::n486>::FullName,
             .Description = CpuSubKindi386Info<i386::n486>::Description,
@@ -270,7 +270,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(i386::n486sx),
+            .SubKind = static_cast<int32_t>(i386::n486sx),
             .Name = CpuSubKindi386Info<i386::n486sx>::Name,
             .FullName = CpuSubKindi386Info<i386::n486sx>::FullName,
             .Description = CpuSubKindi386Info<i386::n486sx>::Description,
@@ -278,7 +278,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(i386::Pentium),
+            .SubKind = static_cast<int32_t>(i386::Pentium),
             .Name = CpuSubKindi386Info<i386::Pentium>::Name,
             .FullName = CpuSubKindi386Info<i386::Pentium>::FullName,
             .Description = CpuSubKindi386Info<i386::Pentium>::Description,
@@ -286,7 +286,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(i386::PentiumPro),
+            .SubKind = static_cast<int32_t>(i386::PentiumPro),
             .Name = CpuSubKindi386Info<i386::PentiumPro>::Name,
             .FullName = CpuSubKindi386Info<i386::PentiumPro>::FullName,
             .Description = CpuSubKindi386Info<i386::PentiumPro>::Description,
@@ -294,7 +294,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(i386::PentiumIIM3),
+            .SubKind = static_cast<int32_t>(i386::PentiumIIM3),
             .Name = CpuSubKindi386Info<i386::PentiumIIM3>::Name,
             .FullName = CpuSubKindi386Info<i386::PentiumIIM3>::FullName,
             .Description = CpuSubKindi386Info<i386::PentiumIIM3>::Description,
@@ -302,7 +302,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(i386::PentiumIIM5),
+            .SubKind = static_cast<int32_t>(i386::PentiumIIM5),
             .Name = CpuSubKindi386Info<i386::PentiumIIM5>::Name,
             .FullName = CpuSubKindi386Info<i386::PentiumIIM5>::FullName,
             .Description = CpuSubKindi386Info<i386::PentiumIIM5>::Description,
@@ -310,7 +310,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(i386::Pentium4),
+            .SubKind = static_cast<int32_t>(i386::Pentium4),
             .Name = CpuSubKindi386Info<i386::Pentium4>::Name,
             .FullName = CpuSubKindi386Info<i386::Pentium4>::FullName,
             .Description = CpuSubKindi386Info<i386::Pentium4>::Description,
@@ -321,7 +321,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo x86_64CpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(x86_64::All),
+            .SubKind = static_cast<int32_t>(x86_64::All),
             .Name = CpuSubKindX86_64Info<x86_64::All>::Name,
             .FullName = CpuSubKindX86_64Info<x86_64::All>::FullName,
             .Description = CpuSubKindX86_64Info<x86_64::All>::Description,
@@ -329,7 +329,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(x86_64::Haswell),
+            .SubKind = static_cast<int32_t>(x86_64::Haswell),
             .Name = CpuSubKindX86_64Info<x86_64::Haswell>::Name,
             .FullName = CpuSubKindX86_64Info<x86_64::Haswell>::FullName,
             .Description = CpuSubKindX86_64Info<x86_64::Haswell>::Description,
@@ -340,7 +340,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo MipsCpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Mips::All),
+            .SubKind = static_cast<int32_t>(Mips::All),
             .Name = CpuSubKindMipsInfo<Mips::All>::Name,
             .FullName = CpuSubKindMipsInfo<Mips::All>::FullName,
             .Description = CpuSubKindMipsInfo<Mips::All>::Description,
@@ -348,7 +348,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Mips::r2300),
+            .SubKind = static_cast<int32_t>(Mips::r2300),
             .Name = CpuSubKindMipsInfo<Mips::r2300>::Name,
             .FullName = CpuSubKindMipsInfo<Mips::r2300>::FullName,
             .Description = CpuSubKindMipsInfo<Mips::r2300>::Description,
@@ -356,7 +356,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Mips::r2600),
+            .SubKind = static_cast<int32_t>(Mips::r2600),
             .Name = CpuSubKindMipsInfo<Mips::r2600>::Name,
             .FullName = CpuSubKindMipsInfo<Mips::r2600>::FullName,
             .Description = CpuSubKindMipsInfo<Mips::r2600>::Description,
@@ -364,7 +364,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Mips::r2800),
+            .SubKind = static_cast<int32_t>(Mips::r2800),
             .Name = CpuSubKindMipsInfo<Mips::r2800>::Name,
             .FullName = CpuSubKindMipsInfo<Mips::r2800>::FullName,
             .Description = CpuSubKindMipsInfo<Mips::r2800>::Description,
@@ -372,7 +372,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Mips::r2000a),
+            .SubKind = static_cast<int32_t>(Mips::r2000a),
             .Name = CpuSubKindMipsInfo<Mips::r2000a>::Name,
             .FullName = CpuSubKindMipsInfo<Mips::r2000a>::FullName,
             .Description = CpuSubKindMipsInfo<Mips::r2000a>::Description,
@@ -383,7 +383,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo Mc680x0CpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Mc680x0::All),
+            .SubKind = static_cast<int32_t>(Mc680x0::All),
             .Name = CpuSubKindMc680x0Info<Mc680x0::All>::Name,
             .FullName = CpuSubKindMc680x0Info<Mc680x0::All>::FullName,
             .Description = CpuSubKindMc680x0Info<Mc680x0::All>::Description,
@@ -391,7 +391,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(Mc680x0::n30),
+            .SubKind = static_cast<int32_t>(Mc680x0::n30),
             .Name = CpuSubKindMc680x0Info<Mc680x0::n30>::Name,
             .FullName = CpuSubKindMc680x0Info<Mc680x0::n30>::FullName,
             .Description = CpuSubKindMc680x0Info<Mc680x0::n30>::Description,
@@ -399,7 +399,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(Mc680x0::n40),
+            .SubKind = static_cast<int32_t>(Mc680x0::n40),
             .Name = CpuSubKindMc680x0Info<Mc680x0::n40>::Name,
             .FullName = CpuSubKindMc680x0Info<Mc680x0::n40>::FullName,
             .Description = CpuSubKindMc680x0Info<Mc680x0::n40>::Description,
@@ -407,7 +407,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(Mc680x0::n30Only),
+            .SubKind = static_cast<int32_t>(Mc680x0::n30Only),
             .Name = CpuSubKindMc680x0Info<Mc680x0::n30Only>::Name,
             .FullName = CpuSubKindMc680x0Info<Mc680x0::n30Only>::FullName,
             .Description = CpuSubKindMc680x0Info<Mc680x0::n30Only>::Description,
@@ -418,7 +418,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo HppaCpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Hppa::All),
+            .SubKind = static_cast<int32_t>(Hppa::All),
             .Name = CpuSubKindHppaInfo<Hppa::All>::Name,
             .FullName = CpuSubKindHppaInfo<Hppa::All>::FullName,
             .Description = CpuSubKindHppaInfo<Hppa::All>::Description,
@@ -426,7 +426,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Hppa::n7100LC),
+            .SubKind = static_cast<int32_t>(Hppa::n7100LC),
             .Name = CpuSubKindHppaInfo<Hppa::n7100LC>::Name,
             .FullName = CpuSubKindHppaInfo<Hppa::n7100LC>::FullName,
             .Description = CpuSubKindHppaInfo<Hppa::n7100LC>::Description,
@@ -437,7 +437,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo ArmCpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Arm::All),
+            .SubKind = static_cast<int32_t>(Arm::All),
             .Name = CpuSubKindArmInfo<Arm::All>::Name,
             .FullName = CpuSubKindArmInfo<Arm::All>::FullName,
             .Description = CpuSubKindArmInfo<Arm::All>::Description,
@@ -445,7 +445,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::A500Arch),
+            .SubKind = static_cast<int32_t>(Arm::A500Arch),
             .Name = CpuSubKindArmInfo<Arm::A500Arch>::Name,
             .FullName = CpuSubKindArmInfo<Arm::A500Arch>::FullName,
             .Description = CpuSubKindArmInfo<Arm::A500Arch>::Description,
@@ -453,7 +453,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::A500),
+            .SubKind = static_cast<int32_t>(Arm::A500),
             .Name = CpuSubKindArmInfo<Arm::A500>::Name,
             .FullName = CpuSubKindArmInfo<Arm::A500>::FullName,
             .Description = CpuSubKindArmInfo<Arm::A500>::Description,
@@ -461,7 +461,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::A440),
+            .SubKind = static_cast<int32_t>(Arm::A440),
             .Name = CpuSubKindArmInfo<Arm::A440>::Name,
             .FullName = CpuSubKindArmInfo<Arm::A440>::FullName,
             .Description = CpuSubKindArmInfo<Arm::A440>::Description,
@@ -469,7 +469,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::m4),
+            .SubKind = static_cast<int32_t>(Arm::m4),
             .Name = CpuSubKindArmInfo<Arm::m4>::Name,
             .FullName = CpuSubKindArmInfo<Arm::m4>::FullName,
             .Description = CpuSubKindArmInfo<Arm::m4>::Description,
@@ -477,7 +477,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::v4T),
+            .SubKind = static_cast<int32_t>(Arm::v4T),
             .Name = CpuSubKindArmInfo<Arm::v4T>::Name,
             .FullName = CpuSubKindArmInfo<Arm::v4T>::FullName,
             .Description = CpuSubKindArmInfo<Arm::v4T>::Description,
@@ -485,7 +485,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::v6),
+            .SubKind = static_cast<int32_t>(Arm::v6),
             .Name = CpuSubKindArmInfo<Arm::v6>::Name,
             .FullName = CpuSubKindArmInfo<Arm::v6>::FullName,
             .Description = CpuSubKindArmInfo<Arm::v6>::Description,
@@ -493,7 +493,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::v5tej),
+            .SubKind = static_cast<int32_t>(Arm::v5tej),
             .Name = CpuSubKindArmInfo<Arm::v5tej>::Name,
             .FullName = CpuSubKindArmInfo<Arm::v5tej>::FullName,
             .Description = CpuSubKindArmInfo<Arm::v5tej>::Description,
@@ -501,7 +501,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::Xscale),
+            .SubKind = static_cast<int32_t>(Arm::Xscale),
             .Name = CpuSubKindArmInfo<Arm::Xscale>::Name,
             .FullName = CpuSubKindArmInfo<Arm::Xscale>::FullName,
             .Description = CpuSubKindArmInfo<Arm::Xscale>::Description,
@@ -509,7 +509,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::v7),
+            .SubKind = static_cast<int32_t>(Arm::v7),
             .Name = CpuSubKindArmInfo<Arm::v7>::Name,
             .FullName = CpuSubKindArmInfo<Arm::v7>::FullName,
             .Description = CpuSubKindArmInfo<Arm::v7>::Description,
@@ -517,7 +517,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::v7f),
+            .SubKind = static_cast<int32_t>(Arm::v7f),
             .Name = CpuSubKindArmInfo<Arm::v7f>::Name,
             .FullName = CpuSubKindArmInfo<Arm::v7f>::FullName,
             .Description = CpuSubKindArmInfo<Arm::v7f>::Description,
@@ -525,7 +525,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::v7s),
+            .SubKind = static_cast<int32_t>(Arm::v7s),
             .Name = CpuSubKindArmInfo<Arm::v7s>::Name,
             .FullName = CpuSubKindArmInfo<Arm::v7s>::FullName,
             .Description = CpuSubKindArmInfo<Arm::v7s>::Description,
@@ -533,7 +533,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::v7k),
+            .SubKind = static_cast<int32_t>(Arm::v7k),
             .Name = CpuSubKindArmInfo<Arm::v7k>::Name,
             .FullName = CpuSubKindArmInfo<Arm::v7k>::FullName,
             .Description = CpuSubKindArmInfo<Arm::v7k>::Description,
@@ -541,7 +541,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::v6m),
+            .SubKind = static_cast<int32_t>(Arm::v6m),
             .Name = CpuSubKindArmInfo<Arm::v6m>::Name,
             .FullName = CpuSubKindArmInfo<Arm::v6m>::FullName,
             .Description = CpuSubKindArmInfo<Arm::v6m>::Description,
@@ -549,7 +549,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::v7m),
+            .SubKind = static_cast<int32_t>(Arm::v7m),
             .Name = CpuSubKindArmInfo<Arm::v7m>::Name,
             .FullName = CpuSubKindArmInfo<Arm::v7m>::FullName,
             .Description = CpuSubKindArmInfo<Arm::v7m>::Description,
@@ -557,7 +557,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::v7em),
+            .SubKind = static_cast<int32_t>(Arm::v7em),
             .Name = CpuSubKindArmInfo<Arm::v7em>::Name,
             .FullName = CpuSubKindArmInfo<Arm::v7em>::FullName,
             .Description = CpuSubKindArmInfo<Arm::v7em>::Description,
@@ -565,7 +565,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm::v8),
+            .SubKind = static_cast<int32_t>(Arm::v8),
             .Name = CpuSubKindArmInfo<Arm::v8>::Name,
             .FullName = CpuSubKindArmInfo<Arm::v8>::FullName,
             .Description = CpuSubKindArmInfo<Arm::v8>::Description,
@@ -576,7 +576,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo Arm64CpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Arm64::All),
+            .SubKind = static_cast<int32_t>(Arm64::All),
             .Name = CpuSubKindArm64Info<Arm64::All>::Name,
             .FullName = CpuSubKindArm64Info<Arm64::All>::FullName,
             .Description = CpuSubKindArm64Info<Arm64::All>::Description,
@@ -584,7 +584,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm64::v8),
+            .SubKind = static_cast<int32_t>(Arm64::v8),
             .Name = CpuSubKindArm64Info<Arm64::v8>::Name,
             .FullName = CpuSubKindArm64Info<Arm64::v8>::FullName,
             .Description = CpuSubKindArm64Info<Arm64::v8>::Description,
@@ -592,7 +592,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Arm64::E),
+            .SubKind = static_cast<int32_t>(Arm64::E),
             .Name = CpuSubKindArm64Info<Arm64::E>::Name,
             .FullName = CpuSubKindArm64Info<Arm64::E>::FullName,
             .Description = CpuSubKindArm64Info<Arm64::E>::Description,
@@ -603,7 +603,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo Arm64_32CpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Arm64_32::v8),
+            .SubKind = static_cast<int32_t>(Arm64_32::v8),
             .Name = CpuSubKindArm64_32Info<Arm64_32::v8>::Name,
             .FullName = CpuSubKindArm64_32Info<Arm64_32::v8>::FullName,
             .Description = CpuSubKindArm64_32Info<Arm64_32 ::v8>::Description,
@@ -614,7 +614,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo Mc88000CpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Mc88000::All),
+            .SubKind = static_cast<int32_t>(Mc88000::All),
             .Name = CpuSubKindMc88000Info<Mc88000::All>::Name,
             .FullName = CpuSubKindMc88000Info<Mc88000::All>::FullName,
             .Description = CpuSubKindMc88000Info<Mc88000::All>::Description,
@@ -622,7 +622,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(Mc88000::n100),
+            .SubKind = static_cast<int32_t>(Mc88000::n100),
             .Name = CpuSubKindMc88000Info<Mc88000::n100>::Name,
             .FullName = CpuSubKindMc88000Info<Mc88000::n100>::FullName,
             .Description = CpuSubKindMc88000Info<Mc88000::n100>::Description,
@@ -630,7 +630,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(Mc88000::n110),
+            .SubKind = static_cast<int32_t>(Mc88000::n110),
             .Name = CpuSubKindMc88000Info<Mc88000::n110>::Name,
             .FullName = CpuSubKindMc88000Info<Mc88000::n110>::FullName,
             .Description = CpuSubKindMc88000Info<Mc88000::n110>::Description,
@@ -641,7 +641,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo Mc98000CpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Mc98000::All),
+            .SubKind = static_cast<int32_t>(Mc98000::All),
             .Name = CpuSubKindMc98000Info<Mc98000::All>::Name,
             .FullName = CpuSubKindMc98000Info<Mc98000::All>::FullName,
             .Description = CpuSubKindMc98000Info<Mc98000::All>::Description,
@@ -649,7 +649,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(Mc98000::n601),
+            .SubKind = static_cast<int32_t>(Mc98000::n601),
             .Name = CpuSubKindMc98000Info<Mc98000::n601>::Name,
             .FullName = CpuSubKindMc98000Info<Mc98000::n601>::FullName,
             .Description = CpuSubKindMc98000Info<Mc98000::n601>::Description,
@@ -660,7 +660,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo i860CpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(i860::All),
+            .SubKind = static_cast<int32_t>(i860::All),
             .Name = CpuSubKindI860Info<i860::All>::Name,
             .FullName = CpuSubKindI860Info<i860::All>::FullName,
             .Description = CpuSubKindI860Info<i860::All>::Description,
@@ -668,7 +668,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(i860::n860),
+            .SubKind = static_cast<int32_t>(i860::n860),
             .Name = CpuSubKindI860Info<i860::n860>::Name,
             .FullName = CpuSubKindI860Info<i860::n860>::FullName,
             .Description = CpuSubKindI860Info<i860::n860>::Description,
@@ -679,7 +679,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo i860LittleEndianCpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(i860Little::All),
+            .SubKind = static_cast<int32_t>(i860Little::All),
             .Name = CpuSubKindI860LittleInfo<i860Little::All>::Name,
             .FullName = CpuSubKindI860LittleInfo<i860Little::All>::FullName,
             .Description = CpuSubKindI860LittleInfo<i860Little::All>::Description,
@@ -687,7 +687,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(i860Little::Default),
+            .SubKind = static_cast<int32_t>(i860Little::Default),
             .Name = CpuSubKindI860LittleInfo<i860Little::Default>::Name,
             .FullName = CpuSubKindI860LittleInfo<i860Little::Default>::FullName,
             .Description =
@@ -700,7 +700,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo RS9600CpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Rs9600::All),
+            .SubKind = static_cast<int32_t>(Rs9600::All),
             .Name = CpuSubKindRs9600Info<Rs9600::All>::Name,
             .FullName = CpuSubKindRs9600Info<Rs9600::All>::FullName,
             .Description = CpuSubKindRs9600Info<Rs9600::All>::Description,
@@ -708,7 +708,7 @@ namespace Mach {
             .IsBigEndian = false
         },
         {
-            .SubType = static_cast<int32_t>(Rs9600::Default),
+            .SubKind = static_cast<int32_t>(Rs9600::Default),
             .Name = CpuSubKindRs9600Info<Rs9600::Default>::Name,
             .FullName = CpuSubKindRs9600Info<Rs9600::Default>::FullName,
             .Description = CpuSubKindRs9600Info<Rs9600::Default>::Description,
@@ -719,7 +719,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo SparcCpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Sparc::All),
+            .SubKind = static_cast<int32_t>(Sparc::All),
             .Name = CpuSubKindSparcInfo<Sparc::All>::Name,
             .FullName = CpuSubKindSparcInfo<Sparc::All>::FullName,
             .Description = CpuSubKindSparcInfo<Sparc::All>::Description,
@@ -730,7 +730,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo PowerPCCpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(PowerPC::All),
+            .SubKind = static_cast<int32_t>(PowerPC::All),
             .Name = CpuSubKindPowerPCInfo<PowerPC::All>::Name,
             .FullName = CpuSubKindPowerPCInfo<PowerPC::All>::FullName,
             .Description = CpuSubKindPowerPCInfo<PowerPC::All>::Description,
@@ -738,7 +738,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(PowerPC::n601),
+            .SubKind = static_cast<int32_t>(PowerPC::n601),
             .Name = CpuSubKindPowerPCInfo<PowerPC::n601>::Name,
             .FullName = CpuSubKindPowerPCInfo<PowerPC::n601>::FullName,
             .Description = CpuSubKindPowerPCInfo<PowerPC::n601>::Description,
@@ -746,7 +746,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(PowerPC::n602),
+            .SubKind = static_cast<int32_t>(PowerPC::n602),
             .Name = CpuSubKindPowerPCInfo<PowerPC::n602>::Name,
             .FullName = CpuSubKindPowerPCInfo<PowerPC::n602>::FullName,
             .Description = CpuSubKindPowerPCInfo<PowerPC::n602>::Description,
@@ -754,7 +754,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(PowerPC::n603),
+            .SubKind = static_cast<int32_t>(PowerPC::n603),
             .Name = CpuSubKindPowerPCInfo<PowerPC::n603>::Name,
             .FullName = CpuSubKindPowerPCInfo<PowerPC::n603>::FullName,
             .Description = CpuSubKindPowerPCInfo<PowerPC::n603>::Description,
@@ -762,7 +762,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(PowerPC::n603e),
+            .SubKind = static_cast<int32_t>(PowerPC::n603e),
             .Name = CpuSubKindPowerPCInfo<PowerPC::n603e>::Name,
             .FullName = CpuSubKindPowerPCInfo<PowerPC::n603e>::FullName,
             .Description = CpuSubKindPowerPCInfo<PowerPC::n603e>::Description,
@@ -770,7 +770,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(PowerPC::n603ev),
+            .SubKind = static_cast<int32_t>(PowerPC::n603ev),
             .Name = CpuSubKindPowerPCInfo<PowerPC::n603ev>::Name,
             .FullName = CpuSubKindPowerPCInfo<PowerPC::n603ev>::FullName,
             .Description = CpuSubKindPowerPCInfo<PowerPC::n603ev>::Description,
@@ -778,7 +778,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(PowerPC::n604),
+            .SubKind = static_cast<int32_t>(PowerPC::n604),
             .Name = CpuSubKindPowerPCInfo<PowerPC::n604>::Name,
             .FullName = CpuSubKindPowerPCInfo<PowerPC::n604>::FullName,
             .Description = CpuSubKindPowerPCInfo<PowerPC::n604>::Description,
@@ -786,7 +786,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(PowerPC::n604e),
+            .SubKind = static_cast<int32_t>(PowerPC::n604e),
             .Name = CpuSubKindPowerPCInfo<PowerPC::n604e>::Name,
             .FullName = CpuSubKindPowerPCInfo<PowerPC::n604e>::FullName,
             .Description = CpuSubKindPowerPCInfo<PowerPC::n604e>::Description,
@@ -794,7 +794,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(PowerPC::n620),
+            .SubKind = static_cast<int32_t>(PowerPC::n620),
             .Name = CpuSubKindPowerPCInfo<PowerPC::n620>::Name,
             .FullName = CpuSubKindPowerPCInfo<PowerPC::n620>::FullName,
             .Description = CpuSubKindPowerPCInfo<PowerPC::n620>::Description,
@@ -802,7 +802,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(PowerPC::n750),
+            .SubKind = static_cast<int32_t>(PowerPC::n750),
             .Name = CpuSubKindPowerPCInfo<PowerPC::n750>::Name,
             .FullName = CpuSubKindPowerPCInfo<PowerPC::n750>::FullName,
             .Description = CpuSubKindPowerPCInfo<PowerPC::n750>::Description,
@@ -810,7 +810,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(PowerPC::n7400),
+            .SubKind = static_cast<int32_t>(PowerPC::n7400),
             .Name = CpuSubKindPowerPCInfo<PowerPC::n7400>::Name,
             .FullName = CpuSubKindPowerPCInfo<PowerPC::n7400>::FullName,
             .Description = CpuSubKindPowerPCInfo<PowerPC::n7400>::Description,
@@ -818,7 +818,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(PowerPC::n7500),
+            .SubKind = static_cast<int32_t>(PowerPC::n7500),
             .Name = CpuSubKindPowerPCInfo<PowerPC::n7500>::Name,
             .FullName = CpuSubKindPowerPCInfo<PowerPC::n7500>::FullName,
             .Description = CpuSubKindPowerPCInfo<PowerPC::n7500>::Description,
@@ -826,7 +826,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(PowerPC::n970),
+            .SubKind = static_cast<int32_t>(PowerPC::n970),
             .Name = CpuSubKindPowerPCInfo<PowerPC::n970>::Name,
             .FullName = CpuSubKindPowerPCInfo<PowerPC::n970>::FullName,
             .Description = CpuSubKindPowerPCInfo<PowerPC::n970>::Description,
@@ -837,7 +837,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo PowerPC64CpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(PowerPC64::All),
+            .SubKind = static_cast<int32_t>(PowerPC64::All),
             .Name = CpuSubKindPowerPC64Info<PowerPC64::All>::Name,
             .FullName = CpuSubKindPowerPC64Info<PowerPC64::All>::FullName,
             .Description = CpuSubKindPowerPC64Info<PowerPC64::All>::Description,
@@ -845,7 +845,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(PowerPC64::n970),
+            .SubKind = static_cast<int32_t>(PowerPC64::n970),
             .Name = CpuSubKindPowerPC64Info<PowerPC64::n970>::Name,
             .FullName = CpuSubKindPowerPC64Info<PowerPC64::n970>::FullName,
             .Description =
@@ -858,7 +858,7 @@ namespace Mach {
 
     constexpr struct CpuSubKindInfo VeoCpuSubKindTable[] = {
         {
-            .SubType = static_cast<int32_t>(Veo::n1),
+            .SubKind = static_cast<int32_t>(Veo::n1),
             .Name = CpuSubKindVeoInfo<Veo::n1>::Name,
             .FullName = CpuSubKindVeoInfo<Veo::n1>::FullName,
             .Description = CpuSubKindVeoInfo<Veo::n1>::Description,
@@ -866,7 +866,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(Veo::n2),
+            .SubKind = static_cast<int32_t>(Veo::n2),
             .Name = CpuSubKindVeoInfo<Veo::n2>::Name,
             .FullName = CpuSubKindVeoInfo<Veo::n2>::FullName,
             .Description = CpuSubKindVeoInfo<Veo::n2>::Description,
@@ -874,7 +874,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(Veo::n3),
+            .SubKind = static_cast<int32_t>(Veo::n3),
             .Name = CpuSubKindVeoInfo<Veo::n3>::Name,
             .FullName = CpuSubKindVeoInfo<Veo::n3>::FullName,
             .Description = CpuSubKindVeoInfo<Veo::n3>::Description,
@@ -882,7 +882,7 @@ namespace Mach {
             .IsBigEndian = true
         },
         {
-            .SubType = static_cast<int32_t>(Veo::n4),
+            .SubKind = static_cast<int32_t>(Veo::n4),
             .Name = CpuSubKindVeoInfo<Veo::n4>::Name,
             .FullName = CpuSubKindVeoInfo<Veo::n4>::FullName,
             .Description = CpuSubKindVeoInfo<Veo::n4>::Description,
@@ -897,105 +897,105 @@ namespace Mach {
             .Name = CpuKindTemplateInfo<CpuKind::Any>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Any>::Name,
             .Description = CpuKindTemplateInfo<CpuKind::Any>::Name,
-            .SubTypeTable = AnyCpuSubKindTable
+            .SubKindTable = AnyCpuSubKindTable
         },
         {
             .CpuKind = CpuKind::Vax,
             .Name = CpuKindTemplateInfo<CpuKind::Vax>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Vax>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::Vax>::Description,
-            .SubTypeTable = VaxCpuSubKindTable
+            .SubKindTable = VaxCpuSubKindTable
         },
         {
             .CpuKind = CpuKind::Romp,
             .Name = CpuKindTemplateInfo<CpuKind::Romp>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Romp>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::Romp>::Description,
-            .SubTypeTable = RompCpuSubKindTable,
+            .SubKindTable = RompCpuSubKindTable,
         },
         {
             .CpuKind = CpuKind::NS32032,
             .Name = CpuKindTemplateInfo<CpuKind::NS32032>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::NS32032>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::NS32032>::Description,
-            .SubTypeTable = MmaxCpuSubKindTable
+            .SubKindTable = MmaxCpuSubKindTable
         },
         {
             .CpuKind = CpuKind::NS32332,
             .Name = CpuKindTemplateInfo<CpuKind::NS32332>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::NS32332>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::NS32332>::Description,
-            .SubTypeTable = MmaxCpuSubKindTable
+            .SubKindTable = MmaxCpuSubKindTable
         },
         {
             .CpuKind = CpuKind::Mc680x0,
             .Name = CpuKindTemplateInfo<CpuKind::Mc680x0>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Mc680x0>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::Mc680x0>::Description,
-            .SubTypeTable = Mc680x0CpuSubKindTable
+            .SubKindTable = Mc680x0CpuSubKindTable
         },
         {
             .CpuKind = CpuKind::i386,
             .Name = CpuKindTemplateInfo<CpuKind::i386>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::i386>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::i386>::Description,
-            .SubTypeTable = i386CpuSubKindTable
+            .SubKindTable = i386CpuSubKindTable
         },
         {
             .CpuKind = CpuKind::x86_64,
             .Name = CpuKindTemplateInfo<CpuKind::x86_64>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::x86_64>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::x86_64>::Description,
-            .SubTypeTable = x86_64CpuSubKindTable,
+            .SubKindTable = x86_64CpuSubKindTable,
         },
         {
             .CpuKind = CpuKind::Mips,
             .Name = CpuKindTemplateInfo<CpuKind::Mips>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Mips>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::Mips>::Description,
-            .SubTypeTable = MipsCpuSubKindTable
+            .SubKindTable = MipsCpuSubKindTable
         },
         {
             .CpuKind = CpuKind::NS32532,
             .Name = CpuKindTemplateInfo<CpuKind::NS32532>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::NS32532>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::NS32532>::Description,
-            .SubTypeTable = MmaxCpuSubKindTable
+            .SubKindTable = MmaxCpuSubKindTable
         },
         {
             .CpuKind = CpuKind::Hppa,
             .Name = CpuKindTemplateInfo<CpuKind::Hppa>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Hppa>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::Hppa>::Description,
-            .SubTypeTable = HppaCpuSubKindTable
+            .SubKindTable = HppaCpuSubKindTable
         },
         {
             .CpuKind = CpuKind::Arm,
             .Name = CpuKindTemplateInfo<CpuKind::Arm>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Arm>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::Arm>::Description,
-            .SubTypeTable = ArmCpuSubKindTable
+            .SubKindTable = ArmCpuSubKindTable
         },
         {
             .CpuKind = CpuKind::Mc88000,
             .Name = CpuKindTemplateInfo<CpuKind::Mc88000>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Mc88000>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::Mc88000>::Description,
-            .SubTypeTable = Mc88000CpuSubKindTable
+            .SubKindTable = Mc88000CpuSubKindTable
         },
         {
             .CpuKind = CpuKind::Sparc,
             .Name = CpuKindTemplateInfo<CpuKind::Sparc>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Sparc>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::Sparc>::Description,
-            .SubTypeTable = SparcCpuSubKindTable
+            .SubKindTable = SparcCpuSubKindTable
         },
         {
             .CpuKind = CpuKind::i860,
             .Name = CpuKindTemplateInfo<CpuKind::i860>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::i860>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::i860>::Description,
-            .SubTypeTable = i860CpuSubKindTable
+            .SubKindTable = i860CpuSubKindTable
         },
         {
             .CpuKind = CpuKind::i860Little,
@@ -1003,56 +1003,56 @@ namespace Mach {
             .BrandName = CpuKindTemplateInfo<CpuKind::i860Little>::BrandName,
             .Description =
                 CpuKindTemplateInfo<CpuKind::i860Little>::Description,
-            .SubTypeTable = i860LittleEndianCpuSubKindTable
+            .SubKindTable = i860LittleEndianCpuSubKindTable
         },
         {
             .CpuKind = CpuKind::Rs9600,
             .Name = CpuKindTemplateInfo<CpuKind::Rs9600>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Rs9600>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::Rs9600>::Description,
-            .SubTypeTable = RS9600CpuSubKindTable
+            .SubKindTable = RS9600CpuSubKindTable
         },
         {
             .CpuKind = CpuKind::Mc98000,
             .Name = CpuKindTemplateInfo<CpuKind::Mc98000>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Mc98000>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::Mc98000>::Description,
-            .SubTypeTable = Mc98000CpuSubKindTable
+            .SubKindTable = Mc98000CpuSubKindTable
         },
         {
             .CpuKind = CpuKind::PowerPC,
             .Name = CpuKindTemplateInfo<CpuKind::PowerPC>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::PowerPC>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::PowerPC>::Description,
-            .SubTypeTable = PowerPCCpuSubKindTable
+            .SubKindTable = PowerPCCpuSubKindTable
         },
         {
             .CpuKind = CpuKind::PowerPC64,
             .Name = CpuKindTemplateInfo<CpuKind::PowerPC64>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::PowerPC64>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::PowerPC64>::Description,
-            .SubTypeTable = PowerPC64CpuSubKindTable
+            .SubKindTable = PowerPC64CpuSubKindTable
         },
         {
             .CpuKind = CpuKind::Veo,
             .Name = CpuKindTemplateInfo<CpuKind::Veo>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Veo>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::Veo>::Description,
-            .SubTypeTable = VeoCpuSubKindTable
+            .SubKindTable = VeoCpuSubKindTable
         },
         {
             .CpuKind = CpuKind::Arm64,
             .Name = CpuKindTemplateInfo<CpuKind::Arm64>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Arm64>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::Arm64>::Description,
-            .SubTypeTable = Arm64CpuSubKindTable
+            .SubKindTable = Arm64CpuSubKindTable
         },
         {
             .CpuKind = CpuKind::Arm64_32,
             .Name = CpuKindTemplateInfo<CpuKind::Arm64_32>::Name,
             .BrandName = CpuKindTemplateInfo<CpuKind::Arm64_32>::BrandName,
             .Description = CpuKindTemplateInfo<CpuKind::Arm64_32>::Description,
-            .SubTypeTable = Arm64_32CpuSubKindTable
+            .SubKindTable = Arm64_32CpuSubKindTable
         }
     };
 
@@ -1111,10 +1111,10 @@ namespace Mach {
     }
 
     [[nodiscard]] constexpr const CpuSubKindInfo *
-    GetInfoForCpuSubKind(CpuKind CpuKind, int32_t SubType) noexcept {
+    GetInfoForCpuSubKind(CpuKind CpuKind, int32_t SubKind) noexcept {
         switch (CpuKind) {
             case CpuKind::Any:
-                switch (Any(SubType)) {
+                switch (Any(SubKind)) {
                     case Any::Multiple:
                         return (AnyCpuSubKindTable + 0);
 
@@ -1128,7 +1128,7 @@ namespace Mach {
                 break;
 
             case CpuKind::Vax:
-                switch (Vax(SubType)) {
+                switch (Vax(SubKind)) {
                     case Vax::All:
                       return (VaxCpuSubKindTable + 0);
                     case Vax::n780:
@@ -1160,7 +1160,7 @@ namespace Mach {
                 break;
 
             case CpuKind::Romp:
-                switch (Romp(SubType)) {
+                switch (Romp(SubKind)) {
                     case Romp::All:
                         return (RompCpuSubKindTable + 0);
                     case Romp::Pc:
@@ -1176,7 +1176,7 @@ namespace Mach {
             case CpuKind::NS32032:
             case CpuKind::NS32332:
             case CpuKind::NS32532:
-                switch (Mmax(SubType)) {
+                switch (Mmax(SubKind)) {
                     case Mmax::All:
                         return (MmaxCpuSubKindTable + 0);
                     case Mmax::Dpc:
@@ -1194,7 +1194,7 @@ namespace Mach {
                 break;
 
             case CpuKind::Mc680x0: {
-                switch (Mc680x0(SubType)) {
+                switch (Mc680x0(SubKind)) {
                     case Mc680x0::All:
                         return (Mc680x0CpuSubKindTable + 0);
                     case Mc680x0::n40:
@@ -1207,7 +1207,7 @@ namespace Mach {
             }
 
             case CpuKind::i386:
-                switch (i386(SubType)) {
+                switch (i386(SubKind)) {
                     case i386::All:
                         return (i386CpuSubKindTable + 0);
                     case i386::n486:
@@ -1229,7 +1229,7 @@ namespace Mach {
                 break;
 
             case CpuKind::x86_64:
-                switch (x86_64(SubType)) {
+                switch (x86_64(SubKind)) {
                     case x86_64::All:
                         return (x86_64CpuSubKindTable + 0);
 
@@ -1240,7 +1240,7 @@ namespace Mach {
                 break;
 
             case CpuKind::Mips:
-                switch (Mips(SubType)) {
+                switch (Mips(SubKind)) {
                     case Mips::All:
                         return (MipsCpuSubKindTable + 0);
                     case Mips::r2300:
@@ -1256,7 +1256,7 @@ namespace Mach {
                 break;
 
             case CpuKind::Hppa:
-                switch (Hppa(SubType)) {
+                switch (Hppa(SubKind)) {
                     case Hppa::All:
                         return (HppaCpuSubKindTable + 0);
                     case Hppa::n7100LC:
@@ -1266,7 +1266,7 @@ namespace Mach {
                 break;
 
             case CpuKind::Arm:
-                switch (Arm(SubType)) {
+                switch (Arm(SubKind)) {
                     case Arm::All:
                         return (ArmCpuSubKindTable + 0);
                     case Arm::A500Arch:
@@ -1306,7 +1306,7 @@ namespace Mach {
                 break;
 
             case CpuKind::Mc88000:
-                switch (Mc88000(SubType)) {
+                switch (Mc88000(SubKind)) {
                     case Mc88000::All:
                         return (Mc88000CpuSubKindTable + 0);
                     case Mc88000::n100:
@@ -1318,7 +1318,7 @@ namespace Mach {
                 break;
 
             case CpuKind::Sparc:
-                switch (Sparc(SubType)) {
+                switch (Sparc(SubKind)) {
                     case Sparc::All:
                         return (SparcCpuSubKindTable + 0);
                 }
@@ -1326,7 +1326,7 @@ namespace Mach {
                 break;
 
             case CpuKind::i860:
-                switch (i860(SubType)) {
+                switch (i860(SubKind)) {
                     case i860::All:
                         return (i860CpuSubKindTable + 0);
                     case i860::n860:
@@ -1336,7 +1336,7 @@ namespace Mach {
                 break;
 
             case CpuKind::i860Little:
-                switch (i860Little(SubType)) {
+                switch (i860Little(SubKind)) {
                     case i860Little::All:
                         return (i860LittleEndianCpuSubKindTable + 0);
                     case i860Little::Default:
@@ -1346,7 +1346,7 @@ namespace Mach {
                 break;
 
             case CpuKind::Rs9600:
-                switch (Rs9600(SubType)) {
+                switch (Rs9600(SubKind)) {
                     case Rs9600::All:
                         return (RS9600CpuSubKindTable + 0);
                     case Rs9600::Default:
@@ -1356,7 +1356,7 @@ namespace Mach {
                 break;
 
             case CpuKind::Mc98000:
-                switch (Mc98000(SubType)) {
+                switch (Mc98000(SubKind)) {
                     case Mc98000::All:
                         return (Mc98000CpuSubKindTable + 0);
                     case Mc98000::n601:
@@ -1366,7 +1366,7 @@ namespace Mach {
                 break;
 
             case CpuKind::PowerPC:
-                switch (PowerPC(SubType)) {
+                switch (PowerPC(SubKind)) {
                     case PowerPC::All:
                         return (PowerPCCpuSubKindTable + 0);
                     case PowerPC::n601:
@@ -1398,7 +1398,7 @@ namespace Mach {
                 break;
 
             case CpuKind::PowerPC64:
-                switch (PowerPC64(SubType)) {
+                switch (PowerPC64(SubKind)) {
                     case PowerPC64::All:
                         return (PowerPC64CpuSubKindTable + 0);
                     case PowerPC64::n970:
@@ -1408,7 +1408,7 @@ namespace Mach {
                 break;
 
             case CpuKind::Veo:
-                switch (Veo(SubType)) {
+                switch (Veo(SubKind)) {
                     case Veo::n1:
                         return (VeoCpuSubKindTable + 0);
                     case Veo::n2:
@@ -1420,7 +1420,7 @@ namespace Mach {
                 }
 
             case CpuKind::Arm64:
-                switch (Arm64(SubType)) {
+                switch (Arm64(SubKind)) {
                     case Arm64::All:
                         return (Arm64CpuSubKindTable + 0);
                     case Arm64::v8:
@@ -1432,7 +1432,7 @@ namespace Mach {
                 break;
 
             case CpuKind::Arm64_32:
-                switch (Arm64_32(SubType)) {
+                switch (Arm64_32(SubKind)) {
                     case Arm64_32::v8:
                         return (Arm64_32CpuSubKindTable + 0);
                 }

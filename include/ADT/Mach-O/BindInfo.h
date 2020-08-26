@@ -26,7 +26,7 @@ namespace MachO {
         SetDylibOrdinalUleb         = 0x20,
         SetDylibSpecialImm          = 0x30,
         SetSymbolTrailingFlagsImm   = 0x40,
-        SetTypeImm                  = 0x50,
+        SetKindImm                  = 0x50,
         SetAddendSleb               = 0x60,
         SetSegmentAndOffsetUleb     = 0x70,
         AddAddrUleb                 = 0x80,
@@ -91,8 +91,8 @@ namespace MachO {
     };
 
     template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::SetTypeImm> {
-        constexpr static const auto Kind = BindByteOpcode::SetTypeImm;
+    struct BindByteOpcodeInfo<BindByteOpcode::SetKindImm> {
+        constexpr static const auto Kind = BindByteOpcode::SetKindImm;
 
         constexpr static const auto Name = "BIND_OPCODE_SET_TYPE_IMM"sv;
         constexpr static const auto Description =
@@ -193,8 +193,8 @@ namespace MachO {
                 return
                     BindByteOpcodeInfo<
                         BindByteOpcode::SetSymbolTrailingFlagsImm>::Name;
-            case BindByteOpcode::SetTypeImm:
-                return BindByteOpcodeInfo<BindByteOpcode::SetTypeImm>::Name;
+            case BindByteOpcode::SetKindImm:
+                return BindByteOpcodeInfo<BindByteOpcode::SetKindImm>::Name;
             case BindByteOpcode::SetAddendSleb:
                 return BindByteOpcodeInfo<BindByteOpcode::SetAddendSleb>::Name;
             case BindByteOpcode::SetSegmentAndOffsetUleb:
@@ -244,9 +244,9 @@ namespace MachO {
                 return
                     BindByteOpcodeInfo<
                         BindByteOpcode::SetSymbolTrailingFlagsImm>::Description;
-            case BindByteOpcode::SetTypeImm:
+            case BindByteOpcode::SetKindImm:
                 return
-                    BindByteOpcodeInfo<BindByteOpcode::SetTypeImm>::Description;
+                    BindByteOpcodeInfo<BindByteOpcode::SetKindImm>::Description;
             case BindByteOpcode::SetAddendSleb:
                 return
                     BindByteOpcodeInfo<BindByteOpcode::SetAddendSleb>
@@ -294,7 +294,7 @@ namespace MachO {
         TextPcrel32
     };
 
-    template <BindWriteKind Type>
+    template <BindWriteKind>
     struct BindWriteKindInfo {};
 
     template <>
@@ -322,8 +322,8 @@ namespace MachO {
     };
 
     [[nodiscard]] constexpr static
-    const std::string_view &BindWriteKindGetName(BindWriteKind Type) noexcept {
-        switch (Type) {
+    const std::string_view &BindWriteKindGetName(BindWriteKind Kind) noexcept {
+        switch (Kind) {
             case BindWriteKind::None:
                 return EmptyStringValue;
             case BindWriteKind::Pointer:
@@ -338,8 +338,8 @@ namespace MachO {
     }
 
     [[nodiscard]] constexpr const std::string_view &
-    BindWriteKindGetDescription(BindWriteKind Type) noexcept {
-        switch (Type) {
+    BindWriteKindGetDescription(BindWriteKind Kind) noexcept {
+        switch (Kind) {
             case BindWriteKind::None:
                 return EmptyStringValue;
             case BindWriteKind::Pointer:
@@ -806,7 +806,7 @@ namespace MachO {
                     }
 
                     return ErrorEnum::InvalidString;
-                case BindByte::Opcode::SetTypeImm:
+                case BindByte::Opcode::SetKindImm:
                     if constexpr (BindKind == BindInfoKind::Lazy) {
                         return ErrorEnum::IllegalBindOpcode;
                     }
@@ -1294,7 +1294,7 @@ namespace MachO {
                 case BindByte::Opcode::SetDylibOrdinalUleb:
                 case BindByte::Opcode::SetDylibSpecialImm:
                 case BindByte::Opcode::SetSymbolTrailingFlagsImm:
-                case BindByte::Opcode::SetTypeImm:
+                case BindByte::Opcode::SetKindImm:
                 case BindByte::Opcode::SetAddendSleb:
                 case BindByte::Opcode::SetSegmentAndOffsetUleb:
                 case BindByte::Opcode::AddAddrUleb:
@@ -1360,7 +1360,7 @@ namespace MachO {
                     case BindByte::Opcode::SetSymbolTrailingFlagsImm:
                         Info.NewSymbolName = true;
                         continue;
-                    case BindByte::Opcode::SetTypeImm:
+                    case BindByte::Opcode::SetKindImm:
                     case BindByte::Opcode::SetAddendSleb:
                         continue;
                     case BindByte::Opcode::SetSegmentAndOffsetUleb:

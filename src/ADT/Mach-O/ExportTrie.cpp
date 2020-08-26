@@ -54,11 +54,13 @@ namespace MachO {
             return false;
         }
 
+        auto &String = Info->getString();
         auto &Top = StackList.back();
+        
         const auto EraseToLength =
-            (Info->getString().length() - Top.getNode().getPrefix().length());
+            (String.length() - Top.getNode().getPrefix().length());
 
-        Info->getString().erase(EraseToLength);
+        String.erase(EraseToLength);
         if (Top.getRangeListSize() != 0) {
             auto &RangeList = Info->getRangeList();
             RangeList.erase(RangeList.cbegin() + Top.getRangeListSize(),
@@ -297,9 +299,9 @@ namespace MachO {
                 }
 
                 // We're done with this entire stack if this node has no
-                // children. To finish, we simply pop the stack and move to the
-                // parent-stack. If we don't have a parent-stack, we've reached
-                // the end of the export-trie.
+                // children. To finish, we move to the parent-stack. If we don't
+                // have a parent-stack, we've reached the end of the
+                // export-trie.
 
                 if (Node.getChildCount() == 0) {
                     if (IsExportInfo) {

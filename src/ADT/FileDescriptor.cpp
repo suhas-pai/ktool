@@ -14,8 +14,8 @@
 #include "FileDescriptor.h"
 
 FileDescriptor
-FileDescriptor::Open(const char *Path, OpenType Type, Flags Flags) noexcept {
-    return open(Path, static_cast<int>(Type), Flags);
+FileDescriptor::Open(const char *Path, OpenKind Kind, Flags Flags) noexcept {
+    return open(Path, static_cast<int>(Kind), Flags);
 }
 
 FileDescriptor FileDescriptor::Create(const char *Path, int Mode) noexcept {

@@ -10,5 +10,5 @@
 #include "RelativeRange.h"
 
 RelativeRange LocationRange::toRelativeRange() const noexcept {
-    return RelativeRange(size());
+    return RelativeRange(this->size());
 }

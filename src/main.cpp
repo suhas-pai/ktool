@@ -287,7 +287,7 @@ int main(int Argc, const char *Argv[]) {
 
     const auto Path = PathUtil::Absolutify(Argv[PathIndex]);
     const auto Fd =
-        FileDescriptor::Open(Path.data(), FileDescriptor::OpenType::Read);
+        FileDescriptor::Open(Path.data(), FileDescriptor::OpenKind::Read);
 
     if (Fd.hasError()) {
         fprintf(stderr,
@@ -299,11 +299,11 @@ int main(int Argc, const char *Argv[]) {
 
     auto FileMapProt = MappedFile::Protections();
 
-    FileMapProt.add(MappedFile::ProtectionsEnum::Read);
-    FileMapProt.add(MappedFile::ProtectionsEnum::Write);
+    FileMapProt.add(MappedFile::Protections::Flags::Read);
+    FileMapProt.add(MappedFile::Protections::Flags::Write);
 
     const auto FileMap =
-        MappedFile::Open(Fd, FileMapProt, MappedFile::Type::Private);
+        MappedFile::Open(Fd, FileMapProt, MappedFile::MapKind::Private);
 
     switch (FileMap.getError()) {
         case MappedFile::OpenError::None:

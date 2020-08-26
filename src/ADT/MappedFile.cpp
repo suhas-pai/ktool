@@ -19,7 +19,9 @@ MappedFile::MappedFile(MappedFile &&Rhs) noexcept
 }
 
 MappedFile
-MappedFile::Open(const FileDescriptor &Fd, Protections Prot, Type Type) noexcept
+MappedFile::Open(const FileDescriptor &Fd,
+                 Protections Prot,
+                 MapKind MapKind) noexcept
 {
     const auto OptInfo = Fd.GetInfo();
     if (!OptInfo.has_value()) {
@@ -37,7 +39,8 @@ MappedFile::Open(const FileDescriptor &Fd, Protections Prot, Type Type) noexcept
     }
 
     const auto FdV = Fd.getDescriptor();
-    const auto Map = mmap(nullptr, Size, Prot, static_cast<int>(Type), FdV, 0);
+    const auto MapKindInt = static_cast<int>(MapKind);
+    const auto Map = mmap(nullptr, Size, Prot, MapKindInt, FdV, 0);
 
     if (Map == MAP_FAILED) {
         return OpenError::MmapCallFailed;

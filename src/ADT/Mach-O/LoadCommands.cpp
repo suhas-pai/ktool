@@ -21,7 +21,7 @@
 #include "LoadCommandTemplates.h"
 
 namespace MachO {
-    LoadCommand::CmdSizeInvalidType
+    LoadCommand::CmdSizeInvalidKind
     ValidateCmdsize(const LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
         switch (LoadCmd->getKind(IsBigEndian)) {
             case LoadCommand::Kind::Segment: {
@@ -95,7 +95,7 @@ namespace MachO {
             }
 
             case LoadCommand::Kind::PrePage:
-                return LoadCommand::CmdSizeInvalidType::None;
+                return LoadCommand::CmdSizeInvalidKind::None;
 
             case LoadCommand::Kind::DynamicSymbolTable: {
                 using ConstPtrType =
@@ -480,7 +480,7 @@ namespace MachO {
             }
         }
 
-        return LoadCommand::CmdSizeInvalidType::None;
+        return LoadCommand::CmdSizeInvalidKind::None;
     }
 
     constexpr static const auto EmptyStringView = std::string_view();

@@ -105,7 +105,7 @@ CollectBindOpcodeList(
 
                 break;
 
-            case MachO::BindByte::Opcode::SetTypeImm:
+            case MachO::BindByte::Opcode::SetKindImm:
                 OpcodeInfo.WriteKind = IterInfo.WriteKind;
                 break;
             case MachO::BindByte::Opcode::SetAddendSleb:
@@ -352,7 +352,7 @@ PrintBindOpcodeList(
                 fputs(")\n", Options.OutFile);
                 break;
 
-            case MachO::BindByte::Opcode::SetTypeImm: {
+            case MachO::BindByte::Opcode::SetKindImm: {
                 auto KindName =
                     MachO::BindWriteKindGetName(Iter.WriteKind).data();
 

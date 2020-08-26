@@ -32,14 +32,13 @@ namespace MachO {
 
     template <BindInfoKind BindKind, typename T>
     static bool
-    CollectActionListFromTrie(
-        const T &BindList,
-        const SegmentInfoCollection &SegmentCollection,
-        BindActionCollection::SymbolListType &SymbolList,
-        BindActionCollection::ActionListType &ActionList,
-        const LocationRange &Range,
-        BindActionCollection::ParseError *ParseErrorOut,
-        BindActionCollection::Error *ErrorOut) noexcept
+    CollectActionListFromTrie(const T &BindList,
+                              const SegmentInfoCollection &SegmentCollection,
+                              BindActionCollection::SymbolListType &SymbolList,
+                              BindActionCollection::ActionListType &ActionList,
+                              const LocationRange &Range,
+                              BindActionCollection::ParseError *ParseErrorOut,
+                              BindActionCollection::Error *ErrorOut) noexcept
     {
         auto Segment = static_cast<const SegmentInfo *>(nullptr);
         auto SegmentIndex = static_cast<int64_t>(-1);

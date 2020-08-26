@@ -102,26 +102,26 @@ SetIfLongestChild(BasicTreeNode &Parent, BasicTreeNode &Child) noexcept {
 }
 
 static void
-AddChildrenRaw(BasicTreeNode &This,
+AddChildrenRaw(BasicTreeNode &Parent,
                BasicTreeNode &Node,
                BasicTreeNode *End,
                BasicTreeNode &LongestChild) noexcept
 {
-    auto &Back = SetParentOfSiblings(&This, Node, End);
+    auto &Back = SetParentOfSiblings(&Parent, Node, End);
     Back.setNextSibling(nullptr);
 
-    if (This.IsLeaf()) {
+    if (Parent.IsLeaf()) {
         Node.setPrevSibling(nullptr);
 
-        This.setFirstChild(&Node);
-        This.setLongestChild(&LongestChild);
+        Parent.setFirstChild(&Node);
+        Parent.setLongestChild(&LongestChild);
     } else {
-        const auto PrevSibling = This.getLastChild();
+        const auto PrevSibling = Parent.getLastChild();
 
         PrevSibling->setNextSibling(&Node);
         Node.setPrevSibling(PrevSibling);
 
-        SetIfLongestChild(This, LongestChild);
+        SetIfLongestChild(Parent, LongestChild);
     }
 }
 

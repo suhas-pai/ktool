@@ -18,7 +18,7 @@ struct FileDescriptor {
 protected:
     int Fd = -1;
 public:
-    enum class OpenType {
+    enum class OpenKind {
         Read = O_RDONLY,
         Write = O_WRONLY,
         ReadWrite = O_RDWR
@@ -30,12 +30,7 @@ public:
         Truncate = O_TRUNC
     };
 
-    struct Flags : public BasicMasksHandler<FlagsEnum> {
-    private:
-        using Base = BasicMasksHandler<FlagsEnum>;
-    public:
-        using Base::Base;
-    };
+    using Flags = BasicMasksHandler<FlagsEnum>;
 
     constexpr FileDescriptor() noexcept = default;
     explicit FileDescriptor(const FileDescriptor &) noexcept = delete;
@@ -48,7 +43,7 @@ public:
 
     [[nodiscard]] static FileDescriptor
     Open(const char *Path,
-         OpenType Type,
+         OpenKind Kind,
          Flags Flags = FileDescriptor::Flags()) noexcept;
 
     [[nodiscard]]
