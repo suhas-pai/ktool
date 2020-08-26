@@ -130,7 +130,7 @@ static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
 }
 
 constexpr static auto UsageString =
-    "Usage: ktool [Main-Operation] [Operation-Options] [Path] [Path-Options]\n";
+    "Usage: ktool [Operation] [Operation-Options] [Path] [Path-Options]\n";
 
 int main(int Argc, const char *Argv[]) {
     if (Argc < 2) {

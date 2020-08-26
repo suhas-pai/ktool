@@ -204,230 +204,234 @@ Operation::PrintOptionHelpMenu(OperationKind Kind,
                                FILE *OutFile,
                                const char *Prefix) noexcept
 {
+    fprintf(OutFile, "%sOptions:\n", Prefix);
     switch (Kind) {
         case OperationKind::None:
             assert(0 && "Operation-Kind is None");
         case OperationKind::PrintHeader:
         case OperationKind::PrintLoadCommands:
             fprintf(OutFile,
-                    "%s-v, --verbose, Print more Verbose Information\n",
+                    "\t%s-v, --verbose, Print more Verbose Information\n",
                     Prefix);
             break;
         case OperationKind::PrintSharedLibraries:
             fprintf(OutFile,
-                    "%s    --sort-by-current-version, Sort by "
+                    "\t%s    --sort-by-current-version, Sort by "
                     "Current-Version\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-compat-version,  Sort by Compat-Version\n",
+                    "\t%s    --sort-by-compat-version,  "
+                    "Sort by Compat-Version\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-index,           Sort by LC Index\n",
+                    "\t%s    --sort-by-index,           Sort by LC Index\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-name,            Sort by Name\n",
+                    "\t%s    --sort-by-name,            Sort by Name\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-timestamp,       Sort by TimeStamp\n",
+                    "\t%s    --sort-by-timestamp,       Sort by TimeStamp\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --verbose,                 Print more Verbose "
+                    "\t%s    --verbose,                 Print more Verbose "
                     "Information\n",
                     Prefix);
             break;
         case OperationKind::PrintId:
         case OperationKind::PrintArchList:
             fprintf(OutFile,
-                    "%s-v, --verbose, Print more Verbose Information\n",
+                    "\t%s-v, --verbose, Print more Verbose Information\n",
                     Prefix);
             break;
         case OperationKind::PrintExportTrie:
             fprintf(OutFile,
-                    "%s    --only-count,      Only print the count of "
+                    "\t%s    --only-count,      Only print the count of "
                     "exports, or with --tree, print the number of nodes\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --require-kind,    Only print exports with a "
+                    "\t%s    --require-kind,    Only print exports with a "
                     "specific kind\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --require-segment, Only print exports with a "
+                    "\t%s    --require-segment, Only print exports with a "
                     "specific segment\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --require-section, Only print exports with a "
+                    "\t%s    --require-section, Only print exports with a "
                     "specific segment & section\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort,            Sort every node alphabetically\n",
+                    "\t%s    --sort,            Sort every node "
+                    "alphabetically\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s-v, --verbose,         Print more Verbose Information\n",
+                    "\t%s-v, --verbose,         Print more Verbose "
+                    "Information\n",
                     Prefix);
             break;
         case OperationKind::PrintObjcClassList:
             fprintf(OutFile,
-                    "%s    --include-categories,    Include Objective-C Class "
-                    "Categories\n",
+                    "\t%s    --include-categories,    Include Objective-C "
+                    "Class Categories\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-dylib-ordinal, Sort Objective-C Classes "
+                    "\t%s    --sort-by-dylib-ordinal, Sort Objective-C Classes "
                     "by Dylib-Ordinal\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-kind,          Sort Objective-C Classes "
+                    "\t%s    --sort-by-kind,          Sort Objective-C Classes "
                     "by Kind\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-name,          Sort Objective-C Classes "
+                    "\t%s    --sort-by-name,          Sort Objective-C Classes "
                     "by Name\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --tree,                  Print Objective-C Classes "
-                    "in a tree\n",
+                    "\t%s    --tree,                  Print Objective-C "
+                    "Classes in a tree\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s-v, --verbose,               Print more Verbose "
+                    "\t%s-v, --verbose,               Print more Verbose "
                     "Information\n",
                     Prefix);
             break;
         case OperationKind::PrintBindActionList:
             fprintf(OutFile,
-                    "%s    --only-normal,           Only Print Normal-Bind "
+                    "\t%s    --only-normal,           Only Print Normal-Bind "
                     "Action-List\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --only-lazy,             Only Print Lazy-Bind "
+                    "\t%s    --only-lazy,             Only Print Lazy-Bind "
                     "Action-List\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --only-weak,             Only Print Weak-Bind "
+                    "\t%s    --only-weak,             Only Print Weak-Bind "
                     "Action-List\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-dylib-ordinal, Sort Bind-Actions by "
+                    "\t%s    --sort-by-dylib-ordinal, Sort Bind-Actions by "
                     "Dylib-Ordinal\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-name,          Sort Bind-Actions by "
+                    "\t%s    --sort-by-name,          Sort Bind-Actions by "
                     "Symbol-Name\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-type,          Sort Bind-Actions by "
+                    "\t%s    --sort-by-type,          Sort Bind-Actions by "
                     "Type\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s-v, --verbose,               Print more Verbose "
+                    "\t%s-v, --verbose,               Print more Verbose "
                     "Information\n",
                     Prefix);
             break;
         case OperationKind::PrintBindOpcodeList:
             fprintf(OutFile,
-                    "%s    --only-normal,           Only Print Normal-Bind "
+                    "\t%s    --only-normal,           Only Print Normal-Bind "
                     "Opcode-List\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --only-lazy,             Only Print Lazy-Bind "
+                    "\t%s    --only-lazy,             Only Print Lazy-Bind "
                     "Opcode-List\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --only-weak,             Only Print Weak-Bind "
+                    "\t%s    --only-weak,             Only Print Weak-Bind "
                     "Opcode-List\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s-v, --verbose,               Print more Verbose "
+                    "\t%s-v, --verbose,               Print more Verbose "
                     "Information\n",
                     Prefix);
             break;
         case OperationKind::PrintBindSymbolList:
             fprintf(OutFile,
-                    "%s    --only-normal,           Only Print Normal-Bind "
+                    "\t%s    --only-normal,           Only Print Normal-Bind "
                     "Action-List\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --only-lazy,             Only Print Lazy-Bind "
+                    "\t%s    --only-lazy,             Only Print Lazy-Bind "
                     "Action-List\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --only-weak,             Only Print Weak-Bind "
+                    "\t%s    --only-weak,             Only Print Weak-Bind "
                     "Action-List\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-dylib-ordinal, Sort Bind-Actions by "
+                    "\t%s    --sort-by-dylib-ordinal, Sort Bind-Actions by "
                     "Dylib-Ordinal\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-name,          Sort Bind-Actions by "
+                    "\t%s    --sort-by-name,          Sort Bind-Actions by "
                     "Symbol-Name\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-type,          Sort Bind-Actions by "
+                    "\t%s    --sort-by-type,          Sort Bind-Actions by "
                     "Type\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s-v, --verbose,               Print more Verbose "
+                    "\t%s-v, --verbose,               Print more Verbose "
                     "Information\n",
                     Prefix);
             break;
         case OperationKind::PrintRebaseActionList:
             fprintf(OutFile,
-                    "%s    --sort,    Sort Rebase-Actions\n",
+                    "\t%s    --sort,    Sort Rebase-Actions\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s-v, --verbose, Print more Verbose Information\n",
+                    "\t%s-v, --verbose, Print more Verbose Information\n",
                     Prefix);
             break;
         case OperationKind::PrintRebaseOpcodeList:
             fprintf(OutFile,
-                    "%s-v, --verbose, Print more Verbose Information\n",
+                    "\t%s-v, --verbose, Print more Verbose Information\n",
                     Prefix);
             break;
         case OperationKind::PrintCStringSection:
             fprintf(OutFile,
-                    "%s    --sort,    Sort C-String List\n",
+                    "\t%s    --sort,    Sort C-String List\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s-v, --verbose, Print more Verbose Information\n",
+                    "\t%s-v, --verbose, Print more Verbose Information\n",
                     Prefix);
             break;
         case OperationKind::PrintSymbolPtrSection:
             fprintf(OutFile,
-                    "%s    --sort-by-dylib-ordinal, Sort C-String List by "
+                    "\t%s    --sort-by-dylib-ordinal, Sort C-String List by "
                     "Dylib-Ordinal\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-index,         Sort C-String List by "
+                    "\t%s    --sort-by-index,         Sort C-String List by "
                     "Index\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-symbol,        Sort C-String List by "
+                    "\t%s    --sort-by-symbol,        Sort C-String List by "
                     "Symbol-Name\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s-v, --verbose,               Print more Verbose "
+                    "\t%s-v, --verbose,               Print more Verbose "
                     "Information\n",
                     Prefix);
             break;
         case OperationKind::PrintImageList:
             fprintf(OutFile,
-                    "%s    --count,              Only print image-count\n",
+                    "\t%s    --count,              Only print image-count\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-address,    Sort Image List by "
+                    "\t%s    --sort-by-address,    Sort Image List by "
                     "Image-Address\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-inode,      Sort Image List by Inode\n",
+                    "\t%s    --sort-by-inode,      Sort Image List by Inode\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-modtime,    Sort Image List by "
+                    "\t%s    --sort-by-modtime,    Sort Image List by "
                     "Modification-Time\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s    --sort-by-name,       Sort Image List by Name\n",
+                    "\t%s    --sort-by-name,       Sort Image List by Name\n",
                     Prefix);
             fprintf(OutFile,
-                    "%s-v, --verbose,            Print more Verbose "
+                    "\t%s-v, --verbose,            Print more Verbose "
                     "Information\n",
                     Prefix);
             break;
@@ -460,7 +464,7 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
                 assert(ShortName != OperationKindGetOptionShortName(JKind));
             }
 
-            assert(Name != OperationKindGetName(JKind));
+            assert(Name != OperationKindGetOptionName(JKind));
             assert(Description != OperationKindGetDescription(JKind));
         }
     }
@@ -476,19 +480,17 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
             "");
 
     fprintf(OutFile,
-            "\t%5s--%s,%" PRINTF_LEFTPAD_FMT "s Print this Menu\n\n",
+            "\t%5s--%s,%" PRINTF_LEFTPAD_FMT "s Print this Menu\n",
             "",
             UsageOption.data(),
             static_cast<int>(LongestOptionNameLength - UsageOption.length()),
             "");
 
+    fputs("Operations:\n", OutFile);
     for (auto Iter = Begin; Iter != End; Iter++) {
         const auto &Kind = *Iter;
-        if (Kind == OperationKind::None) {
-            continue;
-        }
-
         const auto &ShortName = OperationKindGetOptionShortName(Kind);
+
         if (!ShortName.empty()) {
             fprintf(OutFile, "\t-%s, ", ShortName.data());
         } else {
@@ -499,7 +501,7 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
                                  static_cast<int>(ShortName.size()),
                                  MaxShortOptionNameLength);
 
-        const auto &Name = OperationKindGetName(Kind);
+        const auto &Name = OperationKindGetOptionName(Kind);
         PrintUtilsRightPadSpaces(OutFile,
                                  fprintf(OutFile, "--%s,", Name.data()),
                                  LongestOptionNameLength + LENGTH_OF("--,"));
@@ -511,4 +513,13 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
             fputc('\n', stdout);
         }
     }
+
+    fputs("Path Options:\n", OutFile);
+    fputs("\t--arch <ordinal>,          Select arch (at ordinal) of a FAT "
+          "Mach-O File\n",
+          OutFile);
+
+    fputs("\t--image <path-or-ordinal>, Select image (at path or ordinal) of a "
+          "Apple dyld_shared_cache_file\n",
+          OutFile);
 }
