@@ -485,11 +485,12 @@ namespace MachO {
         using Shifts = DyldInfoByteShifts;
         using WriteKind = BindWriteKind;
 
-        [[nodiscard]] constexpr BindByte::Opcode getOpcode() const noexcept {
+        [[nodiscard]]
+        constexpr inline BindByte::Opcode getOpcode() const noexcept {
             return BindByte::Opcode(getValueForMaskNoShift(Masks::Opcode));
         }
 
-        [[nodiscard]] constexpr uint8_t getImmediate() const noexcept {
+        [[nodiscard]] constexpr inline uint8_t getImmediate() const noexcept {
             return getValueForMaskNoShift(Masks::Immediate);
         }
 
@@ -613,7 +614,7 @@ namespace MachO {
                reinterpret_cast<const uint8_t *>(End)),
           Info(std::move(Info))
         {
-            this->Info->Kind = BindKind;
+            Info->Kind = BindKind;
             Advance();
         }
 
@@ -633,7 +634,7 @@ namespace MachO {
             return (Iter->getPtr() - Base);
         }
 
-        [[nodiscard]] const uint8_t *getPtr() const noexcept {
+        [[nodiscard]] inline const uint8_t *getPtr() const noexcept {
             return Iter->getPtr();
         }
 
@@ -923,12 +924,12 @@ namespace MachO {
             explicit Iterator(const uint8_t *Iter, const uint8_t *End) noexcept
             : NakedOpcodeList::Iterator(Iter, End) {}
 
-            [[nodiscard]] BindByte getByte() const noexcept {
+            [[nodiscard]] inline BindByte getByte() const noexcept {
                 return *reinterpret_cast<const BindByte *>(this->getPtr());
             }
         };
 
-        [[nodiscard]] Iterator begin() const noexcept {
+        [[nodiscard]] inline Iterator begin() const noexcept {
             return Iterator(Begin, End);
         }
     };
