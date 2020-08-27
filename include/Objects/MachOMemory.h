@@ -32,7 +32,6 @@ protected:
     union {
         const uint8_t *Map;
         const MachO::Header *Header;
-        PointerErrorStorage<Error> ErrorStorage;
     };
 
     const uint8_t *End;
@@ -42,8 +41,8 @@ protected:
     explicit
     ConstMachOMemoryObject(ObjectKind Kind, const ConstMemoryMap &Map) noexcept;
 public:
-    [[nodiscard]]
-    static ConstMachOMemoryObject Open(const ConstMemoryMap &Map) noexcept;
+    [[nodiscard]] static PointerOrError<ConstMachOMemoryObject, Error>
+    Open(const ConstMemoryMap &Map) noexcept;
 
     [[nodiscard]]
     static inline bool IsOfKind(const MemoryObject &Obj) noexcept {
@@ -52,19 +51,16 @@ public:
 
     virtual ~ConstMachOMemoryObject() noexcept = default;
 
-    [[nodiscard]] bool didMatchFormat() const noexcept override;
-    [[nodiscard]] MemoryObject *ToPtr() const noexcept override;
-
-    [[nodiscard]] inline Error getError() const noexcept {
-        return ErrorStorage.getValue();
+    [[nodiscard]] static bool errorDidMatchFormat(Error Error) noexcept;
+    [[nodiscard]] static inline bool errorDidMatchFormat(uint8_t Int) noexcept {
+        return errorDidMatchFormat(getErrorFromInt(Int));
     }
 
-    [[nodiscard]] inline bool hasError() const noexcept override {
-        return ErrorStorage.hasValue();
+    [[nodiscard]] static inline Error getErrorFromInt(uint8_t Int) noexcept {
+        return static_cast<Error>(Int);
     }
 
     [[nodiscard]] inline ConstMemoryMap getMap() const noexcept {
-        assert(!hasError());
         return ConstMemoryMap(Map, End);
     }
 
@@ -77,7 +73,6 @@ public:
     }
 
     [[nodiscard]] inline const MachO::Header &getHeader() const noexcept {
-        assert(!hasError());
         return *Header;
     }
 
@@ -134,14 +129,25 @@ protected:
     MachOMemoryObject(Error Error) noexcept;
     explicit MachOMemoryObject(const MemoryMap &Map) noexcept;
 public:
-    [[nodiscard]] static MachOMemoryObject Open(const MemoryMap &Map) noexcept {
+    [[nodiscard]] static inline PointerOrError<MachOMemoryObject, Error>
+    Open(const MemoryMap &Map) noexcept {
         auto Result = ConstMachOMemoryObject::Open(Map);
-        return *reinterpret_cast<MachOMemoryObject *>(&Result);
+        return reinterpret_cast<MachOMemoryObject *>(Result.value());
+    }
+
+    [[nodiscard]] static inline bool errorDidMatchFormat(Error Error) noexcept {
+        return ConstMachOMemoryObject::errorDidMatchFormat(Error);
+    }
+
+    [[nodiscard]] static inline bool errorDidMatchFormat(uint8_t Int) noexcept {
+        return ConstMachOMemoryObject::errorDidMatchFormat(Int);
+    }
+
+    [[nodiscard]] static inline Error getErrorFromInt(uint8_t Int) noexcept {
+        return ConstMachOMemoryObject::getErrorFromInt(Int);
     }
 
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
-        assert(!hasError());
-
         const auto End = const_cast<uint8_t *>(this->End);
         return MemoryMap(const_cast<uint8_t *>(Map), End);
     }

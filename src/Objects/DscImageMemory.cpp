@@ -22,4 +22,3 @@ DscImageMemoryObject::DscImageMemoryObject(
     uint8_t *Begin,
     uint8_t *End) noexcept
 : ConstDscImageMemoryObject(DscMap, ImageInfo, Begin, End) {}
-

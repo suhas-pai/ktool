@@ -28,7 +28,7 @@ public:
 
     [[nodiscard]] constexpr
     static inline bool PointerHasErrorValue(uintptr_t Storage) noexcept {
-        return (Storage < std::numeric_limits<uint8_t>::max());
+        return (Storage < std::numeric_limits<uint16_t>::max());
     }
 
     [[nodiscard]] constexpr inline bool hasValue() const noexcept {

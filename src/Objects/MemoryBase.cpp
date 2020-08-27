@@ -17,28 +17,58 @@ MemoryObject::MemoryObject(ObjectKind Kind) noexcept : Kind(Kind) {
     assert(Kind != ObjectKind::None);
 }
 
-MemoryObject *MemoryObject::Open(const ConstMemoryMap &Map) noexcept {
+MemoryObjectOrError MemoryObject::Open(const ConstMemoryMap &Map) noexcept {
     const auto Kind = ObjectKind::None;
     switch (Kind) {
         case ObjectKind::None:
         case ObjectKind::MachO: {
-            const auto Object = ConstMachOMemoryObject::Open(Map);
-            if (Object.didMatchFormat()) {
-                return Object.ToPtr();
+            const auto ObjectOrError = ConstMachOMemoryObject::Open(Map);
+            const auto Error = ObjectOrError.getError();
+
+            if (ConstMachOMemoryObject::errorDidMatchFormat(Error)) {
+                if (ObjectOrError.hasError()) {
+                    const auto Result =
+                        MemoryObjectOrError(ObjectKind::MachO,
+                                            static_cast<uint8_t>(Error));
+
+                    return Result;
+                }
+
+                return ObjectOrError.getPtr();
             }
         }
 
         case ObjectKind::FatMachO: {
-            const auto Object = ConstFatMachOMemoryObject::Open(Map);
-            if (Object.didMatchFormat()) {
-                return Object.ToPtr();
+            const auto ObjectOrError = ConstFatMachOMemoryObject::Open(Map);
+            const auto Error = ObjectOrError.getError();
+
+            if (ConstFatMachOMemoryObject::errorDidMatchFormat(Error)) {
+                if (ObjectOrError.hasError()) {
+                    const auto Result =
+                        MemoryObjectOrError(ObjectKind::FatMachO,
+                                            static_cast<uint8_t>(Error));
+
+                    return Result;
+                }
+
+                return ObjectOrError.getPtr();
             }
         }
 
         case ObjectKind::DyldSharedCache: {
-            const auto Object = ConstDscMemoryObject::Open(Map);
-            if (Object.didMatchFormat()) {
-                return Object.ToPtr();
+            const auto ObjectOrError = ConstDscMemoryObject::Open(Map);
+            const auto Error = ObjectOrError.getError();
+
+            if (ConstDscMemoryObject::errorDidMatchFormat(Error)) {
+                if (ObjectOrError.hasError()) {
+                    const auto Result =
+                        MemoryObjectOrError(ObjectKind::DyldSharedCache,
+                                            static_cast<uint8_t>(Error));
+
+                    return Result;
+                }
+
+                return ObjectOrError.getPtr();
             }
         }
     }

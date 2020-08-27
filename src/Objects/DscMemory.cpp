@@ -14,16 +14,10 @@
 #include "Utils/Macros.h"
 #include "DscMemory.h"
 
-ConstDscMemoryObject::ConstDscMemoryObject(Error Error) noexcept
-: MemoryObject(ObjKind), ErrorStorage(Error) {}
-
 ConstDscMemoryObject::ConstDscMemoryObject(const ConstMemoryMap &Map,
                                            CpuKind CpuKind) noexcept
 : MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()),
   sCpuKind(CpuKind) {}
-
-DscMemoryObject::DscMemoryObject(Error Error) noexcept
-: ConstDscMemoryObject(Error) {}
 
 DscMemoryObject::DscMemoryObject(const MemoryMap &Map, CpuKind CpuKind) noexcept
 : ConstDscMemoryObject(Map, CpuKind) {}
@@ -115,7 +109,7 @@ ValidateMap(const ConstMemoryMap &Map,
     return ConstDscMemoryObject::Error::None;
 }
 
-ConstDscMemoryObject
+PointerOrError<ConstDscMemoryObject, ConstDscMemoryObject::Error>
 ConstDscMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
     auto CpuKind = ConstDscMemoryObject::CpuKind::i386;
     const auto Error = ValidateMap(Map, CpuKind);
@@ -124,11 +118,11 @@ ConstDscMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
         return Error;
     }
 
-    return ConstDscMemoryObject(Map, CpuKind);
+    return new ConstDscMemoryObject(Map, CpuKind);
 }
 
-bool ConstDscMemoryObject::didMatchFormat() const noexcept {
-    switch (ErrorStorage.getValue()) {
+bool ConstDscMemoryObject::errorDidMatchFormat(Error Error) noexcept {
+    switch (Error) {
         case Error::None:
             return true;
         case Error::WrongFormat:
@@ -140,10 +134,6 @@ bool ConstDscMemoryObject::didMatchFormat() const noexcept {
         case Error::OverlappingImageMappingRange:
             return true;
     }
-}
-
-MemoryObject *ConstDscMemoryObject::ToPtr() const noexcept {
-    return new ConstDscMemoryObject(ConstMemoryMap(Map, End), sCpuKind);
 }
 
 const ConstDscMemoryObject &

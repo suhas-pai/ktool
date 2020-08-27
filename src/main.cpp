@@ -326,19 +326,14 @@ int main(int Argc, const char *Argv[]) {
             return 1;
     }
 
-    auto Object = TypedAllocation(MemoryObject::Open(FileMap));
-    if (Object == nullptr) {
-        fputs("Provided file has an unsupported file-format\n", stderr);
-        return 1;
-    }
-
-    if (Object->hasError()) {
-        switch (Object->getKind()) {
+    auto ObjectOrError = MemoryObject::Open(FileMap);
+    if (ObjectOrError.hasError()) {
+        const auto ErrorInt = ObjectOrError.getErrorInt();
+        switch (ObjectOrError.getObjectKind()) {
             case ObjectKind::None:
                 assert(0 && "MemoryObject::Open() returned ObjectKind::None");
             case ObjectKind::MachO: {
-                const auto RealObject = cast<ObjectKind::MachO>(Object);
-                switch (RealObject->getError()) {
+                switch (ConstMachOMemoryObject::getErrorFromInt(ErrorInt)) {
                     case ConstMachOMemoryObject::Error::None:
                     case ConstMachOMemoryObject::Error::WrongFormat:
                     case ConstMachOMemoryObject::Error::SizeTooSmall:
@@ -353,8 +348,7 @@ int main(int Argc, const char *Argv[]) {
             }
 
             case ObjectKind::FatMachO: {
-                const auto RealObject = cast<ObjectKind::FatMachO>(Object);
-                switch (RealObject->getError()) {
+                switch (ConstFatMachOMemoryObject::getErrorFromInt(ErrorInt)) {
                     case ConstFatMachOMemoryObject::Error::None:
                     case ConstFatMachOMemoryObject::Error::WrongFormat:
                     case ConstFatMachOMemoryObject::Error::SizeTooSmall:
@@ -381,15 +375,12 @@ int main(int Argc, const char *Argv[]) {
             }
 
             case ObjectKind::DyldSharedCache: {
-                const auto RealObject =
-                    cast<ObjectKind::DyldSharedCache>(Object);
-
-                switch (RealObject->getError()) {
+                switch (ConstDscMemoryObject::getErrorFromInt(ErrorInt)) {
                     case ConstDscMemoryObject::Error::None:
                     case ConstDscMemoryObject::Error::WrongFormat:
                     case ConstDscMemoryObject::Error::SizeTooSmall:
                         assert(0 && "Got Unhandled errors in main");
-                    case DscMemoryObject::Error::UnknownCpuKind:
+                    case ConstDscMemoryObject::Error::UnknownCpuKind:
                         fputs("Provided file is a dyld-shared-cache file with "
                               "an unknown cpu-kind\n",
                               stderr);
@@ -404,7 +395,7 @@ int main(int Argc, const char *Argv[]) {
                               "an unknown image-range\n",
                               stderr);
                         return 1;
-                    case DscMemoryObject::Error::OverlappingImageMappingRange:
+                    case ConstDscMemoryObject::Error::OverlappingImageMappingRange:
                         fputs("Provided file is a dyld_shared_cache file with "
                               "Overlapping Image-Info and Mapping-Info "
                               "Ranges\n",
@@ -420,7 +411,13 @@ int main(int Argc, const char *Argv[]) {
         }
     }
 
-    // Parse any arguments for the path.
+    auto Object = TypedAllocation(ObjectOrError.getObject());
+    if (Object == nullptr) {
+        fputs("Provided file has an unsupported file-format\n", stderr);
+        return 1;
+    }
+
+    // Parse any options for the path.
 
     for (auto &Argument : ArgvArray(Argv, PathIndex + 1, Argc)) {
         if (strcmp(Argument, "-arch") == 0) {
@@ -465,7 +462,7 @@ int main(int Argc, const char *Argv[]) {
             Object = ArchObject.getObject();
             if (Object == nullptr) {
                 fputs("Provided file's selected arch is of an unrecognized "
-                      "kind\n", stderr);
+                      "Object-Kind\n", stderr);
                 exit(1);
             }
 
@@ -521,20 +518,15 @@ int main(int Argc, const char *Argv[]) {
                 const auto ObjectOrError = DscObj->GetImageWithInfo(ImageInfo);
 
                 HandleDscImageOpenError(ObjectOrError.getError());
-
                 Object = ObjectOrError.getPtr();
-                if (Object == nullptr) {
-                    fprintf(stderr,
-                            "Image at Index %" PRIu32 " is invalid and cannot "
-                            "be parsed\n",
-                            ImageIndex);
-                    return 1;
-                }
             } else {
                 Object = GetImageWithPath(*DscObj, Argument.GetStringView());
             }
         } else {
-            PrintUnrecognizedOptionError(Argument);
+            fprintf(stderr,
+                    "Unrecognized Path-Option: \"%s\"\n",
+                    Argument.getString());
+
             return 1;
         }
     }

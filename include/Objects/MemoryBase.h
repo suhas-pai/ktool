@@ -17,6 +17,45 @@
 
 #include "Kind.h"
 
+struct MemoryObject;
+struct MemoryObjectOrError {
+private:
+    enum class FakeError {};
+protected:
+    union {
+        MemoryObject *Ptr;
+        uintptr_t Storage;
+    };
+public:
+    constexpr MemoryObjectOrError(MemoryObject *Ptr) noexcept : Ptr(Ptr) {}
+    constexpr MemoryObjectOrError(ObjectKind Kind, uint8_t Error) noexcept
+    : Storage(static_cast<uint8_t>(Error) | (static_cast<uint8_t>(Kind) << 8))
+    {}
+
+    [[nodiscard]] inline bool hasError() const noexcept {
+        if (Storage == 0) {
+            return false;
+        }
+
+        return PointerErrorStorage<FakeError>::PointerHasErrorValue(Storage);
+    }
+
+    [[nodiscard]] inline uint8_t getErrorInt() const noexcept {
+        assert(hasError());
+        return (Storage & 0xff);
+    }
+
+    [[nodiscard]] inline ObjectKind getObjectKind() const noexcept {
+        assert(hasError());
+        return ObjectKind((Storage & 0xff00) >> 8);
+    }
+
+    [[nodiscard]] inline MemoryObject *getObject() const noexcept {
+        assert(!hasError());
+        return Ptr;
+    }
+};
+
 struct MemoryObject {
 private:
     ObjectKind Kind;
@@ -27,17 +66,15 @@ public:
         assert(0 && "IsOfKind() called on base-class");
     }
 
-    [[nodiscard]] static MemoryObject *Open(const ConstMemoryMap &Map) noexcept;
+    [[nodiscard]]
+    static MemoryObjectOrError Open(const ConstMemoryMap &Map) noexcept;
+
     [[nodiscard]] inline ObjectKind getKind() const noexcept { return Kind; }
 
     virtual ~MemoryObject() noexcept = default;
 
-    virtual bool hasError() const noexcept = 0;
-    virtual bool didMatchFormat() const noexcept = 0;
-
     virtual ConstMemoryMap getConstMap() const noexcept = 0;
     virtual RelativeRange getRange() const noexcept = 0;
-    virtual MemoryObject *ToPtr() const noexcept = 0;
 };
 
 struct MachOMemoryObject;

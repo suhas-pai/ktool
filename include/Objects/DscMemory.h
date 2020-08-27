@@ -60,7 +60,6 @@ protected:
     union {
         const uint8_t *Map;
         const DyldSharedCache::Header *Header;
-        PointerErrorStorage<Error> ErrorStorage;
     };
 
     const uint8_t *End;
@@ -70,32 +69,28 @@ protected:
     ValidateImageMapAndGetEnd(const ConstMemoryMap &Map) noexcept;
 
     CpuKind sCpuKind;
-    ConstDscMemoryObject(Error Error) noexcept;
 
     explicit
     ConstDscMemoryObject(const ConstMemoryMap &Map, CpuKind CpuKind) noexcept;
 public:
-    [[nodiscard]]
-    static ConstDscMemoryObject Open(const ConstMemoryMap &Map) noexcept;
+    [[nodiscard]] static PointerOrError<ConstDscMemoryObject, Error>
+    Open(const ConstMemoryMap &Map) noexcept;
 
     [[nodiscard]]
     static inline bool IsOfKind(const MemoryObject &Obj) noexcept {
         return (Obj.getKind() == ObjKind);
     }
 
-    [[nodiscard]] bool didMatchFormat() const noexcept override;
-    [[nodiscard]] MemoryObject *ToPtr() const noexcept override;
-
-    [[nodiscard]] inline bool hasError() const noexcept override {
-        return ErrorStorage.hasValue();
+    [[nodiscard]] static bool errorDidMatchFormat(Error Error) noexcept;
+    [[nodiscard]] static inline bool errorDidMatchFormat(uint8_t Int) noexcept {
+        return errorDidMatchFormat(getErrorFromInt(Int));
     }
 
-    [[nodiscard]] inline Error getError() const noexcept {
-        return ErrorStorage.getValue();
+    [[nodiscard]] static inline Error getErrorFromInt(uint8_t Int) noexcept {
+        return static_cast<Error>(Int);
     }
 
     [[nodiscard]] inline ConstMemoryMap getMap() const noexcept {
-        assert(!hasError());
         return ConstMemoryMap(Map, End);
     }
 
@@ -109,7 +104,6 @@ public:
 
     [[nodiscard]]
     inline const DyldSharedCache::Header &getHeader() const noexcept {
-        assert(!hasError());
         return *Header;
     }
 
@@ -239,18 +233,27 @@ public:
 
 struct DscMemoryObject : public ConstDscMemoryObject {
 protected:
-    DscMemoryObject(Error Error) noexcept;
     explicit DscMemoryObject(const MemoryMap &Map, CpuKind CpuKind) noexcept;
 public:
-    [[nodiscard]]
-    static inline DscMemoryObject Open(const MemoryMap &Map) noexcept {
+    [[nodiscard]] static inline PointerOrError<DscMemoryObject, Error>
+    Open(const MemoryMap &Map) noexcept {
         auto Result = ConstDscMemoryObject::Open(Map);
-        return *reinterpret_cast<DscMemoryObject *>(&Result);
+        return reinterpret_cast<DscMemoryObject *>(Result.value());
+    }
+
+    [[nodiscard]] static inline bool errorDidMatchFormat(Error Error) noexcept {
+        return ConstDscMemoryObject::errorDidMatchFormat(Error);
+    }
+
+    [[nodiscard]] static inline bool errorDidMatchFormat(uint8_t Int) noexcept {
+        return ConstDscMemoryObject::errorDidMatchFormat(Int);
+    }
+
+    [[nodiscard]] static inline Error getErrorFromInt(uint8_t Int) noexcept {
+        return ConstDscMemoryObject::getErrorFromInt(Int);
     }
 
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
-        assert(!hasError());
-
         const auto End = const_cast<uint8_t *>(this->End);
         return MemoryMap(const_cast<uint8_t *>(Map), End);
     }

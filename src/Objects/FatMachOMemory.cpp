@@ -99,53 +99,38 @@ ValidateMap(const ConstMemoryMap &Map) noexcept {
     return ConstFatMachOMemoryObject::Error::None;
 }
 
-ConstFatMachOMemoryObject
+PointerOrError<ConstFatMachOMemoryObject, ConstFatMachOMemoryObject::Error>
 ConstFatMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
     const auto Error = ValidateMap(Map);
     if (Error != ConstFatMachOMemoryObject::Error::None) {
         return Error;
     }
 
-    return ConstFatMachOMemoryObject(Map);
+    return new ConstFatMachOMemoryObject(Map);
 }
 
 ConstFatMachOMemoryObject::ConstFatMachOMemoryObject(
     const ConstMemoryMap &Map) noexcept
 : MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()) {}
 
-ConstFatMachOMemoryObject::ConstFatMachOMemoryObject(Error Error) noexcept
-: MemoryObject(ObjKind), ErrorStorage(Error) {}
-
 FatMachOMemoryObject::FatMachOMemoryObject(const MemoryMap &Map) noexcept
 : ConstFatMachOMemoryObject(Map) {}
 
-FatMachOMemoryObject::FatMachOMemoryObject(Error Error) noexcept
-: ConstFatMachOMemoryObject(Error) {}
-
-[[nodiscard]] static
-inline bool MatchesFormat(ConstFatMachOMemoryObject::Error Error) noexcept {
+bool ConstFatMachOMemoryObject::errorDidMatchFormat(Error Error) noexcept {
     switch (Error) {
-        case ConstFatMachOMemoryObject::Error::None:
+        case Error::None:
             return true;
-        case ConstFatMachOMemoryObject::Error::WrongFormat:
-        case ConstFatMachOMemoryObject::Error::SizeTooSmall:
+        case Error::WrongFormat:
+        case Error::SizeTooSmall:
             return false;
-        case ConstFatMachOMemoryObject::Error::ZeroArchitectures:
-        case ConstFatMachOMemoryObject::Error::TooManyArchitectures:
-        case ConstFatMachOMemoryObject::Error::ArchOutOfBounds:
-        case ConstFatMachOMemoryObject::Error::ArchOverlapsArch:
+        case Error::ZeroArchitectures:
+        case Error::TooManyArchitectures:
+        case Error::ArchOutOfBounds:
+        case Error::ArchOverlapsArch:
             return true;
     }
 
     return false;
-}
-
-bool ConstFatMachOMemoryObject::didMatchFormat() const noexcept {
-    return MatchesFormat(getError());
-}
-
-MemoryObject *ConstFatMachOMemoryObject::ToPtr() const noexcept {
-    return new ConstFatMachOMemoryObject(ConstMemoryMap(Map, End));
 }
 
 enum class ArchKind {
@@ -222,10 +207,12 @@ ConstFatMachOMemoryObject::GetArchObjectFromInfo(
     switch (Kind) {
         case ArchKind::None:
         case ArchKind::MachO:
-            const auto Object = ConstMachOMemoryObject::Open(ArchMap);
-            if (Object.didMatchFormat()) {
+            const auto ObjectOrError = ConstMachOMemoryObject::Open(ArchMap);
+            const auto Error = ObjectOrError.getError();
+
+            if (ConstMachOMemoryObject::errorDidMatchFormat(Error)) {
                 const auto Result =
-                    GetMachOObjectResult(Object.ToPtr(),
+                    GetMachOObjectResult(ObjectOrError.getPtr(),
                                          Info.CpuKind,
                                          Info.CpuSubKind);
 

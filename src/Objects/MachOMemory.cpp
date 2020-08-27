@@ -9,9 +9,6 @@
 #include "Utils/DoesOverflow.h"
 #include "MachOMemory.h"
 
-ConstMachOMemoryObject::ConstMachOMemoryObject(Error Error) noexcept
-: MemoryObject(ObjKind), ErrorStorage(Error) {}
-
 ConstMachOMemoryObject::ConstMachOMemoryObject(
     const ConstMemoryMap &Map) noexcept
 : MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()) {}
@@ -20,9 +17,6 @@ ConstMachOMemoryObject::ConstMachOMemoryObject(
     ObjectKind Kind,
     const ConstMemoryMap &Map) noexcept
 : MemoryObject(Kind), Map(Map.getBegin()), End(Map.getEnd()) {}
-
-MachOMemoryObject::MachOMemoryObject(Error Error) noexcept
-: ConstMachOMemoryObject(Error) {}
 
 MachOMemoryObject::MachOMemoryObject(const MemoryMap &Map) noexcept
 : ConstMachOMemoryObject(Map) {}
@@ -75,18 +69,17 @@ ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept {
     return ConstMachOMemoryObject::Error::None;
 }
 
-ConstMachOMemoryObject
+PointerOrError<ConstMachOMemoryObject, ConstMachOMemoryObject::Error>
 ConstMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
     const auto Error = ValidateMap(Map);
     if (Error != Error::None) {
         return Error;
     }
 
-    return ConstMachOMemoryObject(Map);
+    return new ConstMachOMemoryObject(Map);
 }
 
-[[nodiscard]]
-static bool MatchesFormat(ConstMachOMemoryObject::Error Error) noexcept {
+bool ConstMachOMemoryObject::errorDidMatchFormat(Error Error) noexcept {
     switch (Error) {
         case ConstMachOMemoryObject::Error::None:
             return true;
@@ -96,14 +89,4 @@ static bool MatchesFormat(ConstMachOMemoryObject::Error Error) noexcept {
         case ConstMachOMemoryObject::Error::TooManyLoadCommands:
             return true;
     }
-
-    return false;
-}
-
-bool ConstMachOMemoryObject::didMatchFormat() const noexcept {
-    return MatchesFormat(getError());
-}
-
-MemoryObject *ConstMachOMemoryObject::ToPtr() const noexcept {
-    return new ConstMachOMemoryObject(ConstMemoryMap(Map, End));
 }
