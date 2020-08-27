@@ -185,9 +185,11 @@ namespace MachO {
         std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
         bool IsBigEndian) noexcept
     {
-        // BindAddr points to the superclass field inside ObjcClass[64]
+        // BindAddr points to the `SuperClass` field inside ObjcClass[64]
 
-        const auto BindAddr = Info->getAddr() + PointerSize<Kind>();
+        const auto BindAddr =
+            Info->getAddr() + offsetof(ClassTypeCalculator<Kind>, SuperClass);
+
         if (const auto *Action = BindCollection.GetInfoForAddress(BindAddr)) {
             SetSuperWithBindAction(Info,
                                    *Action,
@@ -873,8 +875,13 @@ namespace MachO {
                     Info->setName(std::string(Name.value()));
                 }
 
-                auto ClassAddr = SwitchedAddr + PointerSize<Kind>();
+                // ClassAddr initially points to the 'Class' field that (may)
+                // get binded.
+
                 auto Class = static_cast<ObjcClassInfo *>(nullptr);
+                auto ClassAddr =
+                    SwitchedAddr +
+                    offsetof(ClassCategoryTypeCalculator<Kind>, Class);
 
                 if (auto *It = BindCollection.GetInfoForAddress(ClassAddr)) {
                     const auto Name =
@@ -929,7 +936,13 @@ namespace MachO {
                     Info->setName(std::string(Name.value()));
                 }
 
-                auto ClassAddr = SwitchedAddr + PointerSize<Kind>();
+                // ClassAddr initially points to the 'Class' field that (may)
+                // get binded.
+
+                auto ClassAddr =
+                    SwitchedAddr +
+                    offsetof(ClassCategoryTypeCalculator<Kind>, Class);
+
                 if (auto *It = BindCollection.GetInfoForAddress(ClassAddr)) {
                     SwitchedAddr = static_cast<PtrAddrType>(It->getAddress());
                 } else {
