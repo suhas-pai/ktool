@@ -902,15 +902,15 @@ namespace MachO {
                         if (Class == nullptr) {
                             Class = ClassInfoTree->AddNullClass(ClassAddr);
                         }
+
+                        Class->getCategoryList().emplace_back(Info.get());
                     }
                 }
 
                 Info->setAddress(SwitchedAddr);
                 Info->setClass(Class);
 
-                Class->getCategoryList().emplace_back(Info.get());
                 CategoryList.emplace_back(std::move(Info));
-
                 ListAddr += PointerSize<Kind>();
             }
         } else {
