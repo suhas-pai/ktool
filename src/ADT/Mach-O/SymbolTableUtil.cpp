@@ -419,7 +419,7 @@ namespace MachO {
             return *this;
         }
 
-        if (!IndexListRange.containsRange(SectionIndexRange.value())) {
+        if (!IndexListRange.containsLocRange(SectionIndexRange.value())) {
             if (ErrorOut != nullptr) {
                 *ErrorOut = SymbolTableParseError::InvalidSection;
             }

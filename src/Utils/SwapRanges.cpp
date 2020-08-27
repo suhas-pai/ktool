@@ -31,8 +31,8 @@ SwapRanges(void *ArgLhsBegin,
     const auto FullRange = RelativeRange(End);
 
     assert(!LhsRange.overlaps(RhsRange));
-    assert(FullRange.containsRange(LhsRange) &&
-           FullRange.containsRange(RhsRange));
+    assert(FullRange.containsLocRange(LhsRange) &&
+           FullRange.containsLocRange(RhsRange));
 
     const auto LhsSize = LhsRange.size();
     const auto RhsSize = RhsRange.size();

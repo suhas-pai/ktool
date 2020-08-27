@@ -1001,7 +1001,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1031,7 +1031,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1067,7 +1067,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1102,7 +1102,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1139,7 +1139,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1176,7 +1176,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1212,7 +1212,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1247,7 +1247,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1285,7 +1285,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1324,7 +1324,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1353,7 +1353,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(Offset, End);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1383,7 +1383,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(Offset, End);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1410,7 +1410,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(Offset, End);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1437,7 +1437,7 @@ namespace MachO {
         }
 
         const auto LocRange = LocationRange::CreateWithEnd(Offset, End);
-        if (!Map.getRange().containsRange(LocRange)) {
+        if (!Map.getRange().containsLocRange(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 

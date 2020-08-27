@@ -10,7 +10,7 @@
 #include "RelativeRange.h"
 
 bool
-RelativeRange::containsRange(const LocationRange &LocRange) const noexcept {
+RelativeRange::containsLocRange(const LocationRange &LocRange) const noexcept {
     const auto DoesContain =
         (containsLocation(LocRange.getBegin()) &&
          containsEndLocation(LocRange.getEnd()));

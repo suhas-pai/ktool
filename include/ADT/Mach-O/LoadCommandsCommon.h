@@ -92,7 +92,7 @@ namespace MachO {
         auto End = static_cast<uint64_t>(Offset) + Size;
         auto Range = LocationRange::CreateWithEnd(Offset, End);
 
-        if (!Map.getRange().containsRange(Range)) {
+        if (!Map.getRange().containsLocRange(Range)) {
             return SizeRangeError::PastEnd;
         }
 

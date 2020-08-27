@@ -26,7 +26,7 @@ public:
     }
 
     [[nodiscard]]
-    bool containsRange(const LocationRange &LocRange) const noexcept;
+    bool containsLocRange(const LocationRange &LocRange) const noexcept;
 
     [[nodiscard]]
     constexpr inline bool containsLocation(uint64_t Location) const noexcept {

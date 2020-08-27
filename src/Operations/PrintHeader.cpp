@@ -579,7 +579,7 @@ WarnIfOutOfRange(FILE *OutFile,
                  bool PrintNewLine = true) noexcept
 {
     const auto LocRange = LocationRange::CreateWithSize(Offset, Size);
-    if (!LocRange || !Range.containsRange(LocRange.value())) {
+    if (!LocRange || !Range.containsLocRange(LocRange.value())) {
         fprintf(OutFile, " (Past EOF!)");
     }
 
