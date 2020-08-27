@@ -11,7 +11,6 @@
 #include "ADT/Mach.h"
 #include "ADT/MachO.h"
 #include "ADT/MemoryMap.h"
-#include "ADT/PointerErrorStorage.h"
 
 #include "MemoryBase.h"
 

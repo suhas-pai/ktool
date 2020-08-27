@@ -10,7 +10,6 @@
 
 #include "ADT/MachO.h"
 #include "ADT/MemoryMap.h"
-#include "ADT/PointerOrError.h"
 
 #include "MachOMemory.h"
 #include "MemoryBase.h"
