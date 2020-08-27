@@ -19,7 +19,7 @@ protected:
     const uint8_t *Begin;
     const uint8_t *End;
 public:
-    constexpr explicit
+    constexpr
     ConstMemoryMap(const void *Begin, const void *End) noexcept
     : Begin(static_cast<const uint8_t *>(Begin)),
       End(static_cast<const uint8_t *>(End))
@@ -98,7 +98,7 @@ public:
 
 struct MemoryMap : public ConstMemoryMap {
 public:
-    constexpr explicit MemoryMap(uint8_t *Begin, uint8_t *End) noexcept
+    constexpr MemoryMap(uint8_t *Begin, uint8_t *End) noexcept
     : ConstMemoryMap(Begin, End) {}
 
     [[nodiscard]] inline uint8_t *getBegin() const noexcept {
