@@ -897,10 +897,11 @@ namespace MachO {
                     }
                 } else {
                     ClassAddr = Category->getClassAddress(IsBigEndian);
-                    Class = ClassInfoTree->GetInfoForAddress(ClassAddr);
-
-                    if (Class == nullptr) {
-                        Class = ClassInfoTree->AddNullClass(ClassAddr);
+                    if (ClassAddr != 0) {
+                        Class = ClassInfoTree->GetInfoForAddress(ClassAddr);
+                        if (Class == nullptr) {
+                            Class = ClassInfoTree->AddNullClass(ClassAddr);
+                        }
                     }
                 }
 
