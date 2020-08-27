@@ -614,7 +614,7 @@ namespace MachO {
                reinterpret_cast<const uint8_t *>(End)),
           Info(std::move(Info))
         {
-            Info->Kind = BindKind;
+            this->Info->Kind = BindKind;
             Advance();
         }
 
