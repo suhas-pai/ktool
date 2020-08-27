@@ -608,35 +608,44 @@ PrintMappingInfoList(const struct PrintHeaderOperation::Options &Options,
                               Mapping.FileOffset,
                               true,
                               "\t\tFile-Offset: ");
-        
-        PrintUtilsWriteOffsetSizeRange(Options.OutFile,
-                                       Mapping.FileOffset,
-                                       Mapping.Size,
-                                       " (",
-                                       ")\n");
+
+        const auto PrintRange = (Mapping.Size != 0 && Options.Verbose);
+        if (PrintRange) {
+            PrintUtilsWriteOffsetSizeRange(Options.OutFile,
+                                           Mapping.FileOffset,
+                                           Mapping.Size,
+                                           " (",
+                                           ")");
+        }
         
         PrintUtilsWriteOffset(Options.OutFile,
                               Mapping.Address,
                               true,
-                              "\t\tAddress:     ");
+                              "\n\t\tAddress:     ");
+
+        if (PrintRange) {
+            PrintUtilsWriteOffsetSizeRange(Options.OutFile,
+                                           Mapping.Address,
+                                           Mapping.Size,
+                                           " (",
+                                           ")");
+        }
         
-        PrintUtilsWriteOffsetSizeRange(Options.OutFile,
-                                       Mapping.Address,
-                                       Mapping.Size,
-                                       " (",
-                                       ")\n");
-        
-        const auto RightPad = LENGTH_OF("\t\tSize:        ") + OFFSET_64_LEN;
+        const auto RightPad = LENGTH_OF("\n\t\tSize:        ") + OFFSET_64_LEN;
         PrintUtilsRightPadSpaces(Options.OutFile,
                                  fprintf(Options.OutFile,
-                                         "\t\tSize:        %" PRIu64,
+                                         "\n\t\tSize:        %" PRIu64,
                                          Mapping.Size),
                                  RightPad);
-        
-        PrintUtilsWriteFormattedSize(Options.OutFile,
-                                     Mapping.Size,
-                                     " (",
-                                     ")\n");
+
+        if (Options.Verbose) {
+            PrintUtilsWriteFormattedSize(Options.OutFile,
+                                         Mapping.Size,
+                                         " (",
+                                         ")");
+        }
+
+        fputc('\n', Options.OutFile);
         Index++;
     }
 }
@@ -653,9 +662,16 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
 
     PrintDscKey(Options.OutFile, "Magic");
     fprintf(Options.OutFile,
-            "\"" CHAR_ARR_FMT(16) "\" (Cpu-Kind: %s)\n",
-            Header.Magic,
-            Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data());
+            "\"" CHAR_ARR_FMT(16) "\"",
+            Header.Magic);
+
+    if (Options.Verbose) {
+        fprintf(Options.OutFile,
+                " (Cpu-Kind: %s)\n",
+                Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data());
+    } else {
+        fputc('\n', Options.OutFile);
+    }
 
     const auto Version = Object.getVersion();
 
@@ -672,7 +688,7 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
     PrintDscKey(Options.OutFile, "Mapping Count");
     fprintf(Options.OutFile, "%" PRIu32 "\n", Header.MappingCount);
 
-    if (Object.getMappingCount() <= 3) {
+    if (Object.getMappingCount() <= 10) {
         PrintMappingInfoList(Options, Object);
     }
 
