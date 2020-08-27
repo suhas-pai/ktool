@@ -501,7 +501,6 @@ PrintDscRangeOverlapsErrorOrNewline(
         switch (Kind) {
             case DscRangeKind::None:
                 assert(0 && "Overlap-Kind None is set");
-                break;
             case DscRangeKind::MappingInfoList:
                 fputs("Mapping-Info Range", Options.ErrFile);
                 break;
@@ -549,7 +548,6 @@ PrintDscRangeOverlapsErrorOrNewline(
                 break;
             case DscRangeKind::End:
                 assert(0 && "Overlap-Kind End is set");
-                break;
         }
 
         Count++;
@@ -661,9 +659,7 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
     const auto Header = Object.getHeaderV0();
 
     PrintDscKey(Options.OutFile, "Magic");
-    fprintf(Options.OutFile,
-            "\"" CHAR_ARR_FMT(16) "\"",
-            Header.Magic);
+    fprintf(Options.OutFile, "\"" CHAR_ARR_FMT(16) "\"", Header.Magic);
 
     if (Options.Verbose) {
         fprintf(Options.OutFile,
@@ -762,10 +758,9 @@ PrintDscSizeRange(FILE *OutFile,
 }
 
 static void
-PrintDscHeaderV1Info(
-    const ConstDscMemoryObject &Object,
-    const struct PrintHeaderOperation::Options &Options,
-    const DscRangeList &List) noexcept
+PrintDscHeaderV1Info(const ConstDscMemoryObject &Object,
+                     const struct PrintHeaderOperation::Options &Options,
+                     const DscRangeList &List) noexcept
 {
     const auto &Header = Object.getHeaderV1();
     PrintDscSizeRange(Options.OutFile,
@@ -795,10 +790,9 @@ PrintDscHeaderV1Info(
 }
 
 static void
-PrintDscHeaderV2Info(
-    const ConstDscMemoryObject &Object,
-    const struct PrintHeaderOperation::Options &Options,
-    const DscRangeList &List) noexcept
+PrintDscHeaderV2Info(const ConstDscMemoryObject &Object,
+                     const struct PrintHeaderOperation::Options &Options,
+                     const DscRangeList &List) noexcept
 {
     const auto &Header = Object.getHeaderV2();
     PrintDscSizeRange(Options.OutFile,
@@ -841,10 +835,9 @@ done:
 }
 
 static void
-PrintDscHeaderV4Info(
-    const ConstDscMemoryObject &Object,
-    const struct PrintHeaderOperation::Options &Options,
-    const DscRangeList &List) noexcept
+PrintDscHeaderV4Info(const ConstDscMemoryObject &Object,
+                     const struct PrintHeaderOperation::Options &Options,
+                     const DscRangeList &List) noexcept
 {
     const auto &Header = Object.getHeaderV4();
 
@@ -905,10 +898,9 @@ void PrintBoolValue(FILE *OutFile, const char *Key, bool Value) noexcept {
 }
 
 static void
-PrintDscHeaderV5Info(
-    const ConstDscMemoryObject &Object,
-    const struct PrintHeaderOperation::Options &Options,
-    const DscRangeList &List) noexcept
+PrintDscHeaderV5Info(const ConstDscMemoryObject &Object,
+                     const struct PrintHeaderOperation::Options &Options,
+                     const DscRangeList &List) noexcept
 {
     const auto &Header = Object.getHeaderV5();
     PrintDscSizeRange(Options.OutFile,
@@ -1012,10 +1004,9 @@ PrintDscHeaderV5Info(
 }
 
 static void
-PrintDscHeaderV6Info(
-    const ConstDscMemoryObject &Object,
-    const struct PrintHeaderOperation::Options &Options,
-    const DscRangeList &List) noexcept
+PrintDscHeaderV6Info(const ConstDscMemoryObject &Object,
+                     const struct PrintHeaderOperation::Options &Options,
+                     const DscRangeList &List) noexcept
 {
     const auto &Header = Object.getHeaderV6();
     PrintDscSizeRange(Options.OutFile,

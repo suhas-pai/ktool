@@ -322,7 +322,7 @@ MachOLoadCommandPrinterWriteSegmentCommand(FILE *OutFile,
 
     fprintf(OutFile, "%" PRIu32 " Sections:\n", SectionsCount);
     for (const auto &Section : Segment.GetConstSectionList(IsBigEndian)) {
-        const auto SectVmAddr = Section.getAddr(IsBigEndian);
+        const auto SectVmAddr = Section.getAddress(IsBigEndian);
         const auto SectSize = Section.getSize(IsBigEndian);
 
         fputs("\t\t", OutFile);

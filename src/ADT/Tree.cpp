@@ -292,9 +292,6 @@ BasicTreeNode::IsolateAndRemoveFromParent(bool RemoveLeafParents,
 }
 
 BasicTree::BasicTree(BasicTreeNode *Root) noexcept : Root(Root) {}
-ConstBasicTree::ConstBasicTree(const BasicTreeNode *Root) noexcept
-: BasicTree(const_cast<BasicTreeNode *>(Root)) {}
-
 BasicTree::~BasicTree() noexcept {}
 
 uint64_t BasicTree::GetCount() const noexcept {
@@ -320,22 +317,6 @@ BasicTree::ConstIterator BasicTree::cbegin() const noexcept {
 }
 
 BasicTree::ConstIterator BasicTree::cend() const noexcept {
-    return ConstIterator(nullptr);
-}
-
-ConstBasicTree::Iterator ConstBasicTree::begin() const noexcept {
-    return Iterator(getRoot());
-}
-
-ConstBasicTree::Iterator ConstBasicTree::end() const noexcept {
-    return Iterator(nullptr);
-}
-
-ConstBasicTree::ConstIterator ConstBasicTree::cbegin() const noexcept {
-    return ConstIterator(getRoot());
-}
-
-ConstBasicTree::ConstIterator ConstBasicTree::cend() const noexcept {
     return ConstIterator(nullptr);
 }
 
@@ -410,7 +391,7 @@ BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
             return nullptr;
         }
 
-        if (Node.getFirstChild()->getNextSibling() == nullptr) {
+        if (Node.HasOnlyOneChild()) {
             setRoot(Node.getFirstChild());
             Node.clearAndDestroy();
 

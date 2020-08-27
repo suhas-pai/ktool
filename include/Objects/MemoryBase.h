@@ -41,8 +41,11 @@ public:
     }
 
     [[nodiscard]] inline uint8_t getErrorInt() const noexcept {
-        assert(hasError());
-        return (Storage & 0xff);
+        if (hasError()) {
+            return (Storage & 0xff);
+        }
+
+        return 0;
     }
 
     [[nodiscard]] inline ObjectKind getObjectKind() const noexcept {

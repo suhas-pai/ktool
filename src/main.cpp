@@ -327,8 +327,7 @@ int main(int Argc, const char *Argv[]) {
     }
 
     auto ObjectOrError = MemoryObject::Open(FileMap);
-    if (ObjectOrError.hasError()) {
-        const auto ErrorInt = ObjectOrError.getErrorInt();
+    if (const auto ErrorInt = ObjectOrError.getErrorInt()) {
         switch (ObjectOrError.getObjectKind()) {
             case ObjectKind::None:
                 assert(0 && "MemoryObject::Open() returned ObjectKind::None");
@@ -395,7 +394,7 @@ int main(int Argc, const char *Argv[]) {
                               "an unknown image-range\n",
                               stderr);
                         return 1;
-                    case ConstDscMemoryObject::Error::OverlappingImageMappingRange:
+                    case DscMemoryObject::Error::OverlappingImageMappingRange:
                         fputs("Provided file is a dyld_shared_cache file with "
                               "Overlapping Image-Info and Mapping-Info "
                               "Ranges\n",

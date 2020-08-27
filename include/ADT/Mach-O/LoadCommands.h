@@ -288,7 +288,7 @@ namespace MachO {
             uint32_t Reserved2;
 
             [[nodiscard]] constexpr
-            inline uint32_t getAddr(bool IsBigEndian) const noexcept {
+            inline uint32_t getAddress(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Addr, IsBigEndian);
             }
 
@@ -337,7 +337,7 @@ namespace MachO {
 
             [[nodiscard]] constexpr inline std::optional<LocationRange>
             getMemoryRange(bool IsBigEndian) const noexcept {
-                const auto Addr = getAddr(IsBigEndian);
+                const auto Addr = getAddress(IsBigEndian);
                 const auto Size = getSize(IsBigEndian);
 
                 return LocationRange::CreateWithSize(Addr, Size);
@@ -526,7 +526,7 @@ namespace MachO {
             uint32_t Reserved2;
 
             [[nodiscard]] constexpr
-            inline uint64_t getAddr(bool IsBigEndian) const noexcept {
+            inline uint64_t getAddress(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Addr, IsBigEndian);
             }
 
@@ -575,7 +575,7 @@ namespace MachO {
 
             [[nodiscard]] constexpr inline std::optional<LocationRange>
             getMemoryRange(bool IsBigEndian) const noexcept {
-                const auto Addr = getAddr(IsBigEndian);
+                const auto Addr = getAddress(IsBigEndian);
                 const auto Size = getSize(IsBigEndian);
 
                 return LocationRange::CreateWithSize(Addr, Size);

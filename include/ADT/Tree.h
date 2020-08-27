@@ -312,35 +312,43 @@ public:
                             int64_t *DepthChangeOut = nullptr) const noexcept;
 
     inline BasicTreeNode &setFirstChild(BasicTreeNode *Node) noexcept {
-        assert(this != Node);
+        assert(Node != this);
 
-        FirstChild = Node;
+        this->FirstChild = Node;
         return *this;
     }
 
     inline BasicTreeNode &setPrevSibling(BasicTreeNode *Node) noexcept {
-        assert(this != Node);
+        assert(Node != this);
 
-        PrevSibling = Node;
+        this->PrevSibling = Node;
         return *this;
     }
 
     inline BasicTreeNode &setNextSibling(BasicTreeNode *Node) noexcept {
-        assert(this != Node);
+        assert(Node != this);
 
-        NextSibling = Node;
+        this->NextSibling = Node;
         return *this;
     }
 
     inline BasicTreeNode &setLongestChild(BasicTreeNode *Node) noexcept {
-        assert(this != Node);
+        assert(Node != this);
 
-        LongestChild = Node;
+        this->LongestChild = Node;
         return *this;
     }
 
     [[nodiscard]] inline bool IsLeaf() const noexcept {
         return (getFirstChild() == nullptr);
+    }
+
+    [[nodiscard]] inline bool HasOnlyOneChild() const noexcept {
+        if (const auto FirstChild = getFirstChild()) {
+            return (FirstChild->getNextSibling() == nullptr);
+        }
+
+        return false;
     }
 
     [[nodiscard]] virtual uint64_t GetLength() const noexcept = 0;
@@ -545,22 +553,4 @@ public:
 
         Root->PrintHorizontal(OutFile, TabLength, NodePrinterFunc);
     }
-};
-
-struct ConstBasicTree : public BasicTree {
-    ConstBasicTree() noexcept = default;
-    ConstBasicTree(const BasicTreeNode *Root) noexcept;
-
-    [[nodiscard]] const BasicTreeNode *getRoot() const noexcept {
-        return reinterpret_cast<const BasicTreeNode *>(Root);
-    }
-
-    using Iterator = TreeIterator<const BasicTreeNode>;
-    using ConstIterator = Iterator;
-
-    [[nodiscard]] ConstIterator begin() const noexcept;
-    [[nodiscard]] ConstIterator end() const noexcept;
-
-    [[nodiscard]] ConstIterator cbegin() const noexcept;
-    [[nodiscard]] ConstIterator cend() const noexcept;
 };
