@@ -10,9 +10,8 @@
 
 namespace MachO {
     static std::string *
-    GetPtrForSymbol(
-        const std::string_view &Symbol,
-        BindActionCollection::SymbolListType &SymbolList) noexcept
+    GetPtrForSymbol(const std::string_view &Symbol,
+                    BindActionCollection::SymbolListType &SymbolList) noexcept
     {
         const auto Hash = std::hash<std::string_view>()(Symbol);
         const auto Iter = SymbolList.find(Hash);
@@ -114,20 +113,19 @@ namespace MachO {
             }
 
             auto NewAction = BindActionCollection::Info();
-
-            NewAction.setKind(BindKind),
-            NewAction.setWriteKind(Action.WriteKind);
-            NewAction.setAddend(Action.Addend);
-            NewAction.setDylibOrdinal(
-                static_cast<uint32_t>(Action.DylibOrdinal));
-            NewAction.setSegmentIndex(
-                static_cast<uint32_t>(Action.SegmentIndex));
-            NewAction.setSegmentOffset(Action.SegOffset);
-            NewAction.setAddress(FullAddr);
-            NewAction.setOpcodeAddress(Iter.getOffset(BindList.getBegin()));
-            NewAction.setAddrInSeg(Action.AddrInSeg);
-            NewAction.setIsNewSymbolName(NewSymbol);
-            NewAction.setFlags(Action.Flags);
+            NewAction.setKind(BindKind)
+                     .setWriteKind(Action.WriteKind)
+                     .setAddend(Action.Addend)
+                     .setDylibOrdinal(
+                          static_cast<uint32_t>(Action.DylibOrdinal))
+                     .setSegmentIndex(
+                          static_cast<uint32_t>(Action.SegmentIndex))
+                     .setSegmentOffset(Action.SegOffset)
+                     .setAddress(FullAddr)
+                     .setOpcodeAddress(Iter.getOffset(BindList.getBegin()))
+                     .setAddrInSeg(Action.AddrInSeg)
+                     .setIsNewSymbolName(NewSymbol)
+                     .setFlags(Action.Flags);
 
             if (NewSymbol) {
                 const auto Symbol =
