@@ -388,10 +388,12 @@ PrintExportTrie(
     auto ExportList = std::vector<ExportInfo>();
     auto LongestExportLength = LargestIntHelper();
 
-    // A very large allocation, but many dylibs seem to have anywhere between
-    // 1000-3000 symbols in the export-trie.
+    if (!Options.OnlyCount) {
+        // Reserve an initial-capacity of 64 to minimize on number of
+        // allocations.
 
-    ExportList.reserve(2000);
+        ExportList.reserve(64);
+    }
 
     for (const auto &Info : TrieList.getRef()) {
         if (!Info.IsExport()) {
