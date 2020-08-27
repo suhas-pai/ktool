@@ -73,7 +73,7 @@ public:
         }
 
         constexpr inline Protections &setCanWrite(bool Value = true) noexcept {
-            setValueForFlag(Flags::Read, Value);
+            setValueForFlag(Flags::Write, Value);
             return *this;
         }
 
