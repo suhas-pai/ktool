@@ -135,18 +135,6 @@ public:
         return reinterpret_cast<MachOMemoryObject *>(Result.value());
     }
 
-    [[nodiscard]] static inline bool errorDidMatchFormat(Error Error) noexcept {
-        return ConstMachOMemoryObject::errorDidMatchFormat(Error);
-    }
-
-    [[nodiscard]] static inline bool errorDidMatchFormat(uint8_t Int) noexcept {
-        return ConstMachOMemoryObject::errorDidMatchFormat(Int);
-    }
-
-    [[nodiscard]] static inline Error getErrorFromInt(uint8_t Int) noexcept {
-        return ConstMachOMemoryObject::getErrorFromInt(Int);
-    }
-
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
         const auto End = const_cast<uint8_t *>(this->End);
         return MemoryMap(const_cast<uint8_t *>(Map), End);
