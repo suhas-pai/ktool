@@ -158,8 +158,8 @@ namespace MachO {
                 return *this;
             }
 
-            [[nodiscard]] inline
-            bool operator==(const MachO::BindActionInfo &Info) const noexcept {
+            [[nodiscard]]
+            inline bool operator==(const BindActionInfo &Info) const noexcept {
                 if (Info.WriteKind != getWriteKind()) {
                     return false;
                 }

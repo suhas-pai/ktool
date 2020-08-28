@@ -128,8 +128,7 @@ namespace MachO {
              bool Verify) noexcept;
 
         using Iterator =
-            LoadCommandStorageIteratorBase<const uint8_t,
-                                           const MachO::LoadCommand>;
+            LoadCommandStorageIteratorBase<const uint8_t, const LoadCommand>;
 
         using ConstIterator = Iterator;
 
@@ -223,11 +222,10 @@ namespace MachO {
         }
 
         using Iterator =
-            LoadCommandStorageIteratorBase<uint8_t, MachO::LoadCommand>;
+            LoadCommandStorageIteratorBase<uint8_t, LoadCommand>;
 
         using ConstIterator =
-            LoadCommandStorageIteratorBase<const uint8_t,
-                                           const MachO::LoadCommand>;
+            LoadCommandStorageIteratorBase<const uint8_t, const LoadCommand>;
 
         using EndIterator = LoadCommandStorageEndIteratorBase<uint8_t>;
         using ConstEndIterator =

@@ -17,7 +17,7 @@
 
 namespace MachO {
     struct SymbolTableEntryCollectionEntryInfo {
-        MachO::SymbolTableEntryInfo SymbolInfo;
+        SymbolTableEntryInfo SymbolInfo;
         std::string *String = nullptr;
 
         uint8_t Section;
@@ -166,7 +166,7 @@ namespace MachO {
 
         [[nodiscard]] static inline SymbolTableEntryCollection
         Open(const uint8_t *Map,
-             const MachO::SymTabCommand &SymTab,
+             const SymTabCommand &SymTab,
              bool IsBigEndian,
              bool Is64Bit,
              KeyKindEnum KeyKind,
@@ -188,8 +188,8 @@ namespace MachO {
         [[nodiscard]] static inline SymbolTableEntryCollection
         OpenForIndirectSymbolIndexTable(
             const uint8_t *Map,
-            const MachO::SymTabCommand &SymTab,
-            const MachO::DynamicSymTabCommand &DySymTab,
+            const SymTabCommand &SymTab,
+            const DynamicSymTabCommand &DySymTab,
             bool IsBigEndian,
             bool Is64Bit,
             KeyKindEnum KeyKind,

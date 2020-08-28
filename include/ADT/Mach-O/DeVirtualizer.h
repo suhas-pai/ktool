@@ -15,19 +15,19 @@ namespace MachO {
     struct DeVirtualizer {
     protected:
         uint8_t *Map;
-        const MachO::SegmentInfoCollection &Collection;
+        const SegmentInfoCollection &Collection;
     public:
         explicit
         DeVirtualizer(uint8_t *Map,
-                      const MachO::SegmentInfoCollection &Collection) noexcept
+                      const SegmentInfoCollection &Collection) noexcept
         : Map(Map), Collection(Collection) {}
 
         explicit
         DeVirtualizer(const MemoryMap &Map,
-                      const MachO::SegmentInfoCollection &Collection) noexcept
+                      const SegmentInfoCollection &Collection) noexcept
         : Map(Map.getBegin()), Collection(Collection) {}
 
-        [[nodiscard]] inline const MachO::SegmentInfoCollection &
+        [[nodiscard]] inline const SegmentInfoCollection &
         getSegmentCollection() const noexcept {
             return Collection;
         }
@@ -104,12 +104,12 @@ namespace MachO {
     struct ConstDeVirtualizer : public DeVirtualizer {
         explicit ConstDeVirtualizer(
             const uint8_t *Map,
-            const MachO::SegmentInfoCollection &Collection) noexcept
+            const SegmentInfoCollection &Collection) noexcept
         : DeVirtualizer(const_cast<uint8_t *>(Map), Collection) {}
 
         explicit ConstDeVirtualizer(
             const ConstMemoryMap &Map,
-            const MachO::SegmentInfoCollection &Collection) noexcept
+            const SegmentInfoCollection &Collection) noexcept
         : DeVirtualizer(const_cast<uint8_t *>(Map.getBegin()), Collection) {}
 
         template <typename T>
@@ -125,7 +125,6 @@ namespace MachO {
         }
 
         template <typename T>
-
         [[nodiscard]] T *
         GetDataAtAddress(uint64_t Address,
                          uint64_t Size,
