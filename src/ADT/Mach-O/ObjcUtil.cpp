@@ -838,7 +838,7 @@ namespace MachO {
         const uint8_t *Map,
         const SectionInfo *SectInfo,
         const ConstDeVirtualizer &DeVirtualizer,
-        const BindActionCollection &BindCollection,
+        const BindActionCollection *BindCollection,
         ObjcClassInfoCollection *ClassInfoTree,
         std::vector<std::unique_ptr<ObjcClassCategoryInfo>> &CategoryList,
         bool IsBigEndian) noexcept
@@ -853,6 +853,7 @@ namespace MachO {
         auto ListAddr = SectInfo->getMemoryRange().getBegin();
 
         if (ClassInfoTree != nullptr) {
+            assert(BindCollection != nullptr);
             for (const auto &Addr : List) {
                 auto Info = std::make_unique<ObjcClassCategoryInfo>();
 
@@ -884,7 +885,7 @@ namespace MachO {
                     SwitchedAddr +
                     offsetof(ClassCategoryTypeCalculator<Kind>, Class);
 
-                if (auto *It = BindCollection.GetInfoForAddress(ClassAddr)) {
+                if (auto *It = BindCollection->GetInfoForAddress(ClassAddr)) {
                     const auto Name =
                         GetNameFromBindActionSymbol(It->getSymbol());
 
@@ -936,19 +937,6 @@ namespace MachO {
                     Info->setName(std::string(Name.value()));
                 }
 
-                // ClassAddr initially points to the 'Class' field that (may)
-                // get binded.
-
-                auto ClassAddr =
-                    SwitchedAddr +
-                    offsetof(ClassCategoryTypeCalculator<Kind>, Class);
-
-                if (auto *It = BindCollection.GetInfoForAddress(ClassAddr)) {
-                    SwitchedAddr = static_cast<PtrAddrType>(It->getAddress());
-                } else {
-                    ClassAddr = Category->getClassAddress(IsBigEndian);
-                }
-
                 Info->setAddress(SwitchedAddr);
                 CategoryList.emplace_back(std::move(Info));
 
@@ -964,7 +952,7 @@ namespace MachO {
         const uint8_t *Map,
         const SegmentInfoCollection &SegmentCollection,
         const ConstDeVirtualizer &DeVirtualizer,
-        const BindActionCollection &BindCollection,
+        const BindActionCollection *BindCollection,
         ObjcClassInfoCollection *ClassInfoTree,
         bool IsBigEndian,
         bool Is64Bit,
@@ -1059,7 +1047,7 @@ namespace MachO {
                 Map.getBegin(),
                 ObjcClassCategorySection,
                 DeVirtualizer,
-                BindCollection,
+                &BindCollection,
                 ClassInfoTree,
                 List,
                 IsBigEndian);
@@ -1068,7 +1056,7 @@ namespace MachO {
                 Map.getBegin(),
                 ObjcClassCategorySection,
                 DeVirtualizer,
-                BindCollection,
+                &BindCollection,
                 ClassInfoTree,
                 List,
                 IsBigEndian);
