@@ -434,7 +434,7 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
             } else {
                 PrintUtilsWriteOffset32Or64(Options.OutFile,
                                             Is64Bit,
-                                            Node.getAddr());
+                                            Node.getAddress());
             }
 
             const auto NamePrintLength =

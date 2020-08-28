@@ -139,12 +139,13 @@ namespace MachO {
             return Flags;
         }
 
-        [[nodiscard]] constexpr inline uint64_t getAddr() const noexcept {
+        [[nodiscard]] constexpr inline uint64_t getAddress() const noexcept {
             assert(!this->IsExternal());
             return Addr;
         }
 
-        [[nodiscard]] constexpr inline uint64_t getBindAddr() const noexcept {
+        [[nodiscard]]
+        constexpr inline uint64_t getBindAddress() const noexcept {
             assert(this->IsExternal());
             return BindAddr;
         }

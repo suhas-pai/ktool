@@ -188,7 +188,8 @@ namespace MachO {
         // BindAddr points to the `SuperClass` field inside ObjcClass[64]
 
         const auto BindAddr =
-            Info->getAddr() + offsetof(ClassTypeCalculator<Kind>, SuperClass);
+            Info->getAddress() +
+            offsetof(ClassTypeCalculator<Kind>, SuperClass);
 
         if (const auto *Action = BindCollection.GetInfoForAddress(BindAddr)) {
             SetSuperWithBindAction(Info,
