@@ -19,7 +19,7 @@ public:
     constexpr TypedAllocation() noexcept = default;
     constexpr TypedAllocation(T *Ptr) noexcept : Ptr(Ptr) {}
 
-    ~TypedAllocation() noexcept {
+    inline ~TypedAllocation() noexcept {
         delete Ptr;
         Ptr = nullptr;
     }

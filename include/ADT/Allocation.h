@@ -20,7 +20,7 @@ public:
     template <typename T>
     explicit Allocation(T *Ptr) noexcept : Ptr(reinterpret_cast<void *>(Ptr)) {}
 
-    ~Allocation() noexcept {
+    inline ~Allocation() noexcept {
         delete reinterpret_cast<uint8_t *>(Ptr);
         Ptr = nullptr;
     }

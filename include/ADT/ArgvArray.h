@@ -116,22 +116,35 @@ public:
 
     using IteratorType = ArgvArrayIterator;
 
-    [[nodiscard]] ArgvArrayIterator begin() const noexcept {
-        return ArgvArrayIterator(Begin, End);
+    [[nodiscard]] inline const char **getBegin() const noexcept {
+        return Begin;
     }
 
-    [[nodiscard]] ArgvArrayIterator end() const noexcept {
+    [[nodiscard]] inline const char **getEnd() const noexcept {
+        return End;
+    }
+
+    [[nodiscard]] inline ArgvArrayIterator begin() const noexcept {
+        return ArgvArrayIterator(getBegin(), getEnd());
+    }
+
+    [[nodiscard]] inline ArgvArrayIterator end() const noexcept {
+        const auto End = getEnd();
         return ArgvArrayIterator(const_cast<const char **>(End), End);
     }
 
-    [[nodiscard]] int indexOf(const ArgvArrayIterator &Iter) const noexcept {
-        return static_cast<int>(Iter.getPtr() - Begin);
+    [[nodiscard]]
+    inline int indexOf(const ArgvArrayIterator &Iter) const noexcept {
+        return static_cast<int>(Iter.getPtr() - getBegin());
     }
 
-    [[nodiscard]] ArgvArray fromIndex(int Index) const noexcept {
-        auto Begin = this->Begin + Index;
-        assert(Begin <= End);
+    [[nodiscard]] inline ArgvArray fromIndex(int Index) const noexcept {
+        const auto Begin = this->getBegin();
+        const auto End = this->getEnd();
 
-        return ArgvArray(Begin, End);
+        auto NewBegin = Begin + Index;
+        assert(NewBegin <= End);
+
+        return ArgvArray(NewBegin, End);
     }
 };
