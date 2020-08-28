@@ -861,11 +861,11 @@ namespace MachO {
                     DeVirtualizer.GetDataAtAddressIgnoreSections<
                         ObjcCategoryType>(SwitchedAddr);
 
+                Info->setAddress(SwitchedAddr);
                 if (Category == nullptr) {
-                    Info->setAddress(SwitchedAddr);
                     Info->setIsNull();
-
                     CategoryList.emplace_back(std::move(Info));
+
                     continue;
                 }
 
@@ -904,12 +904,10 @@ namespace MachO {
                             Class = ClassInfoTree->AddNullClass(ClassAddr);
                         }
 
+                        Info->setClass(Class);
                         Class->getCategoryList().emplace_back(Info.get());
                     }
                 }
-
-                Info->setAddress(SwitchedAddr);
-                Info->setClass(Class);
 
                 CategoryList.emplace_back(std::move(Info));
                 ListAddr += PointerSize<Kind>();
