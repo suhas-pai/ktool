@@ -136,49 +136,58 @@ namespace MachO {
         using EndIterator = LoadCommandStorageEndIteratorBase<const uint8_t>;
         using ConstEndIterator = EndIterator;
 
-        [[nodiscard]] inline Iterator begin() const noexcept {
-            return Iterator(Begin, sIsBigEndian);
-        }
-
-        [[nodiscard]] inline EndIterator end() const noexcept {
-            return EndIterator(End);
-        }
-
-        [[nodiscard]] inline ConstIterator cbegin() const noexcept {
-            return ConstIterator(Begin, sIsBigEndian);
-        }
-
-        [[nodiscard]] inline ConstEndIterator cend() const noexcept {
-            return ConstEndIterator(End);
-        }
-
-        [[nodiscard]] inline uint32_t count() const noexcept { return Count; }
-        [[nodiscard]] inline uint32_t size() const noexcept {
-            return static_cast<uint32_t>(End - Begin);
+        [[nodiscard]] inline bool hasError() const noexcept {
+            return ErrorStorage.hasValue();
         }
 
         [[nodiscard]] inline Error getError() const noexcept {
             return ErrorStorage.getValue();
         }
 
-        [[nodiscard]] inline bool hasError() const noexcept {
-            return ErrorStorage.hasValue();
-        }
-
-        [[nodiscard]] inline bool IsBigEndian() const noexcept {
-            return sIsBigEndian;
-        }
-
-        [[nodiscard]] inline const uint8_t *getMap() const noexcept {
-            return Begin;
-        }
-
         [[nodiscard]] inline const uint8_t *getBegin() const noexcept {
+            assert(!hasError());
             return Begin;
+        }
+
+        [[nodiscard]] inline ConstMemoryMap getMap() const noexcept {
+            assert(!hasError());
+            return ConstMemoryMap(Begin, End);
         }
 
         [[nodiscard]] inline const uint8_t *getEnd() const noexcept {
+            assert(!hasError());
             return End;
+        }
+
+        [[nodiscard]] inline Iterator begin() const noexcept {
+            return Iterator(getBegin(), sIsBigEndian);
+        }
+
+        [[nodiscard]] inline EndIterator end() const noexcept {
+            return EndIterator(getEnd());
+        }
+
+        [[nodiscard]] inline ConstIterator cbegin() const noexcept {
+            return ConstIterator(getBegin(), sIsBigEndian);
+        }
+
+        [[nodiscard]] inline ConstEndIterator cend() const noexcept {
+            return ConstEndIterator(getEnd());
+        }
+
+        [[nodiscard]] inline uint32_t count() const noexcept {
+            assert(!hasError());
+            return Count;
+        }
+
+        [[nodiscard]] inline uint32_t size() const noexcept {
+            assert(!hasError());
+            return static_cast<uint32_t>(End - Begin);
+        }
+
+        [[nodiscard]] inline bool IsBigEndian() const noexcept {
+            assert(!hasError());
+            return sIsBigEndian;
         }
     };
 
@@ -224,6 +233,14 @@ namespace MachO {
         using ConstEndIterator =
             LoadCommandStorageEndIteratorBase<const uint8_t>;
 
+        [[nodiscard]] inline uint8_t *getBegin() const noexcept {
+            return const_cast<uint8_t *>(ConstLoadCommandStorage::getBegin());
+        }
+
+        [[nodiscard]] inline uint8_t *getEnd() const noexcept {
+            return const_cast<uint8_t *>(ConstLoadCommandStorage::getEnd());
+        }
+
         [[nodiscard]] inline Iterator begin() const noexcept {
             return Iterator(getBegin(), sIsBigEndian);
         }
@@ -238,14 +255,6 @@ namespace MachO {
 
         [[nodiscard]] inline ConstEndIterator cend() const noexcept {
             return ConstEndIterator(getEnd());
-        }
-
-        [[nodiscard]] inline uint8_t *getBegin() const noexcept {
-            return const_cast<uint8_t *>(Begin);
-        }
-
-        [[nodiscard]] inline uint8_t *getEnd() const noexcept {
-            return const_cast<uint8_t *>(End);
         }
     };
 }

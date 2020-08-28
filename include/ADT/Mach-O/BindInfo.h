@@ -553,8 +553,8 @@ namespace MachO {
 
         int64_t SegmentIndex = -1;
         uint64_t SegOffset = 0;
+        uint64_t ThreadedCount = 0;
 
-        uint64_t ThreadedCount;
         union {
             int64_t AddAddr = 0;
             uint64_t Count;
@@ -596,12 +596,12 @@ namespace MachO {
         BindOpcodeIteratorBase(const BindByte *Begin,
                                const BindByte *End) noexcept
         : Iter(reinterpret_cast<const uint8_t *>(Begin),
-               reinterpret_cast<const uint8_t *>(End))
+               reinterpret_cast<const uint8_t *>(End)),
+          ReachedEnd(false)
         {
             Info = std::make_unique<BindOpcodeIterateInfo>();
             Info->Kind = BindKind;
 
-            ReachedEnd = false;
             Advance();
         }
 
@@ -612,7 +612,8 @@ namespace MachO {
             std::unique_ptr<BindOpcodeIterateInfo> &&Info) noexcept
         : Iter(reinterpret_cast<const uint8_t *>(Begin),
                reinterpret_cast<const uint8_t *>(End)),
-          Info(std::move(Info))
+          Info(std::move(Info)),
+          ReachedEnd(false)
         {
             this->Info->Kind = BindKind;
             Advance();

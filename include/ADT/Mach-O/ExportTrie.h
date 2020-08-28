@@ -364,8 +364,8 @@ namespace MachO {
             return getFlags().IsWeak();
         }
 
-        constexpr inline ExportTrieExportInfo &
-        setString(const std::string &Value) noexcept {
+        constexpr inline
+        ExportTrieExportInfo &setString(const std::string &Value) noexcept {
             this->String = Value;
             return *this;
         }

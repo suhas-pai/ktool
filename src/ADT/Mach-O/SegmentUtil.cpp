@@ -80,12 +80,10 @@ namespace MachO {
                                  IsBigEndian,
                                  ErrorOut);
 
-            if (!ParseSectResult) {
-                continue;
+            if (ParseSectResult) {
+                SectInfo->setSegment(&InfoIn);
+                SectionOutList.emplace_back(std::move(SectInfo));
             }
-
-            SectInfo->setSegment(&InfoIn);
-            SectionOutList.emplace_back(std::move(SectInfo));
         }
 
         return true;
@@ -111,15 +109,14 @@ namespace MachO {
                     const auto &Segment =
                         LoadCmd.cast<LoadCommand::Kind::Segment>(IsBigEndian);
 
-                    if (!ParseSegmentInfo(Segment,
-                                          *Info.get(),
-                                          IsBigEndian,
-                                          &Error))
+                    if (ParseSegmentInfo(Segment,
+                                         *Info.get(),
+                                         IsBigEndian,
+                                         &Error))
                     {
-                        continue;
+                        List.emplace_back(std::move(Info));
                     }
 
-                    List.emplace_back(std::move(Info));
                     break;
                 }
                 case LoadCommand::Kind::Segment64: {
@@ -131,15 +128,14 @@ namespace MachO {
                     const auto &Segment =
                         LoadCmd.cast<LoadCommand::Kind::Segment64>(IsBigEndian);
 
-                    if (!ParseSegmentInfo(Segment,
-                                          *Info.get(),
-                                          IsBigEndian,
-                                          &Error))
+                    if (ParseSegmentInfo(Segment,
+                                         *Info.get(),
+                                         IsBigEndian,
+                                         &Error))
                     {
-                        continue;
+                        List.emplace_back(std::move(Info));
                     }
 
-                    List.emplace_back(std::move(Info));
                     break;
                 }
 
@@ -257,10 +253,10 @@ namespace MachO {
                                          IsBigEndian,
                                          ErrorOut))
                     {
-                        return nullptr;
+                        return Info;
                     }
 
-                    return Info;
+                    return nullptr;
                 }
                 case LoadCommand::Kind::Segment64: {
                     if (!Is64Bit) {
@@ -466,19 +462,8 @@ namespace MachO {
                 continue;
             }
 
-            const auto &SectionList = It->SectionList;
-
-            const auto SectionListBegin = SectionList.begin();
-            const auto SectionListEnd = SectionList.end();
-
-            for (auto SectionNameIter = SectionListBegin;
-                 SectionNameIter != SectionListEnd;
-                 SectionNameIter++)
-            {
-                const auto &SectionName = *SectionNameIter;
-                const auto *SectInfo =
-                    Segment->FindSectionWithName(SectionName);
-
+            for (const auto &SectionInfo : It->SectionList) {
+                const auto SectInfo = Segment->FindSectionWithName(SectionInfo);
                 if (SectInfo != nullptr) {
                     return SectInfo;
                 }

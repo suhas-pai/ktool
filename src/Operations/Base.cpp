@@ -519,7 +519,7 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
           "Mach-O File\n",
           OutFile);
 
-    fputs("\t--image <path-or-ordinal>, Select image (at path or ordinal) of a "
-          "Apple dyld_shared_cache file\n",
+    fputs("\t--image <path-or-ordinal>, Select image (at path or ordinal) of "
+          "an Apple dyld_shared_cache file\n",
           OutFile);
 }

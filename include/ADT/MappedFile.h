@@ -37,7 +37,7 @@ protected:
     uint64_t Size = 0;
     MappedFile(OpenError Error) noexcept;
 public:
-    enum class ProtectionsEnum {
+    enum class ProtectionsFlags {
         Read = PROT_READ,
         Write = PROT_WRITE,
         Execute = PROT_EXEC
@@ -48,13 +48,13 @@ public:
         Shared = MAP_SHARED
     };
 
-    struct Protections : public BasicFlags<ProtectionsEnum> {
+    struct Protections : public BasicFlags<ProtectionsFlags> {
     private:
-        using Base = BasicFlags<ProtectionsEnum>;
+        using Base = BasicFlags<ProtectionsFlags>;
     public:
         using Base::Base;
 
-        using Flags = ProtectionsEnum;
+        using Flags = ProtectionsFlags;
         [[nodiscard]] constexpr inline bool canRead() const noexcept {
             return hasFlag(Flags::Read);
         }

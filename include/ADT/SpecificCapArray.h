@@ -40,7 +40,7 @@ public:
 
     inline SpecificCapArray &Reallocate(uint64_t Cap) noexcept {
         clear();
-        this->growTo(sizeof(T) * Cap);
+        growTo(sizeof(T) * Cap);
 
         return *this;
     }
