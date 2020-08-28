@@ -20,7 +20,7 @@ template <typename W = IntegerLimitDefaultType,
           typename V,
           typename = std::enable_if_t<!std::is_pointer_v<T>>>
 
-inline bool DoesAddOverflow(T Lhs, U Rhs, V *ResultOut) {
+[[nodiscard]] inline bool DoesAddOverflow(T Lhs, U Rhs, V *ResultOut) {
     using RealW = IntegerLimitRealValueType<V>;
 
     static_assert(!std::is_const_v<V>, "ResultOut-Type cannot be const");
@@ -41,7 +41,7 @@ inline bool DoesAddOverflow(T Lhs, U Rhs, V *ResultOut) {
 }
 
 template <typename T, typename U>
-inline bool DoesAddOverflow(T Lhs, U Rhs) {
+[[nodiscard]] inline bool DoesAddOverflow(T Lhs, U Rhs) {
     static_assert(std::is_integral_v<T> && std::is_integral_v<U>,
                   "Types must be Integer-Types");
 
@@ -51,7 +51,7 @@ inline bool DoesAddOverflow(T Lhs, U Rhs) {
 
 
 template <typename V, typename T, typename U>
-inline bool DoesAddOverflow(T Lhs, U Rhs) {
+[[nodiscard]] inline bool DoesAddOverflow(T Lhs, U Rhs) {
     static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
                   std::is_integral_v<V>, "Types must be Integer-Types");
 
@@ -64,7 +64,7 @@ template <typename W = IntegerLimitDefaultType,
           typename U,
           typename V>
 
-inline bool DoesMultiplyOverflow(T Lhs, U Rhs, V *ResultOut) {
+[[nodiscard]] inline bool DoesMultiplyOverflow(T Lhs, U Rhs, V *ResultOut) {
     using RealW = IntegerLimitRealValueType<V>;
     static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
                   std::is_integral_v<V> && std::is_integral_v<RealW>,
@@ -83,7 +83,7 @@ inline bool DoesMultiplyOverflow(T Lhs, U Rhs, V *ResultOut) {
 }
 
 template <typename T, typename U>
-inline bool DoesMultiplyOverflow(T Lhs, U Rhs) {
+[[nodiscard]] inline bool DoesMultiplyOverflow(T Lhs, U Rhs) {
     static_assert(std::is_integral_v<T> && std::is_integral_v<U>,
                   "Types must be Integer-Types");
 
@@ -92,7 +92,7 @@ inline bool DoesMultiplyOverflow(T Lhs, U Rhs) {
 }
 
 template <typename V, typename T, typename U>
-inline bool DoesMultiplyOverflow(T Lhs, U Rhs) {
+[[nodiscard]] inline bool DoesMultiplyOverflow(T Lhs, U Rhs) {
     static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
                   std::is_integral_v<V>, "Types must be Integer-Types");
 
@@ -106,6 +106,7 @@ template <typename X = IntegerLimitDefaultType,
           typename V,
           typename W>
 
+[[nodiscard]]
 inline bool DoesMultiplyAndAddOverflow(T Lhs, U Rhs, V Add, W *ResultOut) {
     using RealX = IntegerLimitRealValueType<W>;
     static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
@@ -130,7 +131,7 @@ inline bool DoesMultiplyAndAddOverflow(T Lhs, U Rhs, V Add, W *ResultOut) {
 }
 
 template <typename T, typename U, typename V>
-inline bool DoesMultiplyAndAddOverflow(T Lhs, U Rhs, V Add) {
+[[nodiscard]] inline bool DoesMultiplyAndAddOverflow(T Lhs, U Rhs, V Add) {
     static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
                   std::is_integral_v<V>, "Types must be Integer-Types");
 
@@ -143,7 +144,7 @@ inline bool DoesMultiplyAndAddOverflow(T Lhs, U Rhs, V Add) {
 }
 
 template <typename W, typename T, typename U, typename V>
-inline bool DoesMultiplyAndAddOverflow(T Lhs, U Rhs, V Add) {
+[[nodiscard]] inline bool DoesMultiplyAndAddOverflow(T Lhs, U Rhs, V Add) {
     static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
                   std::is_integral_v<V> && std::is_integral_v<W>,
                   "Types are not integer-types");
@@ -162,6 +163,7 @@ template <typename X = IntegerLimitDefaultType,
           typename V,
           typename W>
 
+[[nodiscard]]
 inline bool DoesAddAndMultiplyOverflow(T Lhs, U Rhs, V Multiply, W *ResultOut) {
     using RealX = IntegerLimitRealValueType<W>;
     static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
@@ -186,7 +188,7 @@ inline bool DoesAddAndMultiplyOverflow(T Lhs, U Rhs, V Multiply, W *ResultOut) {
 }
 
 template <typename T, typename U, typename V>
-inline bool DoesAddAndMultiplyOverflow(T Lhs, U Rhs, V Multiply) {
+[[nodiscard]] inline bool DoesAddAndMultiplyOverflow(T Lhs, U Rhs, V Multiply) {
     static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
                   std::is_integral_v<V>, "Types must be Integer-Types");
 
@@ -199,7 +201,7 @@ inline bool DoesAddAndMultiplyOverflow(T Lhs, U Rhs, V Multiply) {
 }
 
 template <typename T, typename U>
-inline bool DoesAddOverflow(T *Lhs, U Rhs) {
+[[nodiscard]] inline bool DoesAddOverflow(T *Lhs, U Rhs) {
     static_assert(std::is_integral_v<U>, "Types must be Integer-Types");
 
     auto Add = uint64_t();
@@ -214,7 +216,7 @@ inline bool DoesAddOverflow(T *Lhs, U Rhs) {
 }
 
 template <typename T, typename U>
-inline bool DoesAddOverflow(T *Lhs, U Rhs, T **ResultOut) {
+[[nodiscard]] inline bool DoesAddOverflow(T *Lhs, U Rhs, T **ResultOut) {
     static_assert(std::is_integral_v<U>, "Types must be Integer-Types");
 
     auto Add = uint64_t();
