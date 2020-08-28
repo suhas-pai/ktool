@@ -271,10 +271,10 @@ int main(int Argc, const char *Argv[]) {
         }
 
         fprintf(stdout,
-                "Usage: ktool %s [Options] [Path] [Path-Options]\nOptions:\n",
+                "Usage: ktool %s [Options] [Path] [Path-Options]\n",
                 Argv[1]);
 
-        Operation::PrintOptionHelpMenu(Ops->getKind(), stdout, "\t");
+        Operation::PrintOptionHelpMenu(stdout, Ops->getKind());
         return 0;
     }
 
@@ -339,7 +339,8 @@ int main(int Argc, const char *Argv[]) {
                         assert(0 && "Got Unhandled errors in main");
                     case ConstMachOMemoryObject::Error::TooManyLoadCommands:
                         fputs("Provided File has an invalid LoadCommands "
-                              "buffer\n", stderr);
+                              "buffer\n",
+                              stderr);
                         return 1;
                 }
 
@@ -358,11 +359,13 @@ int main(int Argc, const char *Argv[]) {
                         return 1;
                     case ConstFatMachOMemoryObject::Error::TooManyArchitectures:
                         fputs("Provided has too many architectures for its "
-                              "size", stderr);
+                              "size",
+                              stderr);
                         return 1;
                     case ConstFatMachOMemoryObject::Error::ArchOutOfBounds:
                         fputs("Provided file has architecture(s) out of "
-                              "bounds\n", stderr);
+                              "bounds\n",
+                              stderr);
                         return 1;
                     case ConstFatMachOMemoryObject::Error::ArchOverlapsArch:
                         fputs("Provided file has overlapping architectures\n",

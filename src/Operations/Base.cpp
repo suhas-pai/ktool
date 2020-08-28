@@ -200,8 +200,8 @@ Operation::PrintObjectKindNotSupportedError(OperationKind OpKind,
 }
 
 void
-Operation::PrintOptionHelpMenu(OperationKind Kind,
-                               FILE *OutFile,
+Operation::PrintOptionHelpMenu(FILE *OutFile,
+                               OperationKind Kind,
                                const char *Prefix) noexcept
 {
     fprintf(OutFile, "%sOptions:\n", Prefix);
@@ -507,7 +507,7 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
                                  LongestOptionNameLength + LENGTH_OF("--,"));
 
         fprintf(OutFile, " %s\n", OperationKindGetDescription(Kind).data());
-        PrintOptionHelpMenu(Kind, stdout, "\t\t\t");
+        PrintOptionHelpMenu(stdout, Kind, "\t\t\t");
 
         if (Iter != (End - 1)) {
             fputc('\n', stdout);

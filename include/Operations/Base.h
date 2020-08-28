@@ -85,9 +85,9 @@ public:
     static void PrintHelpMenu(FILE *OutFile) noexcept;
 
     static void
-    PrintOptionHelpMenu(OperationKind Kind,
-                        FILE *OutFile,
-                        const char *Prefix) noexcept;
+    PrintOptionHelpMenu(FILE *OutFile,
+                        OperationKind Kind,
+                        const char *Prefix = "") noexcept;
 
     virtual
     void ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept = 0;
