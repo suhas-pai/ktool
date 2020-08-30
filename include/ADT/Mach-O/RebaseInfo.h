@@ -243,15 +243,16 @@ namespace MachO {
 
     [[nodiscard]] constexpr static const std::string_view &
     RebaseWriteKindGetName(RebaseWriteKind Kind) noexcept {
+        using Enum = RebaseWriteKind;
         switch (Kind) {
-            case RebaseWriteKind::None:
+            case Enum::None:
                 return EmptyStringValue;
-            case RebaseWriteKind::Pointer:
-                return RebaseWriteKindInfo<RebaseWriteKind::Pointer>::Name;
-            case RebaseWriteKind::TextAbsolute32:
-                return RebaseWriteKindInfo<RebaseWriteKind::TextAbsolute32>::Name;
-            case RebaseWriteKind::TextPcrel32:
-                return RebaseWriteKindInfo<RebaseWriteKind::TextPcrel32>::Name;
+            case Enum::Pointer:
+                return RebaseWriteKindInfo<Enum::Pointer>::Name;
+            case Enum::TextAbsolute32:
+                return RebaseWriteKindInfo<Enum::TextAbsolute32>::Name;
+            case Enum::TextPcrel32:
+                return RebaseWriteKindInfo<Enum::TextPcrel32>::Name;
         }
 
         return EmptyStringValue;
@@ -259,19 +260,16 @@ namespace MachO {
 
     [[nodiscard]] constexpr const std::string_view &
     RebaseWriteKindGetDescription(RebaseWriteKind Kind) noexcept {
+        using Enum = RebaseWriteKind;
         switch (Kind) {
-            case RebaseWriteKind::None:
+            case Enum::None:
                 return EmptyStringValue;
-            case RebaseWriteKind::Pointer:
-                return
-                    RebaseWriteKindInfo<RebaseWriteKind::Pointer>::Description;
-            case RebaseWriteKind::TextAbsolute32:
-                return
-                    RebaseWriteKindInfo<RebaseWriteKind::TextAbsolute32>
-                        ::Description;
-            case RebaseWriteKind::TextPcrel32:
-                return RebaseWriteKindInfo<RebaseWriteKind::TextPcrel32>
-                        ::Description;
+            case Enum::Pointer:
+                return RebaseWriteKindInfo<Enum::Pointer>::Description;
+            case Enum::TextAbsolute32:
+                return RebaseWriteKindInfo<Enum::TextAbsolute32>::Description;
+            case Enum::TextPcrel32:
+                return RebaseWriteKindInfo<Enum::TextPcrel32>::Description;
         }
 
         return EmptyStringValue;
@@ -293,7 +291,6 @@ namespace MachO {
         DylibWeakLookup = static_cast<uint8_t>(-3),
     };
 
-
     struct RebaseByte : private DyldInfoByteMasksAndShiftsHandler {
         constexpr static const auto DoneOpcode = RebaseByteOpcode::Done;
     public:
@@ -306,11 +303,11 @@ namespace MachO {
         using Shifts = DyldInfoByteShifts;
         using WriteKind = RebaseWriteKind;
 
-        [[nodiscard]] constexpr Opcode getOpcode() const noexcept {
+        [[nodiscard]] constexpr inline Opcode getOpcode() const noexcept {
             return Opcode(getValueForMaskNoShift(Masks::Opcode));
         }
 
-        [[nodiscard]] constexpr uint8_t getImmediate() const noexcept {
+        [[nodiscard]] constexpr inline uint8_t getImmediate() const noexcept {
             return getValueForMaskNoShift(Masks::Immediate);
         }
 
@@ -335,12 +332,12 @@ namespace MachO {
             explicit Iterator(const uint8_t *Iter, const uint8_t *End) noexcept
             : NakedOpcodeList::Iterator(Iter, End) {}
 
-            [[nodiscard]] RebaseByte getByte() const noexcept {
+            [[nodiscard]] inline RebaseByte getByte() const noexcept {
                 return *reinterpret_cast<const RebaseByte *>(this->getPtr());
             }
         };
 
-        [[nodiscard]] Iterator begin() const noexcept {
+        [[nodiscard]] inline Iterator begin() const noexcept {
             return Iterator(Begin, End);
         }
     };
