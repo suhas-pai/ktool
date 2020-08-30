@@ -28,11 +28,16 @@ PrintSharedLibrariesOperation::PrintSharedLibrariesOperation(
 : Operation(OpKind), Options(Options) {}
 
 struct DylibInfo {
-    uint32_t Index;
     MachO::LoadCommand::Kind Kind;
+
+    uint32_t Index;
+    uint32_t NameOffset;
+
     std::string_view Name;
 
-    struct MachO::DylibCommand::Info Info;
+    MachO::PackedVersion CurrentVersion;
+    MachO::PackedVersion CompatibilityVersion;
+    uint32_t Timestamp;
 };
 
 static int
@@ -43,17 +48,19 @@ CompareEntriesBySortKind(
 {
     switch (SortKind) {
         case PrintSharedLibrariesOperation::Options::SortKind::ByCurrentVersion:
-            if (Lhs.Info.CurrentVersion == Rhs.Info.CurrentVersion) {
+            if (Lhs.CurrentVersion.value() == Rhs.CurrentVersion.value()) {
                 return 0;
-            } else if (Lhs.Info.CurrentVersion < Rhs.Info.CurrentVersion) {
+            }
+
+            if (Lhs.CurrentVersion.value() < Rhs.CurrentVersion.value()) {
                 return -1;
             }
 
             return 1;
         case PrintSharedLibrariesOperation::Options::SortKind::ByCompatVersion:
         {
-            const auto LhsCompatVersion = Lhs.Info.CompatibilityVersion;
-            const auto RhsCompatVersion = Rhs.Info.CompatibilityVersion;
+            const auto LhsCompatVersion = Lhs.CompatibilityVersion;
+            const auto RhsCompatVersion = Rhs.CompatibilityVersion;
 
             if (LhsCompatVersion == RhsCompatVersion) {
                 return 0;
@@ -73,9 +80,9 @@ CompareEntriesBySortKind(
             return 1;
         }
         case PrintSharedLibrariesOperation::Options::SortKind::ByTimeStamp: {
-            if (Lhs.Info.Timestamp == Rhs.Info.Timestamp) {
+            if (Lhs.Timestamp == Rhs.Timestamp) {
                 return 0;
-            } else if (Lhs.Info.Timestamp < Rhs.Info.Timestamp) {
+            } else if (Lhs.Timestamp < Rhs.Timestamp) {
                 return -1;
             }
 
@@ -151,10 +158,14 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
 
                 MaxDylibNameLength = Name.length();
                 DylibList.push_back({
-                    .Index = LCIndex,
                     .Kind = LCKind,
+                    .Index = LCIndex,
                     .Name = Name,
-                    .Info = DylibCmd.Info
+                    .CurrentVersion =
+                        DylibCmd.Info.getCurrentVersion(IsBigEndian),
+                    .CompatibilityVersion =
+                        DylibCmd.Info.getCompatVersion(IsBigEndian),
+                    .Timestamp = DylibCmd.Info.getTimestamp(IsBigEndian)
                 });
 
                 break;
@@ -229,17 +240,24 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
         std::sort(DylibList.begin(), DylibList.end(), Comparator);
     }
 
+    const auto DylibListSize = DylibList.size();
     fprintf(Options.OutFile,
             "Provided file has %" PRIuPTR " Shared Libraries:\n",
-            DylibList.size());
+            DylibListSize);
+
+    const auto LCCountDigitLength = LoadCmdStorage.size();
+    const auto DylibSizeDigitLength =
+        PrintUtilsGetIntegerDigitLength(DylibListSize);
 
     auto Counter = static_cast<uint32_t>(1);
     for (const auto &DylibInfo : DylibList) {
         fprintf(Options.OutFile,
-                "Library %02" PRIu32 ": LC %02" PRIu32 ": "
+                "Library %0*" PRIu32 ": LC %0*" PRIu32 ": "
                 "%" PRINTF_RIGHTPAD_FMT "s"
                 "\t",
+                DylibSizeDigitLength,
                 Counter,
+                LCCountDigitLength,
                 DylibInfo.Index,
                 static_cast<int>(LongestLCKindLength),
                 MachO::LoadCommand::KindGetName(DylibInfo.Kind).data());
@@ -252,8 +270,15 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
                 static_cast<int>(MaxDylibNameLength + LENGTH_OF("\"\""));
 
             PrintUtilsRightPadSpaces(Options.OutFile, WrittenOut, RightPad);
+            const struct MachO::DylibCommand::Info Info = {
+                .Name = { DylibInfo.NameOffset },
+                .CurrentVersion = DylibInfo.CurrentVersion.value(),
+                .CompatibilityVersion = DylibInfo.CompatibilityVersion.value(),
+                .Timestamp = DylibInfo.Timestamp
+            };
+
             MachOTypePrinter<struct MachO::DylibCommand::Info>::PrintOnOneLine(
-                Options.OutFile, DylibInfo.Info, IsBigEndian, true, " (", ")");
+                Options.OutFile, Info, IsBigEndian, true, " (", ")");
         }
 
         fputc('\n', Options.OutFile);
