@@ -224,7 +224,7 @@ public:
     }
 
     [[nodiscard]] const DyldSharedCache::ImageInfo *
-    GetImageInfoWithPath(const std::string_view &Path) const noexcept;
+    GetImageInfoWithPath(std::string_view Path) const noexcept;
 
     [[nodiscard]] PointerOrError<ConstDscImageMemoryObject, DscImageOpenError>
     GetImageWithInfo(const DyldSharedCache::ImageInfo &Info) const noexcept;

@@ -86,6 +86,7 @@ namespace DyldSharedCache {
         }
     };
 
+    struct HeaderV0;
     struct ImageInfo {
         uint64_t Address;
         uint64_t ModTime;
@@ -98,7 +99,12 @@ namespace DyldSharedCache {
             return reinterpret_cast<const char *>(Map) + PathFileOffset;
         }
 
-        [[nodiscard]] inline bool IsAlias(const uint8_t *Map) const noexcept;
+        [[nodiscard]]
+        inline bool IsAlias(const HeaderV0 &Header) const noexcept;
+
+        [[nodiscard]] inline bool IsAlias(const uint8_t *Map) const noexcept {
+            return IsAlias(*reinterpret_cast<const HeaderV0 *>(Map));
+        }
     };
 
     struct ImageInfoExtra {
@@ -316,9 +322,8 @@ namespace DyldSharedCache {
         }
     };
 
-    inline bool ImageInfo::IsAlias(const uint8_t *Map) const noexcept {
-        const auto Header = reinterpret_cast<const HeaderV0 *>(Map);
-        const auto MappingList = Header->getConstMappingInfoList();
+    inline bool ImageInfo::IsAlias(const HeaderV0 &Header) const noexcept {
+        const auto MappingList = Header.getConstMappingInfoList();
         const auto FirstMappingFileOff = MappingList.front().FileOffset;
 
         return (PathFileOffset < FirstMappingFileOff);

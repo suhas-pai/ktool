@@ -343,7 +343,7 @@ public:
         return (getFirstChild() == nullptr);
     }
 
-    [[nodiscard]] inline bool HasOnlyOneChild() const noexcept {
+    [[nodiscard]] inline bool hasOnlyOneChild() const noexcept {
         if (const auto FirstChild = getFirstChild()) {
             return (FirstChild->getNextSibling() == nullptr);
         }

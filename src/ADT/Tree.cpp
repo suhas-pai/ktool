@@ -391,7 +391,7 @@ BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
             return nullptr;
         }
 
-        if (Node.HasOnlyOneChild()) {
+        if (Node.hasOnlyOneChild()) {
             setRoot(Node.getFirstChild());
             Node.clearAndDestroy();
 

@@ -30,14 +30,16 @@ ValidateMap(const ConstMemoryMap &Map,
         return ConstDscMemoryObject::Error::SizeTooSmall;
     }
 
+    constexpr auto MagicStart = std::string_view("dyld_v1");
     const auto Magic = Map.getBeginAs<const char>();
-    if (memcmp(Magic, "dyld_v1", LENGTH_OF("dyld_v1")) != 0) {
+
+    if (memcmp(Magic, MagicStart.data(), MagicStart.length()) != 0) {
         return ConstDscMemoryObject::Error::WrongFormat;
     }
 
-    const auto CpuKindStr = Magic + 7;
+    const auto CpuKindStr = Magic + MagicStart.length();
     constexpr auto CpuKindMaxLength =
-        sizeof(DyldSharedCache::HeaderV0::Magic) - 7;
+        sizeof(DyldSharedCache::HeaderV0::Magic) - MagicStart.length();
 
     if (strncmp(CpuKindStr, "    i386", CpuKindMaxLength) == 0) {
         CpuKind = ConstDscMemoryObject::CpuKind::i386;
@@ -271,8 +273,7 @@ ConstDscMemoryObject::ValidateImageMapAndGetEnd(
 }
 
 const DyldSharedCache::ImageInfo *
-ConstDscMemoryObject::GetImageInfoWithPath(
-    const std::string_view &Path) const noexcept
+ConstDscMemoryObject::GetImageInfoWithPath(std::string_view Path) const noexcept
 {
     const auto Map = getMap().getBegin();
     for (const auto &ImageInfo : getConstImageInfoList()) {
