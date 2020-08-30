@@ -77,6 +77,13 @@ public:
     PrintObjectKindNotSupportedError(OperationKind OpKind,
                                      const MemoryObject &Object) noexcept;
 
+    inline const Operation &
+    printObjectKindNotSupportedError(const MemoryObject &Object) const noexcept
+    {
+        PrintObjectKindNotSupportedError(this->getKind(), Object);
+        return *this;
+    }
+
     constexpr static auto HelpOption = "help"sv;
     constexpr static auto UsageOption = "usage"sv;
     constexpr static auto MaxShortOptionNameLength = 2;
@@ -87,7 +94,68 @@ public:
     static void
     PrintOptionHelpMenu(FILE *OutFile,
                         OperationKind Kind,
-                        const char *Prefix = "") noexcept;
+                        const char *Prefix = "",
+                        const char *LinePrefix = "",
+                        const char *Suffix = "") noexcept;
+
+    static void
+    PrintObjectKindSupportsList(FILE *OutFile,
+                                OperationKind ForKind,
+                                const char *Prefix = "",
+                                const char *LinePrefix = "",
+                                const char *Suffix = "") noexcept;
+
+    static void
+    PrintPathOptionHelpMenu(FILE *OutFile,
+                            OperationKind ForKind,
+                            const char *Prefix = "",
+                            const char *LinePrefix = "",
+                            const char *Suffix = "") noexcept;
+
+    inline const Operation &
+    printOptionHelpMenu(FILE *OutFile,
+                        const char *Prefix = "",
+                        const char *LinePrefix = "",
+                        const char *Suffix = "") const noexcept
+    {
+        PrintOptionHelpMenu(OutFile,
+                            this->getKind(),
+                            Prefix,
+                            LinePrefix,
+                            Suffix);
+
+        return *this;
+    }
+
+    inline const Operation &
+    printObjectKindSupportsList(FILE *OutFile,
+                                const char *Prefix = "",
+                                const char *LinePrefix = "",
+                                const char *Suffix = "") const noexcept
+    {
+        PrintObjectKindSupportsList(OutFile,
+                                    this->getKind(),
+                                    Prefix,
+                                    LinePrefix,
+                                    Suffix);
+
+        return *this;
+    }
+
+    inline const Operation &
+    printPathOptionHelpMenu(FILE *OutFile,
+                            const char *Prefix = "",
+                            const char *LinePrefix = "",
+                            const char *Suffix = "") const noexcept
+    {
+        PrintPathOptionHelpMenu(OutFile,
+                                this->getKind(),
+                                Prefix,
+                                LinePrefix,
+                                Suffix);
+
+        return *this;
+    }
 
     virtual
     void ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept = 0;

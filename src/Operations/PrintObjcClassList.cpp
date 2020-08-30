@@ -26,11 +26,7 @@ PrintObjcClassListOperation::PrintObjcClassListOperation(
 : Operation(OpKind), Options(Options) {}
 
 static inline void PrintFlagSeparator(FILE *OutFile, bool &DidPrint) noexcept {
-    if (DidPrint) {
-        fputs(" - ", OutFile);
-    }
-
-    DidPrint = true;
+    PrintUtilsWriteAfterFirst(OutFile, " - ", DidPrint);
 }
 
 static void

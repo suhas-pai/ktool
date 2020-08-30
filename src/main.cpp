@@ -30,6 +30,13 @@
 #include "Utils/PrintUtils.h"
 #include "Utils/StringUtils.h"
 
+static void PrintRunHelpMessage() noexcept {
+    fprintf(stderr,
+            "Use Option --%s or --%s to see a list of options\n",
+            Operation::HelpOption.data(),
+            Operation::UsageOption.data());
+}
+
 static void PrintUnrecognizedOptionError(const char *Option) noexcept {
     fprintf(stderr, "Unrecognized Option: \"%s\"\n", Option);
 }
@@ -134,11 +141,7 @@ constexpr static auto UsageString =
 
 int main(int Argc, const char *Argv[]) {
     if (Argc < 2) {
-        fprintf(stdout,
-                "Run --%s or --%s to see a list of options\n",
-                Operation::HelpOption.data(),
-                Operation::UsageOption.data());
-
+        PrintRunHelpMessage();
         return 0;
     }
 
@@ -248,10 +251,7 @@ int main(int Argc, const char *Argv[]) {
 
     if (Ops == nullptr) {
         PrintUnrecognizedOptionError(Argv[1]);
-        fprintf(stderr,
-                "Use Option --%s or --%s to see a list of options\n",
-                Operation::HelpOption.data(),
-                Operation::UsageOption.data());
+        PrintRunHelpMessage();
 
         return 1;
     }
@@ -259,8 +259,10 @@ int main(int Argc, const char *Argv[]) {
     const auto OpsArgv = ArgvArr.fromIndex(2);
     if (OpsArgv.empty()) {
         fprintf(stderr,
-                "Please provide a file for operation %s\n",
+                "Please provide a file for operation %s.\n",
                 Ops->getName().data());
+
+        PrintRunHelpMessage();
         return 1;
     }
 
@@ -274,15 +276,17 @@ int main(int Argc, const char *Argv[]) {
                 "Usage: ktool %s [Options] [Path] [Path-Options]\n",
                 Argv[1]);
 
-        Operation::PrintOptionHelpMenu(stdout, Ops->getKind());
+        Ops->printObjectKindSupportsList(stdout);
+        Ops->printOptionHelpMenu(stdout);
+        Ops->printPathOptionHelpMenu(stdout, "\n");
+
         return 0;
     }
 
+    // Since we gave ParseOptions a [2, Argc] Argv, we have to add two here to
+    // get the full index.
+
     Ops->ParseOptions(OpsArgv, &PathIndex);
-
-    // Since we gave Operation::Options a [2, Argc] Argv, we have to add two
-    // here to get the full index.
-
     PathIndex += 2;
 
     const auto Path = PathUtil::Absolutify(Argv[PathIndex]);
@@ -291,7 +295,8 @@ int main(int Argc, const char *Argv[]) {
 
     if (Fd.hasError()) {
         fprintf(stderr,
-                "Could not open the provided file (at path: %s), error: %s\n",
+                "Could not open the provided file (at path: %s), error: "
+                "\"%s\"\n",
                 Path.data(),
                 strerror(errno));
         return 1;
@@ -475,7 +480,7 @@ int main(int Argc, const char *Argv[]) {
                 case ArchWarningEnum::None:
                     break;
                 case ArchWarningEnum::MachOCpuKindMismatch:
-                    fputs("Warning: Arch's Cputype differs from expected\n",
+                    fputs("Warning: Arch's Cpu-Kind differs from expected\n",
                           stderr);
                     break;
             }
@@ -535,7 +540,7 @@ int main(int Argc, const char *Argv[]) {
 
     const auto Result = Ops->Run(*Object);
     if (Result == Operation::InvalidObjectKind) {
-        Operation::PrintObjectKindNotSupportedError(Ops->getKind(), *Object);
+        Ops->printObjectKindNotSupportedError(*Object);
         return 1;
     }
 

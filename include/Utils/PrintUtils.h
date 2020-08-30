@@ -90,11 +90,11 @@
 inline int
 PrintUtilsCharMultTimes(FILE *OutFile, char Ch, int Times) noexcept {
     assert(Times >= 0 && "PrintUtilsCharMultTimes(): Times less than 0");
-    for (auto I = uint64_t(); I != Times; I++) {
+    for (auto I = int(); I != Times; I++) {
         fputc(Ch, OutFile);
     }
 
-    return static_cast<int>(Times);
+    return Times;
 }
 
 inline int
@@ -105,7 +105,7 @@ PrintUtilsStringMultTimes(FILE *OutFile,
     assert(Times >= 0 && "PrintUtilsStringMultTimes(): Times less than 0");
 
     auto Total = int();
-    for (auto I = uint64_t(); I != Times; I++) {
+    for (auto I = int(); I != Times; I++) {
         Total += fputs(Str, OutFile);
     }
 
@@ -118,7 +118,7 @@ inline int PrintUtilsPadSpaces(FILE *OutFile, int Times) noexcept {
 }
 
 inline int PrintUtilsPadTabs(FILE *OutFile, int Times) noexcept {
-    assert(Times >= 0 && "PrintUtilsPadSpaces(): Times less than 0");
+    assert(Times >= 0 && "PrintUtilsPadTabs(): Times less than 0");
     return PrintUtilsCharMultTimes(OutFile, '\t', Times);
 }
 
@@ -573,3 +573,17 @@ PrintUtilsWriteFormattedSize(FILE *OutFile,
                              uint64_t Size,
                              const char *Prefix = "",
                              const char *Suffix = "") noexcept;
+
+inline int
+PrintUtilsWriteAfterFirst(FILE *OutFile,
+                          const char *String,
+                          bool &DidPrintFirst) noexcept
+{
+    auto WrittenOut = int();
+    if (DidPrintFirst) {
+        WrittenOut = fprintf(OutFile, "%s", String);
+        DidPrintFirst = true;
+    }
+
+    return WrittenOut;
+}

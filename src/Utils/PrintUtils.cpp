@@ -144,7 +144,7 @@ PrintUtilsWriteFormattedSize(FILE *OutFile,
     constexpr auto Base = 1000;
 
     auto Result = double(Size);
-    auto Index = 0;
+    auto Index = uint32_t();
 
     if (Result < Base) {
         return 0;
