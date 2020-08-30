@@ -68,7 +68,7 @@ namespace MachO {
         }
 
         StackList.pop_back();
-        StackList.back().getChildOrdinal() += 1;
+        StackList.back().getChildOrdinalRef() += 1;
 
         return true;
     }
@@ -174,7 +174,7 @@ namespace MachO {
 
                 PrevStack.setChildOrdinal(1);
             } else {
-                PrevStack.getChildOrdinal() += 1;
+                PrevStack.getChildOrdinalRef() += 1;
                 SetupInfoForNewStack();
             }
         } else {
@@ -278,19 +278,19 @@ namespace MachO {
                     switch (Export.getKind()) {
                         case ExportSymbolKind::Regular:
                             if (Export.IsStubAndResolver()) {
-                                Info->setKind(ExportInfoKind::StubAndResolver);
+                                Info->setIsStubAndResolver();
                             } else if (Export.IsReexport()) {
-                                Info->setKind(ExportInfoKind::Reexport);
+                                Info->setIsReexport();
                             } else {
-                                Info->setKind(ExportInfoKind::Regular);
+                                Info->setIsRegular();
                             }
 
                             break;
                         case ExportSymbolKind::ThreadLocal:
-                            Info->setKind(ExportInfoKind::ThreadLocal);
+                            Info->setIsThreadLocal();
                             break;
                         case ExportSymbolKind::Absolute:
-                            Info->setKind(ExportInfoKind::Absolute);
+                            Info->setIsAbsolute();
                             break;
                     }
 

@@ -55,6 +55,10 @@ namespace MachO {
             return (getKind() == ExportSymbolKind::Absolute);
         }
 
+        [[nodiscard]] constexpr inline bool IsRegular() const noexcept {
+            return (getKind() == ExportSymbolKind::Absolute);
+        }
+
         [[nodiscard]] constexpr inline bool IsReexport() const noexcept {
             return hasValueForMask(Masks::Reexport);
         }
@@ -78,6 +82,10 @@ namespace MachO {
 
         constexpr inline ExportTrieFlags &setIsAbsolute() noexcept {
             return setKind(ExportSymbolKind::Absolute);
+        }
+
+        constexpr inline ExportTrieFlags &setIsRegular() noexcept {
+            return setKind(ExportSymbolKind::Regular);
         }
 
         constexpr
@@ -266,8 +274,8 @@ namespace MachO {
         return Enum::None;
     }
 
-    [[nodiscard]]
-    constexpr uint64_t ExportTrieExportKindGetLongestNameLength() noexcept {
+    [[nodiscard]] constexpr
+    inline uint64_t ExportTrieExportKindGetLongestNameLength() noexcept {
         const auto Result =
             EnumHelper<ExportTrieExportKind>::GetLongestAssocLength(
                 ExportTrieExportKindGetName);
@@ -275,7 +283,7 @@ namespace MachO {
         return Result;
     }
 
-    [[nodiscard]] constexpr
+    [[nodiscard]] constexpr inline
     uint64_t ExportTrieExportKindGetLongestDescriptionLength() noexcept {
         const auto Result =
             EnumHelper<ExportTrieExportKind>::GetLongestAssocLength(
@@ -505,7 +513,7 @@ namespace MachO {
             return ChildOrdinal;
         }
 
-        [[nodiscard]] constexpr inline uint16_t &getChildOrdinal() noexcept {
+        [[nodiscard]] constexpr inline uint16_t &getChildOrdinalRef() noexcept {
             return ChildOrdinal;
         }
 
@@ -619,6 +627,10 @@ namespace MachO {
             return (getKind() == ExportTrieExportKind::Reexport);
         }
 
+        [[nodiscard]] constexpr inline bool IsRegular() const noexcept {
+            return (getKind() == ExportTrieExportKind::Regular);
+        }
+
         [[nodiscard]] constexpr inline bool IsStubAndResolver() const noexcept {
             return (getKind() == ExportTrieExportKind::StubAndResolver);
         }
@@ -629,6 +641,37 @@ namespace MachO {
 
         [[nodiscard]] constexpr inline bool IsThreadLocal() const noexcept {
             return (getKind() == ExportTrieExportKind::ThreadLocal);
+        }
+
+        constexpr inline ExportTrieIterateInfo &setIsAbsolute() noexcept {
+            setKind(ExportTrieExportKind::Absolute);
+            return *this;
+        }
+
+        constexpr inline ExportTrieIterateInfo &setIsReexport() noexcept {
+            setKind(ExportTrieExportKind::Reexport);
+            return *this;
+        }
+
+        constexpr inline ExportTrieIterateInfo &setIsRegular() noexcept {
+            setKind(ExportTrieExportKind::Regular);
+            return *this;
+        }
+
+        constexpr
+        inline ExportTrieIterateInfo &setIsStubAndResolver() noexcept {
+            setKind(ExportTrieExportKind::StubAndResolver);
+            return *this;
+        }
+
+        constexpr inline ExportTrieIterateInfo &setIsWeak() noexcept {
+            setKind(ExportTrieExportKind::WeakDefinition);
+            return *this;
+        }
+
+        constexpr inline ExportTrieIterateInfo &setIsThreadLocal() noexcept {
+            setKind(ExportTrieExportKind::ThreadLocal);
+            return *this;
         }
 
         [[nodiscard]] inline uint8_t getDepthLevel() const noexcept {
