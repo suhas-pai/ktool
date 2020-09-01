@@ -10,22 +10,6 @@
 #include "LoadCommandsCommon.h"
 
 namespace MachO {
-    NakedOpcodeList::IteratorInfo::IteratorInfo(const uint8_t *Iter,
-                                                const uint8_t *End) noexcept
-    : Iter(Iter), End(End) {}
-
-    NakedOpcodeList::Iterator::Iterator(const uint8_t *Iter,
-                                        const uint8_t *End) noexcept
-    : Info(Iter, End) {}
-
-    NakedOpcodeList::Iterator NakedOpcodeList::begin() const noexcept {
-        return Iterator(Begin, End);
-    }
-
-    NakedOpcodeList::EndIterator NakedOpcodeList::end() const noexcept {
-        return EndIterator();
-    }
-
     std::optional<std::string_view>
     NakedOpcodeList::IteratorInfo::ParseString() noexcept {
         const auto Ptr = reinterpret_cast<const char *>(Iter);

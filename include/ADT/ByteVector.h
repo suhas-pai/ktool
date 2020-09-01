@@ -42,7 +42,7 @@ public:
         return (AllocEnd - DataBegin);
     }
 
-    [[nodiscard]] uint64_t freeSpace() const noexcept {
+    [[nodiscard]] inline uint64_t freeSpace() const noexcept {
         return (AllocEnd - DataEnd);
     }
 

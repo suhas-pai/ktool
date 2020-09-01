@@ -148,7 +148,8 @@ namespace MachO {
             const uint8_t *End;
         public:
             explicit
-            IteratorInfo(const uint8_t *Iter, const uint8_t *End) noexcept;
+            IteratorInfo(const uint8_t *Iter, const uint8_t *End) noexcept
+            : Iter(Iter), End(End) {}
 
             [[nodiscard]] inline const uint8_t *getPtr() const noexcept {
                 return Iter;
@@ -197,7 +198,8 @@ namespace MachO {
         protected:
             IteratorInfo Info;
         public:
-            explicit Iterator(const uint8_t *Iter, const uint8_t *End) noexcept;
+            explicit Iterator(const uint8_t *Iter, const uint8_t *End) noexcept
+            : Info(Iter, End) {}
 
             [[nodiscard]] inline const uint8_t *getPtr() const noexcept {
                 return Info.getPtr();
@@ -253,8 +255,13 @@ namespace MachO {
             }
         };
 
-        [[nodiscard]] Iterator begin() const noexcept;
-        [[nodiscard]] EndIterator end() const noexcept;
+        [[nodiscard]] inline Iterator begin() const noexcept {
+            return Iterator(Begin, End);
+        }
+
+        [[nodiscard]] inline EndIterator end() const noexcept {
+            return EndIterator();
+        }
     };
 
     enum class SegmentFlagsEnum : uint32_t {
