@@ -577,13 +577,13 @@ PrintUtilsWriteFormattedSize(FILE *OutFile,
 inline int
 PrintUtilsWriteAfterFirst(FILE *OutFile,
                           const char *String,
-                          bool &DidPrintFirst) noexcept
+                          bool &DidPassFirst) noexcept
 {
     auto WrittenOut = int();
-    if (DidPrintFirst) {
+    if (DidPassFirst) {
         WrittenOut = fprintf(OutFile, "%s", String);
-        DidPrintFirst = true;
     }
 
+    DidPassFirst = true;
     return WrittenOut;
 }

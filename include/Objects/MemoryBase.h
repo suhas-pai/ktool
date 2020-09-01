@@ -50,7 +50,7 @@ public:
 
     [[nodiscard]] inline ObjectKind getObjectKind() const noexcept {
         assert(hasError());
-        return ObjectKind((Storage & 0xff00) >> 8);
+        return ObjectKind(Storage >> 8);
     }
 
     [[nodiscard]] inline MemoryObject *getObject() const noexcept {
