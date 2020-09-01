@@ -151,8 +151,6 @@ namespace MachO {
     }
 
     ExportTrieIterator::Error ExportTrieIterator::Advance() noexcept {
-        using ExportInfoKind = ExportTrieExportInfo::Kind;
-
         auto &StackList = Info->getStackList();
         if (!StackList.empty()) {
             if (StackList.size() == MaxDepth) {
