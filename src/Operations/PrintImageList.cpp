@@ -238,11 +238,11 @@ PrintImageListOperation::ParseOptionsImpl(const ArgvArray &Argv,
     return Options;
 }
 
-void
-PrintImageListOperation::ParseOptions(const ArgvArray &Argv,
-                                      int *IndexOut) noexcept
-{
-    Options = ParseOptionsImpl(Argv, IndexOut);
+int PrintImageListOperation::ParseOptions(const ArgvArray &Argv) noexcept {
+    auto Index = int();
+    Options = ParseOptionsImpl(Argv, &Index);
+
+    return Index;
 }
 
 int PrintImageListOperation::Run(const MemoryObject &Object) const noexcept {

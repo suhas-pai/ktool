@@ -1233,11 +1233,11 @@ PrintHeaderOperation::ParseOptionsImpl(const ArgvArray &Argv,
     return Options;
 }
 
-void
-PrintHeaderOperation::ParseOptions(const ArgvArray &Argv,
-                                   int *IndexOut) noexcept
-{
-    Options = ParseOptionsImpl(Argv, IndexOut);
+int PrintHeaderOperation::ParseOptions(const ArgvArray &Argv) noexcept {
+    auto Index = int();
+    Options = ParseOptionsImpl(Argv, &Index);
+
+    return Index;
 }
 
 int PrintHeaderOperation::Run(const MemoryObject &Object) const noexcept {

@@ -22,9 +22,8 @@ Operation::Operation(OperationKind Kind) noexcept : Kind(Kind) {
     assert(Kind != OperationKind::None);
 }
 
-static bool
-OperationKindSupportsObjectKind(OperationKind OpKind,
-                                ObjectKind ObjKind) noexcept
+bool
+Operation::SupportsObjectKind(OperationKind OpKind, ObjectKind ObjKind) noexcept
 {
     switch (OpKind) {
         case OperationKind::None:
@@ -146,7 +145,7 @@ Operation::PrintObjectKindNotSupportedError(OperationKind OpKind,
         case ObjectKind::None:
             assert(0 && "Object-Kind is None");
         case ObjectKind::MachO:
-            if (OperationKindSupportsObjectKind(OpKind, ObjectKind::FatMachO)) {
+            if (Operation::SupportsObjectKind(OpKind, ObjectKind::FatMachO)) {
                 fprintf(stderr,
                         "Operation %s only supports Fat Mach-O files\n",
                         OperationKindGetName(OpKind).data());
@@ -158,7 +157,7 @@ Operation::PrintObjectKindNotSupportedError(OperationKind OpKind,
 
             return;
         case ObjectKind::FatMachO:
-            if (OperationKindSupportsObjectKind(OpKind, ObjectKind::MachO)) {
+            if (Operation::SupportsObjectKind(OpKind, ObjectKind::MachO)) {
                 PrintSelectArchMessage(cast<ObjectKind::FatMachO>(Object));
             } else {
                 fprintf(stderr,
@@ -168,7 +167,7 @@ Operation::PrintObjectKindNotSupportedError(OperationKind OpKind,
 
             return;
         case ObjectKind::DyldSharedCache:
-            if (OperationKindSupportsObjectKind(OpKind, ObjectKind::DscImage)) {
+            if (Operation::SupportsObjectKind(OpKind, ObjectKind::DscImage)) {
                 const auto &DscObj = cast<ObjectKind::DyldSharedCache>(Object);
                 PrintSelectImageMessage(DscObj);
             } else {
@@ -181,7 +180,7 @@ Operation::PrintObjectKindNotSupportedError(OperationKind OpKind,
             return;
         case ObjectKind::DscImage: {
             const auto ObjKind = ObjectKind::DyldSharedCache;
-            if (OperationKindSupportsObjectKind(OpKind, ObjKind)) {
+            if (Operation::SupportsObjectKind(OpKind, ObjKind)) {
                 fprintf(stderr,
                         "Operation %s only supports Dyld Shared-Cache files\n",
                         OperationKindGetName(OpKind).data());
@@ -493,6 +492,16 @@ Operation::PrintOptionHelpMenu(FILE *OutFile,
     fprintf(OutFile, "%s", Suffix);
 }
 
+static void
+PrintItemForSupportList(FILE *OutFile,
+                        bool &DidPrint,
+                        const char *LinePrefix,
+                        const char *Name) noexcept
+{
+    PrintUtilsWriteAfterFirst(OutFile, " │ ", DidPrint);
+    fprintf(OutFile, "%s%s", LinePrefix, Name);
+}
+
 void
 Operation::PrintObjectKindSupportsList(FILE *OutFile,
                                        OperationKind OpKind,
@@ -508,31 +517,37 @@ Operation::PrintObjectKindSupportsList(FILE *OutFile,
     switch (ObjKind) {
         case ObjectKind::None:
         case ObjectKind::MachO:
-            if (OperationKindSupportsObjectKind(OpKind, ObjectKind::MachO)) {
-                PrintUtilsWriteAfterFirst(OutFile, " | ", DidPrint);
-                fprintf(OutFile, "%sMach-O Files", LinePrefix);
+            if (Operation::SupportsObjectKind(OpKind, ObjectKind::MachO)) {
+                PrintItemForSupportList(OutFile,
+                                        DidPrint,
+                                        "Mach-O Files",
+                                        LinePrefix);
             }
 
         case ObjectKind::FatMachO:
-            if (OperationKindSupportsObjectKind(OpKind, ObjectKind::FatMachO)) {
-                PrintUtilsWriteAfterFirst(OutFile, " | ", DidPrint);
-                fprintf(OutFile, "%sFAT Mach-O Files", LinePrefix);
+            if (Operation::SupportsObjectKind(OpKind, ObjectKind::FatMachO)) {
+                PrintItemForSupportList(OutFile,
+                                        DidPrint,
+                                        "FAT Mach-O Files",
+                                        LinePrefix);
             }
 
         case ObjectKind::DyldSharedCache:
-            if (OperationKindSupportsObjectKind(OpKind,
-                                                ObjectKind::DyldSharedCache))
+            if (Operation::SupportsObjectKind(OpKind,
+                                              ObjectKind::DyldSharedCache))
             {
-                PrintUtilsWriteAfterFirst(OutFile, " | ", DidPrint);
-                fprintf(OutFile, "%sApple dyld_shared_cache files", LinePrefix);
+                PrintItemForSupportList(OutFile,
+                                        DidPrint,
+                                        "Apple dyld_shared_cache Files",
+                                        LinePrefix);
             }
 
         case ObjectKind::DscImage:
-            if (OperationKindSupportsObjectKind(OpKind, ObjectKind::DscImage)) {
-                PrintUtilsWriteAfterFirst(OutFile, " | ", DidPrint);
-                fprintf(OutFile,
-                        "%sApple dyld_shared_cache Mach-O Images",
-                        LinePrefix);
+            if (Operation::SupportsObjectKind(OpKind, ObjectKind::DscImage)) {
+                PrintItemForSupportList(OutFile,
+                                        DidPrint,
+                                        "Apple dyld_shared_cache Mach-O Images",
+                                        LinePrefix);
             }
     }
 
@@ -564,9 +579,9 @@ Operation::PrintPathOptionHelpMenu(FILE *OutFile,
     }
 
     const auto SupportsFatMachO =
-        OperationKindSupportsObjectKind(ForKind, ObjectKind::FatMachO);
+        Operation::SupportsObjectKind(ForKind, ObjectKind::FatMachO);
     const auto SupportsDsc =
-        OperationKindSupportsObjectKind(ForKind, ObjectKind::DyldSharedCache);
+        Operation::SupportsObjectKind(ForKind, ObjectKind::DyldSharedCache);
 
     if (!SupportsFatMachO && !SupportsDsc) {
         return;
@@ -589,7 +604,6 @@ Operation::PrintPathOptionHelpMenu(FILE *OutFile,
 
     fprintf(OutFile, "%s", Suffix);
 }
-
 
 void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
     constexpr auto OperationKindList = magic_enum::enum_values<OperationKind>();

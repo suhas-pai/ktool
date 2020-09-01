@@ -555,11 +555,11 @@ PrintBindSymbolListOperation::ParseOptionsImpl(const ArgvArray &Argv,
     return Options;
 }
 
-void
-PrintBindSymbolListOperation::ParseOptions(const ArgvArray &Argv,
-                                           int *IndexOut) noexcept
-{
-    Options = ParseOptionsImpl(Argv, IndexOut);
+int PrintBindSymbolListOperation::ParseOptions(const ArgvArray &Argv) noexcept {
+    auto Index = int();
+    Options = ParseOptionsImpl(Argv, &Index);
+
+    return Index;
 }
 
 int

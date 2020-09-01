@@ -59,7 +59,7 @@ public:
     }
 
     [[nodiscard]]
-    constexpr inline const std::string_view &getName() const noexcept {
+    constexpr inline std::string_view getName() const noexcept {
         return OperationKindGetName(getKind());
     }
 
@@ -112,6 +112,21 @@ public:
                             const char *LinePrefix = "",
                             const char *Suffix = "") noexcept;
 
+    static inline void
+    PrintEntireOptionUsageMenu(FILE *OutFile,
+                               OperationKind ForKind,
+                               const char *Prefix = "",
+                               const char *LinePrefix = "",
+                               const char *Suffix = "") noexcept
+    {
+        PrintObjectKindSupportsList(OutFile, ForKind, Prefix, LinePrefix);
+        PrintOptionHelpMenu(OutFile, ForKind, "", LinePrefix);
+        PrintPathOptionHelpMenu(OutFile, ForKind, "\n", LinePrefix, Suffix);
+    }
+
+    [[nodiscard]] static
+    bool SupportsObjectKind(OperationKind OpKind, ObjectKind ObjKind) noexcept;
+
     inline const Operation &
     printOptionHelpMenu(FILE *OutFile,
                         const char *Prefix = "",
@@ -157,9 +172,27 @@ public:
         return *this;
     }
 
-    virtual
-    void ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept = 0;
+    inline const Operation &
+    printEntireOptionUsageMenu(FILE *OutFile,
+                               const char *Prefix = "",
+                               const char *LinePrefix = "",
+                               const char *Suffix = "") const noexcept
+    {
+        PrintEntireOptionUsageMenu(OutFile,
+                                   this->getKind(),
+                                   Prefix,
+                                   LinePrefix,
+                                   Suffix);
 
+        return *this;
+    }
+
+    [[nodiscard]]
+    inline bool supportsObjectKind(ObjectKind Kind) const noexcept {
+        return SupportsObjectKind(this->getKind(), Kind);
+    }
+
+    virtual int ParseOptions(const ArgvArray &Argv) noexcept = 0;
     virtual int Run(const MemoryObject &Object) const noexcept = 0;
 };
 

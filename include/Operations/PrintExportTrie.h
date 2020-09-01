@@ -72,7 +72,7 @@ public:
     ParseOptionsImpl(const ArgvArray &Argv, int *IndexOut) noexcept;
 
     int Run(const MemoryObject &Object) const noexcept override;
-    void ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept override;
+    int ParseOptions(const ArgvArray &Argv) noexcept override;
 
     [[nodiscard]]
     constexpr static bool SupportsObjectKind(ObjectKind Kind) noexcept {

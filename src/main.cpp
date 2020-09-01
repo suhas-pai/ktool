@@ -147,9 +147,6 @@ int main(int Argc, const char *Argv[]) {
 
     // Get the Operation-Kind.
 
-    auto Ops = TypedAllocation<Operation>();
-    auto PathIndex = int();
-
     if (Argv[1][0] != '-') {
         fprintf(stderr, "Expected Option, Got: \"%s\"\n", Argv[1]);
         return 1;
@@ -162,6 +159,7 @@ int main(int Argc, const char *Argv[]) {
 
     auto ArgvArr = ArgvArray(Argc, Argv);
     auto OpsKind = OperationKind::None;
+    auto Ops = TypedAllocation<Operation>();
 
     switch (OpsKind) {
         case OperationKind::None:
@@ -276,19 +274,14 @@ int main(int Argc, const char *Argv[]) {
                 "Usage: ktool %s [Options] [Path] [Path-Options]\n",
                 Argv[1]);
 
-        Ops->printObjectKindSupportsList(stdout);
-        Ops->printOptionHelpMenu(stdout);
-        Ops->printPathOptionHelpMenu(stdout, "\n");
-
+        Ops->printEntireOptionUsageMenu(stdout);
         return 0;
     }
 
     // Since we gave ParseOptions a [2, Argc] Argv, we have to add two here to
     // get the full index.
 
-    Ops->ParseOptions(OpsArgv, &PathIndex);
-    PathIndex += 2;
-
+    const auto PathIndex = Ops->ParseOptions(OpsArgv) + 2;
     const auto Path = PathUtil::Absolutify(Argv[PathIndex]);
     const auto Fd =
         FileDescriptor::Open(Path.data(), FileDescriptor::OpenKind::Read);

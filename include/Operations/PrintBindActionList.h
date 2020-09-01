@@ -67,7 +67,7 @@ public:
     [[nodiscard]] static struct Options
     ParseOptionsImpl(const ArgvArray &Argv, int *IndexOut) noexcept;
 
-    void ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept override;
+    int ParseOptions(const ArgvArray &Argv) noexcept override;
     int Run(const MemoryObject &Object) const noexcept override;
 
     [[nodiscard]]

@@ -132,9 +132,11 @@ PrintIdOperation::ParseOptionsImpl(const ArgvArray &Argv,
     return Options;
 }
 
-void
-PrintIdOperation::ParseOptions(const ArgvArray &Argv, int *IndexOut) noexcept {
-    Options = ParseOptionsImpl(Argv, IndexOut);
+int PrintIdOperation::ParseOptions(const ArgvArray &Argv) noexcept {
+    auto Index = int();
+    Options = ParseOptionsImpl(Argv, &Index);
+
+    return Index;
 }
 
 int PrintIdOperation::Run(const MemoryObject &Object) const noexcept {
