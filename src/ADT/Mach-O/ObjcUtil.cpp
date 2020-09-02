@@ -38,7 +38,7 @@ namespace MachO {
     CreateClassForList(
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
         ObjcClassInfo &&Class,
-        uint64_t ClassAddr = uint64_t()) noexcept
+        uint64_t ClassAddr) noexcept
     {
         const auto Ptr =
             List.insert({
@@ -450,7 +450,7 @@ namespace MachO {
                    "Objc Root-Class list is empty");
 
             if (ExternalAndRootClassList.size() != 1) {
-                Root = CreateClassForList(List, Info());
+                Root = CreateClassForList(List, Info(), 0);
 
                 getRoot()->setIsNull();
                 getRoot()->SetChildrenFromList(
@@ -617,7 +617,7 @@ namespace MachO {
                    "Objc Root-Class list is empty");
 
             if (ExternalAndRootClassList.size() != 1) {
-                Root = CreateClassForList(List, Info());
+                Root = CreateClassForList(List, Info(), 0);
 
                 getRoot()->setIsNull();
                 getRoot()->SetChildrenFromList(
