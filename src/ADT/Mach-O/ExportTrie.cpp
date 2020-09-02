@@ -56,7 +56,7 @@ namespace MachO {
 
         auto &String = Info->getString();
         auto &Top = StackList.back();
-        
+
         const auto EraseToLength =
             (String.length() - Top.getNode().getPrefix().length());
 
@@ -185,14 +185,13 @@ namespace MachO {
             auto &Export = Info->getExportInfo();
             auto Ptr = this->Begin + Node.getOffset();
 
-            const auto NodeSize = Node.getSize();
-            const auto ExpectedEnd = Ptr + NodeSize;
+            const auto ExpectedEnd = Ptr + Node.size();
             const auto UpdateOffset = [&]() noexcept {
                 Node.setOffset(Ptr - this->Begin);
             };
 
             if (Stack.getChildOrdinal() == 0) {
-                const auto IsExportInfo = (NodeSize != 0);
+                const auto IsExportInfo = Node.IsExport();
                 if (IsExportInfo) {
                     if (Info->getString().empty()) {
                         return Error::EmptyExport;
