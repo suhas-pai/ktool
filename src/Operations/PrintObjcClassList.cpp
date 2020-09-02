@@ -390,7 +390,9 @@ PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
             return true;
         };
 
-        ObjcClassCollection.PrintHorizontal(Options.OutFile, 8, Printer);
+        ObjcClassCollection.PrintHorizontal(Options.OutFile,
+                                            TabLength,
+                                            Printer);
     } else {
         auto ObjcClassList = ObjcClassCollection.GetAsList();
         if (!Options.SortKindList.empty()) {
