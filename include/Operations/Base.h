@@ -58,8 +58,7 @@ public:
         return OperationKindGetOptionName(getKind());
     }
 
-    [[nodiscard]]
-    constexpr inline std::string_view getName() const noexcept {
+    [[nodiscard]] constexpr inline std::string_view getName() const noexcept {
         return OperationKindGetName(getKind());
     }
 

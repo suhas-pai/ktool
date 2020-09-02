@@ -2685,15 +2685,6 @@ namespace MachO {
                     std::string_view("ld");
             };
 
-            uint32_t Kind;
-            uint32_t Version;
-
-            [[nodiscard]] constexpr
-            inline enum Kind getKind(bool IsBigEndian) const noexcept {
-                const auto Integer = SwitchEndianIf(Kind, IsBigEndian);
-                return static_cast<enum Kind>(Integer);
-            }
-
             [[nodiscard]] constexpr static const std::string_view &
             KindGetName(enum Kind Kind) noexcept {
                 switch (Kind) {
@@ -2720,6 +2711,15 @@ namespace MachO {
                 }
 
                 return EmptyStringValue;
+            }
+
+            uint32_t Kind;
+            uint32_t Version;
+
+            [[nodiscard]] constexpr
+            inline enum Kind getKind(bool IsBigEndian) const noexcept {
+                const auto Integer = SwitchEndianIf(Kind, IsBigEndian);
+                return static_cast<enum Kind>(Integer);
             }
 
             [[nodiscard]] constexpr
@@ -3397,8 +3397,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(EntryPointCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -3424,13 +3423,13 @@ namespace MachO {
             return SwitchEndianIf(StackSize, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr inline EntryPointCommand &
+        constexpr inline EntryPointCommand &
         setEntryOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->EntryOffset = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline EntryPointCommand &
+        constexpr inline EntryPointCommand &
         setStackSize(uint32_t Value, bool IsBigEndian) noexcept {
             this->StackSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;

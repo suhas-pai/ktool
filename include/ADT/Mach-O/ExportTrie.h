@@ -465,8 +465,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr
-        inline ExportTrieNodeInfo &setSize(uint64_t Value) noexcept {
+        constexpr inline ExportTrieNodeInfo &setSize(uint64_t Value) noexcept {
             this->Size = Value;
             return *this;
         }
