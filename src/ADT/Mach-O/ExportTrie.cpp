@@ -238,9 +238,13 @@ namespace MachO {
                             auto ImportName = std::string(String, Length);
                             Export.setReexportImportName(std::move(ImportName));
 
-                            Ptr += (Length + 1);
+                            const auto StringSize = Length + 1;
+
+                            Ptr += StringSize;
+                            Node.getOffsetRef() += StringSize;
                         } else {
                             Ptr += 1;
+                            Node.getOffsetRef() += 1;
                         }
                     } else {
                         auto ImageOffset = uint64_t();
@@ -265,9 +269,10 @@ namespace MachO {
 
                             Export.setResolverStubAddress(ResolverStubAddress);
                         }
+
+                        UpdateOffset();
                     }
 
-                    UpdateOffset();
                     if (Ptr != ExpectedEnd) {
                         return Error::InvalidUleb128;
                     }
@@ -314,7 +319,7 @@ namespace MachO {
 
                 // Skip the byte storing the child-count.
                 Ptr++;
-                UpdateOffset();
+                Node.getOffsetRef() += 1;
 
                 if (IsExportInfo) {
                     break;

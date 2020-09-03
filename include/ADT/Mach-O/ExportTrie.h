@@ -446,6 +446,10 @@ namespace MachO {
             return Offset;
         }
 
+        [[nodiscard]] constexpr inline uint64_t &getOffsetRef() noexcept {
+            return Offset;
+        }
+
         [[nodiscard]] constexpr inline uint64_t size() const noexcept {
             return Size;
         }
