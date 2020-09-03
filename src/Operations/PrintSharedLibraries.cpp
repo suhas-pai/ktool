@@ -272,9 +272,9 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
             PrintUtilsRightPadSpaces(Options.OutFile, WrittenOut, RightPad);
             const struct MachO::DylibCommand::Info Info = {
                 .Name = { DylibInfo.NameOffset },
+                .Timestamp = DylibInfo.Timestamp,
                 .CurrentVersion = DylibInfo.CurrentVersion.value(),
-                .CompatibilityVersion = DylibInfo.CompatibilityVersion.value(),
-                .Timestamp = DylibInfo.Timestamp
+                .CompatibilityVersion = DylibInfo.CompatibilityVersion.value()
             };
 
             MachOTypePrinter<struct MachO::DylibCommand::Info>::PrintOnOneLine(
