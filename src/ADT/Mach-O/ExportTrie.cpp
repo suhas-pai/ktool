@@ -23,7 +23,7 @@ namespace MachO {
 
         Info->getRangeList().reserve(Options.RangeListReserveSize);
         Info->getStackListRef().reserve(Options.StackListReserveSize);
-        Info->getString().reserve(Options.StringReserveSize);
+        Info->getStringRef().reserve(Options.StringReserveSize);
 
         auto Node = NodeInfo();
         this->ParseError = ParseNode(Begin, &Node);
@@ -44,7 +44,7 @@ namespace MachO {
     }
 
     void ExportTrieIterator::SetupInfoForNewStack() noexcept {
-        Info->getString().append(NextStack->getNode().getPrefix());
+        Info->getStringRef().append(NextStack->getNode().getPrefix());
         Info->getStackListRef().emplace_back(std::move(*NextStack));
     }
 
@@ -55,7 +55,7 @@ namespace MachO {
             return false;
         }
 
-        auto &String = Info->getString();
+        auto &String = Info->getStringRef();
         auto &Top = StackList.back();
 
         const auto EraseSuffixLength =

@@ -449,7 +449,7 @@ PrintExportTrie(
             .Info = Info.getExportInfo(),
             .SegmentName = SegmentName,
             .SectionName = SectionName,
-            .String = Info.getString()
+            .String = std::string(Info.getString())
         });
     }
 

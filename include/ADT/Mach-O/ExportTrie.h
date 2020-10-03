@@ -556,11 +556,11 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline const std::string &getString() const noexcept {
+        constexpr inline std::string_view getString() const noexcept {
             return String;
         }
 
-        [[nodiscard]] constexpr inline std::string &getString() noexcept {
+        [[nodiscard]] constexpr inline std::string &getStringRef() noexcept {
             return String;
         }
 

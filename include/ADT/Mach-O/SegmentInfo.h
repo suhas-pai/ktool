@@ -36,7 +36,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline const std::string &getName() const noexcept {
+        constexpr inline std::string_view getName() const noexcept {
             return Name;
         }
 
@@ -148,7 +148,7 @@ namespace MachO {
         SectionListType SectionList;
     public:
         [[nodiscard]]
-        constexpr inline const std::string &getName() const noexcept {
+        constexpr inline std::string_view getName() const noexcept {
             return Name;
         }
 
