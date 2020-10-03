@@ -271,23 +271,15 @@ BasicTreeNode::IsolateAndRemoveFromParent(bool RemoveLeafParents,
 {
     BasicIsolate(*this);
 
-    const auto Parent = getParent();
-    if (Parent == nullptr) {
-        this->clearAndDestroy();
-        return;
+    if (const auto Parent = getParent();
+        Parent != nullptr && Parent != Root && !Parent->isLeaf())
+    {
+        if (RemoveLeafParents) {
+            DoRemoveLeafParents(*Parent);
+        }
     }
 
     // BasicIsolate() has already removed this Node from Parent.
-
-    if (Parent == Root || !Parent->isLeaf()) {
-        this->clearAndDestroy();
-        return;
-    }
-
-    if (RemoveLeafParents) {
-        DoRemoveLeafParents(*Parent);
-    }
-
     this->clearAndDestroy();
 }
 

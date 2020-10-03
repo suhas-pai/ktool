@@ -325,9 +325,8 @@ OperationCommon::PrintDylibOrdinalInfo(
     }
 }
 
-using namespace std::literals;
 constexpr static auto SegmentSectionPairFormat =
-    "<segment-name>,<section-name>"sv;
+    std::string_view("<segment-name>,<section-name>");
 
 void
 OperationCommon::ParseSegmentSectionPair(

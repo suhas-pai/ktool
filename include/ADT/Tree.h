@@ -198,27 +198,27 @@ public:
 #define BASIC_TREE_NODE_ITERATE_CHILDREN(Node)                                \
     for (auto Child = (Node).get((Node).getFirstChild());                     \
          Child != nullptr;                                                    \
-         Child = (Node).get(Child->getNextSibling()))
+         Child = (Child)->get(Child->getNextSibling()))
 
 #define BASIC_TREE_NODE_ITERATE_CHILDREN_TILL_END(Node, ENd)                  \
     for (auto Child = (Node).get((Node).getFirstChild());                     \
          Child != (End);                                                      \
-         Child = (Node).get(Child->getNextSibling()))
+         Child = (Child)->get(Child->getNextSibling()))
 
 #define BASIC_TREE_NODE_ITERATE_CHILDREN_AFTER_FIRST(Node)                    \
     for (auto Child = (Node).get((Node).getFirstChild()->getNextSibling());   \
          Child != nullptr;                                                    \
-         Child = (Node).get(Child->getNextSibling()))
+         Child = (Child)->get(Child->getNextSibling()))
 
 #define BASIC_TREE_NODE_ITERATE_SIBLINGS(Node)                                \
     for (auto Sibling = &(Node);                                              \
          Sibling != nullptr;                                                  \
-         Sibling = (Node).get(Sibling->getNextSibling()))
+         Sibling = (Sibling)->get(Sibling->getNextSibling()))
 
 #define BASIC_TREE_NODE_ITERATE_SIBLINGS_TILL_END(Node, End)                  \
     for (auto Sibling = &(Node);                                              \
          Sibling != (End);                                                    \
-         Sibling = (Node).get(Sibling->getNextSibling()))
+         Sibling = (Sibling)->get(Sibling->getNextSibling()))
 
 struct BasicTreeNode {
     friend struct BasicTree;
