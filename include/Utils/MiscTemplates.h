@@ -63,6 +63,6 @@ public:
 };
 
 template <typename T, size_t N>
-size_t countof(T (&arr)[N]) noexcept {
+[[nodiscard]] constexpr inline size_t countof(T (&arr)[N]) noexcept {
     return std::extent<T[N]>::value;
 }

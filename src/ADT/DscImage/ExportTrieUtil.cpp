@@ -34,7 +34,7 @@ namespace DscImage {
     ExportTrieEntryCollection
     ExportTrieEntryCollection::Open(
         const MachO::ConstExportTrieList &List,
-        const DscImage::SegmentInfoCollection *Collection,
+        const SegmentInfoCollection *Collection,
         Error *ErrorOut) noexcept
     {
         auto Result = ExportTrieEntryCollection();

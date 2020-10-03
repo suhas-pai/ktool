@@ -78,7 +78,7 @@ SetParentOfSiblings(BasicTreeNode *Parent,
 }
 
 void BasicTreeNode::ValidateChildArray() const noexcept {
-    if (this->IsLeaf()) {
+    if (this->isLeaf()) {
         return;
     }
 
@@ -110,7 +110,7 @@ AddChildrenRaw(BasicTreeNode &Parent,
     auto &Back = SetParentOfSiblings(&Parent, Node, End);
     Back.setNextSibling(nullptr);
 
-    if (Parent.IsLeaf()) {
+    if (Parent.isLeaf()) {
         Node.setPrevSibling(nullptr);
 
         Parent.setFirstChild(&Node);
@@ -242,7 +242,7 @@ static void BasicIsolate(BasicTreeNode &Node) noexcept {
             auto &FirstChild = *Parent.getFirstChild();
             Parent.setLongestChild(&CalculateLongestNode(FirstChild));
         }
-    } else if (Node.IsLeaf()) {
+    } else if (Node.isLeaf()) {
         // If Node is a leaf, and ParentHasOnlyThisNode is true, then Parent
         // will end up a leaf-node.
 
@@ -259,7 +259,7 @@ static void DoRemoveLeafParents(BasicTreeNode &LeafParent) noexcept {
         BasicIsolate(*Child);
         ClearNode(*Child);
 
-        if (!Parent->IsLeaf()) {
+        if (!Parent->isLeaf()) {
             break;
         }
     }
@@ -279,7 +279,7 @@ BasicTreeNode::IsolateAndRemoveFromParent(bool RemoveLeafParents,
 
     // BasicIsolate() has already removed this Node from Parent.
 
-    if (Parent == Root || !Parent->IsLeaf()) {
+    if (Parent == Root || !Parent->isLeaf()) {
         this->clearAndDestroy();
         return;
     }
@@ -384,7 +384,7 @@ BasicTreeNode::FindNextNodeForIterator(const BasicTreeNode *End,
 BasicTreeNode *
 BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
     if (&Node == Root) {
-        if (Node.IsLeaf()) {
+        if (Node.isLeaf()) {
             Node.clearAndDestroy();
             setRoot(nullptr);
 

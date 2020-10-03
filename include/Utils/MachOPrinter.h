@@ -286,13 +286,13 @@ struct MachOTypePrinter<MachO::FatHeader> {
                   const char *LinePrefix = "",
                   const char *LineSuffix = "") noexcept
     {
-        const auto IsBigEndian = Header.IsBigEndian();
+        const auto IsBigEndian = Header.isBigEndian();
 
         auto CombinedLinePrefix = std::string(LinePrefix).append("\t");
         auto WrittenOut = int();
         auto I = static_cast<uint32_t>(1);
 
-        if (Header.Is64Bit()) {
+        if (Header.is64Bit()) {
             for (const auto &Arch : Header.getConstArch64List()) {
                 WrittenOut +=
                     fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
@@ -325,13 +325,13 @@ struct MachOTypePrinter<MachO::FatHeader> {
                          const char *LinePrefix = "",
                          const char *LineSuffix = "") noexcept
     {
-        const auto IsBigEndian = Header.IsBigEndian();
+        const auto IsBigEndian = Header.isBigEndian();
 
         auto CombinedLinePrefix = std::string(LinePrefix).append("\t");
         auto WrittenOut = int();
         auto I = static_cast<uint32_t>(1);
 
-        if (Header.Is64Bit()) {
+        if (Header.is64Bit()) {
             for (const auto &Arch : Header.getConstArch64List()) {
                 WrittenOut +=
                     fprintf(OutFile, "%sArch #%" PRIu32 "\n", LinePrefix, I);
@@ -511,9 +511,7 @@ struct MachOTypePrinter<struct MachO::DylibCommand::Info> {
                 Info.getCurrentVersion(IsBigEndian), "", LineSuffix);
 
         WrittenOut +=
-            fprintf(OutFile,
-                    "\n%sCompatibility Version: ",
-                    LinePrefix);
+            fprintf(OutFile, "\n%sCompatibility Version: ", LinePrefix);
 
         WrittenOut +=
             MachOTypePrinter<MachO::PackedVersion>::Print(OutFile,

@@ -299,11 +299,13 @@ MachOLoadCommandPrinterWriteSegmentCommand(FILE *OutFile,
         fputs("(Wrong Segment-Kind)", OutFile);
     }
 
+    const auto InitProt = Segment.getInitProt(IsBigEndian);
+    const auto MaxProt = Segment.getMaxProt(IsBigEndian);
+
     fprintf(OutFile, "\t\"" CHAR_ARR_FMT(16) "\"", Segment.Name);
     fprintf(OutFile,
             "\t" MEM_PROT_INIT_MAX_RNG_FMT "\n",
-            MEM_PROT_INIT_MAX_RNG_FMT_ARGS(Segment.getInitProt(IsBigEndian),
-                                           Segment.getMaxProt(IsBigEndian)));
+            MEM_PROT_INIT_MAX_RNG_FMT_ARGS(InitProt, MaxProt));
 
     MachOLoadCommandPrinterWriteFileAndVmRange<false>(OutFile,
                                                       FileRange,
@@ -320,8 +322,13 @@ MachOLoadCommandPrinterWriteSegmentCommand(FILE *OutFile,
         return;
     }
 
+    if (!Segment.IsSectionListValid(IsBigEndian)) {
+        fputs("Section-List is Invalid\n", OutFile);
+        return;
+    }
+
     fprintf(OutFile, "%" PRIu32 " Sections:\n", SectionsCount);
-    for (const auto &Section : Segment.GetConstSectionList(IsBigEndian)) {
+    for (const auto &Section : Segment.GetConstSectionListUnsafe(IsBigEndian)) {
         const auto SectVmAddr = Section.getAddress(IsBigEndian);
         const auto SectSize = Section.getSize(IsBigEndian);
 

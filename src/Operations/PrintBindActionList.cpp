@@ -187,7 +187,7 @@ PrintBindActionList(
     const ConstMemoryMap &Map,
     const struct PrintBindActionListOperation::Options &Options) noexcept
 {
-    const auto IsBigEndian = Object.IsBigEndian();
+    const auto IsBigEndian = Object.isBigEndian();
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
@@ -224,7 +224,7 @@ PrintBindActionList(
 
     auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
 
-    const auto Is64Bit = Object.Is64Bit();
+    const auto Is64Bit = Object.is64Bit();
     const auto SegmentCollection =
         MachO::SegmentInfoCollection::Open(LoadCmdStorage,
                                            Is64Bit,
@@ -262,7 +262,7 @@ PrintBindActionList(
             continue;
         }
 
-        return true;
+        return false;
     };
 
     if (ShouldPrintBindList) {
@@ -516,7 +516,7 @@ PrintBindActionListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                         Options::SortKind::ByDylibOrdinal);
         } else if (strcmp(Argument, "--sort-by-type") == 0) {
             AddSortKind("--sort-by-type", Options, Options::SortKind::ByKind);
-        } else if (!Argument.IsOption()) {
+        } else if (!Argument.isOption()) {
             break;
         } else {
             fprintf(stderr,

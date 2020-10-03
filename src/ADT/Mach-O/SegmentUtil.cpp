@@ -19,14 +19,14 @@ namespace MachO {
                      bool IsBigEndian,
                      SegmentInfoCollection::Error *ErrorOut) noexcept
     {
-        if (const auto FilRange = Section.getFileRange(IsBigEndian)) {
-            InfoIn.setFileRange(FilRange.value());
+        if (const auto FileRange = Section.getFileRange(IsBigEndian)) {
+            InfoIn.setFileRange(FileRange.value());
         } else {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSection;
         }
 
-        if (const auto MemRange = Section.getMemoryRange(IsBigEndian)) {
-            InfoIn.setMemoryRange(MemRange.value());
+        if (const auto MemoryRange = Section.getMemoryRange(IsBigEndian)) {
+            InfoIn.setMemoryRange(MemoryRange.value());
         } else {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSection;
         }
@@ -48,29 +48,33 @@ namespace MachO {
                      bool IsBigEndian,
                      SegmentInfoCollection::Error *ErrorOut) noexcept
     {
-        auto FileRange = Segment.getFileRange(IsBigEndian);
-        if (!FileRange) {
+        if (const auto FileRange = Segment.getFileRange(IsBigEndian)) {
+            InfoIn.setFileRange(FileRange.value());
+        } else {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSegment;
-            return false;
         }
 
-        if (const auto MemRange = Segment.getVmRange(IsBigEndian)) {
-            InfoIn.setMemoryRange(MemRange.value());
+        if (const auto MemoryRange = Segment.getVmRange(IsBigEndian)) {
+            InfoIn.setMemoryRange(MemoryRange.value());
         } else {
             *ErrorOut = SegmentInfoCollection::Error::InvalidSegment;
         }
 
         auto Name = std::string(Segment.Name, strnlen(Segment.Name, 16));
 
-        InfoIn.setFileRange(FileRange.value());
         InfoIn.setName(std::move(Name));
-
         InfoIn.setInitProt(Segment.getInitProt(IsBigEndian));
         InfoIn.setMaxProt(Segment.getMaxProt(IsBigEndian));
         InfoIn.setFlags(Segment.getFlags(IsBigEndian));
 
+        if (!Segment.IsSectionListValid(IsBigEndian)) {
+            *ErrorOut = SegmentInfoCollection::Error::InvalidSectionList;
+            return true;
+        }
+
         auto &SectionOutList = InfoIn.getSectionList();
-        const auto &SectionList = Segment.GetConstSectionList(IsBigEndian);
+        const auto SectionList =
+            Segment.GetConstSectionListUnsafe(IsBigEndian);
 
         for (const auto &Section : SectionList) {
             auto SectInfo = std::make_unique<SectionInfo>();
@@ -95,7 +99,7 @@ namespace MachO {
         bool Is64Bit,
         Error *ErrorOut) noexcept
     {
-        const auto IsBigEndian = LoadCmdStorage.IsBigEndian();
+        const auto IsBigEndian = LoadCmdStorage.isBigEndian();
         auto Error = Error::None;
 
         for (const auto &LoadCmd : LoadCmdStorage) {
@@ -232,7 +236,7 @@ namespace MachO {
         const std::string_view &Name,
         Error *ErrorOut) noexcept
     {
-        const auto IsBigEndian = LoadCmdStorage.IsBigEndian();
+        const auto IsBigEndian = LoadCmdStorage.isBigEndian();
         for (const auto &LoadCmd : LoadCmdStorage) {
             switch (LoadCmd.getKind(IsBigEndian)) {
                 case LoadCommand::Kind::Segment: {
@@ -244,7 +248,7 @@ namespace MachO {
                     const auto &Segment =
                         LoadCmd.cast<LoadCommand::Kind::Segment>(IsBigEndian);
 
-                    if (Name.compare(0, 16, Segment.Name) != 0) {
+                    if (Segment.nameEquals(Name)) {
                         continue;
                     }
 
@@ -267,7 +271,7 @@ namespace MachO {
                     const auto &Segment =
                         LoadCmd.cast<LoadCommand::Kind::Segment64>(IsBigEndian);
 
-                    if (Name.compare(0, 16, Segment.Name) != 0) {
+                    if (Segment.nameEquals(Name)) {
                         continue;
                     }
 
@@ -299,7 +303,7 @@ namespace MachO {
         std::unique_ptr<SegmentInfo> *SegmentOut,
         Error *ErrorOut) noexcept
     {
-        const auto IsBigEndian = LoadCmdStorage.IsBigEndian();
+        const auto IsBigEndian = LoadCmdStorage.isBigEndian();
         for (const auto &LoadCmd : LoadCmdStorage) {
             switch (LoadCmd.getKind(IsBigEndian)) {
                 case LoadCommand::Kind::Segment: {
@@ -310,8 +314,7 @@ namespace MachO {
                     const auto &Segment =
                         LoadCmd.cast<LoadCommand::Kind::Segment>(IsBigEndian);
 
-                    const auto &SegName = Segment.Name;
-                    if (SegmentName.compare(0, SegmentName.length(), SegName)) {
+                    if (Segment.nameEquals(SegmentName)) {
                         continue;
                     }
 
@@ -324,12 +327,17 @@ namespace MachO {
                         return nullptr;
                     }
 
+                    if (!Segment.IsSectionListValid(IsBigEndian)) {
+                        *SegmentOut = std::move(Info);
+                        return nullptr;
+                    }
+
                     *SegmentOut = std::move(Info);
                     const auto SectionList =
-                        Segment.GetConstSectionList(IsBigEndian);
+                        Segment.GetConstSectionListUnsafe(IsBigEndian);
 
                     for (const auto &Sect : SectionList) {
-                        if (strncmp(SectionName.data(), Sect.Name, 16) != 0) {
+                        if (Sect.nameEquals(SectionName)) {
                             continue;
                         }
 
@@ -358,8 +366,7 @@ namespace MachO {
                     const auto &Segment =
                         LoadCmd.cast<LoadCommand::Kind::Segment64>(IsBigEndian);
 
-                    const auto &SegName = Segment.Name;
-                    if (SegmentName.compare(0, SegmentName.length(), SegName)) {
+                    if (Segment.nameEquals(SegmentName)) {
                         continue;
                     }
 
@@ -372,12 +379,17 @@ namespace MachO {
                         return nullptr;
                     }
 
+                    if (!Segment.IsSectionListValid(IsBigEndian)) {
+                        *SegmentOut = std::move(Info);
+                        return nullptr;
+                    }
+
                     *SegmentOut = std::move(Info);
                     const auto SectionList =
-                        Segment.GetConstSectionList(IsBigEndian);
+                        Segment.GetConstSectionListUnsafe(IsBigEndian);
 
                     for (const auto &Sect : SectionList) {
-                        if (strncmp(SectionName.data(), Sect.Name, 16) != 0) {
+                        if (Sect.nameEquals(SectionName)) {
                             continue;
                         }
 

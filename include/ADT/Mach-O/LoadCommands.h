@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <cstring>
 #include <optional>
 #include <string_view>
 #include <vector>
@@ -76,6 +77,26 @@ namespace MachO {
         dynCast(bool IsBigEndian) const noexcept {
             if (isa<Kind>(IsBigEndian)) {
                 return &cast<Kind>(IsBigEndian);
+            }
+
+            return nullptr;
+        }
+
+        template <Kind First, Kind Second, Kind... Rest>
+        [[nodiscard]] inline LoadCommandPtrTypeFromKind<First>
+        dynCast(bool IsBigEndian) noexcept {
+            if (isa<First, Second, Rest...>(IsBigEndian)) {
+                return &cast<First>(IsBigEndian);
+            }
+
+            return nullptr;
+        }
+
+        template <Kind First, Kind Second, Kind... Rest>
+        [[nodiscard]] inline const LoadCommandConstPtrTypeFromKind<First>
+        dynCast(bool IsBigEndian) const noexcept {
+            if (isa<First, Second, Rest...>(IsBigEndian)) {
+                return &cast<First>(IsBigEndian);
             }
 
             return nullptr;
@@ -253,6 +274,17 @@ namespace MachO {
         }
     };
 
+    [[nodiscard]] constexpr inline bool
+    SegOrSectNameEquals(const char *SegOrSectName,
+                        std::string_view Rhs) noexcept
+    {
+        if (Rhs.length() > 16) {
+            return false;
+        }
+
+        return (strncmp(Rhs.data(), SegOrSectName, Rhs.length()) == 0);
+    }
+
     struct SegmentCommand : public LoadCommand {
         [[nodiscard]] constexpr
         static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
@@ -276,7 +308,7 @@ namespace MachO {
 
         struct Section {
             char Name[16];
-            char SegName[16];
+            char SegmentName[16];
             uint32_t Addr;
             uint32_t Size;
             uint32_t Offset;
@@ -287,13 +319,25 @@ namespace MachO {
             uint32_t Reserved1;
             uint32_t Reserved2;
 
+            [[nodiscard]] inline std::string_view getName() const noexcept {
+                return std::string_view(Name, strnlen(Name, sizeof(Name)));
+            }
+
+            [[nodiscard]]
+            inline std::string_view getSegmentName() const noexcept {
+                const auto Length =
+                    strnlen(SegmentName, sizeof(SegmentName));
+
+                return std::string_view(SegmentName, Length);
+            }
+
             [[nodiscard]] constexpr
             inline uint32_t getAddress(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Addr, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr
-            inline uint32_t getSize(bool IsBigEndian) const noexcept {
+            [[nodiscard]]
+            constexpr inline uint32_t getSize(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Size, IsBigEndian);
             }
 
@@ -341,6 +385,16 @@ namespace MachO {
                 const auto Size = getSize(IsBigEndian);
 
                 return LocationRange::CreateWithSize(Addr, Size);
+            }
+
+            [[nodiscard]] constexpr inline
+            bool segmentNameEquals(std::string_view Name) const noexcept {
+                return SegOrSectNameEquals(this->SegmentName, Name);
+            }
+
+            [[nodiscard]] constexpr
+            inline bool nameEquals(std::string_view Name) const noexcept {
+                return SegOrSectNameEquals(this->Name, Name);
             }
 
             constexpr
@@ -407,6 +461,10 @@ namespace MachO {
         uint32_t Nsects;
         uint32_t Flags;
 
+        [[nodiscard]] inline std::string_view getName() const noexcept {
+            return std::string_view(Name, strnlen(Name, sizeof(Name)));
+        }
+
         [[nodiscard]]
         constexpr inline uint32_t getVmAddr(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(VmAddr, IsBigEndian);
@@ -463,6 +521,11 @@ namespace MachO {
             return LocationRange::CreateWithSize(Offset, Size);
         }
 
+        [[nodiscard]]
+        constexpr inline bool nameEquals(std::string_view Name) const noexcept {
+            return SegOrSectNameEquals(this->Name, Name);
+        }
+
         constexpr inline SegmentCommand &
         setInitProt(const MemoryProtections &InitProt,
                     bool IsBigEndian) noexcept
@@ -485,10 +548,19 @@ namespace MachO {
             return *this;
         }
 
-        [[nodiscard]] SectionList GetSectionList(bool IsBigEndian) noexcept;
-
+        [[nodiscard]] bool IsSectionListValid(bool IsBigEndian) const noexcept;
+        
         [[nodiscard]]
-        ConstSectionList GetConstSectionList(bool IsBigEndian) const noexcept;
+        inline SectionList GetSectionListUnsafe(bool IsBigEndian) noexcept {
+            const auto Ptr = reinterpret_cast<Section *>(this + 1);
+            return SectionList(Ptr, getSectionCount(IsBigEndian));
+        }
+
+        [[nodiscard]] ConstSectionList
+        GetConstSectionListUnsafe(bool IsBigEndian) const noexcept {
+            const auto Ptr = reinterpret_cast<const Section *>(this + 1);
+            return ConstSectionList(Ptr, getSectionCount(IsBigEndian));
+        }
     };
 
     struct SegmentCommand64 : public LoadCommand {
@@ -514,7 +586,7 @@ namespace MachO {
 
         struct Section {
             char Name[16];
-            char SegName[16];
+            char SegmentName[16];
             uint64_t Addr;
             uint64_t Size;
             uint32_t Offset;
@@ -525,13 +597,25 @@ namespace MachO {
             uint32_t Reserved1;
             uint32_t Reserved2;
 
+            [[nodiscard]] inline std::string_view getName() const noexcept {
+                return std::string_view(Name, strnlen(Name, sizeof(Name)));
+            }
+
+            [[nodiscard]]
+            inline std::string_view getSegmentName() const noexcept {
+                const auto Length =
+                    strnlen(SegmentName, sizeof(SegmentName));
+
+                return std::string_view(SegmentName, Length);
+            }
+
             [[nodiscard]] constexpr
             inline uint64_t getAddress(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Addr, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr
-            inline uint64_t getSize(bool IsBigEndian) const noexcept {
+            [[nodiscard]]
+            constexpr inline uint64_t getSize(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Size, IsBigEndian);
             }
 
@@ -579,6 +663,16 @@ namespace MachO {
                 const auto Size = getSize(IsBigEndian);
 
                 return LocationRange::CreateWithSize(Addr, Size);
+            }
+
+            [[nodiscard]] constexpr inline
+            bool segmentNameEquals(std::string_view Name) const noexcept {
+                return SegOrSectNameEquals(this->SegmentName, Name);
+            }
+
+            [[nodiscard]] constexpr
+            inline bool nameEquals(std::string_view Name) const noexcept {
+                return SegOrSectNameEquals(this->Name, Name);
             }
 
             constexpr
@@ -645,6 +739,10 @@ namespace MachO {
         uint32_t Nsects;
         uint32_t Flags;
 
+        [[nodiscard]] inline std::string_view getName() const noexcept {
+            return std::string_view(Name, strnlen(Name, sizeof(Name)));
+        }
+
         [[nodiscard]]
         constexpr inline uint64_t getVmAddr(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(VmAddr, IsBigEndian);
@@ -701,6 +799,11 @@ namespace MachO {
             return LocationRange::CreateWithSize(Offset, Size);
         }
 
+        [[nodiscard]]
+        constexpr inline bool nameEquals(std::string_view Name) const noexcept {
+            return SegOrSectNameEquals(this->Name, Name);
+        }
+
         constexpr inline SegmentCommand64 &
         setInitProt(const MemoryProtections &InitProt,
                     bool IsBigEndian) noexcept
@@ -723,10 +826,19 @@ namespace MachO {
             return *this;
         }
 
-        [[nodiscard]] SectionList GetSectionList(bool IsBigEndian) noexcept;
+        [[nodiscard]] bool IsSectionListValid(bool IsBigEndian) const noexcept;
 
         [[nodiscard]]
-        ConstSectionList GetConstSectionList(bool IsBigEndian) const noexcept;
+        inline SectionList GetSectionListUnsafe(bool IsBigEndian) noexcept {
+            const auto Ptr = reinterpret_cast<Section *>(this + 1);
+            return SectionList(Ptr, getSectionCount(IsBigEndian));
+        }
+
+        [[nodiscard]] ConstSectionList
+        GetConstSectionListUnsafe(bool IsBigEndian) const noexcept {
+            const auto Ptr = reinterpret_cast<const Section *>(this + 1);
+            return ConstSectionList(Ptr, getSectionCount(IsBigEndian));
+        }
     };
 
     template <typename Error>
@@ -747,9 +859,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline bool hasError() const noexcept {
-            const auto HasError =
-                PointerErrorStorage<Error>::PointerHasErrorValue(getStorage());
-
+            const auto HasError = PointerHasErrorValue(getStorage());
             return HasError;
         }
 
@@ -891,7 +1001,7 @@ namespace MachO {
         FixedVmSharedLibraryInfo Info;
 
         [[nodiscard]]
-        inline bool IsNameOffsetValid(bool IsBigEndian) const noexcept {
+        inline bool isNameOffsetValid(bool IsBigEndian) const noexcept {
             const auto Offset = Info.Name.getOffset(IsBigEndian);
             return Info.Name.IsOffsetValid(sizeof(*this), Offset, CmdSize);
         }
@@ -992,7 +1102,7 @@ namespace MachO {
         Info Info;
 
         [[nodiscard]]
-        inline bool IsNameOffsetValid(bool IsBigEndian) const noexcept {
+        inline bool isNameOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
             return Info.Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
@@ -1025,7 +1135,7 @@ namespace MachO {
         LoadCommandString Umbrella;
 
         [[nodiscard]]
-        inline bool IsUmbrellaOffsetValid(bool IsBigEndian) const noexcept {
+        inline bool isUmbrellaOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
             return Umbrella.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
@@ -1058,7 +1168,7 @@ namespace MachO {
         LoadCommandString Client;
 
         [[nodiscard]]
-        inline bool IsClientOffsetValid(bool IsBigEndian) const noexcept {
+        inline bool isClientOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
             return Client.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
@@ -1091,7 +1201,7 @@ namespace MachO {
         LoadCommandString Umbrella;
 
         [[nodiscard]]
-        inline bool IsUmbrellaOffsetValid(bool IsBigEndian) const noexcept {
+        inline bool isUmbrellaOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
             return Umbrella.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
@@ -1124,7 +1234,7 @@ namespace MachO {
         LoadCommandString Library;
 
         [[nodiscard]]
-        inline bool IsLibraryOffsetValid(bool IsBigEndian) const noexcept {
+        inline bool isLibraryOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
             return Library.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
@@ -1158,7 +1268,7 @@ namespace MachO {
         uint32_t NModules;
         LoadCommandString LinkedModules;
 
-        [[nodiscard]] bool IsNameOffsetValid(bool IsBigEndian) const noexcept;
+        [[nodiscard]] bool isNameOffsetValid(bool IsBigEndian) const noexcept;
 
         [[nodiscard]] inline
         bool IsLinkedModulesOffsetValid(bool IsBigEndian) const noexcept {
@@ -1202,7 +1312,7 @@ namespace MachO {
         LoadCommandString Name;
 
         [[nodiscard]]
-        inline bool IsNameOffsetValid(bool IsBigEndian) const noexcept {
+        inline bool isNameOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
             return Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
@@ -1364,15 +1474,15 @@ namespace MachO {
             return SymbolKind(getValueForMask(Masks::SymbolKind));
         }
 
-        [[nodiscard]] inline bool IsExternal() const noexcept {
+        [[nodiscard]] inline bool isExternal() const noexcept {
             return hasValueForMask(Masks::IsExternal);
         }
 
-        [[nodiscard]] inline bool IsPrivateExternal() const noexcept {
+        [[nodiscard]] inline bool isPrivateExternal() const noexcept {
             return hasValueForMask(Masks::IsPrivateExternal);
         }
 
-        [[nodiscard]] inline bool IsDebugSymbol() const noexcept {
+        [[nodiscard]] inline bool isDebugSymbol() const noexcept {
             return hasValueForMask(Masks::IsDebugSymbol);
         }
 
@@ -2133,7 +2243,7 @@ namespace MachO {
         LoadCommandString Path;
 
         [[nodiscard]]
-        inline bool IsPathOffsetValid(bool IsBigEndian) const noexcept {
+        inline bool isPathOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
             return Path.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
@@ -3366,7 +3476,7 @@ namespace MachO {
         uint32_t HeaderAddr;
 
         [[nodiscard]]
-        inline bool IsNameOffsetValid(bool IsBigEndian) const noexcept {
+        inline bool isNameOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
             return Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
@@ -3616,6 +3726,16 @@ template <typename T>
 [[nodiscard]]
 inline bool isa(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
     return T::IsOfKind(LoadCmd.getKind(IsBigEndian));
+}
+
+template <typename First, typename Second, typename... Rest>
+[[nodiscard]]
+inline bool isa(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
+    if (isa<First>(LoadCmd, IsBigEndian)) {
+        return true;
+    }
+
+    return (isa<Second, Rest...>(LoadCmd, IsBigEndian));
 }
 
 template <typename T>

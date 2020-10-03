@@ -24,7 +24,7 @@ static int
 PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
                       const struct PrintIdOperation::Options &Options) noexcept
 {
-    const auto IsBigEndian = Object.IsBigEndian();
+    const auto IsBigEndian = Object.isBigEndian();
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
@@ -65,7 +65,7 @@ PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
 
     if (Id.empty()) {
         fputs("No Identification found for the provided dylib\n",
-              Options.OutFile);
+              Options.ErrFile);
         return 1;
     }
 
@@ -112,7 +112,7 @@ PrintIdOperation::ParseOptionsImpl(const ArgvArray &Argv,
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
-        } else if (!Argument.IsOption()) {
+        } else if (!Argument.isOption()) {
             break;
         } else {
             fprintf(stderr,

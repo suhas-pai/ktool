@@ -62,6 +62,11 @@ public:
         return getRange().containsEndLocation(EndOffset);
     }
 
+    [[nodiscard]]
+    inline bool containsLocRange(const LocationRange &LocRange) const noexcept {
+        return getRange().containsLocRange(LocRange);
+    }
+
     [[nodiscard]] inline bool containsPtr(const void *Ptr) const noexcept {
         const auto Range = LocationRange::CreateWithEnd(getBegin(), getEnd());
         return Range.containsLocation(Ptr);
@@ -74,12 +79,12 @@ public:
 
     template <typename T>
     [[nodiscard]] constexpr
-    inline bool IsLargeEnoughForType(uint64_t Count = 1) const noexcept {
-        return IsLargeEnoughForSize(sizeof(T) * Count);
+    inline bool isLargeEnoughForType(uint64_t Count = 1) const noexcept {
+        return isLargeEnoughForSize(sizeof(T) * Count);
     }
 
     [[nodiscard]]
-    constexpr inline bool IsLargeEnoughForSize(uint64_t Size) const noexcept {
+    constexpr inline bool isLargeEnoughForSize(uint64_t Size) const noexcept {
         return (size() >= Size);
     }
 
@@ -93,6 +98,17 @@ public:
     inline ConstMemoryMap mapFromOffset(uint64_t Offset) const noexcept {
         assert(containsOffset(Offset));
         return ConstMemoryMap(getBegin() + Offset, getEnd());
+    }
+
+    [[nodiscard]] constexpr inline ConstMemoryMap
+    mapFromLocRange(const LocationRange &LocRange) const noexcept {
+        assert(containsLocRange(LocRange));
+
+        const auto ThisBegin = getBegin();
+        const auto Begin = ThisBegin + LocRange.getBegin();
+        const auto End = ThisBegin + LocRange.getEnd();
+
+        return ConstMemoryMap(Begin, End);
     }
 };
 
@@ -139,5 +155,21 @@ public:
     [[nodiscard]] constexpr
     inline ConstMemoryMap constMapFromOffset(uint64_t Offset) const noexcept {
         return ConstMemoryMap::mapFromOffset(Offset);
+    }
+
+    [[nodiscard]] constexpr inline ConstMemoryMap
+    constMapFromLocRange(const LocationRange &LocRange) const noexcept {
+        return ConstMemoryMap::mapFromLocRange(LocRange);
+    }
+
+    [[nodiscard]] constexpr inline MemoryMap
+    mapFromLocRange(const LocationRange &LocRange) const noexcept {
+        assert(containsLocRange(LocRange));
+
+        const auto ThisBegin = getBegin();
+        const auto Begin = ThisBegin + LocRange.getBegin();
+        const auto End = ThisBegin + LocRange.getEnd();
+
+        return MemoryMap(Begin, End);
     }
 };

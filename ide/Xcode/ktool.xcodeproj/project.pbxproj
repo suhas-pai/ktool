@@ -38,6 +38,7 @@
 		F3923E87243C0BA0002479B3 /* FatMachOMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3923E84243C0BA0002479B3 /* FatMachOMemory.cpp */; };
 		F3923E88243C0BA0002479B3 /* MachOMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3923E85243C0BA0002479B3 /* MachOMemory.cpp */; };
 		F39740F624B9252D00710C62 /* DscMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39740F524B9252D00710C62 /* DscMemory.cpp */; };
+		F39A77C025041AC00083E960 /* ObjcUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39A77BF25041AC00083E960 /* ObjcUtil.cpp */; };
 		F39A9878245FE4F4002C229F /* Path.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39A9877245FE4F4002C229F /* Path.cpp */; };
 		F3A2D2982495A971005DA2D0 /* ObjcUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3A2D2972495A971005DA2D0 /* ObjcUtil.cpp */; };
 		F3A2D29B249AD5B9005DA2D0 /* LoadCommandsCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3A2D29A249AD5B9005DA2D0 /* LoadCommandsCommon.cpp */; };
@@ -104,6 +105,7 @@
 		F33EC4FD24C27E1900A8DB06 /* SegmentUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SegmentUtil.cpp; path = ../../src/ADT/DscImage/SegmentUtil.cpp; sourceTree = "<group>"; };
 		F33EC50124C2A76A00A8DB06 /* DscImage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DscImage.h; path = ../../include/ADT/DscImage.h; sourceTree = "<group>"; };
 		F3418A1B24F085B300A3B8CE /* Info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Info.h; path = ../../include/Operations/Info.h; sourceTree = "<group>"; };
+		F347E8C22528130400000203 /* Casting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Casting.h; path = ../../include/Utils/llvm/Support/Casting.h; sourceTree = "<group>"; };
 		F348C8A324AB4527007D83CB /* PrintCStringSection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintCStringSection.h; path = ../../include/Operations/PrintCStringSection.h; sourceTree = "<group>"; };
 		F348C8A424AB457C007D83CB /* PrintCStringSection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintCStringSection.cpp; path = ../../src/Operations/PrintCStringSection.cpp; sourceTree = "<group>"; };
 		F35FF7EF24486A4800BEF782 /* PrintLoadCommands.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintLoadCommands.cpp; path = ../../src/Operations/PrintLoadCommands.cpp; sourceTree = "<group>"; };
@@ -160,6 +162,9 @@
 		F38FCF27248DEF0900DCB79F /* OutputFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OutputFile.cpp; path = ../../src/ADT/OutputFile.cpp; sourceTree = "<group>"; };
 		F38FCF29248EDD5B00DCB79F /* Tree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Tree.h; path = ../../include/ADT/Tree.h; sourceTree = "<group>"; };
 		F38FCF2A248EFB3B00DCB79F /* Tree.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Tree.cpp; path = ../../src/ADT/Tree.cpp; sourceTree = "<group>"; };
+		F39156BB25034CE900DED650 /* ObjcUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ObjcUtil.h; path = ../../include/ADT/DscImage/ObjcUtil.h; sourceTree = "<group>"; };
+		F39156BC250355D900DED650 /* ObjcParse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ObjcParse.h; path = "../../include/ADT/Mach-O/ObjcParse.h"; sourceTree = "<group>"; };
+		F39156BD2503563400DED650 /* ObjcInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ObjcInfo.h; path = "../../include/ADT/Mach-O/ObjcInfo.h"; sourceTree = "<group>"; };
 		F3923E7C243C0B62002479B3 /* Mach.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Mach.h; path = ../../include/ADT/Mach.h; sourceTree = "<group>"; };
 		F3923E7F243C0B97002479B3 /* MemoryBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MemoryBase.h; path = ../../include/Objects/MemoryBase.h; sourceTree = "<group>"; };
 		F3923E80243C0B97002479B3 /* Kind.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Kind.h; path = ../../include/Objects/Kind.h; sourceTree = "<group>"; };
@@ -173,6 +178,7 @@
 		F39740F524B9252D00710C62 /* DscMemory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DscMemory.cpp; path = ../../src/Objects/DscMemory.cpp; sourceTree = "<group>"; };
 		F39740F824B926F000710C62 /* Headers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Headers.h; path = ../../include/ADT/DyldSharedCache/Headers.h; sourceTree = "<group>"; };
 		F39740F924B9445F00710C62 /* DyldSharedCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DyldSharedCache.h; path = ../../include/ADT/DyldSharedCache.h; sourceTree = "<group>"; };
+		F39A77BF25041AC00083E960 /* ObjcUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ObjcUtil.cpp; path = ../../src/ADT/DscImage/ObjcUtil.cpp; sourceTree = "<group>"; };
 		F39A9877245FE4F4002C229F /* Path.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Path.cpp; path = ../../src/Utils/Path.cpp; sourceTree = "<group>"; };
 		F39A9879245FE4FE002C229F /* Path.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Path.h; path = ../../include/Utils/Path.h; sourceTree = "<group>"; };
 		F3A2D2962495A71D005DA2D0 /* ObjcUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ObjcUtil.h; path = "../../include/ADT/Mach-O/ObjcUtil.h"; sourceTree = "<group>"; };
@@ -336,6 +342,7 @@
 		F3104AC52431965900B24FEB /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				F347E8C02528129500000203 /* llvm */,
 				F33DFDCF2438503800BF3E47 /* Casting.h */,
 				F3923E89243C1680002479B3 /* DoesOverflow.h */,
 				F37166A7246650AE0078C5CA /* IntegerLimit.h */,
@@ -381,6 +388,7 @@
 			children = (
 				F37B10BA24C3C18500CB2305 /* DeVirtualizer.h */,
 				F38A993224C2DB2400AB74F3 /* ExportTrieUtil.h */,
+				F39156BB25034CE900DED650 /* ObjcUtil.h */,
 				F33EC4FB24C27D9D00A8DB06 /* SegmentUtil.h */,
 			);
 			name = DscImage;
@@ -390,9 +398,26 @@
 			isa = PBXGroup;
 			children = (
 				F38A993024C2DA6A00AB74F3 /* ExportTrieUtil.cpp */,
+				F39A77BF25041AC00083E960 /* ObjcUtil.cpp */,
 				F33EC4FD24C27E1900A8DB06 /* SegmentUtil.cpp */,
 			);
 			name = DscImage;
+			sourceTree = "<group>";
+		};
+		F347E8C02528129500000203 /* llvm */ = {
+			isa = PBXGroup;
+			children = (
+				F347E8C1252812E200000203 /* Support */,
+			);
+			name = llvm;
+			sourceTree = "<group>";
+		};
+		F347E8C1252812E200000203 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				F347E8C22528130400000203 /* Casting.h */,
+			);
+			name = Support;
 			sourceTree = "<group>";
 		};
 		F35FF7F124486A5900BEF782 /* Mach-O */ = {
@@ -410,6 +435,8 @@
 				F3856A9E244ABDA1007980C9 /* LoadCommandTemplates.h */,
 				F3FBAE6D24F6153F00B9CC7A /* MemoryProtections.h */,
 				F3BA28BD2470F3CD009B6BCE /* Objc.h */,
+				F39156BD2503563400DED650 /* ObjcInfo.h */,
+				F39156BC250355D900DED650 /* ObjcParse.h */,
 				F3A2D2962495A71D005DA2D0 /* ObjcUtil.h */,
 				F33E8CD72473BFB7009C4EA0 /* RebaseInfo.h */,
 				F3BA28BF24712537009B6BCE /* SegmentInfo.h */,
@@ -576,7 +603,7 @@
 		F3104AA1243193E100B24FEB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1150;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "Suhas Pai";
 				TargetAttributes = {
 					F3104AA8243193E100B24FEB = {
@@ -614,6 +641,7 @@
 				F3840EB42481FE16003AD004 /* PrintRebaseActionList.cpp in Sources */,
 				F33E8CD92473C044009C4EA0 /* RebaseInfo.cpp in Sources */,
 				F33E8CD62473B61B009C4EA0 /* BindInfo.cpp in Sources */,
+				F39A77C025041AC00083E960 /* ObjcUtil.cpp in Sources */,
 				F38FCE642487793B00920AB1 /* SwapRanges.cpp in Sources */,
 				F3BA28B924709ACD009B6BCE /* SegmentUtil.cpp in Sources */,
 				F3BA28C32471ECC6009B6BCE /* PrintBindSymbolList.cpp in Sources */,
@@ -688,6 +716,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -746,6 +775,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;

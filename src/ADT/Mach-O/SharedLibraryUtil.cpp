@@ -75,7 +75,7 @@ namespace MachO {
         const ConstLoadCommandStorage &LoadCmdStorage,
         Error *ErrorOut) noexcept
     {
-        const auto IsBigEndian = LoadCmdStorage.IsBigEndian();
+        const auto IsBigEndian = LoadCmdStorage.isBigEndian();
 
         auto Error = Error::None;
         auto LCIndex = uint32_t();
@@ -88,7 +88,6 @@ namespace MachO {
             }
 
             const auto &DylibCmd = cast<DylibCommand>(LoadCmd, IsBigEndian);
-
             const auto GetNameResult = DylibCmd.GetName(IsBigEndian);
             const auto &Name =
                 (GetNameResult.hasError()) ?

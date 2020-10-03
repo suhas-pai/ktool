@@ -8,10 +8,7 @@
 
 #pragma once
 
-#include <algorithm>
-#include <string>
 #include <vector>
-
 #include "Utils/PrintUtils.h"
 
 struct BasicTreeNode;
@@ -49,7 +46,7 @@ public:
         return (TabLength * (getDepthLevel() - 1));
     }
 
-    [[nodiscard]] inline bool IsAtEnd() const noexcept {
+    [[nodiscard]] inline bool isAtEnd() const noexcept {
         return (Current == End);
     }
 
@@ -147,7 +144,7 @@ public:
         return Current;
     }
 
-    [[nodiscard]] inline bool IsAtEnd() const noexcept {
+    [[nodiscard]] inline bool isAtEnd() const noexcept {
         return (Current == End);
     }
 
@@ -339,7 +336,7 @@ public:
         return *this;
     }
 
-    [[nodiscard]] inline bool IsLeaf() const noexcept {
+    [[nodiscard]] inline bool isLeaf() const noexcept {
         return (getFirstChild() == nullptr);
     }
 
@@ -356,11 +353,21 @@ public:
     using Iterator = TreeIterator<const BasicTreeNode>;
     using ConstIterator = Iterator;
 
-    [[nodiscard]] Iterator begin() const noexcept;
-    [[nodiscard]] Iterator end() const noexcept;
+    [[nodiscard]] inline Iterator begin() const noexcept {
+        return Iterator(this);
+    }
 
-    [[nodiscard]] ConstIterator cbegin() const noexcept;
-    [[nodiscard]] ConstIterator cend() const noexcept;
+    [[nodiscard]] inline Iterator end() const noexcept {
+        return Iterator(nullptr);
+    }
+
+    [[nodiscard]] inline ConstIterator cbegin() const noexcept {
+        return ConstIterator(this);
+    }
+
+    [[nodiscard]] inline ConstIterator cend() const noexcept {
+        return ConstIterator(nullptr);
+    }
 
     template <typename NodePrinter>
     const BasicTreeNode &
@@ -374,7 +381,7 @@ public:
         }
 
         auto Iter = TreeIterator<const BasicTreeNode>(this, getParent());
-        for (Iter++; !Iter.IsAtEnd(); Iter++) {
+        for (Iter++; !Iter.isAtEnd(); Iter++) {
             auto WrittenOut = int();
 
             const auto &Info = *Iter;
@@ -462,7 +469,7 @@ public:
     }
 
     template <typename Comparator>
-    BasicTree &Sort(const Comparator &IsInOrder) noexcept {
+    BasicTree &Sort(const Comparator &ShouldSwap) noexcept {
         const auto Swap = [](BasicTreeNode &Lhs, BasicTreeNode &Rhs) noexcept {
             const auto LPrevSibling = Lhs.getPrevSibling();
             const auto LNextSibling = Lhs.getNextSibling();
@@ -505,7 +512,7 @@ public:
         };
 
         for (const auto &Node : *this) {
-            if (Node->IsLeaf()) {
+            if (Node->isLeaf()) {
                 continue;
             }
 
@@ -521,7 +528,7 @@ public:
                     auto &LeftRef = *JChild;
                     auto &RightRef = *IChild;
 
-                    if (!IsInOrder(LeftRef, RightRef)) {
+                    if (ShouldSwap(LeftRef, RightRef)) {
                         Swap(LeftRef, RightRef);
                         if (&LeftRef == FirstChild) {
                             FirstChild = Node->getFirstChild();

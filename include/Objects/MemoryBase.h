@@ -10,6 +10,7 @@
 
 #include "ADT/FileDescriptor.h"
 #include "ADT/MemoryMap.h"
+#include "ADT/PointerErrorStorage.h"
 #include "ADT/RelativeRange.h"
 
 #include "TypeTraits/DisableIfNotConst.h"
@@ -19,30 +20,31 @@
 
 struct MemoryObject;
 struct MemoryObjectOrError {
-private:
-    enum class FakeError {};
 protected:
     union {
         MemoryObject *Ptr;
-        uintptr_t Storage;
+
+        union {
+            struct {
+                ObjectKind ObjKind : 8;
+                uint8_t Error;
+            };
+
+            uintptr_t Storage;
+        };
     };
 public:
     constexpr MemoryObjectOrError(MemoryObject *Ptr) noexcept : Ptr(Ptr) {}
-    constexpr MemoryObjectOrError(ObjectKind Kind, uint8_t Error) noexcept
-    : Storage(static_cast<uint8_t>(Error) | (static_cast<uint8_t>(Kind) << 8))
-    {}
+    constexpr MemoryObjectOrError(ObjectKind ObjKind, uint8_t Error) noexcept
+    : ObjKind(ObjKind), Error(static_cast<uint8_t>(Error)) {}
 
     [[nodiscard]] inline bool hasError() const noexcept {
-        if (Storage == 0) {
-            return false;
-        }
-
-        return PointerErrorStorage<FakeError>::PointerHasErrorValue(Storage);
+        return PointerHasErrorValue(Storage);
     }
 
     [[nodiscard]] inline uint8_t getErrorInt() const noexcept {
         if (hasError()) {
-            return (Storage & 0xff);
+            return Error;
         }
 
         return 0;
@@ -50,7 +52,7 @@ public:
 
     [[nodiscard]] inline ObjectKind getObjectKind() const noexcept {
         assert(hasError());
-        return ObjectKind(Storage >> 8);
+        return ObjKind;
     }
 
     [[nodiscard]] inline MemoryObject *getObject() const noexcept {
@@ -73,7 +75,6 @@ public:
     static MemoryObjectOrError Open(const ConstMemoryMap &Map) noexcept;
 
     [[nodiscard]] inline ObjectKind getKind() const noexcept { return Kind; }
-
     virtual ~MemoryObject() noexcept = default;
 
     virtual ConstMemoryMap getConstMap() const noexcept = 0;
@@ -253,8 +254,8 @@ static inline MemoryObjectPtr dyn_cast(MemoryObject *Object) noexcept {
 template <ObjectKind Kind,
           typename MemoryObjectType = ObjectClassFromKindType<Kind>>
 
-static inline
-const MemoryObjectType *dyn_cast(const MemoryObject *Object) noexcept {
+static
+inline const MemoryObjectType *dyn_cast(const MemoryObject *Object) noexcept {
     if (isa<Kind>(Object)) {
         return cast<Kind>(Object);
     }

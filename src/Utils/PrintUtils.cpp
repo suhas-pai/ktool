@@ -98,8 +98,8 @@ PrintUtilsWriteUuid(FILE *OutFile,
 {
     const auto Result =
         fprintf(OutFile,
-                "%s%.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X"
-                "%.2X%.2X%.2X%.2X%.2X%s",
+                "%s%.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2x%.2x%.2x"
+                "%.2X%.2X%s",
                 Prefix,
                 Uuid[0],
                 Uuid[1],

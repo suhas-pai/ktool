@@ -462,7 +462,7 @@ namespace MachO {
         using Enum = BindSymbolFlagsEnum;
         using Base::Base;
 
-        [[nodiscard]] constexpr inline bool IsWeakImport() const noexcept {
+        [[nodiscard]] constexpr inline bool isWeakImport() const noexcept {
             return hasValueForMask(Enum::WeakImport);
         }
 
@@ -639,9 +639,9 @@ namespace MachO {
             return Iter->getPtr();
         }
 
-        [[nodiscard]] constexpr inline bool IsAtEnd() const noexcept {
+        [[nodiscard]] constexpr inline bool isAtEnd() const noexcept {
             if constexpr (BindKind == BindInfoKind::Lazy) {
-                return (Iter.IsAtEnd() && ReachedEnd);
+                return (Iter.isAtEnd() && ReachedEnd);
             } else {
                 return ReachedEnd;
             }
@@ -699,7 +699,7 @@ namespace MachO {
 
         [[nodiscard]] constexpr
         inline bool operator==(const BindOpcodeIteratorEnd &) const noexcept {
-            return IsAtEnd();
+            return isAtEnd();
         }
 
         [[nodiscard]] constexpr inline
@@ -717,7 +717,7 @@ namespace MachO {
             Prev = BytePtr;
             Iter++;
 
-            if (Iter.IsAtEnd()) {
+            if (Iter.isAtEnd()) {
                 ReachedEnd = true;
                 return ErrorEnum::None;
             }
@@ -1122,8 +1122,8 @@ namespace MachO {
             return ContainsPtr;
         }
 
-        [[nodiscard]] constexpr inline bool IsAtEnd() const noexcept {
-            return Iter.IsAtEnd();
+        [[nodiscard]] constexpr inline bool isAtEnd() const noexcept {
+            return Iter.isAtEnd();
         }
 
         [[nodiscard]] constexpr
@@ -1161,7 +1161,7 @@ namespace MachO {
 
         [[nodiscard]] constexpr
         inline bool operator==(const BindActionIteratorEnd &) const noexcept {
-            return IsAtEnd();
+            return isAtEnd();
         }
 
         [[nodiscard]] constexpr inline
@@ -1314,7 +1314,7 @@ namespace MachO {
                 return ErrorEnum::None;
             };
 
-            for (; !Iter.IsAtEnd(); Iter++) {
+            for (; !Iter.isAtEnd(); Iter++) {
                 if (Iter->hasError()) {
                     return Iter->getError();
                 }
@@ -1363,7 +1363,7 @@ namespace MachO {
                         }
 
                         if (Info.ThreadedCount != 0) {
-                            if (Info.ThreadedDataTable.IsFull()) {
+                            if (Info.ThreadedDataTable.isFull()) {
                                 return ErrorEnum::TooManyThreadedBinds;
                             }
 
@@ -1443,7 +1443,7 @@ namespace MachO {
                                     Info.ThreadedCount);
                                 break;
                             case Enum::ThreadedApply: {
-                                if (!Info.ThreadedDataTable.IsFull()) {
+                                if (!Info.ThreadedDataTable.isFull()) {
                                     return ErrorEnum::NotEnoughThreadedBinds;
                                 }
 

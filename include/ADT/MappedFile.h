@@ -99,7 +99,7 @@ public:
     [[nodiscard]] static MappedFile
     Open(const FileDescriptor &Fd, Protections Prot, MapKind MapKind) noexcept;
 
-    [[nodiscard]] inline bool IsEmpty() const noexcept {
+    [[nodiscard]] inline bool isEmpty() const noexcept {
         return (Map == nullptr);
     }
 
@@ -111,8 +111,15 @@ public:
         return ErrorStorage.getValue();
     }
 
-    [[nodiscard]] inline void *GetMap() const noexcept { return Map; }
-    [[nodiscard]] inline uint64_t GetSize() const noexcept { return Size; }
+    [[nodiscard]] inline uint8_t *getBegin() const noexcept {
+        return static_cast<uint8_t *>(Map);
+    }
+
+    [[nodiscard]] inline uint8_t *getEnd() const noexcept {
+        return getBegin() + size();
+    }
+
+    [[nodiscard]] inline uint64_t size() const noexcept { return Size; }
 
     [[nodiscard]] inline operator MemoryMap() const noexcept {
         const auto Map = reinterpret_cast<uint8_t *>(this->Map);
@@ -124,7 +131,16 @@ public:
         return ConstMemoryMap(Map, Map + Size);
     }
 
-    MappedFile &operator=(MappedFile &&) noexcept;
+    MappedFile &operator=(MappedFile &&Rhs) noexcept {
+        Map = Rhs.Map;
+        Size = Rhs.Size;
+
+        Rhs.Map = nullptr;
+        Rhs.Size = 0;
+
+        return *this;
+    }
+
     inline MappedFile &Close() noexcept {
         munmap(Map, Size);
         return *this;

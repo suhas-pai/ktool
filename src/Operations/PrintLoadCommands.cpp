@@ -35,17 +35,17 @@ IterateLoadCommands(
     const MachO::ConstLoadCommandStorage &LoadCmdStorage,
     const struct PrintLoadCommandsOperation::Options &Options) noexcept
 {
-    const auto IsBigEndian = Object.IsBigEndian();
-    const auto Is64Bit = Object.Is64Bit();
+    const auto IsBigEndian = Object.isBigEndian();
+    const auto Is64Bit = Object.is64Bit();
 
-    auto LoadCmdCounter = uint32_t();
+    auto LoadCmdCounter = static_cast<uint32_t>(1);
     for (const auto &LoadCmd : LoadCmdStorage) {
         fprintf(Options.OutFile, "LC %02d: ", LoadCmdCounter);
 
         const auto Kind = LoadCmd.getKind(IsBigEndian);
         if (!MachO::LoadCommand::KindIsValid(Kind)) {
             fprintf(Options.OutFile,
-                    "Unrecognized LoadCmd (%" PRIu32 ")\n",
+                    "Unrecognized LoadCmd (Kind-Int: %" PRIu32 ")\n",
                     static_cast<uint32_t>(Kind));
             continue;
         }
@@ -532,7 +532,7 @@ PrintLoadCommandsOperation::ParseOptionsImpl(const ArgvArray &Argv,
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
-        } else if (!Argument.IsOption()) {
+        } else if (!Argument.isOption()) {
             break;
         } else {
             fprintf(stderr,

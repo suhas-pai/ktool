@@ -68,7 +68,7 @@ PrintRebaseActionList(
 {
     auto FoundDyldInfo = static_cast<const MachO::DyldInfoCommand *>(nullptr);
 
-    const auto IsBigEndian = Object.IsBigEndian();
+    const auto IsBigEndian = Object.isBigEndian();
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
@@ -121,7 +121,7 @@ PrintRebaseActionList(
 
     auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
 
-    const auto Is64Bit = Object.Is64Bit();
+    const auto Is64Bit = Object.is64Bit();
     const auto SegmentCollection =
         MachO::SegmentInfoCollection::Open(LoadCmdStorage,
                                            Is64Bit,
@@ -233,7 +233,7 @@ PrintRebaseActionListOperation::ParseOptionsImpl(const ArgvArray &Argv,
             Options.Verbose = true;
         } else if (strcmp(Argument, "--sort") == 0) {
             Options.Sort = true;
-        } else if (!Argument.IsOption()) {
+        } else if (!Argument.isOption()) {
             break;
         } else {
             fprintf(stderr,

@@ -100,10 +100,10 @@ namespace DyldSharedCache {
         }
 
         [[nodiscard]]
-        inline bool IsAlias(const HeaderV0 &Header) const noexcept;
+        inline bool isAlias(const HeaderV0 &Header) const noexcept;
 
-        [[nodiscard]] inline bool IsAlias(const uint8_t *Map) const noexcept {
-            return IsAlias(*reinterpret_cast<const HeaderV0 *>(Map));
+        [[nodiscard]] inline bool isAlias(const uint8_t *Map) const noexcept {
+            return isAlias(*reinterpret_cast<const HeaderV0 *>(Map));
         }
     };
 
@@ -322,7 +322,7 @@ namespace DyldSharedCache {
         }
     };
 
-    inline bool ImageInfo::IsAlias(const HeaderV0 &Header) const noexcept {
+    inline bool ImageInfo::isAlias(const HeaderV0 &Header) const noexcept {
         const auto MappingList = Header.getConstMappingInfoList();
         const auto FirstMappingFileOff = MappingList.front().FileOffset;
 

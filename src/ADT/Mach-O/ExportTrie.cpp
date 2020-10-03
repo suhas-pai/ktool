@@ -16,12 +16,13 @@ namespace MachO {
     ExportTrieIterator::ExportTrieIterator(const uint8_t *Begin,
                                            const uint8_t *End,
                                            const ParseOptions &Options) noexcept
-    : Begin(Begin), End(End), MaxDepth(Options.MaxDepth)
+    : Begin(Begin), End(End)
     {
         Info = std::make_unique<ExportTrieIterateInfo>();
+        Info->setMaxDepth(Options.MaxDepth);
 
         Info->getRangeList().reserve(Options.RangeListReserveSize);
-        Info->getStackList().reserve(Options.StackListReserveSize);
+        Info->getStackListRef().reserve(Options.StackListReserveSize);
         Info->getString().reserve(Options.StringReserveSize);
 
         auto Node = NodeInfo();
@@ -44,11 +45,11 @@ namespace MachO {
 
     void ExportTrieIterator::SetupInfoForNewStack() noexcept {
         Info->getString().append(NextStack->getNode().getPrefix());
-        Info->getStackList().emplace_back(std::move(*NextStack));
+        Info->getStackListRef().emplace_back(std::move(*NextStack));
     }
 
     bool ExportTrieIterator::MoveUptoParentNode() noexcept {
-        auto &StackList = Info->getStackList();
+        auto &StackList = Info->getStackListRef();
         if (StackList.size() == 1) {
             StackList.clear();
             return false;
@@ -57,10 +58,10 @@ namespace MachO {
         auto &String = Info->getString();
         auto &Top = StackList.back();
 
-        const auto EraseToLength =
+        const auto EraseSuffixLength =
             (String.length() - Top.getNode().getPrefix().length());
 
-        String.erase(EraseToLength);
+        String.erase(EraseSuffixLength);
         if (Top.getRangeListSize() != 0) {
             auto &RangeList = Info->getRangeList();
             RangeList.erase(RangeList.cbegin() + Top.getRangeListSize(),
@@ -151,7 +152,9 @@ namespace MachO {
     }
 
     ExportTrieIterator::Error ExportTrieIterator::Advance() noexcept {
-        auto &StackList = Info->getStackList();
+        auto &StackList = Info->getStackListRef();
+        const auto MaxDepth = Info->getMaxDepth();
+
         if (!StackList.empty()) {
             if (StackList.size() == MaxDepth) {
                 return Error::TooDeep;
@@ -160,7 +163,7 @@ namespace MachO {
             auto &PrevStack = StackList.back();
             const auto &PrevNode = PrevStack.getNode();
 
-            if (PrevNode.IsExport()) {
+            if (PrevNode.isExport()) {
                 Info->getExportInfo().clearExclusiveInfo();
                 Info->setKind(ExportTrieExportKind::None);
 
@@ -191,7 +194,7 @@ namespace MachO {
             };
 
             if (Stack.getChildOrdinal() == 0) {
-                const auto IsExportInfo = Node.IsExport();
+                const auto IsExportInfo = Node.isExport();
                 if (IsExportInfo) {
                     if (Info->getString().empty()) {
                         return Error::EmptyExport;
@@ -209,7 +212,7 @@ namespace MachO {
                     Export.setFlags(Flags);
                     UpdateOffset();
 
-                    if (Export.IsReexport()) {
+                    if (Export.isReexport()) {
                         auto ReexportDylibOrdinal = uint32_t();
                         Ptr = ReadUleb128(Ptr, End, &ReexportDylibOrdinal);
 
@@ -255,7 +258,7 @@ namespace MachO {
                         }
 
                         Export.setImageOffset(ImageOffset);
-                        if (Export.IsStubAndResolver()) {
+                        if (Export.isStubAndResolver()) {
                             if (Ptr == End) {
                                 return Error::InvalidFormat;
                             }
@@ -279,9 +282,9 @@ namespace MachO {
 
                     switch (Export.getKind()) {
                         case ExportSymbolKind::Regular:
-                            if (Export.IsStubAndResolver()) {
+                            if (Export.isStubAndResolver()) {
                                 Info->setIsStubAndResolver();
-                            } else if (Export.IsReexport()) {
+                            } else if (Export.isReexport()) {
                                 Info->setIsReexport();
                             } else {
                                 Info->setIsRegular();
@@ -370,11 +373,11 @@ namespace MachO {
                 break;
             }
 
-            if (Iterator.IsAtEnd()) {
+            if (Iterator.isAtEnd()) {
                 break;
             }
 
-            if (Iterator.getInfo().getNode().IsExport()) {
+            if (Iterator.getInfo().getNode().isExport()) {
                 break;
             }
         } while (true);

@@ -23,7 +23,7 @@ MachOMemoryObject::MachOMemoryObject(const MemoryMap &Map) noexcept
 
 ConstMachOMemoryObject::Error
 ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept {
-    if (!Map.IsLargeEnoughForType<MachO::Header>()) {
+    if (!Map.isLargeEnoughForType<MachO::Header>()) {
         return ConstMachOMemoryObject::Error::SizeTooSmall;
     }
 
@@ -34,7 +34,7 @@ ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept {
 
     auto HeaderAndLCSize = uint64_t();
 
-    const auto Is64Bit = Header.Is64Bit();
+    const auto Is64Bit = Header.is64Bit();
     const auto LCSize = Header.getLoadCommandsSize();
 
     if (Is64Bit) {
@@ -48,7 +48,7 @@ ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept {
         }
     }
 
-    if (!Map.IsLargeEnoughForSize(HeaderAndLCSize)) {
+    if (!Map.isLargeEnoughForSize(HeaderAndLCSize)) {
         return ConstMachOMemoryObject::Error::TooManyLoadCommands;
     }
 
@@ -81,12 +81,12 @@ ConstMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
 
 bool ConstMachOMemoryObject::errorDidMatchFormat(Error Error) noexcept {
     switch (Error) {
-        case ConstMachOMemoryObject::Error::None:
+        case Error::None:
             return true;
-        case ConstMachOMemoryObject::Error::WrongFormat:
-        case ConstMachOMemoryObject::Error::SizeTooSmall:
+        case Error::WrongFormat:
+        case Error::SizeTooSmall:
             return false;
-        case ConstMachOMemoryObject::Error::TooManyLoadCommands:
+        case Error::TooManyLoadCommands:
             return true;
     }
 }

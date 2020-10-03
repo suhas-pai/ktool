@@ -56,9 +56,9 @@
 
 #define MEM_PROT_FMT "%c%c%c"
 #define MEM_PROT_FMT_ARGS(Obj) \
-    (Obj.IsReadable() ? 'r' : '-'), \
-    (Obj.IsWritable() ? 'w' : '-'), \
-    (Obj.IsExecutable() ? 'x' : '-')
+    (Obj.isReadable() ? 'r' : '-'), \
+    (Obj.isWritable() ? 'w' : '-'), \
+    (Obj.isExecutable() ? 'x' : '-')
 
 #define MEM_PROT_INIT_MAX_RNG_FMT MEM_PROT_FMT "/" MEM_PROT_FMT
 #define MEM_PROT_INIT_MAX_RNG_FMT_ARGS(INIT, MAX) \
@@ -87,8 +87,7 @@
 #define STRING_VIEW_FMT_ARGS(STR) \
     static_cast<int>((STR).length()), (STR).data()
 
-inline int
-PrintUtilsCharMultTimes(FILE *OutFile, char Ch, int Times) noexcept {
+inline int PrintUtilsCharMultTimes(FILE *OutFile, char Ch, int Times) noexcept {
     assert(Times >= 0 && "PrintUtilsCharMultTimes(): Times less than 0");
     for (auto I = int(); I != Times; I++) {
         fputc(Ch, OutFile);
@@ -310,11 +309,9 @@ PrintUtilsWriteOffset(FILE *OutFile,
                       const char *Suffix = "") noexcept
 {
     if (Offset == 0) {
-        auto WrittenOut = fprintf(OutFile, "%s", Prefix);
+        auto WrittenOut =
+            fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
 
-        WrittenOut += fputs(OFFSET_0x0, OutFile);
-        WrittenOut += fprintf(OutFile, "%s", Suffix);
-        
         if (Pad) {
             WrittenOut +=
                 PrintUtilsRightPadSpaces(OutFile,
@@ -340,7 +337,7 @@ PrintUtilsWriteOffset(FILE *OutFile,
 
         WrittenOut += fputs(OFFSET_0x0, OutFile);
         WrittenOut += fprintf(OutFile, "%s", Suffix);
-        
+
         if (Pad) {
             WrittenOut +=
                 PrintUtilsRightPadSpaces(OutFile,
@@ -575,9 +572,9 @@ PrintUtilsWriteFormattedSize(FILE *OutFile,
                              const char *Suffix = "") noexcept;
 
 inline int
-PrintUtilsWriteAfterFirst(FILE *OutFile,
-                          const char *String,
-                          bool &DidPassFirst) noexcept
+PrintUtilsWriteItemAfterFirstForList(FILE *OutFile,
+                                     const char *String,
+                                     bool &DidPassFirst) noexcept
 {
     auto WrittenOut = int();
     if (DidPassFirst) {

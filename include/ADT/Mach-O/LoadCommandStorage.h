@@ -184,7 +184,7 @@ namespace MachO {
             return static_cast<uint32_t>(End - Begin);
         }
 
-        [[nodiscard]] inline bool IsBigEndian() const noexcept {
+        [[nodiscard]] inline bool isBigEndian() const noexcept {
             assert(!hasError());
             return sIsBigEndian;
         }

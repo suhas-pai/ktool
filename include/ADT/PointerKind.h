@@ -35,6 +35,4 @@ using PointerAddrTypeFromKind =
 
 template <PointerKind Kind>
 using PointerAddrConstTypeFromKind =
-    std::conditional_t<PointerKindIs64Bit(Kind),
-                       const uint64_t,
-                       const uint32_t>;
+    std::add_const_t<PointerAddrTypeFromKind<Kind>>;

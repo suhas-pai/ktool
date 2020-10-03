@@ -27,7 +27,9 @@ namespace MachO {
             InvalidSegment,
             OverlappingSegments,
 
+            InvalidSectionList,
             InvalidSection,
+
             OverlappingSections
         };
     protected:

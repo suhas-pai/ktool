@@ -28,7 +28,7 @@ ValidateArchList(const ConstMemoryMap &Map,
 
     using AddrType = PointerAddrTypeFromKind<Kind>;
 
-    const auto IsBigEndian = Header.IsBigEndian();
+    const auto IsBigEndian = Header.isBigEndian();
     const auto ArchCount = Header.getArchCount();
 
     if (ArchCount == 0) {
@@ -42,7 +42,7 @@ ValidateArchList(const ConstMemoryMap &Map,
         return ConstFatMachOMemoryObject::Error::TooManyArchitectures;
     }
 
-    if (!Map.IsLargeEnoughForSize(TotalHeaderSize)) {
+    if (!Map.isLargeEnoughForSize(TotalHeaderSize)) {
         return ConstFatMachOMemoryObject::Error::SizeTooSmall;
     }
 
@@ -76,7 +76,7 @@ ValidateArchList(const ConstMemoryMap &Map,
 
 [[nodiscard]] static ConstFatMachOMemoryObject::Error
 ValidateMap(const ConstMemoryMap &Map) noexcept {
-    if (!Map.IsLargeEnoughForType<MachO::FatHeader>()) {
+    if (!Map.isLargeEnoughForType<MachO::FatHeader>()) {
         return ConstFatMachOMemoryObject::Error::SizeTooSmall;
     }
 
@@ -86,7 +86,7 @@ ValidateMap(const ConstMemoryMap &Map) noexcept {
     }
 
     auto Error = ConstFatMachOMemoryObject::Error::None;
-    if (Header.Is64Bit()) {
+    if (Header.is64Bit()) {
         Error = ValidateArchList<PointerKind::s64Bit>(Map, Header);
     } else {
         Error = ValidateArchList<PointerKind::s32Bit>(Map, Header);
@@ -162,9 +162,9 @@ ConstFatMachOMemoryObject::GetArchInfoAtIndex(uint32_t Index) const noexcept {
     assert(!IndexOutOfBounds(Index, this->getArchCount()));
 
     auto Info = ArchInfo();
-    const auto IsBigEndian = this->IsBigEndian();
+    const auto IsBigEndian = this->isBigEndian();
 
-    if (this->Is64Bit()) {
+    if (this->is64Bit()) {
         Info = GetArchInfoAtIndexImpl(Header->getConstArch64List(),
                                       Index,
                                       IsBigEndian);
@@ -177,13 +177,13 @@ ConstFatMachOMemoryObject::GetArchInfoAtIndex(uint32_t Index) const noexcept {
     return Info;
 }
 
-[[nodiscard]] static FatMachOMemoryObject::GetObjectResult
+[[nodiscard]] static FatMachOMemoryObject::GetArchObjectResult
 GetMachOObjectResult(MemoryObject *ArchObject,
                      Mach::CpuKind CpuKind,
                      int32_t CpuSubKind) noexcept
 {
-    using WarningEnum = ConstFatMachOMemoryObject::GetObjectResult::WarningEnum;
-    using GetObjectResult = ConstFatMachOMemoryObject::GetObjectResult;
+    using WarningEnum = ConstFatMachOMemoryObject::GetArchObjectWarning;
+    using GetObjectResult = ConstFatMachOMemoryObject::GetArchObjectResult;
 
     const auto MachOObject = cast<ObjectKind::MachO>(ArchObject);
     const auto ArchCpuKind = MachOObject->getCpuKind();
@@ -196,14 +196,25 @@ GetMachOObjectResult(MemoryObject *ArchObject,
     return MachOObject;
 }
 
-ConstFatMachOMemoryObject::GetObjectResult
+ConstFatMachOMemoryObject::GetArchObjectResult
 ConstFatMachOMemoryObject::GetArchObjectFromInfo(
     const ArchInfo &Info) const noexcept
 {
-    const auto ArchMapBegin = Map + Info.Offset;
-    const auto ArchMap = ConstMemoryMap(ArchMapBegin, ArchMapBegin + Info.Size);
+    const auto ArchRangeOpt =
+        LocationRange::CreateWithSize(Info.Offset, Info.Size);
 
+    if (!ArchRangeOpt.has_value()) {
+        return GetArchObjectError::InvalidArchRange;
+    }
+
+    const auto &ArchRange = ArchRangeOpt.value();
+    if (!getRange().containsLocRange(ArchRange)) {
+        return GetArchObjectError::InvalidArchRange;
+    }
+
+    const auto ArchMap = getMap().mapFromLocRange(ArchRange);
     auto Kind = ArchKind::None;
+
     switch (Kind) {
         case ArchKind::None:
         case ArchKind::MachO:
@@ -220,5 +231,5 @@ ConstFatMachOMemoryObject::GetArchObjectFromInfo(
             }
     }
 
-    return nullptr;
+    return GetArchObjectError::UnsupportedObjectKind;
 }

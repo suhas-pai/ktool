@@ -22,7 +22,7 @@
 
 namespace MachO {
     using namespace std::literals;
-    constexpr inline const auto EmptyStringValue = std::string_view();
+    constexpr inline auto EmptyStringValue = std::string_view();
 
     struct Header {
         enum class Magic : uint32_t {
@@ -38,37 +38,37 @@ namespace MachO {
 
         template <>
         struct MagicInfo<Magic::Default> {
-            constexpr static const auto Kind = Magic::Default;
+            constexpr static auto Kind = Magic::Default;
 
-            constexpr static const auto Name = std::string_view("MH_MAGIC");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_MAGIC");
+            constexpr static auto Description =
                 std::string_view("Default");
         };
 
         template <>
         struct MagicInfo<Magic::Default64> {
-            constexpr static const auto Kind = Magic::Default64;
+            constexpr static auto Kind = Magic::Default64;
 
-            constexpr static const auto Name = std::string_view("MH_MAGIC_64");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_MAGIC_64");
+            constexpr static auto Description =
                 std::string_view("Default (64-Bit)");
         };
 
         template <>
         struct MagicInfo<Magic::BigEndian> {
-            constexpr static const auto Kind = Magic::BigEndian;
+            constexpr static auto Kind = Magic::BigEndian;
 
-            constexpr static const auto Name = std::string_view("MH_CIGAM");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_CIGAM");
+            constexpr static auto Description =
                 std::string_view("Big Endian");
         };
 
         template <>
         struct MagicInfo<Magic::BigEndian64> {
-            constexpr static const auto Kind = Magic::BigEndian64;
+            constexpr static auto Kind = Magic::BigEndian64;
 
-            constexpr static const auto Name = std::string_view("MH_CIGAM_64");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_CIGAM_64");
+            constexpr static auto Description =
                 std::string_view("Big Endian (64-Bit)");
         };
 
@@ -136,102 +136,102 @@ namespace MachO {
 
         template <>
         struct FileKindInfo<FileKind::Object> {
-            constexpr static const auto Kind = FileKind::Object;
+            constexpr static auto Kind = FileKind::Object;
 
-            constexpr static const auto Name = std::string_view("MH_OBJECT");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_OBJECT");
+            constexpr static auto Description =
                 std::string_view("Object File");
         };
 
         template <>
         struct FileKindInfo<FileKind::Executable> {
-            constexpr static const auto Kind = FileKind::Executable;
+            constexpr static auto Kind = FileKind::Executable;
 
-            constexpr static const auto Name = std::string_view("MH_EXECUTE");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_EXECUTE");
+            constexpr static auto Description =
                 std::string_view("Executable");
         };
 
         template <>
         struct FileKindInfo<FileKind::FixedVMSharedLibrary> {
-            constexpr static const auto Kind = FileKind::FixedVMSharedLibrary;
+            constexpr static auto Kind = FileKind::FixedVMSharedLibrary;
 
-            constexpr static const auto Name = std::string_view("MH_FVMLIB");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_FVMLIB");
+            constexpr static auto Description =
                 std::string_view("Fixed-VM Shared Library");
         };
 
         template <>
         struct FileKindInfo<FileKind::CoreFile> {
-            constexpr static const auto Kind = FileKind::CoreFile;
+            constexpr static auto Kind = FileKind::CoreFile;
 
-            constexpr static const auto Name = std::string_view("MH_CORE");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_CORE");
+            constexpr static auto Description =
                 std::string_view("Core File");
         };
 
         template <>
         struct FileKindInfo<FileKind::PreloadedExecutable> {
-            constexpr static const auto Kind = FileKind::PreloadedExecutable;
+            constexpr static auto Kind = FileKind::PreloadedExecutable;
 
-            constexpr static const auto Name = std::string_view("MH_PRELOAD");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_PRELOAD");
+            constexpr static auto Description =
                 std::string_view("Preloaded Executable");
         };
 
         template <>
         struct FileKindInfo<FileKind::Dylib> {
-            constexpr static const auto Kind = FileKind::Dylib;
+            constexpr static auto Kind = FileKind::Dylib;
 
-            constexpr static const auto Name = std::string_view("MH_DYLIB");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_DYLIB");
+            constexpr static auto Description =
                 std::string_view("Dynamic Library (Dylib)");
         };
 
         template <>
         struct FileKindInfo<FileKind::Dylinker> {
-            constexpr static const auto Kind = FileKind::Dylinker;
+            constexpr static auto Kind = FileKind::Dylinker;
 
-            constexpr static const auto Name = std::string_view("MH_DYLINKER");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_DYLINKER");
+            constexpr static auto Description =
                 std::string_view("Dynamic Linker (Dylinker)");
         };
 
         template <>
         struct FileKindInfo<FileKind::Bundle> {
-            constexpr static const auto Kind = FileKind::Bundle;
+            constexpr static auto Kind = FileKind::Bundle;
 
-            constexpr static const auto Name = std::string_view("MH_BUNDLE");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_BUNDLE");
+            constexpr static auto Description =
                 std::string_view("Bundle");
         };
 
         template <>
         struct FileKindInfo<FileKind::DylibStub> {
-            constexpr static const auto Kind = FileKind::DylibStub;
+            constexpr static auto Kind = FileKind::DylibStub;
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_DYLIB_STUB");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Dylib Stub");
         };
 
         template <>
         struct FileKindInfo<FileKind::Dsym> {
-            constexpr static const auto Kind = FileKind::Dsym;
+            constexpr static auto Kind = FileKind::Dsym;
 
-            constexpr static const auto Name = std::string_view("MH_DSYM");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_DSYM");
+            constexpr static auto Description =
                 std::string_view("Debug Symbols File (.dSYM)");
         };
 
         template <>
         struct FileKindInfo<FileKind::KextBundle> {
-            constexpr static const auto Kind = FileKind::KextBundle;
+            constexpr static auto Kind = FileKind::KextBundle;
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_KEXT_BUNDLE");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Kernel Extension Bundle");
         };
 
@@ -255,7 +255,7 @@ namespace MachO {
             return false;
         }
 
-        [[nodiscard]] constexpr static const std::string_view &
+        [[nodiscard]] constexpr static std::string_view
         FileKindGetName(FileKind FileKind) noexcept {
             switch (FileKind) {
                 case FileKind::Object:
@@ -356,345 +356,345 @@ namespace MachO {
 
         template <>
         struct FlagInfo<FlagsEnum::NoUndefinedReferences> {
-            constexpr static const auto Kind = FlagsEnum::NoUndefinedReferences;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::NoUndefinedReferences;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name = std::string_view("MH_NOUNDEF");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_NOUNDEF");
+            constexpr static auto Description =
                 std::string_view("No Undefined References");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::IncrementalLink> {
-            constexpr static const auto Kind = FlagsEnum::IncrementalLink;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::IncrementalLink;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name = std::string_view("MH_INCRLINK");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_INCRLINK");
+            constexpr static auto Description =
                 std::string_view("Incrementally Linked");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::DyldLink> {
-            constexpr static const auto Kind = FlagsEnum::DyldLink;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::DyldLink;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name = std::string_view("MH_DYLDLINK");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_DYLDLINK");
+            constexpr static auto Description =
                 std::string_view("Dyanmic Linker Input");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::BindAtLoad> {
-            constexpr static const auto Kind = FlagsEnum::BindAtLoad;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::BindAtLoad;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_BINDATLOAD");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("No Undefined References");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::SplitSegments> {
-            constexpr static const auto Kind = FlagsEnum::SplitSegments;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::SplitSegments;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_SPLIT_SEGS");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Bind Undefined References at Launch");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::PreBound> {
-            constexpr static const auto Kind = FlagsEnum::PreBound;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::PreBound;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_PREBOUND");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Dynamic Undefined Reference PreBound");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::LazyInitialization> {
-            constexpr static const auto Kind = FlagsEnum::LazyInitialization;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::LazyInitialization;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name = std::string_view("MH_LAZY_INIT");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_LAZY_INIT");
+            constexpr static auto Description =
                 std::string_view("Lazy Initialization");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::TwoLevelNamespaceBindings> {
-            constexpr static const auto Kind =
+            constexpr static auto Kind =
                 FlagsEnum::TwoLevelNamespaceBindings;
-            constexpr static const auto Mask =
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name = std::string_view("MH_TWOLEVEL");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_TWOLEVEL");
+            constexpr static auto Description =
                 std::string_view("Has Two-Level Namespace Bindings");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::ForceFlatNamespaces> {
-            constexpr static const auto Kind = FlagsEnum::ForceFlatNamespaces;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::ForceFlatNamespaces;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_FORCE_FLAT");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Has Two-Level Namespace Bindings");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::NoMultipleDefinitions> {
-            constexpr static const auto Kind = FlagsEnum::NoMultipleDefinitions;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::NoMultipleDefinitions;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_NOMULTIDEFS");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("No Multiple Symbol Definitions");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::NoFixPrebinding> {
-            constexpr static const auto Kind = FlagsEnum::NoFixPrebinding;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::NoFixPrebinding;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_NOFIXPREBINDING");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Don't Fix PreBinding");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::Prebindable> {
-            constexpr static const auto Kind = FlagsEnum::Prebindable;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::Prebindable;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_PREBINDABLE");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("PreBinded - But can be Prebinded Again");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::AllModulesBound> {
-            constexpr static const auto Kind = FlagsEnum::AllModulesBound;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::AllModulesBound;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_ALLMODSBOUND");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Binds to all Two-Level Namespace Modules");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::SubsectionsViaSymbols> {
-            constexpr static const auto Kind = FlagsEnum::SubsectionsViaSymbols;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::SubsectionsViaSymbols;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_SUBSECTIONS_VIA_SYMBOLS");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Safe to Divide Sections into Sub-Sections");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::Canonical> {
-            constexpr static const auto Kind = FlagsEnum::Canonical;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::Canonical;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name = std::string_view("MH_CANONICAL");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_CANONICAL");
+            constexpr static auto Description =
                 std::string_view("Canocalized via UnPreBind");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::WeakDefinitions> {
-            constexpr static const auto Kind = FlagsEnum::WeakDefinitions;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::WeakDefinitions;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_WEAK_DEFINES");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Has External Weak Symbols");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::BindsToWeak> {
-            constexpr static const auto Kind = FlagsEnum::BindsToWeak;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::BindsToWeak;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_BINDS_TO_WEAK");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Binds to Weak Symbols");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::AllowStackExecution> {
-            constexpr static const auto Kind = FlagsEnum::AllowStackExecution;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::AllowStackExecution;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_ALLOW_STACK_EXECUTION");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Stacks have Execution Priviledge");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::RootSafe> {
-            constexpr static const auto Kind = FlagsEnum::RootSafe;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::RootSafe;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name = std::string_view("MH_ROOT_SAFE");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_ROOT_SAFE");
+            constexpr static auto Description =
                 std::string_view("Safe for root (uid 0) priviledges");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::SetuidSafe> {
-            constexpr static const auto Kind = FlagsEnum::SetuidSafe;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::SetuidSafe;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_SETUID_SAFE");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Safe for issetuid()");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::PositionIndependentExecutable> {
-            constexpr static const auto Kind =
+            constexpr static auto Kind =
                 FlagsEnum::PositionIndependentExecutable;
-            constexpr static const auto Mask =
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name = std::string_view("MH_PIE");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("MH_PIE");
+            constexpr static auto Description =
                 std::string_view("Position-Independant Executable");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::NoReexportedDylibs> {
-            constexpr static const auto Kind =
+            constexpr static auto Kind =
                 FlagsEnum::NoReexportedDylibs;
-            constexpr static const auto Mask =
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_NO_REEXPORTED_DYLIBS");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("No Re-Exported Dylibs");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::DeadStrippableDylib> {
-            constexpr static const auto Kind = FlagsEnum::DeadStrippableDylib;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::DeadStrippableDylib;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_DEAD_STRIPPABLE_DYLIB");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Dead Strippable Dylib");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::HasTlvDescriptors> {
-            constexpr static const auto Kind = FlagsEnum::HasTlvDescriptors;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::HasTlvDescriptors;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_HAS_TLV_DESCRIPTORS");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Has thread-local variables section");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::NoHeapExecution> {
-            constexpr static const auto Kind = FlagsEnum::NoHeapExecution;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::NoHeapExecution;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_NO_HEAP_EXECUTION");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("No Heap Execution");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::AppExtensionSafe> {
-            constexpr static const auto Kind = FlagsEnum::AppExtensionSafe;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::AppExtensionSafe;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_APP_EXTENSION_SAFE");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("App Extension Safe");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::NlistOutOfSyncWithDyldInfo> {
-            constexpr static const auto Kind =
+            constexpr static auto Kind =
                 FlagsEnum::NlistOutOfSyncWithDyldInfo;
-            constexpr static const auto Mask =
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_NLIST_OUTOFSYNC_WITH_DYLDINFO");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Nlist Out-Of-Sync with DyldInfo");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::SimulatorSupport> {
-            constexpr static const auto Kind = FlagsEnum::SimulatorSupport;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::SimulatorSupport;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_SIM_SUPPORT");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Has Simulator Support");
         };
 
         template <>
         struct FlagInfo<FlagsEnum::DylibInCache> {
-            constexpr static const auto Kind = FlagsEnum::DylibInCache;
-            constexpr static const auto Mask =
+            constexpr static auto Kind = FlagsEnum::DylibInCache;
+            constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static const auto Name =
+            constexpr static auto Name =
                 std::string_view("MH_DYLIB_IN_CACHE");
-            constexpr static const auto Description =
+            constexpr static auto Description =
                 std::string_view("Dylib in Shared-Cache");
         };
 
@@ -765,7 +765,7 @@ namespace MachO {
             return EmptyStringValue;
         }
 
-        [[nodiscard]] constexpr static const std::string_view &
+        [[nodiscard]] constexpr static std::string_view
         FlagsEnumGetDescription(FlagsEnum Flag) noexcept {
             using Enum = FlagsEnum;
             switch (Flag) {
@@ -851,11 +851,11 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr inline bool hasValidFileKind() const noexcept {
-            const auto Value = SwitchEndianIf(FileKind, this->IsBigEndian());
+            const auto Value = SwitchEndianIf(FileKind, this->isBigEndian());
             return FileKindIsValid(static_cast<enum FileKind>(Value));
         }
 
-        [[nodiscard]] constexpr inline bool IsBigEndian() const noexcept {
+        [[nodiscard]] constexpr inline bool isBigEndian() const noexcept {
             switch (this->Magic) {
                 case Magic::BigEndian:
                 case Magic::BigEndian64:
@@ -868,7 +868,7 @@ namespace MachO {
             return false;
         }
 
-        [[nodiscard]] constexpr inline bool Is64Bit() const noexcept {
+        [[nodiscard]] constexpr inline bool is64Bit() const noexcept {
             switch (this->Magic) {
                 case Magic::Default64:
                 case Magic::BigEndian64:
@@ -883,58 +883,58 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr inline Mach::CpuKind getCpuKind() const noexcept {
-            return Mach::CpuKind(SwitchEndianIf(CpuKind, this->IsBigEndian()));
+            return Mach::CpuKind(SwitchEndianIf(CpuKind, this->isBigEndian()));
         }
 
         [[nodiscard]]
         constexpr inline int32_t getCpuSubKind() const noexcept {
-            return SwitchEndianIf(CpuSubKind, this->IsBigEndian());
+            return SwitchEndianIf(CpuSubKind, this->isBigEndian());
         }
 
         [[nodiscard]]
         constexpr inline enum FileKind getFileKind() const noexcept {
-            const auto Value = SwitchEndianIf(FileKind, this->IsBigEndian());
+            const auto Value = SwitchEndianIf(FileKind, this->isBigEndian());
             return static_cast<enum FileKind>(Value);
         }
 
         [[nodiscard]] inline uint32_t getLoadCommandsCount() const noexcept {
-            return SwitchEndianIf(Ncmds, this->IsBigEndian());
+            return SwitchEndianIf(Ncmds, this->isBigEndian());
         }
 
         [[nodiscard]] inline uint32_t getLoadCommandsSize() const noexcept {
-            return SwitchEndianIf(SizeOfCmds, this->IsBigEndian());
+            return SwitchEndianIf(SizeOfCmds, this->isBigEndian());
         }
 
         [[nodiscard]] constexpr inline FlagsType getFlags() const noexcept {
-            return SwitchEndianIf(Flags, this->IsBigEndian());
+            return SwitchEndianIf(Flags, this->isBigEndian());
         }
 
         constexpr inline Header &setCpuKind(Mach::CpuKind Kind) noexcept {
             const auto Value = static_cast<int32_t>(Kind);
-            this->CpuKind = SwitchEndianIf(Value, this->IsBigEndian());
+            this->CpuKind = SwitchEndianIf(Value, this->isBigEndian());
 
             return *this;
         }
 
         constexpr inline Header &setLoadCommandsCount(uint32_t Value) noexcept {
-            this->Ncmds = SwitchEndianIf(Value, this->IsBigEndian());
+            this->Ncmds = SwitchEndianIf(Value, this->isBigEndian());
             return *this;
         }
 
         constexpr inline Header &setLoadCommandsSize(uint32_t Value) noexcept {
-            this->SizeOfCmds = SwitchEndianIf(Value, this->IsBigEndian());
+            this->SizeOfCmds = SwitchEndianIf(Value, this->isBigEndian());
             return *this;
         }
 
         constexpr inline Header &setFlags(const FlagsType &Flags) noexcept {
             const auto FlagsValue = Flags.value();
-            this->Flags = SwitchEndianIf(FlagsValue, this->IsBigEndian());
+            this->Flags = SwitchEndianIf(FlagsValue, this->isBigEndian());
 
             return *this;
         }
 
         [[nodiscard]] constexpr inline uint64_t size() const noexcept {
-            if (this->Is64Bit()) {
+            if (this->is64Bit()) {
                 return (sizeof(*this) + sizeof(uint32_t));
             }
 
@@ -962,8 +962,8 @@ namespace MachO {
                 LoadCommandStorage::Open(this->getLoadCmdBuffer(),
                                          this->getLoadCommandsCount(),
                                          this->getLoadCommandsSize(),
-                                         this->IsBigEndian(),
-                                         this->Is64Bit(),
+                                         this->isBigEndian(),
+                                         this->is64Bit(),
                                          Verify);
 
             return Result;
@@ -975,8 +975,8 @@ namespace MachO {
                 ConstLoadCommandStorage::Open(this->getConstLoadCmdBuffer(),
                                               this->getLoadCommandsCount(),
                                               this->getLoadCommandsSize(),
-                                              this->IsBigEndian(),
-                                              this->Is64Bit(),
+                                              this->isBigEndian(),
+                                              this->is64Bit(),
                                               Verify);
 
             return Result;
@@ -997,37 +997,37 @@ namespace MachO {
 
         template <>
         struct MagicInfo<Magic::Default> {
-            constexpr static const auto Kind = Magic::Default;
+            constexpr static auto Kind = Magic::Default;
 
-            constexpr static const auto Name = std::string_view("FAT_MAGIC");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("FAT_MAGIC");
+            constexpr static auto Description =
                 std::string_view("Default");
         };
 
         template <>
         struct MagicInfo<Magic::Default64> {
-            constexpr static const auto Kind = Magic::Default64;
+            constexpr static auto Kind = Magic::Default64;
 
-            constexpr static const auto Name = std::string_view("FAT_MAGIC_64");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("FAT_MAGIC_64");
+            constexpr static auto Description =
                 std::string_view("Default (64-Bit)");
         };
 
         template <>
         struct MagicInfo<Magic::BigEndian> {
-            constexpr static const auto Kind = Magic::BigEndian;
+            constexpr static auto Kind = Magic::BigEndian;
 
-            constexpr static const auto Name = std::string_view("FAT_CIGAM");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("FAT_CIGAM");
+            constexpr static auto Description =
                 std::string_view("Big Endian");
         };
 
         template <>
         struct MagicInfo<Magic::BigEndian64> {
-            constexpr static const auto Kind = Magic::BigEndian64;
+            constexpr static auto Kind = Magic::BigEndian64;
 
-            constexpr static const auto Name = std::string_view("FAT_CIGAM_64");
-            constexpr static const auto Description =
+            constexpr static auto Name = std::string_view("FAT_CIGAM_64");
+            constexpr static auto Description =
                 std::string_view("Big Endian (64-Bit)");
         };
 
@@ -1234,7 +1234,7 @@ namespace MachO {
             return MagicIsValid(Magic);
         }
 
-        [[nodiscard]] inline bool IsBigEndian() const noexcept {
+        [[nodiscard]] inline bool isBigEndian() const noexcept {
             switch (this->Magic) {
                 case Magic::BigEndian:
                 case Magic::BigEndian64:
@@ -1247,7 +1247,7 @@ namespace MachO {
             return false;
         }
 
-        [[nodiscard]] inline bool Is64Bit() const noexcept {
+        [[nodiscard]] inline bool is64Bit() const noexcept {
             switch (this->Magic) {
                 case Magic::Default64:
                 case Magic::BigEndian64:
@@ -1261,11 +1261,11 @@ namespace MachO {
         }
 
         [[nodiscard]] inline uint32_t getArchCount() const noexcept {
-            return SwitchEndianIf(NFatArch, this->IsBigEndian());
+            return SwitchEndianIf(NFatArch, this->isBigEndian());
         }
 
         inline FatHeader &setArchCount(uint32_t Value) noexcept {
-            this->NFatArch = SwitchEndianIf(Value, this->IsBigEndian());
+            this->NFatArch = SwitchEndianIf(Value, this->isBigEndian());
             return *this;
         }
     };

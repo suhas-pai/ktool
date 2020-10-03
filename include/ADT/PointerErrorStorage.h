@@ -13,6 +13,11 @@
 
 #include "TypeTraits/DisableIfNotEnumClass.h"
 
+[[nodiscard]]
+constexpr inline bool PointerHasErrorValue(uintptr_t Storage) noexcept {
+    return (Storage <= std::numeric_limits<uint16_t>::max());
+}
+
 template <typename Enum, typename = TypeTraits::DisableIfNotEnumClass<Enum>>
 struct PointerErrorStorage {
     static_assert(sizeof(uintptr_t) == sizeof(void *),
@@ -25,11 +30,6 @@ public:
     constexpr PointerErrorStorage() noexcept = default;
     constexpr PointerErrorStorage(Enum Error) noexcept
     : Storage(static_cast<uintptr_t>(Error)) {}
-
-    [[nodiscard]] constexpr
-    static inline bool PointerHasErrorValue(uintptr_t Storage) noexcept {
-        return (Storage < std::numeric_limits<uint16_t>::max());
-    }
 
     [[nodiscard]] constexpr inline bool hasValue() const noexcept {
         return PointerHasErrorValue(this->Storage);

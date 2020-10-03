@@ -122,7 +122,7 @@ PrintTreeExportInfo(
             KindDesc);
 
     if (Options.Verbose) {
-        if (!Export.IsReexport()) {
+        if (!Export.isReexport()) {
             PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
                                                    Export.getSegment(),
                                                    Export.getSection(),
@@ -162,7 +162,7 @@ GetSymbolLengthForLongestPrintedLineAndCount(
 
     const auto End = Collection.end();
     for (auto Iter = Collection.begin(); Iter != End; Iter++, Count++) {
-        if (!Iter->IsExport()) {
+        if (!Iter->isExport()) {
             continue;
         }
 
@@ -191,7 +191,7 @@ HandleTreeOption(
     if (!Options.SectionRequirements.empty()) {
         auto CollectionEnd = EntryCollection.end();
         for (auto Iter = EntryCollection.begin(); Iter != CollectionEnd;) {
-            if (!Iter->IsExport()) {
+            if (!Iter->isExport()) {
                 Iter++;
                 continue;
             }
@@ -260,7 +260,7 @@ HandleTreeOption(
             reinterpret_cast<const MachO::ExportTrieChildNode &>(Node);
 
         WrittenOut += fprintf(OutFile, "\"%s\"", Info.getString().data());
-        if (Info.IsExport()) {
+        if (Info.isExport()) {
             const auto &ExportInfo =
                 reinterpret_cast<const MachO::ExportTrieExportChildNode &>(
                     Info);
@@ -308,7 +308,7 @@ FindExportTrieList(
     TrieListType &TrieList) noexcept
 {
     auto FoundExportTrie = false;
-    const auto IsBigEndian = LoadCmdStorage.IsBigEndian();
+    const auto IsBigEndian = LoadCmdStorage.isBigEndian();
 
     for (const auto &LoadCmd : LoadCmdStorage) {
         const auto *DyldInfo =
@@ -368,10 +368,12 @@ PrintExportTrieCount(FILE *OutFile,
                      uint64_t Size,
                      bool PrintColon = true) noexcept
 {
-    fprintf(OutFile, "Provided file has %" PRIu64 " exports\n", Size);
+    fprintf(OutFile, "Provided file has %" PRIu64 " exports", Size);
     if (PrintColon) {
         fputc(':', OutFile);
     }
+
+    fputc('\n', OutFile);
 }
 
 int
@@ -396,7 +398,7 @@ PrintExportTrie(
     }
 
     for (const auto &Info : TrieList.getRef()) {
-        if (!Info.IsExport()) {
+        if (!Info.isExport()) {
             continue;
         }
 
@@ -413,7 +415,7 @@ PrintExportTrie(
         auto SegmentName = std::string_view();
         auto SectionName = std::string_view();
 
-        if (!Info.IsReexport()) {
+        if (!Info.isReexport()) {
             const auto Addr = Base + Info.getExportInfo().getImageOffset();
 
             auto SegmentInfo = static_cast<const MachO::SegmentInfo *>(nullptr);
@@ -476,7 +478,7 @@ PrintExportTrie(
 
     auto Counter = static_cast<uint32_t>(1);
 
-    const auto Is64Bit = Object.Is64Bit();
+    const auto Is64Bit = Object.is64Bit();
     const auto SizeDigitLength =
         PrintUtilsGetIntegerDigitLength(ExportList.size());
 
@@ -492,7 +494,7 @@ PrintExportTrie(
             static_cast<int>(
                 MachO::ExportTrieExportKindGetLongestDescriptionLength());
 
-        if (!Export.Info.IsReexport()) {
+        if (!Export.Info.isReexport()) {
             PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
                                                    Export.SegmentName.data(),
                                                    Export.SectionName.data(),
@@ -523,7 +525,7 @@ PrintExportTrie(
                                          Export.String.data()),
                                  RightPad);
 
-        if (Export.Info.IsReexport()) {
+        if (Export.Info.isReexport()) {
             const auto DylibOrdinal = Export.Info.getReexportDylibOrdinal();
             const auto ImportName = Export.Info.getReexportImportName();
 
@@ -565,7 +567,7 @@ PrintExportTrieOperation::Run(const ConstDscImageMemoryObject &Object,
     const auto SegmentCollection =
         DscImage::SegmentInfoCollection::Open(Base,
                                               LoadCmdStorage,
-                                              Object.Is64Bit(),
+                                              Object.is64Bit(),
                                               &SegmentCollectionError);
 
     auto LibraryCollectionError =
@@ -610,7 +612,7 @@ PrintExportTrieOperation::Run(const ConstDscImageMemoryObject &Object,
             HandleTreeOption(EntryCollection,
                              LibraryCollection,
                              Base,
-                             Object.Is64Bit(),
+                             Object.is64Bit(),
                              Options);
 
         return Result;
@@ -642,7 +644,7 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
     auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
     const auto SegmentCollection =
         MachO::SegmentInfoCollection::Open(LoadCmdStorage,
-                                           Object.Is64Bit(),
+                                           Object.is64Bit(),
                                            &SegmentCollectionError);
 
     auto LibraryCollectionError =
@@ -687,7 +689,7 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
             HandleTreeOption(EntryCollection,
                              LibraryCollection,
                              0,
-                             Object.Is64Bit(),
+                             Object.is64Bit(),
                              Options);
 
         return Result;
@@ -710,7 +712,7 @@ AddKindRequirement(FILE *ErrFile,
                    std::vector<MachO::ExportTrieExportKind> &List,
                    ArgvArrayIterator &Argument)
 {
-    if (Argument.IsOption()) {
+    if (Argument.isOption()) {
         if (List.empty()) {
             fputs("Please provide a list of export-kind requirements\n",
                   ErrFile);
@@ -737,7 +739,7 @@ AddSegmentRequirement(
     std::vector<PrintExportTrieOperation::Options::SegmentSectionPair> &List,
     ArgvArrayIterator &Argument)
 {
-    if (Argument.IsOption()) {
+    if (Argument.isOption()) {
         if (List.empty()) {
             fputs("Please provide a segment-section pair requirement\n",
                   ErrFile);
@@ -773,7 +775,7 @@ AddSectionRequirement(
     std::vector<PrintExportTrieOperation::Options::SegmentSectionPair> &List,
     ArgvArrayIterator &Argument)
 {
-    if (Argument.IsOption()) {
+    if (Argument.isOption()) {
         if (List.empty()) {
             fputs("Please provide a segment requirement\n", ErrFile);
             exit(1);
@@ -834,7 +836,7 @@ PrintExportTrieOperation::ParseOptionsImpl(const ArgvArray &Argv,
             Options.Sort = true;
         } else if (strcmp(Argument, "--tree") == 0) {
             Options.PrintTree = true;
-        } else if (!Argument.IsOption()) {
+        } else if (!Argument.isOption()) {
             break;
         } else {
             fprintf(stderr,

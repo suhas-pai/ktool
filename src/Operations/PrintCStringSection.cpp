@@ -109,7 +109,7 @@ PrintCStringList(
         return 1;
     }
 
-    if (Segment->getFlags().IsProtected()) {
+    if (Segment->getFlags().isProtected()) {
         fprintf(Options.ErrFile,
                 "Provided segment \"%s\" is protected (encrypted)\n",
                 Segment->getName().data());
@@ -166,7 +166,6 @@ PrintCStringList(
         PrintUtilsGetIntegerDigitLength(InfoListSize);
 
     for (const auto &Info : InfoList) {
-        const auto &String = Info.String;
         fprintf(Options.OutFile,
                 "C-String %0*" PRIu64 ": ",
                 StringListSizeDigithLength,
@@ -174,7 +173,7 @@ PrintCStringList(
 
         PrintUtilsWriteOffset32Or64(Options.OutFile, Is64Bit, Info.Addr);
         const auto PrintLength =
-            fprintf(Options.OutFile, " \"%s\"", String.data());
+            fprintf(Options.OutFile, " \"%s\"", Info.String.data());
 
         if (Options.Verbose) {
             const auto RightPad =
@@ -184,7 +183,7 @@ PrintCStringList(
             fprintf(Options.OutFile,
                     " (Length: %0*" PRIuPTR ", File: ",
                     LongestStringLengthDigitLength,
-                    String.length());
+                    Info.String.length());
 
             PrintUtilsWriteOffset32Or64(Options.OutFile,
                                         Is64Bit,
@@ -211,7 +210,7 @@ PrintCStringSectionOperation::Run(const ConstDscImageMemoryObject &Object,
     const auto Result =
         PrintCStringList(Object.getDscMap().getBegin(),
                          LoadCmdStorage,
-                         Object.Is64Bit(),
+                         Object.is64Bit(),
                          Options);
 
     return Result;
@@ -228,7 +227,7 @@ PrintCStringSectionOperation::Run(const ConstMachOMemoryObject &Object,
     const auto Result =
         PrintCStringList(Object.getMap().getBegin(),
                          LoadCmdStorage,
-                         Object.Is64Bit(),
+                         Object.is64Bit(),
                          Options);
 
     return Result;
@@ -248,7 +247,7 @@ PrintCStringSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
             Options.Verbose = true;
         } else if (strcmp(Argument, "--sort") == 0) {
             Options.Sort = true;
-        } else if (!Argument.IsOption()) {
+        } else if (!Argument.isOption()) {
             if (DidGetInfo) {
                 break;
             }

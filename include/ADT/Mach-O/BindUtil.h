@@ -56,7 +56,12 @@ namespace MachO {
             }
 
             [[nodiscard]]
-            constexpr inline const std::string &getSymbol() const noexcept {
+            constexpr inline std::string_view getSymbol() const noexcept {
+                return *Symbol;
+            }
+
+            [[nodiscard]]
+            constexpr inline const std::string &getSymbolRef() const noexcept {
                 return *Symbol;
             }
 
@@ -86,7 +91,7 @@ namespace MachO {
             }
 
             [[nodiscard]]
-            constexpr inline bool IsNewSymbolName() const noexcept {
+            constexpr inline bool isNewSymbolName() const noexcept {
                 return sIsNewSymbolName;
             }
 

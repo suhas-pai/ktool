@@ -48,13 +48,3 @@ MappedFile::Open(const FileDescriptor &Fd,
 
     return MappedFile(Map, Size);
 }
-
-MappedFile &MappedFile::operator=(MappedFile &&Rhs) noexcept {
-    Map = Rhs.Map;
-    Size = Rhs.Size;
-
-    Rhs.Map = nullptr;
-    Rhs.Size = 0;
-
-    return *this;
-}

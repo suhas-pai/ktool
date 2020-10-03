@@ -30,7 +30,7 @@ public:
     }
 
     [[nodiscard]] inline bool hasNext() const noexcept {
-        return !IsAtBack();
+        return !isAtBack();
     }
 
     [[nodiscard]] inline const char *getNext() const noexcept {
@@ -65,19 +65,19 @@ public:
         return getString()[0];
     }
 
-    [[nodiscard]] inline bool IsAtBack() const noexcept {
+    [[nodiscard]] inline bool isAtBack() const noexcept {
         return (Item == (End - 1));
     }
 
-    [[nodiscard]] inline bool IsAtOrPastEnd() const noexcept {
+    [[nodiscard]] inline bool isAtOrPastEnd() const noexcept {
         return (Item >= End);
     }
 
-    [[nodiscard]] inline bool IsOption() const noexcept {
+    [[nodiscard]] inline bool isOption() const noexcept {
         return (front() == '-');
     }
 
-    [[nodiscard]] inline bool IsPath() const noexcept {
+    [[nodiscard]] inline bool isPath() const noexcept {
         return (front() == '/');
     }
 
@@ -86,13 +86,13 @@ public:
     }
 
     [[nodiscard]] inline const char *getString() const noexcept {
-        assert(!IsAtOrPastEnd());
+        assert(!isAtOrPastEnd());
         return *Item;
     }
 
     [[nodiscard]] inline std::string_view GetStringView() const noexcept {
-        assert(!IsAtOrPastEnd());
-        return *Item;
+        assert(!isAtOrPastEnd());
+        return std::string_view(*Item);
     }
 
     [[nodiscard]] inline operator const char *() const noexcept {

@@ -80,16 +80,16 @@ public:
     }
 
     [[nodiscard]] inline MachO::ConstLoadCommandStorage
-    GetLoadCommands(bool Verify = true) const noexcept {
+    GetLoadCommandsStorage(bool Verify = true) const noexcept {
         return getHeader().GetConstLoadCmdStorage(Verify);
     }
 
-    [[nodiscard]] inline bool IsBigEndian() const noexcept {
-        return getConstHeader().IsBigEndian();
+    [[nodiscard]] inline bool isBigEndian() const noexcept {
+        return getConstHeader().isBigEndian();
     }
 
-    [[nodiscard]] inline bool Is64Bit() const noexcept {
-        return getConstHeader().Is64Bit();
+    [[nodiscard]] inline bool is64Bit() const noexcept {
+        return getConstHeader().is64Bit();
     }
 
     [[nodiscard]] inline enum MachO::Header::Magic getMagic() const noexcept {
@@ -135,7 +135,7 @@ public:
     }
 
     [[nodiscard]] inline MemoryMap getMap() const noexcept {
-        const auto End = const_cast<uint8_t *>(this->End);
+        const auto End = const_cast<uint8_t *>(getConstMap().getEnd());
         return MemoryMap(const_cast<uint8_t *>(Map), End);
     }
 
@@ -168,12 +168,12 @@ public:
     }
 
     [[nodiscard]] inline MachO::LoadCommandStorage
-    GetLoadCommands(bool Verify = true) noexcept {
+    GetLoadCommandsStorage(bool Verify = true) noexcept {
         return getHeader().GetLoadCmdStorage(Verify);
     }
 
     [[nodiscard]] inline MachO::ConstLoadCommandStorage
-    GetConstLoadCommands(bool Verify = true) const noexcept {
-        return ConstMachOMemoryObject::GetLoadCommands(Verify);
+    GetConstLoadCommandsStorage(bool Verify = true) const noexcept {
+        return ConstMachOMemoryObject::GetLoadCommandsStorage(Verify);
     }
 };

@@ -102,7 +102,7 @@ public:
 
     [[nodiscard]] constexpr inline T *getAndClaimPtr() noexcept {
         const auto Result = this->getPtr();
-        clear();
+        this->clear();
 
         return Result;
     }
@@ -119,11 +119,6 @@ public:
         this->Ptr = Rhs.Ptr;
         Rhs.Ptr = nullptr;
 
-        return *this;
-    }
-
-    constexpr inline TypedAllocationOrError &clear() noexcept {
-        Base::clear();
         return *this;
     }
 

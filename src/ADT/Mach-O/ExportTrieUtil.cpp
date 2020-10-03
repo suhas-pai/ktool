@@ -29,7 +29,7 @@ namespace MachO {
         const SegmentInfoCollection *Collection) noexcept
     {
         auto Node = static_cast<ChildNode *>(nullptr);
-        if (Info.IsExport()) {
+        if (Info.isExport()) {
             Node = new ExportChildNode();
         } else {
             Node = new ChildNode();
@@ -38,11 +38,11 @@ namespace MachO {
         Node->Kind = Info.getKind();
         Node->String = Info.getString();
 
-        if (Info.IsExport()) {
-            auto ExportNode = reinterpret_cast<ExportChildNode *>(Node);
+        if (Info.isExport()) {
+            auto ExportNode = Node->getAsExportNode();
             const auto &ExportInfo = Info.getExportInfo();
 
-            if (!ExportInfo.IsReexport()) {
+            if (!ExportInfo.isReexport()) {
                 const auto Addr = ExportInfo.getImageOffset();
                 if (Collection != nullptr) {
                     auto Section = static_cast<const SectionInfo *>(nullptr);
@@ -121,26 +121,6 @@ namespace MachO {
         return Result;
     }
 
-    ExportTrieEntryCollection::Iterator
-    ExportTrieEntryCollection::begin() const noexcept {
-        return Iterator(getRoot());
-    }
-
-    ExportTrieEntryCollection::Iterator
-    ExportTrieEntryCollection::end() const noexcept {
-        return Iterator(nullptr);
-    }
-
-    ExportTrieEntryCollection::ConstIterator
-    ExportTrieEntryCollection::cbegin() const noexcept {
-        return ConstIterator(getRoot());
-    }
-
-    ExportTrieEntryCollection::ConstIterator
-    ExportTrieEntryCollection::cend() const noexcept {
-        return ConstIterator(nullptr);
-    }
-
     ExportTrieExportCollection
     ExportTrieExportCollection::Open(
         const ConstExportTrieExportList &Trie,
@@ -152,7 +132,7 @@ namespace MachO {
             auto Entry = EntryInfo();
             const auto &ExportInfo = Iter.getExportInfo();
 
-            if (!ExportInfo.IsReexport()) {
+            if (!ExportInfo.isReexport()) {
                 if (SegmentCollection != nullptr) {
                     const auto Addr = ExportInfo.getImageOffset();
                     const auto Segment =

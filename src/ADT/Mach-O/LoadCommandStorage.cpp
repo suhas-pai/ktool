@@ -44,15 +44,15 @@ namespace MachO {
                 return ConstLoadCommandStorage::Error::StorageSizeTooSmall;
             }
 
-            if (I != (Count - 1)) {
-                if (Iter == End) {
-                    return ConstLoadCommandStorage::Error::StorageSizeTooSmall;
-                }
-
-                I++;
-            } else {
+            if (I == (Count - 1)) {
                 break;
             }
+
+            if (Iter == End) {
+                return ConstLoadCommandStorage::Error::StorageSizeTooSmall;
+            }
+
+            I++;
         } while (true);
 
         if (Iter != End) {

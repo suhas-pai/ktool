@@ -17,6 +17,7 @@
 #include "ADT/MappedFile.h"
 #include "ADT/TypedAllocation.h"
 
+#include "Objects/DscMemory.h"
 #include "Objects/Kind.h"
 #include "Objects/MachOMemory.h"
 #include "Objects/FatMachOMemory.h"
@@ -376,26 +377,28 @@ int main(int Argc, const char *Argv[]) {
 
             case ObjectKind::DyldSharedCache: {
                 switch (ConstDscMemoryObject::getErrorFromInt(ErrorInt)) {
-                    case ConstDscMemoryObject::Error::None:
-                    case ConstDscMemoryObject::Error::WrongFormat:
-                    case ConstDscMemoryObject::Error::SizeTooSmall:
+                    using Error = ConstDscMemoryObject::Error;
+
+                    case Error::None:
+                    case Error::WrongFormat:
+                    case Error::SizeTooSmall:
                         assert(0 && "Got Unhandled errors in main");
-                    case ConstDscMemoryObject::Error::UnknownCpuKind:
+                    case Error::UnknownCpuKind:
                         fputs("Provided file is a dyld-shared-cache file with "
                               "an unknown cpu-kind\n",
                               stderr);
                         return 1;
-                    case ConstDscMemoryObject::Error::InvalidMappingRange:
+                    case Error::InvalidMappingRange:
                         fputs("Provided file is a dyld-shared-cache file with "
                               "an invalid mapping-range\n",
                               stderr);
                         return 1;
-                    case ConstDscMemoryObject::Error::InvalidImageRange:
+                    case Error::InvalidImageRange:
                         fputs("Provided file is a dyld-shared-cache file with "
                               "an unknown image-range\n",
                               stderr);
                         return 1;
-                    case DscMemoryObject::Error::OverlappingImageMappingRange:
+                    case Error::OverlappingImageMappingRange:
                         fputs("Provided file is a dyld_shared_cache file with "
                               "Overlapping Image-Info and Mapping-Info "
                               "Ranges\n",
@@ -411,15 +414,17 @@ int main(int Argc, const char *Argv[]) {
         }
     }
 
-    auto Object = TypedAllocation(ObjectOrError.getObject());
-    if (Object == nullptr) {
-        fputs("Provided file has an unsupported file-format\n", stderr);
-        return 1;
-    }
-
     // Parse any options for the path.
 
+    auto Object = TypedAllocation(ObjectOrError.getObject());
     for (auto &Argument : ArgvArray(Argv, PathIndex + 1, Argc)) {
+        if (!Argument.isOption()) {
+            fprintf(stderr,
+                    "Expected Path-Option, got \"%s\" instead\n",
+                    Argument.getString());
+            return 1;
+        }
+
         if (strcmp(Argument, "-arch") == 0) {
             const auto FatObject = dyn_cast<ObjectKind::FatMachO>(Object);
             if (FatObject == nullptr) {
@@ -457,26 +462,42 @@ int main(int Argc, const char *Argv[]) {
             }
 
             const auto ArchInfo = FatObject->GetArchInfoAtIndex(ArchIndex);
-            const auto ArchObject = FatObject->GetArchObjectFromInfo(ArchInfo);
+            const auto ArchObjectOrError =
+                FatObject->GetArchObjectFromInfo(ArchInfo);
 
-            Object = ArchObject.getObject();
-            if (Object == nullptr) {
-                fputs("Provided file's selected arch is of an unrecognized "
-                      "Object-Kind\n", stderr);
-                exit(1);
+            switch (ArchObjectOrError.getError()) {
+                using ErrorEnum = ConstFatMachOMemoryObject::GetArchObjectError;
+                case ErrorEnum::None:
+                    break;
+
+                case ErrorEnum::InvalidArchRange:
+                    fprintf(stderr,
+                            "Provided file's arch #%" PRIu32 " has an invalid "
+                            "range\n",
+                            ArchNumber);
+                    return 1;
+
+                case ErrorEnum::UnsupportedObjectKind:
+                    fprintf(stderr,
+                            "Provided file's arch #%" PRIu32 " is of an "
+                            "unsupported object-kind\n",
+                            ArchNumber);
+                    return 1;
             }
 
-            using ArchWarningEnum =
-                FatMachOMemoryObject::GetObjectResult::WarningEnum;
+            switch (ArchObjectOrError.getWarning()) {
+                using WarningEnum =
+                    ConstFatMachOMemoryObject::GetArchObjectWarning;
 
-            switch (ArchObject.getWarning()) {
-                case ArchWarningEnum::None:
+                case WarningEnum::None:
                     break;
-                case ArchWarningEnum::MachOCpuKindMismatch:
+                case WarningEnum::MachOCpuKindMismatch:
                     fputs("Warning: Arch's Cpu-Kind differs from expected\n",
                           stderr);
                     break;
             }
+
+            Object = ArchObjectOrError.getObject();
         } else if (strcmp(Argument, "-image") == 0) {
             const auto DscObj = dyn_cast<ObjectKind::DyldSharedCache>(Object);
             if (DscObj == nullptr) {
@@ -495,7 +516,7 @@ int main(int Argc, const char *Argv[]) {
             }
 
             Argument.advance();
-            if (!Argument.IsPath()) {
+            if (!Argument.isPath()) {
                 const auto Number = ParseNumber<uint32_t>(Argument.getString());
                 const auto ImageCount = DscObj->getImageCount();
 

@@ -6,6 +6,13 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
+#ifndef USE_LLVM
+#define USE_LLVM 1
+#endif /* USE_LLVM */
+
+#if USE_LLVM
+#include "llvm/Support/Casting.h"
+#else
 #pragma once
 
 #include <cassert>
@@ -265,3 +272,4 @@ static inline TypedAllocation<To> dyn_cast(const TypedAllocation<From> &Fr) {
 
     return nullptr;
 }
+#endif

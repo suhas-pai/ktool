@@ -38,16 +38,19 @@ public:
     using Iterator = BasicContiguousIterator<EntryType>;
     using ConstIterator = BasicContiguousIterator<const EntryType>;
 
-    [[nodiscard]] Iterator begin() const noexcept { return Iterator(Begin); }
-    [[nodiscard]] Iterator end() const noexcept {
+    [[nodiscard]] inline Iterator begin() const noexcept {
+        return Iterator(Begin);
+    }
+
+    [[nodiscard]] inline Iterator end() const noexcept {
         return Iterator(const_cast<EntryType *>(End));
     }
 
-    [[nodiscard]] ConstIterator cbegin() const noexcept {
+    [[nodiscard]] inline ConstIterator cbegin() const noexcept {
         return ConstIterator(Begin);
     }
 
-    [[nodiscard]] ConstIterator cend() const noexcept {
+    [[nodiscard]] inline ConstIterator cend() const noexcept {
         return ConstIterator(End);
     }
 
@@ -124,14 +127,17 @@ public:
     using Iterator = BasicContiguousIterator<EntryType>;
     using ConstIterator = BasicContiguousIterator<const EntryType>;
 
-    [[nodiscard]] Iterator begin() const noexcept { return Iterator(Begin); }
-    [[nodiscard]] Iterator end() const noexcept { return Iterator(End); }
+    [[nodiscard]] inline Iterator begin() const noexcept {
+        return Iterator(Begin);
+    }
 
-    [[nodiscard]] ConstIterator cbegin() const noexcept {
+    [[nodiscard]] inline Iterator end() const noexcept { return Iterator(End); }
+
+    [[nodiscard]] inline ConstIterator cbegin() const noexcept {
         return ConstIterator(Begin);
     }
 
-    [[nodiscard]] ConstIterator cend() const noexcept {
+    [[nodiscard]] inline ConstIterator cend() const noexcept {
         return ConstIterator(End);
     }
 
@@ -191,16 +197,19 @@ public:
     using Iterator = BasicContiguousIterator<EntryType>;
     using ConstIterator = BasicContiguousIterator<const EntryType>;
 
-    [[nodiscard]] Iterator begin() const noexcept { return Iterator(Begin); }
-    [[nodiscard]] Iterator end() const noexcept {
+    [[nodiscard]] inline Iterator begin() const noexcept {
+        return Iterator(Begin);
+    }
+
+    [[nodiscard]] inline Iterator end() const noexcept {
         return Iterator(const_cast<EntryType *>(End));
     }
 
-    [[nodiscard]] ConstIterator cbegin() const noexcept {
+    [[nodiscard]] inline ConstIterator cbegin() const noexcept {
         return ConstIterator(Begin);
     }
 
-    [[nodiscard]] ConstIterator cend() const noexcept {
+    [[nodiscard]] inline ConstIterator cend() const noexcept {
         return ConstIterator(End);
     }
 
@@ -265,14 +274,17 @@ public:
     using Iterator = BasicContiguousIterator<EntryType>;
     using ConstIterator = BasicContiguousIterator<const EntryType>;
 
-    [[nodiscard]] Iterator begin() const noexcept { return Iterator(Begin); }
-    [[nodiscard]] Iterator end() const noexcept { return Iterator(End); }
+    [[nodiscard]] inline Iterator begin() const noexcept {
+        return Iterator(Begin);
+    }
 
-    [[nodiscard]] ConstIterator cbegin() const noexcept {
+    [[nodiscard]] inline Iterator end() const noexcept { return Iterator(End); }
+
+    [[nodiscard]] inline ConstIterator cbegin() const noexcept {
         return ConstIterator(Begin);
     }
 
-    [[nodiscard]] ConstIterator cend() const noexcept {
+    [[nodiscard]] inline ConstIterator cend() const noexcept {
         return ConstIterator(End);
     }
 

@@ -17,7 +17,7 @@ public:
         Reserve(Cap);
     }
 
-    [[nodiscard]] inline bool IsFull() const noexcept {
+    [[nodiscard]] inline bool isFull() const noexcept {
         return (freeSpace() == 0);
     }
 

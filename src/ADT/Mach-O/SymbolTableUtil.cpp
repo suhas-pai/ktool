@@ -39,7 +39,7 @@ namespace MachO {
                 const SymbolTableEntryCollection::ParseOptions &Options,
                 bool IsBigEndian) noexcept
     {
-        if (Entry.Info.IsExternal()) {
+        if (Entry.Info.isExternal()) {
             if (Options.IgnoreExternal) {
                 return SymbolTableParseError::None;
             }

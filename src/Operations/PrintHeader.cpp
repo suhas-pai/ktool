@@ -595,12 +595,14 @@ PrintMappingInfoList(const struct PrintHeaderOperation::Options &Options,
     
     auto Index = static_cast<int>(1);
     for (const auto &Mapping : Object.getMappingInfoList()) {
+        const auto InitProt = Mapping.getInitProt();
+        const auto MaxProt = Mapping.getMaxProt();
+
         fprintf(Options.OutFile,
                 "\tMapping %0*d: " MEM_PROT_INIT_MAX_RNG_FMT " \n",
                 MappingCountDigitLength,
                 Index,
-                MEM_PROT_INIT_MAX_RNG_FMT_ARGS(Mapping.getInitProt(),
-                                               Mapping.getMaxProt()));
+                MEM_PROT_INIT_MAX_RNG_FMT_ARGS(InitProt, MaxProt));
         
         PrintUtilsWriteOffset(Options.OutFile,
                               Mapping.FileOffset,
@@ -1213,7 +1215,7 @@ PrintHeaderOperation::ParseOptionsImpl(const ArgvArray &Argv,
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
-        } else if (!Argument.IsOption()) {
+        } else if (!Argument.isOption()) {
             break;
         } else {
             fprintf(stderr,

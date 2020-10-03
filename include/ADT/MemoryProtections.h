@@ -7,6 +7,7 @@
 //
 
 #pragma once
+#include "BasicMasksHandler.h"
 
 enum class MemoryProtectionsEnum : uint32_t {
     None,

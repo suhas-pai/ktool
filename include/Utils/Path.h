@@ -12,7 +12,10 @@
 #include <string_view>
 
 struct PathUtil {
-    [[nodiscard]] static bool IsAbsolute(const std::string_view &Path) noexcept;
+    [[nodiscard]]
+    static bool isAbsolute(const std::string_view &Path) noexcept {
+        return (Path.front() == '/');
+    }
 
     [[nodiscard]]
     static std::string Absolutify(const std::string_view &Path) noexcept;

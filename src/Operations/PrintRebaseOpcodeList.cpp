@@ -210,7 +210,7 @@ PrintRebaseOpcodeList(
     const ConstMemoryMap &Map,
     const struct PrintRebaseOpcodeListOperation::Options &Options) noexcept
 {
-    const auto IsBigEndian = Object.IsBigEndian();
+    const auto IsBigEndian = Object.isBigEndian();
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
@@ -239,7 +239,7 @@ PrintRebaseOpcodeList(
 
     auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
 
-    const auto Is64Bit = Object.Is64Bit();
+    const auto Is64Bit = Object.is64Bit();
     const auto SegmentCollection =
         MachO::SegmentInfoCollection::Open(LoadCmdStorage,
                                            Is64Bit,
@@ -441,7 +441,7 @@ PrintRebaseOpcodeListOperation::ParseOptionsImpl(const ArgvArray &Argv,
     for (const auto &Argument : Argv) {
         if (strcmp(Argument, "-v") == 0 || strcmp(Argument, "--verbose") == 0) {
             Options.Verbose = true;
-        } else if (!Argument.IsOption()) {
+        } else if (!Argument.isOption()) {
             break;
         } else {
             fprintf(stderr,

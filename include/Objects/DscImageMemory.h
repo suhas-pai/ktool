@@ -196,7 +196,7 @@ public:
 
     [[nodiscard]] inline MachO::LoadCommandStorage
     GetLoadCommands(bool Verify = true) noexcept {
-        auto Result = ConstMachOMemoryObject::GetLoadCommands(Verify);
+        auto Result = ConstMachOMemoryObject::GetLoadCommandsStorage(Verify);
         return *reinterpret_cast<const MachO::LoadCommandStorage *>(&Result);
     }
 };

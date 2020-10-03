@@ -498,7 +498,7 @@ PrintItemForSupportList(FILE *OutFile,
                         const char *LinePrefix,
                         const char *Name) noexcept
 {
-    PrintUtilsWriteAfterFirst(OutFile, " │ ", DidPrint);
+    PrintUtilsWriteItemAfterFirstForList(OutFile, " │ ", DidPrint);
     fprintf(OutFile, "%s%s", LinePrefix, Name);
 }
 

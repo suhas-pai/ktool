@@ -723,34 +723,36 @@ namespace MachO {
         return EmptyStringView;
     }
 
-    SegmentCommand::SectionList
-    SegmentCommand::GetSectionList(bool IsBigEndian) noexcept {
-        const auto Ptr = reinterpret_cast<Section *>(this + 1);
-        return SegmentCommand::SectionList(Ptr, getSectionCount(IsBigEndian));
+    static inline bool
+    IsSectionListValidForSegmentCommand(uint32_t SectionCount,
+                                        uint32_t SectionSize,
+                                        uint32_t ThisSize,
+                                        uint32_t CmdSize) noexcept
+    {
+        const auto SectionListSize = SectionSize * SectionCount;
+        const auto ExpectedCmdSize = ThisSize + SectionListSize;
+
+        return (CmdSize >= ExpectedCmdSize);
     }
 
-    SegmentCommand::ConstSectionList
-    SegmentCommand::GetConstSectionList(bool IsBigEndian) const noexcept {
-        const auto Ptr = reinterpret_cast<const Section *>(this + 1);
-        const auto Count = getSectionCount(IsBigEndian);
+    bool SegmentCommand::IsSectionListValid(bool IsBigEndian) const noexcept {
+        const auto Result =
+            IsSectionListValidForSegmentCommand(getSectionCount(IsBigEndian),
+                                                sizeof(Section),
+                                                sizeof(this),
+                                                getCmdSize(IsBigEndian));
 
-        return SegmentCommand::ConstSectionList(Ptr, Count);
+        return Result;
     }
 
-    SegmentCommand64::SectionList
-    SegmentCommand64::GetSectionList(bool IsBigEndian) noexcept {
-        const auto Ptr = reinterpret_cast<Section *>(this + 1);
-        const auto Count = getSectionCount(IsBigEndian);
+    bool SegmentCommand64::IsSectionListValid(bool IsBigEndian) const noexcept {
+        const auto Result =
+            IsSectionListValidForSegmentCommand(getSectionCount(IsBigEndian),
+                                                sizeof(Section),
+                                                sizeof(this),
+                                                getCmdSize(IsBigEndian));
 
-        return SegmentCommand64::SectionList(Ptr, Count);
-    }
-
-    SegmentCommand64::ConstSectionList
-    SegmentCommand64::GetConstSectionList(bool IsBigEndian) const noexcept {
-        const auto Ptr = reinterpret_cast<const Section *>(this + 1);
-        const auto Count = getSectionCount(IsBigEndian);
-
-        return SegmentCommand64::ConstSectionList(Ptr, Count);
+        return Result;
     }
 
     [[nodiscard]] static inline bool
@@ -896,7 +898,7 @@ namespace MachO {
         "NakedPreBoundDylibCommand is not same size of PreBoundDylibCommand");
 
     bool
-    PreBoundDylibCommand::IsNameOffsetValid(bool IsBigEndian) const noexcept {
+    PreBoundDylibCommand::isNameOffsetValid(bool IsBigEndian) const noexcept {
         const auto CmdSize = offsetof(NakedPreBoundDylibCommand, NModules);
         return Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
     }

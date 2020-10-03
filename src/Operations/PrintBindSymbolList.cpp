@@ -186,7 +186,7 @@ PrintBindSymbolList(
 {
     auto FoundDyldInfo = static_cast<const MachO::DyldInfoCommand *>(nullptr);
 
-    const auto IsBigEndian = Object.IsBigEndian();
+    const auto IsBigEndian = Object.isBigEndian();
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
@@ -259,7 +259,7 @@ PrintBindSymbolList(
 
     auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
 
-    const auto Is64Bit = Object.Is64Bit();
+    const auto Is64Bit = Object.is64Bit();
     const auto SegmentCollection =
         MachO::SegmentInfoCollection::Open(LoadCmdStorage,
                                            Is64Bit,
@@ -295,7 +295,7 @@ PrintBindSymbolList(
             }
         }
 
-        return true;
+        return false;
     };
 
     if (ShouldPrintBind) {
@@ -535,7 +535,7 @@ PrintBindSymbolListOperation::ParseOptionsImpl(const ArgvArray &Argv,
             AddSortKind(Options::SortKind::ByDylibOrdinal, Argument, Options);
         } else if (strcmp(Argument, "--sort-by-type") == 0) {
             AddSortKind(Options::SortKind::ByType, Argument, Options);
-        } else if (!Argument.IsOption()) {
+        } else if (!Argument.isOption()) {
             break;
         } else {
             fprintf(stderr,

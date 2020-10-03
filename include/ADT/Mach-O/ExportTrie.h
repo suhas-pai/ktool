@@ -51,27 +51,27 @@ namespace MachO {
             return Kind(getValueForMask(Masks::KindMask));
         }
 
-        [[nodiscard]] constexpr inline bool IsAbsolute() const noexcept {
+        [[nodiscard]] constexpr inline bool isAbsolute() const noexcept {
             return (getKind() == ExportSymbolKind::Absolute);
         }
 
-        [[nodiscard]] constexpr inline bool IsRegular() const noexcept {
+        [[nodiscard]] constexpr inline bool isRegular() const noexcept {
             return (getKind() == ExportSymbolKind::Absolute);
         }
 
-        [[nodiscard]] constexpr inline bool IsReexport() const noexcept {
+        [[nodiscard]] constexpr inline bool isReexport() const noexcept {
             return hasValueForMask(Masks::Reexport);
         }
 
-        [[nodiscard]] constexpr inline bool IsStubAndResolver() const noexcept {
+        [[nodiscard]] constexpr inline bool isStubAndResolver() const noexcept {
             return hasValueForMask(Masks::StubAndResolver);
         }
 
-        [[nodiscard]] constexpr inline bool IsThreadLocal() const noexcept {
+        [[nodiscard]] constexpr inline bool isThreadLocal() const noexcept {
             return (getKind() == ExportSymbolKind::ThreadLocal);
         }
 
-        [[nodiscard]] constexpr inline bool IsWeak() const noexcept {
+        [[nodiscard]] constexpr inline bool isWeak() const noexcept {
             return hasValueForMask(Masks::WeakDefinition);
         }
 
@@ -320,25 +320,25 @@ namespace MachO {
 
         [[nodiscard]] constexpr
         inline std::string_view getReexportImportName() const noexcept {
-            assert(this->IsReexport());
+            assert(this->isReexport());
             return ReexportImportName;
         }
 
         [[nodiscard]]
         constexpr inline uint32_t getReexportDylibOrdinal() const noexcept {
-            assert(this->IsReexport());
+            assert(this->isReexport());
             return ReexportDylibOrdinal;
         }
 
         [[nodiscard]]
         constexpr inline uint64_t getResolverStubAddress() const noexcept {
-            assert(this->IsStubAndResolver());
+            assert(this->isStubAndResolver());
             return ResolverStubAddress;
         }
 
         [[nodiscard]]
         constexpr inline uint64_t getImageOffset() const noexcept {
-            assert(!this->IsReexport());
+            assert(!this->isReexport());
             return ImageOffset;
         }
 
@@ -352,24 +352,24 @@ namespace MachO {
             return getFlags().getKind();
         }
 
-        [[nodiscard]] constexpr inline bool IsAbsolute() const noexcept {
-            return getFlags().IsAbsolute();
+        [[nodiscard]] constexpr inline bool isAbsolute() const noexcept {
+            return getFlags().isAbsolute();
         }
 
-        [[nodiscard]] constexpr inline bool IsReexport() const noexcept {
-            return getFlags().IsReexport();
+        [[nodiscard]] constexpr inline bool isReexport() const noexcept {
+            return getFlags().isReexport();
         }
 
-        [[nodiscard]] constexpr inline bool IsStubAndResolver() const noexcept {
-            return getFlags().IsStubAndResolver();
+        [[nodiscard]] constexpr inline bool isStubAndResolver() const noexcept {
+            return getFlags().isStubAndResolver();
         }
 
-        [[nodiscard]] constexpr inline bool IsThreadLocal() const noexcept {
-            return getFlags().IsThreadLocal();
+        [[nodiscard]] constexpr inline bool isThreadLocal() const noexcept {
+            return getFlags().isThreadLocal();
         }
 
-        [[nodiscard]] constexpr inline bool IsWeak() const noexcept {
-            return getFlags().IsWeak();
+        [[nodiscard]] constexpr inline bool isWeak() const noexcept {
+            return getFlags().isWeak();
         }
 
         constexpr inline
@@ -386,7 +386,7 @@ namespace MachO {
 
         constexpr inline
         ExportTrieExportInfo &setReexportDylibOrdinal(uint32_t Value) noexcept {
-            assert(this->IsReexport());
+            assert(this->isReexport());
 
             this->ReexportDylibOrdinal = Value;
             return *this;
@@ -394,7 +394,7 @@ namespace MachO {
 
         constexpr inline
         ExportTrieExportInfo &setResolverStubAddress(uint64_t Value) noexcept {
-            assert(this->IsStubAndResolver());
+            assert(this->isStubAndResolver());
 
             this->ResolverStubAddress = Value;
             return *this;
@@ -402,7 +402,7 @@ namespace MachO {
 
         constexpr
         inline ExportTrieExportInfo &setImageOffset(uint64_t Value) noexcept {
-            assert(!this->IsReexport());
+            assert(!this->isReexport());
 
             this->ImageOffset = Value;
             return *this;
@@ -486,7 +486,7 @@ namespace MachO {
             return *this;
         }
 
-        [[nodiscard]] constexpr inline bool IsExport() const noexcept {
+        [[nodiscard]] constexpr inline bool isExport() const noexcept {
             return (Size != 0);
         }
     };
@@ -542,6 +542,7 @@ namespace MachO {
         using NodeInfo = ExportTrieNodeInfo;
         using StackInfo = ExportTrieStackInfo;
     protected:
+        uint64_t MaxDepth;
         std::string String;
 
         std::vector<LocationRange> RangeList;
@@ -550,6 +551,10 @@ namespace MachO {
         ExportTrieExportKind Kind;
         ExportTrieExportInfo Export;
     public:
+        [[nodiscard]] constexpr inline uint64_t getMaxDepth() const noexcept {
+            return MaxDepth;
+        }
+
         [[nodiscard]]
         constexpr inline const std::string &getString() const noexcept {
             return String;
@@ -575,7 +580,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline std::vector<StackInfo> &getStackList() noexcept {
+        constexpr inline std::vector<StackInfo> &getStackListRef() noexcept {
             return StackList;
         }
 
@@ -594,6 +599,12 @@ namespace MachO {
             return Export;
         }
 
+        constexpr
+        inline ExportTrieIterateInfo &setMaxDepth(uint64_t Value) noexcept {
+            this->MaxDepth = Value;
+            return *this;
+        }
+
         constexpr inline
         ExportTrieIterateInfo &setKind(ExportTrieExportKind Value) noexcept {
             this->Kind = Value;
@@ -601,8 +612,8 @@ namespace MachO {
         }
 
         [[nodiscard]] inline StackInfo &getStack() noexcept {
-            assert(!getStackList().empty());
-            return getStackList().back();
+            assert(!getStackListRef().empty());
+            return getStackListRef().back();
         }
 
         [[nodiscard]] inline const StackInfo &getStack() const noexcept {
@@ -618,31 +629,31 @@ namespace MachO {
             return getStack().getNode();
         }
 
-        [[nodiscard]] constexpr inline bool IsExport() const noexcept {
+        [[nodiscard]] constexpr inline bool isExport() const noexcept {
             return (getKind() != ExportTrieExportKind::None);
         }
 
-        [[nodiscard]] constexpr inline bool IsAbsolute() const noexcept {
+        [[nodiscard]] constexpr inline bool isAbsolute() const noexcept {
             return (getKind() == ExportTrieExportKind::Absolute);
         }
 
-        [[nodiscard]] constexpr inline bool IsReexport() const noexcept {
+        [[nodiscard]] constexpr inline bool isReexport() const noexcept {
             return (getKind() == ExportTrieExportKind::Reexport);
         }
 
-        [[nodiscard]] constexpr inline bool IsRegular() const noexcept {
+        [[nodiscard]] constexpr inline bool isRegular() const noexcept {
             return (getKind() == ExportTrieExportKind::Regular);
         }
 
-        [[nodiscard]] constexpr inline bool IsStubAndResolver() const noexcept {
+        [[nodiscard]] constexpr inline bool isStubAndResolver() const noexcept {
             return (getKind() == ExportTrieExportKind::StubAndResolver);
         }
 
-        [[nodiscard]] constexpr inline bool IsWeak() const noexcept {
+        [[nodiscard]] constexpr inline bool isWeak() const noexcept {
             return (getKind() == ExportTrieExportKind::WeakDefinition);
         }
 
-        [[nodiscard]] constexpr inline bool IsThreadLocal() const noexcept {
+        [[nodiscard]] constexpr inline bool isThreadLocal() const noexcept {
             return (getKind() == ExportTrieExportKind::ThreadLocal);
         }
 
@@ -707,7 +718,6 @@ namespace MachO {
         };
 
         const uint8_t *End;
-        uint64_t MaxDepth;
 
         std::unique_ptr<ExportTrieIterateInfo> Info;
         std::unique_ptr<StackInfo> NextStack;
@@ -734,8 +744,8 @@ namespace MachO {
             return *Info;
         }
 
-        [[nodiscard]] inline bool IsAtEnd() const noexcept {
-            return Info->getStackList().empty();
+        [[nodiscard]] inline bool isAtEnd() const noexcept {
+            return Info->getStackListRef().empty();
         }
 
         [[nodiscard]] constexpr inline bool hasError() const noexcept {
@@ -784,7 +794,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline bool operator==(const ExportTrieIteratorEnd &End) {
-            return IsAtEnd();
+            return isAtEnd();
         }
 
         [[nodiscard]] inline bool operator!=(const ExportTrieIteratorEnd &End) {
@@ -805,29 +815,29 @@ namespace MachO {
 
         using IteratorType = ExportTrieIterator;
 
-        [[nodiscard]] IteratorType begin() const noexcept {
+        [[nodiscard]] inline IteratorType begin() const noexcept {
             return IteratorType(Begin, End);
         }
 
-        [[nodiscard]] IteratorType cbegin() const noexcept {
+        [[nodiscard]] inline IteratorType cbegin() const noexcept {
             return IteratorType(Begin, End);
         }
 
         [[nodiscard]]
-        IteratorType begin(const ParseOptions &Options) const noexcept {
+        inline IteratorType begin(const ParseOptions &Options) const noexcept {
             return IteratorType(Begin, End, Options);
         }
 
         [[nodiscard]]
-        IteratorType cbegin(const ParseOptions &Options) const noexcept {
+        inline IteratorType cbegin(const ParseOptions &Options) const noexcept {
             return IteratorType(Begin, End, Options);
         }
 
-        [[nodiscard]] ExportTrieIteratorEnd end() const noexcept {
+        [[nodiscard]] inline ExportTrieIteratorEnd end() const noexcept {
             return ExportTrieIteratorEnd();
         }
 
-        [[nodiscard]] ExportTrieIteratorEnd cend() const noexcept {
+        [[nodiscard]] inline ExportTrieIteratorEnd cend() const noexcept {
             return ExportTrieIteratorEnd();
         }
     };
@@ -841,29 +851,29 @@ namespace MachO {
 
         using IteratorType = ExportTrieIterator;
 
-        [[nodiscard]] IteratorType begin() const noexcept {
+        [[nodiscard]] inline IteratorType begin() const noexcept {
             return IteratorType(Begin, End);
         }
 
-        [[nodiscard]] IteratorType cbegin() const noexcept {
+        [[nodiscard]] inline IteratorType cbegin() const noexcept {
             return IteratorType(Begin, End);
         }
 
         [[nodiscard]]
-        IteratorType begin(const ParseOptions &Options) const noexcept {
+        inline IteratorType begin(const ParseOptions &Options) const noexcept {
             return IteratorType(Begin, End, Options);
         }
 
         [[nodiscard]]
-        IteratorType cbegin(const ParseOptions &Options) const noexcept {
+        inline IteratorType cbegin(const ParseOptions &Options) const noexcept {
             return IteratorType(Begin, End, Options);
         }
 
-        [[nodiscard]] ExportTrieIteratorEnd end() const noexcept {
+        [[nodiscard]] inline ExportTrieIteratorEnd end() const noexcept {
             return ExportTrieIteratorEnd();
         }
 
-        [[nodiscard]] ExportTrieIteratorEnd cend() const noexcept {
+        [[nodiscard]] inline ExportTrieIteratorEnd cend() const noexcept {
             return ExportTrieIteratorEnd();
         }
     };
@@ -888,8 +898,8 @@ namespace MachO {
             return Iterator.getInfo();
         }
 
-        [[nodiscard]] inline bool IsAtEnd() const noexcept {
-            return Iterator.IsAtEnd();
+        [[nodiscard]] inline bool isAtEnd() const noexcept {
+            return Iterator.isAtEnd();
         }
 
         [[nodiscard]] inline bool hasError() const noexcept {

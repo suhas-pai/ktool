@@ -28,7 +28,7 @@ static void PrintFlags(FILE *OutFile, MachO::BindSymbolFlags Flags) noexcept {
             fputs("Has Non-Weak Definition", OutFile);
         }
 
-        if (Flags.IsWeakImport()) {
+        if (Flags.isWeakImport()) {
             if (HasNonWeakDefinition) {
                 fputs(", ", OutFile);
             }
@@ -470,7 +470,7 @@ PrintOpcodeList(
     const ConstMemoryMap &Map,
     const struct PrintBindOpcodeListOperation::Options &Options) noexcept
 {
-    const auto IsBigEndian = Object.IsBigEndian();
+    const auto IsBigEndian = Object.isBigEndian();
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
@@ -506,7 +506,7 @@ PrintOpcodeList(
 
     auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
 
-    const auto Is64Bit = Object.Is64Bit();
+    const auto Is64Bit = Object.is64Bit();
     const auto SegmentCollection =
         MachO::SegmentInfoCollection::Open(LoadCmdStorage,
                                            Is64Bit,
@@ -605,7 +605,7 @@ PrintOpcodeList(
                 SharedLibraryCollection,
                 SegmentCollection,
                 BindOpcodeList,
-                Object.Is64Bit(),
+                Object.is64Bit(),
                 Options);
         }
     }
@@ -638,7 +638,7 @@ PrintOpcodeList(
                 SharedLibraryCollection,
                 SegmentCollection,
                 LazyBindOpcodeList,
-                Object.Is64Bit(),
+                Object.is64Bit(),
                 Options);
         }
     }
@@ -671,7 +671,7 @@ PrintOpcodeList(
                 SharedLibraryCollection,
                 SegmentCollection,
                 WeakBindOpcodeList,
-                Object.Is64Bit(),
+                Object.is64Bit(),
                 Options);
         }
     }
@@ -712,7 +712,7 @@ PrintBindOpcodeListOperation::ParseOptionsImpl(const ArgvArray &Argv,
         } else if (strcmp(Argument, "--only-weak") == 0) {
             Options.PrintAll = 0;
             Options.PrintWeak = true;
-        } else if (!Argument.IsOption()) {
+        } else if (!Argument.isOption()) {
             break;
         } else {
             fprintf(stderr,

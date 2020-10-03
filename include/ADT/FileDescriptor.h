@@ -49,9 +49,9 @@ public:
     [[nodiscard]]
     static FileDescriptor Create(const char *Path, int Mode) noexcept;
 
-    [[nodiscard]] inline bool IsOpen() const noexcept { return (Fd != -1); }
-    [[nodiscard]] inline bool IsEmpty() const noexcept { return !IsOpen(); }
-    [[nodiscard]] inline bool hasError() const noexcept { return IsEmpty(); }
+    [[nodiscard]] inline bool isOpen() const noexcept { return (Fd != -1); }
+    [[nodiscard]] inline bool isEmpty() const noexcept { return !isOpen(); }
+    [[nodiscard]] inline bool hasError() const noexcept { return isEmpty(); }
     [[nodiscard]] inline int getDescriptor() const noexcept { return Fd; }
 
     bool Read(void *Buf, size_t Size) const noexcept;

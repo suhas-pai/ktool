@@ -93,23 +93,23 @@ namespace MachO {
             return String;
         }
 
-        [[nodiscard]] constexpr inline bool IsExport() const noexcept {
+        [[nodiscard]] constexpr inline bool isExport() const noexcept {
             return (getKind() != ExportTrieExportKind::None);
         }
 
-        [[nodiscard]] constexpr inline bool IsReexport() const noexcept {
+        [[nodiscard]] constexpr inline bool isReexport() const noexcept {
             return (getKind() == ExportTrieExportKind::Reexport);
         }
 
         [[nodiscard]]
         inline ExportTrieExportChildNode *getAsExportNode() noexcept {
-            assert(this->IsExport());
+            assert(this->isExport());
             return reinterpret_cast<ExportTrieExportChildNode *>(this);
         }
 
         [[nodiscard]] inline
         const ExportTrieExportChildNode *getAsExportNode() const noexcept {
-            assert(this->IsExport());
+            assert(this->isExport());
             return reinterpret_cast<const ExportTrieExportChildNode *>(this);
         }
 
@@ -147,19 +147,19 @@ namespace MachO {
 
         [[nodiscard]]
         inline const SegmentInfo *getSegment() const noexcept {
-            assert(!this->IsReexport());
+            assert(!this->isReexport());
             return Segment;
         }
 
         [[nodiscard]]
         inline const SectionInfo *getSection() const noexcept {
-            assert(!this->IsReexport());
+            assert(!this->isReexport());
             return Section;
         }
 
         constexpr inline ExportTrieChildNode &
         setSegment(const SegmentInfo *Value) noexcept {
-            assert(!this->IsReexport());
+            assert(!this->isReexport());
 
             this->Segment = Value;
             return *this;
@@ -167,7 +167,7 @@ namespace MachO {
 
         constexpr inline ExportTrieChildNode &
         setSection(const SectionInfo *Value) noexcept {
-            assert(!this->IsReexport());
+            assert(!this->isReexport());
 
             this->Section = Value;
             return *this;
@@ -216,11 +216,21 @@ namespace MachO {
         using Iterator = TreeIterator<ChildNode>;
         using ConstIterator = TreeIterator<const ChildNode>;
 
-        [[nodiscard]] Iterator begin() const noexcept;
-        [[nodiscard]] Iterator end() const noexcept;
+        [[nodiscard]] inline Iterator begin() const noexcept {
+            return Iterator(getRoot());
+        }
 
-        [[nodiscard]] ConstIterator cbegin() const noexcept;
-        [[nodiscard]] ConstIterator cend() const noexcept;
+        [[nodiscard]] inline Iterator end() const noexcept {
+            return Iterator(nullptr);
+        }
+
+        [[nodiscard]] ConstIterator cbegin() const noexcept {
+            return ConstIterator(getRoot());
+        }
+
+        [[nodiscard]] ConstIterator cend() const noexcept {
+            return ConstIterator(nullptr);
+        }
     };
 
     struct ExportTrieExportCollectionEntryInfo {

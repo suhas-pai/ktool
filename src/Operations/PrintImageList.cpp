@@ -123,7 +123,7 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
                 }
             }
 
-            return true;
+            return false;
         };
 
         std::sort(ImageInfoList.begin(), ImageInfoList.end(), Comparator);
@@ -150,7 +150,7 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
             PrintUtilsRightPadSpaces(Options.OutFile, WrittenOut, RightPad);
 
             fputs(" <", Options.OutFile);
-            if (Info.IsAlias(Map)) {
+            if (Info.isAlias(Map)) {
                 fputs("Alias, ", Options.OutFile);
             }
 
@@ -213,7 +213,7 @@ PrintImageListOperation::ParseOptionsImpl(const ArgvArray &Argv,
             AddSortKind(Options::SortKind::ByModTime, Argument, Options);
         } else if (strcmp(Argument, "--sort-by-name") == 0) {
             AddSortKind(Options::SortKind::ByName, Argument, Options);
-        } else if (!Argument.IsOption()) {
+        } else if (!Argument.isOption()) {
             break;
         } else {
             fprintf(stderr,

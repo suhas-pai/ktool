@@ -113,7 +113,7 @@ namespace MachO {
             return *this;
         }
 
-        [[nodiscard]] inline bool IsSwift(bool IsBigEndian) const noexcept {
+        [[nodiscard]] inline bool isSwift(bool IsBigEndian) const noexcept {
             const auto Mask =
                 (IsSwiftObjcClassPreStableMask | IsSwiftObjcClassStableMask);
 
@@ -151,8 +151,8 @@ namespace MachO {
             return SwitchEndianIf(Vtable, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        inline uint64_t getData(bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr inline uint64_t getData(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Data, IsBigEndian);
         }
 
@@ -195,31 +195,31 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline ObjcClass64 &
-        setData(uint64_t Value, bool IsBigEndian) noexcept {
+        constexpr inline
+        ObjcClass64 &setData(uint64_t Value, bool IsBigEndian) noexcept {
             this->Data = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr inline ObjcClass64 &
-        setReserved1(uint64_t Value, bool IsBigEndian) noexcept {
+        constexpr inline
+        ObjcClass64 &setReserved1(uint64_t Value, bool IsBigEndian) noexcept {
             this->Reserved1 = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr inline ObjcClass64 &
-        setReserved2(uint64_t Value, bool IsBigEndian) noexcept {
+        constexpr inline
+        ObjcClass64 &setReserved2(uint64_t Value, bool IsBigEndian) noexcept {
             this->Reserved2 = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr inline ObjcClass64 &
-        setReserved3(uint64_t Value, bool IsBigEndian) noexcept {
+        constexpr inline
+        ObjcClass64 &setReserved3(uint64_t Value, bool IsBigEndian) noexcept {
             this->Reserved3 = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] inline bool IsSwift(bool IsBigEndian) const noexcept {
+        [[nodiscard]] inline bool isSwift(bool IsBigEndian) const noexcept {
             const auto Mask =
                 (IsSwiftObjcClassPreStableMask | IsSwiftObjcClassStableMask);
 
@@ -250,11 +250,11 @@ namespace MachO {
         using Base::Base;
         using Flags = ObjcClassRoFlagsEnum;
 
-        [[nodiscard]] inline bool IsMeta() const noexcept {
+        [[nodiscard]] inline bool isMeta() const noexcept {
             return hasFlag(Flags::IsMeta);
         }
 
-        [[nodiscard]] inline bool IsRoot() const noexcept {
+        [[nodiscard]] inline bool isRoot() const noexcept {
             return hasFlag(Flags::IsRoot);
         }
 
@@ -262,11 +262,11 @@ namespace MachO {
             return hasFlag(Flags::HasCxxStructors);
         }
 
-        [[nodiscard]] inline bool IsHidden() const noexcept {
+        [[nodiscard]] inline bool isHidden() const noexcept {
             return hasFlag(Flags::IsHidden);
         }
 
-        [[nodiscard]] inline bool IsException() const noexcept {
+        [[nodiscard]] inline bool isException() const noexcept {
             return hasFlag(Flags::IsException);
         }
 
@@ -274,7 +274,7 @@ namespace MachO {
             return hasFlag(Flags::HasSwiftInitializer);
         }
 
-        [[nodiscard]] inline bool IsARC() const noexcept {
+        [[nodiscard]] inline bool isARC() const noexcept {
             return hasFlag(Flags::IsARC);
         }
 
@@ -290,15 +290,15 @@ namespace MachO {
             return hasFlag(Flags::ForbidsAssociatedObjects);
         }
 
-        [[nodiscard]] inline bool IsFromBundle() const noexcept {
+        [[nodiscard]] inline bool isFromBundle() const noexcept {
             return hasFlag(Flags::IsFromBundle);
         }
 
-        [[nodiscard]] inline bool IsFuture() const noexcept {
+        [[nodiscard]] inline bool isFuture() const noexcept {
             return hasFlag(Flags::IsFuture);
         }
 
-        [[nodiscard]] inline bool IsRealized() const noexcept {
+        [[nodiscard]] inline bool isRealized() const noexcept {
             return hasFlag(Flags::IsRealized);
         }
 

@@ -445,7 +445,7 @@ namespace MachO {
 
         RebaseOpcodeIterator(const RebaseOpcodeIterator &) = delete;
 
-        [[nodiscard]] constexpr inline bool IsAtEnd() const noexcept {
+        [[nodiscard]] constexpr inline bool isAtEnd() const noexcept {
             return ReachedEnd;
         }
 
@@ -501,7 +501,7 @@ namespace MachO {
 
         [[nodiscard]] constexpr
         inline bool operator==(const RebaseOpcodeIteratorEnd &) const noexcept {
-            return IsAtEnd();
+            return isAtEnd();
         }
 
         [[nodiscard]] constexpr inline
@@ -519,7 +519,7 @@ namespace MachO {
             Prev = BytePtr;
             Iter++;
 
-            if (Iter.IsAtEnd()) {
+            if (Iter.isAtEnd()) {
                 ReachedEnd = true;
                 return ErrorEnum::None;
             }
@@ -731,8 +731,8 @@ namespace MachO {
             return ContainsPtr;
         }
 
-        [[nodiscard]] inline bool IsAtEnd() const noexcept {
-            return Iter.IsAtEnd();
+        [[nodiscard]] inline bool isAtEnd() const noexcept {
+            return Iter.isAtEnd();
         }
 
         [[nodiscard]]
@@ -769,7 +769,7 @@ namespace MachO {
 
         [[nodiscard]]
         inline bool operator==(const RebaseActionIteratorEnd &) const noexcept {
-            return IsAtEnd();
+            return isAtEnd();
         }
 
         [[nodiscard]] inline
@@ -863,7 +863,7 @@ namespace MachO {
                 return ErrorEnum::None;
             };
 
-            for (; !Iter.IsAtEnd(); Iter++) {
+            for (; !Iter.isAtEnd(); Iter++) {
                 if (Iter->hasError()) {
                     return Iter->getError();
                 }

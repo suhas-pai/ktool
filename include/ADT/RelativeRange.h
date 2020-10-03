@@ -30,18 +30,18 @@ public:
 
     [[nodiscard]]
     constexpr inline bool containsLocation(uint64_t Location) const noexcept {
-        return (Location < End);
+        return (Location < getEnd());
     }
 
     [[nodiscard]] constexpr
     inline bool containsEndLocation(uint64_t EndLocation) const noexcept {
-        return (EndLocation <= End);
+        return (EndLocation <= getEnd());
     }
 
     [[nodiscard]] bool overlaps(const LocationRange &LocRange) const noexcept;
 
     [[nodiscard]]
     constexpr inline bool goesPastSize(uint64_t Size) const noexcept {
-        return (End > Size);
+        return (getEnd() > Size);
     }
 };

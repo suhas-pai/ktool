@@ -45,7 +45,7 @@ MachO::LoadCommandStorage
 OperationCommon::GetLoadCommandStorage(MachOMemoryObject &Object,
                                        FILE *ErrFile) noexcept
 {
-    const auto LoadCommandStorage = Object.GetLoadCommands();
+    const auto LoadCommandStorage = Object.GetLoadCommandsStorage();
     const auto Error = LoadCommandStorage.getError();
 
     if (Error != MachO::ConstLoadCommandStorage::Error::None) {
@@ -61,7 +61,7 @@ OperationCommon::GetConstLoadCommandStorage(
     const ConstMachOMemoryObject &Object,
     FILE *ErrFile) noexcept
 {
-    const auto LoadCommandStorage = Object.GetLoadCommands();
+    const auto LoadCommandStorage = Object.GetLoadCommandsStorage();
     const auto Error = LoadCommandStorage.getError();
 
     if (Error != MachO::ConstLoadCommandStorage::Error::None) {
@@ -97,6 +97,10 @@ OperationCommon::HandleSegmentCollectionError(
             return 1;
         case MachO::SegmentInfoCollection::Error::OverlappingSegments:
             fputs("Provided File has Overlapping Segments\n", ErrFile);
+            return 1;
+        case MachO::SegmentInfoCollection::Error::InvalidSectionList:
+            fputs("Provided File has a Segment with an invalid Section-List\n",
+                  ErrFile);
             return 1;
         case MachO::SegmentInfoCollection::Error::InvalidSection:
             fputs("Provided File has a Segment with an invalid Section\n",
@@ -396,7 +400,7 @@ OperationCommon::GetDyldInfoCommand(
     const MachO::DyldInfoCommand *&DyldInfoCommandOut) noexcept
 {
     auto FoundDyldInfo = static_cast<const MachO::DyldInfoCommand *>(nullptr);
-    const auto IsBigEndian = LoadCmdStorage.IsBigEndian();
+    const auto IsBigEndian = LoadCmdStorage.isBigEndian();
 
     for (const auto &LoadCmd : LoadCmdStorage) {
         const auto *DyldInfo =
@@ -526,7 +530,7 @@ OperationCommon::GetBindActionCollection(
     MachO::BindActionCollection &BindCollection,
     bool Is64Bit) noexcept
 {
-    const auto IsBigEndian = LoadCmdStorage.IsBigEndian();
+    const auto IsBigEndian = LoadCmdStorage.isBigEndian();
 
     auto DyldInfoCmd = static_cast<const MachO::DyldInfoCommand *>(nullptr);
     const auto GetDyldInfoCmdResult =

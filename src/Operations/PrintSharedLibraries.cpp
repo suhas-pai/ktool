@@ -103,7 +103,7 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
         MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::LoadUpwardDylib>::Name.length();
 
-    const auto IsBigEndian = Object.IsBigEndian();
+    const auto IsBigEndian = Object.isBigEndian();
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
@@ -229,7 +229,7 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
         for (const auto &Sort : Options.SortKindList) {
             const auto Compare = CompareEntriesBySortKind(Lhs, Rhs, Sort);
             if (Compare != 0) {
-                return (Compare <= 0);
+                return (Compare < 0);
             }
         }
 
@@ -329,7 +329,7 @@ PrintSharedLibrariesOperation::ParseOptionsImpl(const ArgvArray &Argv,
             AddSortKind(Options::SortKind::ByName, Argument, Options);
         } else if (strcmp(Argument, "--sort-by-timestamp") == 0) {
             AddSortKind(Options::SortKind::ByTimeStamp, Argument, Options);
-        } else if (!Argument.IsOption()) {
+        } else if (!Argument.isOption()) {
             break;
         } else {
             fprintf(stderr,

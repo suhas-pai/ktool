@@ -9,4 +9,5 @@
 #pragma once
 
 #include "DscImage/ExportTrieUtil.h"
+#include "DscImage/ObjcUtil.h"
 #include "DscImage/SegmentUtil.h"

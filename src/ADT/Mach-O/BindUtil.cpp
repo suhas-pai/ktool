@@ -217,7 +217,7 @@ namespace MachO {
     const std::string *
     BindActionCollection::GetSymbolForAddress(uint64_t Address) const noexcept {
         if (const auto *Info = GetInfoForAddress(Address)) {
-            return &Info->getSymbol();
+            return &Info->getSymbolRef();
         }
 
         return nullptr;

@@ -17,8 +17,8 @@ public:
     explicit OutputFile() noexcept;
     ~OutputFile() noexcept;
 
-    [[nodiscard]] inline bool IsOpen() const noexcept { return Tmp.IsOpen(); }
-    [[nodiscard]] inline bool IsEmpty() const noexcept { return Tmp.IsEmpty(); }
+    [[nodiscard]] inline bool isOpen() const noexcept { return Tmp.isOpen(); }
+    [[nodiscard]] inline bool isEmpty() const noexcept { return Tmp.isEmpty(); }
     [[nodiscard]] inline bool hasError() const noexcept {
         return Tmp.hasError();
     }

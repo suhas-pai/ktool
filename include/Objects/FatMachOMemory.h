@@ -76,12 +76,12 @@ public:
         return *Header;
     }
 
-    [[nodiscard]] inline bool IsBigEndian() const noexcept {
-        return getConstHeader().IsBigEndian();
+    [[nodiscard]] inline bool isBigEndian() const noexcept {
+        return getConstHeader().isBigEndian();
     }
 
-    [[nodiscard]] inline bool Is64Bit() const noexcept {
-        return getConstHeader().Is64Bit();
+    [[nodiscard]] inline bool is64Bit() const noexcept {
+        return getConstHeader().is64Bit();
     }
 
     [[nodiscard]] inline uint32_t getArchCount() const noexcept {
@@ -114,34 +114,61 @@ public:
 
     ArchInfo GetArchInfoAtIndex(uint32_t Index) const noexcept;
 
-    enum class GetObjectResultWarningEnum {
+    enum class GetArchObjectError {
+        None,
+        InvalidArchRange,
+        UnsupportedObjectKind
+    };
+
+    enum class GetArchObjectWarning {
         None,
         MachOCpuKindMismatch
     };
 
-    struct GetObjectResult {
+    struct GetArchObjectResult {
     public:
-        using WarningEnum = GetObjectResultWarningEnum;
+        using ErrorEnum = GetArchObjectError;
+        using WarningEnum = GetArchObjectWarning;
     protected:
         MemoryObject *Object;
-        WarningEnum Warning = WarningEnum::None;
+        union {
+            struct {
+                ErrorEnum Error : 16;
+                WarningEnum Warning : 16;
+            };
+
+            uint32_t Storage;
+        };
     public:
-        GetObjectResult(MemoryObject *Object) noexcept : Object(Object) {}
-        GetObjectResult(WarningEnum Warning) noexcept : Warning(Warning) {}
-        GetObjectResult(MemoryObject *Object, WarningEnum Warning) noexcept
+        GetArchObjectResult(MemoryObject *Object) noexcept : Object(Object) {}
+        GetArchObjectResult(std::nullptr_t) noexcept = delete;
+
+        GetArchObjectResult(ErrorEnum Error) noexcept : Error(Error) {}
+        GetArchObjectResult(WarningEnum Warning) noexcept : Warning(Warning) {}
+        GetArchObjectResult(MemoryObject *Object, WarningEnum Warning) noexcept
         : Object(Object), Warning(Warning) {}
 
+        [[nodiscard]] inline bool hasError() const noexcept {
+            return (getError() != ErrorEnum::None);
+        }
+
         [[nodiscard]] inline MemoryObject *getObject() const noexcept {
+            assert(hasError());
             return Object;
         }
 
         [[nodiscard]] inline WarningEnum getWarning() const noexcept {
+            assert(hasError());
             return Warning;
+        }
+
+        [[nodiscard]] inline ErrorEnum getError() const noexcept {
+            return Error;
         }
     };
 
     [[nodiscard]]
-    GetObjectResult GetArchObjectFromInfo(const ArchInfo &Info) const noexcept;
+    GetArchObjectResult GetArchObjectFromInfo(const ArchInfo &Info) const noexcept;
 };
 
 struct FatMachOMemoryObject : public ConstFatMachOMemoryObject {

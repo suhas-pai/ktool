@@ -89,7 +89,7 @@ PrintSymbolList(
         LongestKind = SymbolKindName.length();
     }
 
-    PrintArchListOperation::PrintLineSpamWarning(Options.OutFile, List.size());
+    Operation::PrintLineSpamWarning(Options.OutFile, List.size());
     fprintf(Options.OutFile,
             "Provided section has %" PRIuPTR " Indirect-Symbols:\n",
             List.size());
@@ -136,11 +136,11 @@ PrintSymbolList(
                     MaxIndexDigitLength,
                     Info->Index);
 
-            if (SymbolInfo.IsPrivateExternal()) {
+            if (SymbolInfo.isPrivateExternal()) {
                 fputs(", Private-External", Options.OutFile);
             }
 
-            if (SymbolInfo.IsDebugSymbol()) {
+            if (SymbolInfo.isDebugSymbol()) {
                 fputs(", Debug-Symbol", Options.OutFile);
             }
 
@@ -179,13 +179,13 @@ PrintSymbolPtrList(
     const uint8_t *MapBegin,
     const struct PrintSymbolPtrSectionOperation::Options &Options) noexcept
 {
-    const auto IsBigEndian = Object.IsBigEndian();
+    const auto IsBigEndian = Object.isBigEndian();
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
     auto SegmentCollectionError = MachO::SegmentInfoCollection::Error::None;
 
-    const auto Is64Bit = Object.Is64Bit();
+    const auto Is64Bit = Object.is64Bit();
     const auto SegmentCollection =
         MachO::SegmentInfoCollection::Open(LoadCmdStorage,
                                            Is64Bit,
@@ -203,7 +203,7 @@ PrintSymbolPtrList(
         return 1;
     }
 
-    if (Segment->getFlags().IsProtected()) {
+    if (Segment->getFlags().isProtected()) {
         fprintf(Options.ErrFile,
                 "Provided segment \"%s\" is protected (encrypted)\n",
                 Segment->getName().data());
@@ -366,7 +366,7 @@ PrintSymbolPtrList(
                 }
             }
 
-            return true;
+            return false;
         });
     } else {
         std::sort(List.begin(),
@@ -441,7 +441,7 @@ PrintSymbolPtrSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
             AddSortKind(Options::SortKind::ByKind, Argument, Options);
         } else if (strcmp(Argument, "--sort-by-symbol") == 0) {
             AddSortKind(Options::SortKind::BySymbol, Argument, Options);
-        } else if (!Argument.IsOption()) {
+        } else if (!Argument.isOption()) {
             if (DidGetInfo) {
                 break;
             }

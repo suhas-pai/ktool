@@ -24,9 +24,9 @@ DscMemoryObject::DscMemoryObject(const MemoryMap &Map, CpuKind CpuKind) noexcept
 
 [[nodiscard]] static ConstDscMemoryObject::Error
 ValidateMap(const ConstMemoryMap &Map,
-            DscMemoryObject::CpuKind &CpuKind) noexcept
+            ConstDscMemoryObject::CpuKind &CpuKind) noexcept
 {
-    if (!Map.IsLargeEnoughForType<DyldSharedCache::HeaderV0>()) {
+    if (!Map.isLargeEnoughForType<DyldSharedCache::HeaderV0>()) {
         return ConstDscMemoryObject::Error::SizeTooSmall;
     }
 
@@ -234,8 +234,8 @@ ConstDscMemoryObject::ValidateImageMapAndGetEnd(
         return DscImageOpenError::NotMarkedAsImage;
     }
 
-    const auto Is64Bit = Header.Is64Bit();
-    const auto IsBigEndian = Header.IsBigEndian();
+    const auto Is64Bit = Header.is64Bit();
+    const auto IsBigEndian = Header.isBigEndian();
     const auto LoadCmdStorage = Header.GetConstLoadCmdStorage();
 
     if (LoadCmdStorage.hasError()) {

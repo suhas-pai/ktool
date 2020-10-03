@@ -14,13 +14,9 @@
 
 #include "Path.h"
 
-bool PathUtil::IsAbsolute(const std::string_view &Path) noexcept {
-    return (Path.front() == '/');
-}
-
 static auto Cd = std::string();
 std::string PathUtil::Absolutify(const std::string_view &Path) noexcept {
-    if (IsAbsolute(Path)) {
+    if (isAbsolute(Path)) {
         return std::string(Path);
     }
 
