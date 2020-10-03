@@ -21,7 +21,7 @@ namespace MachO {
         Info = std::make_unique<ExportTrieIterateInfo>();
         Info->setMaxDepth(Options.MaxDepth);
 
-        Info->getRangeList().reserve(Options.RangeListReserveSize);
+        Info->getRangeListRef().reserve(Options.RangeListReserveSize);
         Info->getStackListRef().reserve(Options.StackListReserveSize);
         Info->getStringRef().reserve(Options.StringReserveSize);
 
@@ -63,7 +63,7 @@ namespace MachO {
 
         String.erase(EraseSuffixLength);
         if (Top.getRangeListSize() != 0) {
-            auto &RangeList = Info->getRangeList();
+            auto &RangeList = Info->getRangeListRef();
             RangeList.erase(RangeList.cbegin() + Top.getRangeListSize(),
                             RangeList.cend());
         }
@@ -100,7 +100,7 @@ namespace MachO {
         }
 
         const auto Range = LocationRange::CreateWithEnd(Offset, OffsetEnd);
-        auto &RangeList = Info->getRangeList();
+        auto &RangeList = Info->getRangeListRef();
         const auto RangeListEnd = RangeList.cend();
 
         const auto Predicate =
@@ -116,7 +116,7 @@ namespace MachO {
         }
 
         const auto ChildCount = *ExpectedEnd;
-        Info->getRangeList().emplace_back(Range);
+        Info->getRangeListRef().emplace_back(Range);
 
         InfoOut->setOffset(Ptr - Begin);
         InfoOut->setSize(NodeSize);

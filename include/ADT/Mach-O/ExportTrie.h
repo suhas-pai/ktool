@@ -569,8 +569,8 @@ namespace MachO {
             return RangeList;
         }
 
-        [[nodiscard]]
-        constexpr inline std::vector<LocationRange> &getRangeList() noexcept {
+        [[nodiscard]] constexpr
+        inline std::vector<LocationRange> &getRangeListRef() noexcept {
             return RangeList;
         }
 
