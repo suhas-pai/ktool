@@ -723,7 +723,7 @@ namespace MachO {
         return EmptyStringView;
     }
 
-    static inline bool
+    [[nodiscard]] static inline bool
     IsSectionListValidForSegmentCommand(uint32_t SectionCount,
                                         uint32_t SectionSize,
                                         uint32_t ThisSize,
@@ -735,7 +735,7 @@ namespace MachO {
         return (CmdSize >= ExpectedCmdSize);
     }
 
-    bool SegmentCommand::IsSectionListValid(bool IsBigEndian) const noexcept {
+    bool SegmentCommand::isSectionListValid(bool IsBigEndian) const noexcept {
         const auto Result =
             IsSectionListValidForSegmentCommand(getSectionCount(IsBigEndian),
                                                 sizeof(Section),
@@ -745,7 +745,7 @@ namespace MachO {
         return Result;
     }
 
-    bool SegmentCommand64::IsSectionListValid(bool IsBigEndian) const noexcept {
+    bool SegmentCommand64::isSectionListValid(bool IsBigEndian) const noexcept {
         const auto Result =
             IsSectionListValidForSegmentCommand(getSectionCount(IsBigEndian),
                                                 sizeof(Section),
@@ -777,7 +777,7 @@ namespace MachO {
     }
 
     bool
-    LoadCommandString::IsOffsetValid(uint32_t MinSize,
+    LoadCommandString::isOffsetValid(uint32_t MinSize,
                                      uint32_t CmdSize,
                                      bool IsBigEndian) const noexcept
     {
@@ -900,7 +900,7 @@ namespace MachO {
     bool
     PreBoundDylibCommand::isNameOffsetValid(bool IsBigEndian) const noexcept {
         const auto CmdSize = offsetof(NakedPreBoundDylibCommand, NModules);
-        return Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
+        return Name.isOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
     }
 
     LoadCommandString::GetValueResult

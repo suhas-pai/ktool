@@ -230,19 +230,19 @@ MachOLoadCommandPrinterWriteFileAndVmRange(FILE *OutFile,
 
     fprintf(OutFile, "Memory:%c", (OneLine) ? ' ' : '\t');
 
-    const auto ShouldPad = (OneLine && Verbose);
+    const auto OneLineAndVerbose = (OneLine && Verbose);
     __MLCP_WriteOffsetRange(OutFile,
                             VmAddr,
                             VmSize,
-                            ShouldPad,
+                            OneLineAndVerbose,
                             static_cast<VmAddrType *>(nullptr));
 
     if (ShouldPrintSizeInfo) {
         __MLCP_WriteSizeInfo<OneLine>(OutFile, VmSize, !OneLine);
     }
 
-    if (!OneLine || (OneLine && Verbose)) {
-        __MLCP_WriteSizeDiff(OutFile, FileSize, VmSize, ShouldPad);
+    if (!OneLine || OneLineAndVerbose) {
+        __MLCP_WriteSizeDiff(OutFile, FileSize, VmSize, OneLineAndVerbose);
     }
 }
 
@@ -322,13 +322,13 @@ MachOLoadCommandPrinterWriteSegmentCommand(FILE *OutFile,
         return;
     }
 
-    if (!Segment.IsSectionListValid(IsBigEndian)) {
+    if (!Segment.isSectionListValid(IsBigEndian)) {
         fputs("Section-List is Invalid\n", OutFile);
         return;
     }
 
     fprintf(OutFile, "%" PRIu32 " Sections:\n", SectionsCount);
-    for (const auto &Section : Segment.GetConstSectionListUnsafe(IsBigEndian)) {
+    for (const auto &Section : Segment.getConstSectionListUnsafe(IsBigEndian)) {
         const auto SectVmAddr = Section.getAddress(IsBigEndian);
         const auto SectSize = Section.getSize(IsBigEndian);
 

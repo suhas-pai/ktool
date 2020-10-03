@@ -55,10 +55,6 @@ namespace MachO {
             I++;
         } while (true);
 
-        if (Iter != End) {
-            return ConstLoadCommandStorage::Error::StorageSizeTooSmall;
-        }
-
         *SizeOut = static_cast<uint32_t>(Iter - Begin);
         return ConstLoadCommandStorage::Error::None;
     }

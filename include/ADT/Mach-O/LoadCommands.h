@@ -548,16 +548,16 @@ namespace MachO {
             return *this;
         }
 
-        [[nodiscard]] bool IsSectionListValid(bool IsBigEndian) const noexcept;
+        [[nodiscard]] bool isSectionListValid(bool IsBigEndian) const noexcept;
         
         [[nodiscard]]
-        inline SectionList GetSectionListUnsafe(bool IsBigEndian) noexcept {
+        inline SectionList getSectionListUnsafe(bool IsBigEndian) noexcept {
             const auto Ptr = reinterpret_cast<Section *>(this + 1);
             return SectionList(Ptr, getSectionCount(IsBigEndian));
         }
 
         [[nodiscard]] ConstSectionList
-        GetConstSectionListUnsafe(bool IsBigEndian) const noexcept {
+        getConstSectionListUnsafe(bool IsBigEndian) const noexcept {
             const auto Ptr = reinterpret_cast<const Section *>(this + 1);
             return ConstSectionList(Ptr, getSectionCount(IsBigEndian));
         }
@@ -826,16 +826,16 @@ namespace MachO {
             return *this;
         }
 
-        [[nodiscard]] bool IsSectionListValid(bool IsBigEndian) const noexcept;
+        [[nodiscard]] bool isSectionListValid(bool IsBigEndian) const noexcept;
 
         [[nodiscard]]
-        inline SectionList GetSectionListUnsafe(bool IsBigEndian) noexcept {
+        inline SectionList getSectionListUnsafe(bool IsBigEndian) noexcept {
             const auto Ptr = reinterpret_cast<Section *>(this + 1);
             return SectionList(Ptr, getSectionCount(IsBigEndian));
         }
 
         [[nodiscard]] ConstSectionList
-        GetConstSectionListUnsafe(bool IsBigEndian) const noexcept {
+        getConstSectionListUnsafe(bool IsBigEndian) const noexcept {
             const auto Ptr = reinterpret_cast<const Section *>(this + 1);
             return ConstSectionList(Ptr, getSectionCount(IsBigEndian));
         }
@@ -905,7 +905,7 @@ namespace MachO {
         using GetValueResult = LoadCommandStringViewOrError<GetStringError>;
 
         [[nodiscard]] bool
-        IsOffsetValid(uint32_t MinSize,
+        isOffsetValid(uint32_t MinSize,
                       uint32_t CmdSize,
                       bool IsBigEndian) const noexcept;
 
@@ -1003,7 +1003,7 @@ namespace MachO {
         [[nodiscard]]
         inline bool isNameOffsetValid(bool IsBigEndian) const noexcept {
             const auto Offset = Info.Name.getOffset(IsBigEndian);
-            return Info.Name.IsOffsetValid(sizeof(*this), Offset, CmdSize);
+            return Info.Name.isOffsetValid(sizeof(*this), Offset, CmdSize);
         }
 
         [[nodiscard]] LoadCommandString::GetValueResult
@@ -1104,7 +1104,7 @@ namespace MachO {
         [[nodiscard]]
         inline bool isNameOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
-            return Info.Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
+            return Info.Name.isOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
 
         [[nodiscard]] LoadCommandString::GetValueResult
@@ -1137,7 +1137,7 @@ namespace MachO {
         [[nodiscard]]
         inline bool isUmbrellaOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
-            return Umbrella.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
+            return Umbrella.isOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
 
         [[nodiscard]] LoadCommandString::GetValueResult
@@ -1170,7 +1170,7 @@ namespace MachO {
         [[nodiscard]]
         inline bool isClientOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
-            return Client.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
+            return Client.isOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
 
         [[nodiscard]] LoadCommandString::GetValueResult
@@ -1203,7 +1203,7 @@ namespace MachO {
         [[nodiscard]]
         inline bool isUmbrellaOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
-            return Umbrella.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
+            return Umbrella.isOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
 
         [[nodiscard]] LoadCommandString::GetValueResult
@@ -1236,7 +1236,7 @@ namespace MachO {
         [[nodiscard]]
         inline bool isLibraryOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
-            return Library.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
+            return Library.isOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
 
         [[nodiscard]] LoadCommandString::GetValueResult
@@ -1273,7 +1273,7 @@ namespace MachO {
         [[nodiscard]] inline
         bool IsLinkedModulesOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
-            return Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
+            return Name.isOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
 
         [[nodiscard]] LoadCommandString::GetValueResult
@@ -1314,7 +1314,7 @@ namespace MachO {
         [[nodiscard]]
         inline bool isNameOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
-            return Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
+            return Name.isOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
 
         [[nodiscard]] LoadCommandString::GetValueResult
@@ -2245,7 +2245,7 @@ namespace MachO {
         [[nodiscard]]
         inline bool isPathOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
-            return Path.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
+            return Path.isOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
 
         [[nodiscard]] LoadCommandString::GetValueResult
@@ -3478,7 +3478,7 @@ namespace MachO {
         [[nodiscard]]
         inline bool isNameOffsetValid(bool IsBigEndian) const noexcept {
             const auto CmdSize = getCmdSize(IsBigEndian);
-            return Name.IsOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
+            return Name.isOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
         }
 
         [[nodiscard]] constexpr

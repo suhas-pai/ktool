@@ -404,7 +404,7 @@ BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
         BasicIsolate(Node);
         Node.clearAndDestroy();
 
-        return getRoot()->getFirstChild();
+        return nullptr;
     }
 
     auto NextNode = const_cast<BasicTreeNode *>(Node.FindNextNodeForIterator());
