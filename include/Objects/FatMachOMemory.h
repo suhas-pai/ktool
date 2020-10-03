@@ -130,45 +130,42 @@ public:
         using ErrorEnum = GetArchObjectError;
         using WarningEnum = GetArchObjectWarning;
     protected:
-        MemoryObject *Object;
         union {
-            struct {
-                ErrorEnum Error : 16;
-                WarningEnum Warning : 16;
-            };
-
-            uint32_t Storage;
+            PointerErrorStorage<ErrorEnum> ErrorStorage;
+            MemoryObject *Object;
         };
+
+        WarningEnum Warning = WarningEnum::None;
     public:
         GetArchObjectResult(MemoryObject *Object) noexcept : Object(Object) {}
         GetArchObjectResult(std::nullptr_t) noexcept = delete;
 
-        GetArchObjectResult(ErrorEnum Error) noexcept : Error(Error) {}
+        GetArchObjectResult(ErrorEnum Error) noexcept : ErrorStorage(Error) {}
         GetArchObjectResult(WarningEnum Warning) noexcept : Warning(Warning) {}
         GetArchObjectResult(MemoryObject *Object, WarningEnum Warning) noexcept
         : Object(Object), Warning(Warning) {}
 
         [[nodiscard]] inline bool hasError() const noexcept {
-            return (getError() != ErrorEnum::None);
+            return ErrorStorage.hasValue();
         }
 
         [[nodiscard]] inline MemoryObject *getObject() const noexcept {
-            assert(hasError());
+            assert(!hasError());
             return Object;
         }
 
         [[nodiscard]] inline WarningEnum getWarning() const noexcept {
-            assert(hasError());
+            assert(!hasError());
             return Warning;
         }
 
         [[nodiscard]] inline ErrorEnum getError() const noexcept {
-            return Error;
+            return ErrorStorage.getValue();
         }
     };
 
-    [[nodiscard]]
-    GetArchObjectResult GetArchObjectFromInfo(const ArchInfo &Info) const noexcept;
+    [[nodiscard]] GetArchObjectResult
+    GetArchObjectFromInfo(const ArchInfo &Info) const noexcept;
 };
 
 struct FatMachOMemoryObject : public ConstFatMachOMemoryObject {
