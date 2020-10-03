@@ -112,7 +112,7 @@ namespace MachO {
             const uint8_t **EndOut = nullptr) const noexcept;
 
         template <typename T, typename = std::enable_if_t<!std::is_const_v<T>>>
-        [[nodiscard]] T *
+        [[nodiscard]] inline T *
         GetPtrForVirtualAddr(uint8_t *Map,
                              uint64_t Addr,
                              uint64_t Size = sizeof(T),
@@ -128,7 +128,7 @@ namespace MachO {
         }
 
         template <typename T>
-        [[nodiscard]] T *
+        [[nodiscard]] inline T *
         GetPtrForVirtualAddr(const uint8_t *Map,
                              uint64_t Addr,
                              uint64_t Size = sizeof(T),
@@ -145,7 +145,7 @@ namespace MachO {
         }
 
         template <typename T, typename = std::enable_if_t<!std::is_const_v<T>>>
-        [[nodiscard]] T *
+        [[nodiscard]] inline T *
         GetPtrForVirtualAddrIgnoreSections(
              uint8_t *Map,
              uint64_t Addr,
@@ -163,7 +163,7 @@ namespace MachO {
         }
 
         template <typename T>
-        [[nodiscard]] T *
+        [[nodiscard]] inline T *
         GetPtrForVirtualAddrIgnoreSections(
             const uint8_t *Map,
             uint64_t Addr,
