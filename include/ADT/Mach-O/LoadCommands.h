@@ -44,6 +44,15 @@ namespace MachO {
             return (this->getKind(IsBigEndian) == Kind);
         }
 
+        template <Kind First, Kind Second, Kind... Rest>
+        [[nodiscard]] inline bool isa(bool IsBigEndian) const noexcept {
+            if (isa<First>(IsBigEndian)) {
+                return true;
+            }
+
+            return isa<Second, Rest...>(IsBigEndian);
+        }
+
         template <Kind Kind>
         [[nodiscard]] inline LoadCommandTypeFromKind<Kind> &
         cast(bool IsBigEndian) noexcept {
@@ -3735,7 +3744,7 @@ inline bool isa(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
         return true;
     }
 
-    return (isa<Second, Rest...>(LoadCmd, IsBigEndian));
+    return isa<Second, Rest...>(LoadCmd, IsBigEndian);
 }
 
 template <typename T>
