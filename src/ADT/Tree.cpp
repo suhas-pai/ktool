@@ -11,12 +11,12 @@
 #include "Utils/PrintUtils.h"
 #include "Tree.h"
 
-BasicTreeNode &BasicTreeNode::SetParentOfChildren() noexcept {
-    return SetParentOfChildren(*this);
+BasicTreeNode &BasicTreeNode::SetAsParentOfChildren() noexcept {
+    return SetAsParentOfChildren(*this);
 }
 
 BasicTreeNode &
-BasicTreeNode::SetParentOfChildren(BasicTreeNode &Node) noexcept {
+BasicTreeNode::SetAsParentOfChildren(BasicTreeNode &Node) noexcept {
     BASIC_TREE_NODE_ITERATE_CHILDREN(Node) {
         Child->setParent(&Node);
     }
@@ -265,24 +265,6 @@ static void DoRemoveLeafParents(BasicTreeNode &LeafParent) noexcept {
     }
 }
 
-void
-BasicTreeNode::IsolateAndRemoveFromParent(bool RemoveLeafParents,
-                                          BasicTreeNode *Root) noexcept
-{
-    BasicIsolate(*this);
-
-    if (const auto Parent = getParent();
-        Parent != nullptr && Parent != Root && !Parent->isLeaf())
-    {
-        if (RemoveLeafParents) {
-            DoRemoveLeafParents(*Parent);
-        }
-    }
-
-    // BasicIsolate() has already removed this Node from Parent.
-    this->clearAndDestroy();
-}
-
 BasicTree::BasicTree(BasicTreeNode *Root) noexcept : Root(Root) {}
 BasicTree::~BasicTree() noexcept {}
 
@@ -373,25 +355,54 @@ BasicTreeNode::FindNextNodeForIterator(const BasicTreeNode *End,
     return FindNextSiblingForIterator(End, Out);
 }
 
+[[nodiscard]] static bool
+IsolateAndRemoveFromParent(BasicTreeNode &Node,
+                           BasicTreeNode &Root,
+                           bool RemoveLeafParents) noexcept
+{
+    BasicIsolate(Node);
+
+    auto RemovedRoot = false;
+    if (const auto Parent = Node.getParent();
+        Parent != nullptr && !Parent->isLeaf())
+    {
+        if (RemoveLeafParents) {
+            DoRemoveLeafParents(*Parent);
+        }
+
+        RemovedRoot = (Parent == &Root);
+    }
+
+    // BasicIsolate() has already removed this Node from Parent.
+
+    ClearNode(Node);
+    return RemovedRoot;
+}
+
+
 BasicTreeNode *
 BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
     if (&Node == Root) {
         if (Node.isLeaf()) {
-            Node.clearAndDestroy();
             setRoot(nullptr);
+
+            BasicIsolate(Node);
+            Node.clearAndDestroy();
 
             return nullptr;
         }
 
         if (Node.hasOnlyOneChild()) {
             setRoot(Node.getFirstChild());
+
+            BasicIsolate(Node);
             Node.clearAndDestroy();
 
-            return getRoot()->getFirstChild();
+            return getRoot();
         }
 
         setRoot(Node.createNew());
-        Node.setParent(getRoot());
+        getRoot()->SetAsParentOfChildren(*Node.getFirstChild());
 
         BasicIsolate(Node);
         Node.clearAndDestroy();
@@ -399,9 +410,13 @@ BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
         return nullptr;
     }
 
-    auto NextNode = const_cast<BasicTreeNode *>(Node.FindNextNodeForIterator());
+    const auto NextNode =
+        const_cast<BasicTreeNode *>(Node.FindNextNodeForIterator());
 
-    Node.IsolateAndRemoveFromParent(RemoveParentLeafs);
+    if (IsolateAndRemoveFromParent(Node, *Root, RemoveParentLeafs)) {
+        setRoot(nullptr);
+    }
+
     return NextNode;
 }
 

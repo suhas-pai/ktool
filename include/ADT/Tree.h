@@ -275,15 +275,10 @@ public:
 
     [[nodiscard]] uint64_t GetChildCount() const noexcept;
 
-    BasicTreeNode &SetParentOfChildren() noexcept;
-    BasicTreeNode &SetParentOfChildren(BasicTreeNode &Node) noexcept;
+    BasicTreeNode &SetAsParentOfChildren() noexcept;
+    BasicTreeNode &SetAsParentOfChildren(BasicTreeNode &Node) noexcept;
 
     void ValidateChildArray() const noexcept;
-
-    void
-    IsolateAndRemoveFromParent(bool RemoveLeafParents = false,
-                               BasicTreeNode *Root = nullptr) noexcept;
-
     BasicTreeNode &AddChild(BasicTreeNode &Node) noexcept;
 
     BasicTreeNode &
