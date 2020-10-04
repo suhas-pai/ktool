@@ -482,7 +482,6 @@ namespace MachO {
         using Masks = DyldInfoByteMasks;
         using Opcode = BindByteOpcode;
         using SubOpcode = BindByteSubOpcode;
-        using Shifts = DyldInfoByteShifts;
         using WriteKind = BindWriteKind;
 
         [[nodiscard]]
