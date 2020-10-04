@@ -364,7 +364,7 @@ namespace MachO {
     }
 
     ObjcClassInfo *
-    ObjcClassInfoCollection::AddExternalClass(const std::string_view &Name,
+    ObjcClassInfoCollection::AddExternalClass(std::string_view Name,
                                               uint64_t DylibOrdinal,
                                               uint64_t BindAddr) noexcept
     {
@@ -387,7 +387,7 @@ namespace MachO {
 
     ObjcClassInfo *
     ObjcClassInfoCollection::GetInfoForClassName(
-        const std::string_view &Name) const noexcept
+        std::string_view Name) const noexcept
     {
         for (const auto &Iter : List) {
             const auto &Info = Iter.second;

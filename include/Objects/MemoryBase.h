@@ -17,20 +17,18 @@
 #include "TypeTraits/DisableIfNotPointer.h"
 
 #include "Kind.h"
+#include <type_traits>
 
 struct MemoryObject;
 struct MemoryObjectOrError {
 protected:
     union {
         MemoryObject *Ptr;
+        uintptr_t Storage;
 
-        union {
-            struct {
-                ObjectKind ObjKind : 8;
-                uint8_t Error;
-            };
-
-            uintptr_t Storage;
+        struct {
+            ObjectKind ObjKind : 8;
+            uint8_t Error;
         };
     };
 public:
@@ -157,28 +155,8 @@ using ObjectClassFromKindConstType = typename ObjectKindInfo<Kind>::ConstType;
 template <ObjectKind Kind>
 using ObjectClassFromKindConstPtr = typename ObjectKindInfo<Kind>::ConstPtr;
 
-template <typename T>
-using IsSubclassOfMemoryObject =
-    typename std::enable_if_t<std::is_base_of<MemoryObject, T>::value>;
-
 // isa<T> templates
-// isa<MemoryObjectType>(const MemoryObject *) -> bool
-
-template <typename MemoryObjectType,
-          typename = IsSubclassOfMemoryObject<MemoryObjectType>>
-
-static inline bool isa(const MemoryObject &Object) noexcept {
-    return MemoryObjectType::IsOfKind(Object);
-}
-
-// isa<MemoryObjectType>(const MemoryObject *) -> bool
-
-template <typename MemoryObjectType,
-          typename = IsSubclassOfMemoryObject<MemoryObjectType>>
-
-static inline bool isa(const MemoryObject *Object) noexcept {
-    return MemoryObjectType::IsOfKind(*Object);
-}
+// isa<ObjectKind>(const MemoryObject &) -> bool
 
 template <ObjectKind Kind,
           typename MemoryObjectType = ObjectClassFromKindType<Kind>>
@@ -187,7 +165,7 @@ static inline bool isa(const MemoryObject &Object) noexcept {
     return MemoryObjectType::IsOfKind(Object);
 }
 
-// isa<MemoryObjectType>(const MemoryObject *) -> bool
+// isa<ObjectKind>(const MemoryObject *) -> bool
 
 template <ObjectKind Kind,
           typename MemoryObjectType = ObjectClassFromKindType<Kind>>

@@ -13,14 +13,13 @@
 
 struct PathUtil {
     [[nodiscard]]
-    static bool isAbsolute(const std::string_view &Path) noexcept {
+    static bool isAbsolute(std::string_view Path) noexcept {
         return (Path.front() == '/');
     }
 
     [[nodiscard]]
-    static std::string Absolutify(const std::string_view &Path) noexcept;
+    static std::string Absolutify(std::string_view Path) noexcept;
 
     [[nodiscard]] static std::string
-    ConcatPaths(const std::string_view &Lhs,
-                const std::string_view &Rhs) noexcept;
+    ConcatPaths(std::string_view Lhs, std::string_view Rhs) noexcept;
 };

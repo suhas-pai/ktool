@@ -124,7 +124,7 @@ PrintUtilsWriteUuid(FILE *OutFile,
 
 using namespace std::literals;
 
-constexpr static const std::string_view FormatNames[] = {
+constexpr static std::string_view FormatNames[] = {
     "KiloBytes"sv,
     "MegaBytes"sv,
     "GigaBytes"sv,

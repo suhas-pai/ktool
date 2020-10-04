@@ -36,7 +36,7 @@ namespace MachO {
     public:
         ObjcClassInfo() noexcept : sIsExternal(false), sIsNull(false) {}
 
-        explicit ObjcClassInfo(const std::string_view &Name) noexcept
+        explicit ObjcClassInfo(std::string_view Name) noexcept
         : Name(Name), sIsExternal(false), sIsNull(false) {}
 
         [[nodiscard]]

@@ -10,7 +10,7 @@
 
 namespace MachO {
     static std::string *
-    GetPtrForSymbol(const std::string_view &Symbol,
+    GetPtrForSymbol(std::string_view Symbol,
                     BindActionCollection::SymbolListType &SymbolList) noexcept
     {
         const auto Hash = std::hash<std::string_view>()(Symbol);

@@ -334,7 +334,7 @@ namespace MachO::ObjcParse {
     }
 
     [[nodiscard]] static inline ObjcClassInfo
-    CreateExternalClass(const std::string_view &Name,
+    CreateExternalClass(std::string_view Name,
                         uint64_t DylibOrdinal,
                         uint64_t BindAddr) noexcept
     {

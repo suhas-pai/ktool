@@ -136,7 +136,7 @@ namespace MachO {
         ObjcClassInfo *AddNullClass(uint64_t BindAddress) noexcept;
 
         ObjcClassInfo *
-        AddExternalClass(const std::string_view &Name,
+        AddExternalClass(std::string_view Name,
                          uint64_t DylibOrdinal,
                          uint64_t BindAddress) noexcept;
 
@@ -144,7 +144,7 @@ namespace MachO {
         ObjcClassInfo *GetInfoForAddress(uint64_t Address) const noexcept;
 
         [[nodiscard]] ObjcClassInfo *
-        GetInfoForClassName(const std::string_view &Name) const noexcept;
+        GetInfoForClassName(std::string_view Name) const noexcept;
 
         using Iterator = TreeIterator<ObjcClassInfo>;
         using ConstIterator = TreeIterator<const ObjcClassInfo>;

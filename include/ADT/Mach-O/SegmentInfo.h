@@ -223,7 +223,7 @@ namespace MachO {
         }
         
         [[nodiscard]] const SectionInfo *
-        FindSectionWithName(const std::string_view &Name) const noexcept;
+        FindSectionWithName(std::string_view Name) const noexcept;
 
         [[nodiscard]] const SectionInfo *
         FindSectionContainingAddress(uint64_t Address) const noexcept;

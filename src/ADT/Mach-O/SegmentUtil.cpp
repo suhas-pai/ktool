@@ -225,7 +225,7 @@ namespace MachO {
     SegmentInfoCollection::OpenSegmentInfoWithName(
         const ConstLoadCommandStorage &LoadCmdStorage,
         bool Is64Bit,
-        const std::string_view &Name,
+        const std::string_view Name,
         Error *ErrorOut) noexcept
     {
         const auto IsBigEndian = LoadCmdStorage.isBigEndian();
@@ -278,8 +278,8 @@ namespace MachO {
     SegmentInfoCollection::OpenSectionInfoWithName(
         const ConstLoadCommandStorage &LoadCmdStorage,
         bool Is64Bit,
-        const std::string_view &SegmentName,
-        const std::string_view &SectionName,
+        std::string_view SegmentName,
+        std::string_view SectionName,
         std::unique_ptr<SegmentInfo> *SegmentOut,
         Error *ErrorOut) noexcept
     {
@@ -400,7 +400,7 @@ namespace MachO {
 
     const SegmentInfo *
     SegmentInfoCollection::GetInfoForName(
-        const std::string_view &Name) const noexcept
+        std::string_view Name) const noexcept
     {
         for (const auto &SegInfo : *this) {
             if (SegInfo->getName() == Name) {
@@ -413,7 +413,7 @@ namespace MachO {
 
     const SectionInfo *
     SegmentInfo::FindSectionWithName(
-        const std::string_view &Name) const noexcept
+        std::string_view Name) const noexcept
     {
         for (const auto &SectInfo : SectionList) {
             if (SectInfo->getName() == Name) {
@@ -426,8 +426,8 @@ namespace MachO {
 
     const SectionInfo *
     SegmentInfoCollection::FindSectionWithName(
-        const std::string_view &SegmentName,
-        const std::string_view &Name) const noexcept
+        std::string_view SegmentName,
+        std::string_view Name) const noexcept
     {
         const auto *SegmentInfo = GetInfoForName(SegmentName);
         if (SegmentInfo != nullptr) {

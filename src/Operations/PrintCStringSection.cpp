@@ -30,8 +30,8 @@ struct StringInfo {
     }
 };
 
-[[nodiscard]] static
-inline bool ShouldExcludeString(const std::string_view &String) noexcept {
+[[nodiscard]]
+static inline bool ShouldExcludeString(std::string_view String) noexcept {
     if (String.empty()) {
         return true;
     }

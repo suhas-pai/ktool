@@ -331,7 +331,7 @@ constexpr static auto SegmentSectionPairFormat =
 void
 OperationCommon::ParseSegmentSectionPair(
     FILE *ErrFile,
-    const std::string_view &Pair,
+    std::string_view Pair,
     std::string_view &SegmentNameOut,
     std::string_view &SectionNameOut) noexcept
 {

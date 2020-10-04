@@ -21,8 +21,9 @@ ConstMachOMemoryObject::ConstMachOMemoryObject(
 MachOMemoryObject::MachOMemoryObject(const MemoryMap &Map) noexcept
 : ConstMachOMemoryObject(Map) {}
 
-ConstMachOMemoryObject::Error
-ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept {
+auto
+ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept -> Error
+{
     if (!Map.isLargeEnoughForType<MachO::Header>()) {
         return ConstMachOMemoryObject::Error::SizeTooSmall;
     }
@@ -69,8 +70,10 @@ ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept {
     return ConstMachOMemoryObject::Error::None;
 }
 
-PointerOrError<ConstMachOMemoryObject, ConstMachOMemoryObject::Error>
-ConstMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
+auto
+ConstMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept ->
+    PointerOrError<ConstMachOMemoryObject, Error>
+{
     const auto Error = ValidateMap(Map);
     if (Error != Error::None) {
         return Error;

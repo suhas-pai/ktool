@@ -99,10 +99,12 @@ ValidateMap(const ConstMemoryMap &Map) noexcept {
     return ConstFatMachOMemoryObject::Error::None;
 }
 
-PointerOrError<ConstFatMachOMemoryObject, ConstFatMachOMemoryObject::Error>
-ConstFatMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
+auto
+ConstFatMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept ->
+    PointerOrError<ConstFatMachOMemoryObject, Error>
+{
     const auto Error = ValidateMap(Map);
-    if (Error != ConstFatMachOMemoryObject::Error::None) {
+    if (Error != Error::None) {
         return Error;
     }
 
@@ -157,8 +159,10 @@ GetArchInfoAtIndexImpl(const ListType &List,
     return Info;
 }
 
-ConstFatMachOMemoryObject::ArchInfo
-ConstFatMachOMemoryObject::GetArchInfoAtIndex(uint32_t Index) const noexcept {
+auto
+ConstFatMachOMemoryObject::GetArchInfoAtIndex(uint32_t Index) const noexcept ->
+    ArchInfo
+{
     assert(!IndexOutOfBounds(Index, this->getArchCount()));
 
     auto Info = ArchInfo();
@@ -196,9 +200,9 @@ GetMachOObjectResult(MemoryObject *ArchObject,
     return MachOObject;
 }
 
-ConstFatMachOMemoryObject::GetArchObjectResult
+auto
 ConstFatMachOMemoryObject::GetArchObjectFromInfo(
-    const ArchInfo &Info) const noexcept
+    const ArchInfo &Info) const noexcept -> GetArchObjectResult
 {
     const auto ArchRangeOpt =
         LocationRange::CreateWithSize(Info.Offset, Info.Size);

@@ -81,7 +81,7 @@ HandleDscImageOpenError(ConstDscMemoryObject::DscImageOpenError Error) noexcept
 
 [[nodiscard]] static ConstDscImageMemoryObject *
 GetImageWithPath(const ConstDscMemoryObject &Object,
-                 const std::string_view &Path) noexcept
+                 std::string_view Path) noexcept
 {
     const auto ImageInfo = Object.GetImageInfoWithPath(Path);
     if (ImageInfo == nullptr) {

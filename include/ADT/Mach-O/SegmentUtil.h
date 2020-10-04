@@ -49,14 +49,14 @@ namespace MachO {
         [[nodiscard]] static std::unique_ptr<SegmentInfo>
         OpenSegmentInfoWithName(const ConstLoadCommandStorage &LoadCmdStorage,
                                 bool Is64Bit,
-                                const std::string_view &Name,
+                                std::string_view Name,
                                 Error *ErrorOut) noexcept;
 
         [[nodiscard]] static std::unique_ptr<SectionInfo>
         OpenSectionInfoWithName(const ConstLoadCommandStorage &LoadCmdStorage,
                                 bool Is64Bit,
-                                const std::string_view &SegmentName,
-                                const std::string_view &SectionName,
+                                std::string_view SegmentName,
+                                std::string_view SectionName,
                                 std::unique_ptr<SegmentInfo> *SegmentOut,
                                 Error *ErrorOut) noexcept;
 
@@ -69,11 +69,11 @@ namespace MachO {
         }
 
         [[nodiscard]] const SegmentInfo *
-        GetInfoForName(const std::string_view &Name) const noexcept;
+        GetInfoForName(std::string_view Name) const noexcept;
 
         [[nodiscard]] const SectionInfo *
-        FindSectionWithName(const std::string_view &SegmentName,
-                            const std::string_view &Name) const noexcept;
+        FindSectionWithName(std::string_view SegmentName,
+                            std::string_view Name) const noexcept;
 
         [[nodiscard]] const SegmentInfo *
         FindSegmentContainingAddress(uint64_t Address) const noexcept;

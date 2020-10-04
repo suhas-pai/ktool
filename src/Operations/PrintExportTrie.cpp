@@ -42,8 +42,8 @@ FindSegmentAndSectionForAddr(const MachO::SegmentInfoCollection &Collection,
 
 static bool
 ExportMeetsRequirements(const MachO::ExportTrieExportKind Kind,
-                        const std::string_view &SegmentName,
-                        const std::string_view &SectionName,
+                        std::string_view SegmentName,
+                        std::string_view SectionName,
                         const struct PrintExportTrieOperation::Options &Options)
 {
     if (!Options.KindRequirements.empty()) {

@@ -328,7 +328,7 @@ public:
     }
 
     [[nodiscard]] inline DyldSharedCache::ImageInfo *
-    GetImageInfoWithPath(const std::string_view &Path) const noexcept {
+    GetImageInfoWithPath(std::string_view Path) const noexcept {
         const auto Result = ConstDscMemoryObject::GetImageInfoWithPath(Path);
         return const_cast<DyldSharedCache::ImageInfo *>(Result);
     }

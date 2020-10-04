@@ -111,8 +111,10 @@ ValidateMap(const ConstMemoryMap &Map,
     return ConstDscMemoryObject::Error::None;
 }
 
-PointerOrError<ConstDscMemoryObject, ConstDscMemoryObject::Error>
-ConstDscMemoryObject::Open(const ConstMemoryMap &Map) noexcept {
+auto
+ConstDscMemoryObject::Open(const ConstMemoryMap &Map) noexcept ->
+    PointerOrError<ConstDscMemoryObject, Error>
+{
     auto CpuKind = ConstDscMemoryObject::CpuKind::i386;
     const auto Error = ValidateMap(Map, CpuKind);
 
@@ -209,9 +211,9 @@ ConstDscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
     assert(0 && "Unrecognized Cpu-Kind");
 }
 
-PointerOrError<const uint8_t, ConstDscMemoryObject::DscImageOpenError>
-ConstDscMemoryObject::ValidateImageMapAndGetEnd(
-    const ConstMemoryMap &Map) noexcept
+auto ConstDscMemoryObject::ValidateImageMapAndGetEnd(
+    const ConstMemoryMap &Map) noexcept ->
+        PointerOrError<const uint8_t, DscImageOpenError>
 {
     const auto ValidateError = ConstMachOMemoryObject::ValidateMap(Map);
     switch (ValidateError) {
@@ -245,7 +247,7 @@ ConstDscMemoryObject::ValidateImageMapAndGetEnd(
     auto End = Map.getBegin();
     if (Is64Bit) {
         for (const auto &LoadCmd : LoadCmdStorage) {
-            const auto Segment =
+            const auto *Segment =
                 dyn_cast<MachO::SegmentCommand64>(LoadCmd, IsBigEndian);
 
             if (Segment != nullptr) {
@@ -256,7 +258,7 @@ ConstDscMemoryObject::ValidateImageMapAndGetEnd(
         }
     } else {
         for (const auto &LoadCmd : LoadCmdStorage) {
-            const auto Segment =
+            const auto *Segment =
                 dyn_cast<MachO::SegmentCommand>(LoadCmd, IsBigEndian);
 
             if (Segment != nullptr) {
@@ -285,11 +287,10 @@ ConstDscMemoryObject::GetImageInfoWithPath(std::string_view Path) const noexcept
     return nullptr;
 }
 
-PointerOrError<ConstDscImageMemoryObject,
-               ConstDscMemoryObject::DscImageOpenError>
-
+auto
 ConstDscMemoryObject::GetImageWithInfo(
-    const DyldSharedCache::ImageInfo &ImageInfo) const noexcept
+    const DyldSharedCache::ImageInfo &ImageInfo) const noexcept ->
+        PointerOrError<ConstDscImageMemoryObject, DscImageOpenError>
 {
     if (const auto Ptr = GetPtrForAddress(ImageInfo.Address)) {
         const auto Map = getMap();
