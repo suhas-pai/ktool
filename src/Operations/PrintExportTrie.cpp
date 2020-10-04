@@ -41,10 +41,11 @@ FindSegmentAndSectionForAddr(const MachO::SegmentInfoCollection &Collection,
 }
 
 static bool
-ExportMeetsRequirements(const MachO::ExportTrieExportKind Kind,
-                        std::string_view SegmentName,
-                        std::string_view SectionName,
-                        const struct PrintExportTrieOperation::Options &Options)
+ExportMeetsRequirements(
+    const MachO::ExportTrieExportKind Kind,
+    std::string_view SegmentName,
+    std::string_view SectionName,
+    const struct PrintExportTrieOperation::Options &Options) noexcept
 {
     if (!Options.KindRequirements.empty()) {
         auto MeetsReq = false;

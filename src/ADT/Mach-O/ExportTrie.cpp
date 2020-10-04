@@ -164,7 +164,7 @@ namespace MachO {
             const auto &PrevNode = PrevStack.getNode();
 
             if (PrevNode.isExport()) {
-                Info->getExportInfo().clearExclusiveInfo();
+                Info->getExportInfoRef().clearExclusiveInfo();
                 Info->setKind(ExportTrieExportKind::None);
 
                 if (PrevNode.getChildCount() == 0) {
@@ -185,7 +185,7 @@ namespace MachO {
         do {
             auto &Stack = StackList.back();
             auto &Node = Stack.getNode();
-            auto &Export = Info->getExportInfo();
+            auto &Export = Info->getExportInfoRef();
             auto Ptr = this->Begin + Node.getOffset();
 
             const auto ExpectedEnd = Ptr + Node.size();

@@ -595,7 +595,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline ExportTrieExportInfo &getExportInfo() noexcept {
+        constexpr inline ExportTrieExportInfo &getExportInfoRef() noexcept {
             return Export;
         }
 

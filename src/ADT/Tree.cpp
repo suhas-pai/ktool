@@ -251,18 +251,26 @@ static void BasicIsolate(BasicTreeNode &Node) noexcept {
     }
 }
 
-static void DoRemoveLeafParents(BasicTreeNode &LeafParent) noexcept {
+static bool
+DoRemoveLeafParents(BasicTreeNode &LeafParent, BasicTreeNode &Root) noexcept {
+    auto RemovedRoot = false;
     auto Parent = LeafParent.getParent();
     auto Child = &LeafParent;
 
-    for (; Parent != nullptr; Child = Parent, Parent = Parent->getParent()) {
+    do {
         BasicIsolate(*Child);
         ClearNode(*Child);
 
-        if (!Parent->isLeaf()) {
+        RemovedRoot = (Child == &Root);
+        if (!Parent || !Parent->isLeaf()) {
             break;
         }
-    }
+
+        Child = Parent;
+        Parent = Parent->getParent();
+    } while (true);
+
+    return RemovedRoot;
 }
 
 BasicTree::BasicTree(BasicTreeNode *Root) noexcept : Root(Root) {}
@@ -364,13 +372,9 @@ IsolateAndRemoveFromParent(BasicTreeNode &Node,
 
     auto RemovedRoot = false;
     if (const auto Parent = Node.getParent();
-        Parent != nullptr && !Parent->isLeaf())
+        Parent != nullptr && Parent->isLeaf() && RemoveLeafParents)
     {
-        if (RemoveLeafParents) {
-            DoRemoveLeafParents(*Parent);
-        }
-
-        RemovedRoot = (Parent == &Root);
+        RemovedRoot = DoRemoveLeafParents(*Parent, Root);
     }
 
     // BasicIsolate() has already removed this Node from Parent.
