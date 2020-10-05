@@ -23,17 +23,19 @@ MappedFile::Open(const FileDescriptor &Fd,
                  Protections Prot,
                  MapKind MapKind) noexcept
 {
-    const auto OptInfo = Fd.GetInfo();
-    if (!OptInfo.has_value()) {
+    const auto InfoOpt = Fd.GetInfo();
+    if (!InfoOpt.has_value()) {
         return OpenError::FailedToGetInfo;
     }
 
-    const auto Mode = OptInfo->st_mode;
+    const auto &Info = InfoOpt.value();
+    const auto Mode = Info.st_mode;
+
     if (!S_ISREG(Mode) && !S_ISLNK(Mode)) {
         return OpenError::NotAFile;
     }
 
-    const auto Size = OptInfo->st_size;
+    const auto Size = Info.st_size;
     if (Size == 0) {
         return OpenError::EmptyFile;
     }

@@ -26,7 +26,7 @@ public:
     : Current(Current), End(End) {}
 
     inline T *& operator*() noexcept { return Current; }
-    inline const T *const & operator*() const noexcept { return Current; }
+    inline const T *const &operator*() const noexcept { return Current; }
 
     inline T *operator->() noexcept { return Current; }
     inline const T *operator->() const noexcept { return Current; }
@@ -133,7 +133,7 @@ public:
     : Current(Current), End(End) {}
 
     inline T *& operator*() noexcept { return Current; }
-    inline const T *const & operator*() const noexcept { return Current; }
+    inline const T *const &operator*() const noexcept { return Current; }
 
     inline T *operator->() noexcept { return Current; }
     inline const T *operator->() const noexcept { return Current; }
