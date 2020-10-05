@@ -551,6 +551,7 @@ public:
     BasicTreeNode *
     RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept;
 
+    void ValidateNodes() const noexcept;
     [[nodiscard]] virtual uint64_t GetCount() const noexcept;
 
     template <typename NodePrinter>

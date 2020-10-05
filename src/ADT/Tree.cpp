@@ -25,7 +25,7 @@ BasicTreeNode::SetAsParentOfChildren(BasicTreeNode &Node) noexcept {
 }
 
 uint64_t BasicTreeNode::GetChildCount() const noexcept {
-    uint64_t ChildCount = 0;
+    auto ChildCount = uint64_t();
     BASIC_TREE_NODE_ITERATE_CHILDREN(*this) {
         (void)Child;
         ChildCount++;
@@ -69,7 +69,7 @@ SetParentOfSiblings(BasicTreeNode *Parent,
                     BasicTreeNode *End = nullptr) noexcept
 {
     auto Back = &Node;
-    BASIC_TREE_NODE_ITERATE_SIBLINGS_TILL_END(*Back, End) {
+    BASIC_TREE_NODE_ITERATE_SIBLINGS_TILL_END(Node, End) {
         Sibling->setParent(Parent);
         Back = Sibling;
     }
@@ -78,20 +78,38 @@ SetParentOfSiblings(BasicTreeNode *Parent,
 }
 
 void BasicTreeNode::ValidateChildArray() const noexcept {
+    const auto LongestChild = getLongestChild();
     if (this->isLeaf()) {
+        assert(LongestChild == nullptr);
         return;
     }
 
-    const auto SecondChild = getFirstChild()->getNextSibling();
+    const auto FirstChild = getFirstChild();
+    assert(FirstChild->getParent() == this);
+
+    const auto SecondChild = FirstChild->getNextSibling();
     if (SecondChild == nullptr) {
+        assert(LongestChild == FirstChild);
         return;
     }
+
+    assert(SecondChild->getParent() == this);
 
     auto Prev = FirstChild;
+    auto FoundLongestChild =
+        (FirstChild == LongestChild || SecondChild == LongestChild);
+
     BASIC_TREE_NODE_ITERATE_SIBLINGS(*SecondChild) {
+        assert(Sibling->getParent() == this);
         assert(Sibling->getPrevSibling() == Prev);
+
         Prev = Sibling;
+        if (Sibling == LongestChild) {
+            FoundLongestChild = true;
+        }
     }
+
+    assert(FoundLongestChild);
 }
 
 static void
@@ -261,6 +279,10 @@ static void ClearNode(BasicTreeNode &Node) noexcept {
     delete &Node;
 }
 
+void BasicTreeNode::clearAndDestroy() noexcept {
+    ClearNode(*this);
+}
+
 static void IsolateNode(BasicTreeNode &Node) noexcept {
     auto ParentOnlyHasThisNode = false;
     if (const auto PrevSibling = Node.getPrevSibling()) {
@@ -276,12 +298,10 @@ static void IsolateNode(BasicTreeNode &Node) noexcept {
         ParentOnlyHasThisNode = true;
     }
 
-    const auto ParentPtr = Node.getParent();
-    const auto FirstChild = Node.getFirstChild();
-
     // We try to merge Node's children with Node's siblings.
 
-    if (FirstChild != nullptr)  {
+    const auto ParentPtr = Node.getParent();
+    if (const auto FirstChild = Node.getFirstChild(); FirstChild != nullptr) {
         if (const auto PrevSibling = Node.getPrevSibling()) {
             if (ParentPtr != nullptr) {
                 SetParentOfSiblings(ParentPtr, *FirstChild);
@@ -327,9 +347,9 @@ static void IsolateNode(BasicTreeNode &Node) noexcept {
 
 [[nodiscard]] static bool
 DoRemoveLeafParents(BasicTreeNode &LeafParent, BasicTreeNode &Root) noexcept {
-    auto RemovedRoot = false;
-    auto Parent = LeafParent.getParent();
     auto Child = &LeafParent;
+    auto Parent = LeafParent.getParent();
+    auto RemovedRoot = false;
 
     do {
         IsolateNode(*Child);
@@ -341,7 +361,7 @@ DoRemoveLeafParents(BasicTreeNode &LeafParent, BasicTreeNode &Root) noexcept {
         }
 
         Child = Parent;
-        Parent = Parent->getParent();
+        Parent = Child->getParent();
     } while (true);
 
     return RemovedRoot;
@@ -407,6 +427,8 @@ BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
     return NextNode;
 }
 
-void BasicTreeNode::clearAndDestroy() noexcept {
-    ClearNode(*this);
+void BasicTree::ValidateNodes() const noexcept {
+    for (const auto &Node : *this) {
+        Node->ValidateChildArray();
+    }
 }
