@@ -145,28 +145,26 @@ namespace MachO {
             return new ExportTrieExportChildNode;
         }
 
-        [[nodiscard]]
-        inline const SegmentInfo *getSegment() const noexcept {
+        [[nodiscard]] inline const SegmentInfo *getSegment() const noexcept {
             assert(!this->isReexport());
             return Segment;
         }
 
-        [[nodiscard]]
-        inline const SectionInfo *getSection() const noexcept {
+        [[nodiscard]] inline const SectionInfo *getSection() const noexcept {
             assert(!this->isReexport());
             return Section;
         }
 
-        constexpr inline ExportTrieChildNode &
-        setSegment(const SegmentInfo *Value) noexcept {
+        constexpr inline
+        ExportTrieChildNode &setSegment(const SegmentInfo *Value) noexcept {
             assert(!this->isReexport());
 
             this->Segment = Value;
             return *this;
         }
 
-        constexpr inline ExportTrieChildNode &
-        setSection(const SectionInfo *Value) noexcept {
+        constexpr inline
+        ExportTrieChildNode &setSection(const SectionInfo *Value) noexcept {
             assert(!this->isReexport());
 
             this->Section = Value;
