@@ -432,11 +432,21 @@ public:
     using Iterator = TreeIterator<BasicTreeNode>;
     using ConstIterator = TreeIterator<const BasicTreeNode>;
 
-    [[nodiscard]] Iterator begin() const noexcept;
-    [[nodiscard]] Iterator end() const noexcept;
+    [[nodiscard]] inline Iterator begin() const noexcept {
+        return Iterator(getRoot());
+    }
 
-    [[nodiscard]] ConstIterator cbegin() const noexcept;
-    [[nodiscard]] ConstIterator cend() const noexcept;
+    [[nodiscard]] inline Iterator end() const noexcept {
+        return Iterator(nullptr);
+    }
+
+    [[nodiscard]] inline ConstIterator cbegin() const noexcept {
+        return ConstIterator(getRoot());
+    }
+
+    [[nodiscard]] inline ConstIterator cend() const noexcept {
+        return ConstIterator(nullptr);
+    }
 
     [[nodiscard]] inline BasicTreeNode *getRoot() const noexcept {
         return Root;

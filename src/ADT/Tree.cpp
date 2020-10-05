@@ -190,22 +190,6 @@ uint64_t BasicTree::GetCount() const noexcept {
     return Count;
 }
 
-BasicTree::Iterator BasicTree::begin() const noexcept {
-    return Iterator(getRoot());
-}
-
-BasicTree::Iterator BasicTree::end() const noexcept {
-    return Iterator(nullptr);
-}
-
-BasicTree::ConstIterator BasicTree::cbegin() const noexcept {
-    return ConstIterator(getRoot());
-}
-
-BasicTree::ConstIterator BasicTree::cend() const noexcept {
-    return ConstIterator(nullptr);
-}
-
 const BasicTreeNode *
 BasicTreeNode::FindPrevNodeForIterator(const BasicTreeNode *End,
                                        uint64_t *DepthChangeOut) const noexcept

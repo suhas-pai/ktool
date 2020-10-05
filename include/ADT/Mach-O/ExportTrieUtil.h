@@ -224,11 +224,11 @@ namespace MachO {
             return Iterator(nullptr);
         }
 
-        [[nodiscard]] ConstIterator cbegin() const noexcept {
+        [[nodiscard]] inline ConstIterator cbegin() const noexcept {
             return ConstIterator(getRoot());
         }
 
-        [[nodiscard]] ConstIterator cend() const noexcept {
+        [[nodiscard]] inline ConstIterator cend() const noexcept {
             return ConstIterator(nullptr);
         }
     };
