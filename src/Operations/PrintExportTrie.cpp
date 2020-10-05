@@ -117,12 +117,13 @@ PrintTreeExportInfo(
                             '-',
                             RightPad - WrittenOut - 1);
 
-    fprintf(Options.OutFile,
-            "> (Exported - %" PRINTF_RIGHTPAD_FMT "s",
-            static_cast<int>(LENGTH_OF("Re-export")),
-            KindDesc);
-
+    fputs("> (Exported - ", Options.OutFile);
     if (Options.Verbose) {
+        fprintf(Options.OutFile,
+                "%" PRINTF_RIGHTPAD_FMT "s",
+                static_cast<int>(LENGTH_OF("Re-export")),
+                KindDesc);
+
         if (!Export.isReexport()) {
             PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
                                                    Export.getSegment(),
@@ -149,6 +150,8 @@ PrintTreeExportInfo(
                                                    DylibOrdinal,
                                                    Options.Verbose);
         }
+    } else {
+        fprintf(Options.OutFile, "%s", KindDesc);
     }
 
     fputc(')', Options.OutFile);
