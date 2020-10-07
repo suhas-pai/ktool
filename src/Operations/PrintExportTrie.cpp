@@ -312,11 +312,11 @@ FindExportTrieList(
     TrieListType &TrieList) noexcept
 {
     auto FoundExportTrie = false;
-    const auto IsBigEndian = LoadCmdStorage.isBigEndian();
+    const auto IsBE = LoadCmdStorage.isBigEndian();
 
-    for (const auto &LoadCmd : LoadCmdStorage) {
+    for (const auto &LC : LoadCmdStorage) {
         const auto *DyldInfo =
-            dyn_cast<MachO::DyldInfoCommand>(LoadCmd, IsBigEndian);
+            dyn_cast<MachO::DyldInfoCommand>(LC, IsBE);
 
         if (DyldInfo != nullptr) {
             if (FoundExportTrie) {
@@ -325,11 +325,10 @@ FindExportTrieList(
             }
 
             FoundExportTrie = true;
-            TrieList = DyldInfo->GetConstExportTrieList(Map, IsBigEndian);
+            TrieList = DyldInfo->GetConstExportTrieList(Map, IsBE);
         } else {
             const auto *DyldExportsTrie =
-                LoadCmd.dynCast<MachO::LoadCommand::Kind::DyldExportsTrie>(
-                    IsBigEndian);
+                dyn_cast<MachO::LoadCommand::Kind::DyldExportsTrie>(LC, IsBE);
 
             if (DyldExportsTrie != nullptr) {
                 if (FoundExportTrie) {
@@ -338,7 +337,7 @@ FindExportTrieList(
                 }
 
                 TrieList =
-                    DyldExportsTrie->GetConstExportTrieList(Map, IsBigEndian);
+                    DyldExportsTrie->GetConstExportTrieList(Map, IsBE);
             }
         }
     }

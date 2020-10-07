@@ -31,9 +31,9 @@ PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
     struct MachO::DylibCommand::Info Info = {};
     auto Id = std::string_view();
 
-    for (const auto &LoadCmd : LoadCmdStorage) {
+    for (const auto &LC : LoadCmdStorage) {
         const auto *DylibCmd =
-            LoadCmd.dynCast<MachO::LoadCommand::Kind::IdDylib>(IsBigEndian);
+            dyn_cast<MachO::LoadCommand::Kind::IdDylib>(LC, IsBigEndian);
 
         if (DylibCmd == nullptr) {
             continue;

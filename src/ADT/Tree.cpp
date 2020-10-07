@@ -112,10 +112,34 @@ void BasicTreeNode::ValidateChildArray() const noexcept {
     assert(FoundLongestChild);
 }
 
-static void
-SetIfLongestChild(BasicTreeNode &Parent, BasicTreeNode &Child) noexcept {
+static
+void SetIfLongestChild(BasicTreeNode &Parent, BasicTreeNode &Child) noexcept {
     if (Parent.getLongestChild()->GetLength() < Child.GetLength()) {
         Parent.setLongestChild(&Child);
+    }
+}
+
+static void
+AddSiblingsRaw(BasicTreeNode &This,
+               BasicTreeNode &Node,
+               BasicTreeNode *End,
+               BasicTreeNode &LongestChild) noexcept
+{
+    const auto NextSibling = This.getNextSibling();
+    const auto Parent = This.getParent();
+
+    auto &Back = SetParentOfSiblings(Parent, Node, End);
+
+    Node.setPrevSibling(&This);
+    Back.setNextSibling(NextSibling);
+
+    if (NextSibling != nullptr) {
+        NextSibling->setPrevSibling(&Back);
+    }
+
+    This.setNextSibling(&Node);
+    if (Parent != nullptr) {
+        SetIfLongestChild(*Parent, LongestChild);
     }
 }
 
@@ -125,22 +149,17 @@ AddChildrenRaw(BasicTreeNode &Parent,
                BasicTreeNode *End,
                BasicTreeNode &LongestChild) noexcept
 {
-    auto &Back = SetParentOfSiblings(&Parent, Node, End);
-    Back.setNextSibling(nullptr);
-
     if (Parent.isLeaf()) {
+        SetParentOfSiblings(&Parent, Node, End);
         Node.setPrevSibling(nullptr);
 
         Parent.setFirstChild(&Node);
         Parent.setLongestChild(&LongestChild);
-    } else {
-        const auto PrevSibling = Parent.getLastChild();
 
-        PrevSibling->setNextSibling(&Node);
-        Node.setPrevSibling(PrevSibling);
-
-        SetIfLongestChild(Parent, LongestChild);
+        return;
     }
+
+    AddSiblingsRaw(*Parent.getLastChild(), Node, End, LongestChild);
 }
 
 BasicTreeNode &BasicTreeNode::AddChild(BasicTreeNode &Node) noexcept {
@@ -154,28 +173,14 @@ BasicTreeNode::AddChildren(BasicTreeNode &Node, BasicTreeNode *End) noexcept {
     return *this;
 }
 
+BasicTreeNode &BasicTreeNode::AddSibling(BasicTreeNode &Node) noexcept {
+    AddSiblingsRaw(*this, Node, nullptr, Node);
+    return *this;
+}
+
 BasicTreeNode &
 BasicTreeNode::AddSiblings(BasicTreeNode &Node, BasicTreeNode *End) noexcept {
-    auto &Back = SetParentOfSiblings(Parent, Node, End);
-    const auto NextSibling = getNextSibling();
-
-    Node.setPrevSibling(this);
-    Back.setNextSibling(NextSibling);
-
-    if (NextSibling != nullptr) {
-        NextSibling->setPrevSibling(&Back);
-    }
-
-    setNextSibling(&Node);
-
-    const auto Parent = getParent();
-    if (Parent == nullptr) {
-        return *this;
-    }
-
-    auto &NewLongestChild = CalculateLongestNode(Node, End);
-    SetIfLongestChild(*Parent, NewLongestChild);
-
+    AddSiblingsRaw(*this, Node, End, CalculateLongestNode(Node, End));
     return *this;
 }
 
@@ -187,9 +192,8 @@ BasicTreeNode::SetChildrenFromList(
         return *this;
     }
 
-    const auto End = List.cend();
-    for (auto Iter = List.cbegin() + 1; Iter != End; Iter++) {
-        AddChild(**Iter);
+    for (const auto &Node : List) {
+        AddChild(*Node);
     }
 
     return *this;
@@ -355,8 +359,8 @@ DoRemoveLeafParents(BasicTreeNode &LeafParent, BasicTreeNode &Root) noexcept {
         IsolateNode(*Child);
         ClearNode(*Child);
 
-        RemovedRoot = (Child == &Root);
-        if (!Parent || !Parent->isLeaf()) {
+        if (Parent == nullptr || !Parent->isLeaf()) {
+            RemovedRoot = (Child == &Root);
             break;
         }
 

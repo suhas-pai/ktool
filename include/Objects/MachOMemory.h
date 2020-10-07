@@ -143,20 +143,20 @@ public:
         return const_cast<MachO::Header &>(getConstHeader());
     }
 
-    constexpr inline MachOMemoryObject &
-    setCpuKind(Mach::CpuKind Kind) noexcept {
+    constexpr
+    inline MachOMemoryObject &setCpuKind(Mach::CpuKind Kind) noexcept {
         getHeader().setCpuKind(Kind);
         return *this;
     }
 
-    constexpr inline MachOMemoryObject &
-    setLoadCommandsCount(uint32_t Count) noexcept {
+    constexpr
+    inline MachOMemoryObject &setLoadCommandsCount(uint32_t Count) noexcept {
         getHeader().setLoadCommandsCount(Count);
         return *this;
     }
 
-    constexpr inline MachOMemoryObject &
-    setLoadCommandsSize(uint32_t Size) noexcept {
+    constexpr
+    inline MachOMemoryObject &setLoadCommandsSize(uint32_t Size) noexcept {
         getHeader().setLoadCommandsSize(Size);
         return *this;
     }

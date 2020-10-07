@@ -473,8 +473,9 @@ namespace MachO {
     };
 
     struct BindByte : private DyldInfoByteMasksAndShiftsHandler {
-        constexpr static const auto DoneOpcode = BindByteOpcode::Done;
     public:
+        constexpr static auto DoneOpcode = BindByteOpcode::Done;
+
         constexpr BindByte() noexcept = default;
         constexpr BindByte(uint8_t Byte) noexcept
         : DyldInfoByteMasksAndShiftsHandler(Byte) {}

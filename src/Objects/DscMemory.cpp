@@ -246,9 +246,9 @@ auto ConstDscMemoryObject::ValidateImageMapAndGetEnd(
 
     auto End = Map.getBegin();
     if (Is64Bit) {
-        for (const auto &LoadCmd : LoadCmdStorage) {
+        for (const auto &LC : LoadCmdStorage) {
             const auto *Segment =
-                dyn_cast<MachO::SegmentCommand64>(LoadCmd, IsBigEndian);
+                dyn_cast<MachO::SegmentCommand64>(LC, IsBigEndian);
 
             if (Segment != nullptr) {
                 if (DoesAddOverflow(End, Segment->FileSize, &End)) {
@@ -257,9 +257,9 @@ auto ConstDscMemoryObject::ValidateImageMapAndGetEnd(
             }
         }
     } else {
-        for (const auto &LoadCmd : LoadCmdStorage) {
+        for (const auto &LC : LoadCmdStorage) {
             const auto *Segment =
-                dyn_cast<MachO::SegmentCommand>(LoadCmd, IsBigEndian);
+                dyn_cast<MachO::SegmentCommand>(LC, IsBigEndian);
 
             if (Segment != nullptr) {
                 End += Segment->FileSize;

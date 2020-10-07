@@ -1261,7 +1261,7 @@ static inline void
 MachOLoadCommandPrinterWriteLinkeditCmd(
     FILE *OutFile,
     const RelativeRange &FileRange,
-    const typename LCKindInfo::Type &LoadCmd,
+    const typename LCKindInfo::Type &LC,
     bool IsBigEndian,
     bool Is64Bit,
     bool Verbose,
@@ -1270,8 +1270,8 @@ MachOLoadCommandPrinterWriteLinkeditCmd(
     static_assert(MachO::LinkeditDataCommand::IsOfKind(LCKindInfo::Kind),
                   "LoadCommand is not a LinkeditDataCommand");
 
-    const auto Offset = LoadCmd.getDataOffset(IsBigEndian);
-    const auto Size = LoadCmd.getDataSize(IsBigEndian);
+    const auto Offset = LC.getDataOffset(IsBigEndian);
+    const auto Size = LC.getDataSize(IsBigEndian);
 
     MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile, Verbose);
     fputc('\t', OutFile);

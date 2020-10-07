@@ -13,7 +13,7 @@
 
 struct PathUtil {
     [[nodiscard]]
-    static bool isAbsolute(std::string_view Path) noexcept {
+    static inline bool isAbsolute(std::string_view Path) noexcept {
         return (Path.front() == '/');
     }
 

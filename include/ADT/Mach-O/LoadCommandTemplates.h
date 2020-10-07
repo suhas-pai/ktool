@@ -777,8 +777,22 @@ namespace MachO {
         typedef const Type *ConstPtrType;
     };
 
-    template <typename LoadCommandType>
+    template <typename... T>
+    struct IsLoadCommandSubType {};
+
+    template <typename T>
+    struct IsLoadCommandSubType<T> {
+        constexpr static auto value = std::is_base_of_v<LoadCommand, T>;
+    };
+
+    template <typename T, typename U, typename... Rest>
+    struct IsLoadCommandSubType<T, U, Rest...> {
+        constexpr static auto value =
+            IsLoadCommandSubType<T>::value &&
+            IsLoadCommandSubType<U, Rest...>::value;
+    };
+
+    template <typename... T>
     using EnableIfLoadCommandSubtype =
-        typename std::enable_if_t<
-            std::is_base_of_v<LoadCommand, LoadCommandType>, LoadCommandType>;
+        typename std::enable_if_t<IsLoadCommandSubType<T...>::value, bool>;
 }

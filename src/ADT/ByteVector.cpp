@@ -35,7 +35,7 @@ uint64_t ByteVector::getAllocSizeForCapacity(uint64_t Capacity) noexcept {
 }
 
 void ByteVector::grow() noexcept {
-    growTo(getAllocSizeForCapacity(capacity()));
+    growTo(getAllocSizeForCapacity(capacity() + 1));
 }
 
 void ByteVector::growTo(uint64_t Capacity) noexcept {

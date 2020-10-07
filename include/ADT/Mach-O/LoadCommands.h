@@ -253,7 +253,7 @@ namespace MachO {
 
         [[nodiscard]]
         LoadCommand::CmdSizeInvalidKind
-        ValidateCmdsize(const LoadCommand *LoadCmd, bool IsBigEndian) noexcept;
+        ValidateCmdsize(const LoadCommand *LC, bool IsBigEndian) noexcept;
 
         uint32_t Cmd;
         uint32_t CmdSize;
@@ -3731,41 +3731,126 @@ namespace MachO {
     };
 }
 
-template <typename T>
+template <MachO::LoadCommand::Kind Kind>
 [[nodiscard]]
-inline bool isa(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
-    return T::IsOfKind(LoadCmd.getKind(IsBigEndian));
+inline bool isa(const MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    return LC.getKind(IsBigEndian) == Kind;
 }
 
-template <typename First, typename Second, typename... Rest>
+template <MachO::LoadCommand::Kind First,
+          MachO::LoadCommand::Kind Second,
+          MachO::LoadCommand::Kind... Rest>
+
 [[nodiscard]]
-inline bool isa(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
-    if (isa<First>(LoadCmd, IsBigEndian)) {
-        return true;
+inline bool isa(const MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    return isa<First>(LC, IsBigEndian) || isa<Second, Rest...>(LC, IsBigEndian);
+}
+
+template <typename T, typename = MachO::EnableIfLoadCommandSubtype<T>>
+inline bool isa(const MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    return T::IsOfKind(LC.getKind(IsBigEndian));
+}
+
+template <typename First,
+          typename Second,
+          typename... Rest,
+          typename = MachO::EnableIfLoadCommandSubtype<First, Second, Rest...>>
+
+[[nodiscard]]
+inline bool isa(const MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    return isa<First>(LC, IsBigEndian) || isa<Second, Rest...>(LC, IsBigEndian);
+}
+
+template <typename T, typename = MachO::EnableIfLoadCommandSubtype<T>>
+[[nodiscard]]
+inline T &cast(MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    assert(isa<T>(LC, IsBigEndian));
+    return reinterpret_cast<T &>(LC);
+}
+
+template <typename T, typename = MachO::EnableIfLoadCommandSubtype<T>>
+[[nodiscard]] inline
+const T &cast(const MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    assert(isa<T>(LC, IsBigEndian));
+    return reinterpret_cast<const T &>(LC);
+}
+
+template <MachO::LoadCommand::Kind Kind,
+          typename Ret = typename MachO::LoadCommandKindInfo<Kind>::Type>
+
+[[nodiscard]]
+inline Ret &cast(MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    assert(isa<Kind>(LC, IsBigEndian));
+    return reinterpret_cast<Ret &>(LC);
+}
+
+template <MachO::LoadCommand::Kind Kind,
+          typename Ret = typename MachO::LoadCommandKindInfo<Kind>::Type>
+
+[[nodiscard]] inline
+const Ret &cast(const MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    assert(isa<Kind>(LC, IsBigEndian));
+    return reinterpret_cast<const Ret &>(LC);
+}
+
+template <MachO::LoadCommand::Kind Kind,
+          typename Ret = typename MachO::LoadCommandKindInfo<Kind>::Type>
+
+[[nodiscard]]
+inline Ret *dyn_cast(MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    if (isa<Kind>(LC, IsBigEndian)) {
+        return reinterpret_cast<Ret *>(&LC);
     }
 
-    return isa<Second, Rest...>(LoadCmd, IsBigEndian);
+    return nullptr;
 }
 
-template <typename T>
-[[nodiscard]]
-inline T &cast(MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
-    assert(isa<T>(LoadCmd, IsBigEndian));
-    return reinterpret_cast<T &>(LoadCmd);
-}
+template <MachO::LoadCommand::Kind Kind,
+          typename Ret = typename MachO::LoadCommandKindInfo<Kind>::Type>
 
-template <typename T>
 [[nodiscard]] inline
-const T &cast(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
-    assert(isa<T>(LoadCmd, IsBigEndian));
-    return reinterpret_cast<const T &>(LoadCmd);
+const Ret *dyn_cast(const MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    if (isa<Kind>(LC, IsBigEndian)) {
+        return reinterpret_cast<const Ret *>(&LC);
+    }
+
+    return nullptr;
+}
+
+template <MachO::LoadCommand::Kind First,
+          MachO::LoadCommand::Kind Second,
+          MachO::LoadCommand::Kind... Rest,
+          typename Ret = typename MachO::LoadCommandKindInfo<First>::Type>
+
+[[nodiscard]]
+inline Ret *dyn_cast(MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    if (isa<First, Second, Rest...>(LC, IsBigEndian)) {
+        return reinterpret_cast<Ret *>(&LC);
+    }
+
+    return nullptr;
+}
+
+template <MachO::LoadCommand::Kind First,
+          MachO::LoadCommand::Kind Second,
+          MachO::LoadCommand::Kind... Rest,
+          typename Ret = typename MachO::LoadCommandKindInfo<First>::Type>
+
+[[nodiscard]]
+inline const Ret *
+dyn_cast(const MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    if (isa<First, Second, Rest...>(LC, IsBigEndian)) {
+        return reinterpret_cast<const Ret *>(&LC);
+    }
+
+    return nullptr;
 }
 
 template <typename T>
 [[nodiscard]]
-inline T *dyn_cast(MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
-    if (isa<T>(LoadCmd, IsBigEndian)) {
-        return reinterpret_cast<T *>(&LoadCmd);
+inline T *dyn_cast(MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    if (isa<T>(LC, IsBigEndian)) {
+        return reinterpret_cast<T *>(&LC);
     }
 
     return nullptr;
@@ -3773,9 +3858,9 @@ inline T *dyn_cast(MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
 
 template <typename T>
 [[nodiscard]] inline const T *
-dyn_cast(const MachO::LoadCommand &LoadCmd, bool IsBigEndian) noexcept {
-    if (isa<T>(LoadCmd, IsBigEndian)) {
-        return reinterpret_cast<const T *>(&LoadCmd);
+dyn_cast(const MachO::LoadCommand &LC, bool IsBigEndian) noexcept {
+    if (isa<T>(LC, IsBigEndian)) {
+        return reinterpret_cast<const T *>(&LC);
     }
 
     return nullptr;

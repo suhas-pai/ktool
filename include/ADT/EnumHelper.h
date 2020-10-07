@@ -34,7 +34,7 @@ struct EnumHelper {
     [[nodiscard]] constexpr
     static uint64_t GetLongestAssocLength(const Function &Func) noexcept {
         constexpr auto List = magic_enum::enum_values<Enum>();
-        auto Length = LargestIntHelper<uint64_t>(Func(List[0]).length());
+        auto Length = LargestIntHelper(Func(List.at(0)).length());
 
         const auto End = List.end();
         for (auto Iter = List.begin() + 1; Iter != End; Iter++) {

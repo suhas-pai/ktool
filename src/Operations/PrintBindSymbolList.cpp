@@ -190,9 +190,9 @@ PrintBindSymbolList(
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
-    for (const auto &LoadCmd : LoadCmdStorage) {
+    for (const auto &LC : LoadCmdStorage) {
         const auto *DyldInfo =
-            dyn_cast<MachO::DyldInfoCommand>(LoadCmd, IsBigEndian);
+            dyn_cast<MachO::DyldInfoCommand>(LC, IsBigEndian);
 
         if (DyldInfo == nullptr) {
             continue;

@@ -81,13 +81,13 @@ namespace MachO {
         auto LCIndex = uint32_t();
         auto Result = SharedLibraryInfoCollection();
 
-        for (const auto &LoadCmd : LoadCmdStorage) {
-            const auto LCKind = LoadCmd.getKind(IsBigEndian);
+        for (const auto &LC : LoadCmdStorage) {
+            const auto LCKind = LC.getKind(IsBigEndian);
             if (!IsSharedLibraryLoadCommand(LCKind)) {
                 continue;
             }
 
-            const auto &DylibCmd = cast<DylibCommand>(LoadCmd, IsBigEndian);
+            const auto &DylibCmd = cast<DylibCommand>(LC, IsBigEndian);
             const auto GetNameResult = DylibCmd.GetName(IsBigEndian);
             const auto &Name =
                 (GetNameResult.hasError()) ?

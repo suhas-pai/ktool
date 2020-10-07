@@ -115,8 +115,8 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
     auto DylibList = std::vector<DylibInfo>();
     auto MaxDylibNameLength = LargestIntHelper();
 
-    for (const auto &LoadCmd : LoadCmdStorage) {
-        const auto LCKind = LoadCmd.getKind(IsBigEndian);
+    for (const auto &LC : LoadCmdStorage) {
+        const auto LCKind = LC.getKind(IsBigEndian);
         switch (LCKind) {
             case MachO::LoadCommand::Kind::LoadDylib:
                 static_assert(MachO::LoadCommandKindInfo<
@@ -150,7 +150,7 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
                               "record-holder");
 
                 const auto &DylibCmd =
-                    cast<MachO::DylibCommand>(LoadCmd, IsBigEndian);
+                    cast<MachO::DylibCommand>(LC, IsBigEndian);
 
                 const auto GetNameResult = DylibCmd.GetName(IsBigEndian);
                 const auto &Name =

@@ -22,14 +22,14 @@
 
 namespace MachO {
     LoadCommand::CmdSizeInvalidKind
-    ValidateCmdsize(const LoadCommand *LoadCmd, bool IsBigEndian) noexcept {
-        switch (LoadCmd->getKind(IsBigEndian)) {
+    ValidateCmdsize(const LoadCommand *LC, bool IsBigEndian) noexcept {
+        switch (LC->getKind(IsBigEndian)) {
             case LoadCommand::Kind::Segment: {
                 using ConstPtrType =
                     LoadCommandConstPtrTypeFromKind<LoadCommand::Kind::Segment>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::SymbolTable: {
@@ -37,8 +37,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::SymbolTable>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::SymbolSegment: {
@@ -46,16 +46,16 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::SymbolSegment>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::Thread: {
                 using ConstPtrType =
                     LoadCommandConstPtrTypeFromKind<LoadCommand::Kind::Thread>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::UnixThread: {
@@ -63,8 +63,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::UnixThread>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::LoadFixedVMSharedLibrary:
@@ -73,16 +73,16 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::LoadFixedVMSharedLibrary>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::Ident: {
                 using ConstPtrType =
                     LoadCommandConstPtrTypeFromKind<LoadCommand::Kind::Ident>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::FixedVMFile: {
@@ -90,8 +90,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::FixedVMFile>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::PrePage:
@@ -102,8 +102,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::DynamicSymbolTable>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::LoadDylib: {
@@ -111,16 +111,16 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::LoadDylib>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::IdDylib: {
                 using ConstPtrType =
                     LoadCommandConstPtrTypeFromKind<LoadCommand::Kind::IdDylib>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::LoadDylinker: {
@@ -128,8 +128,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::LoadDylinker>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::IdDylinker: {
@@ -137,8 +137,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::IdDylinker>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::PreBoundDylib: {
@@ -146,8 +146,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::PreBoundDylib>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::Routines: {
@@ -155,8 +155,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::Routines>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::SubFramework: {
@@ -164,8 +164,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::SubFramework>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::SubUmbrella: {
@@ -173,8 +173,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::SubUmbrella>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::SubClient: {
@@ -182,8 +182,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::SubClient>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::SubLibrary: {
@@ -191,8 +191,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::SubLibrary>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::TwoLevelHints: {
@@ -200,8 +200,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::TwoLevelHints>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::PrebindChecksum: {
@@ -209,8 +209,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::PrebindChecksum>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::LoadWeakDylib: {
@@ -218,8 +218,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::LoadWeakDylib>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::Segment64: {
@@ -227,8 +227,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::Segment64>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::Routines64: {
@@ -236,24 +236,24 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::Routines64>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::Uuid: {
                 using ConstPtrType =
                     LoadCommandConstPtrTypeFromKind<LoadCommand::Kind::Uuid>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::Rpath: {
                 using ConstPtrType =
                     LoadCommandConstPtrTypeFromKind<LoadCommand::Kind::Rpath>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::CodeSignature: {
@@ -261,8 +261,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::CodeSignature>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::SegmentSplitInfo: {
@@ -270,8 +270,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::SegmentSplitInfo>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::ReexportDylib: {
@@ -279,8 +279,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::ReexportDylib>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::LazyLoadDylib: {
@@ -288,8 +288,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::LazyLoadDylib>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::EncryptionInfo: {
@@ -297,8 +297,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::EncryptionInfo>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::DyldInfo: {
@@ -306,8 +306,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::DyldInfo>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::DyldInfoOnly: {
@@ -315,8 +315,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::DyldInfoOnly>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::LoadUpwardDylib: {
@@ -324,8 +324,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::LoadUpwardDylib>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::VersionMinimumMacOSX: {
@@ -333,8 +333,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::VersionMinimumMacOSX>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::VersionMinimumIPhoneOS: {
@@ -342,8 +342,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::VersionMinimumIPhoneOS>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::FunctionStarts: {
@@ -351,8 +351,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::FunctionStarts>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::DyldEnvironment: {
@@ -360,16 +360,16 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::DyldEnvironment>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::Main: {
                 using ConstPtrType =
                     LoadCommandConstPtrTypeFromKind<LoadCommand::Kind::Main>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::DataInCode: {
@@ -377,8 +377,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::DataInCode>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::SourceVersion: {
@@ -386,8 +386,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::SourceVersion>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::DylibCodeSignDRS: {
@@ -395,8 +395,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::DylibCodeSignDRS>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::EncryptionInfo64: {
@@ -404,8 +404,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::EncryptionInfo64>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::LinkerOption: {
@@ -413,8 +413,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::LinkerOption>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::LinkerOptimizationHint: {
@@ -422,8 +422,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::LinkerOptimizationHint>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::VersionMinimumTvOS: {
@@ -431,8 +431,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::VersionMinimumTvOS>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::VersionMinimumWatchOS: {
@@ -440,16 +440,16 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::VersionMinimumWatchOS>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::Note: {
                 using ConstPtrType =
                     LoadCommandConstPtrTypeFromKind<LoadCommand::Kind::Note>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::BuildVersion: {
@@ -457,8 +457,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::BuildVersion>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::DyldExportsTrie: {
@@ -466,8 +466,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::DyldExportsTrie>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
 
             case LoadCommand::Kind::DyldChainedFixups: {
@@ -475,8 +475,8 @@ namespace MachO {
                     LoadCommandConstPtrTypeFromKind<
                         LoadCommand::Kind::DyldChainedFixups>;
 
-                const auto RealLoadCmd = static_cast<ConstPtrType>(LoadCmd);
-                return RealLoadCmd->hasValidCmdSize(IsBigEndian);
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
             }
         }
 

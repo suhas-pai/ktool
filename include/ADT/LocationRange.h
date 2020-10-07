@@ -27,7 +27,7 @@ private:
 public:
     constexpr LocationRange() noexcept = default;
     [[nodiscard]] static LocationRange Empty() noexcept {
-        return LocationRange(0, 0);
+        return LocationRange();
     }
 
     template <typename T = uint64_t>
@@ -127,11 +127,12 @@ public:
     template <typename T>
     [[nodiscard]] constexpr
     inline bool containsTypeAtLocation(uint64_t Location) const noexcept {
-        const auto Result =
-            (containsLocation(Location) &&
-             containsEndLocation(Location + sizeof(T)));
+        auto End = uint64_t();
+        if (DoesAddOverflow(Location, sizeof(T), &End)) {
+            return false;
+        }
 
-        return Result;
+        return (containsLocation(Location) && containsEndLocation(End));
     }
 
     template <typename T>
@@ -143,9 +144,14 @@ public:
     template <typename T>
     [[nodiscard]] constexpr inline
     bool containsTypeAtRelativeLocation(uint64_t Location) const noexcept {
+        auto End = uint64_t();
+        if (DoesAddOverflow(Location, sizeof(T), &End)) {
+            return false;
+        }
+
         const auto Result =
             (containsRelativeLocation(Location) &&
-             containsRelativeEndLocation(Location + sizeof(T)));
+             containsRelativeEndLocation(End));
 
         return Result;
     }

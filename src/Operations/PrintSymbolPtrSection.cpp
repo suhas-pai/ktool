@@ -235,12 +235,12 @@ PrintSymbolPtrList(
     auto DySymtabCommand =
         static_cast<const MachO::DynamicSymTabCommand *>(nullptr);
 
-    for (const auto &LoadCmd : LoadCmdStorage) {
-        switch (LoadCmd.getKind(IsBigEndian)) {
+    for (const auto &LC : LoadCmdStorage) {
+        switch (LC.getKind(IsBigEndian)) {
             case MachO::LoadCommand::Kind::SymbolTable:
                 if (SymtabCommand != nullptr) {
                     const auto Compare =
-                        memcmp(SymtabCommand, &LoadCmd, sizeof(*SymtabCommand));
+                        memcmp(SymtabCommand, &LC, sizeof(*SymtabCommand));
 
                     if (Compare != 0) {
                         fputs("Provided file has multiple (differing) "
@@ -250,7 +250,7 @@ PrintSymbolPtrList(
                     }
                 } else {
                     SymtabCommand =
-                        &cast<MachO::SymTabCommand>(LoadCmd, IsBigEndian);
+                        &cast<MachO::SymTabCommand>(LC, IsBigEndian);
                 }
 
                 break;
@@ -258,9 +258,7 @@ PrintSymbolPtrList(
             case MachO::LoadCommand::Kind::DynamicSymbolTable:
                 if (DySymtabCommand != nullptr) {
                     const auto Compare =
-                        memcmp(DySymtabCommand,
-                               &LoadCmd,
-                               sizeof(*DySymtabCommand));
+                        memcmp(DySymtabCommand, &LC, sizeof(*DySymtabCommand));
 
                     if (Compare != 0) {
                         fputs("Provided file has multiple (differing) "
@@ -270,8 +268,7 @@ PrintSymbolPtrList(
                     }
                 } else {
                     DySymtabCommand =
-                        &cast<MachO::DynamicSymTabCommand>(LoadCmd,
-                                                           IsBigEndian);
+                        &cast<MachO::DynamicSymTabCommand>(LC, IsBigEndian);
                 }
 
                 break;

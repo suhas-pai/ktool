@@ -27,11 +27,10 @@ namespace MachO {
         auto Iter = Begin;
 
         do {
-            const auto LoadCmd =
-                reinterpret_cast<const LoadCommand *>(Iter);
+            const auto LC = reinterpret_cast<const LoadCommand *>(Iter);
+            const auto CmdSize = LC->getCmdSize(IsBigEndian);
 
-            const auto CmdSize = LoadCmd->getCmdSize(IsBigEndian);
-            if (CmdSize < sizeof(*LoadCmd)) {
+            if (CmdSize < sizeof(*LC)) {
                 return ConstLoadCommandStorage::Error::CmdSizeTooSmall;
             }
 

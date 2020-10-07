@@ -67,7 +67,7 @@ public:
         auto Node = Current;
         Current = nullptr;
 
-        for (; Node != End; DepthLevel--, Node = Node->getParent()) {
+        for (; DepthLevel != 0; DepthLevel--, Node = Node->getParent()) {
             if (const auto PrevSibling = Node->getPrevSibling()) {
                 Current = PrevSibling->get(PrevSibling);
                 break;
@@ -284,6 +284,8 @@ public:
     BasicTreeNode &
     AddChildren(BasicTreeNode &Node, BasicTreeNode *End = nullptr) noexcept;
 
+    BasicTreeNode &AddSibling(BasicTreeNode &Node) noexcept;
+    
     BasicTreeNode &
     AddSiblings(BasicTreeNode &Node, BasicTreeNode *End = nullptr) noexcept;
 
