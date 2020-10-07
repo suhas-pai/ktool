@@ -298,7 +298,7 @@ namespace MachO {
                 }
 
                 auto Info = std::make_unique<SegmentInfo>();
-                if (!ParseSegmentInfo(Segment,
+                if (!ParseSegmentInfo(*Segment,
                                       *Info.get(),
                                       IsBigEndian,
                                       ErrorOut))
@@ -350,7 +350,7 @@ namespace MachO {
                 }
 
                 auto Info = std::make_unique<SegmentInfo>();
-                if (!ParseSegmentInfo(Segment,
+                if (!ParseSegmentInfo(*Segment,
                                       *Info.get(),
                                       IsBigEndian,
                                       ErrorOut))
