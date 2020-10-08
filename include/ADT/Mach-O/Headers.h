@@ -10,10 +10,10 @@
 
 #include <string>
 
-#include "ADT/LocationRange.h"
-#include "ADT/Mach.h"
 #include "ADT/BasicContiguousList.h"
 #include "ADT/BasicMasksHandler.h"
+#include "ADT/LocationRange.h"
+#include "ADT/Mach.h"
 
 #include "Utils/Casting.h"
 #include "Utils/SwitchEndian.h"

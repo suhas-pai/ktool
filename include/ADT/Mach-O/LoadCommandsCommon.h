@@ -13,8 +13,8 @@
 #include "ADT/BasicMasksHandler.h"
 #include "ADT/LocationRange.h"
 #include "ADT/MemoryMap.h"
-
 #include "Utils/Leb128.h"
+
 #include "MemoryProtections.h"
 
 namespace MachO {
@@ -792,7 +792,7 @@ namespace MachO {
 
         return std::string_view();
     }
-    
+
     static const auto SegmentSectionUserSettableAttributesMask =
         static_cast<uint32_t>(0xff000000);
 

@@ -9,17 +9,9 @@
 #pragma once
 
 #include <cassert>
-#include <unordered_map>
-#include <vector>
 
-#include "ADT/Tree.h"
-
-#include "BindUtil.h"
 #include "DeVirtualizer.h"
-#include "LoadCommands.h"
-#include "Objc.h"
 #include "ObjcParse.h"
-#include "SegmentUtil.h"
 
 namespace MachO {
     struct ObjcClassCategoryCollection;
@@ -160,7 +152,7 @@ namespace MachO {
         [[nodiscard]] inline ConstIterator cbegin() const noexcept {
             return ConstIterator(getRoot());
         }
-        
+
         [[nodiscard]] inline ConstIterator cend() const noexcept {
             return ConstIterator(nullptr);
         }

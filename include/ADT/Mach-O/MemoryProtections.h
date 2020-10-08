@@ -33,7 +33,7 @@ namespace MachO {
         constexpr static const auto Kind = MemoryProtectionsEnum::Read;
 
         constexpr static const auto Name = std::string_view("VM_PROT_READ");
-        constexpr static const auto Description = std::string_view("Write");
+        constexpr static const auto Description = std::string_view("Read");
     };
 
     template <>

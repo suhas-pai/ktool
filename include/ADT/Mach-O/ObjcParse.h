@@ -8,7 +8,13 @@
 
 #pragma once
 
+#include <algorithm>
+#include <unordered_map>
+
+#include "ADT/BasicContiguousList.h"
 #include "Utils/PointerUtils.h"
+
+#include "BindUtil.h"
 #include "ObjcInfo.h"
 
 namespace MachO::ObjcParse {
@@ -37,7 +43,7 @@ namespace MachO::ObjcParse {
                            ObjcClassCategory64,
                            ObjcClassCategory>;
 
-    static inline ObjcClassInfo *
+    inline ObjcClassInfo *
     AddClassToList(
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
         ObjcClassInfo &&Class,
@@ -52,7 +58,7 @@ namespace MachO::ObjcParse {
         return Ptr;
     }
 
-    static inline void
+    inline void
     SetSuperClassForClassInfo(ObjcClassInfo *Super,
                               ObjcClassInfo *Info) noexcept
     {
@@ -63,7 +69,7 @@ namespace MachO::ObjcParse {
         }
     }
 
-    static inline std::string_view
+    inline std::string_view
     GetNameFromBindActionSymbol(std::string_view Symbol) noexcept {
         constexpr auto Prefix = std::string_view("_OBJC_CLASS_$_");
         if (Symbol.compare(0, Prefix.size(), Prefix) == 0) {
@@ -73,7 +79,7 @@ namespace MachO::ObjcParse {
         return Symbol;
     }
 
-    static inline void
+    inline void
     SetSuperWithBindAction(
         ObjcClassInfo *Info,
         const BindActionCollection::Info &Action,
@@ -158,7 +164,7 @@ namespace MachO::ObjcParse {
         Info.setSuper(reinterpret_cast<ObjcClassInfo *>(SuperAddr | 1));
     }
 
-    static inline bool
+    inline bool
     SetSuperIfExists(
         const BindActionCollection &BindCollection,
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
@@ -333,7 +339,7 @@ namespace MachO::ObjcParse {
         return Error::None;
     }
 
-    [[nodiscard]] static inline ObjcClassInfo
+    [[nodiscard]] inline ObjcClassInfo
     CreateExternalClass(std::string_view Name,
                         uint64_t DylibOrdinal,
                         uint64_t BindAddr) noexcept

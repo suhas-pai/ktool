@@ -11,7 +11,6 @@
 
 #include "ADT/EnumHelper.h"
 #include "ADT/PointerOrError.h"
-
 #include "Utils/PointerUtils.h"
 
 #include "LoadCommandsCommon.h"

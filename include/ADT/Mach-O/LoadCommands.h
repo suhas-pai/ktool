@@ -8,32 +8,13 @@
 
 #pragma once
 
-#include <cstring>
-#include <optional>
-#include <string_view>
-#include <vector>
-
 #include "ADT/BasicContiguousList.h"
-#include "ADT/BasicMasksHandler.h"
-#include "ADT/LargestIntHelper.h"
-#include "ADT/LocationRange.h"
-#include "ADT/MemoryMap.h"
-#include "ADT/PointerErrorStorage.h"
-#include "ADT/PointerOrError.h"
-
-#include "TypeTraits/IsEnumClass.h"
-
-#include "Utils/DoesOverflow.h"
-#include "Utils/Leb128.h"
-#include "Utils/MiscTemplates.h"
-#include "Utils/SwitchEndian.h"
 
 #include "BindInfo.h"
 #include "ExportTrie.h"
 #include "LoadCommandsCommon.h"
 #include "LoadCommandTemplates.h"
 #include "RebaseInfo.h"
-#include "SegmentUtil.h"
 
 namespace MachO {
     struct LoadCommand {

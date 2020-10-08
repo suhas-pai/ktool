@@ -14,9 +14,8 @@
 #include "ADT/SpecificCapArray.h"
 #include "ADT/PointerOrError.h"
 #include "ADT/PointerFlagStorage.h"
-
 #include "Utils/PointerUtils.h"
-#include "LoadCommandsCommon.h"
+
 #include "SegmentUtil.h"
 
 namespace MachO {
