@@ -35,8 +35,8 @@ namespace MachO {
         }
 
         template <Kind Kind>
-        [[nodiscard]] inline LoadCommandTypeFromKind<Kind> &
-        cast(bool IsBigEndian) noexcept {
+        [[nodiscard]] inline
+        LoadCommandTypeFromKind<Kind> &cast(bool IsBigEndian) noexcept {
             assert(isa<Kind>(IsBigEndian));
             return reinterpret_cast<LoadCommandTypeFromKind<Kind> &>(*this);
         }

@@ -7,7 +7,6 @@
 //
 
 #pragma once
-
 #include <type_traits>
 
 template <typename T, typename U>
@@ -22,41 +21,44 @@ inline bool IndexOutOfBounds(const T &Index, const U &Bounds) noexcept {
 template <typename ... Ts>
 struct SmallestIntegerTypeCalculator {};
 
-template <typename ... Ts>
-using SmallestIntegerType = typename SmallestIntegerTypeCalculator<Ts...>::Type;
-
 template <typename T>
 struct SmallestIntegerTypeCalculator<T> {
-    using Type = T;
+    using type = T;
 };
 
-template <typename T, typename U, typename ... Ts>
-struct SmallestIntegerTypeCalculator<T, U, Ts...>  {
-private:
-    using HelperType =
-        typename std::conditional<sizeof(T) < sizeof(U), T, U>::type;
-public:
-    using Type = SmallestIntegerType<HelperType, Ts...>;
+template <typename... Rest>
+using SmallestIntegerType =
+    typename SmallestIntegerTypeCalculator<Rest...>::type;
+
+template <typename T, typename U>
+struct SmallestIntegerTypeCalculator<T, U> {
+    using type = typename std::conditional<sizeof(T) < sizeof(U), T, U>::type;
 };
 
-template <typename ... Ts>
+template <typename T, typename U, typename... Rest>
+struct SmallestIntegerTypeCalculator<T, U, Rest...>  {
+    using type = SmallestIntegerType<SmallestIntegerType<T, U>, Rest...>;
+};
+
+template <typename... Rest>
 struct LargestIntegerTypeCalculator {};
 
-template <typename ... Ts>
-using LargestIntegerType = typename LargestIntegerTypeCalculator<Ts...>::Type;
+template <typename... Rest>
+using LargestIntegerType = typename LargestIntegerTypeCalculator<Rest...>::type;
 
 template <typename T>
 struct LargestIntegerTypeCalculator<T> {
-    using Type = T;
+    using type = T;
 };
 
-template <typename T, typename U, typename ... Ts>
-struct LargestIntegerTypeCalculator<T, U, Ts...>  {
-private:
-    using HelperType =
-        typename std::conditional<(sizeof(T) > sizeof(U)), T, U>::type;
-public:
-    using Type = LargestIntegerType<HelperType, Ts...>;
+template <typename T, typename U>
+struct LargestIntegerTypeCalculator<T, U> {
+    using type = typename std::conditional<(sizeof(T) > sizeof(U)), T, U>::type;
+};
+
+template <typename T, typename U, typename... Rest>
+struct LargestIntegerTypeCalculator<T, U, Rest...>  {
+    using type = LargestIntegerType<LargestIntegerType<T, U>, Rest...>;
 };
 
 template <typename T, size_t N>
