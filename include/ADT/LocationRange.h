@@ -207,15 +207,18 @@ public:
 
     [[nodiscard]] constexpr
     inline uint64_t sizeFromLocation(uint64_t Location) const noexcept {
+        assert(containsLocation(Location));
         return sizeFromRelativeLocation(Location - Begin);
     }
 
     [[nodiscard]] constexpr
     inline uint64_t sizeFromRelativeLocation(uint64_t Location) const noexcept {
+        assert(containsRelativeLocation(Location));
         return (End - Location);
     }
 
-    [[nodiscard]] constexpr bool goesPastEnd(uint64_t Size) const noexcept {
+    [[nodiscard]]
+    constexpr inline bool goesPastEnd(uint64_t Size) const noexcept {
         return (End > Size);
     }
 
