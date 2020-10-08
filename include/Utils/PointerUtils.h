@@ -8,9 +8,7 @@
 
 #pragma once
 
-#include <cstdint>
 #include <type_traits>
-
 #include "ADT/PointerKind.h"
 
 template <PointerKind Kind>

@@ -8,12 +8,7 @@
 
 #pragma once
 
-#include <unistd.h>
-
-#include "ADT/Mach.h"
 #include "ADT/MachO.h"
-
-#include "PrintUtils.h"
 #include "Timestamp.h"
 
 template <typename OffsetType, typename SizeType>

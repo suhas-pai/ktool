@@ -8,9 +8,6 @@
 
 #pragma once
 
-#include <cstdint>
-#include <type_traits>
-
 #include "IntegerLimit.h"
 #include "MiscTemplates.h"
 

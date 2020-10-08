@@ -6,17 +6,17 @@
 //  Copyright © 2020 Suhas Pai. All rights reserved.
 //
 
-#include <cassert>
-#include <cstdio>
+#include <unistd.h>
 
+#include "Kind.h"
 #include "Utils/MachOPrinter.h"
 #include "Operation.h"
 
+#include "PrintArchList.h"
 #include "PrintHeader.h"
 #include "PrintLoadCommands.h"
 #include "PrintSharedLibraries.h"
 #include "PrintId.h"
-#include "PrintArchList.h"
 
 Operation::Operation(OperationKind Kind) noexcept : Kind(Kind) {
     assert(Kind != OperationKind::None);
@@ -26,67 +26,68 @@ bool
 Operation::SupportsObjectKind(OperationKind OpKind, ObjectKind ObjKind) noexcept
 {
     switch (OpKind) {
+        using Enum = OperationKind;
         case OperationKind::None:
             assert(0 && "Operation-Kind is None");
         case OperationKind::PrintHeader:
             return
-                OperationTypeFromKind<OperationKind::PrintHeader>::
+                OperationTypeFromKind<Enum::PrintHeader>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintLoadCommands:
             return
-                OperationTypeFromKind<OperationKind::PrintLoadCommands>::
+                OperationTypeFromKind<Enum::PrintLoadCommands>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintSharedLibraries:
             return
-                OperationTypeFromKind<OperationKind::PrintSharedLibraries>::
+                OperationTypeFromKind<Enum::PrintSharedLibraries>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintId:
             return
-                OperationTypeFromKind<OperationKind::PrintId>::
+                OperationTypeFromKind<Enum::PrintId>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintArchList:
             return
-                OperationTypeFromKind<OperationKind::PrintArchList>::
+                OperationTypeFromKind<Enum::PrintArchList>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintExportTrie:
             return
-                OperationTypeFromKind<OperationKind::PrintExportTrie>::
+                OperationTypeFromKind<Enum::PrintExportTrie>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintObjcClassList:
             return
-                OperationTypeFromKind<OperationKind::PrintObjcClassList>::
+                OperationTypeFromKind<Enum::PrintObjcClassList>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintBindActionList:
             return
-                OperationTypeFromKind<OperationKind::PrintBindActionList>::
+                OperationTypeFromKind<Enum::PrintBindActionList>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintBindOpcodeList:
             return
-                OperationTypeFromKind<OperationKind::PrintBindOpcodeList>::
+                OperationTypeFromKind<Enum::PrintBindOpcodeList>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintBindSymbolList:
             return
-                OperationTypeFromKind<OperationKind::PrintBindSymbolList>::
+                OperationTypeFromKind<Enum::PrintBindSymbolList>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintRebaseActionList:
             return
-                OperationTypeFromKind<OperationKind::PrintRebaseActionList>::
+                OperationTypeFromKind<Enum::PrintRebaseActionList>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintRebaseOpcodeList:
             return
-                OperationTypeFromKind<OperationKind::PrintRebaseOpcodeList>::
+                OperationTypeFromKind<Enum::PrintRebaseOpcodeList>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintCStringSection:
             return
-                OperationTypeFromKind<OperationKind::PrintCStringSection>::
+                OperationTypeFromKind<Enum::PrintCStringSection>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintSymbolPtrSection:
             return
-                OperationTypeFromKind<OperationKind::PrintSymbolPtrSection>::
+                OperationTypeFromKind<Enum::PrintSymbolPtrSection>::
                     SupportsObjectKind(ObjKind);
         case OperationKind::PrintImageList:
             return
-                OperationTypeFromKind<OperationKind::PrintImageList>::
+                OperationTypeFromKind<Enum::PrintImageList>::
                     SupportsObjectKind(ObjKind);
     }
 

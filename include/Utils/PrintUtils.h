@@ -8,16 +8,9 @@
 
 #pragma once
 
-#include <algorithm>
 #include <cassert>
 #include <cstdio>
-#include <cstdint>
-#include <cstring>
-#include <limits>
 #include <inttypes.h>
-#include <type_traits>
-#include <string>
-#include <unistd.h>
 
 #include "ADT/LargestIntHelper.h"
 #include "DoesOverflow.h"

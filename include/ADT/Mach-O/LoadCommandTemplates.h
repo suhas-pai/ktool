@@ -684,8 +684,7 @@ namespace MachO {
     template <>
     struct LoadCommandKindInfo<LoadCommandKind::DyldChainedFixups> {
         constexpr static auto Kind = LoadCommandKind::DyldChainedFixups;
-        constexpr static auto Name =
-            std::string_view("LC_DYLD_CHAINED_FIXUPS");
+        constexpr static auto Name = std::string_view("LC_DYLD_CHAINED_FIXUPS");
         constexpr static auto Description =
             std::string_view("Dyld Chained-Fixups");
 
@@ -709,7 +708,8 @@ namespace MachO {
             IsLoadCommandSubType<U, Rest...>::value;
     };
 
-    template <typename... T>
+    template <typename T, typename... Rest>
     using EnableIfLoadCommandSubtype =
-        typename std::enable_if_t<IsLoadCommandSubType<T...>::value, bool>;
+        typename std::enable_if_t<
+            IsLoadCommandSubType<T, Rest...>::value, bool>;
 }

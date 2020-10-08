@@ -8,15 +8,21 @@
 
 #pragma once
 
-[[nodiscard]] constexpr static inline bool isDigit(char Ch) noexcept {
+#include <cstdio>
+#include <cstdint>
+#include <cstdlib>
+
+#include <type_traits>
+
+[[nodiscard]] constexpr inline bool isDigit(char Ch) noexcept {
     return (static_cast<unsigned>(Ch - '0') < 10);
 }
 
-[[nodiscard]] constexpr static inline bool isControl(char Ch) noexcept {
+[[nodiscard]] constexpr inline bool isControl(char Ch) noexcept {
     return (static_cast<unsigned>(Ch - '\0') < 32);
 }
 
-[[nodiscard]] constexpr static inline bool isSpace(char Ch) noexcept {
+[[nodiscard]] constexpr inline bool isSpace(char Ch) noexcept {
     switch (Ch) {
         case ' ':
         case '\n':
