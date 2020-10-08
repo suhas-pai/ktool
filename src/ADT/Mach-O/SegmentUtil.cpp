@@ -193,9 +193,7 @@ namespace MachO {
                         goto done;
                     }
 
-                    const auto &JtSectMemoryRange =
-                        JtSection->getMemoryRange();
-
+                    const auto &JtSectMemoryRange = JtSection->getMemoryRange();
                     if (ItSectMemoryRange.overlaps(JtSectMemoryRange)) {
                         Error = Error::OverlappingSections;
                         goto done;
@@ -238,7 +236,7 @@ namespace MachO {
                     continue;
                 }
 
-                if (Segment->nameEquals(Name)) {
+                if (!Segment->nameEquals(Name)) {
                     continue;
                 }
 
@@ -256,7 +254,7 @@ namespace MachO {
                 const auto *Segment =
                     dyn_cast<LoadCommand::Kind::Segment>(LC, IsBigEndian);
 
-                if (Segment->nameEquals(Name)) {
+                if (!Segment->nameEquals(Name)) {
                     continue;
                 }
 
