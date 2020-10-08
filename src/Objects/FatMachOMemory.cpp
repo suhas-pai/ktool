@@ -22,20 +22,19 @@ ValidateArchList(const ConstMemoryMap &Map,
                  const MachO::FatHeader &Header) noexcept
 {
     using ArchType =
-        typename std::conditional<PointerKindIs64Bit(Kind),
-                                  MachO::FatHeader::Arch64,
-                                  MachO::FatHeader::Arch32>::type;
+        typename std::conditional_t<PointerKindIs64Bit(Kind),
+                                    MachO::FatHeader::Arch64,
+                                    MachO::FatHeader::Arch32>;
 
     using AddrType = PointerAddrTypeFromKind<Kind>;
 
-    const auto IsBigEndian = Header.isBigEndian();
-    const auto ArchCount = Header.getArchCount();
-
-    if (ArchCount == 0) {
+    if (Header.hasZeroArchs()) {
         return ConstFatMachOMemoryObject::Error::ZeroArchitectures;
     }
 
+    const auto ArchCount = Header.getArchCount();
     auto TotalHeaderSize = uint64_t();
+
     if (DoesMultiplyAndAddOverflow<AddrType>(sizeof(ArchType), ArchCount,
                                              sizeof(Header), &TotalHeaderSize))
     {
@@ -46,26 +45,24 @@ ValidateArchList(const ConstMemoryMap &Map,
         return ConstFatMachOMemoryObject::Error::SizeTooSmall;
     }
 
+    const auto IsBigEndian = Header.isBigEndian();
     const auto ArchListBegin = reinterpret_cast<const ArchType *>(&Header + 1);
     const auto ArchListEnd = ArchListBegin + ArchCount;
 
     for (const auto &Arch : BasicContiguousList(ArchListBegin, ArchListEnd)) {
-        const auto ArchOffset = Arch.getFileOffset(IsBigEndian);
-        const auto ArchSize = Arch.getFileSize(IsBigEndian);
-        const auto ArchRange =
-            LocationRange::CreateWithSize(ArchOffset, ArchSize);
+        const auto ArchRangeOpt = Arch.getFileRange(IsBigEndian);
+        if (!ArchRangeOpt.has_value()) {
+            return ConstFatMachOMemoryObject::Error::ArchOutOfBounds;
+        }
 
-        if (!ArchRange || ArchRange->goesPastEnd(Map.size())) {
+        const auto &ArchRange = ArchRangeOpt.value();
+        if (ArchRange.goesPastEnd(Map.size())) {
             return ConstFatMachOMemoryObject::Error::ArchOutOfBounds;
         }
 
         for (const auto &Inner : BasicContiguousList(ArchListBegin, &Arch)) {
-            const auto InnerOffset = Inner.getFileOffset(IsBigEndian);
-            const auto InnerSize = Inner.getFileSize(IsBigEndian);
-            const auto InnerRange =
-                LocationRange::CreateWithSize(InnerOffset, InnerSize);
-
-            if (ArchRange->overlaps(InnerRange.value())) {
+            const auto InnerRange = Inner.getFileRange(IsBigEndian).value();
+            if (ArchRange.overlaps(InnerRange)) {
                 return ConstFatMachOMemoryObject::Error::ArchOverlapsArch;
             }
         }

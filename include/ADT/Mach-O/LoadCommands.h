@@ -281,6 +281,21 @@ namespace MachO {
             this->CmdSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
+
+        [[nodiscard]]
+        constexpr inline bool hasValidKind(bool IsBigEndian) const noexcept {
+            return KindIsValid(getKind(IsBigEndian));
+        }
+
+        [[nodiscard]] constexpr
+        inline bool isRequiredByDyld(bool IsBigEndian) const noexcept {
+            return KindIsRequiredByDyld(getKind(IsBigEndian));
+        }
+
+        [[nodiscard]] constexpr
+        inline bool isSharedLibraryKind(bool IsBigEndian) const noexcept {
+            return KindIsSharedLibrary(getKind(IsBigEndian));
+        }
     };
 
     [[nodiscard]] constexpr inline bool
@@ -558,7 +573,7 @@ namespace MachO {
         }
 
         [[nodiscard]] bool isSectionListValid(bool IsBigEndian) const noexcept;
-        
+
         [[nodiscard]]
         inline SectionList getSectionListUnsafe(bool IsBigEndian) noexcept {
             const auto Ptr = reinterpret_cast<Section *>(this + 1);

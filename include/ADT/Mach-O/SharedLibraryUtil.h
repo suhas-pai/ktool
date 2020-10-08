@@ -12,9 +12,6 @@
 #include "SharedLibraryInfo.h"
 
 namespace MachO {
-    [[nodiscard]] inline
-    bool IsSharedLibraryLoadCommand(const LoadCommand::Kind &Kind) noexcept;
-
     struct ConstLoadCommandStorage;
     struct SharedLibraryInfoCollection {
     public:

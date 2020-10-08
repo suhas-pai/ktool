@@ -10,66 +10,6 @@
 #include "SharedLibraryUtil.h"
 
 namespace MachO {
-    bool IsSharedLibraryLoadCommand(const LoadCommand::Kind &Kind) noexcept {
-        switch (Kind) {
-            case LoadCommand::Kind::LoadDylib:
-            case LoadCommand::Kind::LoadWeakDylib:
-            case LoadCommand::Kind::ReexportDylib:
-            case LoadCommand::Kind::LazyLoadDylib:
-            case LoadCommand::Kind::LoadUpwardDylib:
-                return true;
-            case LoadCommand::Kind::Segment:
-            case LoadCommand::Kind::SymbolTable:
-            case LoadCommand::Kind::SymbolSegment:
-            case LoadCommand::Kind::Thread:
-            case LoadCommand::Kind::UnixThread:
-            case LoadCommand::Kind::LoadFixedVMSharedLibrary:
-            case LoadCommand::Kind::IdFixedVMSharedLibrary:
-            case LoadCommand::Kind::Ident:
-            case LoadCommand::Kind::FixedVMFile:
-            case LoadCommand::Kind::PrePage:
-            case LoadCommand::Kind::DynamicSymbolTable:
-            case LoadCommand::Kind::IdDylib:
-            case LoadCommand::Kind::LoadDylinker:
-            case LoadCommand::Kind::IdDylinker:
-            case LoadCommand::Kind::PreBoundDylib:
-            case LoadCommand::Kind::Routines:
-            case LoadCommand::Kind::SubFramework:
-            case LoadCommand::Kind::SubUmbrella:
-            case LoadCommand::Kind::SubClient:
-            case LoadCommand::Kind::SubLibrary:
-            case LoadCommand::Kind::TwoLevelHints:
-            case LoadCommand::Kind::PrebindChecksum:
-            case LoadCommand::Kind::Segment64:
-            case LoadCommand::Kind::Routines64:
-            case LoadCommand::Kind::Uuid:
-            case LoadCommand::Kind::Rpath:
-            case LoadCommand::Kind::CodeSignature:
-            case LoadCommand::Kind::SegmentSplitInfo:
-            case LoadCommand::Kind::EncryptionInfo:
-            case LoadCommand::Kind::DyldInfo:
-            case LoadCommand::Kind::DyldInfoOnly:
-            case LoadCommand::Kind::VersionMinimumMacOSX:
-            case LoadCommand::Kind::VersionMinimumIPhoneOS:
-            case LoadCommand::Kind::FunctionStarts:
-            case LoadCommand::Kind::DyldEnvironment:
-            case LoadCommand::Kind::Main:
-            case LoadCommand::Kind::DataInCode:
-            case LoadCommand::Kind::SourceVersion:
-            case LoadCommand::Kind::DylibCodeSignDRS:
-            case LoadCommand::Kind::EncryptionInfo64:
-            case LoadCommand::Kind::LinkerOption:
-            case LoadCommand::Kind::LinkerOptimizationHint:
-            case LoadCommand::Kind::VersionMinimumTvOS:
-            case LoadCommand::Kind::VersionMinimumWatchOS:
-            case LoadCommand::Kind::Note:
-            case LoadCommand::Kind::BuildVersion:
-            case LoadCommand::Kind::DyldExportsTrie:
-            case LoadCommand::Kind::DyldChainedFixups:
-                return false;
-        }
-    }
-
     SharedLibraryInfoCollection
     SharedLibraryInfoCollection::Open(
         const ConstLoadCommandStorage &LoadCmdStorage,
@@ -82,8 +22,7 @@ namespace MachO {
         auto Result = SharedLibraryInfoCollection();
 
         for (const auto &LC : LoadCmdStorage) {
-            const auto LCKind = LC.getKind(IsBigEndian);
-            if (!IsSharedLibraryLoadCommand(LCKind)) {
+            if (!LC.isSharedLibraryKind(IsBigEndian)) {
                 continue;
             }
 
@@ -101,7 +40,7 @@ namespace MachO {
             const auto &Info = DylibCmd.Info;
             auto LibInfo =
                 std::make_unique<SharedLibraryInfo>(SharedLibraryInfo {
-                    .Kind = LCKind,
+                    .Kind = LC.getKind(IsBigEndian),
                     .Path = std::string(Name),
                     .Index = LCIndex,
                     .Timestamp = Info.getTimestamp(IsBigEndian),

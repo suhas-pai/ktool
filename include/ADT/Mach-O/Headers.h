@@ -1264,6 +1264,10 @@ namespace MachO {
             return SwitchEndianIf(NFatArch, this->isBigEndian());
         }
 
+        [[nodiscard]] inline uint32_t hasZeroArchs() const noexcept {
+            return (NFatArch == 0);
+        }
+
         inline FatHeader &setArchCount(uint32_t Value) noexcept {
             this->NFatArch = SwitchEndianIf(Value, this->isBigEndian());
             return *this;

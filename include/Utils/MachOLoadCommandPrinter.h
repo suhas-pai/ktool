@@ -268,6 +268,15 @@ void MachOLoadCommandPrinterWriteKindName(FILE *OutFile, bool Verbose) {
             MLPC_LengthOfLongestName,
             KindInfo::Name.data());
 
+    constexpr auto RequiredByDyldString =
+        std::string_view(" (Required By Dyld)");
+
+    if (MachO::LoadCommand::KindIsRequiredByDyld(Kind)) {
+        fputs(RequiredByDyldString.data(), OutFile);
+    } else {
+        PrintUtilsPadSpaces(OutFile, RequiredByDyldString.length());
+    }
+
     if (Verbose) {
         fputs("\t\t\t\t", OutFile);
     }
