@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <cstring>
 #include "ADT/BasicContiguousList.h"
 
 #include "BindInfo.h"
