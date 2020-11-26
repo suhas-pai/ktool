@@ -7,7 +7,9 @@
 //
 
 #pragma once
+
 #include <cstdint>
+#include "Utils/DoesOverflow.h"
 
 struct LocationRange;
 struct RelativeRange {
@@ -43,5 +45,21 @@ public:
     [[nodiscard]]
     constexpr inline bool goesPastSize(uint64_t Size) const noexcept {
         return (getEnd() > Size);
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr
+    inline bool isLargeEnoughForType(uint64_t Count = 1) const noexcept {
+        auto Size = uint64_t();
+        if (DoesAddOverflow(sizeof(T), Count, &Size)) {
+            return false;
+        }
+
+        return isLargeEnoughForSize(Size);
+    }
+
+    [[nodiscard]]
+    constexpr inline bool isLargeEnoughForSize(uint64_t Size) const noexcept {
+        return (size() >= Size);
     }
 };

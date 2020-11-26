@@ -319,10 +319,9 @@ PrintRebaseOpcodeList(
                 fputc('\n', Options.OutFile);
                 break;
             case MachO::RebaseByte::Opcode::SetKindImm: {
-                auto KindName = MachO::RebaseWriteKindGetName(Iter.Kind).data();
-                if (KindName == nullptr) {
-                    KindName = "<unrecognized>";
-                }
+                const auto KindName =
+                    MachO::RebaseWriteKindGetName(Iter.Kind).data() ?:
+                    "<unrecognized>";
 
                 fprintf(Options.OutFile, "(%s)\n", KindName);
                 break;

@@ -7,7 +7,9 @@
 //
 
 #pragma once
+
 #include <cstdint>
+#include <type_traits>
 
 enum class PointerKind {
     s32Bit,
@@ -20,12 +22,12 @@ constexpr PointerKind PointerKindFromIs64Bit(bool Is64Bit) noexcept {
 }
 
 [[nodiscard]]
-constexpr static inline bool PointerKindIs32Bit(PointerKind Kind) noexcept {
+constexpr inline bool PointerKindIs32Bit(PointerKind Kind) noexcept {
     return (Kind == PointerKind::s32Bit);
 }
 
 [[nodiscard]]
-constexpr static inline bool PointerKindIs64Bit(PointerKind Kind) noexcept {
+constexpr inline bool PointerKindIs64Bit(PointerKind Kind) noexcept {
     return (Kind == PointerKind::s64Bit);
 }
 

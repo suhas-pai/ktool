@@ -12,7 +12,7 @@
 #include "ADT/MachO.h"
 #include "ADT/DscImage.h"
 
-#include "Utils/MachOPrinter.h"
+#include "Utils/MachOTypePrinter.h"
 #include "Utils/MiscTemplates.h"
 #include "Utils/PrintUtils.h"
 #include "Utils/SwapRanges.h"
@@ -105,17 +105,15 @@ PrintTreeExportInfo(
     bool Is64Bit,
     const struct PrintExportTrieOperation::Options &Options) noexcept
 {
-    auto RightPad = static_cast<int>(LongestLength + LENGTH_OF("\"\" -"));
-    auto KindDesc = ExportTrieExportKindGetDescription(Export.getKind()).data();
-
-    if (KindDesc == nullptr) {
-        KindDesc = "<unrecognized>";
-    }
+    const auto RightPad = static_cast<int>(LongestLength + LENGTH_OF("\"\" -"));
+    const auto KindDesc =
+        ExportTrieExportKindGetDescription(Export.getKind()).data() ?:
+        "<unrecognized>";
 
     fputc(' ', Options.OutFile);
-    PrintUtilsCharMultTimes(Options.OutFile,
-                            '-',
-                            RightPad - WrittenOut - 1);
+
+    const auto PadLength = RightPad - WrittenOut - 1;
+    PrintUtilsCharMultTimes(Options.OutFile, '-', PadLength);
 
     fputs("> (Exported - ", Options.OutFile);
     if (Options.Verbose) {
@@ -142,13 +140,15 @@ PrintTreeExportInfo(
                         Export.getInfo().getReexportImportName().data());
             }
 
+
             const auto DylibOrdinal =
                 Export.getInfo().getReexportDylibOrdinal();
 
-            OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
-                                                   SharedLibraryCollection,
-                                                   DylibOrdinal,
-                                                   Options.Verbose);
+            OperationCommon::PrintDylibOrdinalInfo(
+                Options.OutFile,
+                SharedLibraryCollection,
+                DylibOrdinal,
+                PrintKindFromIsVerbose(Options.Verbose));
         }
     } else {
         fprintf(Options.OutFile, "%s", KindDesc);
@@ -195,12 +195,12 @@ HandleTreeOption(
     if (!Options.SectionRequirements.empty()) {
         auto CollectionEnd = EntryCollection.end();
         for (auto Iter = EntryCollection.begin(); Iter != CollectionEnd;) {
-            if (!Iter->isExport()) {
+            const auto ExportNode = Iter->getIfExportNode();
+            if (ExportNode == nullptr) {
                 Iter++;
                 continue;
             }
 
-            const auto ExportNode = Iter->getAsExportNode();
             const auto Kind = ExportNode->getKind();
 
             auto Segment = std::string_view();
@@ -264,12 +264,8 @@ HandleTreeOption(
             reinterpret_cast<const MachO::ExportTrieChildNode &>(Node);
 
         WrittenOut += fprintf(OutFile, "\"%s\"", Info.getString().data());
-        if (Info.isExport()) {
-            const auto &ExportInfo =
-                reinterpret_cast<const MachO::ExportTrieExportChildNode &>(
-                    Info);
-
-            PrintTreeExportInfo(ExportInfo,
+        if (const auto ExportInfo = Info.getIfExportNode()) {
+            PrintTreeExportInfo(*ExportInfo,
                                 SharedLibraryCollection,
                                 WrittenOut,
                                 DepthLevel,
@@ -315,10 +311,7 @@ FindExportTrieList(
     const auto IsBE = LoadCmdStorage.isBigEndian();
 
     for (const auto &LC : LoadCmdStorage) {
-        const auto *DyldInfo =
-            dyn_cast<MachO::DyldInfoCommand>(LC, IsBE);
-
-        if (DyldInfo != nullptr) {
+        if (const auto *DyldInfo = dyn_cast<MachO::DyldInfoCommand>(LC, IsBE)) {
             if (FoundExportTrie) {
                 PrintExtraExportTrieError(Options.ErrFile);
                 return 1;
@@ -326,19 +319,23 @@ FindExportTrieList(
 
             FoundExportTrie = true;
             TrieList = DyldInfo->GetConstExportTrieList(Map, IsBE);
-        } else {
-            const auto *DyldExportsTrie =
-                dyn_cast<MachO::LoadCommand::Kind::DyldExportsTrie>(LC, IsBE);
 
-            if (DyldExportsTrie != nullptr) {
-                if (FoundExportTrie) {
-                    PrintExtraExportTrieError(Options.ErrFile);
-                    return 1;
-                }
+            continue;
+        }
 
-                TrieList =
-                    DyldExportsTrie->GetConstExportTrieList(Map, IsBE);
+        const auto *ET =
+            dyn_cast<MachO::LoadCommand::Kind::DyldExportsTrie>(LC, IsBE);
+
+        if (ET != nullptr) {
+            if (FoundExportTrie) {
+                PrintExtraExportTrieError(Options.ErrFile);
+                return 1;
             }
+
+            FoundExportTrie = true;
+            TrieList = ET->GetConstExportTrieList(Map, IsBE);
+
+            continue;
         }
     }
 
@@ -540,10 +537,12 @@ PrintExportTrie(
                 fputs(" (Re-exported from ", Options.OutFile);
             }
 
-            OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
-                                                   LibraryCollection,
-                                                   DylibOrdinal,
-                                                   Options.Verbose);
+            OperationCommon::PrintDylibOrdinalInfo(
+                Options.OutFile,
+                LibraryCollection,
+                DylibOrdinal,
+                PrintKindFromIsVerbose(Options.Verbose));
+
             fputc(')', Options.OutFile);
         }
 

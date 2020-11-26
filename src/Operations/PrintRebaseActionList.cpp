@@ -73,17 +73,15 @@ PrintRebaseActionList(
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
     for (const auto &LC : LoadCmdStorage) {
-        const auto *DyldInfo =
-            dyn_cast<MachO::DyldInfoCommand>(LC, IsBigEndian);
-
-        if (DyldInfo == nullptr) {
+        const auto *DyldLC = dyn_cast<MachO::DyldInfoCommand>(LC, IsBigEndian);
+        if (DyldLC == nullptr) {
             continue;
         }
 
         if (FoundDyldInfo != nullptr) {
             // Compare without swapping as they both have the same endian.
-            if (DyldInfo->RebaseOff != FoundDyldInfo->RebaseOff ||
-                DyldInfo->RebaseSize != FoundDyldInfo->RebaseSize)
+            if (DyldLC->RebaseOff != FoundDyldInfo->RebaseOff ||
+                DyldLC->RebaseSize != FoundDyldInfo->RebaseSize)
             {
                 fputs("Provided file has multiple (conflicting) Rebase-List "
                       "information\n",
@@ -92,12 +90,12 @@ PrintRebaseActionList(
             }
         }
 
-        if (DyldInfo->RebaseSize == 0) {
+        if (DyldLC->RebaseSize == 0) {
             fputs("Provided file has no Rebase-Opcodes\n", Options.ErrFile);
             return 0;
         }
 
-        FoundDyldInfo = DyldInfo;
+        FoundDyldInfo = DyldLC;
     }
 
     if (FoundDyldInfo == nullptr) {
@@ -165,15 +163,15 @@ PrintRebaseActionList(
                   Comparator);
     }
 
-    Operation::PrintLineSpamWarning(Options.OutFile,
-                                    RebaseActionInfoList.size());
-
     if (RebaseActionInfoList.empty()) {
         fputs("No Rebase-Info\n", Options.OutFile);
         return 0;
     }
 
-    switch (RebaseActionInfoList.size()) {
+    const auto ListSize = RebaseActionInfoList.size();
+    Operation::PrintLineSpamWarning(Options.OutFile, ListSize);
+
+    switch (ListSize) {
         case 0:
             assert(0 && "Rebase-Action List shouldn't be empty at this point");
         case 1:
@@ -182,13 +180,12 @@ PrintRebaseActionList(
         default:
             fprintf(Options.OutFile,
                     "%" PRIuPTR " Rebase Actions:\n",
-                    RebaseActionInfoList.size());
+                    ListSize);
             break;
     }
 
     auto Counter = 1ull;
-    const auto SizeDigitLength =
-        PrintUtilsGetIntegerDigitLength(RebaseActionInfoList.size());
+    const auto SizeDigitLength = PrintUtilsGetIntegerDigitLength(ListSize);
 
     for (const auto &Action : RebaseActionInfoList) {
         PrintRebaseAction(Counter,

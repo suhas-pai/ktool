@@ -48,10 +48,12 @@ public:
     inline void operator=(T *Ptr) noexcept { Set(Ptr); }
 
     template <typename T>
-    operator T *() noexcept { return static_cast<T *>(Ptr); }
+    inline operator T *() noexcept { return static_cast<T *>(Ptr); }
 
     template <typename T>
-    operator const T *() const noexcept { return static_cast<const T *>(Ptr); }
+    inline operator const T *() const noexcept {
+        return static_cast<const T *>(Ptr);
+    }
 
     template <typename T>
     [[nodiscard]] inline bool operator==(const T &Rhs) const noexcept {

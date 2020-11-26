@@ -25,12 +25,12 @@ auto
 ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept -> Error
 {
     if (!Map.isLargeEnoughForType<MachO::Header>()) {
-        return ConstMachOMemoryObject::Error::SizeTooSmall;
+        return Error::SizeTooSmall;
     }
 
     const auto &Header = *Map.getBeginAs<MachO::Header>();
     if (!Header.hasValidMagic()) {
-        return ConstMachOMemoryObject::Error::WrongFormat;
+        return Error::WrongFormat;
     }
 
     auto HeaderAndLCSize = uint64_t();
@@ -40,17 +40,17 @@ ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept -> Error
 
     if (Is64Bit) {
         if (DoesAddOverflow(Header.size(), LCSize, &HeaderAndLCSize)) {
-            return ConstMachOMemoryObject::Error::TooManyLoadCommands;
+            return Error::TooManyLoadCommands;
         }
     } else {
         if (DoesAddOverflow<uint32_t>(Header.size(), LCSize, &HeaderAndLCSize))
         {
-            return ConstMachOMemoryObject::Error::TooManyLoadCommands;
+            return Error::TooManyLoadCommands;
         }
     }
 
     if (!Map.isLargeEnoughForSize(HeaderAndLCSize)) {
-        return ConstMachOMemoryObject::Error::TooManyLoadCommands;
+        return Error::TooManyLoadCommands;
     }
 
     // Basic check with Load-Command Count.
@@ -60,14 +60,14 @@ ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept -> Error
     const auto SingleLCSize = sizeof(MachO::LoadCommand);
 
     if (DoesMultiplyOverflow(SingleLCSize, LCCount, &MinLCSize)) {
-        return ConstMachOMemoryObject::Error::TooManyLoadCommands;
+        return Error::TooManyLoadCommands;
     }
 
     if (LCSize < MinLCSize) {
-        return ConstMachOMemoryObject::Error::TooManyLoadCommands;
+        return Error::TooManyLoadCommands;
     }
 
-    return ConstMachOMemoryObject::Error::None;
+    return Error::None;
 }
 
 auto

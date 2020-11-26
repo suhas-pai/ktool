@@ -39,25 +39,29 @@ namespace DyldSharedCache {
         uint64_t FileOffset;
         uint32_t MaxProt;
         uint32_t InitProt;
-        
+
         [[nodiscard]]
         inline MachO::MemoryProtections getMaxProt() const noexcept {
             return MaxProt;
         }
-        
+
         [[nodiscard]]
         inline MachO::MemoryProtections getInitProt() const noexcept {
             return InitProt;
         }
 
-        [[nodiscard]] inline
-        std::optional<LocationRange> getAddressRange() const noexcept {
+        [[nodiscard]]
+        inline std::optional<LocationRange> getAddressRange() const noexcept {
             return LocationRange::CreateWithSize(Address, Size);
         }
 
-        [[nodiscard]] inline
-        std::optional<LocationRange> getFileRange() const noexcept {
+        [[nodiscard]]
+        inline std::optional<LocationRange> getFileRange() const noexcept {
             return LocationRange::CreateWithSize(FileOffset, Size);
+        }
+
+        [[nodiscard]] inline bool isEmpty() const noexcept {
+            return (Size == 0);
         }
 
         [[nodiscard]] inline uint64_t
@@ -257,7 +261,7 @@ namespace DyldSharedCache {
             return ConstMappingInfoList(Ptr, MappingCount);
         }
 
-        [[nodiscard]] uint64_t
+        [[nodiscard]] inline uint64_t
         GetFileOffsetForAddress(uint64_t Addr,
                                 uint64_t *MaxSizeOut = nullptr) const noexcept
         {
@@ -278,7 +282,7 @@ namespace DyldSharedCache {
         }
 
         template <typename T = uint8_t>
-        [[nodiscard]] T *GetPtrForAddress(uint64_t Address) noexcept {
+        [[nodiscard]] inline T *GetPtrForAddress(uint64_t Address) noexcept {
             auto Size = uint64_t();
             if (const auto Offset = GetFileOffsetForAddress(Address, &Size)) {
                 if (Size < sizeof(T)) {
@@ -294,7 +298,7 @@ namespace DyldSharedCache {
 
         template <typename T = uint8_t>
         [[nodiscard]]
-        const T *GetPtrForAddress(uint64_t Address) const noexcept {
+        inline const T *GetPtrForAddress(uint64_t Address) const noexcept {
             auto Size = uint64_t();
             if (const auto Offset = GetFileOffsetForAddress(Address, &Size)) {
                 if (Size < sizeof(T)) {

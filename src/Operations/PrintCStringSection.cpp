@@ -118,9 +118,9 @@ PrintCStringList(
 
     if (Section == nullptr) {
         fprintf(Options.ErrFile,
-                "Provided file has no section with name \"%s\" in provided "
-                "segment\n",
-                Options.SectionName.data());
+                "Provided file has no section with name \"" STRING_VIEW_FMT
+                "\" in provided segment\n",
+                STRING_VIEW_FMT_ARGS(Options.SectionName));
         return 1;
     }
 

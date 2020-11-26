@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 #include "Kind.h"
-#include "Utils/MachOPrinter.h"
+#include "Utils/MachOTypePrinter.h"
 #include "Operation.h"
 
 #include "PrintArchList.h"
@@ -129,8 +129,7 @@ void PrintSelectArchMessage(const ConstFatMachOMemoryObject &Object) noexcept {
     MachOTypePrinter<MachO::FatHeader>::PrintArchList(stdout, Header);
 }
 
-static
-void PrintSelectImageMessage(const ConstDscMemoryObject &Object) noexcept {
+static void PrintSelectImageMessage(const DscMemoryObject &Object) noexcept {
     fprintf(stdout,
             "Please select one of %" PRIu32 " images.\n"
             "Use option --list-dsc-images to see a list of images\n",
@@ -562,17 +561,16 @@ Operation::PrintPathOptionHelpMenu(FILE *OutFile,
                                    const char *LinePrefix,
                                    const char *Suffix) noexcept
 {
-    static const auto SelectArchString =
+    constexpr auto SelectArchString =
         "%s\t--arch <ordinal>,          Select arch (at ordinal) of a FAT "
         "Mach-O File\n";
 
-    static const auto SelectDscImageString =
+    constexpr auto SelectDscImageString =
         "%s\t--image <path-or-ordinal>, Select image (at path or ordinal) of "
         "an Apple dyld_shared_cache file\n";
 
     if (ForKind == OperationKind::None) {
         fprintf(OutFile, "%sPath-Options:\n", Prefix);
-
         fprintf(OutFile, SelectArchString, LinePrefix);
         fprintf(OutFile, SelectDscImageString, LinePrefix);
 

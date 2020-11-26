@@ -27,8 +27,8 @@ namespace MachO {
         Open(const ConstLoadCommandStorage &LoadCmdStorage,
              Error *ErrorOut) noexcept;
 
-        [[nodiscard]] inline
-        const SharedLibraryInfo &at(uint64_t Index) const noexcept {
+        [[nodiscard]]
+        inline const SharedLibraryInfo &at(uint64_t Index) const noexcept {
             assert(!IndexOutOfBounds(Index, this->size()));
             return *List.at(Index).get();
         }

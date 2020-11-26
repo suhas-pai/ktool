@@ -29,6 +29,10 @@ public:
         return (Obj.getKind() == ObjKind);
     }
 
+    [[nodiscard]] static inline bool classof(const MemoryObject *Obj) noexcept {
+        return IsOfKind(*Obj);
+    }
+
     virtual ~ConstDscImageMemoryObject() noexcept = default;
 
     [[nodiscard]] inline RelativeRange getDscRange() const noexcept {

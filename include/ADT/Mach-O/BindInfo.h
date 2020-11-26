@@ -43,132 +43,113 @@ namespace MachO {
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::Done> {
-        constexpr static const auto Kind = BindByteOpcode::Done;
-
-        constexpr static const auto Name = "BIND_OPCODE_DONE"sv;
-        constexpr static const auto Description = "Done"sv;
+        constexpr static auto Kind = BindByteOpcode::Done;
+        constexpr static auto Name = "BIND_OPCODE_DONE"sv;
+        constexpr static auto Description = "Done"sv;
     };
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::SetDylibOrdinalImm> {
-        constexpr static const auto Kind = BindByteOpcode::SetDylibOrdinalImm;
-
-        constexpr static const auto Name =
-            "BIND_OPCODE_SET_DYLIB_ORDINAL_IMM"sv;
-        constexpr static const auto Description =
-            "Set Dylib-Ordinal (Immediate)"sv;
+        constexpr static auto Kind = BindByteOpcode::SetDylibOrdinalImm;
+        constexpr static auto Name = "BIND_OPCODE_SET_DYLIB_ORDINAL_IMM"sv;
+        constexpr static auto Description = "Set Dylib-Ordinal (Immediate)"sv;
     };
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::SetDylibOrdinalUleb> {
-        constexpr static const auto Kind = BindByteOpcode::SetDylibOrdinalUleb;
-
-        constexpr static const auto Name =
-            "BIND_OPCODE_SET_DYLIB_ORDINAL_ULEB"sv;
-        constexpr static const auto Description =
-            "Set Dylib-Ordinal (Uleb128)"sv;
+        constexpr static auto Kind = BindByteOpcode::SetDylibOrdinalUleb;
+        constexpr static auto Name = "BIND_OPCODE_SET_DYLIB_ORDINAL_ULEB"sv;
+        constexpr static auto Description = "Set Dylib-Ordinal (Uleb128)"sv;
     };
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::SetDylibSpecialImm> {
-        constexpr static const auto Kind = BindByteOpcode::SetDylibSpecialImm;
-
-        constexpr static const auto Name =
-            "BIND_OPCODE_SET_DYLIB_SPECIAL_IMM"sv;
-        constexpr static const auto Description =
+        constexpr static auto Kind = BindByteOpcode::SetDylibSpecialImm;
+        constexpr static auto Name = "BIND_OPCODE_SET_DYLIB_SPECIAL_IMM"sv;
+        constexpr static auto Description =
             "Set Special Dylib-Ordinal (Immediate)"sv;
     };
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::SetSymbolTrailingFlagsImm> {
-        constexpr static const auto Kind =
+        constexpr static auto Kind =
             BindByteOpcode::SetSymbolTrailingFlagsImm;
-        constexpr static const auto Name =
+        constexpr static auto Name =
             "BIND_OPCODE_SET_SYMBOL_TRAILING_FLAGS_IMM"sv;
-        constexpr static const auto Description =
+        constexpr static auto Description =
             "Set Special Dylib-Ordinal (Immediate)"sv;
     };
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::SetKindImm> {
-        constexpr static const auto Kind = BindByteOpcode::SetKindImm;
-
-        constexpr static const auto Name = "BIND_OPCODE_SET_TYPE_IMM"sv;
-        constexpr static const auto Description =
+        constexpr static auto Kind = BindByteOpcode::SetKindImm;
+        constexpr static auto Name = "BIND_OPCODE_SET_TYPE_IMM"sv;
+        constexpr static auto Description =
             "Set Special Dylib-Ordinal (Immediate)"sv;
     };
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::SetAddendSleb> {
-        constexpr static const auto Kind = BindByteOpcode::SetAddendSleb;
-
-        constexpr static const auto Name = "BIND_OPCODE_SET_ADDEND_SLEB"sv;
-        constexpr static const auto Description = "Set Addend (Sleb128)"sv;
+        constexpr static auto Kind = BindByteOpcode::SetAddendSleb;
+        constexpr static auto Name = "BIND_OPCODE_SET_ADDEND_SLEB"sv;
+        constexpr static auto Description = "Set Addend (Sleb128)"sv;
     };
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::SetSegmentAndOffsetUleb> {
-        constexpr static const auto Kind =
+        constexpr static auto Kind =
             BindByteOpcode::SetSegmentAndOffsetUleb;
 
-        constexpr static const auto Name =
+        constexpr static auto Name =
             "BIND_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB"sv;
-        constexpr static const auto Description =
-            "Set Addend (Sleb128)"sv;
+        constexpr static auto Description = "Set Addend (Sleb128)"sv;
     };
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::AddAddrUleb> {
-        constexpr static const auto Kind = BindByteOpcode::AddAddrUleb;
-
-        constexpr static const auto Name = "BIND_OPCODE_ADD_ADDR_ULEB"sv;
-        constexpr static const auto Description = "Add Address (Uleb128)"sv;
+        constexpr static auto Kind = BindByteOpcode::AddAddrUleb;
+        constexpr static auto Name = "BIND_OPCODE_ADD_ADDR_ULEB"sv;
+        constexpr static auto Description = "Add Address (Uleb128)"sv;
     };
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::DoBind> {
-        constexpr static const auto Kind = BindByteOpcode::DoBind;
-
-        constexpr static const auto Name = "BIND_OPCODE_DO_BIND"sv;
-        constexpr static const auto Description = "Do Bind"sv;
+        constexpr static auto Kind = BindByteOpcode::DoBind;
+        constexpr static auto Name = "BIND_OPCODE_DO_BIND"sv;
+        constexpr static auto Description = "Do Bind"sv;
     };
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::DoBindAddAddrUleb> {
-        constexpr static const auto Kind = BindByteOpcode::DoBindAddAddrUleb;
-
-        constexpr static const auto Name =
-            "BIND_OPCODE_DO_BIND_ADD_ADDR_ULEB"sv;
-        constexpr static const auto Description =
-            "Do Bind And Add Address (Uleb)"sv;
+        constexpr static auto Kind = BindByteOpcode::DoBindAddAddrUleb;
+        constexpr static auto Name = "BIND_OPCODE_DO_BIND_ADD_ADDR_ULEB"sv;
+        constexpr static auto Description = "Do Bind And Add Address (Uleb)"sv;
     };
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::DoBindAddAddrImmScaled> {
-        constexpr static const auto Kind =
-            BindByteOpcode::DoBindAddAddrImmScaled;
-        constexpr static const auto Name =
+        constexpr static auto Kind = BindByteOpcode::DoBindAddAddrImmScaled;
+        constexpr static auto Name =
             "BIND_OPCODE_DO_BIND_ADD_ADDR_IMM_SCALED"sv;
-        constexpr static const auto Description =
+        constexpr static auto Description =
             "Do Bind And Add Address Scaled (Immediate)"sv;
     };
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::DoBindUlebTimesSkippingUleb> {
-        constexpr static const auto Kind =
+        constexpr static auto Kind =
             BindByteOpcode::DoBindUlebTimesSkippingUleb;
-        constexpr static const auto Name =
+        constexpr static auto Name =
             "BIND_OPCODE_DO_BIND_ULEB_TIMES_SKIPPING_ULEB"sv;
-        constexpr static const auto Description =
+        constexpr static auto Description =
             "Do Bind Uleb128 Skipping Uleb128 Bytes"sv;
     };
 
     template <>
     struct BindByteOpcodeInfo<BindByteOpcode::Threaded> {
-        constexpr static const auto Kind = BindByteOpcode::Threaded;
-
-        constexpr static const auto Name = "BIND_OPCODE_THREADED"sv;
-        constexpr static const auto Description = "Threaded"sv;
+        constexpr static auto Kind = BindByteOpcode::Threaded;
+        constexpr static auto Name = "BIND_OPCODE_THREADED"sv;
+        constexpr static auto Description = "Threaded"sv;
     };
 
     [[nodiscard]] constexpr const std::string_view &
@@ -280,26 +261,26 @@ namespace MachO {
 
     template <>
     struct BindWriteKindInfo<BindWriteKind::Pointer> {
-        constexpr static const auto Kind = BindWriteKind::Pointer;
+        constexpr static auto Kind = BindWriteKind::Pointer;
 
-        constexpr static const auto Name = "BIND_TYPE_POINTER"sv;
-        constexpr static const auto Description = "Pointer"sv;
+        constexpr static auto Name = "BIND_TYPE_POINTER"sv;
+        constexpr static auto Description = "Pointer"sv;
     };
 
     template <>
     struct BindWriteKindInfo<BindWriteKind::TextAbsolute32> {
-        constexpr static const auto Kind = BindWriteKind::TextAbsolute32;
+        constexpr static auto Kind = BindWriteKind::TextAbsolute32;
 
-        constexpr static const auto Name = "BIND_TYPE_TEXT_ABSOLUTE32"sv;
-        constexpr static const auto Description = "Text Absolute (32-Bit)"sv;
+        constexpr static auto Name = "BIND_TYPE_TEXT_ABSOLUTE32"sv;
+        constexpr static auto Description = "Text Absolute (32-Bit)"sv;
     };
 
     template <>
     struct BindWriteKindInfo<BindWriteKind::TextPcrel32> {
-        constexpr static const auto Kind = BindWriteKind::TextPcrel32;
+        constexpr static auto Kind = BindWriteKind::TextPcrel32;
 
-        constexpr static const auto Name = "BIND_TYPE_TEXT_PCREL32"sv;
-        constexpr static const auto Description = "PC Relative (32-Bit)"sv;
+        constexpr static auto Name = "BIND_TYPE_TEXT_PCREL32"sv;
+        constexpr static auto Description = "PC Relative (32-Bit)"sv;
     };
 
     [[nodiscard]] constexpr
@@ -359,45 +340,45 @@ namespace MachO {
     struct BindByteDylibSpecialOrdinalInfo<
         BindByteDylibSpecialOrdinal::DylibSelf>
     {
-        constexpr static const auto Kind =
+        constexpr static auto Kind =
             BindByteDylibSpecialOrdinal::DylibSelf;
 
-        constexpr static const auto Name = "BIND_SPECIAL_DYLIB_SELF"sv;
-        constexpr static const auto Description = "Dylib-Self"sv;
+        constexpr static auto Name = "BIND_SPECIAL_DYLIB_SELF"sv;
+        constexpr static auto Description = "Dylib-Self"sv;
     };
 
     template <>
     struct BindByteDylibSpecialOrdinalInfo<
         BindByteDylibSpecialOrdinal::DylibMainExecutable>
     {
-        constexpr static const auto Kind =
+        constexpr static auto Kind =
             BindByteDylibSpecialOrdinal::DylibMainExecutable;
 
-        constexpr static const auto Name =
+        constexpr static auto Name =
             "BIND_SPECIAL_DYLIB_MAIN_EXECUTABLE"sv;
-        constexpr static const auto Description = "Main-Executable"sv;
+        constexpr static auto Description = "Main-Executable"sv;
     };
 
     template <>
     struct BindByteDylibSpecialOrdinalInfo<
         BindByteDylibSpecialOrdinal::DylibFlatLookup>
     {
-        constexpr static const auto Kind =
+        constexpr static auto Kind =
             BindByteDylibSpecialOrdinal::DylibFlatLookup;
 
-        constexpr static const auto Name = "BIND_SPECIAL_DYLIB_FLAT_LOOKUP"sv;
-        constexpr static const auto Description = "Flat-Lookup"sv;
+        constexpr static auto Name = "BIND_SPECIAL_DYLIB_FLAT_LOOKUP"sv;
+        constexpr static auto Description = "Flat-Lookup"sv;
     };
 
     template <>
     struct BindByteDylibSpecialOrdinalInfo<
         BindByteDylibSpecialOrdinal::DylibWeakLookup>
     {
-        constexpr static const auto Kind =
+        constexpr static auto Kind =
             BindByteDylibSpecialOrdinal::DylibWeakLookup;
 
-        constexpr static const auto Name = "BIND_SPECIAL_DYLIB_WEAK_LOOKUP"sv;
-        constexpr static const auto Description = "Weak-Lookup"sv;
+        constexpr static auto Name = "BIND_SPECIAL_DYLIB_WEAK_LOOKUP"sv;
+        constexpr static auto Description = "Weak-Lookup"sv;
     };
 
     [[nodiscard]] constexpr const std::string_view &

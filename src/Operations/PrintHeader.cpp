@@ -8,7 +8,7 @@
 
 #include <cstring>
 
-#include "Utils/MachOPrinter.h"
+#include "Utils/MachOTypePrinter.h"
 #include "Utils/PrintUtils.h"
 
 #include "Common.h"
@@ -147,9 +147,10 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
                 FlagsValue,
                 FlagInfoList.size());
 
+        const auto PrintKind = PrintKindFromIsVerbose(Options.Verbose);
         OperationCommon::PrintFlagInfoList(Options.OutFile,
                                            FlagInfoList,
-                                           Options.Verbose,
+                                           PrintKind,
                                            "\t\t");
     } else {
         fprintf(Options.OutFile, "Magic:      %s\n", MagicDesc);
@@ -560,7 +561,7 @@ PrintDscRangeOverlapsErrorOrNewline(
     }
 }
 
-static constexpr auto LongestDscKey =
+constexpr static auto LongestDscKey =
     LENGTH_OF("Program Closures Trie Address");
 
 static void PrintDscKey(FILE *OutFile, const char *Key) noexcept {
@@ -576,8 +577,10 @@ WarnIfOutOfRange(FILE *OutFile,
                  const uint64_t Size,
                  bool PrintNewLine = true) noexcept
 {
-    const auto LocRange = LocationRange::CreateWithSize(Offset, Size);
-    if (!LocRange || !Range.containsLocRange(LocRange.value())) {
+    const auto LocRangeOpt = LocationRange::CreateWithSize(Offset, Size);
+    if (!LocRangeOpt.has_value() ||
+        !Range.containsLocRange(LocRangeOpt.value()))
+    {
         fprintf(OutFile, " (Past EOF!)");
     }
 
@@ -592,7 +595,7 @@ PrintMappingInfoList(const struct PrintHeaderOperation::Options &Options,
 {
     const auto MappingCountDigitLength =
         PrintUtilsGetIntegerDigitLength(Object.getMappingCount());
-    
+
     auto Index = static_cast<int>(1);
     for (const auto &Mapping : Object.getMappingInfoList()) {
         const auto InitProt = Mapping.getInitProt();
@@ -603,13 +606,13 @@ PrintMappingInfoList(const struct PrintHeaderOperation::Options &Options,
                 MappingCountDigitLength,
                 Index,
                 MEM_PROT_INIT_MAX_RNG_FMT_ARGS(InitProt, MaxProt));
-        
+
         PrintUtilsWriteOffset(Options.OutFile,
                               Mapping.FileOffset,
                               true,
                               "\t\tFile-Offset: ");
 
-        const auto PrintRange = (Mapping.Size != 0 && Options.Verbose);
+        const auto PrintRange = (!Mapping.isEmpty() && Options.Verbose);
         if (PrintRange) {
             PrintUtilsWriteOffsetSizeRange(Options.OutFile,
                                            Mapping.FileOffset,
@@ -617,7 +620,7 @@ PrintMappingInfoList(const struct PrintHeaderOperation::Options &Options,
                                            " (",
                                            ")");
         }
-        
+
         PrintUtilsWriteOffset(Options.OutFile,
                               Mapping.Address,
                               true,
@@ -630,13 +633,13 @@ PrintMappingInfoList(const struct PrintHeaderOperation::Options &Options,
                                            " (",
                                            ")");
         }
-        
-        const auto RightPad = LENGTH_OF("\n\t\tSize:        ") + OFFSET_64_LEN;
+
+        fputs("\n\t\tSize:        ", Options.OutFile);
         PrintUtilsRightPadSpaces(Options.OutFile,
                                  fprintf(Options.OutFile,
-                                         "\n\t\tSize:        %" PRIu64,
+                                         "%" PRIu64,
                                          Mapping.Size),
-                                 RightPad);
+                                 OFFSET_64_LEN);
 
         if (Options.Verbose) {
             PrintUtilsWriteFormattedSize(Options.OutFile,
@@ -654,16 +657,16 @@ static void
 PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
                      const ConstDscMemoryObject &Object) noexcept
 {
-    auto CpuKind = Mach::CpuKind::Any;
-    auto CpuSubKind = int32_t();
-
-    Object.getCpuKind(CpuKind, CpuSubKind);
     const auto Header = Object.getHeaderV0();
 
     PrintDscKey(Options.OutFile, "Magic");
     fprintf(Options.OutFile, "\"" CHAR_ARR_FMT(16) "\"", Header.Magic);
 
     if (Options.Verbose) {
+        auto CpuKind = Mach::CpuKind::Any;
+        auto CpuSubKind = int32_t();
+
+        Object.getCpuKind(CpuKind, CpuSubKind);
         fprintf(Options.OutFile,
                 " (Cpu-Kind: %s)\n",
                 Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data());
@@ -825,15 +828,13 @@ PrintDscHeaderV3Info(
     switch (Header.Kind) {
         case DyldSharedCache::CacheKind::Development:
             fputs("Development\n", Options.OutFile);
-            goto done;
+            return;
         case DyldSharedCache::CacheKind::Production:
             fputs("Production\n", Options.OutFile);
-            goto done;
+            return;
     }
 
     fputs("<Unrecognized>", Options.OutFile);
-done:
-    fputc('\n', Options.OutFile);
 }
 
 static void
@@ -956,11 +957,8 @@ PrintDscHeaderV5Info(const ConstDscMemoryObject &Object,
     PrintDscKey(Options.OutFile, "Platform");
 
     const auto Platform = MachO::PlatformKind(Header.Platform);
-    auto PlatformStr = MachO::PlatformKindGetDescription(Platform).data();
-
-    if (PlatformStr == nullptr) {
-        PlatformStr = "<unrecognized>";
-    }
+    const auto PlatformStr =
+        MachO::PlatformKindGetDescription(Platform).data() ?: "<unrecognized>";
 
     fprintf(Options.OutFile, "%s\n", PlatformStr);
 

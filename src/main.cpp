@@ -95,8 +95,8 @@ GetImageWithPath(const ConstDscMemoryObject &Object,
     return ObjectOrError.getPtr();
 }
 
-[[nodiscard]]
-static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
+[[nodiscard]] static bool
+MatchesOption(OperationKind Kind, const ArgvArrayIterator &Arg) noexcept {
     const auto ShortName = OperationKindGetOptionShortName(Kind);
     const auto LongName = OperationKindGetOptionName(Kind);
 
@@ -125,137 +125,132 @@ static bool MatchesOption(OperationKind Kind, const char *Arg) noexcept {
     return false;
 }
 
-[[nodiscard]] static inline bool IsHelpOption(const char *Arg) noexcept {
-    if (memcmp(Arg, "--", 2) != 0) {
-        return false;
-    }
-
-    const auto Result =
-        (Operation::HelpOption == (Arg + 2)) ||
-        (Operation::UsageOption == (Arg + 2));
-
-    return Result;
-}
-
 constexpr static auto UsageString =
     "Usage: ktool [Operation] [Operation-Options] [Path] [Path-Options]\n";
 
 int main(int Argc, const char *Argv[]) {
-    if (Argc < 2) {
+    // Skip the command-name at Argv[0]
+
+    const auto ArgvArr = ArgvArray(Argc, Argv).fromIndex(1);
+    if (ArgvArr.empty()) {
         PrintRunHelpMessage();
         return 0;
     }
 
     // Get the Operation-Kind.
 
-    if (Argv[1][0] != '-') {
-        fprintf(stderr, "Expected Option, Got: \"%s\"\n", Argv[1]);
+    const auto OpsKindArg = ArgvArr.front();
+    if (!OpsKindArg.isOption()) {
+        fprintf(stderr,
+                "Expected Operation-Kind Option, Got: \"%s\"\n",
+                OpsKindArg.getString());
         return 1;
     }
 
-    if (strcmp(Argv[1], "-") == 0 || strcmp(Argv[1], "--") == 0) {
-        fputs("Please provide a non-empty option\n", stderr);
+    if (OpsKindArg.isEmptyOption()) {
+        fputs("Please provide a non-empty option for an operation-kind\n",
+              stderr);
         return 1;
     }
 
-    auto ArgvArr = ArgvArray(Argc, Argv);
     auto OpsKind = OperationKind::None;
     auto Ops = TypedAllocation<Operation>();
 
     switch (OpsKind) {
-        case OperationKind::None:
-            if (IsHelpOption(Argv[1])) {
+        using Enum = OperationKind;
+        case Enum::None:
+            if (OpsKindArg.isHelpOption()) {
                 fputs(UsageString, stdout);
                 fputs("Options:\n", stdout);
 
                 Operation::PrintHelpMenu(stdout);
                 return 0;
             }
-        case OperationKind::PrintHeader:
-            if (MatchesOption(OperationKind::PrintHeader, Argv[1])) {
+        case Enum::PrintHeader:
+            if (MatchesOption(Enum::PrintHeader, OpsKindArg)) {
                 Ops = new PrintHeaderOperation();
                 break;
             }
-        case OperationKind::PrintLoadCommands:
-            if (MatchesOption(OperationKind::PrintLoadCommands, Argv[1])) {
+        case Enum::PrintLoadCommands:
+            if (MatchesOption(Enum::PrintLoadCommands, OpsKindArg)) {
                 Ops = new PrintLoadCommandsOperation();
                 break;
             }
-        case OperationKind::PrintSharedLibraries:
-            if (MatchesOption(OperationKind::PrintSharedLibraries, Argv[1])) {
+        case Enum::PrintSharedLibraries:
+            if (MatchesOption(Enum::PrintSharedLibraries, OpsKindArg)) {
                 Ops = new PrintSharedLibrariesOperation();
                 break;
             }
-        case OperationKind::PrintId:
-            if (MatchesOption(OperationKind::PrintId, Argv[1])) {
+        case Enum::PrintId:
+            if (MatchesOption(Enum::PrintId, OpsKindArg)) {
                 Ops = new PrintIdOperation();
                 break;
             }
-        case OperationKind::PrintArchList:
-            if (MatchesOption(OperationKind::PrintArchList, Argv[1])) {
+        case Enum::PrintArchList:
+            if (MatchesOption(Enum::PrintArchList, OpsKindArg)) {
                 Ops = new PrintArchListOperation();
                 break;
             }
-        case OperationKind::PrintExportTrie:
-            if (MatchesOption(OperationKind::PrintExportTrie, Argv[1])) {
+        case Enum::PrintExportTrie:
+            if (MatchesOption(Enum::PrintExportTrie, OpsKindArg)) {
                 Ops = new PrintExportTrieOperation();
                 break;
             }
-        case OperationKind::PrintObjcClassList:
-            if (MatchesOption(OperationKind::PrintObjcClassList, Argv[1])) {
+        case Enum::PrintObjcClassList:
+            if (MatchesOption(Enum::PrintObjcClassList, OpsKindArg)) {
                 Ops = new PrintObjcClassListOperation();
                 break;
             }
-        case OperationKind::PrintBindActionList:
-            if (MatchesOption(OperationKind::PrintBindActionList, Argv[1])) {
+        case Enum::PrintBindActionList:
+            if (MatchesOption(Enum::PrintBindActionList, OpsKindArg)) {
                 Ops = new PrintBindActionListOperation();
                 break;
             }
-        case OperationKind::PrintBindOpcodeList:
-            if (MatchesOption(OperationKind::PrintBindOpcodeList, Argv[1])) {
+        case Enum::PrintBindOpcodeList:
+            if (MatchesOption(Enum::PrintBindOpcodeList, OpsKindArg)) {
                 Ops = new PrintBindOpcodeListOperation();
                 break;
             }
-        case OperationKind::PrintBindSymbolList:
-            if (MatchesOption(OperationKind::PrintBindSymbolList, Argv[1])) {
+        case Enum::PrintBindSymbolList:
+            if (MatchesOption(Enum::PrintBindSymbolList, OpsKindArg)) {
                 Ops = new PrintBindSymbolListOperation();
                 break;
             }
-        case OperationKind::PrintRebaseActionList:
-            if (MatchesOption(OperationKind::PrintRebaseActionList, Argv[1])) {
+        case Enum::PrintRebaseActionList:
+            if (MatchesOption(Enum::PrintRebaseActionList, OpsKindArg)) {
                 Ops = new PrintRebaseActionListOperation();
                 break;
             }
-        case OperationKind::PrintRebaseOpcodeList:
-            if (MatchesOption(OperationKind::PrintRebaseOpcodeList, Argv[1])) {
+        case Enum::PrintRebaseOpcodeList:
+            if (MatchesOption(Enum::PrintRebaseOpcodeList, OpsKindArg)) {
                 Ops = new PrintRebaseOpcodeListOperation();
                 break;
             }
-        case OperationKind::PrintCStringSection:
-            if (MatchesOption(OperationKind::PrintCStringSection, Argv[1])) {
+        case Enum::PrintCStringSection:
+            if (MatchesOption(Enum::PrintCStringSection, OpsKindArg)) {
                 Ops = new PrintCStringSectionOperation();
                 break;
             }
-        case OperationKind::PrintSymbolPtrSection:
-            if (MatchesOption(OperationKind::PrintSymbolPtrSection, Argv[1])) {
+        case Enum::PrintSymbolPtrSection:
+            if (MatchesOption(Enum::PrintSymbolPtrSection, OpsKindArg)) {
                 Ops = new PrintSymbolPtrSectionOperation();
                 break;
             }
-        case OperationKind::PrintImageList:
-            if (MatchesOption(OperationKind::PrintImageList, Argv[1])) {
+        case Enum::PrintImageList:
+            if (MatchesOption(Enum::PrintImageList, OpsKindArg)) {
                 Ops = new PrintImageListOperation();
                 break;
             }
     }
 
     if (Ops == nullptr) {
-        PrintUnrecognizedOptionError(Argv[1]);
+        PrintUnrecognizedOptionError(OpsKindArg);
         PrintRunHelpMessage();
 
         return 1;
     }
 
-    const auto OpsArgv = ArgvArr.fromIndex(2);
+    const auto OpsArgv = ArgvArr.fromIndex(1);
     if (OpsArgv.empty()) {
         fprintf(stderr,
                 "Please provide a file for operation %s.\n",
@@ -273,7 +268,7 @@ int main(int Argc, const char *Argv[]) {
 
         fprintf(stdout,
                 "Usage: ktool %s [Options] [Path] [Path-Options]\n",
-                Argv[1]);
+                OpsKindArg.getString());
 
         Ops->printEntireOptionUsageMenu(stdout);
         return 0;
@@ -282,8 +277,8 @@ int main(int Argc, const char *Argv[]) {
     // Since we gave ParseOptions a [2, Argc] Argv, we have to add two here to
     // get the full index.
 
-    const auto PathIndex = Ops->ParseOptions(OpsArgv) + 2;
-    const auto Path = PathUtil::Absolutify(Argv[PathIndex]);
+    const auto PathIndex = Ops->ParseOptions(OpsArgv);
+    const auto Path = PathUtil::MakeAbsolute(OpsArgv.at(PathIndex));
     const auto Fd =
         FileDescriptor::Open(Path.data(), FileDescriptor::OpenKind::Read);
 
@@ -388,19 +383,19 @@ int main(int Argc, const char *Argv[]) {
                               "an unknown cpu-kind\n",
                               stderr);
                         return 1;
-                    case Error::InvalidMappingRange:
+                    case Error::InvalidMappingInfoListRange:
                         fputs("Provided file is a dyld-shared-cache file with "
-                              "an invalid mapping-range\n",
+                              "an invalid mapping-info list file-range\n",
                               stderr);
                         return 1;
-                    case Error::InvalidImageRange:
+                    case Error::InvalidImageInfoListRange:
                         fputs("Provided file is a dyld-shared-cache file with "
-                              "an unknown image-range\n",
+                              "an unknown image-info list file-range\n",
                               stderr);
                         return 1;
-                    case Error::OverlappingImageMappingRange:
+                    case Error::OverlappingImageMappingInfoListRange:
                         fputs("Provided file is a dyld_shared_cache file with "
-                              "Overlapping Image-Info and Mapping-Info "
+                              "overlapping Image-Info and Mapping-Info "
                               "Ranges\n",
                               stderr);
                         return 1;
@@ -417,7 +412,9 @@ int main(int Argc, const char *Argv[]) {
     // Parse any options for the path.
 
     auto Object = TypedAllocation(ObjectOrError.getObject());
-    for (auto &Argument : ArgvArray(Argv, PathIndex + 1, Argc)) {
+    const auto PathArgv = OpsArgv.fromIndex(PathIndex + 1);
+
+    for (auto &Argument : PathArgv) {
         if (!Argument.isOption()) {
             fprintf(stderr,
                     "Expected Path-Option, got \"%s\" instead\n",
@@ -444,8 +441,6 @@ int main(int Argc, const char *Argv[]) {
             Argument.advance();
 
             const auto ArchNumber = ParseNumber<uint32_t>(Argument.getString());
-            const auto ArchCount = FatObject->getArchCount();
-
             if (ArchNumber == 0) {
                 fputs("An Arch-Number of 0 is invalid. For the first arch, use "
                       "-arch 1\n",
@@ -454,6 +449,8 @@ int main(int Argc, const char *Argv[]) {
             }
 
             const auto ArchIndex = ArchNumber - 1;
+            const auto ArchCount = FatObject->getArchCount();
+
             if (IndexOutOfBounds(ArchIndex, ArchCount)) {
                 fprintf(stderr,
                         "Provided file only has %" PRIu32 " archs\n",
@@ -473,7 +470,7 @@ int main(int Argc, const char *Argv[]) {
                 case ErrorEnum::InvalidArchRange:
                     fprintf(stderr,
                             "Provided file's arch #%" PRIu32 " has an invalid "
-                            "range\n",
+                            "file-range\n",
                             ArchNumber);
                     return 1;
 
@@ -501,8 +498,8 @@ int main(int Argc, const char *Argv[]) {
         } else if (strcmp(Argument, "-image") == 0) {
             const auto DscObj = dyn_cast<ObjectKind::DyldSharedCache>(Object);
             if (DscObj == nullptr) {
-                fputs("-image option not allowed: Provided file is not a "
-                      "Dyld Shared-Cache File\n",
+                fputs("-image option not allowed: Provided file is not a Dyld "
+                      "Shared-Cache File\n",
                       stderr);
                 return 1;
             }
@@ -516,7 +513,7 @@ int main(int Argc, const char *Argv[]) {
             }
 
             Argument.advance();
-            if (!Argument.isPath()) {
+            if (!Argument.isAbsolutePath()) {
                 const auto Number = ParseNumber<uint32_t>(Argument.getString());
                 const auto ImageCount = DscObj->getImageCount();
 

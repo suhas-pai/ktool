@@ -299,7 +299,7 @@ OperationCommon::PrintDylibOrdinalInfo(
     FILE *OutFile,
     const MachO::SharedLibraryInfoCollection &Collection,
     int64_t DylibOrdinal,
-    bool Verbose) noexcept
+    PrintKind PrintKind) noexcept
 {
     const auto DylibIndex = DylibOrdinal - 1;
     if (DylibOrdinal <= 0) {
@@ -314,7 +314,7 @@ OperationCommon::PrintDylibOrdinalInfo(
         return;
     }
 
-    if (Verbose) {
+    if (PrintKindIsVerbose(PrintKind)) {
         const auto &Path = Collection.at(DylibIndex).Path;
         fprintf(OutFile,
                 "Dylib-Ordinal %02" PRId64 " - \"%s\"",
@@ -399,12 +399,10 @@ OperationCommon::GetDyldInfoCommand(
     const MachO::DyldInfoCommand *&DyldInfoCommandOut) noexcept
 {
     auto FoundDyldInfo = static_cast<const MachO::DyldInfoCommand *>(nullptr);
-    const auto IsBigEndian = LoadCmdStorage.isBigEndian();
+    const auto IsBE = LoadCmdStorage.isBigEndian();
 
     for (const auto &LC : LoadCmdStorage) {
-        const auto *DyldInfo =
-            dyn_cast<MachO::DyldInfoCommand>(LC, IsBigEndian);
-
+        const auto *DyldInfo = dyn_cast<MachO::DyldInfoCommand>(LC, IsBE);
         if (DyldInfo == nullptr) {
             continue;
         }
@@ -529,9 +527,9 @@ OperationCommon::GetBindActionCollection(
     MachO::BindActionCollection &BindCollection,
     bool Is64Bit) noexcept
 {
-    const auto IsBigEndian = LoadCmdStorage.isBigEndian();
-
     auto DyldInfoCmd = static_cast<const MachO::DyldInfoCommand *>(nullptr);
+
+    const auto IsBigEndian = LoadCmdStorage.isBigEndian();
     const auto GetDyldInfoCmdResult =
         OperationCommon::GetDyldInfoCommand(ErrFile,
                                             LoadCmdStorage,
@@ -1025,7 +1023,7 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
 void
 OperationCommon::PrintFlagInfoList(FILE *OutFile,
                                    const std::vector<FlagInfo> &FlagInfoList,
-                                   bool Verbose,
+                                   PrintKind PrintKind,
                                    const char *LinePrefix,
                                    const char *LineSuffix) noexcept
 {
@@ -1043,7 +1041,7 @@ OperationCommon::PrintFlagInfoList(FILE *OutFile,
                 static_cast<int>(LongestFlagNameLength),
                 Info.Name.data());
 
-        if (Verbose) {
+        if (PrintKindIsVerbose(PrintKind)) {
             fprintf(OutFile,
                     " (Description: %s)%s\n",
                     Info.Description.data(),

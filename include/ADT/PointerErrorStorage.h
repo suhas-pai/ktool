@@ -56,8 +56,10 @@ public:
         return *this;
     }
 
-    constexpr inline void operator=(const Enum &Value) noexcept {
+    constexpr
+    inline PointerErrorStorage &operator=(const Enum &Value) noexcept {
         setValue(Value);
+        return *this;
     }
 
     [[nodiscard]] inline bool operator==(const Enum &Value) noexcept {

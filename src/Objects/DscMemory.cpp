@@ -69,24 +69,25 @@ ValidateMap(const ConstMemoryMap &Map,
         return ConstDscMemoryObject::Error::UnknownCpuKind;
     }
 
+    auto MappingEnd = uint64_t();
+
     const auto Header = Map.getBeginAs<DyldSharedCache::HeaderV0>();
     const auto MappingOffset = Header->MappingOffset;
     const auto AllowedRange =
         LocationRange::CreateWithEnd(MappingOffset, Map.size());
 
-    auto MappingEnd = uint64_t();
     if (DoesMultiplyAndAddOverflow(sizeof(DyldSharedCache::MappingInfo),
                                    Header->MappingCount, MappingOffset,
                                    &MappingEnd))
     {
-        return ConstDscMemoryObject::Error::InvalidMappingRange;
+        return ConstDscMemoryObject::Error::InvalidMappingInfoListRange;
     }
 
     const auto MappingRange =
         LocationRange::CreateWithEnd(MappingOffset, MappingEnd);
 
     if (!AllowedRange.contains(MappingRange)) {
-        return ConstDscMemoryObject::Error::InvalidMappingRange;
+        return ConstDscMemoryObject::Error::InvalidMappingInfoListRange;
     }
 
     const auto ImageOffset = Header->ImagesOffset;
@@ -96,16 +97,17 @@ ValidateMap(const ConstMemoryMap &Map,
                                    Header->ImagesCount, Header->ImagesOffset,
                                    &ImageEnd))
     {
-        return ConstDscMemoryObject::Error::InvalidImageRange;
+        return ConstDscMemoryObject::Error::InvalidImageInfoListRange;
     }
 
     const auto ImageRange = LocationRange::CreateWithEnd(ImageOffset, ImageEnd);
     if (!AllowedRange.contains(ImageRange)) {
-        return ConstDscMemoryObject::Error::InvalidImageRange;
+        return ConstDscMemoryObject::Error::InvalidImageInfoListRange;
     }
 
     if (MappingRange.overlaps(ImageRange)) {
-        return ConstDscMemoryObject::Error::OverlappingImageMappingRange;
+        using Error = ConstDscMemoryObject::Error;
+        return Error::OverlappingImageMappingInfoListRange;
     }
 
     return ConstDscMemoryObject::Error::None;
@@ -133,9 +135,9 @@ bool ConstDscMemoryObject::errorDidMatchFormat(Error Error) noexcept {
         case Error::SizeTooSmall:
             return false;
         case Error::UnknownCpuKind:
-        case Error::InvalidMappingRange:
-        case Error::InvalidImageRange:
-        case Error::OverlappingImageMappingRange:
+        case Error::InvalidMappingInfoListRange:
+        case Error::InvalidImageInfoListRange:
+        case Error::OverlappingImageMappingInfoListRange:
             return true;
     }
 }
@@ -211,7 +213,8 @@ ConstDscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
     assert(0 && "Unrecognized Cpu-Kind");
 }
 
-auto ConstDscMemoryObject::ValidateImageMapAndGetEnd(
+auto
+ConstDscMemoryObject::ValidateImageMapAndGetEnd(
     const ConstMemoryMap &Map) noexcept ->
         PointerOrError<const uint8_t, DscImageOpenError>
 {
@@ -237,7 +240,7 @@ auto ConstDscMemoryObject::ValidateImageMapAndGetEnd(
     }
 
     const auto Is64Bit = Header.is64Bit();
-    const auto IsBigEndian = Header.isBigEndian();
+    const auto IsBE = Header.isBigEndian();
     const auto LoadCmdStorage = Header.GetConstLoadCmdStorage();
 
     if (LoadCmdStorage.hasError()) {
@@ -247,22 +250,16 @@ auto ConstDscMemoryObject::ValidateImageMapAndGetEnd(
     auto End = Map.getBegin();
     if (Is64Bit) {
         for (const auto &LC : LoadCmdStorage) {
-            const auto *Segment =
-                dyn_cast<MachO::SegmentCommand64>(LC, IsBigEndian);
-
-            if (Segment != nullptr) {
-                if (DoesAddOverflow(End, Segment->FileSize, &End)) {
+            if (const auto *Seg = dyn_cast<MachO::SegmentCommand64>(LC, IsBE)) {
+                if (DoesAddOverflow(End, Seg->FileSize, &End)) {
                     return DscImageOpenError::SizeTooLarge;
                 }
             }
         }
     } else {
         for (const auto &LC : LoadCmdStorage) {
-            const auto *Segment =
-                dyn_cast<MachO::SegmentCommand>(LC, IsBigEndian);
-
-            if (Segment != nullptr) {
-                End += Segment->FileSize;
+            if (const auto *Seg = dyn_cast<MachO::SegmentCommand>(LC, IsBE)) {
+                End += Seg->FileSize;
             }
         }
     }

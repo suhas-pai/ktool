@@ -21,12 +21,11 @@ template <PointerKind Kind>
 ValidateArchList(const ConstMemoryMap &Map,
                  const MachO::FatHeader &Header) noexcept
 {
+    using AddrType = PointerAddrTypeFromKind<Kind>;
     using ArchType =
         typename std::conditional_t<PointerKindIs64Bit(Kind),
                                     MachO::FatHeader::Arch64,
                                     MachO::FatHeader::Arch32>;
-
-    using AddrType = PointerAddrTypeFromKind<Kind>;
 
     if (Header.hasZeroArchs()) {
         return ConstFatMachOMemoryObject::Error::ZeroArchitectures;

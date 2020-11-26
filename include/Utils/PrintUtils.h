@@ -11,6 +11,7 @@
 #include <cassert>
 #include <cstdio>
 #include <inttypes.h>
+#include <string_view>
 
 #include "ADT/LargestIntHelper.h"
 #include "DoesOverflow.h"
@@ -79,6 +80,21 @@
 #define STRING_VIEW_FMT "%*s"
 #define STRING_VIEW_FMT_ARGS(STR) \
     static_cast<int>((STR).length()), (STR).data()
+
+enum PrintKind {
+    Default,
+    Verbose
+};
+
+[[nodiscard]]
+constexpr inline bool PrintKindIsVerbose(PrintKind Kind) noexcept {
+    return (Kind == PrintKind::Verbose);
+}
+
+[[nodiscard]]
+constexpr inline PrintKind PrintKindFromIsVerbose(bool IsVerbose) noexcept {
+    return (IsVerbose) ? PrintKind::Verbose : PrintKind::Default;
+}
 
 inline int PrintUtilsCharMultTimes(FILE *OutFile, char Ch, int Times) noexcept {
     assert(Times >= 0 && "PrintUtilsCharMultTimes(): Times less than 0");
@@ -552,17 +568,77 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
                                        const char *Prefix = "",
                                        const char *Suffix = "") noexcept;
 
-int
+inline int
 PrintUtilsWriteUuid(FILE *OutFile,
                     const uint8_t Uuid[16],
                     const char *Prefix = "",
-                    const char *Suffix = "") noexcept;
+                    const char *Suffix = "") noexcept
+{
+    const auto Result =
+        fprintf(OutFile,
+                "%s%.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2x%.2x%.2x"
+                "%.2X%.2X%s",
+                Prefix,
+                Uuid[0],
+                Uuid[1],
+                Uuid[2],
+                Uuid[3],
+                Uuid[4],
+                Uuid[5],
+                Uuid[6],
+                Uuid[7],
+                Uuid[8],
+                Uuid[9],
+                Uuid[10],
+                Uuid[11],
+                Uuid[12],
+                Uuid[13],
+                Uuid[14],
+                Uuid[15],
+                Suffix);
 
-int
+    return Result;
+}
+
+constexpr static std::string_view PrintUtilFormatSizeNames[] = {
+    "KiloBytes",
+    "MegaBytes",
+    "GigaBytes",
+    "TeraBytes",
+    "PetaBytes",
+    "ExaBytes",
+    "Zettabyte",
+    "Yottabyte"
+};
+
+inline int
 PrintUtilsWriteFormattedSize(FILE *OutFile,
                              uint64_t Size,
                              const char *Prefix = "",
-                             const char *Suffix = "") noexcept;
+                             const char *Suffix = "") noexcept
+{
+    constexpr auto Base = 1000;
+
+    auto Result = double(Size);
+    auto Index = uint32_t();
+
+    if (Result < Base) {
+        return 0;
+    }
+
+    Result /= Base;
+    while (Result >= Base) {
+        Result /= Base;
+        Index++;
+    };
+
+    assert(Index < countof(PrintUtilFormatSizeNames));
+
+    const auto &Name = PrintUtilFormatSizeNames[Index];
+    fprintf(stdout, "%s%.3f %s%s", Prefix, Result, Name.data(), Suffix);
+
+    return 0;
+}
 
 inline int
 PrintUtilsWriteItemAfterFirstForList(FILE *OutFile,

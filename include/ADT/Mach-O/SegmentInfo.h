@@ -13,6 +13,8 @@
 #include <vector>
 
 #include "ADT/LocationRange.h"
+#include "Utils/MiscTemplates.h"
+
 #include "LoadCommandsCommon.h"
 
 namespace MachO {
@@ -134,7 +136,6 @@ namespace MachO {
     };
 
     struct SegmentInfo {
-        using SectionListType = std::vector<std::unique_ptr<SectionInfo>>;
     protected:
         std::string Name;
 
@@ -145,7 +146,7 @@ namespace MachO {
         MemoryProtections MaxProt;
 
         SegmentFlags Flags;
-        SectionListType SectionList;
+        std::vector<std::unique_ptr<SectionInfo>> SectionList;
     public:
         [[nodiscard]]
         constexpr inline std::string_view getName() const noexcept {
@@ -153,66 +154,65 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline const LocationRange &getFileRange() const noexcept {
+        constexpr inline LocationRange getFileRange() const noexcept {
             return FileRange;
         }
 
         [[nodiscard]]
-        constexpr inline const LocationRange &getMemoryRange() const noexcept {
+        constexpr inline LocationRange getMemoryRange() const noexcept {
             return MemoryRange;
         }
 
         [[nodiscard]]
-        constexpr inline const MemoryProtections &getInitProt() const noexcept {
+        constexpr inline MemoryProtections getInitProt() const noexcept {
             return InitProt;
         }
 
         [[nodiscard]]
-        constexpr inline const MemoryProtections &getMaxProt() const noexcept {
+        constexpr inline MemoryProtections getMaxProt() const noexcept {
             return MaxProt;
         }
 
         [[nodiscard]]
-        constexpr inline const SegmentFlags &getFlags() const noexcept {
+        constexpr inline SegmentFlags getFlags() const noexcept {
             return Flags;
         }
 
         [[nodiscard]] constexpr
-        inline const SectionListType &getSectionList() const noexcept {
+        inline const decltype(SectionList) &getSectionList() const noexcept {
             return SectionList;
         }
 
         [[nodiscard]]
-        constexpr inline SectionListType &getSectionList() noexcept {
+        constexpr inline decltype(SectionList) &getSectionListRef() noexcept {
             return SectionList;
         }
 
-        constexpr
-        inline SegmentInfo &setName(const std::string &Name) noexcept {
+        constexpr inline SegmentInfo &setName(std::string_view Name) noexcept {
             this->Name = Name;
             return *this;
         }
 
-        constexpr inline
-        SegmentInfo &setFileRange(const LocationRange &LocRange) noexcept {
+        constexpr
+        inline SegmentInfo &setFileRange(LocationRange LocRange) noexcept {
             this->FileRange = LocRange;
             return *this;
         }
 
-        constexpr inline
-        SegmentInfo &setMemoryRange(const LocationRange &LocRange) noexcept {
+        constexpr
+        inline SegmentInfo &setMemoryRange(LocationRange LocRange) noexcept {
             this->MemoryRange = LocRange;
             return *this;
         }
 
-        constexpr inline
-        SegmentInfo &setInitProt(const MemoryProtections &Prot) noexcept {
+        constexpr
+        inline SegmentInfo &setInitProt(MemoryProtections Prot) noexcept {
             this->InitProt = Prot;
             return *this;
         }
 
-        constexpr inline
-        SegmentInfo &setMaxProt(const MemoryProtections &Prot) noexcept {
+        constexpr
+        inline SegmentInfo &setMaxProt(MemoryProtections Prot) noexcept {
             this->MaxProt = Prot;
             return *this;
         }
@@ -221,7 +221,7 @@ namespace MachO {
             this->Flags = Flags;
             return *this;
         }
-        
+
         [[nodiscard]] const SectionInfo *
         FindSectionWithName(std::string_view Name) const noexcept;
 
@@ -230,6 +230,16 @@ namespace MachO {
 
         [[nodiscard]] const SectionInfo *
         FindSectionContainingRelativeAddress(uint64_t Address) const noexcept;
+
+        [[nodiscard]] inline const SectionInfo *
+        getSectionAtOrdinal(uint64_t Ordinal) const noexcept {
+            const auto SectionIndex = OrdinalToIndex(Ordinal);
+            if (IndexOutOfBounds(SectionIndex, SectionList.size())) {
+                return nullptr;
+            }
+
+            return getSectionList().at(SectionIndex).get();
+        }
 
         template <typename T = uint8_t,
                   typename = std::enable_if_t<!std::is_const_v<T>>>

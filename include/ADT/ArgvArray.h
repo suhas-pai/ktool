@@ -40,8 +40,8 @@ public:
 
     [[nodiscard]] inline const char *useNext() noexcept {
         assert(hasNext());
-
         advance();
+
         return *Item;
     }
 
@@ -77,7 +77,20 @@ public:
         return (front() == '-');
     }
 
-    [[nodiscard]] inline bool isPath() const noexcept {
+    [[nodiscard]] inline bool isEmptyOption() const noexcept {
+        const auto String = getString();
+        return (strcmp(String, "-") == 0 || strcmp(String, "--") == 0);
+    }
+
+    [[nodiscard]] inline bool isHelpOption() const noexcept {
+        const auto String = getString();
+        const auto Result =
+            (strcmp(String, "--help") == 0 || strcmp(String, "--usage") == 0);
+
+        return Result;
+    }
+
+    [[nodiscard]] inline bool isAbsolutePath() const noexcept {
         return (front() == '/');
     }
 
@@ -130,7 +143,17 @@ public:
 
     [[nodiscard]] inline ArgvArrayIterator end() const noexcept {
         const auto End = getEnd();
-        return ArgvArrayIterator(const_cast<const char **>(End), End);
+        return ArgvArrayIterator(getEnd(), End);
+    }
+
+    [[nodiscard]] inline ArgvArrayIterator front() const noexcept {
+        assert(!empty());
+        return begin();
+    }
+
+    [[nodiscard]] inline ArgvArrayIterator back() const noexcept {
+        assert(!empty());
+        return ArgvArrayIterator(getEnd() - 1, End);
     }
 
     [[nodiscard]]
@@ -141,10 +164,9 @@ public:
     [[nodiscard]] inline ArgvArray fromIndex(int Index) const noexcept {
         const auto Begin = this->getBegin();
         const auto End = this->getEnd();
+        const auto NewBegin = Begin + Index;
 
-        auto NewBegin = Begin + Index;
         assert(NewBegin <= End);
-
         return ArgvArray(NewBegin, End);
     }
 };

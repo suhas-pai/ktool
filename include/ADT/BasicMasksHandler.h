@@ -12,7 +12,6 @@
 #include <cassert>
 
 #include "TypeTraits/IsEnumClass.h"
-#include "Utils/SwitchEndian.h"
 
 template <typename T = uint64_t>
 [[nodiscard]]

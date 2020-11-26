@@ -9,7 +9,7 @@
 #include <cstring>
 #include "ADT/MachO.h"
 
-#include "Utils/MachOPrinter.h"
+#include "Utils/MachOTypePrinter.h"
 #include "Utils/PrintUtils.h"
 
 #include "Common.h"

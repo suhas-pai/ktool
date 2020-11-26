@@ -8,16 +8,25 @@
 
 #pragma once
 
+#include <cassert>
 #include <cstddef>
 #include <type_traits>
 
 template <typename T, typename U>
-constexpr
-inline bool IndexOutOfBounds(const T &Index, const U &Bounds) noexcept {
+[[nodiscard]]
+constexpr inline bool IndexOutOfBounds(T Index, U Bounds) noexcept {
     static_assert(std::is_integral_v<T> && std::is_integral_v<U>,
                   "Types must be integer-types");
 
     return (Index >= Bounds);
+}
+
+template <typename T>
+[[nodiscard]] constexpr inline bool OrdinalToIndex(T Ordinal) noexcept {
+    static_assert(std::is_integral_v<T>, "Types must be integer-types");
+    assert(Ordinal != 0);
+
+    return (Ordinal - 1);
 }
 
 template <typename ... Ts>

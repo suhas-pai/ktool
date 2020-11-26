@@ -7,6 +7,8 @@
 //
 
 #pragma once
+
+#include <cstdint>
 #include <type_traits>
 
 template <typename T = uint64_t>

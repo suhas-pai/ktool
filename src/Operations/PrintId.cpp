@@ -9,7 +9,7 @@
 #include <cstring>
 #include "ADT/MachO.h"
 
-#include "Utils/MachOPrinter.h"
+#include "Utils/MachOTypePrinter.h"
 #include "Utils/PrintUtils.h"
 
 #include "Common.h"
@@ -32,14 +32,14 @@ PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
     auto Id = std::string_view();
 
     for (const auto &LC : LoadCmdStorage) {
-        const auto *DylibCmd =
+        const auto *Dylib =
             dyn_cast<MachO::LoadCommand::Kind::IdDylib>(LC, IsBigEndian);
 
-        if (DylibCmd == nullptr) {
+        if (Dylib == nullptr) {
             continue;
         }
 
-        const auto NameResult = DylibCmd->GetName(IsBigEndian);
+        const auto NameResult = Dylib->GetName(IsBigEndian);
         if (NameResult.hasError()) {
             fputs("Provided file has an invalid Id-Name\n", Options.ErrFile);
             return 1;
@@ -60,7 +60,7 @@ PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
         }
 
         Id = Name;
-        Info = DylibCmd->Info;
+        Info = Dylib->Info;
     }
 
     if (Id.empty()) {

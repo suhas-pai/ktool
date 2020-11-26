@@ -23,7 +23,7 @@ struct OperationCommon {
     constexpr static auto InvalidLCString =
         std::string_view("(Invalid LoadCommand-String)");
 
-    static const std::string_view &
+    [[nodiscard]] static const std::string_view &
     GetLoadCommandStringValue(
         const MachO::LoadCommandString::GetValueResult &) noexcept;
 
@@ -56,7 +56,7 @@ struct OperationCommon {
     // 32 for Max Segment and Section Names, 4 for the apostraphes, and 1 for
     // the comma.
 
-    static constexpr auto SegmentSectionPairMaxLength = 32 + 4 + 1;
+    constexpr static auto SegmentSectionPairMaxLength = 32 + 4 + 1;
 
     static void
     PrintDylibOrdinalPath(FILE *OutFile,
@@ -67,7 +67,7 @@ struct OperationCommon {
     PrintDylibOrdinalInfo(FILE *OutFile,
                           const MachO::SharedLibraryInfoCollection &Collection,
                           int64_t DylibOrdinal,
-                          bool Verbose) noexcept;
+                          PrintKind Print) noexcept;
 
     static void
     ParseSegmentSectionPair(FILE *ErrFile,
@@ -110,13 +110,13 @@ struct OperationCommon {
         uint32_t Mask;
     };
 
-    static std::vector<FlagInfo>
+    [[nodiscard]] static std::vector<FlagInfo>
     GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept;
 
     static void
     PrintFlagInfoList(FILE *OutFile,
                       const std::vector<FlagInfo> &FlagInfoList,
-                      bool Verbose,
+                      PrintKind PrintKind,
                       const char *LinePrefix = "",
                       const char *LineSuffix = "") noexcept;
 

@@ -17,14 +17,114 @@
 
 namespace MachO {
     struct SymbolTableEntryCollectionEntryInfo {
+    protected:
         SymbolTableEntryInfo SymbolInfo;
-        std::string *String = nullptr;
+        const std::string *String = nullptr;
 
         uint8_t Section;
         uint16_t Desc;
 
         uint64_t Index;
         uint64_t Value;
+    public:
+        [[nodiscard]]
+        inline SymbolTableEntryInfo getSymbolInfo() const noexcept {
+            return SymbolInfo;
+        }
+
+        [[nodiscard]]
+        inline SymbolTableEntryInfo::SymbolKind getSymbolKind() const noexcept {
+            return getSymbolInfo().getKind();
+        }
+
+        [[nodiscard]] inline bool isUndefined() const noexcept {
+            return getSymbolInfo().isUndefined();
+        }
+
+        [[nodiscard]] inline bool isAbsolute() const noexcept {
+            return getSymbolInfo().isAbsolute();
+        }
+
+        [[nodiscard]] inline bool isIndirect() const noexcept {
+            return getSymbolInfo().isIndirect();
+        }
+
+        [[nodiscard]] inline bool isPreboundUndefined() const noexcept {
+            return getSymbolInfo().isPreboundUndefined();
+        }
+
+        [[nodiscard]] inline bool isSectionDefined() const noexcept {
+            return getSymbolInfo().isSectionDefined();
+        }
+
+        [[nodiscard]] inline bool isExternal() const noexcept {
+            return getSymbolInfo().isExternal();
+        }
+
+        [[nodiscard]] inline bool isPrivateExternal() const noexcept {
+            return getSymbolInfo().isPrivateExternal();
+        }
+
+        [[nodiscard]] inline bool isDebugSymbol() const noexcept {
+            return getSymbolInfo().isDebugSymbol();
+        }
+
+        [[nodiscard]] inline const std::string *getString() const noexcept {
+            return String;
+        }
+
+        [[nodiscard]] inline uint8_t getSectionOrdinal() const noexcept {
+            assert(this->isSectionDefined());
+            return Section;
+        }
+
+        [[nodiscard]] inline uint16_t getDescription() const noexcept {
+            return Desc;
+        }
+
+        [[nodiscard]] inline uint64_t getIndex() const noexcept {
+            return Index;
+        }
+
+        [[nodiscard]] inline uint64_t getValue() const noexcept {
+            return Value;
+        }
+
+        inline SymbolTableEntryCollectionEntryInfo &
+        setSymbolInfo(const SymbolTableEntryInfo &Info) noexcept {
+            this->SymbolInfo = Info;
+            return *this;
+        }
+
+        inline SymbolTableEntryCollectionEntryInfo &
+        setString(const std::string *String) noexcept {
+            this->String = String;
+            return *this;
+        }
+
+        inline SymbolTableEntryCollectionEntryInfo &
+        setSectionOrdinal(uint8_t SectionOrdinal) noexcept {
+            this->Section = SectionOrdinal;
+            return *this;
+        }
+
+        inline SymbolTableEntryCollectionEntryInfo &
+        setDescription(uint16_t Description) noexcept {
+            this->Desc = Description;
+            return *this;
+        }
+
+        inline
+        SymbolTableEntryCollectionEntryInfo &setIndex(uint64_t Index) noexcept {
+            this->Index = Index;
+            return *this;
+        }
+
+        inline
+        SymbolTableEntryCollectionEntryInfo &setValue(uint64_t Value) noexcept {
+            this->Value = Value;
+            return *this;
+        }
 
         [[nodiscard]] inline uint16_t getDylibOrdinal() const noexcept {
             return GetDylibOrdinal(Desc);
@@ -62,12 +162,12 @@ namespace MachO {
             bool IgnoreUndefined         : 1;
             bool IgnoreIndirect          : 1;
             bool IgnorePreboundUndefined : 1;
-            bool IgnoreSection           : 1;
+            bool IgnoreSectionDefined    : 1;
 
             ParseOptions() noexcept
             : IgnoreAbsolute(false), IgnoreExternal(false),
               IgnoreUndefined(false), IgnoreIndirect(false),
-              IgnorePreboundUndefined(false), IgnoreSection(false) {}
+              IgnorePreboundUndefined(false), IgnoreSectionDefined(false) {}
         };
 
         SymbolTableEntryCollection &

@@ -36,14 +36,14 @@ template <PointerKind Kind>
 
 template <PointerKind Kind, typename T>
 [[nodiscard]]
-constexpr inline bool IntegerIsPointerAligned(const T &Integer) noexcept {
+constexpr inline bool IntegerIsPointerAligned(T Integer) noexcept {
     static_assert(std::is_integral_v<T>, "Type must be integer-type");
     return ((Integer % PointerSize<Kind>()) == 0);
 }
 
 template <typename T>
 [[nodiscard]] constexpr
-inline bool IntegerIsPointerAligned(const T &Integer, bool Is64Bit) noexcept {
+inline bool IntegerIsPointerAligned(T Integer, bool Is64Bit) noexcept {
     static_assert(std::is_integral_v<T>, "Type must be integer-type");
     return ((Integer % PointerSize(Is64Bit)) == 0);
 }

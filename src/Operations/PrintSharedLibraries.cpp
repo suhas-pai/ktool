@@ -12,7 +12,7 @@
 
 #include "ADT/MachO.h"
 
-#include "Utils/MachOPrinter.h"
+#include "Utils/MachOTypePrinter.h"
 #include "Utils/PrintUtils.h"
 #include "Utils/Timestamp.h"
 
@@ -36,7 +36,7 @@ struct DylibInfo {
     std::string_view Name;
 
     MachO::PackedVersion CurrentVersion;
-    MachO::PackedVersion CompatibilityVersion;
+    MachO::PackedVersion CompatVersion;
     uint32_t Timestamp;
 };
 
@@ -48,23 +48,20 @@ CompareEntriesBySortKind(
 {
     switch (SortKind) {
         case PrintSharedLibrariesOperation::Options::SortKind::ByCurrentVersion:
-            if (Lhs.CurrentVersion.value() == Rhs.CurrentVersion.value()) {
+            if (Lhs.CurrentVersion == Rhs.CurrentVersion) {
                 return 0;
             }
 
-            if (Lhs.CurrentVersion.value() < Rhs.CurrentVersion.value()) {
+            if (Lhs.CurrentVersion < Rhs.CurrentVersion) {
                 return -1;
             }
 
             return 1;
         case PrintSharedLibrariesOperation::Options::SortKind::ByCompatVersion:
         {
-            const auto LhsCompatVersion = Lhs.CompatibilityVersion;
-            const auto RhsCompatVersion = Rhs.CompatibilityVersion;
-
-            if (LhsCompatVersion == RhsCompatVersion) {
+            if (Lhs.CompatVersion == Rhs.CompatVersion) {
                 return 0;
-            } else if (LhsCompatVersion < RhsCompatVersion) {
+            } else if (Lhs.CompatVersion < Rhs.CompatVersion) {
                 return -1;
             }
 
@@ -149,10 +146,8 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
                               "LoadCommand has a longer Kind-Name than current "
                               "record-holder");
 
-                const auto &DylibCmd =
-                    cast<MachO::DylibCommand>(LC, IsBigEndian);
-
-                const auto GetNameResult = DylibCmd.GetName(IsBigEndian);
+                const auto &Dylib = cast<MachO::DylibCommand>(LC, IsBigEndian);
+                const auto GetNameResult = Dylib.GetName(IsBigEndian);
                 const auto &Name =
                     OperationCommon::GetLoadCommandStringValue(GetNameResult);
 
@@ -161,11 +156,9 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
                     .Kind = LCKind,
                     .Index = LCIndex,
                     .Name = Name,
-                    .CurrentVersion =
-                        DylibCmd.Info.getCurrentVersion(IsBigEndian),
-                    .CompatibilityVersion =
-                        DylibCmd.Info.getCompatVersion(IsBigEndian),
-                    .Timestamp = DylibCmd.Info.getTimestamp(IsBigEndian)
+                    .CurrentVersion = Dylib.Info.getCurrentVersion(IsBigEndian),
+                    .CompatVersion = Dylib.Info.getCompatVersion(IsBigEndian),
+                    .Timestamp = Dylib.Info.getTimestamp(IsBigEndian)
                 });
 
                 break;
@@ -225,18 +218,18 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
         LCIndex++;
     }
 
-    const auto Comparator = [&](const auto &Lhs, const auto &Rhs) noexcept {
-        for (const auto &Sort : Options.SortKindList) {
-            const auto Compare = CompareEntriesBySortKind(Lhs, Rhs, Sort);
-            if (Compare != 0) {
-                return (Compare < 0);
-            }
-        }
-
-        return false;
-    };
-
     if (!Options.SortKindList.empty()) {
+        const auto Comparator = [&](const auto &Lhs, const auto &Rhs) noexcept {
+            for (const auto &Sort : Options.SortKindList) {
+                const auto Compare = CompareEntriesBySortKind(Lhs, Rhs, Sort);
+                if (Compare != 0) {
+                    return (Compare < 0);
+                }
+            }
+
+            return false;
+        };
+
         std::sort(DylibList.begin(), DylibList.end(), Comparator);
     }
 
@@ -274,11 +267,12 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
                 .Name = { DylibInfo.NameOffset },
                 .Timestamp = DylibInfo.Timestamp,
                 .CurrentVersion = DylibInfo.CurrentVersion.value(),
-                .CompatibilityVersion = DylibInfo.CompatibilityVersion.value()
+                .CompatibilityVersion = DylibInfo.CompatVersion.value()
             };
 
             MachOTypePrinter<struct MachO::DylibCommand::Info>::PrintOnOneLine(
-                Options.OutFile, Info, IsBigEndian, true, " (", ")");
+                Options.OutFile, Info, IsBigEndian, PrintKind::Verbose, " (",
+                ")");
         }
 
         fputc('\n', Options.OutFile);
@@ -288,7 +282,7 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
     return 0;
 }
 
-static inline bool
+[[nodiscard]] static inline bool
 ListHasSortKind(
     const std::vector<PrintSharedLibrariesOperation::Options::SortKind> &List,
     const PrintSharedLibrariesOperation::Options::SortKind &Sort) noexcept

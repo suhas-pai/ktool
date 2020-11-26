@@ -14,15 +14,15 @@
 
 #include <type_traits>
 
-[[nodiscard]] constexpr inline bool isDigit(char Ch) noexcept {
+[[nodiscard]] constexpr inline bool IsDigit(char Ch) noexcept {
     return (static_cast<unsigned>(Ch - '0') < 10);
 }
 
-[[nodiscard]] constexpr inline bool isControl(char Ch) noexcept {
-    return (static_cast<unsigned>(Ch - '\0') < 32);
+[[nodiscard]] constexpr inline bool IsControl(char Ch) noexcept {
+    return (static_cast<unsigned>(Ch) < 32);
 }
 
-[[nodiscard]] constexpr inline bool isSpace(char Ch) noexcept {
+[[nodiscard]] constexpr inline bool IsSpace(char Ch) noexcept {
     switch (Ch) {
         case ' ':
         case '\n':
@@ -36,25 +36,24 @@
     return false;
 }
 
-[[nodiscard]] constexpr inline bool digitIsValid(uint8_t Digit) noexcept {
+[[nodiscard]] constexpr inline bool DigitIsValid(uint8_t Digit) noexcept {
     return (Digit < 10);
 }
 
-[[nodiscard]] constexpr inline uint8_t toDigit(char Ch) noexcept {
+[[nodiscard]] constexpr inline uint8_t ChToDigit(char Ch) noexcept {
     return (Ch - '0');
 }
 
 template <typename T>
-[[nodiscard]] constexpr
-static inline T ParseNumber(const char *String) noexcept {
+[[nodiscard]] constexpr inline T ParseNumber(const char *String) noexcept {
     static_assert(std::is_integral_v<T>, "T must be an integer-type!");
 
     auto Iter = String;
     auto Number = T();
 
     for (auto Ch = *Iter; Ch != '\0'; Ch = *(++Iter)) {
-        const auto Digit = toDigit(Ch);
-        if (!digitIsValid(Digit)) {
+        const auto Digit = ChToDigit(Ch);
+        if (!DigitIsValid(Digit)) {
             fprintf(stdout, "\"%s\" is not a valid number\n", String);
             exit(1);
         }

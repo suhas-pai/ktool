@@ -118,10 +118,12 @@ PrintBindAction(
 
     if constexpr (BindKind != MachO::BindInfoKind::Weak) {
         fputc(' ', Options.OutFile);
+
+        const auto PrintKind = PrintKindFromIsVerbose(Options.Verbose);
         OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
                                                LibraryCollection,
                                                Action.DylibOrdinal,
-                                               Options.Verbose);
+                                               PrintKind);
     }
 
     fputc('\n', Options.OutFile);

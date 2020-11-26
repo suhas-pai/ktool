@@ -227,7 +227,7 @@ protected:
     BasicTreeNode *FirstChild = nullptr;
     BasicTreeNode *PrevSibling = nullptr;
     BasicTreeNode *NextSibling = nullptr;
-    BasicTreeNode *LongestChild = nullptr;
+    BasicTreeNode *LastChild = nullptr;
 
     void clearAndDestroy() noexcept;
 public:
@@ -249,7 +249,9 @@ public:
         return FirstChild;
     }
 
-    [[nodiscard]] BasicTreeNode *getLastChild() const noexcept;
+    [[nodiscard]] inline BasicTreeNode *getLastChild() const noexcept {
+        return LastChild;
+    }
 
     [[nodiscard]] inline BasicTreeNode *getPrevSibling() const noexcept {
         return PrevSibling;
@@ -257,10 +259,6 @@ public:
 
     [[nodiscard]] inline BasicTreeNode *getNextSibling() const noexcept {
         return NextSibling;
-    }
-
-    [[nodiscard]] inline BasicTreeNode *getLongestChild() const noexcept {
-        return LongestChild;
     }
 
     [[nodiscard]]
@@ -285,12 +283,9 @@ public:
     AddChildren(BasicTreeNode &Node, BasicTreeNode *End = nullptr) noexcept;
 
     BasicTreeNode &AddSibling(BasicTreeNode &Node) noexcept;
-    
-    BasicTreeNode &
-    AddSiblings(BasicTreeNode &Node, BasicTreeNode *End = nullptr) noexcept;
 
     BasicTreeNode &
-    SetChildrenFromList(const std::vector<BasicTreeNode *> &List) noexcept;
+    AddSiblings(BasicTreeNode &Node, BasicTreeNode *End = nullptr) noexcept;
 
     [[nodiscard]] const BasicTreeNode *
     FindPrevNodeForIterator(const BasicTreeNode *End = nullptr,
@@ -326,10 +321,10 @@ public:
         return *this;
     }
 
-    inline BasicTreeNode &setLongestChild(BasicTreeNode *Node) noexcept {
+    inline BasicTreeNode &setLastChild(BasicTreeNode *Node) noexcept {
         assert(Node != this);
 
-        this->LongestChild = Node;
+        this->LastChild = Node;
         return *this;
     }
 
@@ -410,8 +405,8 @@ public:
             WrittenOut += DashCount;
 
             PrintUtilsStringMultTimes(OutFile, "─", DashCount);
-
             fputc(' ', OutFile);
+
             WrittenOut += 1;
 
             NodePrinterFunc(OutFile, WrittenOut, DepthLevel, *Info);
@@ -557,15 +552,28 @@ public:
     [[nodiscard]] virtual uint64_t GetCount() const noexcept;
 
     template <typename NodePrinter>
-    void
+    const BasicTree &
     PrintHorizontal(FILE *OutFile,
                     int TabLength,
                     const NodePrinter &NodePrinterFunc) const noexcept
     {
         if (empty()) {
-            return;
+            return *this;
         }
 
         Root->PrintHorizontal(OutFile, TabLength, NodePrinterFunc);
+        return *this;
+    }
+
+    template <typename NodePrinter>
+    BasicTree &
+    PrintHorizontal(FILE *OutFile,
+                    int TabLength,
+                    const NodePrinter &NodePrinterFunc) noexcept
+    {
+        const_cast<const BasicTreeNode &>(*Root).
+            PrintHorizontal(OutFile, TabLength, NodePrinterFunc);
+
+        return *this;
     }
 };

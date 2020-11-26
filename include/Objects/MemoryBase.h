@@ -17,7 +17,6 @@
 #include "TypeTraits/DisableIfNotPointer.h"
 
 #include "Kind.h"
-#include <type_traits>
 
 struct MemoryObject;
 struct MemoryObjectOrError {

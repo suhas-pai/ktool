@@ -112,7 +112,7 @@ public:
         uint32_t Align;
     };
 
-    ArchInfo GetArchInfoAtIndex(uint32_t Index) const noexcept;
+    [[nodiscard]] ArchInfo GetArchInfoAtIndex(uint32_t Index) const noexcept;
 
     enum class GetArchObjectError {
         None,

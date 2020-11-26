@@ -70,8 +70,8 @@ namespace MachO {
                 }
 
                 break;
-            case SymbolTableEntryInfo::SymbolKind::Section:
-                if (Options.IgnoreSection) {
+            case SymbolTableEntryInfo::SymbolKind::SectionDefined:
+                if (Options.IgnoreSectionDefined) {
                     return SymbolTableParseError::None;
                 }
 
@@ -107,26 +107,26 @@ namespace MachO {
             StringPtr = StringIter->second.get();
         }
 
-        auto SymbolInfo = SymbolTableEntryCollection::EntryInfo {
-            .SymbolInfo = Entry.Info,
-            .String = StringPtr,
-            .Section = Entry.getSection(IsBigEndian),
-            .Desc = static_cast<uint16_t>(Entry.getDesc(IsBigEndian)),
-            .Index = Index,
-            .Value = Entry.getValue(IsBigEndian)
-        };
+        auto SymbolEntryInfo = SymbolTableEntryCollection::EntryInfo();
+        SymbolEntryInfo.setSymbolInfo(Entry.Info)
+            .setString(StringPtr)
+            .setSectionOrdinal(Entry.getSectionOrdinal(IsBigEndian))
+            .setDescription(
+                static_cast<uint16_t>(Entry.getDescription(IsBigEndian)))
+            .setIndex(Index)
+            .setValue(Entry.getValue(IsBigEndian));
 
         auto Ptr =
             std::make_unique<SymbolTableEntryCollection::EntryInfo>(
-                std::move(SymbolInfo));
+                std::move(SymbolEntryInfo));
 
         auto Key = uint64_t();
         switch (KeyKind) {
             case SymbolTableEntryCollection::KeyKindEnum::Index:
-                Key = SymbolInfo.Index;
+                Key = SymbolEntryInfo.getIndex();
                 break;
             case SymbolTableEntryCollection::KeyKindEnum::Value:
-                Key = SymbolInfo.Value;
+                Key = SymbolEntryInfo.getValue();
                 break;
         }
 

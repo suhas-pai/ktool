@@ -6,8 +6,10 @@
 
 *.gcda
 
+.cache/
 .ccls-cache
 .idea/
+.history/
 .vs/
 .vscode/
 .clangd/

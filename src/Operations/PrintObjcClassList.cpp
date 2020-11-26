@@ -11,7 +11,7 @@
 #include "ADT/DscImage.h"
 #include "ADT/MachO.h"
 
-#include "Utils/MachOPrinter.h"
+#include "Utils/MachOTypePrinter.h"
 #include "Utils/MiscTemplates.h"
 #include "Utils/PointerUtils.h"
 #include "Utils/PrintUtils.h"
@@ -128,7 +128,7 @@ CompareActionsBySortKind(
     return false;
 }
 
-static int
+[[maybe_unused]] static int
 CompareObjcClasses(
     const BasicTreeNode &LEntry,
     const BasicTreeNode &REntry,
@@ -219,7 +219,7 @@ PrintClassVerboseInfo(
         OperationCommon::PrintDylibOrdinalInfo(OutFile,
                                                SharedLibraryCollection,
                                                Node.getDylibOrdinal(),
-                                               true);
+                                               PrintKind::Verbose);
     } else {
         fputs("> ", OutFile);
         if (IsSwift) {
@@ -278,10 +278,10 @@ PrintObjcClassList(
         }
 
         const auto Printer =
-        [&](FILE *OutFile,
-            int WrittenOut,
-            uint64_t DepthLevel,
-            const BasicTreeNode &TreeNode) noexcept
+            [&](FILE *OutFile,
+                int WrittenOut,
+                uint64_t DepthLevel,
+                const BasicTreeNode &TreeNode) noexcept
         {
             const auto &Node =
                 reinterpret_cast<const MachO::ObjcClassInfo &>(TreeNode);
@@ -414,9 +414,10 @@ PrintObjcClassListOperation::Run(const ConstDscImageMemoryObject &Object,
     auto LazyBindList = static_cast<const MachO::LazyBindActionList *>(nullptr);
     auto WeakBindList = static_cast<const MachO::WeakBindActionList *>(nullptr);
 
+    const auto DscMap = Object.getDscMap();
     const auto GetBindListsResult =
         OperationCommon::GetBindActionLists(Options.ErrFile,
-                                            Object.getDscMap(),
+                                            DscMap,
                                             SegmentCollection,
                                             *DyldInfo,
                                             IsBigEndian,
@@ -429,11 +430,10 @@ PrintObjcClassListOperation::Run(const ConstDscImageMemoryObject &Object,
         return GetBindListsResult;
     }
 
-    const auto DscMap = Object.getDscMap();
     const auto MappingList =
         Object.getDscHeaderV0().getConstMappingInfoList();
 
-    auto DeVirtualizer =
+    const auto DeVirtualizer =
         DscImage::ConstDeVirtualizer(DscMap.getBegin(), MappingList);
 
     auto Error = DscImage::ObjcClassInfoCollection::Error::None;

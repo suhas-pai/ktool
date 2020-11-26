@@ -16,6 +16,7 @@
 #include "LoadCommandsCommon.h"
 #include "LoadCommandTemplates.h"
 #include "RebaseInfo.h"
+#include "Utils/SwitchEndian.h"
 
 namespace MachO {
     struct LoadCommand {
@@ -241,8 +242,13 @@ namespace MachO {
         uint32_t CmdSize;
 
         [[nodiscard]]
+        constexpr inline uint32_t getCmd(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(Cmd, IsBigEndian);
+        }
+
+        [[nodiscard]]
         constexpr inline Kind getKind(bool IsBigEndian) const noexcept {
-            return Kind(SwitchEndianIf(Cmd, IsBigEndian));
+            return Kind(getCmd(IsBigEndian));
         }
 
         [[nodiscard]]
@@ -292,8 +298,8 @@ namespace MachO {
     }
 
     struct SegmentCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::Segment);
         }
 
@@ -302,8 +308,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SegmentCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -331,9 +336,7 @@ namespace MachO {
 
             [[nodiscard]]
             inline std::string_view getSegmentName() const noexcept {
-                const auto Length =
-                    strnlen(SegmentName, sizeof(SegmentName));
-
+                const auto Length = strnlen(SegmentName, sizeof(SegmentName));
                 return std::string_view(SegmentName, Length);
             }
 
@@ -570,8 +573,8 @@ namespace MachO {
     };
 
     struct SegmentCommand64 : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::Segment64);
         }
 
@@ -580,8 +583,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SegmentCommand64)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -849,8 +851,6 @@ namespace MachO {
 
     template <typename Error>
     struct LoadCommandStringViewOrError {
-        static_assert(TypeTraits::IsEnumClassValue<Error>,
-                      "Error-Type is not an enum class");
     protected:
         std::string_view View;
         [[nodiscard]] inline uintptr_t getStorage() const noexcept {
@@ -980,8 +980,8 @@ namespace MachO {
     };
 
     struct FixedVMSharedLibraryCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             const auto IsOfKind =
                 (Kind == LoadCommand::Kind::IdFixedVMSharedLibrary) ||
                 (Kind == LoadCommand::Kind::LoadFixedVMSharedLibrary);
@@ -994,8 +994,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(FixedVMSharedLibraryCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -1017,8 +1016,8 @@ namespace MachO {
     };
 
     struct DylibCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             const auto IsOfKind =
                 (Kind == LoadCommand::Kind::LoadDylib) ||
                 (Kind == LoadCommand::Kind::IdDylib) ||
@@ -1128,8 +1127,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SubFrameworkCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -1161,8 +1159,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SubClientCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -1184,8 +1181,8 @@ namespace MachO {
     };
 
     struct SubUmbrellaCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::SubUmbrella);
         }
 
@@ -1194,8 +1191,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SubUmbrellaCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -1217,8 +1213,8 @@ namespace MachO {
     };
 
     struct SubLibraryCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::SubLibrary);
         }
 
@@ -1227,8 +1223,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SubLibraryCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -1250,8 +1245,8 @@ namespace MachO {
     };
 
     struct PreBoundDylibCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::PreBoundDylib);
         }
 
@@ -1260,8 +1255,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(PreBoundDylibCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -1290,8 +1284,8 @@ namespace MachO {
     };
 
     struct DylinkerCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             const auto IsOfKind =
                 (Kind == LoadCommand::Kind::IdDylinker) ||
                 (Kind == LoadCommand::Kind::LoadDylinker) ||
@@ -1305,8 +1299,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(DylinkerCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -1328,8 +1321,8 @@ namespace MachO {
     };
 
     struct ThreadCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             const auto IsOfKind =
                 (Kind == LoadCommand::Kind::Thread) ||
                 (Kind == LoadCommand::Kind::UnixThread);
@@ -1342,8 +1335,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(ThreadCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -1354,8 +1346,8 @@ namespace MachO {
     };
 
     struct RoutinesCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::Routines);
         }
 
@@ -1364,8 +1356,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(RoutinesCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -1390,8 +1381,8 @@ namespace MachO {
     };
 
     struct RoutinesCommand64 : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::Routines64);
         }
 
@@ -1400,8 +1391,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(RoutinesCommand64)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -1440,7 +1430,58 @@ namespace MachO {
         Absolute          = 2,
         Indirect          = 10,
         PreboundUndefined = 12,
-        Section           = 14,
+        SectionDefined    = 14,
+    };
+
+    template <SymbolTableEntrySymbolKind Kind>
+    struct SymbolTableEntrySymbolKindInfo {};
+
+    template <>
+    struct SymbolTableEntrySymbolKindInfo<
+        SymbolTableEntrySymbolKind::Undefined>
+    {
+        constexpr static auto Kind = SymbolTableEntrySymbolKind::Undefined;
+        constexpr static auto Name = std::string_view("N_UNDF");
+        constexpr static auto Description = std::string_view("Undefined");
+    };
+
+    template <>
+    struct SymbolTableEntrySymbolKindInfo<
+        SymbolTableEntrySymbolKind::Absolute>
+    {
+        constexpr static auto Kind = SymbolTableEntrySymbolKind::Absolute;
+        constexpr static auto Name = std::string_view("N_ABS");
+        constexpr static auto Description = std::string_view("Absolute");
+    };
+
+    template <>
+    struct SymbolTableEntrySymbolKindInfo<
+        SymbolTableEntrySymbolKind::Indirect>
+    {
+        constexpr static auto Kind = SymbolTableEntrySymbolKind::Indirect;
+        constexpr static auto Name = std::string_view("N_INDR");
+        constexpr static auto Description = std::string_view("Indirect");
+    };
+
+    template <>
+    struct SymbolTableEntrySymbolKindInfo<
+        SymbolTableEntrySymbolKind::PreboundUndefined>
+    {
+        constexpr static auto Kind =
+            SymbolTableEntrySymbolKind::PreboundUndefined;
+
+        constexpr static auto Name = std::string_view("N_INDR");
+        constexpr static auto Description =
+            std::string_view("Prebound-Undefined");
+    };
+
+    template <>
+    struct SymbolTableEntrySymbolKindInfo<
+        SymbolTableEntrySymbolKind::SectionDefined>
+    {
+        constexpr static auto Kind = SymbolTableEntrySymbolKind::SectionDefined;
+        constexpr static auto Name = std::string_view("N_SECT");
+        constexpr static auto Description = std::string_view("Section-defined");
     };
 
     constexpr std::string_view
@@ -1448,26 +1489,64 @@ namespace MachO {
         SymbolTableEntrySymbolKind Kind) noexcept
     {
         switch (Kind) {
-            case SymbolTableEntrySymbolKind::Undefined:
-                return "Undefined"sv;
+            using Enum = SymbolTableEntrySymbolKind;
+            case Enum::Undefined:
+                return SymbolTableEntrySymbolKindInfo<Enum::Undefined>::Name;
             case SymbolTableEntrySymbolKind::Absolute:
-                return "Absolute"sv;
+                return SymbolTableEntrySymbolKindInfo<Enum::Absolute>::Name;
             case SymbolTableEntrySymbolKind::Indirect:
-                return "Indirect"sv;
+                return SymbolTableEntrySymbolKindInfo<Enum::Indirect>::Name;
             case SymbolTableEntrySymbolKind::PreboundUndefined:
-                return "Prebound-Undefined"sv;
-            case SymbolTableEntrySymbolKind::Section:
-                return "Section"sv;
+                return SymbolTableEntrySymbolKindInfo<
+                    Enum::PreboundUndefined>::Name;
+            case SymbolTableEntrySymbolKind::SectionDefined:
+                return SymbolTableEntrySymbolKindInfo<
+                    Enum::SectionDefined>::Name;
         }
 
         return EmptyStringValue;
     }
 
-    [[nodiscard]]
-    constexpr uint64_t SymbolTableEntrySymbolKindGetLongestName() noexcept {
+    constexpr std::string_view
+    SymbolTableEntrySymbolKindGetDescription(
+        SymbolTableEntrySymbolKind Kind) noexcept
+    {
+        switch (Kind) {
+            using Enum = SymbolTableEntrySymbolKind;
+            case Enum::Undefined:
+                return SymbolTableEntrySymbolKindInfo<
+                    Enum::Undefined>::Description;
+            case SymbolTableEntrySymbolKind::Absolute:
+                return SymbolTableEntrySymbolKindInfo<
+                    Enum::Absolute>::Description;
+            case SymbolTableEntrySymbolKind::Indirect:
+                return SymbolTableEntrySymbolKindInfo<
+                    Enum::Indirect>::Description;
+            case SymbolTableEntrySymbolKind::PreboundUndefined:
+                return SymbolTableEntrySymbolKindInfo<
+                    Enum::PreboundUndefined>::Description;
+            case SymbolTableEntrySymbolKind::SectionDefined:
+                return SymbolTableEntrySymbolKindInfo<
+                    Enum::SectionDefined>::Description;
+        }
+
+        return EmptyStringValue;
+    }
+
+    [[nodiscard]] constexpr
+    inline uint64_t SymbolTableEntrySymbolKindGetLongestName() noexcept {
         const auto Result =
             EnumHelper<SymbolTableEntrySymbolKind>::GetLongestAssocLength(
                 SymbolTableEntrySymbolKindGetName);
+
+        return Result;
+    }
+
+    [[nodiscard]] constexpr inline
+    uint64_t SymbolTableEntrySymbolKindGetLongestDescription() noexcept {
+        const auto Result =
+            EnumHelper<SymbolTableEntrySymbolKind>::GetLongestAssocLength(
+                SymbolTableEntrySymbolKindGetDescription);
 
         return Result;
     }
@@ -1478,6 +1557,26 @@ namespace MachO {
 
         [[nodiscard]] inline SymbolKind getKind() const noexcept {
             return SymbolKind(getValueForMask(Masks::SymbolKind));
+        }
+
+        [[nodiscard]] inline bool isUndefined() const noexcept {
+            return (getKind() == SymbolKind::Undefined);
+        }
+
+        [[nodiscard]] inline bool isAbsolute() const noexcept {
+            return (getKind() == SymbolKind::Absolute);
+        }
+
+        [[nodiscard]] inline bool isIndirect() const noexcept {
+            return (getKind() == SymbolKind::Indirect);
+        }
+
+        [[nodiscard]] inline bool isPreboundUndefined() const noexcept {
+            return (getKind() == SymbolKind::PreboundUndefined);
+        }
+
+        [[nodiscard]] inline bool isSectionDefined() const noexcept {
+            return (getKind() == SymbolKind::SectionDefined);
         }
 
         [[nodiscard]] inline bool isExternal() const noexcept {
@@ -1546,10 +1645,10 @@ namespace MachO {
 
         inline SymbolTableEntry32 &
         setDylibOrdinal(uint16_t DylibOrdinal, bool IsBigEndian) noexcept {
-            auto Desc = static_cast<uint16_t>(getDesc(IsBigEndian));
+            auto Desc = static_cast<uint16_t>(getDescription(IsBigEndian));
 
             SetDylibOrdinal(Desc, DylibOrdinal);
-            setDesc(Desc, IsBigEndian);
+            setDescription(Desc, IsBigEndian);
 
             return *this;
         }
@@ -1560,11 +1659,12 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        inline uint8_t getSection(bool IsBigEndian) const noexcept {
+        inline uint8_t getSectionOrdinal(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Section, IsBigEndian);
         }
 
-        [[nodiscard]] inline int16_t getDesc(bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        inline int16_t getDescription(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Desc, IsBigEndian);
         }
 
@@ -1575,25 +1675,25 @@ namespace MachO {
 
         inline SymbolTableEntry32 &
         setIndex(uint32_t Value, bool IsBigEndian) noexcept {
-            Index = SwitchEndianIf(Value, IsBigEndian);
+            this->Index = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         inline SymbolTableEntry32 &
-        setSection(uint8_t Value, bool IsBigEndian) noexcept {
-            Section = SwitchEndianIf(Value, IsBigEndian);
+        setSectionOrdinal(uint8_t Value, bool IsBigEndian) noexcept {
+            this->Section = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        inline
-        SymbolTableEntry32 &setDesc(int16_t Value, bool IsBigEndian) noexcept {
-            Desc = SwitchEndianIf(Value, IsBigEndian);
+        inline SymbolTableEntry32 &
+        setDescription(int16_t Value, bool IsBigEndian) noexcept {
+            this->Desc = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         inline SymbolTableEntry32 &
         setValue(uint32_t Value, bool IsBigEndian) noexcept {
-            Value = SwitchEndianIf(Value, IsBigEndian);
+            this->Value = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
     };
@@ -1612,10 +1712,10 @@ namespace MachO {
 
         constexpr inline SymbolTableEntry64 &
         setDylibOrdinal(uint16_t DylibOrdinal, bool IsBigEndian) noexcept {
-            auto Desc = getDesc(IsBigEndian);
+            auto Desc = getDescription(IsBigEndian);
 
             SetDylibOrdinal(Desc, DylibOrdinal);
-            setDesc(Desc, IsBigEndian);
+            setDescription(Desc, IsBigEndian);
 
             return *this;
         }
@@ -1626,11 +1726,12 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        inline uint8_t getSection(bool IsBigEndian) const noexcept {
+        inline uint8_t getSectionOrdinal(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Section, IsBigEndian);
         }
 
-        [[nodiscard]] inline uint16_t getDesc(bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        inline uint16_t getDescription(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Desc, IsBigEndian);
         }
 
@@ -1641,25 +1742,25 @@ namespace MachO {
 
         inline SymbolTableEntry64 &
         setIndex(uint32_t Value, bool IsBigEndian) noexcept {
-            Index = SwitchEndianIf(Value, IsBigEndian);
+            this->Index = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         inline SymbolTableEntry64 &
-        setSection(uint8_t Value, bool IsBigEndian) noexcept {
-            Section = SwitchEndianIf(Value, IsBigEndian);
+        setSectionOrdinal(uint8_t Value, bool IsBigEndian) noexcept {
+            this->Section = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        inline
-        SymbolTableEntry64 &setDesc(uint16_t Value, bool IsBigEndian) noexcept {
-            Desc = SwitchEndianIf(Value, IsBigEndian);
+        inline SymbolTableEntry64 &
+        setDescription(uint16_t Value, bool IsBigEndian) noexcept {
+            this->Desc = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         inline SymbolTableEntry64 &
         setValue(uint64_t Value, bool IsBigEndian) noexcept {
-            Value = SwitchEndianIf(Value, IsBigEndian);
+            this->Value = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
     };
@@ -1675,8 +1776,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]]
-        constexpr static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SymTabCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -1773,8 +1873,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(DynamicSymTabCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -2103,8 +2202,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(TwoLevelHintsCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -2169,8 +2267,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(PrebindChecksumCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -2198,8 +2295,8 @@ namespace MachO {
     };
 
     struct UuidCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::Uuid);
         }
 
@@ -2208,8 +2305,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(UuidCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -2226,8 +2322,8 @@ namespace MachO {
     };
 
     struct RpathCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::Rpath);
         }
 
@@ -2236,8 +2332,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(RpathCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -2259,8 +2354,8 @@ namespace MachO {
     };
 
     struct LinkeditDataCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             const auto IsOfKind =
                 (Kind == LoadCommand::Kind::CodeSignature) ||
                 (Kind == LoadCommand::Kind::SegmentSplitInfo) ||
@@ -2330,7 +2425,6 @@ namespace MachO {
 
         [[nodiscard]]
         TypedAllocationOrError<ConstExportTrieList, SizeRangeError>
-
         GetConstExportTrieList(const ConstMemoryMap &Map,
                                bool IsBigEndian) const noexcept
         {
@@ -2345,7 +2439,6 @@ namespace MachO {
 
         [[nodiscard]]
         TypedAllocationOrError<ExportTrieExportList, SizeRangeError>
-
         GetExportTrieExportList(const MemoryMap &Map, bool IsBigEndian) noexcept
         {
             assert(isa<LoadCommand::Kind::DyldExportsTrie>(IsBigEndian) &&
@@ -2530,8 +2623,8 @@ namespace MachO {
     };
 
     struct VersionMinimumCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             const auto IsOfKind =
                 (Kind == LoadCommand::Kind::VersionMinimumMacOSX) ||
                 (Kind == LoadCommand::Kind::VersionMinimumIPhoneOS) ||
@@ -2546,8 +2639,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(VersionMinimumCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -2605,97 +2697,74 @@ namespace MachO {
 
     template <>
     struct PlatformKindInfo<PlatformKind::macOS> {
-        constexpr static const auto Kind = PlatformKind::macOS;
-
-        constexpr static const auto Name = std::string_view("PLATFORM_MACOS");
-        constexpr static const auto Description = std::string_view("macOS");
+        constexpr static auto Kind = PlatformKind::macOS;
+        constexpr static auto Name = std::string_view("PLATFORM_MACOS");
+        constexpr static auto Description = std::string_view("macOS");
     };
 
     template <>
     struct PlatformKindInfo<PlatformKind::iOS> {
-        constexpr static const auto Kind = PlatformKind::iOS;
-
-        constexpr static const auto Name = std::string_view("PLATFORM_IOS");
-        constexpr static const auto Description = std::string_view("iOS");
+        constexpr static auto Kind = PlatformKind::iOS;
+        constexpr static auto Name = std::string_view("PLATFORM_IOS");
+        constexpr static auto Description = std::string_view("iOS");
     };
 
     template <>
     struct PlatformKindInfo<PlatformKind::tvOS> {
-        constexpr static const auto Kind = PlatformKind::tvOS;
-
-        constexpr static const auto Name =
-            std::string_view("PLATFORM_TVOS");
-        constexpr static const auto Description = std::string_view("tvOS");
+        constexpr static auto Kind = PlatformKind::tvOS;
+        constexpr static auto Name = std::string_view("PLATFORM_TVOS");
+        constexpr static auto Description = std::string_view("tvOS");
     };
 
     template <>
     struct PlatformKindInfo<PlatformKind::watchOS> {
-        constexpr static const auto Kind = PlatformKind::watchOS;
-
-        constexpr static const auto Name =
-            std::string_view("PLATFORM_WATCHOS");
-        constexpr static const auto Description =
-            std::string_view("watchOS");
+        constexpr static auto Kind = PlatformKind::watchOS;
+        constexpr static auto Name = std::string_view("PLATFORM_WATCHOS");
+        constexpr static auto Description = std::string_view("watchOS");
     };
 
     template <>
     struct PlatformKindInfo<PlatformKind::bridgeOS> {
-        constexpr static const auto Kind = PlatformKind::bridgeOS;
-
-        constexpr static const auto Name =
-            std::string_view("PLATFORM_BRDIGEOS");
-        constexpr static const auto Description =
-            std::string_view("bridgeOS");
+        constexpr static auto Kind = PlatformKind::bridgeOS;
+        constexpr static auto Name = std::string_view("PLATFORM_BRDIGEOS");
+        constexpr static auto Description = std::string_view("bridgeOS");
     };
 
     template <>
     struct PlatformKindInfo<PlatformKind::iOSMac> {
-        constexpr static const auto Kind = PlatformKind::iOSMac;
-
-        constexpr static const auto Name =
-            std::string_view("PLATFORM_IOSMAC");
-        constexpr static const auto Description =
-            std::string_view("iOSMac");
+        constexpr static auto Kind = PlatformKind::iOSMac;
+        constexpr static auto Name = std::string_view("PLATFORM_IOSMAC");
+        constexpr static auto Description = std::string_view("iOSMac");
     };
 
     template <>
     struct PlatformKindInfo<PlatformKind::iOSSimulator> {
-        constexpr static const auto Kind = PlatformKind::iOSSimulator;
-
-        constexpr static const auto Name =
-            std::string_view("PLATFORM_IOSSIMULATOR");
-        constexpr static const auto Description =
-            std::string_view("iOS Simulator");
+        constexpr static auto Kind = PlatformKind::iOSSimulator;
+        constexpr static auto Name = std::string_view("PLATFORM_IOSSIMULATOR");
+        constexpr static auto Description = std::string_view("iOS Simulator");
     };
 
     template <>
     struct PlatformKindInfo<PlatformKind::tvOSSimulator> {
-        constexpr static const auto Kind = PlatformKind::tvOSSimulator;
-
-        constexpr static const auto Name =
-            std::string_view("PLATFORM_TVOSSIMULATOR");
-        constexpr static const auto Description =
-            std::string_view("tvOS Simulator");
+        constexpr static auto Kind = PlatformKind::tvOSSimulator;
+        constexpr static auto Name = std::string_view("PLATFORM_TVOSSIMULATOR");
+        constexpr static auto Description = std::string_view("tvOS Simulator");
     };
 
     template <>
     struct PlatformKindInfo<PlatformKind::watchOSSimulator> {
-        constexpr static const auto Kind = PlatformKind::watchOSSimulator;
-
-        constexpr static const auto Name =
+        constexpr static auto Kind = PlatformKind::watchOSSimulator;
+        constexpr static auto Name =
             std::string_view("PLATFORM_WATCHOSSIMULATOR");
-        constexpr static const auto Description =
+        constexpr static auto Description =
             std::string_view("watchOS Simulator");
     };
 
     template <>
     struct PlatformKindInfo<PlatformKind::DriverKit> {
-        constexpr static const auto Kind = PlatformKind::DriverKit;
-
-        constexpr static const auto Name =
-            std::string_view("PLATFORM_DRIVERKIT");
-        constexpr static const auto Description =
-            std::string_view("DriverKit");
+        constexpr static auto Kind = PlatformKind::DriverKit;
+        constexpr static auto Name = std::string_view("PLATFORM_DRIVERKIT");
+        constexpr static auto Description = std::string_view("Driver");
     };
 
     [[nodiscard]] constexpr const std::string_view &
@@ -2757,8 +2826,8 @@ namespace MachO {
     }
 
     struct BuildVersionCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::BuildVersion);
         }
 
@@ -2774,31 +2843,23 @@ namespace MachO {
 
             template <>
             struct KindInfo<Kind::Clang> {
-                constexpr static const auto Kind = Kind::Clang;
-
-                constexpr static const auto Name =
-                    std::string_view("TOOL_CLANG");
-                constexpr static const auto Description =
-                    std::string_view("Clang");
+                constexpr static auto Kind = Kind::Clang;
+                constexpr static auto Name = std::string_view("TOOL_CLANG");
+                constexpr static auto Description = std::string_view("Clang");
             };
 
             template <>
             struct KindInfo<Kind::Swift> {
-                constexpr static const auto Kind = Kind::Swift;
-
-                constexpr static const auto Name =
-                    std::string_view("TOOL_SWIFT");
-                constexpr static const auto Description =
-                    std::string_view("Swift");
+                constexpr static auto Kind = Kind::Swift;
+                constexpr static auto Name = std::string_view("TOOL_SWIFT");
+                constexpr static auto Description = std::string_view("Swift");
             };
 
             template <>
             struct KindInfo<Kind::Ld> {
-                constexpr static const auto Kind = Kind::Ld;
-                constexpr static const auto Name =
-                    std::string_view("TOOL_LD");
-                constexpr static const auto Description =
-                    std::string_view("ld");
+                constexpr static auto Kind = Kind::Ld;
+                constexpr static auto Name = std::string_view("TOOL_LD");
+                constexpr static auto Description = std::string_view("ld");
             };
 
             [[nodiscard]] constexpr static const std::string_view &
@@ -2849,8 +2910,8 @@ namespace MachO {
                 return *this;
             }
 
-            constexpr inline Tool &
-            setVersion(PackedVersion Value, bool IsBigEndian) noexcept {
+            constexpr inline
+            Tool &setVersion(PackedVersion Value, bool IsBigEndian) noexcept {
                 this->Version = Value.value();
                 return *this;
             }
@@ -3446,8 +3507,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(IdentCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -3458,8 +3518,8 @@ namespace MachO {
     };
 
     struct FixedVMFileCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::FixedVMFile);
         }
 
@@ -3503,8 +3563,8 @@ namespace MachO {
     };
 
     struct EntryPointCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::Main);
         }
 
@@ -3637,8 +3697,8 @@ namespace MachO {
     };
 
     struct SourceVersionCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::SourceVersion);
         }
 
@@ -3647,8 +3707,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static inline LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SourceVersionCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -3676,8 +3735,8 @@ namespace MachO {
     };
 
     struct NoteCommand : public LoadCommand {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
             return (Kind == LoadCommand::Kind::Note);
         }
 

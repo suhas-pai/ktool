@@ -121,10 +121,11 @@ PrintBindAction(
 
     if constexpr (BindKind != MachO::BindInfoKind::Weak) {
         fputc(' ', Options.OutFile);
-        OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
-                                               LibraryCollection,
-                                               Action.DylibOrdinal,
-                                               Options.Verbose);
+        OperationCommon::PrintDylibOrdinalInfo(
+            Options.OutFile,
+            LibraryCollection,
+            Action.DylibOrdinal,
+            PrintKindFromIsVerbose(Options.Verbose));
     }
 
     fputc('\n', Options.OutFile);

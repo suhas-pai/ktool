@@ -22,7 +22,6 @@ struct MemoryProtectionsEnumInfo {};
 template <>
 struct MemoryProtectionsEnumInfo<MemoryProtectionsEnum::None> {
     constexpr static const auto Kind = MemoryProtectionsEnum::None;
-
     constexpr static const auto Name = std::string_view("VM_PROT_NONE");
     constexpr static const auto Decription = std::string_view("None");
 };
@@ -30,15 +29,13 @@ struct MemoryProtectionsEnumInfo<MemoryProtectionsEnum::None> {
 template <>
 struct MemoryProtectionsEnumInfo<MemoryProtectionsEnum::Read> {
     constexpr static const auto Kind = MemoryProtectionsEnum::Read;
-
     constexpr static const auto Name = std::string_view("VM_PROT_READ");
-    constexpr static const auto Decription = std::string_view("Write");
+    constexpr static const auto Decription = std::string_view("Read");
 };
 
 template <>
 struct MemoryProtectionsEnumInfo<MemoryProtectionsEnum::Write> {
     constexpr static const auto Kind = MemoryProtectionsEnum::Write;
-
     constexpr static const auto Name = std::string_view("VM_PROT_WRITE");
     constexpr static const auto Decription = std::string_view("Write");
 };
@@ -46,7 +43,6 @@ struct MemoryProtectionsEnumInfo<MemoryProtectionsEnum::Write> {
 template <>
 struct MemoryProtectionsEnumInfo<MemoryProtectionsEnum::Execute> {
     constexpr static const auto Kind = MemoryProtectionsEnum::Execute;
-
     constexpr static const auto Name = std::string_view("VM_PROT_EXECUTE");
     constexpr static const auto Decription = std::string_view("Execute");
 };

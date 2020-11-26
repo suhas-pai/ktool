@@ -7,6 +7,7 @@
 //
 
 #pragma once
+#include <type_traits>
 
 // Type-Safe representation of an Allocation. Different that unique_ptr as
 // TypedAllocation allows replacing.

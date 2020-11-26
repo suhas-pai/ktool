@@ -393,8 +393,7 @@ namespace MachO {
             constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static auto Name =
-                std::string_view("MH_BINDATLOAD");
+            constexpr static auto Name = std::string_view("MH_BINDATLOAD");
             constexpr static auto Description =
                 std::string_view("No Undefined References");
         };
@@ -405,8 +404,7 @@ namespace MachO {
             constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static auto Name =
-                std::string_view("MH_SPLIT_SEGS");
+            constexpr static auto Name = std::string_view("MH_SPLIT_SEGS");
             constexpr static auto Description =
                 std::string_view("Bind Undefined References at Launch");
         };
@@ -417,8 +415,7 @@ namespace MachO {
             constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static auto Name =
-                std::string_view("MH_PREBOUND");
+            constexpr static auto Name = std::string_view("MH_PREBOUND");
             constexpr static auto Description =
                 std::string_view("Dynamic Undefined Reference PreBound");
         };
@@ -452,8 +449,7 @@ namespace MachO {
             constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static auto Name =
-                std::string_view("MH_FORCE_FLAT");
+            constexpr static auto Name = std::string_view("MH_FORCE_FLAT");
             constexpr static auto Description =
                 std::string_view("Has Two-Level Namespace Bindings");
         };
@@ -464,8 +460,7 @@ namespace MachO {
             constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static auto Name =
-                std::string_view("MH_NOMULTIDEFS");
+            constexpr static auto Name = std::string_view("MH_NOMULTIDEFS");
             constexpr static auto Description =
                 std::string_view("No Multiple Symbol Definitions");
         };
@@ -476,8 +471,7 @@ namespace MachO {
             constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static auto Name =
-                std::string_view("MH_NOFIXPREBINDING");
+            constexpr static auto Name = std::string_view("MH_NOFIXPREBINDING");
             constexpr static auto Description =
                 std::string_view("Don't Fix PreBinding");
         };
@@ -535,8 +529,7 @@ namespace MachO {
             constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static auto Name =
-                std::string_view("MH_WEAK_DEFINES");
+            constexpr static auto Name = std::string_view("MH_WEAK_DEFINES");
             constexpr static auto Description =
                 std::string_view("Has External Weak Symbols");
         };
@@ -547,8 +540,7 @@ namespace MachO {
             constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static auto Name =
-                std::string_view("MH_BINDS_TO_WEAK");
+            constexpr static auto Name = std::string_view("MH_BINDS_TO_WEAK");
             constexpr static auto Description =
                 std::string_view("Binds to Weak Symbols");
         };
@@ -582,8 +574,7 @@ namespace MachO {
             constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static auto Name =
-                std::string_view("MH_SETUID_SAFE");
+            constexpr static auto Name = std::string_view("MH_SETUID_SAFE");
             constexpr static auto Description =
                 std::string_view("Safe for issetuid()");
         };
@@ -680,8 +671,7 @@ namespace MachO {
             constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static auto Name =
-                std::string_view("MH_SIM_SUPPORT");
+            constexpr static auto Name = std::string_view("MH_SIM_SUPPORT");
             constexpr static auto Description =
                 std::string_view("Has Simulator Support");
         };
@@ -692,8 +682,7 @@ namespace MachO {
             constexpr static auto Mask =
                 static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
 
-            constexpr static auto Name =
-                std::string_view("MH_DYLIB_IN_CACHE");
+            constexpr static auto Name = std::string_view("MH_DYLIB_IN_CACHE");
             constexpr static auto Description =
                 std::string_view("Dylib in Shared-Cache");
         };
@@ -1224,11 +1213,33 @@ namespace MachO {
         using ConstArch32List = BasicContiguousList<const Arch32>;
         using ConstArch64List = BasicContiguousList<const Arch64>;
 
-        [[nodiscard]] Arch32List getArch32List() noexcept;
-        [[nodiscard]] Arch64List getArch64List() noexcept;
+        [[nodiscard]] Arch32List getArch32List() noexcept {
+            assert(!this->is64Bit());
 
-        [[nodiscard]] ConstArch32List getConstArch32List() const noexcept;
-        [[nodiscard]] ConstArch64List getConstArch64List() const noexcept;
+            const auto Entries = reinterpret_cast<Arch32 *>(this + 1);
+            return Arch32List(Entries, this->getArchCount());
+        }
+
+        [[nodiscard]] Arch64List getArch64List() noexcept {
+            assert(this->is64Bit());
+
+            const auto Entries = reinterpret_cast<Arch64 *>(this + 1);
+            return Arch64List(Entries, this->getArchCount());
+        }
+
+        [[nodiscard]] ConstArch32List getConstArch32List() const noexcept {
+            assert(!this->is64Bit());
+
+            const auto Entries = reinterpret_cast<const Arch32 *>(this + 1);
+            return ConstArch32List(Entries, this->getArchCount());
+        }
+
+        [[nodiscard]] ConstArch64List getConstArch64List() const noexcept {
+            assert(this->is64Bit());
+
+            const auto Entries = reinterpret_cast<const Arch64 *>(this + 1);
+            return ConstArch64List(Entries, this->getArchCount());
+        }
 
         [[nodiscard]] inline bool hasValidMagic() const noexcept {
             return MagicIsValid(Magic);

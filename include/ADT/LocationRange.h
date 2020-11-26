@@ -26,12 +26,12 @@ private:
     : Begin(Begin), End(End) {}
 public:
     constexpr LocationRange() noexcept = default;
-    [[nodiscard]] static LocationRange Empty() noexcept {
+    [[nodiscard]] static inline LocationRange Empty() noexcept {
         return LocationRange();
     }
 
     template <typename T = uint64_t>
-    [[nodiscard]] constexpr static std::optional<LocationRange>
+    [[nodiscard]] constexpr static inline std::optional<LocationRange>
     CreateWithSize(uint64_t Begin, uint64_t Size) noexcept {
         auto End = T();
         if (DoesAddOverflow(Begin, Size, &End)) {
@@ -42,7 +42,7 @@ public:
     }
 
     template <typename T = uint64_t>
-    [[nodiscard]] constexpr static std::optional<LocationRange>
+    [[nodiscard]] constexpr static inline std::optional<LocationRange>
     CreateWithSize(void *Begin, uint64_t Size) noexcept {
         const auto BeginInt = reinterpret_cast<uint64_t>(Begin);
         return LocationRange::CreateWithSize<T>(BeginInt, Size);
@@ -125,10 +125,17 @@ public:
     }
 
     template <typename T>
-    [[nodiscard]] constexpr
-    inline bool containsTypeAtLocation(uint64_t Location) const noexcept {
+    [[nodiscard]] constexpr inline bool
+    canContainTypeAtLocation(uint64_t Location,
+                             uint64_t Count = 1) const noexcept
+    {
+        auto Size = uint64_t();
+        if (DoesMultiplyOverflow(sizeof(T), Count, &Size)) {
+            return false;
+        }
+
         auto End = uint64_t();
-        if (DoesAddOverflow(Location, sizeof(T), &End)) {
+        if (DoesAddOverflow(Location, Size, &End)) {
             return false;
         }
 
@@ -136,14 +143,24 @@ public:
     }
 
     template <typename T>
-    [[nodiscard]] constexpr
-    inline bool containsTypeAtLocation(const void *Location) const noexcept {
-        return containsTypeAtLocation<T>(reinterpret_cast<uint64_t>(Location));
+    [[nodiscard]] constexpr inline bool
+    canContainTypeAtLocation(const void *Location,
+                             uint64_t Count = 1) const noexcept
+    {
+        return canContainTypeAtLocation<T>(
+            reinterpret_cast<uint64_t>(Location), Count);
     }
 
     template <typename T>
-    [[nodiscard]] constexpr inline
-    bool containsTypeAtRelativeLocation(uint64_t Location) const noexcept {
+    [[nodiscard]] constexpr inline bool
+    containsTypeAtRelativeLocation(uint64_t Location,
+                                   uint64_t Count = 1) const noexcept
+    {
+        auto Size = uint64_t();
+        if (DoesMultiplyOverflow(sizeof(T), Count, &Size)) {
+            return false;
+        }
+
         auto End = uint64_t();
         if (DoesAddOverflow(Location, sizeof(T), &End)) {
             return false;
@@ -220,6 +237,22 @@ public:
     [[nodiscard]]
     constexpr inline bool goesPastEnd(uint64_t Size) const noexcept {
         return (End > Size);
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr
+    inline bool isLargeEnoughForType(uint64_t Count = 1) const noexcept {
+        auto Size = uint64_t();
+        if (DoesAddOverflow(sizeof(T), Count, &Size)) {
+            return false;
+        }
+
+        return isLargeEnoughForSize(Size);
+    }
+
+    [[nodiscard]]
+    constexpr inline bool isLargeEnoughForSize(uint64_t Size) const noexcept {
+        return (size() >= Size);
     }
 
     [[nodiscard]] RelativeRange toRelativeRange() const noexcept;

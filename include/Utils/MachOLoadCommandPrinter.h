@@ -16,7 +16,7 @@
 #include "ADT/RelativeRange.h"
 
 #include "DoesOverflow.h"
-#include "MachOPrinter.h"
+#include "MachOTypePrinter.h"
 #include "PrintUtils.h"
 #include "SwitchEndian.h"
 #include "Timestamp.h"
@@ -254,8 +254,8 @@ constexpr static auto MLPC_LengthOfLongestName =
     static_cast<int>(MLPC_LongestNameKindInfo::Name.length());
 
 template <MachO::LoadCommand::Kind Kind>
-static inline
-void MachOLoadCommandPrinterWriteKindName(FILE *OutFile, bool Verbose) {
+static inline void
+MachOLoadCommandPrinterWriteKindName(FILE *OutFile, bool Verbose) noexcept {
     using KindInfo = MachO::LoadCommandKindInfo<Kind>;
 
     constexpr auto LCKindLength = KindInfo::Name.length();
@@ -2059,11 +2059,9 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
           bool Verbose) noexcept
     {
         const auto Platform = BuildVersion.getPlatform(IsBigEndian);
-        auto PlatformDesc = MachO::PlatformKindGetDescription(Platform).data();
-
-        if (PlatformDesc == nullptr) {
-            PlatformDesc = "<Unrecognized>";
-        }
+        const auto PlatformDesc =
+            MachO::PlatformKindGetDescription(Platform).data() ?:
+            "<Unrecognized>";
 
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
                                                                Verbose);
@@ -2111,11 +2109,8 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
 
         for (const auto &Tool : ToolList.getRef()) {
             const auto ToolKind = Tool.getKind(IsBigEndian);
-            auto KindDesc = Tool.KindGetDescription(ToolKind).data();
-
-            if (KindDesc == nullptr) {
-                KindDesc = "Unrecognized";
-            }
+            const auto KindDesc =
+                Tool.KindGetDescription(ToolKind).data() ?: "Unrecognized";
 
             fprintf(OutFile, "\t\tKind:    %s\n\t\tVersion: ", KindDesc);
             MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(OutFile,

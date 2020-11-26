@@ -80,12 +80,12 @@ public:
     template <typename T>
     [[nodiscard]] constexpr
     inline bool isLargeEnoughForType(uint64_t Count = 1) const noexcept {
-        return isLargeEnoughForSize(sizeof(T) * Count);
+        return getRange().isLargeEnoughForType<T>(Count);
     }
 
     [[nodiscard]]
     constexpr inline bool isLargeEnoughForSize(uint64_t Size) const noexcept {
-        return (size() >= Size);
+        return getRange().isLargeEnoughForSize(Size);
     }
 
     [[nodiscard]] constexpr

@@ -7,6 +7,7 @@
 //
 
 #pragma once
+#include <cstdint>
 
 template <typename T>
 struct PointerFlagStorage {

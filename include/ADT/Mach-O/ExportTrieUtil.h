@@ -55,8 +55,8 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        inline ExportTrieChildNode *getLongestChild() const noexcept {
-            return get(LongestChild);
+        inline ExportTrieChildNode *getLastChild() const noexcept {
+            return get(LastChild);
         }
 
         [[nodiscard]]
@@ -99,6 +99,24 @@ namespace MachO {
 
         [[nodiscard]] constexpr inline bool isReexport() const noexcept {
             return (getKind() == ExportTrieExportKind::Reexport);
+        }
+
+        [[nodiscard]]
+        inline ExportTrieExportChildNode *getIfExportNode() noexcept {
+            if (!this->isExport()) {
+                return nullptr;
+            }
+
+            return reinterpret_cast<ExportTrieExportChildNode *>(this);
+        }
+
+        [[nodiscard]] inline
+        const ExportTrieExportChildNode *getIfExportNode() const noexcept {
+            if (!this->isExport()) {
+                return nullptr;
+            }
+
+            return reinterpret_cast<const ExportTrieExportChildNode *>(this);
         }
 
         [[nodiscard]]
@@ -186,8 +204,8 @@ namespace MachO {
                              const SectionInfo **SectionOut) const noexcept;
 
         [[nodiscard]] ChildNode *
-        GetNodeForEntryInfo(const ExportTrieIterateInfo &Info,
-                            const SegmentInfoCollection *Collection) noexcept;
+        MakeNodeForEntryInfo(const ExportTrieIterateInfo &Info,
+                             const SegmentInfoCollection *Collection) noexcept;
 
         void
         ParseFromTrie(const ConstExportTrieList &Trie,
@@ -203,8 +221,8 @@ namespace MachO {
             return reinterpret_cast<ChildNode *>(Root);
         }
 
-        inline ChildNode *
-        RemoveNode(ChildNode &Ref, bool RemoveParentLeafs) noexcept {
+        inline
+        ChildNode *RemoveNode(ChildNode &Ref, bool RemoveParentLeafs) noexcept {
             auto &Node = reinterpret_cast<BasicTreeNode &>(Ref);
             const auto Result = BasicTree::RemoveNode(Node, RemoveParentLeafs);
 

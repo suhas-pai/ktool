@@ -60,8 +60,8 @@ namespace MachO {
             return get(FirstChild);
         }
 
-        [[nodiscard]] inline ObjcClassInfo *getLongestChild() const noexcept {
-            return get(LongestChild);
+        [[nodiscard]] inline ObjcClassInfo *getLastChild() const noexcept {
+            return get(LastChild);
         }
 
         [[nodiscard]]
@@ -98,8 +98,8 @@ namespace MachO {
         }
 
         inline ObjcClassInfo &
-        setLongestChild(const ObjcClassInfo *LongestChild) noexcept {
-            this->LongestChild = const_cast<ObjcClassInfo *>(LongestChild);
+        setLastChild(const ObjcClassInfo *LastChild) noexcept {
+            this->LastChild = const_cast<ObjcClassInfo *>(LastChild);
             return *this;
         }
 

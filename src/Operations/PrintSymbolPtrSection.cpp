@@ -33,8 +33,8 @@ CompareEntriesBySortKind(
 
             return 1;
         case PrintSymbolPtrSectionOperation::Options::SortKind::ByKind: {
-            const auto LhsKind = Lhs.SymbolInfo.getKind();
-            const auto RhsKind = Rhs.SymbolInfo.getKind();
+            const auto LhsKind = Lhs.getSymbolInfo().getKind();
+            const auto RhsKind = Rhs.getSymbolInfo().getKind();
 
             if (LhsKind == RhsKind) {
                 return 0;
@@ -45,16 +45,16 @@ CompareEntriesBySortKind(
             return 1;
         }
         case PrintSymbolPtrSectionOperation::Options::SortKind::ByIndex: {
-            if (Lhs.Index == Rhs.Index) {
+            if (Lhs.getIndex() == Rhs.getIndex()) {
                 return 0;
-            } else if (Lhs.Index < Rhs.Index) {
+            } else if (Lhs.getIndex() < Rhs.getIndex()) {
                 return -1;
             }
 
             return 1;
         }
         case PrintSymbolPtrSectionOperation::Options::SortKind::BySymbol:
-            return Lhs.String->compare(*Rhs.String);
+            return Lhs.getString()->compare(*Rhs.getString());
     }
 
     assert(0 && "Unrecognized (and invalid) Sort-Kind");
@@ -75,18 +75,22 @@ PrintSymbolList(
     auto LongestSection = LargestIntHelper<uint8_t>();
 
     for (const auto &Info : List) {
-        const auto Section = Info->Section + 1;
-        const auto SectionInfo = SegmentCollection.GetSectionWithIndex(Section);
+        if (Info->isSectionDefined()) {
+            const auto Section = Info->getSectionOrdinal() - 1;
+            const auto SectionInfo =
+                SegmentCollection.GetSectionWithIndex(Section);
 
-        const auto SymbolKind = Info->SymbolInfo.getKind();
-        const auto &SymbolKindName =
-            MachO::SymbolTableEntrySymbolKindGetName(SymbolKind);
+            LongestSegment = SectionInfo->getSegment()->getName().length();
+            LongestSection = SectionInfo->getName().length();
+        }
 
-        LargestIndex = Info->Index;
-        LongestLength = Info->String->length();
-        LongestSegment = SectionInfo->getSegment()->getName().length();
-        LongestSection = SectionInfo->getName().length();
-        LongestKind = SymbolKindName.length();
+        const auto SymbolKind = Info->getSymbolKind();
+        const auto &SymbolKindDescription =
+            MachO::SymbolTableEntrySymbolKindGetDescription(SymbolKind);
+
+        LargestIndex = Info->getIndex();
+        LongestLength = Info->getString()->length();
+        LongestKind = SymbolKindDescription.length();
     }
 
     Operation::PrintLineSpamWarning(Options.OutFile, List.size());
@@ -99,9 +103,6 @@ PrintSymbolList(
     auto MaxIndexDigitLength = PrintUtilsGetIntegerDigitLength(LargestIndex);
 
     const auto &Segment = SegmentCollection.front();
-    const auto &SectionList = Segment.getSectionList();
-    const auto SectionListSize = SectionList.size();
-
     for (const auto &Info : List) {
         fprintf(Options.OutFile,
                 "Indirect-Symbol %0*" PRIu64 ": ",
@@ -109,7 +110,7 @@ PrintSymbolList(
                 Counter);
 
         const auto PrintLength =
-            fprintf(Options.OutFile, "\"%s\"", Info->String->data());
+            fprintf(Options.OutFile, "\"%s\"", Info->getString()->data());
 
         if (Options.Verbose) {
             const auto RightPad =
@@ -117,10 +118,11 @@ PrintSymbolList(
 
             PrintUtilsRightPadSpaces(Options.OutFile, PrintLength, RightPad);
 
-            const auto &SymbolInfo = Info->SymbolInfo;
+            const auto &SymbolInfo = Info->getSymbolInfo();
             const auto SymbolKind = SymbolInfo.getKind();
-            const auto SymbolKindString =
-                SymbolTableEntrySymbolKindGetName(SymbolKind).data();
+            const auto SymbolKindDescription =
+                SymbolTableEntrySymbolKindGetDescription(SymbolKind).data() ?:
+                "Unrecognized";
 
             const auto KindRightPad =
                 static_cast<int>(LongestKind + LENGTH_OF(" <Kind: , "));
@@ -128,13 +130,13 @@ PrintSymbolList(
             PrintUtilsRightPadSpaces(Options.OutFile,
                                      fprintf(Options.OutFile,
                                              " <Kind: %s, ",
-                                             SymbolKindString),
+                                             SymbolKindDescription),
                                      KindRightPad);
 
             fprintf(Options.OutFile,
                     "Index: %0*" PRIu64,
                     MaxIndexDigitLength,
-                    Info->Index);
+                    Info->getIndex());
 
             if (SymbolInfo.isPrivateExternal()) {
                 fputs(", Private-External", Options.OutFile);
@@ -144,26 +146,25 @@ PrintSymbolList(
                 fputs(", Debug-Symbol", Options.OutFile);
             }
 
-            const auto SectionIndex = Info->Section + 1;
-            const auto *Section =
-                static_cast<const MachO::SectionInfo *>(nullptr);
-
-            if (!IndexOutOfBounds(SectionIndex, SectionListSize)) {
-                Section = SectionList.at(SectionIndex).get();
-            }
-
             fputs(", Section: ", Options.OutFile);
-            PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
-                                                   &Segment,
-                                                   Section,
-                                                   false,
-                                                   "",
-                                                   ", ");
+            if (Info->isSectionDefined()) {
+                const auto Ordinal = Info->getSectionOrdinal();
+                const auto *Section = Segment.getSectionAtOrdinal(Ordinal);
+
+                PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
+                                                       &Segment,
+                                                       Section,
+                                                       false,
+                                                       "",
+                                                       ", ");
+            } else {
+                fputs("No-Section, ", Options.OutFile);
+            }
 
             OperationCommon::PrintDylibOrdinalInfo(Options.OutFile,
                                                    SharedLibraryCollection,
                                                    Info->getDylibOrdinal(),
-                                                   true);
+                                                   PrintKind::Verbose);
 
             fputc('>', Options.OutFile);
         }
@@ -370,7 +371,7 @@ PrintSymbolPtrList(
                   List.end(),
                   [&](const auto &Lhs, const auto &Rhs) noexcept
         {
-            return (Lhs->Index < Rhs->Index);
+            return (Lhs->getIndex() < Rhs->getIndex());
         });
     }
 

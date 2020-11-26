@@ -15,7 +15,7 @@
 #include "Path.h"
 
 static auto Cd = std::string();
-std::string PathUtil::Absolutify(std::string_view Path) noexcept {
+std::string PathUtil::MakeAbsolute(std::string_view Path) noexcept {
     if (isAbsolute(Path)) {
         return std::string(Path);
     }

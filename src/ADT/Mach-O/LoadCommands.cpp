@@ -809,7 +809,7 @@ namespace MachO {
         }
 
         const auto Data = reinterpret_cast<const char *>(LC) + Offset;
-        if ((Offset + Length) == CmdSize || Data[Length] != '\0') {
+        if ((Offset + Length) == CmdSize) {
             return LoadCommandString::GetStringError::NoNullTerminator;
         }
 
@@ -823,10 +823,7 @@ namespace MachO {
         const auto CmdSize = getCmdSize(IsBigEndian);
         const auto NameOffset = Info.Name.getOffset(IsBigEndian);
         const auto Result =
-            LoadCmdGetStoredString(this,
-                                   MinSize,
-                                   CmdSize,
-                                   NameOffset);
+            LoadCmdGetStoredString(this, MinSize, CmdSize, NameOffset);
 
         return Result;
     }
@@ -1396,8 +1393,8 @@ namespace MachO {
     }
 
     TypedAllocationOrError<TwoLevelHintsCommand::HintList, SizeRangeError>
-    TwoLevelHintsCommand::GetHintList(
-        const MemoryMap &Map, bool IsBigEndian) noexcept
+    TwoLevelHintsCommand::GetHintList(const MemoryMap &Map,
+                                      bool IsBigEndian) noexcept
     {
         const auto Count = getHintsCount(IsBigEndian);
         if (Count == 0) {

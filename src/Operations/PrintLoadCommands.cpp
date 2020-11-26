@@ -44,8 +44,8 @@ IterateLoadCommands(
         fprintf(Options.OutFile, "LC %02d: ", LoadCmdCounter);
         if (!LC.hasValidKind(IsBigEndian)) {
             fprintf(Options.OutFile,
-                    "Unrecognized LoadCmd (Kind-Int: %" PRIu32 ")\n",
-                    static_cast<uint32_t>(LC.getKind(IsBigEndian)));
+                    "Unrecognized LoadCmd (Kind-Number: %" PRIu32 ")\n",
+                    LC.getCmd(IsBigEndian));
             continue;
         }
 

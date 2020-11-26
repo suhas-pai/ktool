@@ -40,9 +40,9 @@ public:
 
         UnknownCpuKind,
 
-        InvalidMappingRange,
-        InvalidImageRange,
-        OverlappingImageMappingRange,
+        InvalidMappingInfoListRange,
+        InvalidImageInfoListRange,
+        OverlappingImageMappingInfoListRange,
     };
 
     enum class DscImageOpenError {

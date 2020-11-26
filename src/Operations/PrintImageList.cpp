@@ -28,7 +28,7 @@ struct ImageInfo : public DyldSharedCache::ImageInfo {
     }
 };
 
-static int
+[[nodiscard]] static int
 CompareInfosBySortKind(
     const ImageInfo &Lhs,
     const ImageInfo &Rhs,
@@ -172,7 +172,7 @@ PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
     return 0;
 }
 
-static inline bool
+[[nodiscard]] static inline bool
 ListHasSortKind(
     const std::vector<PrintImageListOperation::Options::SortKind> &List,
     const PrintImageListOperation::Options::SortKind &Sort) noexcept

@@ -24,7 +24,7 @@ namespace MachO {
     }
 
     ExportTrieEntryCollection::ChildNode *
-    ExportTrieEntryCollection::GetNodeForEntryInfo(
+    ExportTrieEntryCollection::MakeNodeForEntryInfo(
         const ExportTrieIterateInfo &Info,
         const SegmentInfoCollection *Collection) noexcept
     {
@@ -73,7 +73,7 @@ namespace MachO {
             return;
         }
 
-        Root = GetNodeForEntryInfo(*Iter, SegmentCollection);
+        this->Root = MakeNodeForEntryInfo(*Iter, SegmentCollection);
 
         auto Parent = getRoot();
         auto PrevDepthLevel = 1;
@@ -98,7 +98,7 @@ namespace MachO {
                 MoveUpParentHierarchy(PrevDepthLevel - DepthLevel);
             }
 
-            const auto Current = GetNodeForEntryInfo(*Iter, SegmentCollection);
+            const auto Current = MakeNodeForEntryInfo(*Iter, SegmentCollection);
 
             Parent->AddChild(*Current);
             if (Iter->getNode().getChildCount() != 0) {

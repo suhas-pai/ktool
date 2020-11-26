@@ -72,7 +72,7 @@ namespace MachO {
             return true;
         }
 
-        auto &SectionOutList = InfoIn.getSectionList();
+        auto &SectionOutList = InfoIn.getSectionListRef();
         const auto SectionList =
             Segment.getConstSectionListUnsafe(IsBigEndian);
 
@@ -314,7 +314,7 @@ namespace MachO {
                     Segment->getConstSectionListUnsafe(IsBigEndian);
 
                 for (const auto &Sect : SectionList) {
-                    if (Sect.nameEquals(SectionName)) {
+                    if (!Sect.nameEquals(SectionName)) {
                         continue;
                     }
 
@@ -366,7 +366,7 @@ namespace MachO {
                     Segment->getConstSectionListUnsafe(IsBigEndian);
 
                 for (const auto &Sect : SectionList) {
-                    if (Sect.nameEquals(SectionName)) {
+                    if (!Sect.nameEquals(SectionName)) {
                         continue;
                     }
 
@@ -392,8 +392,7 @@ namespace MachO {
     }
 
     const SegmentInfo *
-    SegmentInfoCollection::GetInfoForName(
-        std::string_view Name) const noexcept
+    SegmentInfoCollection::GetInfoForName(std::string_view Name) const noexcept
     {
         for (const auto &SegInfo : *this) {
             if (SegInfo->getName() == Name) {
@@ -405,9 +404,7 @@ namespace MachO {
     }
 
     const SectionInfo *
-    SegmentInfo::FindSectionWithName(
-        std::string_view Name) const noexcept
-    {
+    SegmentInfo::FindSectionWithName(std::string_view Name) const noexcept {
         for (const auto &SectInfo : getSectionList()) {
             if (SectInfo->getName() == Name) {
                 return SectInfo.get();

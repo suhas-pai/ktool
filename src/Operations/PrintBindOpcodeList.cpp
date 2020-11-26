@@ -353,12 +353,10 @@ PrintBindOpcodeList(
                 break;
 
             case MachO::BindByte::Opcode::SetKindImm: {
-                auto KindName =
-                    MachO::BindWriteKindGetName(Iter.WriteKind).data();
+                const auto KindName =
+                    MachO::BindWriteKindGetName(Iter.WriteKind).data() ?:
+                    "<unrecognized>";
 
-                if (KindName == nullptr) {
-                    KindName = "<unrecognized>";
-                }
 
                 fprintf(Options.OutFile, "(%s)\n", KindName);
                 break;

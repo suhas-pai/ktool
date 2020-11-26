@@ -36,8 +36,8 @@ private:
 public:
     using BasicWrapperIterator<uint8_t *, std::ptrdiff_t>::BasicWrapperIterator;
 
-    uint8_t *operator->() noexcept { return this->Item; }
-    const uint8_t *operator->() const noexcept { return this->Item; }
+    inline uint8_t *operator->() noexcept { return this->Item; }
+    inline const uint8_t *operator->() const noexcept { return this->Item; }
 };
 
 template <typename T>
@@ -48,6 +48,6 @@ public:
     T &operator*() noexcept { return *this->Item; }
     const T &operator*() const noexcept { return *this->Item; }
 
-    [[nodiscard]] T *getPtr() noexcept { return this->Item; }
-    [[nodiscard]] const T *getPtr() const noexcept { return this->Item; }
+    [[nodiscard]] inline T *getPtr() noexcept { return this->Item; }
+    [[nodiscard]] inline const T *getPtr() const noexcept { return this->Item; }
 };

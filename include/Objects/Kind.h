@@ -7,7 +7,6 @@
 //
 
 #pragma once
-#include <type_traits>
 
 enum class ObjectKind {
     None,
