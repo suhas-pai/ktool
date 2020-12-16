@@ -30,7 +30,7 @@ namespace MachO {
             const auto GetNameResult = DylibCmd.GetName(IsBigEndian);
             const auto &Name =
                 (GetNameResult.hasError()) ?
-                    EmptyStringValue :
+                    std::string_view() :
                     GetNameResult.getString();
 
             if (GetNameResult.hasError()) {
@@ -38,15 +38,14 @@ namespace MachO {
             }
 
             const auto &Info = DylibCmd.Info;
-            auto LibInfo =
-                std::make_unique<SharedLibraryInfo>(SharedLibraryInfo {
-                    .Kind = LC.getKind(IsBigEndian),
-                    .Path = std::string(Name),
-                    .Index = LCIndex,
-                    .Timestamp = Info.getTimestamp(IsBigEndian),
-                    .CurrentVersion = Info.getCurrentVersion(IsBigEndian),
-                    .CompatibilityVersion = Info.getCompatVersion(IsBigEndian)
-                });
+            auto LibInfo = std::make_unique<SharedLibraryInfo>();
+
+            LibInfo->setKind(LC.getKind(IsBigEndian));
+            LibInfo->setPath(std::string(Name));
+            LibInfo->setIndex(LCIndex);
+            LibInfo->setTimestamp(Info.getTimestamp(IsBigEndian));
+            LibInfo->setCurrentVersion(Info.getCurrentVersion(IsBigEndian));
+            LibInfo->setCompatVersion(Info.getCompatVersion(IsBigEndian));
 
             Result.List.emplace_back(std::move(LibInfo));
             LCIndex++;

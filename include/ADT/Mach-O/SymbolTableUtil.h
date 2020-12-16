@@ -21,7 +21,7 @@ namespace MachO {
         SymbolTableEntryInfo SymbolInfo;
         const std::string *String = nullptr;
 
-        uint8_t Section;
+        uint8_t SectionOrdinal;
         uint16_t Desc;
 
         uint64_t Index;
@@ -75,7 +75,7 @@ namespace MachO {
 
         [[nodiscard]] inline uint8_t getSectionOrdinal() const noexcept {
             assert(this->isSectionDefined());
-            return Section;
+            return SectionOrdinal;
         }
 
         [[nodiscard]] inline uint16_t getDescription() const noexcept {
@@ -91,26 +91,26 @@ namespace MachO {
         }
 
         inline SymbolTableEntryCollectionEntryInfo &
-        setSymbolInfo(const SymbolTableEntryInfo &Info) noexcept {
-            this->SymbolInfo = Info;
+        setSymbolInfo(const SymbolTableEntryInfo &Value) noexcept {
+            this->SymbolInfo = Value;
             return *this;
         }
 
         inline SymbolTableEntryCollectionEntryInfo &
-        setString(const std::string *String) noexcept {
-            this->String = String;
+        setString(const std::string *Value) noexcept {
+            this->String = Value;
             return *this;
         }
 
         inline SymbolTableEntryCollectionEntryInfo &
-        setSectionOrdinal(uint8_t SectionOrdinal) noexcept {
-            this->Section = SectionOrdinal;
+        setSectionOrdinal(uint8_t Value) noexcept {
+            this->SectionOrdinal = Value;
             return *this;
         }
 
         inline SymbolTableEntryCollectionEntryInfo &
-        setDescription(uint16_t Description) noexcept {
-            this->Desc = Description;
+        setDescription(uint16_t Value) noexcept {
+            this->Desc = Value;
             return *this;
         }
 
@@ -121,8 +121,8 @@ namespace MachO {
         }
 
         inline
-        SymbolTableEntryCollectionEntryInfo &setValue(uint64_t Value) noexcept {
-            this->Value = Value;
+        SymbolTableEntryCollectionEntryInfo &setValue(uint64_t Val) noexcept {
+            this->Value = Val;
             return *this;
         }
 

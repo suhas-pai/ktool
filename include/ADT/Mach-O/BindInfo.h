@@ -36,160 +36,42 @@ namespace MachO {
         Threaded                    = 0xD0
     };
 
-    using namespace std::literals;
-
-    template <BindByteOpcode>
-    struct BindByteOpcodeInfo {};
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::Done> {
-        constexpr static auto Kind = BindByteOpcode::Done;
-        constexpr static auto Name = "BIND_OPCODE_DONE"sv;
-        constexpr static auto Description = "Done"sv;
-    };
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::SetDylibOrdinalImm> {
-        constexpr static auto Kind = BindByteOpcode::SetDylibOrdinalImm;
-        constexpr static auto Name = "BIND_OPCODE_SET_DYLIB_ORDINAL_IMM"sv;
-        constexpr static auto Description = "Set Dylib-Ordinal (Immediate)"sv;
-    };
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::SetDylibOrdinalUleb> {
-        constexpr static auto Kind = BindByteOpcode::SetDylibOrdinalUleb;
-        constexpr static auto Name = "BIND_OPCODE_SET_DYLIB_ORDINAL_ULEB"sv;
-        constexpr static auto Description = "Set Dylib-Ordinal (Uleb128)"sv;
-    };
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::SetDylibSpecialImm> {
-        constexpr static auto Kind = BindByteOpcode::SetDylibSpecialImm;
-        constexpr static auto Name = "BIND_OPCODE_SET_DYLIB_SPECIAL_IMM"sv;
-        constexpr static auto Description =
-            "Set Special Dylib-Ordinal (Immediate)"sv;
-    };
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::SetSymbolTrailingFlagsImm> {
-        constexpr static auto Kind =
-            BindByteOpcode::SetSymbolTrailingFlagsImm;
-        constexpr static auto Name =
-            "BIND_OPCODE_SET_SYMBOL_TRAILING_FLAGS_IMM"sv;
-        constexpr static auto Description =
-            "Set Special Dylib-Ordinal (Immediate)"sv;
-    };
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::SetKindImm> {
-        constexpr static auto Kind = BindByteOpcode::SetKindImm;
-        constexpr static auto Name = "BIND_OPCODE_SET_TYPE_IMM"sv;
-        constexpr static auto Description =
-            "Set Special Dylib-Ordinal (Immediate)"sv;
-    };
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::SetAddendSleb> {
-        constexpr static auto Kind = BindByteOpcode::SetAddendSleb;
-        constexpr static auto Name = "BIND_OPCODE_SET_ADDEND_SLEB"sv;
-        constexpr static auto Description = "Set Addend (Sleb128)"sv;
-    };
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::SetSegmentAndOffsetUleb> {
-        constexpr static auto Kind =
-            BindByteOpcode::SetSegmentAndOffsetUleb;
-
-        constexpr static auto Name =
-            "BIND_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB"sv;
-        constexpr static auto Description = "Set Addend (Sleb128)"sv;
-    };
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::AddAddrUleb> {
-        constexpr static auto Kind = BindByteOpcode::AddAddrUleb;
-        constexpr static auto Name = "BIND_OPCODE_ADD_ADDR_ULEB"sv;
-        constexpr static auto Description = "Add Address (Uleb128)"sv;
-    };
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::DoBind> {
-        constexpr static auto Kind = BindByteOpcode::DoBind;
-        constexpr static auto Name = "BIND_OPCODE_DO_BIND"sv;
-        constexpr static auto Description = "Do Bind"sv;
-    };
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::DoBindAddAddrUleb> {
-        constexpr static auto Kind = BindByteOpcode::DoBindAddAddrUleb;
-        constexpr static auto Name = "BIND_OPCODE_DO_BIND_ADD_ADDR_ULEB"sv;
-        constexpr static auto Description = "Do Bind And Add Address (Uleb)"sv;
-    };
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::DoBindAddAddrImmScaled> {
-        constexpr static auto Kind = BindByteOpcode::DoBindAddAddrImmScaled;
-        constexpr static auto Name =
-            "BIND_OPCODE_DO_BIND_ADD_ADDR_IMM_SCALED"sv;
-        constexpr static auto Description =
-            "Do Bind And Add Address Scaled (Immediate)"sv;
-    };
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::DoBindUlebTimesSkippingUleb> {
-        constexpr static auto Kind =
-            BindByteOpcode::DoBindUlebTimesSkippingUleb;
-        constexpr static auto Name =
-            "BIND_OPCODE_DO_BIND_ULEB_TIMES_SKIPPING_ULEB"sv;
-        constexpr static auto Description =
-            "Do Bind Uleb128 Skipping Uleb128 Bytes"sv;
-    };
-
-    template <>
-    struct BindByteOpcodeInfo<BindByteOpcode::Threaded> {
-        constexpr static auto Kind = BindByteOpcode::Threaded;
-        constexpr static auto Name = "BIND_OPCODE_THREADED"sv;
-        constexpr static auto Description = "Threaded"sv;
-    };
-
-    [[nodiscard]] constexpr const std::string_view &
+    [[nodiscard]] constexpr std::string_view
     BindByteOpcodeGetName(BindByteOpcode Opcode) noexcept {
         using Enum = BindByteOpcode;
         switch (Opcode) {
             case Enum::Done:
-                return BindByteOpcodeInfo<Enum::Done>::Name;
+                return "BIND_OPCODE_DONE";
             case Enum::SetDylibOrdinalImm:
-                return BindByteOpcodeInfo<Enum::SetDylibOrdinalImm>::Name;
+                return "BIND_OPCODE_SET_DYLIB_ORDINAL_IMM";
             case Enum::SetDylibOrdinalUleb:
-                return BindByteOpcodeInfo<Enum::SetDylibOrdinalUleb>::Name;
+                return "BIND_OPCODE_SET_DYLIB_ORDINAL_ULEB";
             case Enum::SetDylibSpecialImm:
-                return BindByteOpcodeInfo<Enum::SetDylibSpecialImm> ::Name;
+                return "BIND_OPCODE_SET_DYLIB_SPECIAL_IMM";
             case Enum::SetSymbolTrailingFlagsImm:
-                return
-                    BindByteOpcodeInfo<Enum::SetSymbolTrailingFlagsImm>::Name;
+                return "BIND_OPCODE_SET_SYMBOL_TRAILING_FLAGS_IMM";
             case Enum::SetKindImm:
-                return BindByteOpcodeInfo<Enum::SetKindImm>::Name;
+                return "BIND_OPCODE_SET_TYPE_IMM";
             case Enum::SetAddendSleb:
-                return BindByteOpcodeInfo<Enum::SetAddendSleb>::Name;
+                return "BIND_OPCODE_SET_ADDEND_SLEB";
             case Enum::SetSegmentAndOffsetUleb:
-                return
-                    BindByteOpcodeInfo<Enum::SetSegmentAndOffsetUleb>::Name;
+                return "BIND_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB";
             case Enum::AddAddrUleb:
-                return BindByteOpcodeInfo<Enum::AddAddrUleb>::Name;
+                return "BIND_OPCODE_ADD_ADDR_ULEB";
             case Enum::DoBind:
-                return BindByteOpcodeInfo<Enum::DoBind>::Name;
+                return "BIND_OPCODE_DO_BIND";
             case Enum::DoBindAddAddrUleb:
-                return BindByteOpcodeInfo<Enum::DoBindAddAddrUleb>::Name;
+                return "BIND_OPCODE_DO_BIND_ADD_ADDR_ULEB";
             case Enum::DoBindAddAddrImmScaled:
-                return BindByteOpcodeInfo<Enum::DoBindAddAddrImmScaled>::Name;
+                return "BIND_OPCODE_DO_BIND_ADD_ADDR_IMM_SCALED";
             case Enum::DoBindUlebTimesSkippingUleb:
                 return
-                    BindByteOpcodeInfo<Enum::DoBindUlebTimesSkippingUleb>::Name;
+                "BIND_OPCODE_DO_BIND_ULEB_TIMES_SKIPPING_ULEB";
             case Enum::Threaded:
-                return BindByteOpcodeInfo<Enum::Threaded>::Name;
+                return "Threaded";
         }
 
-        return EmptyStringValue;
+        return std::string_view();
     }
 
     [[nodiscard]] constexpr std::string_view
@@ -197,51 +79,36 @@ namespace MachO {
         using Enum = BindByteOpcode;
         switch (Opcode) {
             case Enum::Done:
-                return BindByteOpcodeInfo<Enum::Done>::Description;
+                return "Done";
             case Enum::SetDylibOrdinalImm:
-                return
-                    BindByteOpcodeInfo<Enum::SetDylibOrdinalImm>::Description;
+                return "Set Dylib-Ordinal (Immediate)";
             case Enum::SetDylibOrdinalUleb:
-                return
-                    BindByteOpcodeInfo<Enum::SetDylibOrdinalUleb>::Description;
+                return "Set Dylib-Ordinal (Uleb128)";
             case Enum::SetDylibSpecialImm:
-                return
-                    BindByteOpcodeInfo<Enum::SetDylibSpecialImm>::Description;
+                return "Set Special Dylib-Ordinal (Immediate)";
             case Enum::SetSymbolTrailingFlagsImm:
-                return
-                    BindByteOpcodeInfo<Enum::SetSymbolTrailingFlagsImm>
-                        ::Description;
+                return "Set Trailing Symbol-Flags (Immediate)";
             case Enum::SetKindImm:
-                return
-                    BindByteOpcodeInfo<Enum::SetKindImm>::Description;
+                return "Set Bind-Kind (Immediate)";
             case Enum::SetAddendSleb:
-                return
-                    BindByteOpcodeInfo<Enum::SetAddendSleb>::Description;
+                return "Set Addend (Sleb128)";
             case Enum::SetSegmentAndOffsetUleb:
-                return
-                    BindByteOpcodeInfo<Enum::SetSegmentAndOffsetUleb>
-                        ::Description;
+                return "Set Addend (Sleb128)";
             case Enum::AddAddrUleb:
-                return
-                    BindByteOpcodeInfo<Enum::AddAddrUleb>::Description;
+                return "Add Address (Uleb128)";
             case Enum::DoBind:
-                return BindByteOpcodeInfo<Enum::DoBind>::Description;
+                return "Do Bind";
             case Enum::DoBindAddAddrUleb:
-                return
-                    BindByteOpcodeInfo<Enum::DoBindAddAddrUleb>::Description;
+                return "Do Bind And Add Address (Uleb)";
             case Enum::DoBindAddAddrImmScaled:
-                return
-                    BindByteOpcodeInfo<Enum::DoBindAddAddrImmScaled>
-                        ::Description;
+                return "Do Bind And Add Address Scaled (Immediate)";
             case Enum::DoBindUlebTimesSkippingUleb:
-                return
-                    BindByteOpcodeInfo<Enum::DoBindUlebTimesSkippingUleb>
-                        ::Description;
+                return "Do Bind Uleb128 Skipping Uleb128 Bytes";
             case Enum::Threaded:
-                return BindByteOpcodeInfo<Enum::Threaded>::Description;
+                return "Threaded";
         }
 
-        return EmptyStringValue;
+        return std::string_view();
     }
 
     enum class BindByteSubOpcode : uint8_t {
@@ -256,69 +123,42 @@ namespace MachO {
         TextPcrel32
     };
 
-    template <BindWriteKind>
-    struct BindWriteKindInfo {};
-
-    template <>
-    struct BindWriteKindInfo<BindWriteKind::Pointer> {
-        constexpr static auto Kind = BindWriteKind::Pointer;
-
-        constexpr static auto Name = "BIND_TYPE_POINTER"sv;
-        constexpr static auto Description = "Pointer"sv;
-    };
-
-    template <>
-    struct BindWriteKindInfo<BindWriteKind::TextAbsolute32> {
-        constexpr static auto Kind = BindWriteKind::TextAbsolute32;
-
-        constexpr static auto Name = "BIND_TYPE_TEXT_ABSOLUTE32"sv;
-        constexpr static auto Description = "Text Absolute (32-Bit)"sv;
-    };
-
-    template <>
-    struct BindWriteKindInfo<BindWriteKind::TextPcrel32> {
-        constexpr static auto Kind = BindWriteKind::TextPcrel32;
-
-        constexpr static auto Name = "BIND_TYPE_TEXT_PCREL32"sv;
-        constexpr static auto Description = "PC Relative (32-Bit)"sv;
-    };
-
     [[nodiscard]] constexpr
-    const std::string_view &BindWriteKindGetName(BindWriteKind Kind) noexcept {
+    static std::string_view BindWriteKindGetName(BindWriteKind Kind) noexcept {
         using Enum = BindWriteKind;
         switch (Kind) {
             case Enum::None:
-                return EmptyStringValue;
+                break;
             case Enum::Pointer:
-                return BindWriteKindInfo<Enum::Pointer>::Name;
+                return "BIND_TYPE_POINTER";
             case Enum::TextAbsolute32:
-                return BindWriteKindInfo<Enum::TextAbsolute32>::Name;
+                return "BIND_TYPE_TEXT_ABSOLUTE32";
             case Enum::TextPcrel32:
-                return BindWriteKindInfo<Enum::TextPcrel32>::Name;
+                return "BIND_TYPE_TEXT_PCREL32";
         }
 
-        return EmptyStringValue;
+        return std::string_view();
     }
 
-    [[nodiscard]] constexpr const std::string_view &
-    BindWriteKindGetDescription(BindWriteKind Kind) noexcept {
+    [[nodiscard]] constexpr
+    std::string_view BindWriteKindGetDescription(BindWriteKind Kind) noexcept {
         using Enum = BindWriteKind;
         switch (Kind) {
             case Enum::None:
-                return EmptyStringValue;
+                break;
             case Enum::Pointer:
-                return BindWriteKindInfo<Enum::Pointer>::Description;
+                return "Pointer";
             case Enum::TextAbsolute32:
-                return BindWriteKindInfo<Enum::TextAbsolute32>::Description;
+                return "Text Absolute (32-Bit)";
             case Enum::TextPcrel32:
-                return BindWriteKindInfo<Enum::TextPcrel32>::Description;
+                return "PC Relative (32-Bit)";
         }
 
-        return EmptyStringValue;
+        return std::string_view();
     }
 
     [[nodiscard]]
-    constexpr uint64_t BindWriteKindGetLongestDescription() noexcept {
+    constexpr inline uint64_t BindWriteKindGetLongestDescription() noexcept {
         const auto Result =
             EnumHelper<BindWriteKind>::GetLongestAssocLength(
                 BindWriteKindGetName);
@@ -333,101 +173,42 @@ namespace MachO {
         DylibWeakLookup = static_cast<uint8_t>(-3),
     };
 
-    template <BindByteDylibSpecialOrdinal>
-    struct BindByteDylibSpecialOrdinalInfo {};
-
-    template <>
-    struct BindByteDylibSpecialOrdinalInfo<
-        BindByteDylibSpecialOrdinal::DylibSelf>
-    {
-        constexpr static auto Kind =
-            BindByteDylibSpecialOrdinal::DylibSelf;
-
-        constexpr static auto Name = "BIND_SPECIAL_DYLIB_SELF"sv;
-        constexpr static auto Description = "Dylib-Self"sv;
-    };
-
-    template <>
-    struct BindByteDylibSpecialOrdinalInfo<
-        BindByteDylibSpecialOrdinal::DylibMainExecutable>
-    {
-        constexpr static auto Kind =
-            BindByteDylibSpecialOrdinal::DylibMainExecutable;
-
-        constexpr static auto Name =
-            "BIND_SPECIAL_DYLIB_MAIN_EXECUTABLE"sv;
-        constexpr static auto Description = "Main-Executable"sv;
-    };
-
-    template <>
-    struct BindByteDylibSpecialOrdinalInfo<
-        BindByteDylibSpecialOrdinal::DylibFlatLookup>
-    {
-        constexpr static auto Kind =
-            BindByteDylibSpecialOrdinal::DylibFlatLookup;
-
-        constexpr static auto Name = "BIND_SPECIAL_DYLIB_FLAT_LOOKUP"sv;
-        constexpr static auto Description = "Flat-Lookup"sv;
-    };
-
-    template <>
-    struct BindByteDylibSpecialOrdinalInfo<
-        BindByteDylibSpecialOrdinal::DylibWeakLookup>
-    {
-        constexpr static auto Kind =
-            BindByteDylibSpecialOrdinal::DylibWeakLookup;
-
-        constexpr static auto Name = "BIND_SPECIAL_DYLIB_WEAK_LOOKUP"sv;
-        constexpr static auto Description = "Weak-Lookup"sv;
-    };
-
-    [[nodiscard]] constexpr const std::string_view &
+    [[nodiscard]] constexpr std::string_view
     BindByteDylibSpecialOrdinalGetName(
         BindByteDylibSpecialOrdinal Ordinal) noexcept
     {
         using Enum = BindByteDylibSpecialOrdinal;
         switch (Ordinal) {
             case Enum::DylibSelf:
-                return
-                    BindByteDylibSpecialOrdinalInfo<Enum::DylibSelf>::Name;
+                return "BIND_SPECIAL_DYLIB_SELF";
             case Enum::DylibMainExecutable:
-                return
-                    BindByteDylibSpecialOrdinalInfo<Enum::DylibMainExecutable>
-                        ::Name;
+                return "BIND_SPECIAL_DYLIB_MAIN_EXECUTABLE";
             case Enum::DylibFlatLookup:
-                return
-                    BindByteDylibSpecialOrdinalInfo<Enum::DylibFlatLookup>
-                        ::Name;
+                return "BIND_SPECIAL_DYLIB_FLAT_LOOKUP";
             case Enum::DylibWeakLookup:
-                return
-                    BindByteDylibSpecialOrdinalInfo<Enum::DylibWeakLookup>
-                        ::Name;
+                return "BIND_SPECIAL_DYLIB_WEAK_LOOKUP";
         }
+
+        return std::string_view();
     }
 
-    [[nodiscard]] constexpr const std::string_view &
+    [[nodiscard]] constexpr std::string_view
     BindByteDylibSpecialOrdinalGetDescription(
         BindByteDylibSpecialOrdinal Ordinal) noexcept
     {
         using Enum = BindByteDylibSpecialOrdinal;
         switch (Ordinal) {
             case Enum::DylibSelf:
-                return
-                    BindByteDylibSpecialOrdinalInfo<Enum::DylibSelf>
-                        ::Description;
+                return "Dylib-Self";
             case Enum::DylibMainExecutable:
-                return
-                    BindByteDylibSpecialOrdinalInfo<Enum::DylibMainExecutable>
-                        ::Description;
+                return "Main-Executable";
             case Enum::DylibFlatLookup:
-                return
-                    BindByteDylibSpecialOrdinalInfo<Enum::DylibFlatLookup>
-                        ::Description;
+                return "Flat-Lookup";
             case Enum::DylibWeakLookup:
-                return
-                    BindByteDylibSpecialOrdinalInfo<Enum::DylibWeakLookup>
-                        ::Description;
+                return "Weak-Lookup";
         }
+
+        return std::string_view();
     }
 
     enum class BindSymbolFlagsEnum : uint8_t {

@@ -15,7 +15,7 @@ using namespace std::literals;
 
 struct PrintHeaderOperation : public Operation {
 public:
-    constexpr static const auto OpKind = OperationKind::PrintHeader;
+    constexpr static auto OpKind = OperationKind::PrintHeader;
 
     [[nodiscard]]
     constexpr static inline bool IsOfKind(const Operation &Op) noexcept {

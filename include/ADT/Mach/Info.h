@@ -12,11 +12,19 @@
 #include <string_view>
 
 namespace Mach {
-    static inline const auto CpuKindIs64BitMask =
+    constexpr inline auto CpuKindIs64BitMask =
         static_cast<uint32_t>(0x1000000);
 
-    static inline const auto CpuKindIs64Bit32Mask =
+    constexpr inline auto CpuKindIs64Bit32Mask =
         static_cast<uint32_t>(0x2000000);
+
+    constexpr inline auto Arm64PtrAuthMask =
+        static_cast<uint32_t>(0x0f000000);
+
+    [[nodiscard]]
+    constexpr inline uint32_t Arm64PtrAuthGetVersion(uint32_t X) {
+        return (X & Arm64PtrAuthMask) >> X;
+    }
 
     enum class CpuKind : int32_t {
         Any = -1,

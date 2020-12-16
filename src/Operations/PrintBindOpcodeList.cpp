@@ -279,7 +279,7 @@ PrintBindOpcodeList(
 
     for (const auto &Iter : List) {
         const auto &Byte = Iter.Byte;
-        const auto &OpcodeName = MachO::BindByteOpcodeGetName(Byte.getOpcode());
+        const auto OpcodeName = MachO::BindByteOpcodeGetName(Byte.getOpcode());
         const auto PtrSize = PointerSize(Is64Bit);
 
         fprintf(Options.OutFile,
@@ -356,7 +356,6 @@ PrintBindOpcodeList(
                 const auto KindName =
                     MachO::BindWriteKindGetName(Iter.WriteKind).data() ?:
                     "<unrecognized>";
-
 
                 fprintf(Options.OutFile, "(%s)\n", KindName);
                 break;

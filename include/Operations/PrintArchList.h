@@ -18,7 +18,7 @@ using namespace std::literals;
 
 struct PrintArchListOperation : public Operation {
 public:
-    constexpr static const auto OpKind = OperationKind::PrintArchList;
+    constexpr static auto OpKind = OperationKind::PrintArchList;
 
     [[nodiscard]]
     constexpr static inline bool IsOfKind(const Operation &Op) noexcept {

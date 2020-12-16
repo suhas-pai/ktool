@@ -36,120 +36,120 @@ struct OperationKindInfo {};
 
 template<>
 struct OperationKindInfo<OperationKind::PrintHeader> {
-    constexpr static const auto Kind = OperationKind::PrintHeader;
-    constexpr static const auto Name = "print-header"sv;
+    constexpr static auto Kind = OperationKind::PrintHeader;
+    constexpr static auto Name = "print-header"sv;
 
     typedef PrintHeaderOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintLoadCommands> {
-    constexpr static const auto Kind = OperationKind::PrintLoadCommands;
-    constexpr static const auto Name = "print-load-commands"sv;
+    constexpr static auto Kind = OperationKind::PrintLoadCommands;
+    constexpr static auto Name = "print-load-commands"sv;
 
     typedef PrintLoadCommandsOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintSharedLibraries> {
-    constexpr static const auto Kind = OperationKind::PrintSharedLibraries;
-    constexpr static const auto Name = "print-shared-libraries"sv;
+    constexpr static auto Kind = OperationKind::PrintSharedLibraries;
+    constexpr static auto Name = "print-shared-libraries"sv;
 
     typedef PrintSharedLibrariesOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintId> {
-    constexpr static const auto Kind = OperationKind::PrintId;
-    constexpr static const auto Name = "print-id"sv;
+    constexpr static auto Kind = OperationKind::PrintId;
+    constexpr static auto Name = "print-id"sv;
 
     typedef PrintIdOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintArchList> {
-    constexpr static const auto Kind = OperationKind::PrintArchList;
-    constexpr static const auto Name = "print-arch-list"sv;
+    constexpr static auto Kind = OperationKind::PrintArchList;
+    constexpr static auto Name = "print-arch-list"sv;
 
     typedef PrintArchListOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintExportTrie> {
-    constexpr static const auto Kind = OperationKind::PrintExportTrie;
-    constexpr static const auto Name = "print-export-trie"sv;
+    constexpr static auto Kind = OperationKind::PrintExportTrie;
+    constexpr static auto Name = "print-export-trie"sv;
 
     typedef PrintExportTrieOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintObjcClassList> {
-    constexpr static const auto Kind = OperationKind::PrintObjcClassList;
-    constexpr static const auto Name = "print-objc-class-list"sv;
+    constexpr static auto Kind = OperationKind::PrintObjcClassList;
+    constexpr static auto Name = "print-objc-class-list"sv;
 
     typedef PrintObjcClassListOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintBindActionList> {
-    constexpr static const auto Kind = OperationKind::PrintBindActionList;
-    constexpr static const auto Name = "print-bind-actions"sv;
+    constexpr static auto Kind = OperationKind::PrintBindActionList;
+    constexpr static auto Name = "print-bind-actions"sv;
 
     typedef PrintBindActionListOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintBindOpcodeList> {
-    constexpr static const auto Kind = OperationKind::PrintBindOpcodeList;
-    constexpr static const auto Name = "print-bind-opcodes"sv;
+    constexpr static auto Kind = OperationKind::PrintBindOpcodeList;
+    constexpr static auto Name = "print-bind-opcodes"sv;
 
     typedef PrintBindOpcodeListOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintBindSymbolList> {
-    constexpr static const auto Kind = OperationKind::PrintBindSymbolList;
-    constexpr static const auto Name = "print-bind-symbols"sv;
+    constexpr static auto Kind = OperationKind::PrintBindSymbolList;
+    constexpr static auto Name = "print-bind-symbols"sv;
 
     typedef PrintBindSymbolListOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintRebaseActionList> {
-    constexpr static const auto Kind = OperationKind::PrintRebaseActionList;
-    constexpr static const auto Name = "print-rebase-actions"sv;
+    constexpr static auto Kind = OperationKind::PrintRebaseActionList;
+    constexpr static auto Name = "print-rebase-actions"sv;
 
     typedef PrintRebaseActionListOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintRebaseOpcodeList> {
-    constexpr static const auto Kind = OperationKind::PrintRebaseOpcodeList;
-    constexpr static const auto Name = "print-rebase-opcodes"sv;
+    constexpr static auto Kind = OperationKind::PrintRebaseOpcodeList;
+    constexpr static auto Name = "print-rebase-opcodes"sv;
 
     typedef PrintRebaseOpcodeListOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintCStringSection> {
-    constexpr static const auto Kind = OperationKind::PrintCStringSection;
-    constexpr static const auto Name = "print-c-string-section"sv;
+    constexpr static auto Kind = OperationKind::PrintCStringSection;
+    constexpr static auto Name = "print-c-string-section"sv;
 
     typedef PrintCStringSectionOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintSymbolPtrSection> {
-    constexpr static const auto Kind = OperationKind::PrintSymbolPtrSection;
-    constexpr static const auto Name = "print-symbol-pointer-section"sv;
+    constexpr static auto Kind = OperationKind::PrintSymbolPtrSection;
+    constexpr static auto Name = "print-symbol-pointer-section"sv;
 
     typedef PrintSymbolPtrSectionOperation Type;
 };
 
 template<>
 struct OperationKindInfo<OperationKind::PrintImageList> {
-    constexpr static const auto Kind = OperationKind::PrintImageList;
-    constexpr static const auto Name = "print-image-list"sv;
+    constexpr static auto Kind = OperationKind::PrintImageList;
+    constexpr static auto Name = "print-image-list"sv;
 
     typedef PrintImageListOperation Type;
 };

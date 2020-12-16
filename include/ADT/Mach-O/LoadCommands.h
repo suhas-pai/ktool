@@ -106,7 +106,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr static inline bool KindIsValid(Kind Kind) noexcept {
+        constexpr static inline bool KindIsRecognized(Kind Kind) noexcept {
             switch (Kind) {
                 case Kind::Segment:
                 case Kind::SymbolTable:
@@ -161,6 +161,7 @@ namespace MachO {
                 case Kind::BuildVersion:
                 case Kind::DyldExportsTrie:
                 case Kind::DyldChainedFixups:
+                case Kind::FileSetEntry:
                     return true;
             }
 
@@ -224,6 +225,7 @@ namespace MachO {
                 case Kind::BuildVersion:
                 case Kind::DyldExportsTrie:
                 case Kind::DyldChainedFixups:
+                case Kind::FileSetEntry:
                     return false;
             }
         }
@@ -270,9 +272,9 @@ namespace MachO {
             return *this;
         }
 
-        [[nodiscard]]
-        constexpr inline bool hasValidKind(bool IsBigEndian) const noexcept {
-            return KindIsValid(getKind(IsBigEndian));
+        [[nodiscard]] constexpr
+        inline bool hasRecognizedKind(bool IsBigEndian) const noexcept {
+            return KindIsRecognized(getKind(IsBigEndian));
         }
 
         [[nodiscard]] constexpr
@@ -1433,104 +1435,46 @@ namespace MachO {
         SectionDefined    = 14,
     };
 
-    template <SymbolTableEntrySymbolKind Kind>
-    struct SymbolTableEntrySymbolKindInfo {};
-
-    template <>
-    struct SymbolTableEntrySymbolKindInfo<
-        SymbolTableEntrySymbolKind::Undefined>
-    {
-        constexpr static auto Kind = SymbolTableEntrySymbolKind::Undefined;
-        constexpr static auto Name = std::string_view("N_UNDF");
-        constexpr static auto Description = std::string_view("Undefined");
-    };
-
-    template <>
-    struct SymbolTableEntrySymbolKindInfo<
-        SymbolTableEntrySymbolKind::Absolute>
-    {
-        constexpr static auto Kind = SymbolTableEntrySymbolKind::Absolute;
-        constexpr static auto Name = std::string_view("N_ABS");
-        constexpr static auto Description = std::string_view("Absolute");
-    };
-
-    template <>
-    struct SymbolTableEntrySymbolKindInfo<
-        SymbolTableEntrySymbolKind::Indirect>
-    {
-        constexpr static auto Kind = SymbolTableEntrySymbolKind::Indirect;
-        constexpr static auto Name = std::string_view("N_INDR");
-        constexpr static auto Description = std::string_view("Indirect");
-    };
-
-    template <>
-    struct SymbolTableEntrySymbolKindInfo<
-        SymbolTableEntrySymbolKind::PreboundUndefined>
-    {
-        constexpr static auto Kind =
-            SymbolTableEntrySymbolKind::PreboundUndefined;
-
-        constexpr static auto Name = std::string_view("N_INDR");
-        constexpr static auto Description =
-            std::string_view("Prebound-Undefined");
-    };
-
-    template <>
-    struct SymbolTableEntrySymbolKindInfo<
-        SymbolTableEntrySymbolKind::SectionDefined>
-    {
-        constexpr static auto Kind = SymbolTableEntrySymbolKind::SectionDefined;
-        constexpr static auto Name = std::string_view("N_SECT");
-        constexpr static auto Description = std::string_view("Section-defined");
-    };
-
-    constexpr std::string_view
+    constexpr static std::string_view
     SymbolTableEntrySymbolKindGetName(
         SymbolTableEntrySymbolKind Kind) noexcept
     {
         switch (Kind) {
             using Enum = SymbolTableEntrySymbolKind;
             case Enum::Undefined:
-                return SymbolTableEntrySymbolKindInfo<Enum::Undefined>::Name;
+                return "N_UNDF";
             case SymbolTableEntrySymbolKind::Absolute:
-                return SymbolTableEntrySymbolKindInfo<Enum::Absolute>::Name;
+                return "N_ABS";
             case SymbolTableEntrySymbolKind::Indirect:
-                return SymbolTableEntrySymbolKindInfo<Enum::Indirect>::Name;
+                return "N_INDR";
             case SymbolTableEntrySymbolKind::PreboundUndefined:
-                return SymbolTableEntrySymbolKindInfo<
-                    Enum::PreboundUndefined>::Name;
+                return "N_PBUD";
             case SymbolTableEntrySymbolKind::SectionDefined:
-                return SymbolTableEntrySymbolKindInfo<
-                    Enum::SectionDefined>::Name;
+                return "N_SECT";
         }
 
-        return EmptyStringValue;
+        return std::string_view();
     }
 
-    constexpr std::string_view
+    constexpr static std::string_view
     SymbolTableEntrySymbolKindGetDescription(
         SymbolTableEntrySymbolKind Kind) noexcept
     {
         switch (Kind) {
             using Enum = SymbolTableEntrySymbolKind;
             case Enum::Undefined:
-                return SymbolTableEntrySymbolKindInfo<
-                    Enum::Undefined>::Description;
+                return "Undefined";
             case SymbolTableEntrySymbolKind::Absolute:
-                return SymbolTableEntrySymbolKindInfo<
-                    Enum::Absolute>::Description;
+                return "Absolute";
             case SymbolTableEntrySymbolKind::Indirect:
-                return SymbolTableEntrySymbolKindInfo<
-                    Enum::Indirect>::Description;
+                return "Indirect";
             case SymbolTableEntrySymbolKind::PreboundUndefined:
-                return SymbolTableEntrySymbolKindInfo<
-                    Enum::PreboundUndefined>::Description;
+                return "Prebound-Undefined";
             case SymbolTableEntrySymbolKind::SectionDefined:
-                return SymbolTableEntrySymbolKindInfo<
-                    Enum::SectionDefined>::Description;
+                return "Section-defined";
         }
 
-        return EmptyStringValue;
+        return std::string_view();
     }
 
     [[nodiscard]] constexpr
@@ -2692,137 +2636,60 @@ namespace MachO {
         DriverKit
     };
 
-    template <PlatformKind>
-    struct PlatformKindInfo {};
-
-    template <>
-    struct PlatformKindInfo<PlatformKind::macOS> {
-        constexpr static auto Kind = PlatformKind::macOS;
-        constexpr static auto Name = std::string_view("PLATFORM_MACOS");
-        constexpr static auto Description = std::string_view("macOS");
-    };
-
-    template <>
-    struct PlatformKindInfo<PlatformKind::iOS> {
-        constexpr static auto Kind = PlatformKind::iOS;
-        constexpr static auto Name = std::string_view("PLATFORM_IOS");
-        constexpr static auto Description = std::string_view("iOS");
-    };
-
-    template <>
-    struct PlatformKindInfo<PlatformKind::tvOS> {
-        constexpr static auto Kind = PlatformKind::tvOS;
-        constexpr static auto Name = std::string_view("PLATFORM_TVOS");
-        constexpr static auto Description = std::string_view("tvOS");
-    };
-
-    template <>
-    struct PlatformKindInfo<PlatformKind::watchOS> {
-        constexpr static auto Kind = PlatformKind::watchOS;
-        constexpr static auto Name = std::string_view("PLATFORM_WATCHOS");
-        constexpr static auto Description = std::string_view("watchOS");
-    };
-
-    template <>
-    struct PlatformKindInfo<PlatformKind::bridgeOS> {
-        constexpr static auto Kind = PlatformKind::bridgeOS;
-        constexpr static auto Name = std::string_view("PLATFORM_BRDIGEOS");
-        constexpr static auto Description = std::string_view("bridgeOS");
-    };
-
-    template <>
-    struct PlatformKindInfo<PlatformKind::iOSMac> {
-        constexpr static auto Kind = PlatformKind::iOSMac;
-        constexpr static auto Name = std::string_view("PLATFORM_IOSMAC");
-        constexpr static auto Description = std::string_view("iOSMac");
-    };
-
-    template <>
-    struct PlatformKindInfo<PlatformKind::iOSSimulator> {
-        constexpr static auto Kind = PlatformKind::iOSSimulator;
-        constexpr static auto Name = std::string_view("PLATFORM_IOSSIMULATOR");
-        constexpr static auto Description = std::string_view("iOS Simulator");
-    };
-
-    template <>
-    struct PlatformKindInfo<PlatformKind::tvOSSimulator> {
-        constexpr static auto Kind = PlatformKind::tvOSSimulator;
-        constexpr static auto Name = std::string_view("PLATFORM_TVOSSIMULATOR");
-        constexpr static auto Description = std::string_view("tvOS Simulator");
-    };
-
-    template <>
-    struct PlatformKindInfo<PlatformKind::watchOSSimulator> {
-        constexpr static auto Kind = PlatformKind::watchOSSimulator;
-        constexpr static auto Name =
-            std::string_view("PLATFORM_WATCHOSSIMULATOR");
-        constexpr static auto Description =
-            std::string_view("watchOS Simulator");
-    };
-
-    template <>
-    struct PlatformKindInfo<PlatformKind::DriverKit> {
-        constexpr static auto Kind = PlatformKind::DriverKit;
-        constexpr static auto Name = std::string_view("PLATFORM_DRIVERKIT");
-        constexpr static auto Description = std::string_view("Driver");
-    };
-
-    [[nodiscard]] constexpr const std::string_view &
+    [[nodiscard]] constexpr std::string_view
     PlatformKindGetName(PlatformKind Kind) noexcept {
-        using Enum = PlatformKind;
         switch (Kind) {
             case PlatformKind::macOS:
-                return PlatformKindInfo<Enum::macOS>::Name;
+                return "PLATFORM_KIND_MACOS";
             case PlatformKind::iOS:
-                return PlatformKindInfo<Enum::iOS>::Name;
+                return "PLATFORM_KIND_IOS";
             case PlatformKind::tvOS:
-                return PlatformKindInfo<Enum::tvOS>::Name;
+                return "PLATFORM_TVOS";
             case PlatformKind::watchOS:
-                return PlatformKindInfo<Enum::watchOS>::Name;
+                return "PLATFORM_WATCHOS";
             case PlatformKind::bridgeOS:
-                return PlatformKindInfo<Enum::bridgeOS>::Name;
+                return "PLATFORM_BRDIGEOS";
             case PlatformKind::iOSMac:
-                return PlatformKindInfo<Enum::iOSMac>::Name;
+                return "PLATFORM_IOSMAC";
             case PlatformKind::iOSSimulator:
-                return PlatformKindInfo<Enum::iOSSimulator>::Name;
+                return "PLATFORM_IOSSIMULATOR";
             case PlatformKind::tvOSSimulator:
-                return PlatformKindInfo<Enum::tvOSSimulator>::Name;
+                return "PLATFORM_TVOSSIMULATOR";
             case PlatformKind::watchOSSimulator:
-                return PlatformKindInfo<Enum::watchOSSimulator>::Name;
+                return "PLATFORM_WATCHOSSIMULATOR";
             case PlatformKind::DriverKit:
-                return PlatformKindInfo<Enum::DriverKit>::Name;
+                return "PLATFORM_DRIVERKIT";
         }
 
-        return EmptyStringValue;
+        return std::string_view();
     }
 
-    [[nodiscard]] constexpr const std::string_view &
+    [[nodiscard]] constexpr std::string_view
     PlatformKindGetDescription(PlatformKind Kind) noexcept {
-        using Enum = PlatformKind;
         switch (Kind) {
             case PlatformKind::macOS:
-                return PlatformKindInfo<Enum::macOS>::Description;
+                return "macOS";
             case PlatformKind::iOS:
-                return PlatformKindInfo<Enum::iOS>::Description;
+                return "iOS";
             case PlatformKind::tvOS:
-                return PlatformKindInfo<Enum::tvOS>::Description;
+                return "tvOS";
             case PlatformKind::watchOS:
-                return PlatformKindInfo<Enum::watchOS>::Description;
+                return "watchOS";
             case PlatformKind::bridgeOS:
-                return PlatformKindInfo<Enum::bridgeOS>::Description;
+                return "bridgeOS";
             case PlatformKind::iOSMac:
-                return PlatformKindInfo<Enum::iOSMac>::Description;
+                return "iOSMac";
             case PlatformKind::iOSSimulator:
-                return PlatformKindInfo<Enum::iOSSimulator>::Description;
+                return "iOS Simulator";
             case PlatformKind::tvOSSimulator:
-                return PlatformKindInfo<Enum::tvOSSimulator>::Description;
+                return "tvOS Simulator";
             case PlatformKind::watchOSSimulator:
-                return PlatformKindInfo<Enum::watchOSSimulator>::Description;
+                return "watchOS Simulator";
             case PlatformKind::DriverKit:
-                return PlatformKindInfo<Enum::DriverKit>::Description;
+                return "Driver";
         }
 
-        return EmptyStringValue;
+        return std::string_view();
     }
 
     struct BuildVersionCommand : public LoadCommand {
@@ -2838,56 +2705,32 @@ namespace MachO {
                 Ld,
             };
 
-            template <Kind>
-            struct KindInfo {};
-
-            template <>
-            struct KindInfo<Kind::Clang> {
-                constexpr static auto Kind = Kind::Clang;
-                constexpr static auto Name = std::string_view("TOOL_CLANG");
-                constexpr static auto Description = std::string_view("Clang");
-            };
-
-            template <>
-            struct KindInfo<Kind::Swift> {
-                constexpr static auto Kind = Kind::Swift;
-                constexpr static auto Name = std::string_view("TOOL_SWIFT");
-                constexpr static auto Description = std::string_view("Swift");
-            };
-
-            template <>
-            struct KindInfo<Kind::Ld> {
-                constexpr static auto Kind = Kind::Ld;
-                constexpr static auto Name = std::string_view("TOOL_LD");
-                constexpr static auto Description = std::string_view("ld");
-            };
-
-            [[nodiscard]] constexpr static const std::string_view &
-            KindGetName(enum Kind Kind) noexcept {
+            [[nodiscard]] constexpr
+            static std::string_view KindGetName(enum Kind Kind) noexcept {
                 switch (Kind) {
                     case Kind::Clang:
-                        return KindInfo<Kind::Clang>::Name;
+                        return "TOOL_CLANG";
                     case Kind::Swift:
-                        return KindInfo<Kind::Swift>::Name;
+                        return "TOOL_SWIFT";
                     case Kind::Ld:
-                        return KindInfo<Kind::Ld>::Name;
+                        return "TOOL_LD";
                 }
 
-                return EmptyStringValue;
+                return std::string_view();
             }
 
-            [[nodiscard]] constexpr static const std::string_view &
-            KindGetDescription(enum Kind Kind) noexcept {
+            [[nodiscard]] constexpr static
+            std::string_view KindGetDescription(enum Kind Kind) noexcept {
                 switch (Kind) {
                     case Kind::Clang:
-                        return KindInfo<Kind::Clang>::Description;
+                        return "Clang";
                     case Kind::Swift:
-                        return KindInfo<Kind::Swift>::Description;
+                        return "Swift";
                     case Kind::Ld:
-                        return KindInfo<Kind::Ld>::Description;
+                        return "ld";
                 }
 
-                return EmptyStringValue;
+                return std::string_view();
             }
 
             uint32_t Kind;
@@ -3784,6 +3627,57 @@ namespace MachO {
             this->Size = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
+    };
+
+    struct FileSetEntryCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static inline bool IsOfKind(LoadCommand::Kind Kind) noexcept {
+            return (Kind == LoadCommand::Kind::FileSetEntry);
+        }
+
+        [[nodiscard]] inline LoadCommand::CmdSizeInvalidKind
+        hasValidCmdSize(bool IsBigEndian) noexcept {
+            return hasValidCmdSize(getCmdSize(IsBigEndian));
+        }
+
+        [[nodiscard]] constexpr
+        static inline LoadCommand::CmdSizeInvalidKind
+        hasValidCmdSize(uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(FileSetEntryCommand)) {
+                return LoadCommand::CmdSizeInvalidKind::TooSmall;
+            }
+
+            return LoadCommand::CmdSizeInvalidKind::None;
+        }
+
+        uint64_t VmAddr;
+        uint64_t FileOffset;
+        LoadCommandString EntryID;
+        uint32_t Reserved;
+
+        [[nodiscard]]
+        inline uint64_t getVmAddr(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(VmAddr, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        inline uint64_t getFileOffset(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(FileOffset, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        inline uint32_t getReserved(bool IsBigEndian) const noexcept {
+            return SwitchEndianIf(Reserved, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        inline bool isEntryIDOffsetValid(bool IsBigEndian) const noexcept {
+            const auto CmdSize = getCmdSize(IsBigEndian);
+            return EntryID.isOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
+        }
+
+        [[nodiscard]] LoadCommandString::GetValueResult
+        GetEntryID(bool IsBigEndian) const noexcept;
     };
 }
 

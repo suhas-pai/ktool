@@ -21,9 +21,6 @@
 #include "LoadCommandStorage.h"
 
 namespace MachO {
-    using namespace std::literals;
-    constexpr inline auto EmptyStringValue = std::string_view();
-
     struct Header {
         enum class Magic : uint32_t {
             Default = 0xfeedface,
@@ -31,45 +28,6 @@ namespace MachO {
 
             BigEndian = 0xcefaedfe,
             BigEndian64 = 0xcffaedfe,
-        };
-
-        template <Magic>
-        struct MagicInfo {};
-
-        template <>
-        struct MagicInfo<Magic::Default> {
-            constexpr static auto Kind = Magic::Default;
-
-            constexpr static auto Name = std::string_view("MH_MAGIC");
-            constexpr static auto Description =
-                std::string_view("Default");
-        };
-
-        template <>
-        struct MagicInfo<Magic::Default64> {
-            constexpr static auto Kind = Magic::Default64;
-
-            constexpr static auto Name = std::string_view("MH_MAGIC_64");
-            constexpr static auto Description =
-                std::string_view("Default (64-Bit)");
-        };
-
-        template <>
-        struct MagicInfo<Magic::BigEndian> {
-            constexpr static auto Kind = Magic::BigEndian;
-
-            constexpr static auto Name = std::string_view("MH_CIGAM");
-            constexpr static auto Description =
-                std::string_view("Big Endian");
-        };
-
-        template <>
-        struct MagicInfo<Magic::BigEndian64> {
-            constexpr static auto Kind = Magic::BigEndian64;
-
-            constexpr static auto Name = std::string_view("MH_CIGAM_64");
-            constexpr static auto Description =
-                std::string_view("Big Endian (64-Bit)");
         };
 
         [[nodiscard]]
@@ -85,36 +43,36 @@ namespace MachO {
             return false;
         }
 
-        [[nodiscard]] constexpr static
-        inline const std::string_view &MagicGetName(Magic Magic) noexcept {
+        [[nodiscard]] constexpr
+        static inline std::string_view MagicGetName(Magic Magic) noexcept {
             switch (Magic) {
                 case Magic::Default:
-                    return MagicInfo<Magic::Default>::Name;
+                    return "MH_MAGIC";
                 case Magic::Default64:
-                    return MagicInfo<Magic::Default64>::Name;
+                    return "MH_MAGIC_64";
                 case Magic::BigEndian:
-                    return MagicInfo<Magic::BigEndian>::Name;
+                    return "MH_CIGAM";
                 case Magic::BigEndian64:
-                    return MagicInfo<Magic::BigEndian64>::Name;
+                    return "MH_CIGAM_64";
             }
 
-            return EmptyStringValue;
+            return std::string_view();
         }
 
-        [[nodiscard]] constexpr static inline
-        const std::string_view &MagicGetDescription(Magic Magic) noexcept {
+        [[nodiscard]] constexpr static
+        inline std::string_view MagicGetDescription(Magic Magic) noexcept {
             switch (Magic) {
                 case Magic::Default:
-                    return MagicInfo<Magic::Default>::Description;
+                    return "Default";
                 case Magic::Default64:
-                    return MagicInfo<Magic::Default64>::Description;
+                    return "Default (64-Bit)";
                 case Magic::BigEndian:
-                    return MagicInfo<Magic::BigEndian>::Description;
+                    return "Big Endian";
                 case Magic::BigEndian64:
-                    return MagicInfo<Magic::BigEndian64>::Description;
+                    return "Big Endian (64-Bit)";
             }
 
-            return EmptyStringValue;
+            return std::string_view();
         }
 
         enum class FileKind : uint32_t {
@@ -128,115 +86,12 @@ namespace MachO {
             Bundle,
             DylibStub,
             Dsym,
-            KextBundle
-        };
-
-        template <FileKind>
-        struct FileKindInfo {};
-
-        template <>
-        struct FileKindInfo<FileKind::Object> {
-            constexpr static auto Kind = FileKind::Object;
-
-            constexpr static auto Name = std::string_view("MH_OBJECT");
-            constexpr static auto Description =
-                std::string_view("Object File");
-        };
-
-        template <>
-        struct FileKindInfo<FileKind::Executable> {
-            constexpr static auto Kind = FileKind::Executable;
-
-            constexpr static auto Name = std::string_view("MH_EXECUTE");
-            constexpr static auto Description =
-                std::string_view("Executable");
-        };
-
-        template <>
-        struct FileKindInfo<FileKind::FixedVMSharedLibrary> {
-            constexpr static auto Kind = FileKind::FixedVMSharedLibrary;
-
-            constexpr static auto Name = std::string_view("MH_FVMLIB");
-            constexpr static auto Description =
-                std::string_view("Fixed-VM Shared Library");
-        };
-
-        template <>
-        struct FileKindInfo<FileKind::CoreFile> {
-            constexpr static auto Kind = FileKind::CoreFile;
-
-            constexpr static auto Name = std::string_view("MH_CORE");
-            constexpr static auto Description =
-                std::string_view("Core File");
-        };
-
-        template <>
-        struct FileKindInfo<FileKind::PreloadedExecutable> {
-            constexpr static auto Kind = FileKind::PreloadedExecutable;
-
-            constexpr static auto Name = std::string_view("MH_PRELOAD");
-            constexpr static auto Description =
-                std::string_view("Preloaded Executable");
-        };
-
-        template <>
-        struct FileKindInfo<FileKind::Dylib> {
-            constexpr static auto Kind = FileKind::Dylib;
-
-            constexpr static auto Name = std::string_view("MH_DYLIB");
-            constexpr static auto Description =
-                std::string_view("Dynamic Library (Dylib)");
-        };
-
-        template <>
-        struct FileKindInfo<FileKind::Dylinker> {
-            constexpr static auto Kind = FileKind::Dylinker;
-
-            constexpr static auto Name = std::string_view("MH_DYLINKER");
-            constexpr static auto Description =
-                std::string_view("Dynamic Linker (Dylinker)");
-        };
-
-        template <>
-        struct FileKindInfo<FileKind::Bundle> {
-            constexpr static auto Kind = FileKind::Bundle;
-
-            constexpr static auto Name = std::string_view("MH_BUNDLE");
-            constexpr static auto Description =
-                std::string_view("Bundle");
-        };
-
-        template <>
-        struct FileKindInfo<FileKind::DylibStub> {
-            constexpr static auto Kind = FileKind::DylibStub;
-
-            constexpr static auto Name =
-                std::string_view("MH_DYLIB_STUB");
-            constexpr static auto Description =
-                std::string_view("Dylib Stub");
-        };
-
-        template <>
-        struct FileKindInfo<FileKind::Dsym> {
-            constexpr static auto Kind = FileKind::Dsym;
-
-            constexpr static auto Name = std::string_view("MH_DSYM");
-            constexpr static auto Description =
-                std::string_view("Debug Symbols File (.dSYM)");
-        };
-
-        template <>
-        struct FileKindInfo<FileKind::KextBundle> {
-            constexpr static auto Kind = FileKind::KextBundle;
-
-            constexpr static auto Name =
-                std::string_view("MH_KEXT_BUNDLE");
-            constexpr static auto Description =
-                std::string_view("Kernel Extension Bundle");
+            KextBundle,
+            FileSet
         };
 
         [[nodiscard]] constexpr
-        static inline bool FileKindIsValid(FileKind FileKind) noexcept {
+        static inline bool FileKindIsRecognized(FileKind FileKind) noexcept {
             switch (FileKind) {
                 case FileKind::Object:
                 case FileKind::Executable:
@@ -249,74 +104,75 @@ namespace MachO {
                 case FileKind::DylibStub:
                 case FileKind::Dsym:
                 case FileKind::KextBundle:
+                case FileKind::FileSet:
                     return true;
             }
 
             return false;
         }
 
-        [[nodiscard]] constexpr static std::string_view
-        FileKindGetName(FileKind FileKind) noexcept {
+        [[nodiscard]] constexpr
+        static std::string_view FileKindGetName(FileKind FileKind) noexcept {
             switch (FileKind) {
                 case FileKind::Object:
-                    return FileKindInfo<FileKind::Object>::Name;
+                    return "MH_OBJECT";
                 case FileKind::Executable:
-                    return FileKindInfo<FileKind::Executable>::Name;
+                    return "MH_EXECUTE";
                 case FileKind::FixedVMSharedLibrary:
-                    return FileKindInfo<FileKind::FixedVMSharedLibrary>::Name;
+                    return "MH_FVMLIB";
                 case FileKind::CoreFile:
-                    return FileKindInfo<FileKind::CoreFile>::Name;
+                    return "MH_CORE";
                 case FileKind::PreloadedExecutable:
-                    return FileKindInfo<FileKind::PreloadedExecutable>::Name;
+                    return "MH_PRELOAD";
                 case FileKind::Dylib:
-                    return FileKindInfo<FileKind::Dylib>::Name;
+                    return "MH_DYLIB";
                 case FileKind::Dylinker:
-                    return FileKindInfo<FileKind::Dylinker>::Name;
+                    return "MH_DYLINKER";
                 case FileKind::Bundle:
-                    return FileKindInfo<FileKind::Bundle>::Name;
+                    return "MH_BUNDLE";
                 case FileKind::DylibStub:
-                    return FileKindInfo<FileKind::DylibStub>::Name;
+                    return "MH_DYLIB_STUB";
                 case FileKind::Dsym:
-                    return FileKindInfo<FileKind::Dsym>::Name;
+                    return "MH_DSYM";
                 case FileKind::KextBundle:
-                    return FileKindInfo<FileKind::KextBundle>::Name;
+                    return "MH_KEXT_BUNDLE";
+                case FileKind::FileSet:
+                    return "MH_FILESET";
             }
 
-            return EmptyStringValue;
+            return std::string_view();
         }
 
-        [[nodiscard]] static const std::string_view &
-        FileKindGetDescription(FileKind FileKind) noexcept {
+        [[nodiscard]] constexpr static
+        std::string_view FileKindGetDescription(FileKind FileKind) noexcept {
             switch (FileKind) {
                 case FileKind::Object:
-                    return FileKindInfo<FileKind::Object>::Description;
+                    return "Object File";
                 case FileKind::Executable:
-                    return FileKindInfo<FileKind::Executable>::Description;
+                    return "Executable";
                 case FileKind::FixedVMSharedLibrary:
-                    return
-                        FileKindInfo<FileKind::FixedVMSharedLibrary>
-                            ::Description;
+                    return "Fixed-VM Shared Library";
                 case FileKind::CoreFile:
-                    return FileKindInfo<FileKind::CoreFile>::Description;
+                    return "Core File";
                 case FileKind::PreloadedExecutable:
-                    return
-                        FileKindInfo<
-                            FileKind::PreloadedExecutable>::Description;
+                    return "Pre-loaded Executable";
                 case FileKind::Dylib:
-                    return FileKindInfo<FileKind::Dylib>::Description;
+                    return "Dynamic Library (Dylib)";
                 case FileKind::Dylinker:
-                    return FileKindInfo<FileKind::Dylinker>::Description;
+                    return "Dynamic Linker (Dylinker)";
                 case FileKind::Bundle:
-                    return FileKindInfo<FileKind::Bundle>::Description;
+                    return "Bundle";
                 case FileKind::DylibStub:
-                    return FileKindInfo<FileKind::DylibStub>::Description;
+                    return "Dynamic-Library Stub";
                 case FileKind::Dsym:
-                    return FileKindInfo<FileKind::Dsym>::Description;
+                    return "Debug Symbols File (.dSYM)";
                 case FileKind::KextBundle:
-                    return FileKindInfo<FileKind::KextBundle>::Description;
+                    return "Kernel Extension Bundle";
+                case FileKind::FileSet:
+                    return "FileSet";
             }
 
-            return EmptyStringValue;
+            return std::string_view();
         }
 
         enum class FlagsEnum : uint32_t {
@@ -351,478 +207,138 @@ namespace MachO {
             DylibInCache                  = static_cast<uint32_t>(1 << 31)
         };
 
-        template <FlagsEnum>
-        struct FlagInfo {};
-
-        template <>
-        struct FlagInfo<FlagsEnum::NoUndefinedReferences> {
-            constexpr static auto Kind = FlagsEnum::NoUndefinedReferences;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_NOUNDEF");
-            constexpr static auto Description =
-                std::string_view("No Undefined References");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::IncrementalLink> {
-            constexpr static auto Kind = FlagsEnum::IncrementalLink;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_INCRLINK");
-            constexpr static auto Description =
-                std::string_view("Incrementally Linked");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::DyldLink> {
-            constexpr static auto Kind = FlagsEnum::DyldLink;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_DYLDLINK");
-            constexpr static auto Description =
-                std::string_view("Dyanmic Linker Input");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::BindAtLoad> {
-            constexpr static auto Kind = FlagsEnum::BindAtLoad;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_BINDATLOAD");
-            constexpr static auto Description =
-                std::string_view("No Undefined References");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::SplitSegments> {
-            constexpr static auto Kind = FlagsEnum::SplitSegments;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_SPLIT_SEGS");
-            constexpr static auto Description =
-                std::string_view("Bind Undefined References at Launch");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::PreBound> {
-            constexpr static auto Kind = FlagsEnum::PreBound;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_PREBOUND");
-            constexpr static auto Description =
-                std::string_view("Dynamic Undefined Reference PreBound");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::LazyInitialization> {
-            constexpr static auto Kind = FlagsEnum::LazyInitialization;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_LAZY_INIT");
-            constexpr static auto Description =
-                std::string_view("Lazy Initialization");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::TwoLevelNamespaceBindings> {
-            constexpr static auto Kind =
-                FlagsEnum::TwoLevelNamespaceBindings;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_TWOLEVEL");
-            constexpr static auto Description =
-                std::string_view("Has Two-Level Namespace Bindings");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::ForceFlatNamespaces> {
-            constexpr static auto Kind = FlagsEnum::ForceFlatNamespaces;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_FORCE_FLAT");
-            constexpr static auto Description =
-                std::string_view("Has Two-Level Namespace Bindings");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::NoMultipleDefinitions> {
-            constexpr static auto Kind = FlagsEnum::NoMultipleDefinitions;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_NOMULTIDEFS");
-            constexpr static auto Description =
-                std::string_view("No Multiple Symbol Definitions");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::NoFixPrebinding> {
-            constexpr static auto Kind = FlagsEnum::NoFixPrebinding;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_NOFIXPREBINDING");
-            constexpr static auto Description =
-                std::string_view("Don't Fix PreBinding");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::Prebindable> {
-            constexpr static auto Kind = FlagsEnum::Prebindable;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name =
-                std::string_view("MH_PREBINDABLE");
-            constexpr static auto Description =
-                std::string_view("PreBinded - But can be Prebinded Again");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::AllModulesBound> {
-            constexpr static auto Kind = FlagsEnum::AllModulesBound;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name =
-                std::string_view("MH_ALLMODSBOUND");
-            constexpr static auto Description =
-                std::string_view("Binds to all Two-Level Namespace Modules");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::SubsectionsViaSymbols> {
-            constexpr static auto Kind = FlagsEnum::SubsectionsViaSymbols;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name =
-                std::string_view("MH_SUBSECTIONS_VIA_SYMBOLS");
-            constexpr static auto Description =
-                std::string_view("Safe to Divide Sections into Sub-Sections");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::Canonical> {
-            constexpr static auto Kind = FlagsEnum::Canonical;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_CANONICAL");
-            constexpr static auto Description =
-                std::string_view("Canocalized via UnPreBind");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::WeakDefinitions> {
-            constexpr static auto Kind = FlagsEnum::WeakDefinitions;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_WEAK_DEFINES");
-            constexpr static auto Description =
-                std::string_view("Has External Weak Symbols");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::BindsToWeak> {
-            constexpr static auto Kind = FlagsEnum::BindsToWeak;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_BINDS_TO_WEAK");
-            constexpr static auto Description =
-                std::string_view("Binds to Weak Symbols");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::AllowStackExecution> {
-            constexpr static auto Kind = FlagsEnum::AllowStackExecution;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name =
-                std::string_view("MH_ALLOW_STACK_EXECUTION");
-            constexpr static auto Description =
-                std::string_view("Stacks have Execution Priviledge");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::RootSafe> {
-            constexpr static auto Kind = FlagsEnum::RootSafe;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_ROOT_SAFE");
-            constexpr static auto Description =
-                std::string_view("Safe for root (uid 0) priviledges");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::SetuidSafe> {
-            constexpr static auto Kind = FlagsEnum::SetuidSafe;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_SETUID_SAFE");
-            constexpr static auto Description =
-                std::string_view("Safe for issetuid()");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::PositionIndependentExecutable> {
-            constexpr static auto Kind =
-                FlagsEnum::PositionIndependentExecutable;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_PIE");
-            constexpr static auto Description =
-                std::string_view("Position-Independant Executable");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::NoReexportedDylibs> {
-            constexpr static auto Kind =
-                FlagsEnum::NoReexportedDylibs;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name =
-                std::string_view("MH_NO_REEXPORTED_DYLIBS");
-            constexpr static auto Description =
-                std::string_view("No Re-Exported Dylibs");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::DeadStrippableDylib> {
-            constexpr static auto Kind = FlagsEnum::DeadStrippableDylib;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name =
-                std::string_view("MH_DEAD_STRIPPABLE_DYLIB");
-            constexpr static auto Description =
-                std::string_view("Dead Strippable Dylib");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::HasTlvDescriptors> {
-            constexpr static auto Kind = FlagsEnum::HasTlvDescriptors;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name =
-                std::string_view("MH_HAS_TLV_DESCRIPTORS");
-            constexpr static auto Description =
-                std::string_view("Has thread-local variables section");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::NoHeapExecution> {
-            constexpr static auto Kind = FlagsEnum::NoHeapExecution;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name =
-                std::string_view("MH_NO_HEAP_EXECUTION");
-            constexpr static auto Description =
-                std::string_view("No Heap Execution");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::AppExtensionSafe> {
-            constexpr static auto Kind = FlagsEnum::AppExtensionSafe;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name =
-                std::string_view("MH_APP_EXTENSION_SAFE");
-            constexpr static auto Description =
-                std::string_view("App Extension Safe");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::NlistOutOfSyncWithDyldInfo> {
-            constexpr static auto Kind =
-                FlagsEnum::NlistOutOfSyncWithDyldInfo;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name =
-                std::string_view("MH_NLIST_OUTOFSYNC_WITH_DYLDINFO");
-            constexpr static auto Description =
-                std::string_view("Nlist Out-Of-Sync with DyldInfo");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::SimulatorSupport> {
-            constexpr static auto Kind = FlagsEnum::SimulatorSupport;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_SIM_SUPPORT");
-            constexpr static auto Description =
-                std::string_view("Has Simulator Support");
-        };
-
-        template <>
-        struct FlagInfo<FlagsEnum::DylibInCache> {
-            constexpr static auto Kind = FlagsEnum::DylibInCache;
-            constexpr static auto Mask =
-                static_cast<std::underlying_type_t<FlagsEnum>>(Kind);
-
-            constexpr static auto Name = std::string_view("MH_DYLIB_IN_CACHE");
-            constexpr static auto Description =
-                std::string_view("Dylib in Shared-Cache");
-        };
-
-        [[nodiscard]] constexpr static
-        const std::string_view &FlagsEnumGetName(FlagsEnum Flag) noexcept {
+        [[nodiscard]] constexpr
+        static std::string_view FlagsEnumGetName(FlagsEnum Flag) noexcept {
             using Enum = FlagsEnum;
             switch (Flag) {
                 case Enum::NoUndefinedReferences:
-                    return FlagInfo<Enum::NoUndefinedReferences>::Name;
+                    return "MH_NOUNDEF";
                 case Enum::IncrementalLink:
-                    return FlagInfo<Enum::IncrementalLink>::Name;
+                    return "MH_INCRLINK";
                 case Enum::DyldLink:
-                    return FlagInfo<Enum::DyldLink>::Name;
+                    return "MH_DYLDLINK";
                 case Enum::BindAtLoad:
-                    return FlagInfo<Enum::BindAtLoad>::Name;
+                    return "MH_BINDATLOAD";
                 case Enum::PreBound:
-                    return FlagInfo<Enum::PreBound>::Name;
+                    return "MH_PREBOUND";
                 case Enum::SplitSegments:
-                    return FlagInfo<Enum::SplitSegments>::Name;
+                    return "MH_SPLIT_SEGS";
                 case Enum::LazyInitialization:
-                    return FlagInfo<Enum::LazyInitialization>::Name;
+                    return "MH_LAZY_INIT";
                 case Enum::TwoLevelNamespaceBindings:
-                    return FlagInfo<Enum::TwoLevelNamespaceBindings>::Name;
+                    return "MH_TWOLEVEL";
                 case Enum::ForceFlatNamespaces:
-                    return FlagInfo<Enum::ForceFlatNamespaces>::Name;
+                    return "MH_FORCE_FLAT";
                 case Enum::NoMultipleDefinitions:
-                    return FlagInfo<Enum::NoMultipleDefinitions>::Name;
+                    return "MH_NOMULTIDEFS";
                 case Enum::NoFixPrebinding:
-                    return FlagInfo<Enum::NoFixPrebinding>::Name;
+                    return "MH_NOFIXPREBINDING";
                 case Enum::Prebindable:
-                    return FlagInfo<Enum::Prebindable>::Name;
+                    return "MH_PREBINDABLE";
                 case Enum::AllModulesBound:
-                    return FlagInfo<Enum::AllModulesBound>::Name;
+                    return "MH_ALLMODSBOUND";
                 case Enum::SubsectionsViaSymbols:
-                    return FlagInfo<Enum::SubsectionsViaSymbols>::Name;
+                    return "MH_SUBSECTIONS_VIA_SYMBOLS";
                 case Enum::Canonical:
-                    return FlagInfo<Enum::Canonical>::Name;
+                    return "MH_CANONICAL";
                 case Enum::WeakDefinitions:
-                    return FlagInfo<Enum::WeakDefinitions>::Name;
+                    return "MH_WEAK_DEFINES";
                 case Enum::BindsToWeak:
-                    return FlagInfo<Enum::BindsToWeak>::Name;
+                    return "MH_BINDS_TO_WEAK";
                 case Enum::AllowStackExecution:
-                    return FlagInfo<Enum::AllowStackExecution>::Name;
+                    return "MH_ALLOW_STACK_EXECUTION";
                 case Enum::RootSafe:
-                    return FlagInfo<Enum::RootSafe>::Name;
+                    return "MH_ROOT_SAFE";
                 case Enum::SetuidSafe:
-                    return FlagInfo<Enum::SetuidSafe>::Name;
+                    return "MH_SETUID_SAFE";
                 case Enum::NoReexportedDylibs:
-                    return FlagInfo<Enum::NoReexportedDylibs>::Name;
+                    return "MH_NO_REEXPORTED_DYLIBS";
                 case Enum::PositionIndependentExecutable:
-                    return FlagInfo<Enum::PositionIndependentExecutable>::Name;
+                    return "MH_PIE";
                 case Enum::DeadStrippableDylib:
-                    return FlagInfo<Enum::DeadStrippableDylib>::Name;
+                    return "MH_DEAD_STRIPPABLE_DYLIB";
                 case Enum::HasTlvDescriptors:
-                    return FlagInfo<Enum::HasTlvDescriptors>::Name;
+                    return "MH_HAS_TLV_DESCRIPTORS";
                 case Enum::NoHeapExecution:
-                    return FlagInfo<Enum::NoHeapExecution>::Name;
+                    return "MH_NO_HEAP_EXECUTION";
                 case Enum::AppExtensionSafe:
-                    return FlagInfo<Enum::AppExtensionSafe>::Name;
+                    return "MH_APP_EXTENSION_SAFE";
                 case Enum::NlistOutOfSyncWithDyldInfo:
-                    return FlagInfo<Enum::NlistOutOfSyncWithDyldInfo>::Name;
+                    return "MH_NLIST_OUT_OF_SYNC_WITH_DYLDINFO";
                 case Enum::SimulatorSupport:
-                    return FlagInfo<Enum::SimulatorSupport>::Name;
+                    return "MH_SIM_SUPPORT";
                 case Enum::DylibInCache:
-                    return FlagInfo<Enum::DylibInCache>::Name;
+                    return "MH_DYLIB_IN_CACHE";
             }
 
-            return EmptyStringValue;
+            return std::string_view();
         }
 
-        [[nodiscard]] constexpr static std::string_view
-        FlagsEnumGetDescription(FlagsEnum Flag) noexcept {
+        [[nodiscard]] constexpr static
+        std::string_view FlagsEnumGetDescription(FlagsEnum Flag) noexcept {
             using Enum = FlagsEnum;
             switch (Flag) {
                 case Enum::NoUndefinedReferences:
-                    return FlagInfo<Enum::NoUndefinedReferences>::Description;
+                    return "No Undefined References";
                 case Enum::IncrementalLink:
-                    return FlagInfo<Enum::IncrementalLink>::Description;
+                    return "Incrementally Linked";
                 case Enum::DyldLink:
-                    return FlagInfo<Enum::DyldLink>::Description;
+                    return "Dynamic Linker Input";
                 case Enum::BindAtLoad:
-                    return FlagInfo<Enum::BindAtLoad>::Description;
+                    return "Bind Undefined References at Launch";
                 case Enum::PreBound:
-                    return FlagInfo<Enum::PreBound>::Description;
+                    return "Dynamic Undefined Reference PreBound";
                 case Enum::SplitSegments:
-                    return FlagInfo<Enum::SplitSegments>::Description;
+                    return "Read-only and Write-only Segments Split";
                 case Enum::LazyInitialization:
-                    return FlagInfo<Enum::LazyInitialization>::Description;
+                    return "Lazy Initialization";
                 case Enum::TwoLevelNamespaceBindings:
-                    return
-                        FlagInfo<Enum::TwoLevelNamespaceBindings>::Description;
+                    return "Has Two-Level Namespace Bindings";
                 case Enum::ForceFlatNamespaces:
-                    return FlagInfo<Enum::ForceFlatNamespaces>::Description;
+                    return "Has Two-Level Namespace Bindings";
                 case Enum::NoMultipleDefinitions:
-                    return FlagInfo<Enum::NoMultipleDefinitions>::Description;
+                    return "No Multiple Symbol Definitions";
                 case Enum::NoFixPrebinding:
-                    return FlagInfo<Enum::NoFixPrebinding>::Description;
+                    return "Don't Fix PreBinding";
                 case Enum::Prebindable:
-                    return FlagInfo<Enum::Prebindable>::Description;
+                    return "PreBinded - But can be Prebinded Again";
                 case Enum::AllModulesBound:
-                    return FlagInfo<Enum::AllModulesBound>::Description;
+                    return "Binds to all Two-Level Namespace Modules";
                 case Enum::SubsectionsViaSymbols:
-                    return FlagInfo<Enum::SubsectionsViaSymbols>::Description;
+                    return "Safe to Divide Sections into Sub-Sections";
                 case Enum::Canonical:
-                    return FlagInfo<Enum::Canonical>::Description;
+                    return "Canocalized via UnPreBind";
                 case Enum::WeakDefinitions:
-                    return FlagInfo<Enum::WeakDefinitions>::Description;
+                    return "Has External Weak Symbols";
                 case Enum::BindsToWeak:
-                    return FlagInfo<Enum::BindsToWeak>::Description;
+                    return "Binds to Weak Symbols";
                 case Enum::AllowStackExecution:
-                    return FlagInfo<Enum::AllowStackExecution>::Description;
+                    return "Stacks have Execution Priviledge";
                 case Enum::RootSafe:
-                    return FlagInfo<Enum::RootSafe>::Description;
+                    return "Safe for root (uid 0) priviledges";
                 case Enum::SetuidSafe:
-                    return FlagInfo<Enum::SetuidSafe>::Description;
+                    return "Safe for issetuid()";
                 case Enum::NoReexportedDylibs:
-                    return FlagInfo<Enum::NoReexportedDylibs>::Description;
+                    return "Position-Independant Executable";
                 case Enum::PositionIndependentExecutable:
-                    return
-                        FlagInfo<Enum::PositionIndependentExecutable>
-                            ::Description;
+                    return "No Re-Exported Dylibs";
                 case Enum::DeadStrippableDylib:
-                    return FlagInfo<Enum::DeadStrippableDylib>::Description;
+                    return "Dead Strippable Dylib";
                 case Enum::HasTlvDescriptors:
-                    return FlagInfo<Enum::HasTlvDescriptors>::Description;
+                    return "Has thread-local variables section";
                 case Enum::NoHeapExecution:
-                    return FlagInfo<Enum::NoHeapExecution>::Description;
+                    return "No Heap Execution";
                 case Enum::AppExtensionSafe:
-                    return FlagInfo<Enum::AppExtensionSafe>::Description;
+                    return "App Extension Safe";
                 case Enum::NlistOutOfSyncWithDyldInfo:
-                    return
-                        FlagInfo<Enum::NlistOutOfSyncWithDyldInfo>::Description;
+                    return "Nlist Out-Of-Sync with DyldInfo";
                 case Enum::SimulatorSupport:
-                    return FlagInfo<Enum::SimulatorSupport>::Description;
+                    return "Has Simulator Support";
                 case Enum::DylibInCache:
-                    return FlagInfo<Enum::DylibInCache>::Description;
+                    return "Dylib in Shared-Cache";
             }
 
-            return EmptyStringValue;
+            return std::string_view();
         }
 
         using FlagsType = BasicFlags<FlagsEnum>;
@@ -841,7 +357,7 @@ namespace MachO {
 
         [[nodiscard]] constexpr inline bool hasValidFileKind() const noexcept {
             const auto Value = SwitchEndianIf(FileKind, this->isBigEndian());
-            return FileKindIsValid(static_cast<enum FileKind>(Value));
+            return FileKindIsRecognized(static_cast<enum FileKind>(Value));
         }
 
         [[nodiscard]] constexpr inline bool isBigEndian() const noexcept {
@@ -981,46 +497,8 @@ namespace MachO {
             BigEndian64 = 0xbfbafeca
         };
 
-        template <Magic>
-        struct MagicInfo {};
-
-        template <>
-        struct MagicInfo<Magic::Default> {
-            constexpr static auto Kind = Magic::Default;
-
-            constexpr static auto Name = std::string_view("FAT_MAGIC");
-            constexpr static auto Description =
-                std::string_view("Default");
-        };
-
-        template <>
-        struct MagicInfo<Magic::Default64> {
-            constexpr static auto Kind = Magic::Default64;
-
-            constexpr static auto Name = std::string_view("FAT_MAGIC_64");
-            constexpr static auto Description =
-                std::string_view("Default (64-Bit)");
-        };
-
-        template <>
-        struct MagicInfo<Magic::BigEndian> {
-            constexpr static auto Kind = Magic::BigEndian;
-
-            constexpr static auto Name = std::string_view("FAT_CIGAM");
-            constexpr static auto Description =
-                std::string_view("Big Endian");
-        };
-
-        template <>
-        struct MagicInfo<Magic::BigEndian64> {
-            constexpr static auto Kind = Magic::BigEndian64;
-
-            constexpr static auto Name = std::string_view("FAT_CIGAM_64");
-            constexpr static auto Description =
-                std::string_view("Big Endian (64-Bit)");
-        };
-
-        [[nodiscard]] constexpr static bool MagicIsValid(Magic Magic) noexcept {
+        [[nodiscard]]
+        constexpr static inline bool MagicIsValid(Magic Magic) noexcept {
             switch (Magic) {
                 case Magic::Default:
                 case Magic::Default64:
@@ -1032,36 +510,36 @@ namespace MachO {
             return false;
         }
 
-        [[nodiscard]] constexpr
-        static const std::string_view &MagicGetName(Magic Magic) noexcept {
+        [[nodiscard]]
+        constexpr static std::string_view MagicGetName(Magic Magic) noexcept {
             switch (Magic) {
                 case Magic::Default:
-                    return MagicInfo<Magic::Default>::Name;
+                    return "FAT_MAGIC";
                 case Magic::Default64:
-                    return MagicInfo<Magic::Default64>::Name;
+                    return "FAT_MAGIC_64";
                 case Magic::BigEndian:
-                    return MagicInfo<Magic::BigEndian>::Name;
+                    return "FAT_CIGAM";
                 case Magic::BigEndian64:
-                    return MagicInfo<Magic::BigEndian64>::Name;
+                    return "FAT_CIGAM_64";
             }
 
-            return EmptyStringValue;
+            return std::string_view();
         }
 
-        [[nodiscard]] constexpr static
-        const std::string_view &MagicGetDescription(Magic Magic) noexcept {
+        [[nodiscard]] constexpr
+        static std::string_view MagicGetDescription(Magic Magic) noexcept {
             switch (Magic) {
                 case Magic::Default:
-                    return MagicInfo<Magic::Default>::Description;
+                    return "Default";
                 case Magic::Default64:
-                    return MagicInfo<Magic::Default64>::Description;
+                    return "Default (64-Bit)";
                 case Magic::BigEndian:
-                    return MagicInfo<Magic::BigEndian>::Description;
+                    return "Big Endian";
                 case Magic::BigEndian64:
-                    return MagicInfo<Magic::BigEndian64>::Description;
+                    return "Big Endian (64-Bit)";
             }
 
-            return EmptyStringValue;
+            return std::string_view();
         }
 
         struct Arch32 {

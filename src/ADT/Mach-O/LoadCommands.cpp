@@ -478,13 +478,21 @@ namespace MachO {
                 const auto RealLC = static_cast<ConstPtrType>(LC);
                 return RealLC->hasValidCmdSize(IsBigEndian);
             }
+
+            case LoadCommand::Kind::FileSetEntry: {
+                using ConstPtrType =
+                    LoadCommandConstPtrTypeFromKind<
+                        LoadCommand::Kind::FileSetEntry>;
+
+                const auto RealLC = static_cast<ConstPtrType>(LC);
+                return RealLC->hasValidCmdSize(IsBigEndian);
+            }
         }
 
         return LoadCommand::CmdSizeInvalidKind::None;
     }
 
-    constexpr static const auto EmptyStringView = std::string_view();
-
+    constexpr static auto EmptyStringView = std::string_view();
     const std::string_view &LoadCommand::KindGetName(Kind Kind) noexcept {
         switch (Kind) {
             case Kind::Segment:
@@ -595,6 +603,8 @@ namespace MachO {
                 return LoadCommandKindInfo<Kind::DyldExportsTrie>::Name;
             case Kind::DyldChainedFixups:
                 return LoadCommandKindInfo<Kind::DyldChainedFixups>::Name;
+            case Kind::FileSetEntry:
+                return LoadCommandKindInfo<Kind::FileSetEntry>::Name;
         }
 
         return EmptyStringView;
@@ -718,6 +728,8 @@ namespace MachO {
             case Kind::DyldChainedFixups:
                 return LoadCommandKindInfo<
                     Kind::DyldChainedFixups>::Description;
+            case Kind::FileSetEntry:
+                return LoadCommandKindInfo<Kind::FileSetEntry>::Description;
         }
 
         return EmptyStringView;
@@ -927,6 +939,17 @@ namespace MachO {
         const auto MinSize = sizeof(*this);
         const auto CmdSize = getCmdSize(IsBigEndian);
         const auto NameOffset = Name.getOffset(IsBigEndian);
+        const auto Result =
+            LoadCmdGetStoredString(this, MinSize, CmdSize, NameOffset);
+
+        return Result;
+    }
+
+    LoadCommandString::GetValueResult
+    FileSetEntryCommand::GetEntryID(bool IsBigEndian) const noexcept {
+        const auto MinSize = sizeof(*this);
+        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto NameOffset = EntryID.getOffset(IsBigEndian);
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, NameOffset);
 

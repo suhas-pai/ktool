@@ -25,14 +25,14 @@ namespace MachO {
         }
 
         if (List.size() != 1) {
-            Root = ObjcParse::AddClassToList(this->List, Info(), 0);
+            setRoot(ObjcParse::AddClassToList(this->List, Info(), 0));
             getRoot()->setIsNull();
 
             for (const auto &Node : List) {
                 getRoot()->AddChild(*Node);
             }
         } else {
-            Root = List.front();
+            setRoot(List.front());
         }
     }
 

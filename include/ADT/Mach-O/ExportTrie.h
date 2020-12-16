@@ -126,108 +126,50 @@ namespace MachO {
         ThreadLocal
     };
 
-    template <ExportTrieExportKind>
-    struct ExportTrieExportKindInfo {};
-
-    template <>
-    struct ExportTrieExportKindInfo<ExportTrieExportKind::Regular> {
-        constexpr static const auto Kind = ExportTrieExportKind::Regular;
-        constexpr static const auto Name =
-            std::string_view("EXPORT_SYMBOL_FLAGS_KIND_REGULAR");
-        constexpr static const auto Description =
-            std::string_view("Regular");
-    };
-
-    template <>
-    struct ExportTrieExportKindInfo<ExportTrieExportKind::Absolute> {
-        constexpr static const auto Kind = ExportTrieExportKind::Absolute;
-        constexpr static const auto Name =
-            std::string_view("EXPORT_SYMBOL_FLAGS_KIND_ABSOLUTE");
-        constexpr static const auto Description =
-            std::string_view("Absolute");
-    };
-
-    template <>
-    struct ExportTrieExportKindInfo<ExportTrieExportKind::Reexport> {
-        constexpr static const auto Kind = ExportTrieExportKind::Reexport;
-        constexpr static const auto Name =
-            std::string_view("EXPORT_SYMBOL_FLAGS_REEXPORT");
-        constexpr static const auto Description =
-            std::string_view("Re-export");
-    };
-
-    template <>
-    struct ExportTrieExportKindInfo<ExportTrieExportKind::WeakDefinition> {
-        constexpr static const auto Kind = ExportTrieExportKind::WeakDefinition;
-        constexpr static const auto Name =
-            std::string_view("EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION");
-        constexpr static const auto Description =
-            std::string_view("Weak-Definition");
-    };
-
-    template <>
-    struct ExportTrieExportKindInfo<ExportTrieExportKind::StubAndResolver> {
-        constexpr static const auto Kind =
-            ExportTrieExportKind::StubAndResolver;
-
-        constexpr static const auto Name =
-            std::string_view("EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER");
-        constexpr static const auto Description =
-            std::string_view("Stub-Resolver");
-    };
-
-    template <>
-    struct ExportTrieExportKindInfo<ExportTrieExportKind::ThreadLocal> {
-        constexpr static const auto Kind = ExportTrieExportKind::ThreadLocal;
-        constexpr static const auto Name =
-            std::string_view("EXPORT_SYMBOL_FLAGS_KIND_THREAD_LOCAL");
-        constexpr static const auto Description =
-            std::string_view("Thread-Local");
-    };
-
-    [[nodiscard]] constexpr static const std::string_view &
+    [[nodiscard]] constexpr std::string_view
     ExportTrieExportKindGetName(ExportTrieExportKind Kind) noexcept {
         using Enum = ExportTrieExportKind;
         switch (Kind) {
             case Enum::None:
-                return EmptyStringValue;
+                break;
             case Enum::Regular:
-                return ExportTrieExportKindInfo<Enum::Regular>::Name;
+                return "EXPORT_SYMBOL_FLAGS_KIND_REGULAR";
             case Enum::Absolute:
-                return ExportTrieExportKindInfo<Enum::Absolute>::Name;
+                return "EXPORT_SYMBOL_FLAGS_KIND_ABSOLUTE";
             case Enum::Reexport:
-                return ExportTrieExportKindInfo<Enum::Reexport>::Name;
+                return "EXPORT_SYMBOL_FLAGS_REEXPORT";
             case Enum::WeakDefinition:
-                return ExportTrieExportKindInfo<Enum::WeakDefinition>::Name;
+                return "EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION";
             case Enum::StubAndResolver:
-                return ExportTrieExportKindInfo<Enum::StubAndResolver>::Name;
+                return "EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER";
             case Enum::ThreadLocal:
-                return ExportTrieExportKindInfo<Enum::ThreadLocal>::Name;
+                return "EXPORT_SYMBOL_FLAGS_KIND_THREAD_LOCAL";
         }
+
+        return std::string_view();
     }
 
-    [[nodiscard]] constexpr static const std::string_view &
+    [[nodiscard]] constexpr std::string_view
     ExportTrieExportKindGetDescription(ExportTrieExportKind Kind) noexcept {
         using Enum = ExportTrieExportKind;
         switch (Kind) {
             case Enum::None:
-                return EmptyStringValue;
+                break;
             case Enum::Regular:
-                return ExportTrieExportKindInfo<Enum::Regular>::Description;
+                return "Regular";
             case Enum::Absolute:
-                return ExportTrieExportKindInfo<Enum::Absolute>::Description;
+                return "Absolute";
             case Enum::Reexport:
-                return ExportTrieExportKindInfo<Enum::Reexport>::Description;
+                return "Re-export";
             case Enum::WeakDefinition:
-                return
-                    ExportTrieExportKindInfo<Enum::WeakDefinition>::Description;
+                return "Weak-Definition";
             case Enum::StubAndResolver:
-                return
-                    ExportTrieExportKindInfo<Enum::StubAndResolver>
-                        ::Description;
+                return "Stub-Resolver";
             case Enum::ThreadLocal:
-                return ExportTrieExportKindInfo<Enum::ThreadLocal>::Description;
+                return "Thread-Local";
         }
+
+        return std::string_view();
     }
 
     [[nodiscard]] constexpr ExportTrieExportKind

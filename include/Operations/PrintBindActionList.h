@@ -15,7 +15,7 @@
 
 struct PrintBindActionListOperation : public Operation {
 public:
-    constexpr static const auto OpKind = OperationKind::PrintBindActionList;
+    constexpr static auto OpKind = OperationKind::PrintBindActionList;
 
     [[nodiscard]]
     constexpr static inline bool IsOfKind(const Operation &Op) noexcept {

@@ -95,12 +95,12 @@ struct ObjectKindInfo {};
 
 template<>
 struct ObjectKindInfo<ObjectKind::None> {
-    constexpr static const auto Kind = ObjectKind::None;
+    constexpr static auto Kind = ObjectKind::None;
 };
 
 template<>
 struct ObjectKindInfo<ObjectKind::MachO> {
-    constexpr static const auto Kind = ObjectKind::MachO;
+    constexpr static auto Kind = ObjectKind::MachO;
 
     typedef MachOMemoryObject Type;
     typedef MachOMemoryObject *Ptr;
@@ -111,7 +111,7 @@ struct ObjectKindInfo<ObjectKind::MachO> {
 
 template<>
 struct ObjectKindInfo<ObjectKind::FatMachO> {
-    constexpr static const auto Kind = ObjectKind::FatMachO;
+    constexpr static auto Kind = ObjectKind::FatMachO;
 
     typedef FatMachOMemoryObject Type;
     typedef FatMachOMemoryObject *Ptr;
@@ -122,7 +122,7 @@ struct ObjectKindInfo<ObjectKind::FatMachO> {
 
 template<>
 struct ObjectKindInfo<ObjectKind::DyldSharedCache> {
-    constexpr static const auto Kind = ObjectKind::DyldSharedCache;
+    constexpr static auto Kind = ObjectKind::DyldSharedCache;
 
     typedef DscMemoryObject Type;
     typedef DscMemoryObject *Ptr;
@@ -133,7 +133,7 @@ struct ObjectKindInfo<ObjectKind::DyldSharedCache> {
 
 template<>
 struct ObjectKindInfo<ObjectKind::DscImage> {
-    constexpr static const auto Kind = ObjectKind::DscImage;
+    constexpr static auto Kind = ObjectKind::DscImage;
 
     typedef DscImageMemoryObject Type;
     typedef DscImageMemoryObject *Ptr;

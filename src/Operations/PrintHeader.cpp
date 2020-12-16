@@ -1056,7 +1056,7 @@ PrintDscHeaderV6Info(const ConstDscMemoryObject &Object,
     PrintDscRangeOverlapsErrorOrNewline(Options, List, DscRangeKind::OtherTrie);
 }
 
-static constexpr auto LongestAccKey = LENGTH_OF("Bottom-Up List Offset");
+constexpr static auto LongestAccKey = LENGTH_OF("Bottom-Up List Offset");
 static void PrintAcceleratorKey(FILE *OutFile, const char *Key) noexcept {
     PrintUtilsRightPadSpaces(OutFile,
                              fprintf(OutFile, "%s: ", Key),

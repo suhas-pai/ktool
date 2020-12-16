@@ -34,11 +34,28 @@ namespace MachO {
         }
 
         [[nodiscard]] inline
+        const SharedLibraryInfo *atOrNull(uint64_t Index) const noexcept {
+            if (!IndexOutOfBounds(Index, this->size())) {
+                return nullptr;
+            }
+
+            return List.at(Index).get();
+        }
+
+        [[nodiscard]] inline
         const SharedLibraryInfo &atOrdinal(uint64_t Ordinal) const noexcept {
             assert(Ordinal != 0);
 
             const auto Index = (Ordinal - 1);
             return at(Index);
+        }
+
+        [[nodiscard]] inline const SharedLibraryInfo *
+        atOrdinalOrNull(uint64_t Ordinal) const noexcept {
+            assert(Ordinal != 0);
+
+            const auto Index = (Ordinal - 1);
+            return atOrNull(Index);
         }
 
         [[nodiscard]] inline bool empty() const noexcept {

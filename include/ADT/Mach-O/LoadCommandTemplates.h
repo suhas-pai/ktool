@@ -49,6 +49,7 @@ namespace MachO {
     struct VersionMinimumCommand;
     struct NoteCommand;
     struct BuildVersionCommand;
+    struct FileSetEntryCommand;
 
     template <LoadCommandKind Kind>
     struct LoadCommandKindInfo {};
@@ -689,6 +690,17 @@ namespace MachO {
             std::string_view("Dyld Chained-Fixups");
 
         typedef LinkeditDataCommand Type;
+        typedef Type *PtrType;
+        typedef const Type *ConstPtrType;
+    };
+
+    template <>
+    struct LoadCommandKindInfo<LoadCommandKind::FileSetEntry> {
+        constexpr static auto Kind = LoadCommandKind::FileSetEntry;
+        constexpr static auto Name = std::string_view("LC_FILESET_ENTRY");
+        constexpr static auto Description = std::string_view("File-Set Entry");
+
+        typedef FileSetEntryCommand Type;
         typedef Type *PtrType;
         typedef const Type *ConstPtrType;
     };

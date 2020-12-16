@@ -73,7 +73,7 @@ namespace MachO {
             return;
         }
 
-        this->Root = MakeNodeForEntryInfo(*Iter, SegmentCollection);
+        setRoot(MakeNodeForEntryInfo(*Iter, SegmentCollection));
 
         auto Parent = getRoot();
         auto PrevDepthLevel = 1;

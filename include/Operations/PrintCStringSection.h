@@ -11,7 +11,7 @@
 
 struct PrintCStringSectionOperation : public Operation {
 public:
-    constexpr static const auto OpKind = OperationKind::PrintCStringSection;
+    constexpr static auto OpKind = OperationKind::PrintCStringSection;
 
     [[nodiscard]]
     constexpr static inline bool IsOfKind(const Operation &Op) noexcept {

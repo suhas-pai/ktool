@@ -18,7 +18,7 @@
 #include "MemoryProtections.h"
 
 namespace MachO {
-    constexpr static const auto KindRequiredByDyld = 0x80000000ul;
+    constexpr static inline auto KindRequiredByDyld = 0x80000000ul;
     enum class LoadCommandKind : uint32_t {
         Segment = 1,
         SymbolTable,
@@ -72,10 +72,10 @@ namespace MachO {
         Note,
         BuildVersion,
         DyldExportsTrie = (KindRequiredByDyld | 0x33ul),
-        DyldChainedFixups = (KindRequiredByDyld | 0x34ul)
+        DyldChainedFixups = (KindRequiredByDyld | 0x34ul),
+        FileSetEntry = (KindRequiredByDyld | 0x35ul)
     };
 
-    extern const std::string_view EmptyStringValue;
     enum class SizeRangeError {
         None,
         Empty,
@@ -272,53 +272,39 @@ namespace MachO {
         ReadOnlyAfterFixup = 1 << 4
     };
 
-    template <SegmentFlagsEnum Type>
-    struct SegmentFlagsEnumInfo {};
+    [[nodiscard]] constexpr
+    std::string_view SegmentFlagsGetName(SegmentFlagsEnum Val) noexcept {
+        switch (Val) {
+            using Enum = SegmentFlagsEnum;
+            case Enum::HighVM:
+                return "SG_HIGHVM";
+            case Enum::FixedVMLibary:
+                return "SG_FVMLIB";
+            case Enum::NoRelocations:
+                return "SG_NORELOC";
+            case Enum::ProtectionVersion1:
+                return "SG_PROTECTED_VERSION_1";
+            case Enum::ReadOnlyAfterFixup:
+                return "SG_READ_ONLY";
+        }
+    }
 
-    template <>
-    struct SegmentFlagsEnumInfo<SegmentFlagsEnum::HighVM> {
-        constexpr static const auto Kind = SegmentFlagsEnum::HighVM;
-
-        constexpr static const auto Name = std::string_view("SG_HIGHVM");
-        constexpr static const auto Description = std::string_view("High Vm");
-    };
-
-    template <>
-    struct SegmentFlagsEnumInfo<SegmentFlagsEnum::FixedVMLibary> {
-        constexpr static const auto Kind = SegmentFlagsEnum::FixedVMLibary;
-
-        constexpr static const auto Name = std::string_view("SG_FVMLIB");
-        constexpr static const auto Description =
-            std::string_view("Fixed Vm Library");
-    };
-
-    template <>
-    struct SegmentFlagsEnumInfo<SegmentFlagsEnum::NoRelocations> {
-        constexpr static const auto Kind = SegmentFlagsEnum::NoRelocations;
-
-        constexpr static const auto Name = std::string_view("SG_NORELOC");
-        constexpr static const auto Description =
-            std::string_view("No Relocations");
-    };
-
-    template <>
-    struct SegmentFlagsEnumInfo<SegmentFlagsEnum::ProtectionVersion1> {
-        constexpr static const auto Kind = SegmentFlagsEnum::NoRelocations;
-
-        constexpr static const auto Name =
-            std::string_view("SG_PROTECTED_VERSION_1");
-        constexpr static const auto Description =
-            std::string_view("Protected (Version 1)");
-    };
-
-    template <>
-    struct SegmentFlagsEnumInfo<SegmentFlagsEnum::ReadOnlyAfterFixup> {
-        constexpr static const auto Kind = SegmentFlagsEnum::ReadOnlyAfterFixup;
-
-        constexpr static const auto Name = std::string_view("SG_READ_ONLY");
-        constexpr static const auto Description =
-            std::string_view("Read-Only (After Fix-Ups)");
-    };
+    [[nodiscard]] constexpr
+    std::string_view SegmentFlagsGetDesc(SegmentFlagsEnum Val) noexcept {
+        switch (Val) {
+            using Enum = SegmentFlagsEnum;
+            case Enum::HighVM:
+                return "High Vm";
+            case Enum::FixedVMLibary:
+                return "Fixed Vm Library";
+            case Enum::NoRelocations:
+                return "No Relocations";
+            case Enum::ProtectionVersion1:
+                return "Protected (Version 1)";
+            case Enum::ReadOnlyAfterFixup:
+                return "Read-Only (After Fix-Ups)";
+        }
+    }
 
     struct SegmentFlags : public ::BasicFlags<SegmentFlagsEnum> {
     private:
@@ -410,307 +396,56 @@ namespace MachO {
         InitFunction32BitOffsets
     };
 
-    template <SegmentSectionKind>
-    struct SegmentSectionKindInfo {};
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::Regular> {
-        constexpr static const auto Kind = SegmentSectionKind::Regular;
-
-        constexpr static const auto Name = std::string_view("S_REGULAR");
-        constexpr static const auto Description = std::string_view("Regular");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::ZeroFillOnDemand> {
-        constexpr static const auto Kind = SegmentSectionKind::ZeroFillOnDemand;
-
-        constexpr static const auto Name = std::string_view("S_ZEROFILL");
-        constexpr static const auto Description = std::string_view("Zerofill");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::CStringLiterals> {
-        constexpr static const auto Kind = SegmentSectionKind::CStringLiterals;
-
-        constexpr static const auto Name =
-            std::string_view("S_CSTRING_LITERALS");
-        constexpr static const auto Description =
-            std::string_view("C-String Literals");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::FourByteLiterals> {
-        constexpr static const auto Kind = SegmentSectionKind::FourByteLiterals;
-
-        constexpr static const auto Name = std::string_view("S_4BYTE_LITERALS");
-        constexpr static const auto Description =
-            std::string_view("Four-Byte Literal");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::EightByteLiterals> {
-        constexpr static const auto Kind =
-            SegmentSectionKind::EightByteLiterals;
-
-        constexpr static const auto Name = std::string_view("S_8BYTE_LITERALS");
-        constexpr static const auto Description =
-            std::string_view("Eight-Byte Literal");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::LiteralPointers> {
-        constexpr static const auto Kind = SegmentSectionKind::CStringLiterals;
-
-        constexpr static const auto Name =
-            std::string_view("S_LITERAL_POINTERS");
-        constexpr static const auto Description =
-            std::string_view("Literal Pointers");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::NonLazySymbolPointers> {
-        constexpr static const auto Kind =
-            SegmentSectionKind::NonLazySymbolPointers;
-
-        constexpr static const auto Name =
-            std::string_view("S_NON_LAZY_SYMBOL_POINTERS");
-        constexpr static const auto Description =
-            std::string_view("Non-Lazy Symbol-Pointers");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::LazySymbolPointers> {
-        constexpr static const auto Kind =
-            SegmentSectionKind::LazySymbolPointers;
-
-        constexpr static const auto Name =
-            std::string_view("S_LAZY_SYMBOL_POINTERS");
-        constexpr static const auto Description =
-            std::string_view("Lazy Symbol-Pointers");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::SymbolStubs> {
-        constexpr static const auto Kind = SegmentSectionKind::CStringLiterals;
-
-        constexpr static const auto Name = std::string_view("S_SYMBOL_STUBS");
-        constexpr static const auto Description =
-            std::string_view("Symbol Stubs");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::ModInitFunctionPointers> {
-        constexpr static const auto Kind =
-            SegmentSectionKind::ModInitFunctionPointers;
-
-        constexpr static const auto Name =
-            std::string_view("S_MOD_INIT_FUNC_POINTERS");
-        constexpr static const auto Description =
-            std::string_view("Mod-Init Function Pointers");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::ModTermFunctionPointers> {
-        constexpr static const auto Kind =
-            SegmentSectionKind::ModTermFunctionPointers;
-
-        constexpr static const auto Name =
-            std::string_view("S_MOD_TERM_FUNC_POINTERS");
-        constexpr static const auto Description =
-            std::string_view("Mod-Term Function Pointers");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::CoalescedSymbols> {
-        constexpr static const auto Kind = SegmentSectionKind::CoalescedSymbols;
-
-        constexpr static const auto Name = std::string_view("S_COALESCED");
-        constexpr static const auto Description =
-            std::string_view("Coalesced Symbols");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<
-        SegmentSectionKind::ZeroFillOnDemandGigaBytes>
-    {
-        constexpr static const auto Kind =
-            SegmentSectionKind::ZeroFillOnDemandGigaBytes;
-
-        constexpr static const auto Name = std::string_view("S_GB_ZEROFILL");
-        constexpr static const auto Description =
-            std::string_view("Zero-Fill (GigaBytes)");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::InterposingFunctions> {
-        constexpr static const auto Kind =
-            SegmentSectionKind::InterposingFunctions;
-
-        constexpr static const auto Name = std::string_view("S_INTERPOSING");
-        constexpr static const auto Description =
-            std::string_view("Interposing Functions");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::SixteenByteLiterals> {
-        constexpr static const auto Kind =
-            SegmentSectionKind::SixteenByteLiterals;
-
-        constexpr static const auto Name =
-            std::string_view("S_16BYTE_LITERALS");
-        constexpr static const auto Description =
-            std::string_view("16-Byte Literals");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::DTraceDOF> {
-        constexpr static const auto Kind = SegmentSectionKind::DTraceDOF;
-
-        constexpr static const auto Name = std::string_view("S_DTRACE_DOF");
-        constexpr static const auto Description =
-            std::string_view("DTrace DOFs");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::LazyDylibSymbolPointers> {
-        constexpr static const auto Kind = SegmentSectionKind::DTraceDOF;
-
-        constexpr static const auto Name =
-            std::string_view("S_LAZY_DYLIB_SYMBOL_POINTERS");
-        constexpr static const auto Description =
-            std::string_view("Lazy Dylib Lazy-Symbol Pointers");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::ThreadLocalRegular> {
-        constexpr static const auto Kind =
-            SegmentSectionKind::ThreadLocalRegular;
-
-        constexpr static const auto Name =
-            std::string_view("S_THREAD_LOCAL_REGULAR");
-        constexpr static const auto Description =
-            std::string_view("Thread-Local Regular");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::ThreadLocalZeroFill> {
-        constexpr static const auto Kind =
-            SegmentSectionKind::ThreadLocalZeroFill;
-
-        constexpr static const auto Name =
-            std::string_view("S_THREAD_LOCAL_ZEROFILL");
-        constexpr static const auto Description =
-            std::string_view("Thread-Local Zero-Fill");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::TheradLocalVariables> {
-        constexpr static const auto Kind =
-            SegmentSectionKind::TheradLocalVariables;
-
-        constexpr static const auto Name =
-            std::string_view("S_THREAD_LOCAL_VARIABLES");
-        constexpr static const auto Description =
-            std::string_view("Thread-Local Variables");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<
-        SegmentSectionKind::ThreadLocalVariablePointers>
-    {
-        constexpr static const auto Kind =
-            SegmentSectionKind::ThreadLocalVariablePointers;
-
-        constexpr static const auto Name =
-            std::string_view("S_THREAD_LOCAL_VARIABLE_POINTERS");
-        constexpr static const auto Description =
-            std::string_view("Thread-Local Variable-Pointers");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<
-        SegmentSectionKind::ThreadLocalInitFunctionPointers>
-    {
-        constexpr static const auto Kind =
-            SegmentSectionKind::ThreadLocalInitFunctionPointers;
-
-        constexpr static const auto Name =
-            std::string_view("S_THREAD_LOCAL_INIT_FUNCTION_POINTERS");
-        constexpr static const auto Description =
-            std::string_view("Thread-Local Init-Function Pointers");
-    };
-
-    template <>
-    struct SegmentSectionKindInfo<SegmentSectionKind::InitFunction32BitOffsets>
-    {
-        constexpr static const auto Kind =
-            SegmentSectionKind::InitFunction32BitOffsets;
-
-        constexpr static const auto Name =
-            std::string_view("S_INIT_FUNC_OFFSETS");
-        constexpr static const auto Description =
-            std::string_view("32-Bit Init Function Offsets");
-    };
-
     constexpr std::string_view
     SegmentSectionKindGetName(SegmentSectionKind Type) noexcept {
         using Enum = SegmentSectionKind;
         switch (Type) {
             case Enum::Regular:
-                return SegmentSectionKindInfo<Enum::Regular>::Name;
+                return "S_REGULAR";
             case Enum::ZeroFillOnDemand:
-                return SegmentSectionKindInfo<Enum::ZeroFillOnDemand>::Name;
+                return "S_ZEROFILL";
             case Enum::CStringLiterals:
-                return SegmentSectionKindInfo<Enum::CStringLiterals>::Name;
+                return "S_CSTRING_LITERALS";
             case Enum::FourByteLiterals:
-                return SegmentSectionKindInfo<Enum::FourByteLiterals>::Name;
+                return "S_4BYTE_LITERALS";
             case Enum::EightByteLiterals:
-                return SegmentSectionKindInfo<Enum::EightByteLiterals>::Name;
+                return "S_8BYTE_LITERALS";
             case Enum::LiteralPointers:
-                return SegmentSectionKindInfo<Enum::LiteralPointers>::Name;
+                return "S_LITERAL_POINTERS";
             case Enum::NonLazySymbolPointers:
-                return SegmentSectionKindInfo<
-                    Enum::NonLazySymbolPointers>::Name;
+                return "S_NON_LAZY_SYMBOL_POINTERS";
             case Enum::LazySymbolPointers:
-                return SegmentSectionKindInfo<Enum::LazySymbolPointers>::Name;
+                return "S_LAZY_SYMBOL_POINTERS";
             case Enum::SymbolStubs:
-                return SegmentSectionKindInfo<Enum::SymbolStubs>::Name;
+                return "S_SYMBOL_STUBS";
             case Enum::ModInitFunctionPointers:
-                return SegmentSectionKindInfo<
-                    Enum::ModInitFunctionPointers>::Name;
+                return "S_MOD_INIT_FUNC_POINTERS";
             case Enum::ModTermFunctionPointers:
-                return SegmentSectionKindInfo<
-                    Enum::ModTermFunctionPointers>::Name;
+                return "S_MOD_TERM_FUNC_POINTERS";
             case Enum::CoalescedSymbols:
-                return SegmentSectionKindInfo<Enum::CoalescedSymbols>::Name;
+                return "Coalesced Symbols";
             case Enum::ZeroFillOnDemandGigaBytes:
-                return SegmentSectionKindInfo<
-                    Enum::ZeroFillOnDemandGigaBytes>::Name;
+                return "Zero-Fill (GigaBytes)";
             case Enum::InterposingFunctions:
-                return SegmentSectionKindInfo<Enum::InterposingFunctions>::Name;
+                return "Interposing Functions";
             case Enum::SixteenByteLiterals:
-                return SegmentSectionKindInfo<Enum::SixteenByteLiterals>::Name;
+                return "S_16BYTE_LITERALS";
             case Enum::DTraceDOF:
-                return SegmentSectionKindInfo<Enum::DTraceDOF>::Name;
+                return "S_DTRACE_DOF";
             case Enum::LazyDylibSymbolPointers:
-                return SegmentSectionKindInfo<
-                    Enum::LazyDylibSymbolPointers>::Name;
+                return "S_THREAD_LOCAL_REGULAR";
             case Enum::ThreadLocalRegular:
-                return SegmentSectionKindInfo<Enum::ThreadLocalRegular>::Name;
+                return "S_THREAD_LOCAL_REGULAR";
             case Enum::ThreadLocalZeroFill:
-                return SegmentSectionKindInfo<Enum::ThreadLocalZeroFill>::Name;
+                return "S_THREAD_LOCAL_ZEROFILL";
             case Enum::TheradLocalVariables:
-                return SegmentSectionKindInfo<Enum::TheradLocalVariables>::Name;
+                return "S_THREAD_LOCAL_VARIABLES";
             case Enum::ThreadLocalVariablePointers:
-                return SegmentSectionKindInfo<
-                    Enum::ThreadLocalVariablePointers>::Name;
+                return "S_THREAD_LOCAL_VARIABLE_POINTERS";
             case Enum::ThreadLocalInitFunctionPointers:
-                return SegmentSectionKindInfo<
-                    Enum::ThreadLocalInitFunctionPointers>::Name;
+                return "S_THREAD_LOCAL_INIT_FUNCTION_POINTERS";
             case Enum::InitFunction32BitOffsets:
-                return SegmentSectionKindInfo<
-                    Enum::InitFunction32BitOffsets>::Name;
+                return "S_INIT_FUNC_OFFSETS";
         }
 
         return std::string_view();
@@ -721,82 +456,60 @@ namespace MachO {
         using Enum = SegmentSectionKind;
         switch (Type) {
             case Enum::Regular:
-                return SegmentSectionKindInfo<Enum::Regular>::Description;
+                return "Regular";
             case Enum::ZeroFillOnDemand:
-                return SegmentSectionKindInfo<
-                    Enum::ZeroFillOnDemand>::Description;
+                return "Zerofill";
             case Enum::CStringLiterals:
-                return SegmentSectionKindInfo<
-                    Enum::CStringLiterals>::Description;
+                return "C-String Literals";
             case Enum::FourByteLiterals:
-                return SegmentSectionKindInfo<
-                    Enum::FourByteLiterals>::Description;
+                return "Four-Byte Literal";
             case Enum::EightByteLiterals:
-                return SegmentSectionKindInfo<
-                    Enum::EightByteLiterals>::Description;
+                return "Eight-Byte Literal";
             case Enum::LiteralPointers:
-                return SegmentSectionKindInfo<
-                    Enum::LiteralPointers>::Description;
+                return "Literal Pointers";
             case Enum::NonLazySymbolPointers:
-                return SegmentSectionKindInfo<
-                    Enum::NonLazySymbolPointers>::Description;
+                return "Non-Lazy Symbol-Pointers";
             case Enum::LazySymbolPointers:
-                return SegmentSectionKindInfo<
-                    Enum::LazySymbolPointers>::Description;
+                return "Lazy Symbol-Pointers";
             case Enum::SymbolStubs:
-                return SegmentSectionKindInfo<
-                    Enum::SymbolStubs>::Description;
+                return "Symbol Stubs";
             case Enum::ModInitFunctionPointers:
-                return SegmentSectionKindInfo<
-                    Enum::ModInitFunctionPointers>::Description;
+                return "Mod-Init Function Pointers";
             case Enum::ModTermFunctionPointers:
-                return SegmentSectionKindInfo<
-                    Enum::ModTermFunctionPointers>::Description;
+                return "Mod-Term Function Pointers";
             case Enum::CoalescedSymbols:
-                return SegmentSectionKindInfo<
-                    Enum::CoalescedSymbols>::Description;
+                return "Coalesced Symbols";
             case Enum::ZeroFillOnDemandGigaBytes:
-                return SegmentSectionKindInfo<
-                    Enum::ZeroFillOnDemandGigaBytes>::Description;
+                return "Zero-Fill (GigaBytes)";
             case Enum::InterposingFunctions:
-                return SegmentSectionKindInfo<
-                    Enum::InterposingFunctions>::Description;
+                return "Interposing Functions";
             case Enum::SixteenByteLiterals:
-                return SegmentSectionKindInfo<
-                    Enum::SixteenByteLiterals>::Description;
+                return "16-Byte Literals";
             case Enum::DTraceDOF:
-                return SegmentSectionKindInfo<
-                    Enum::DTraceDOF>::Description;
+                return "DTrace DOFs";
             case Enum::LazyDylibSymbolPointers:
-                return SegmentSectionKindInfo<
-                    Enum::LazyDylibSymbolPointers>::Description;
+                return "Lazy Dylib Lazy-Symbol Pointers";
             case Enum::ThreadLocalRegular:
-                return SegmentSectionKindInfo<
-                    Enum::ThreadLocalRegular>::Description;
+                return "Thread-Local Regular";
             case Enum::ThreadLocalZeroFill:
-                return SegmentSectionKindInfo<
-                    Enum::ThreadLocalZeroFill>::Description;
+                return "Thread-Local Zero-Fill";
             case Enum::TheradLocalVariables:
-                return SegmentSectionKindInfo<
-                    Enum::TheradLocalVariables>::Description;
+                return "Thread-Local Variables";
             case Enum::ThreadLocalVariablePointers:
-                return SegmentSectionKindInfo<
-                    Enum::ThreadLocalVariablePointers>::Description;
+                return "Thread-Local Variable-Pointers";
             case Enum::ThreadLocalInitFunctionPointers:
-                return SegmentSectionKindInfo<
-                    Enum::ThreadLocalInitFunctionPointers>::Description;
+                return "Thread-Local Init-Function Pointers";
             case Enum::InitFunction32BitOffsets:
-                return SegmentSectionKindInfo<
-                    Enum::InitFunction32BitOffsets>::Description;
+                return "32-Bit Init Function Offsets";
         }
 
         return std::string_view();
     }
 
-    static const auto SegmentSectionUserSettableAttributesMask =
+    constexpr static inline auto SegmentSectionUserSettableAttributesMask =
         static_cast<uint32_t>(0xff000000);
 
-    static const auto SegmentSectionSystemSettableAttributesMask =
+    constexpr static inline auto SegmentSectionSystemSettableAttributesMask =
         static_cast<uint32_t>(0xff000000);
 
     enum class SegmentSectionAttributesMasks : uint32_t {
@@ -819,119 +532,119 @@ namespace MachO {
     private:
         using Base = ::BasicFlags<SegmentSectionAttributesMasks>;
     public:
-        using MaskType = SegmentSectionAttributesMasks;
-        using MaskIntegerType = std::underlying_type_t<MaskType>;
+        using MaskKind = SegmentSectionAttributesMasks;
+        using MaskIntegerType = std::underlying_type_t<MaskKind>;
 
         using Base::Base;
 
         [[nodiscard]]
         constexpr inline bool isAllInstructions() const noexcept {
-            return hasValueForMask(MaskType::IsAllInstructions);
+            return hasValueForMask(MaskKind::IsAllInstructions);
         }
 
         [[nodiscard]]
         constexpr inline bool noRanlibTableOfContents() const noexcept {
             const auto NoRanlibTableOfContents =
-                hasValueForMask(MaskType::NoRanlibTableOfContents);
+                hasValueForMask(MaskKind::NoRanlibTableOfContents);
 
             return NoRanlibTableOfContents;
         }
 
         [[nodiscard]]
         constexpr inline bool shouldStripStaticSymbols() const noexcept {
-            return hasValueForMask(MaskType::StripStaticSymbols);
+            return hasValueForMask(MaskKind::StripStaticSymbols);
         }
 
         [[nodiscard]] constexpr inline bool noDeadStripping() const noexcept {
-            return hasValueForMask(MaskType::NoDeadStripping);
+            return hasValueForMask(MaskKind::NoDeadStripping);
         }
 
         [[nodiscard]] constexpr inline bool hasLiveSupport() const noexcept {
-            return hasValueForMask(MaskType::LiveSupport);
+            return hasValueForMask(MaskKind::LiveSupport);
         }
 
         [[nodiscard]]
         constexpr inline bool hasSelfModifyingCode() const noexcept {
-            return hasValueForMask(MaskType::SelfModifyingCode);
+            return hasValueForMask(MaskKind::SelfModifyingCode);
         }
 
         [[nodiscard]] constexpr inline bool isDebugSection() const noexcept {
-            return hasValueForMask(MaskType::IsDebugSection);
+            return hasValueForMask(MaskKind::IsDebugSection);
         }
 
         [[nodiscard]]
         constexpr inline bool hasSomeInstructions() const noexcept {
-            return hasValueForMask(MaskType::HasSomeInstructions);
+            return hasValueForMask(MaskKind::HasSomeInstructions);
         }
 
         [[nodiscard]]
         constexpr inline bool hasExternalRelocEntries() const noexcept {
-            return hasValueForMask(MaskType::HasExternalRelocEntries);
+            return hasValueForMask(MaskKind::HasExternalRelocEntries);
         }
 
         [[nodiscard]]
         constexpr inline bool hasLocalRelocEntries() const noexcept {
-            return hasValueForMask(MaskType::HasLocalRelocEntries);
+            return hasValueForMask(MaskKind::HasLocalRelocEntries);
         }
 
         constexpr inline SegmentSectionAttributes &
         setIsAllInstructions(bool Value = true) noexcept {
-            setValueForMask(MaskType::IsAllInstructions, Value);
+            setValueForMask(MaskKind::IsAllInstructions, Value);
             return *this;
         }
 
         constexpr inline SegmentSectionAttributes &
         setNoRanlibTableOfContents(bool Value) noexcept {
-            setValueForMask(MaskType::NoRanlibTableOfContents, Value);
+            setValueForMask(MaskKind::NoRanlibTableOfContents, Value);
             return *this;
         }
 
         constexpr inline SegmentSectionAttributes &
         setStripStaticSymbols(bool Value = true) noexcept {
-            setValueForMask(MaskType::StripStaticSymbols, Value);
+            setValueForMask(MaskKind::StripStaticSymbols, Value);
             return *this;
         }
 
         constexpr inline SegmentSectionAttributes &
         setNoDeadStripping(bool Value = true) noexcept {
-            setValueForMask(MaskType::NoDeadStripping, Value);
+            setValueForMask(MaskKind::NoDeadStripping, Value);
             return *this;
         }
 
         constexpr inline
         SegmentSectionAttributes &setLiveSupport(bool Value = true) noexcept {
-            setValueForMask(MaskType::LiveSupport, Value);
+            setValueForMask(MaskKind::LiveSupport, Value);
             return *this;
         }
 
         constexpr inline SegmentSectionAttributes &
         setSelfModifyingCode(bool Value = true) noexcept {
-            setValueForMask(MaskType::SelfModifyingCode, Value);
+            setValueForMask(MaskKind::SelfModifyingCode, Value);
             return *this;
         }
 
         constexpr inline SegmentSectionAttributes &
         setIsDebugSection(bool Value = true) noexcept {
-            setValueForMask(MaskType::IsDebugSection, Value);
+            setValueForMask(MaskKind::IsDebugSection, Value);
             return *this;
         }
 
         constexpr inline SegmentSectionAttributes &
         setHasSomeInstructions(bool Value = true) noexcept {
-            setValueForMask(MaskType::HasSomeInstructions, Value);
+            setValueForMask(MaskKind::HasSomeInstructions, Value);
             return *this;
         }
 
         constexpr inline SegmentSectionAttributes &
         setHasExternalRelocEntries(bool Value = true) noexcept {
-            setValueForMask(MaskType::HasExternalRelocEntries, Value);
+            setValueForMask(MaskKind::HasExternalRelocEntries, Value);
             return *this;
         }
 
         constexpr inline
         SegmentSectionAttributes &
         setHasLocalRelocEntries(bool Value = true) noexcept {
-            setValueForMask(MaskType::HasLocalRelocEntries, Value);
+            setValueForMask(MaskKind::HasLocalRelocEntries, Value);
             return *this;
         }
     };

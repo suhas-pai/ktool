@@ -16,7 +16,7 @@ using namespace std::literals;
 
 struct PrintSharedLibrariesOperation : public Operation {
 public:
-    constexpr static const auto OpKind = OperationKind::PrintSharedLibraries;
+    constexpr static auto OpKind = OperationKind::PrintSharedLibraries;
 
     [[nodiscard]]
     constexpr static inline bool IsOfKind(const Operation &Op) noexcept {

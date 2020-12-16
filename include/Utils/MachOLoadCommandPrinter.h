@@ -97,8 +97,8 @@ __MLCP_WriteSizeDiff(FILE *OutFile,
     static_assert(std::is_same_v<SizeOneType, SizeTwoType>,
                   "SizeOneType and SizeTwoSize muwt be the same type");
 
-    constexpr static const auto WriteLengthMax = LENGTH_OF(" (+000000");
-    constexpr static const auto WriteMax =
+    constexpr static auto WriteLengthMax = LENGTH_OF(" (+000000");
+    constexpr static auto WriteMax =
         WriteLengthMax + LENGTH_OF(" Bytes)");
 
     if (SizeOne == SizeTwo) {
@@ -839,8 +839,7 @@ MachOLoadCommandPrinterWriteDylibCommand(FILE *OutFile,
 }
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LoadDylib>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LoadDylib> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::LoadDylib>;
@@ -863,8 +862,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LoadDylib>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::IdDylib>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::IdDylib> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::IdDylib>;
@@ -887,8 +885,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::IdDylib>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LoadDylinker>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LoadDylinker> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::LoadDylinker>;
@@ -914,8 +911,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LoadDylinker>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::IdDylinker>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::IdDylinker> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::IdDylinker>;
@@ -941,8 +937,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::IdDylinker>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::PreBoundDylib>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::PreBoundDylib> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::PreBoundDylib>;
@@ -968,8 +963,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::PreBoundDylib>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Routines>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Routines> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<MachO::LoadCommand::Kind::Routines>;
 
@@ -990,8 +984,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Routines>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Routines64>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Routines64> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::Routines64>;
@@ -1013,8 +1006,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Routines64>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubFramework>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubFramework> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::SubFramework>;
@@ -1040,8 +1032,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubFramework>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubUmbrella>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubUmbrella> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::SubUmbrella>;
@@ -1065,8 +1056,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubUmbrella>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubClient>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubClient> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::SubClient>;
@@ -1092,8 +1082,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubClient>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubLibrary>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubLibrary> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::SubLibrary>;
@@ -1119,8 +1108,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SubLibrary>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::TwoLevelHints>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::TwoLevelHints> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::TwoLevelHints>;
@@ -1167,8 +1155,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::TwoLevelHints>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::PrebindChecksum>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::PrebindChecksum> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::PrebindChecksum>;
@@ -1192,8 +1179,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::PrebindChecksum>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Uuid>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Uuid> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<MachO::LoadCommand::Kind::Uuid>;
 
@@ -1216,8 +1202,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Uuid>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LoadWeakDylib>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LoadWeakDylib> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::LoadWeakDylib>;
@@ -1240,8 +1225,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LoadWeakDylib>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Rpath>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Rpath> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<MachO::LoadCommand::Kind::Rpath>;
 
@@ -1290,8 +1274,7 @@ MachOLoadCommandPrinterWriteLinkeditCmd(
 }
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::CodeSignature>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::CodeSignature> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::CodeSignature>;
@@ -1315,8 +1298,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::CodeSignature>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SegmentSplitInfo>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SegmentSplitInfo> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::SegmentSplitInfo>;
@@ -1340,8 +1322,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SegmentSplitInfo>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::ReexportDylib>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::ReexportDylib> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::ReexportDylib>;
@@ -1364,8 +1345,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::ReexportDylib>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LazyLoadDylib>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LazyLoadDylib> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::LazyLoadDylib>;
@@ -1413,8 +1393,7 @@ MachOLoadCommandPrinterWriteEncryptionInfoCmd(
 }
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::EncryptionInfo>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::EncryptionInfo> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::EncryptionInfo>;
@@ -1437,8 +1416,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::EncryptionInfo>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::EncryptionInfo64>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::EncryptionInfo64> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::EncryptionInfo64>;
@@ -1489,8 +1467,8 @@ PrintDyldInfoField(FILE *OutFile,
                    uint32_t Offset,
                    uint32_t Size)
 {
-    constexpr static const auto Prefix = std::string_view("No ");
-    constexpr static const auto LongestNameLength =
+    constexpr static auto Prefix = std::string_view("No ");
+    constexpr static auto LongestNameLength =
         DyldInfoWeakBindNameLength;
 
     static_assert(NameLength <= LongestNameLength,
@@ -1579,8 +1557,7 @@ MachOLoadCommandPrinterWriteDyldInfoCmd(
 }
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldInfo>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldInfo> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<MachO::LoadCommand::Kind::DyldInfo>;
 
@@ -1600,8 +1577,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldInfo>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldInfoOnly>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldInfoOnly> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::DyldInfoOnly>;
@@ -1622,8 +1598,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldInfoOnly>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LoadUpwardDylib>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LoadUpwardDylib> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::LoadUpwardDylib>;
@@ -1671,8 +1646,7 @@ MachOLoadCommandPrinterWriteVersionMinimumCmd(
 }
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::VersionMinimumMacOSX>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::VersionMinimumMacOSX> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::VersionMinimumMacOSX>;
@@ -1719,8 +1693,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::VersionMinimumIPhoneOS>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::FunctionStarts>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::FunctionStarts> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::FunctionStarts>;
@@ -1764,8 +1737,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::FunctionStarts>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldEnvironment>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldEnvironment> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::DyldEnvironment>;
@@ -1792,8 +1764,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldEnvironment>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Main>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Main> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<MachO::LoadCommand::Kind::Main>;
 
@@ -1820,8 +1791,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Main>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DataInCode>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DataInCode> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::DataInCode>;
@@ -1845,8 +1815,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DataInCode>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SourceVersion>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SourceVersion> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::SourceVersion>;
@@ -1882,8 +1851,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::SourceVersion>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DylibCodeSignDRS>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DylibCodeSignDRS> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::DylibCodeSignDRS>;
@@ -1905,8 +1873,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DylibCodeSignDRS>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LinkerOption>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LinkerOption> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::LinkerOption>;
@@ -1953,8 +1920,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::LinkerOptimizationHint>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::VersionMinimumTvOS>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::VersionMinimumTvOS> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::VersionMinimumTvOS>;
@@ -2001,8 +1967,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::VersionMinimumWatchOS>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Note>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Note> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<MachO::LoadCommand::Kind::Note>;
 
@@ -2042,8 +2007,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Note>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::BuildVersion>;
@@ -2122,8 +2086,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldExportsTrie>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldExportsTrie> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::DyldExportsTrie>;
@@ -2145,8 +2108,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldExportsTrie>
 };
 
 template <>
-struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldChainedFixups>
-{
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldChainedFixups> {
     using LCKindInfo =
         typename MachO::LoadCommandKindInfo<
             MachO::LoadCommand::Kind::DyldChainedFixups>;
@@ -2163,6 +2125,45 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::DyldChainedFixups>
     {
         MachOLoadCommandPrinterWriteLinkeditCmd<LCKindInfo, true>(
             OutFile, FileRange, Dylib, IsBigEndian, Is64Bit, Verbose, nullptr);
+        fputc('\n', OutFile);
+    }
+};
+
+template <>
+struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::FileSetEntry> {
+    using LCKindInfo =
+        typename MachO::LoadCommandKindInfo<
+            MachO::LoadCommand::Kind::FileSetEntry>;
+
+    using LCType = LCKindInfo::Type;
+
+    static void
+    Print(FILE *OutFile,
+          const RelativeRange &FileRange,
+          const LCType &Entry,
+          bool IsBigEndian,
+          bool Is64Bit,
+          bool Verbose) noexcept
+    {
+        MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
+                                                               Verbose);
+
+        MachOLoadCommandPrinterWriteLoadCommandStringAsDesc(
+            OutFile,
+            Entry.GetEntryID(IsBigEndian));
+
+        fprintf(OutFile,
+                "VmAddr:      " OFFSET_64_FMT "\n",
+                Entry.getVmAddr(IsBigEndian));
+
+        fprintf(OutFile,
+                "File-Offset: " OFFSET_64_FMT "\n",
+                Entry.getFileOffset(IsBigEndian));
+
+        fprintf(OutFile,
+                "Reserved:    " OFFSET_32_FMT "\n",
+                Entry.getReserved(IsBigEndian));
+
         fputc('\n', OutFile);
     }
 };

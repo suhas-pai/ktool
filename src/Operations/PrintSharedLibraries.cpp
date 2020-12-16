@@ -212,6 +212,7 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
             case MachO::LoadCommand::Kind::BuildVersion:
             case MachO::LoadCommand::Kind::DyldExportsTrie:
             case MachO::LoadCommand::Kind::DyldChainedFixups:
+            case MachO::LoadCommand::Kind::FileSetEntry:
                 break;
         }
 

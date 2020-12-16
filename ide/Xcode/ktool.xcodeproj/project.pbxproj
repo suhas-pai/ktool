@@ -54,7 +54,6 @@
 		F3DC4DA52452720A0063906C /* PrintSharedLibraries.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3DC4DA42452720A0063906C /* PrintSharedLibraries.cpp */; };
 		F3DC4DA7245272220063906C /* Common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3DC4DA6245272220063906C /* Common.cpp */; };
 		F3DC4DAD2452E4780063906C /* PrintId.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3DC4DAC2452E4780063906C /* PrintId.cpp */; };
-		F3DC4DB02452F48F0063906C /* Timestamp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3DC4DAF2452F48F0063906C /* Timestamp.cpp */; };
 		F3DDCBDC2442A08B0051ADD0 /* PrintHeader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3DDCBDA2442A08A0051ADD0 /* PrintHeader.cpp */; };
 /* End PBXBuildFile section */
 
@@ -221,7 +220,6 @@
 		F3DC4DA92452E3F60063906C /* PrintId.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintId.h; path = ../../include/Operations/PrintId.h; sourceTree = "<group>"; };
 		F3DC4DAC2452E4780063906C /* PrintId.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintId.cpp; path = ../../src/Operations/PrintId.cpp; sourceTree = "<group>"; };
 		F3DC4DAE2452F4760063906C /* Timestamp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Timestamp.h; path = ../../include/Utils/Timestamp.h; sourceTree = "<group>"; };
-		F3DC4DAF2452F48F0063906C /* Timestamp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Timestamp.cpp; path = ../../src/Utils/Timestamp.cpp; sourceTree = "<group>"; };
 		F3DC4DB12453D5910063906C /* MiscTemplates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MiscTemplates.h; path = ../../include/Utils/MiscTemplates.h; sourceTree = "<group>"; };
 		F3DDCBDA2442A08A0051ADD0 /* PrintHeader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintHeader.cpp; path = ../../src/Operations/PrintHeader.cpp; sourceTree = "<group>"; };
 		F3EA2DCE244CB88600ACA736 /* CpuSubKindInfoTemplates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CpuSubKindInfoTemplates.h; path = ../../include/ADT/Mach/CpuSubKindInfoTemplates.h; sourceTree = "<group>"; };
@@ -498,7 +496,6 @@
 			children = (
 				F39A9877245FE4F4002C229F /* Path.cpp */,
 				F38FCE662488D88600920AB1 /* PrintUtils.cpp */,
-				F3DC4DAF2452F48F0063906C /* Timestamp.cpp */,
 				F38FCE632487793B00920AB1 /* SwapRanges.cpp */,
 			);
 			name = Utils;
@@ -672,7 +669,6 @@
 				F38FCE672488D88600920AB1 /* PrintUtils.cpp in Sources */,
 				F3BB3090247706AB00706267 /* SharedLibraryUtil.cpp in Sources */,
 				F3A2D2A0249B2163005DA2D0 /* BindUtil.cpp in Sources */,
-				F3DC4DB02452F48F0063906C /* Timestamp.cpp in Sources */,
 				F314A9DE24AFF67C00796991 /* PrintSymbolPtrSection.cpp in Sources */,
 				F3B196322439B34200AE997A /* Base.cpp in Sources */,
 				F300066424BC31D3008EE096 /* DscImageMemory.cpp in Sources */,

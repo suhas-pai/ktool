@@ -1444,33 +1444,31 @@ namespace Mach {
     }
 
     namespace CpuSubKind {
-        constexpr inline std::string_view EmptyStringView = std::string_view();
-
-        [[nodiscard]] constexpr const std::string_view &
+        [[nodiscard]] constexpr inline std::string_view
         GetName(CpuKind CpuKind, int32_t CpuSubKind) noexcept {
             if (auto *Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->Name;
             }
 
-            return EmptyStringView;
+            return std::string_view();
         }
 
-        [[nodiscard]] constexpr const std::string_view &
+        [[nodiscard]] constexpr inline std::string_view
         GetFullName(CpuKind CpuKind, int32_t CpuSubKind) noexcept {
             if (auto *Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->FullName;
             }
 
-            return EmptyStringView;
+            return std::string_view();
         }
 
-        [[nodiscard]] constexpr const std::string_view &
+        [[nodiscard]] constexpr inline std::string_view
         GetDescription(CpuKind CpuKind, int32_t CpuSubKind) noexcept {
             if (auto *Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->Description;
             }
 
-            return EmptyStringView;
+            return std::string_view();
         }
     }
 }

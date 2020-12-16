@@ -29,176 +29,56 @@ namespace MachO {
         DoRebaseUlebTimesSkipUleb = 0x80
     };
 
-    using namespace std::literals;
-
-    template <RebaseByteOpcode>
-    struct RebaseByteOpcodeInfo {};
-
-    template <>
-    struct RebaseByteOpcodeInfo<RebaseByteOpcode::Done> {
-        constexpr static const auto Kind = RebaseByteOpcode::Done;
-
-        constexpr static const auto Name = "REBASE_OPCODE_DONE"sv;
-        constexpr static const auto Description = "Done"sv;
-    };
-
-    template <>
-    struct RebaseByteOpcodeInfo<RebaseByteOpcode::SetKindImm> {
-        constexpr static const auto Kind = RebaseByteOpcode::SetKindImm;
-
-        constexpr static const auto Name = "REBASE_OPCODE_SET_TYPE_IMM"sv;
-        constexpr static const auto Description =
-            "Set Special Dylib-Ordinal (Immediate)"sv;
-    };
-
-    template <>
-    struct RebaseByteOpcodeInfo<RebaseByteOpcode::SetSegmentAndOffsetUleb> {
-        constexpr static const auto Kind =
-            RebaseByteOpcode::SetSegmentAndOffsetUleb;
-
-        constexpr static const auto Name =
-            "REBASE_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB"sv;
-        constexpr static const auto Description =
-            "Set Addend (Sleb128)"sv;
-    };
-
-    template <>
-    struct RebaseByteOpcodeInfo<RebaseByteOpcode::AddAddrUleb> {
-        constexpr static const auto Kind = RebaseByteOpcode::AddAddrUleb;
-
-        constexpr static const auto Name = "REBASE_OPCODE_ADD_ADDR_ULEB"sv;
-        constexpr static const auto Description = "Add Address (Uleb128)"sv;
-    };
-
-    template <>
-    struct RebaseByteOpcodeInfo<RebaseByteOpcode::AddAddrImmScaled> {
-        constexpr static const auto Kind = RebaseByteOpcode::AddAddrImmScaled;
-
-        constexpr static const auto Name =
-            "REBASE_OPCODE_ADD_ADDR_IMM_SCALED"sv;
-        constexpr static const auto Description =
-            "Add Address Scaled (Immediate)"sv;
-    };
-
-    template <>
-    struct RebaseByteOpcodeInfo<RebaseByteOpcode::DoRebaseAddAddrUleb> {
-        constexpr static const auto Kind = RebaseByteOpcode::DoRebaseAddAddrUleb;
-
-        constexpr static const auto Name =
-            "REBASE_OPCODE_DO_REBASE_ADD_ADDR_ULEB"sv;
-        constexpr static const auto Description =
-            "Do Rebase And Add Address (Uleb)"sv;
-    };
-
-    template <>
-    struct RebaseByteOpcodeInfo<RebaseByteOpcode::DoRebaseImmTimes> {
-        constexpr static const auto Kind = RebaseByteOpcode::DoRebaseImmTimes;
-        constexpr static const auto Name =
-            "REBASE_OPCODE_DO_REBASE_IMM_TIMES"sv;
-        constexpr static const auto Description =
-            "Do Rebase Multiple Times (Immediate) "sv;
-    };
-
-    template <>
-    struct RebaseByteOpcodeInfo<RebaseByteOpcode::DoRebaseUlebTimes> {
-        constexpr static const auto Kind = RebaseByteOpcode::DoRebaseUlebTimes;
-        constexpr static const auto Name =
-            "REBASE_OPCODE_DO_REBASE_ULEB_TIMES"sv;
-        constexpr static const auto Description =
-            "Do Rebase Uleb128 Times (Immediate) "sv;
-    };
-
-    template <>
-    struct RebaseByteOpcodeInfo<RebaseByteOpcode::DoRebaseUlebTimesSkipUleb> {
-        constexpr static const auto Kind =
-            RebaseByteOpcode::DoRebaseUlebTimesSkipUleb;
-        constexpr static const auto Name =
-            "REBASE_OPCODE_DO_REBASE_ULEB_TIMES_SKIP_ULEB"sv;
-        constexpr static const auto Description =
-            "Do Rebase Uleb128 times Skipping Uleb128 Bytes"sv;
-    };
-
-    [[nodiscard]] constexpr const std::string_view &
-    RebaseByteOpcodeGetName(RebaseByteOpcode Opcode) noexcept {
+    [[nodiscard]] constexpr
+    std::string_view RebaseByteOpcodeGetName(RebaseByteOpcode Opcode) noexcept {
         switch (Opcode) {
             case RebaseByteOpcode::Done:
-                return RebaseByteOpcodeInfo<RebaseByteOpcode::Done>::Name;
+                return "REBASE_OPCODE_DONE";
             case RebaseByteOpcode::SetKindImm:
-                return RebaseByteOpcodeInfo<RebaseByteOpcode::SetKindImm>::Name;
+                return "REBASE_OPCODE_SET_TYPE_IMM";
             case RebaseByteOpcode::SetSegmentAndOffsetUleb:
-                return
-                    RebaseByteOpcodeInfo<
-                        RebaseByteOpcode::SetSegmentAndOffsetUleb>::Name;
+                return "REBASE_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB";
             case RebaseByteOpcode::AddAddrImmScaled:
-                return
-                    RebaseByteOpcodeInfo<RebaseByteOpcode::AddAddrImmScaled>
-                        ::Name;
+                return "REBASE_OPCODE_ADD_ADDR_ULEB";
             case RebaseByteOpcode::AddAddrUleb:
-                return
-                    RebaseByteOpcodeInfo<RebaseByteOpcode::AddAddrUleb>::Name;
+                return "REBASE_OPCODE_ADD_ADDR_IMM_SCALED";
             case RebaseByteOpcode::DoRebaseAddAddrUleb:
-                return
-                    RebaseByteOpcodeInfo<RebaseByteOpcode::DoRebaseAddAddrUleb>
-                        ::Name;
+                return "REBASE_OPCODE_DO_REBASE_ADD_ADDR_ULEB";
             case RebaseByteOpcode::DoRebaseImmTimes:
-                return
-                    RebaseByteOpcodeInfo<RebaseByteOpcode::DoRebaseImmTimes>
-                        ::Name;
+                return "REBASE_OPCODE_DO_REBASE_IMM_TIMES";
             case RebaseByteOpcode::DoRebaseUlebTimes:
-                return
-                    RebaseByteOpcodeInfo<RebaseByteOpcode::DoRebaseUlebTimes>
-                        ::Name;
+                return "REBASE_OPCODE_DO_REBASE_ULEB_TIMES";
             case RebaseByteOpcode::DoRebaseUlebTimesSkipUleb:
-                return
-                    RebaseByteOpcodeInfo<
-                        RebaseByteOpcode::DoRebaseUlebTimesSkipUleb>::Name;
+                return "REBASE_OPCODE_DO_REBASE_ULEB_TIMES_SKIP_ULEB";
         }
 
-        return EmptyStringValue;
+        return std::string_view();
     }
 
-    [[nodiscard]] constexpr std::string_view
-    RebaseByteOpcodeGetDescription(RebaseByteOpcode Opcode) noexcept {
+    [[nodiscard]] constexpr
+    std::string_view RebaseByteOpcodeGetDesc(RebaseByteOpcode Opcode) noexcept {
         switch (Opcode) {
             case RebaseByteOpcode::Done:
-                return
-                    RebaseByteOpcodeInfo<RebaseByteOpcode::Done>::Description;
+                return "Done";
             case RebaseByteOpcode::SetKindImm:
-                return
-                    RebaseByteOpcodeInfo<RebaseByteOpcode::SetKindImm>
-                        ::Description;
+                return "Set Special Dylib-Ordinal (Immediate)";
             case RebaseByteOpcode::SetSegmentAndOffsetUleb:
-                return
-                    RebaseByteOpcodeInfo<
-                        RebaseByteOpcode::SetSegmentAndOffsetUleb>::Description;
+                return "Set Segment and Offset (Uleb128)";
             case RebaseByteOpcode::AddAddrImmScaled:
-                return
-                    RebaseByteOpcodeInfo<RebaseByteOpcode::AddAddrImmScaled>
-                        ::Description;
+                return "Add Address Scaled (Immediate)";
             case RebaseByteOpcode::AddAddrUleb:
-                return
-                    RebaseByteOpcodeInfo<RebaseByteOpcode::AddAddrUleb>
-                        ::Description;
+                return "Add Address (Uleb128)";
             case RebaseByteOpcode::DoRebaseAddAddrUleb:
-                return
-                    RebaseByteOpcodeInfo<RebaseByteOpcode::DoRebaseAddAddrUleb>
-                        ::Description;
+                return "Do Rebase And Add Address (Uleb)";
             case RebaseByteOpcode::DoRebaseImmTimes:
-                return
-                    RebaseByteOpcodeInfo<RebaseByteOpcode::DoRebaseImmTimes>
-                        ::Description;
+                return "Do Rebase Multiple Times (Immediate) ";
             case RebaseByteOpcode::DoRebaseUlebTimes:
-                return
-                    RebaseByteOpcodeInfo<RebaseByteOpcode::DoRebaseUlebTimes>
-                        ::Description;
+                return "Do Rebase Uleb128 Times (Immediate) ";
             case RebaseByteOpcode::DoRebaseUlebTimesSkipUleb:
-                return
-                    RebaseByteOpcodeInfo<
-                        RebaseByteOpcode::DoRebaseUlebTimesSkipUleb>
-                            ::Description;
+                return "Do Rebase Uleb128 times Skipping Uleb128 Bytes";
         }
 
-        return EmptyStringValue;
+        return std::string_view();
     }
 
     enum class RebaseWriteKind : uint8_t {
@@ -208,74 +88,42 @@ namespace MachO {
         TextPcrel32
     };
 
-    template <RebaseWriteKind>
-    struct RebaseWriteKindInfo {};
-
-    template <>
-    struct RebaseWriteKindInfo<RebaseWriteKind::Pointer> {
-        constexpr static const auto Kind = RebaseWriteKind::Pointer;
-
-        constexpr static const auto Name =
-            std::string_view("REBASE_TYPE_POINTER");
-        constexpr static const auto Description = std::string_view("Pointer");
-    };
-
-    template <>
-    struct RebaseWriteKindInfo<RebaseWriteKind::TextAbsolute32> {
-        constexpr static const auto Kind = RebaseWriteKind::TextAbsolute32;
-
-        constexpr static const auto Name =
-            std::string_view("REBASE_TYPE_TEXT_ABSOLUTE32");
-        constexpr static const auto Description =
-            std::string_view("Text Absolute (32-Bit)");
-    };
-
-    template <>
-    struct RebaseWriteKindInfo<RebaseWriteKind::TextPcrel32> {
-        constexpr static const auto Kind = RebaseWriteKind::TextPcrel32;
-
-        constexpr static const auto Name =
-            std::string_view("REBASE_TYPE_TEXT_PCREL32");
-        constexpr static const auto Description =
-            std::string_view("PC Relative (32-Bit)");
-    };
-
-    [[nodiscard]] constexpr static const std::string_view &
+    [[nodiscard]] constexpr std::string_view
     RebaseWriteKindGetName(RebaseWriteKind Kind) noexcept {
         using Enum = RebaseWriteKind;
         switch (Kind) {
             case Enum::None:
-                return EmptyStringValue;
+                break;
             case Enum::Pointer:
-                return RebaseWriteKindInfo<Enum::Pointer>::Name;
+                return "REBASE_TYPE_POINTER";
             case Enum::TextAbsolute32:
-                return RebaseWriteKindInfo<Enum::TextAbsolute32>::Name;
+                return "REBASE_TYPE_TEXT_ABSOLUTE32";
             case Enum::TextPcrel32:
-                return RebaseWriteKindInfo<Enum::TextPcrel32>::Name;
+                return "REBASE_TYPE_TEXT_PCREL32";
         }
 
-        return EmptyStringValue;
+        return std::string_view();
     }
 
-    [[nodiscard]] constexpr const std::string_view &
+    [[nodiscard]] constexpr std::string_view
     RebaseWriteKindGetDescription(RebaseWriteKind Kind) noexcept {
         using Enum = RebaseWriteKind;
         switch (Kind) {
             case Enum::None:
-                return EmptyStringValue;
+                break;
             case Enum::Pointer:
-                return RebaseWriteKindInfo<Enum::Pointer>::Description;
+                return "Pointer";
             case Enum::TextAbsolute32:
-                return RebaseWriteKindInfo<Enum::TextAbsolute32>::Description;
+                return "Text Absolute (32-Bit)";
             case Enum::TextPcrel32:
-                return RebaseWriteKindInfo<Enum::TextPcrel32>::Description;
+                return "PC Relative (32-Bit)";
         }
 
-        return EmptyStringValue;
+        return std::string_view();
     }
 
     [[nodiscard]]
-    constexpr uint64_t RebaseWriteKindGetLongestDescription() noexcept {
+    constexpr inline uint64_t RebaseWriteKindGetLongestDescription() noexcept {
         const auto Result =
             EnumHelper<RebaseWriteKind>::GetLongestAssocLength(
                 RebaseWriteKindGetName);
@@ -291,7 +139,7 @@ namespace MachO {
     };
 
     struct RebaseByte : private DyldInfoByteMasksAndShiftsHandler {
-        constexpr static const auto DoneOpcode = RebaseByteOpcode::Done;
+        constexpr static inline auto DoneOpcode = RebaseByteOpcode::Done;
     public:
         constexpr RebaseByte() noexcept = default;
         constexpr RebaseByte(uint8_t Byte) noexcept

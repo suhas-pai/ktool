@@ -42,7 +42,7 @@ IterateLoadCommands(
 
     for (const auto &LC : LoadCmdStorage) {
         fprintf(Options.OutFile, "LC %02d: ", LoadCmdCounter);
-        if (!LC.hasValidKind(IsBigEndian)) {
+        if (!LC.hasRecognizedKind(IsBigEndian)) {
             fprintf(Options.OutFile,
                     "Unrecognized LoadCmd (Kind-Number: %" PRIu32 ")\n",
                     LC.getCmd(IsBigEndian));
@@ -471,9 +471,16 @@ IterateLoadCommands(
                 MachOLoadCommandPrinter<
                     MachO::LoadCommand::Kind::DyldChainedFixups>::Print(
                         Options.OutFile, Range,
-                        LC.cast<
-                            MachO::LoadCommand::Kind::DyldChainedFixups>(
-                                IsBigEndian),
+                        LC.cast<MachO::LoadCommand::Kind::DyldChainedFixups>(
+                            IsBigEndian),
+                        IsBigEndian, Is64Bit, Options.Verbose);
+                break;
+            case MachO::LoadCommand::Kind::FileSetEntry:
+                MachOLoadCommandPrinter<
+                    MachO::LoadCommand::Kind::FileSetEntry>::Print(
+                        Options.OutFile, Range,
+                        LC.cast<MachO::LoadCommand::Kind::FileSetEntry>(
+                            IsBigEndian),
                         IsBigEndian, Is64Bit, Options.Verbose);
                 break;
         }
