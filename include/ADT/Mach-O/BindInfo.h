@@ -65,8 +65,7 @@ namespace MachO {
             case Enum::DoBindAddAddrImmScaled:
                 return "BIND_OPCODE_DO_BIND_ADD_ADDR_IMM_SCALED";
             case Enum::DoBindUlebTimesSkippingUleb:
-                return
-                "BIND_OPCODE_DO_BIND_ULEB_TIMES_SKIPPING_ULEB";
+                return "BIND_OPCODE_DO_BIND_ULEB_TIMES_SKIPPING_ULEB";
             case Enum::Threaded:
                 return "Threaded";
         }
@@ -778,7 +777,6 @@ namespace MachO {
                 case ErrorEnum::NoSegmentIndex:
                 case ErrorEnum::NoWriteKind:
                     return true;
-
                 case ErrorEnum::InvalidLeb128:
                 case ErrorEnum::InvalidString:
                 case ErrorEnum::IllegalBindOpcode:
