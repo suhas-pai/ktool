@@ -9,7 +9,7 @@
 #pragma once
 
 #include "LoadCommands.h"
-#include <_types/_uint32_t.h>
+#include <stdint.h>
 
 namespace MachO {
     struct SharedLibraryInfo {
