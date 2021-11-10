@@ -18,7 +18,7 @@ namespace Mach {
 
     using namespace std::literals;
 
-    constexpr inline auto EmptyStringValue = std::string_view();
+    constexpr auto EmptyStringValue = std::string_view();
 
     template <>
     struct CpuKindTemplateInfo<CpuKind::Any> {

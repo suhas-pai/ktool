@@ -103,8 +103,7 @@ namespace MachO {
         auto &RangeList = Info->getRangeListRef();
         const auto RangeListEnd = RangeList.cend();
 
-        const auto Predicate =
-            [&Range](const LocationRange &RhsRange) noexcept
+        const auto Predicate = [&Range](const LocationRange &RhsRange) noexcept
         {
             return Range.overlaps(RhsRange);
         };

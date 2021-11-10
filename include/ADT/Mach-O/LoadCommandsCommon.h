@@ -317,28 +317,28 @@ namespace MachO {
         constexpr SegmentFlags(FlagIntegerType Integer) noexcept
         : Base(Integer) {}
 
-        [[nodiscard]] constexpr inline bool isHighVM() const noexcept {
+        [[nodiscard]] constexpr bool isHighVM() const noexcept {
             return hasFlag(FlagEnum::HighVM);
         }
 
-        [[nodiscard]] constexpr inline bool isFixedVMLibary() const noexcept {
+        [[nodiscard]] constexpr bool isFixedVMLibary() const noexcept {
             return hasFlag(FlagEnum::FixedVMLibary);
         }
 
-        [[nodiscard]] constexpr inline bool isNoRelocations() const noexcept {
+        [[nodiscard]] constexpr bool isNoRelocations() const noexcept {
             return hasFlag(FlagEnum::NoRelocations);
         }
 
-        [[nodiscard]] constexpr inline bool isProtected() const noexcept {
+        [[nodiscard]] constexpr bool isProtected() const noexcept {
             return hasFlag(FlagEnum::ProtectionVersion1);
         }
 
         [[nodiscard]]
-        constexpr inline bool isReadOnlyAfterFixup() const noexcept {
+        constexpr bool isReadOnlyAfterFixup() const noexcept {
             return hasFlag(FlagEnum::ReadOnlyAfterFixup);
         }
 
-        constexpr inline SegmentFlags &setHighVM(bool Value = true) noexcept {
+        constexpr SegmentFlags &setHighVM(bool Value = true) noexcept {
             setValueForFlag(FlagEnum::HighVM, Value);
             return *this;
         }
@@ -538,12 +538,12 @@ namespace MachO {
         using Base::Base;
 
         [[nodiscard]]
-        constexpr inline bool isAllInstructions() const noexcept {
+        constexpr bool isAllInstructions() const noexcept {
             return hasValueForMask(MaskKind::IsAllInstructions);
         }
 
         [[nodiscard]]
-        constexpr inline bool noRanlibTableOfContents() const noexcept {
+        constexpr bool noRanlibTableOfContents() const noexcept {
             const auto NoRanlibTableOfContents =
                 hasValueForMask(MaskKind::NoRanlibTableOfContents);
 
@@ -551,97 +551,97 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline bool shouldStripStaticSymbols() const noexcept {
+        constexpr bool shouldStripStaticSymbols() const noexcept {
             return hasValueForMask(MaskKind::StripStaticSymbols);
         }
 
-        [[nodiscard]] constexpr inline bool noDeadStripping() const noexcept {
+        [[nodiscard]] constexpr bool noDeadStripping() const noexcept {
             return hasValueForMask(MaskKind::NoDeadStripping);
         }
 
-        [[nodiscard]] constexpr inline bool hasLiveSupport() const noexcept {
+        [[nodiscard]] constexpr bool hasLiveSupport() const noexcept {
             return hasValueForMask(MaskKind::LiveSupport);
         }
 
         [[nodiscard]]
-        constexpr inline bool hasSelfModifyingCode() const noexcept {
+        constexpr bool hasSelfModifyingCode() const noexcept {
             return hasValueForMask(MaskKind::SelfModifyingCode);
         }
 
-        [[nodiscard]] constexpr inline bool isDebugSection() const noexcept {
+        [[nodiscard]] constexpr bool isDebugSection() const noexcept {
             return hasValueForMask(MaskKind::IsDebugSection);
         }
 
         [[nodiscard]]
-        constexpr inline bool hasSomeInstructions() const noexcept {
+        constexpr bool hasSomeInstructions() const noexcept {
             return hasValueForMask(MaskKind::HasSomeInstructions);
         }
 
         [[nodiscard]]
-        constexpr inline bool hasExternalRelocEntries() const noexcept {
+        constexpr bool hasExternalRelocEntries() const noexcept {
             return hasValueForMask(MaskKind::HasExternalRelocEntries);
         }
 
         [[nodiscard]]
-        constexpr inline bool hasLocalRelocEntries() const noexcept {
+        constexpr bool hasLocalRelocEntries() const noexcept {
             return hasValueForMask(MaskKind::HasLocalRelocEntries);
         }
 
-        constexpr inline SegmentSectionAttributes &
+        constexpr SegmentSectionAttributes &
         setIsAllInstructions(bool Value = true) noexcept {
             setValueForMask(MaskKind::IsAllInstructions, Value);
             return *this;
         }
 
-        constexpr inline SegmentSectionAttributes &
+        constexpr SegmentSectionAttributes &
         setNoRanlibTableOfContents(bool Value) noexcept {
             setValueForMask(MaskKind::NoRanlibTableOfContents, Value);
             return *this;
         }
 
-        constexpr inline SegmentSectionAttributes &
+        constexpr SegmentSectionAttributes &
         setStripStaticSymbols(bool Value = true) noexcept {
             setValueForMask(MaskKind::StripStaticSymbols, Value);
             return *this;
         }
 
-        constexpr inline SegmentSectionAttributes &
+        constexpr SegmentSectionAttributes &
         setNoDeadStripping(bool Value = true) noexcept {
             setValueForMask(MaskKind::NoDeadStripping, Value);
             return *this;
         }
 
-        constexpr inline
+        constexpr
         SegmentSectionAttributes &setLiveSupport(bool Value = true) noexcept {
             setValueForMask(MaskKind::LiveSupport, Value);
             return *this;
         }
 
-        constexpr inline SegmentSectionAttributes &
+        constexpr SegmentSectionAttributes &
         setSelfModifyingCode(bool Value = true) noexcept {
             setValueForMask(MaskKind::SelfModifyingCode, Value);
             return *this;
         }
 
-        constexpr inline SegmentSectionAttributes &
+        constexpr SegmentSectionAttributes &
         setIsDebugSection(bool Value = true) noexcept {
             setValueForMask(MaskKind::IsDebugSection, Value);
             return *this;
         }
 
-        constexpr inline SegmentSectionAttributes &
+        constexpr SegmentSectionAttributes &
         setHasSomeInstructions(bool Value = true) noexcept {
             setValueForMask(MaskKind::HasSomeInstructions, Value);
             return *this;
         }
 
-        constexpr inline SegmentSectionAttributes &
+        constexpr SegmentSectionAttributes &
         setHasExternalRelocEntries(bool Value = true) noexcept {
             setValueForMask(MaskKind::HasExternalRelocEntries, Value);
             return *this;
         }
 
-        constexpr inline
+        constexpr
         SegmentSectionAttributes &
         setHasLocalRelocEntries(bool Value = true) noexcept {
             setValueForMask(MaskKind::HasLocalRelocEntries, Value);
@@ -668,22 +668,22 @@ namespace MachO {
         using Base::Base;
 
         [[nodiscard]]
-        constexpr inline Attributes getAttributes() const noexcept {
+        constexpr Attributes getAttributes() const noexcept {
             return Attributes(getValueForMask(MaskType::Attributes));
         }
 
-        [[nodiscard]] constexpr inline Kind getKind() const noexcept {
+        [[nodiscard]] constexpr Kind getKind() const noexcept {
             return Kind(getValueForMask(MaskType::Kind));
         }
 
-        [[nodiscard]] constexpr inline
+        [[nodiscard]] constexpr
         SegmentSectionFlags &setAttributes(Attributes Attributes) noexcept {
             setValueForMask(MaskType::Attributes, Attributes.value());
             return *this;
         }
 
         [[nodiscard]]
-        constexpr inline SegmentSectionFlags &setType(Kind Kind) noexcept {
+        constexpr SegmentSectionFlags &setType(Kind Kind) noexcept {
             setValueForMask(MaskType::Kind, static_cast<MaskIntegerType>(Kind));
             return *this;
         }

@@ -18,10 +18,10 @@ protected:
     T Integer;
 public:
     constexpr LargestIntHelper() noexcept = default;
-    constexpr inline LargestIntHelper(const T &Integer) noexcept
+    constexpr LargestIntHelper(const T &Integer) noexcept
     : Integer(Integer) {}
 
-    constexpr inline LargestIntHelper &operator=(const T &Integer) noexcept {
+    constexpr LargestIntHelper &operator=(const T &Integer) noexcept {
         if (this->Integer < Integer) {
             this->Integer = Integer;
         }
@@ -33,5 +33,5 @@ public:
         return Integer;
     }
 
-    constexpr inline operator T() const noexcept { return Integer; }
+    constexpr operator T() const noexcept { return Integer; }
 };

@@ -104,39 +104,39 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline std::string_view getName() const noexcept {
+        constexpr std::string_view getName() const noexcept {
             return Name;
         }
 
         [[nodiscard]]
-        constexpr inline uint64_t getDylibOrdinal() const noexcept {
+        constexpr uint64_t getDylibOrdinal() const noexcept {
             return DylibOrdinal;
         }
 
-        [[nodiscard]] constexpr inline bool isExternal() const noexcept {
+        [[nodiscard]] constexpr bool isExternal() const noexcept {
             return sIsExternal;
         }
 
-        [[nodiscard]] constexpr inline bool isNull() const noexcept {
+        [[nodiscard]] constexpr bool isNull() const noexcept {
             return sIsNull;
         }
 
-        [[nodiscard]] constexpr inline bool isSwift() const noexcept {
+        [[nodiscard]] constexpr bool isSwift() const noexcept {
             return sIsSwift;
         }
 
         [[nodiscard]]
-        constexpr inline ObjcClassRoFlags getFlags() const noexcept {
+        constexpr ObjcClassRoFlags getFlags() const noexcept {
             return Flags;
         }
 
-        [[nodiscard]] constexpr inline uint64_t getAddress() const noexcept {
+        [[nodiscard]] constexpr uint64_t getAddress() const noexcept {
             assert(!this->isExternal());
             return Addr;
         }
 
         [[nodiscard]]
-        constexpr inline uint64_t getBindAddress() const noexcept {
+        constexpr uint64_t getBindAddress() const noexcept {
             assert(this->isExternal());
             return BindAddr;
         }
@@ -147,7 +147,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline CategoryListType &getCategoryListRef() noexcept {
+        constexpr CategoryListType &getCategoryListRef() noexcept {
             return CategoryList;
         }
 
@@ -197,12 +197,12 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline bool operator==(const ObjcClassInfo &Rhs) noexcept {
+        constexpr bool operator==(const ObjcClassInfo &Rhs) noexcept {
             return (Addr == Rhs.Addr);
         }
 
         [[nodiscard]]
-        constexpr inline bool operator!=(const ObjcClassInfo &Rhs) noexcept {
+        constexpr bool operator!=(const ObjcClassInfo &Rhs) noexcept {
             return !(*this == Rhs);
         }
     };
@@ -217,30 +217,30 @@ namespace MachO {
         ObjcClassCategoryInfo() : sIsNull(false) {}
 
         [[nodiscard]]
-        constexpr inline std::string_view getName() const noexcept {
+        constexpr std::string_view getName() const noexcept {
             return Name;
         }
 
         [[nodiscard]]
-        constexpr inline const ObjcClassInfo *getClass() const noexcept {
+        constexpr const ObjcClassInfo *getClass() const noexcept {
             return Class;
         }
 
-        [[nodiscard]] constexpr inline uint64_t getAddress() const noexcept {
+        [[nodiscard]] constexpr uint64_t getAddress() const noexcept {
             return Address;
         }
 
-        [[nodiscard]] constexpr inline bool isNull() const noexcept {
+        [[nodiscard]] constexpr bool isNull() const noexcept {
             return sIsNull;
         }
 
-        constexpr inline
+        constexpr
         ObjcClassCategoryInfo &setName(const std::string &Value) noexcept {
             this->Name = Value;
             return *this;
         }
 
-        constexpr inline
+        constexpr
         ObjcClassCategoryInfo &setClass(const ObjcClassInfo *Value) noexcept {
             this->Class = Value;
             return *this;

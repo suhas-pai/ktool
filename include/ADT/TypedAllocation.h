@@ -25,25 +25,25 @@ public:
         Ptr = nullptr;
     }
 
-    [[nodiscard]] constexpr inline T *get() noexcept { return Ptr; }
-    [[nodiscard]] constexpr inline const T *get() const noexcept {
+    [[nodiscard]] constexpr T *get() noexcept { return Ptr; }
+    [[nodiscard]] constexpr const T *get() const noexcept {
         return Ptr;
     }
 
-    constexpr inline TypedAllocation &set(T *Ptr) noexcept {
+    constexpr TypedAllocation &set(T *Ptr) noexcept {
         delete this->Ptr;
         this->Ptr = Ptr;
 
         return *this;
     }
 
-    constexpr inline TypedAllocation &replace(T *Ptr) noexcept {
+    constexpr TypedAllocation &replace(T *Ptr) noexcept {
         this->Ptr = Ptr;
         return *this;
     }
 
     template <typename U, typename = std::enable_if_t<std::is_base_of_v<T, U>>>
-    constexpr inline TypedAllocation &set(U *Ptr) noexcept {
+    constexpr TypedAllocation &set(U *Ptr) noexcept {
         delete this->Ptr;
         this->Ptr = Ptr;
 
@@ -51,15 +51,15 @@ public:
     }
 
     template <typename U, typename = std::enable_if_t<std::is_base_of_v<T, U>>>
-    constexpr inline TypedAllocation &replace(U *Ptr) noexcept {
+    constexpr TypedAllocation &replace(U *Ptr) noexcept {
         this->Ptr = Ptr;
         return *this;
     }
 
-    constexpr inline void operator=(T *Ptr) noexcept { set(Ptr); }
+    constexpr void operator=(T *Ptr) noexcept { set(Ptr); }
 
     template <typename U, typename = std::enable_if_t<std::is_base_of_v<T, U>>>
-    constexpr inline void operator=(U *Ptr) noexcept {
+    constexpr void operator=(U *Ptr) noexcept {
         set(Ptr);
     }
 
@@ -80,12 +80,12 @@ public:
     }
 
     [[nodiscard]]
-    constexpr inline bool operator==(const T &Rhs) const noexcept {
+    constexpr bool operator==(const T &Rhs) const noexcept {
         return Ptr == Rhs;
     }
 
     [[nodiscard]]
-    constexpr inline bool operator!=(const T &Rhs) const noexcept {
+    constexpr bool operator!=(const T &Rhs) const noexcept {
         return Ptr != Rhs;
     }
 };

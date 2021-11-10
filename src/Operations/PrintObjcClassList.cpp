@@ -34,6 +34,10 @@ static inline void PrintFlagSeparator(FILE *OutFile, bool &DidPrint) noexcept {
 static void
 PrintClassRoFlags(FILE *OutFile, const MachO::ObjcClassRoFlags &Flags) noexcept
 {
+    if (Flags.empty()) {
+        return;
+    }
+
     fputc('<', OutFile);
 
     auto DidPrint = false;
@@ -226,9 +230,7 @@ PrintClassVerboseInfo(
             fputs("<Swift> ", OutFile);
         }
 
-        if (!Flags.empty()) {
-            PrintClassRoFlags(OutFile, Flags);
-        }
+        PrintClassRoFlags(OutFile, Flags);
     }
 }
 
@@ -325,7 +327,7 @@ PrintObjcClassList(
                 ObjcClassListSize);
 
         const auto MaxDigitLength =
-        PrintUtilsGetIntegerDigitLength(ObjcClassListSize);
+            PrintUtilsGetIntegerDigitLength(ObjcClassListSize);
 
         auto I = static_cast<uint64_t>(1);
         for (const auto &Iter : ObjcClassList) {
@@ -351,7 +353,7 @@ PrintObjcClassList(
             }
 
             const auto NamePrintLength =
-            fprintf(Options.OutFile, " \"%s\"", Node.getName().data());
+                fprintf(Options.OutFile, " \"%s\"", Node.getName().data());
 
             PrintClassVerboseInfo(Options.OutFile,
                                   SharedLibraryCollection,

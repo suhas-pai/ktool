@@ -146,7 +146,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline Iterator end() const noexcept {
-            return Iterator(getRoot());
+            return Iterator::Null();
         }
 
         [[nodiscard]] inline ConstIterator cbegin() const noexcept {
@@ -154,11 +154,24 @@ namespace MachO {
         }
 
         [[nodiscard]] inline ConstIterator cend() const noexcept {
-            return ConstIterator(nullptr);
+            return ConstIterator::Null();
         }
 
         [[nodiscard]] inline uint64_t size() const noexcept {
             return List.size();
+        }
+
+        template <typename T>
+        inline const ObjcClassInfoCollection &
+        forEach(const T &Callback) const noexcept {
+            forEachNode(Callback);
+            return *this;
+        }
+
+        template <typename T>
+        inline ObjcClassInfoCollection &forEach(const T &Callback) noexcept {
+            forEachNode(Callback);
+            return *this;
         }
     };
 
@@ -247,6 +260,26 @@ namespace MachO {
                                CollectionErrorOut);
 
             return Result;
+        }
+
+        template <typename T>
+        inline const ObjcClassCategoryCollection &
+        forEach(const T &Callback) const noexcept {
+            for (const auto &CategoryPtr : List) {
+                Callback(*CategoryPtr);
+            }
+
+            return *this;
+        }
+
+        template <typename T>
+        inline ObjcClassCategoryCollection &
+        forEach(const T &Callback) noexcept {
+            for (const auto &CategoryPtr : List) {
+                Callback(*CategoryPtr);
+            }
+
+            return *this;
         }
     };
 }

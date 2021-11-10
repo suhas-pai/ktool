@@ -19,11 +19,11 @@ public:
     constexpr RelativeRange(uint64_t SizeOrEnd) noexcept : End(SizeOrEnd) {}
     RelativeRange(void *End) noexcept : End(reinterpret_cast<uint64_t>(End)) {}
 
-    [[nodiscard]] constexpr inline uint64_t getEnd() const noexcept {
+    [[nodiscard]] constexpr uint64_t getEnd() const noexcept {
         return End;
     }
 
-    [[nodiscard]] constexpr inline uint64_t size() const noexcept {
+    [[nodiscard]] constexpr uint64_t size() const noexcept {
         return End;
     }
 
@@ -31,7 +31,7 @@ public:
     bool containsLocRange(const LocationRange &LocRange) const noexcept;
 
     [[nodiscard]]
-    constexpr inline bool containsLocation(uint64_t Location) const noexcept {
+    constexpr bool containsLocation(uint64_t Location) const noexcept {
         return (Location < getEnd());
     }
 
@@ -43,7 +43,7 @@ public:
     [[nodiscard]] bool overlaps(const LocationRange &LocRange) const noexcept;
 
     [[nodiscard]]
-    constexpr inline bool goesPastSize(uint64_t Size) const noexcept {
+    constexpr bool goesPastSize(uint64_t Size) const noexcept {
         return (getEnd() > Size);
     }
 
@@ -59,7 +59,7 @@ public:
     }
 
     [[nodiscard]]
-    constexpr inline bool isLargeEnoughForSize(uint64_t Size) const noexcept {
+    constexpr bool isLargeEnoughForSize(uint64_t Size) const noexcept {
         return (size() >= Size);
     }
 };

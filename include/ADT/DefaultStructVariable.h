@@ -19,6 +19,6 @@ public:
     constexpr DefaultStructVariable(T &&Item) noexcept
     : Item(std::move(Item)) {}
 
-    constexpr inline operator const T &() const noexcept { return Item; }
-    constexpr inline operator T &() noexcept { return Item; }
+    constexpr operator const T &() const noexcept { return Item; }
+    constexpr operator T &() noexcept { return Item; }
 };

@@ -21,13 +21,11 @@ constexpr PointerKind PointerKindFromIs64Bit(bool Is64Bit) noexcept {
     return (Is64Bit) ? PointerKind::s64Bit : PointerKind::s32Bit;
 }
 
-[[nodiscard]]
-constexpr inline bool PointerKindIs32Bit(PointerKind Kind) noexcept {
+[[nodiscard]] constexpr bool PointerKindIs32Bit(PointerKind Kind) noexcept {
     return (Kind == PointerKind::s32Bit);
 }
 
-[[nodiscard]]
-constexpr inline bool PointerKindIs64Bit(PointerKind Kind) noexcept {
+[[nodiscard]] constexpr bool PointerKindIs64Bit(PointerKind Kind) noexcept {
     return (Kind == PointerKind::s64Bit);
 }
 

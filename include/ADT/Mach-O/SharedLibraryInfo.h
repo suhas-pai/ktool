@@ -8,8 +8,8 @@
 
 #pragma once
 
+#include <cstdint>
 #include "LoadCommands.h"
-#include <stdint.h>
 
 namespace MachO {
     struct SharedLibraryInfo {
@@ -24,30 +24,30 @@ namespace MachO {
         PackedVersion CompatVersion;
     public:
         [[nodiscard]]
-        constexpr inline LoadCommand::Kind getKind() const noexcept {
+        constexpr LoadCommand::Kind getKind() const noexcept {
             return Kind;
         }
 
         [[nodiscard]]
-        constexpr inline std::string_view getPath() const noexcept {
+        constexpr std::string_view getPath() const noexcept {
             return Path;
         }
 
-        [[nodiscard]] constexpr inline uint32_t getIndex() const noexcept {
+        [[nodiscard]] constexpr uint32_t getIndex() const noexcept {
             return Index;
         }
 
-        [[nodiscard]] constexpr inline uint32_t getTimestamp() const noexcept {
+        [[nodiscard]] constexpr uint32_t getTimestamp() const noexcept {
             return Timestamp;
         }
 
         [[nodiscard]]
-        constexpr inline PackedVersion getCurrentVersion() const noexcept {
+        constexpr PackedVersion getCurrentVersion() const noexcept {
             return CurrentVersion;
         }
 
         [[nodiscard]]
-        constexpr inline PackedVersion getCompatVersion() const noexcept {
+        constexpr PackedVersion getCompatVersion() const noexcept {
             return CompatVersion;
         }
 
@@ -63,7 +63,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline SharedLibraryInfo &setIndex(uint32_t Value) noexcept {
+        constexpr SharedLibraryInfo &setIndex(uint32_t Value) noexcept {
             this->Index = Value;
             return *this;
         }
@@ -74,13 +74,13 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline
+        constexpr
         SharedLibraryInfo &setCurrentVersion(PackedVersion Value) noexcept {
             this->CurrentVersion = Value;
             return *this;
         }
 
-        constexpr inline
+        constexpr
         SharedLibraryInfo &setCompatVersion(PackedVersion Value) noexcept {
             this->CompatVersion = Value;
             return *this;

@@ -25,6 +25,8 @@ protected:
         MemoryObject *Ptr;
         uintptr_t Storage;
 
+        // 16 bytes are used to store error-relevant info.
+
         struct {
             ObjectKind ObjKind : 8;
             uint8_t Error;

@@ -12,11 +12,11 @@
 #include "ADT/PointerKind.h"
 
 template <PointerKind Kind>
-[[nodiscard]] constexpr inline uint8_t PointerSize() noexcept {
+[[nodiscard]] constexpr uint8_t PointerSize() noexcept {
     return sizeof(PointerAddrTypeFromKind<Kind>);
 }
 
-[[nodiscard]] constexpr inline uint8_t PointerSize(bool Is64Bit) noexcept {
+[[nodiscard]] constexpr uint8_t PointerSize(bool Is64Bit) noexcept {
     const auto Result =
         (Is64Bit) ?
             PointerSize<PointerKind::s64Bit>() :
@@ -25,7 +25,7 @@ template <PointerKind Kind>
     return Result;
 }
 
-[[nodiscard]] constexpr inline uint8_t PointerSize(PointerKind Kind) noexcept {
+[[nodiscard]] constexpr uint8_t PointerSize(PointerKind Kind) noexcept {
     switch (Kind) {
         case PointerKind::s32Bit:
             return PointerSize<PointerKind::s32Bit>();
@@ -36,7 +36,7 @@ template <PointerKind Kind>
 
 template <PointerKind Kind, typename T>
 [[nodiscard]]
-constexpr inline bool IntegerIsPointerAligned(T Integer) noexcept {
+constexpr bool IntegerIsPointerAligned(T Integer) noexcept {
     static_assert(std::is_integral_v<T>, "Type must be integer-type");
     return ((Integer % PointerSize<Kind>()) == 0);
 }

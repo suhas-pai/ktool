@@ -57,7 +57,7 @@ constexpr static inline uint8_t Leb128GetLastByteValueMax() {
     return ((1ull << Mod) - 1);
 }
 
-constexpr inline uint64_t
+constexpr uint64_t
 Leb128SignExtendIfNecessary(uint64_t Value,
                             uint8_t Byte,
                             uint64_t Shift) noexcept

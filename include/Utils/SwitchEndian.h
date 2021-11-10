@@ -112,13 +112,13 @@ struct EndianSwitcher<uint64_t> {
 };
 
 template <typename T>
-[[nodiscard]] constexpr inline T SwitchEndian(T Value) noexcept {
+[[nodiscard]] constexpr T SwitchEndian(T Value) noexcept {
     static_assert(std::is_integral_v<T>, "T must be an integer-type");
     return EndianSwitcher<T>::SwitchEndian(Value);
 }
 
 template <typename T>
-[[nodiscard]] constexpr inline T SwitchEndianIf(T Value, bool Cond) noexcept {
+[[nodiscard]] constexpr T SwitchEndianIf(T Value, bool Cond) noexcept {
     static_assert(std::is_integral_v<T>, "T must be an integer-type");
     if (Cond) {
         Value = SwitchEndian(Value);

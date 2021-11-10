@@ -45,14 +45,7 @@ PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
             return 1;
         }
 
-        const auto &Name =
-            OperationCommon::GetLoadCommandStringValue(NameResult);
-
-        if (Name == OperationCommon::InvalidLCString) {
-            fputs("Provided file has an invalid Id-name\n", Options.ErrFile);
-            return 1;
-        }
-
+        const auto &Name = NameResult.getString();
         if (!Id.empty() && Id != Name) {
             fputs("Provided file has multiple (differing) Id-Names\n",
                   Options.ErrFile);
@@ -64,8 +57,7 @@ PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
     }
 
     if (Id.empty()) {
-        fputs("No Identification found for the provided dylib\n",
-              Options.ErrFile);
+        fputs("No Id found for the provided dylib\n", Options.ErrFile);
         return 1;
     }
 

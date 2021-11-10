@@ -157,7 +157,7 @@ namespace MachO {
     }
 
     [[nodiscard]]
-    constexpr inline uint64_t BindWriteKindGetLongestDescription() noexcept {
+    constexpr uint64_t BindWriteKindGetLongestDescription() noexcept {
         const auto Result =
             EnumHelper<BindWriteKind>::GetLongestAssocLength(
                 BindWriteKindGetName);
@@ -222,12 +222,12 @@ namespace MachO {
         using Enum = BindSymbolFlagsEnum;
         using Base::Base;
 
-        [[nodiscard]] constexpr inline bool isWeakImport() const noexcept {
+        [[nodiscard]] constexpr bool isWeakImport() const noexcept {
             return hasValueForMask(Enum::WeakImport);
         }
 
         [[nodiscard]]
-        constexpr inline bool hasNonWeakDefinition() const noexcept {
+        constexpr bool hasNonWeakDefinition() const noexcept {
             return hasValueForMask(Enum::NonWeakDefinition);
         }
     };
@@ -246,22 +246,22 @@ namespace MachO {
         using WriteKind = BindWriteKind;
 
         [[nodiscard]]
-        constexpr inline BindByte::Opcode getOpcode() const noexcept {
+        constexpr BindByte::Opcode getOpcode() const noexcept {
             return BindByte::Opcode(getValueForMaskNoShift(Masks::Opcode));
         }
 
-        [[nodiscard]] constexpr inline uint8_t getImmediate() const noexcept {
+        [[nodiscard]] constexpr uint8_t getImmediate() const noexcept {
             return getValueForMaskNoShift(Masks::Immediate);
         }
 
-        constexpr inline BindByte &setOpcode(Opcode Opcode) noexcept {
+        constexpr BindByte &setOpcode(Opcode Opcode) noexcept {
             const auto OpcodeInt = static_cast<IntegerType>(Opcode);
 
             setValueForMaskNoShift(Masks::Opcode, OpcodeInt);
             return *this;
         }
 
-        constexpr inline BindByte &setImmediate(uint8_t Immediate) noexcept {
+        constexpr BindByte &setImmediate(uint8_t Immediate) noexcept {
             setValueForMaskNoShift(Masks::Immediate, Immediate);
             return *this;
         }
@@ -329,12 +329,12 @@ namespace MachO {
         BindSymbolFlags Flags;
         BindWriteKind WriteKind;
 
-        [[nodiscard]] constexpr inline bool hasError() const noexcept {
+        [[nodiscard]] constexpr bool hasError() const noexcept {
             return (Error != BindOpcodeParseError::None);
         }
 
         [[nodiscard]]
-        constexpr inline BindOpcodeParseError getError() const noexcept {
+        constexpr BindOpcodeParseError getError() const noexcept {
             return Error;
         }
     };
@@ -399,7 +399,7 @@ namespace MachO {
             return Iter->getPtr();
         }
 
-        [[nodiscard]] constexpr inline bool isAtEnd() const noexcept {
+        [[nodiscard]] constexpr bool isAtEnd() const noexcept {
             if constexpr (BindKind == BindInfoKind::Lazy) {
                 return (Iter.isAtEnd() && ReachedEnd);
             } else {
@@ -417,7 +417,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline BindOpcodeIterateInfo &getInfo() noexcept {
+        constexpr BindOpcodeIterateInfo &getInfo() noexcept {
             return *Info;
         }
 
@@ -427,24 +427,24 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline const BindByte &getByte() const noexcept {
+        constexpr const BindByte &getByte() const noexcept {
             return *reinterpret_cast<const BindByte *>(Prev);
         }
 
-        [[nodiscard]] constexpr inline bool hasError() const noexcept {
+        [[nodiscard]] constexpr bool hasError() const noexcept {
             return Info->hasError();
         }
 
-        [[nodiscard]] constexpr inline ErrorEnum getError() const noexcept {
+        [[nodiscard]] constexpr ErrorEnum getError() const noexcept {
             return Info->getError();
         }
 
-        constexpr inline BindOpcodeIteratorBase &operator++() noexcept {
+        constexpr BindOpcodeIteratorBase &operator++() noexcept {
             Info->Error = Advance();
             return *this;
         }
 
-        constexpr inline BindOpcodeIteratorBase &operator++(int) noexcept {
+        constexpr BindOpcodeIteratorBase &operator++(int) noexcept {
             return ++(*this);
         }
 
@@ -462,12 +462,12 @@ namespace MachO {
             return isAtEnd();
         }
 
-        [[nodiscard]] constexpr inline
+        [[nodiscard]] constexpr
         bool operator!=(const BindOpcodeIteratorEnd &End) const noexcept {
             return !(*this == End);
         }
 
-        constexpr inline BindOpcodeParseError Advance() noexcept {
+        constexpr BindOpcodeParseError Advance() noexcept {
             using ErrorEnum = BindOpcodeParseError;
 
             const auto BytePtr = Iter->getAsByte<BindByte>();
@@ -664,16 +664,16 @@ namespace MachO {
           End(reinterpret_cast<const BindByte *>(End)),
           Is64Bit(Is64Bit) {}
 
-        [[nodiscard]] constexpr inline IteratorType begin() const noexcept {
+        [[nodiscard]] constexpr IteratorType begin() const noexcept {
             return IteratorType(Begin, End);
         }
 
         [[nodiscard]]
-        constexpr inline BindOpcodeIteratorEnd end() const noexcept {
+        constexpr BindOpcodeIteratorEnd end() const noexcept {
             return BindOpcodeIteratorEnd();
         }
 
-        [[nodiscard]] constexpr inline
+        [[nodiscard]] constexpr
         uint64_t getOffsetFromIter(const IteratorType &Iter) const noexcept {
             return (Iter->getPtr() - Begin);
         }
@@ -722,7 +722,7 @@ namespace MachO {
         bool NewSymbolName : 1;
         BindSymbolFlags Flags;
 
-        [[nodiscard]] constexpr inline bool hasDylibOrdinal() const noexcept {
+        [[nodiscard]] constexpr bool hasDylibOrdinal() const noexcept {
             return (DylibOrdinal != -1);
         }
     };
@@ -822,7 +822,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline BindActionIterateInfo &getInfo() noexcept {
+        constexpr BindActionIterateInfo &getInfo() noexcept {
             auto &Info = Iter.getInfo();
             return reinterpret_cast<BindActionIterateInfo &>(Info);
         }
@@ -881,7 +881,7 @@ namespace MachO {
             return ContainsPtr;
         }
 
-        [[nodiscard]] constexpr inline bool isAtEnd() const noexcept {
+        [[nodiscard]] constexpr bool isAtEnd() const noexcept {
             return Iter.isAtEnd();
         }
 
@@ -895,7 +895,7 @@ namespace MachO {
             return &getInfo();
         }
 
-        constexpr inline BindActionIteratorBase &operator++() noexcept {
+        constexpr BindActionIteratorBase &operator++() noexcept {
             auto &Info = getInfo();
             if (Info.hasError()) {
                 Iter++;
@@ -905,7 +905,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline BindActionIteratorBase &operator++(int) noexcept {
+        constexpr BindActionIteratorBase &operator++(int) noexcept {
             return ++(*this);
         }
 
@@ -923,12 +923,12 @@ namespace MachO {
             return isAtEnd();
         }
 
-        [[nodiscard]] constexpr inline
+        [[nodiscard]] constexpr
         bool operator!=(const BindActionIteratorEnd &End) const noexcept {
             return !(*this == End);
         }
 
-        constexpr inline BindOpcodeParseError Advance() noexcept {
+        constexpr BindOpcodeParseError Advance() noexcept {
             auto &Info = getInfo();
             const auto AddChangeToSegmentAddress = [&](int64_t Add) noexcept {
                 if (DoesAddOverflow(SegAddAddress, Add, &SegAddAddress)) {
@@ -1266,12 +1266,12 @@ namespace MachO {
             return End;
         }
 
-        [[nodiscard]] constexpr inline IteratorType begin() const noexcept {
+        [[nodiscard]] constexpr IteratorType begin() const noexcept {
             return IteratorType(Map, SegmentCollection, Begin, End, Is64Bit);
         }
 
         [[nodiscard]]
-        constexpr inline BindActionIteratorEnd end() const noexcept {
+        constexpr BindActionIteratorEnd end() const noexcept {
             return BindActionIteratorEnd();
         }
 

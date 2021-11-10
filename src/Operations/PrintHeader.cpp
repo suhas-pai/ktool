@@ -130,14 +130,9 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
         fprintf(Options.OutFile, "Ncmds: %" PRIu32 "\n", Ncmds);
         fprintf(Options.OutFile, "SizeOfCmds: %" PRIu32, SizeOfCmds);
 
-        PrintUtilsWriteFormattedSize(Options.OutFile,
-                                     SizeOfCmds,
-                                     " (",
-                                     ")");
+        PrintUtilsWriteFormattedSize(Options.OutFile, SizeOfCmds, " (", ")\n");
 
         const auto FlagInfoList = OperationCommon::GetFlagInfoList(Flags);
-
-        fputc('\n', Options.OutFile);
         fprintf(Options.OutFile,
                 "Flags:\n"
                 "\tNumber: %" PRIu32 " (0x%X)\n"

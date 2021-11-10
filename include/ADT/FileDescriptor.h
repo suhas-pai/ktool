@@ -52,7 +52,10 @@ public:
     [[nodiscard]] inline bool isOpen() const noexcept { return (Fd != -1); }
     [[nodiscard]] inline bool isEmpty() const noexcept { return !isOpen(); }
     [[nodiscard]] inline bool hasError() const noexcept { return isEmpty(); }
-    [[nodiscard]] inline int getDescriptor() const noexcept { return Fd; }
+    [[nodiscard]] inline int getDescriptor() const noexcept {
+        assert(isOpen());
+        return Fd;
+    }
 
     bool Read(void *Buf, size_t Size) const noexcept;
     bool Write(const void *Buf, size_t Size) noexcept;

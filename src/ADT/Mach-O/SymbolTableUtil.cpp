@@ -116,10 +116,6 @@ namespace MachO {
             .setIndex(Index)
             .setValue(Entry.getValue(IsBigEndian));
 
-        auto Ptr =
-            std::make_unique<SymbolTableEntryCollection::EntryInfo>(
-                std::move(SymbolEntryInfo));
-
         auto Key = uint64_t();
         switch (KeyKind) {
             case SymbolTableEntryCollection::KeyKindEnum::Index:
@@ -129,6 +125,10 @@ namespace MachO {
                 Key = SymbolEntryInfo.getValue();
                 break;
         }
+
+        auto Ptr =
+            std::make_unique<SymbolTableEntryCollection::EntryInfo>(
+                std::move(SymbolEntryInfo));
 
         InfoMap.insert({ Key, std::move(Ptr) });
         return SymbolTableParseError::None;

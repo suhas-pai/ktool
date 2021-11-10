@@ -14,15 +14,15 @@
 
 #include <type_traits>
 
-[[nodiscard]] constexpr inline bool IsDigit(char Ch) noexcept {
+[[nodiscard]] constexpr bool IsDigit(char Ch) noexcept {
     return (static_cast<unsigned>(Ch - '0') < 10);
 }
 
-[[nodiscard]] constexpr inline bool IsControl(char Ch) noexcept {
+[[nodiscard]] constexpr bool IsControl(char Ch) noexcept {
     return (static_cast<unsigned>(Ch) < 32);
 }
 
-[[nodiscard]] constexpr inline bool IsSpace(char Ch) noexcept {
+[[nodiscard]] constexpr bool IsSpace(char Ch) noexcept {
     switch (Ch) {
         case ' ':
         case '\n':
@@ -36,16 +36,16 @@
     return false;
 }
 
-[[nodiscard]] constexpr inline bool DigitIsValid(uint8_t Digit) noexcept {
+[[nodiscard]] constexpr bool DigitIsValid(uint8_t Digit) noexcept {
     return (Digit < 10);
 }
 
-[[nodiscard]] constexpr inline uint8_t ChToDigit(char Ch) noexcept {
+[[nodiscard]] constexpr uint8_t ChToDigit(char Ch) noexcept {
     return (Ch - '0');
 }
 
 template <typename T>
-[[nodiscard]] constexpr inline T ParseNumber(const char *String) noexcept {
+[[nodiscard]] constexpr T ParseNumber(const char *String) noexcept {
     static_assert(std::is_integral_v<T>, "T must be an integer-type!");
 
     auto Iter = String;

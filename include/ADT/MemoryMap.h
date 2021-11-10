@@ -84,7 +84,7 @@ public:
     }
 
     [[nodiscard]]
-    constexpr inline bool isLargeEnoughForSize(uint64_t Size) const noexcept {
+    constexpr bool isLargeEnoughForSize(uint64_t Size) const noexcept {
         return getRange().isLargeEnoughForSize(Size);
     }
 
@@ -100,7 +100,7 @@ public:
         return ConstMemoryMap(getBegin() + Offset, getEnd());
     }
 
-    [[nodiscard]] constexpr inline ConstMemoryMap
+    [[nodiscard]] constexpr ConstMemoryMap
     mapFromLocRange(const LocationRange &LocRange) const noexcept {
         assert(containsLocRange(LocRange));
 
@@ -136,7 +136,7 @@ public:
     }
 
     [[nodiscard]]
-    constexpr inline MemoryMap mapFromPtr(uint8_t *Begin) const noexcept {
+    constexpr MemoryMap mapFromPtr(uint8_t *Begin) const noexcept {
         assert(containsPtr(Begin));
         return MemoryMap(Begin, getEnd());
     }
@@ -147,7 +147,7 @@ public:
     }
 
     [[nodiscard]]
-    constexpr inline MemoryMap mapFromOffset(uint64_t Offset) const noexcept {
+    constexpr MemoryMap mapFromOffset(uint64_t Offset) const noexcept {
         assert(containsOffset(Offset));
         return MemoryMap(getBegin() + Offset, getEnd());
     }
@@ -157,12 +157,12 @@ public:
         return ConstMemoryMap::mapFromOffset(Offset);
     }
 
-    [[nodiscard]] constexpr inline ConstMemoryMap
+    [[nodiscard]] constexpr ConstMemoryMap
     constMapFromLocRange(const LocationRange &LocRange) const noexcept {
         return ConstMemoryMap::mapFromLocRange(LocRange);
     }
 
-    [[nodiscard]] constexpr inline MemoryMap
+    [[nodiscard]] constexpr MemoryMap
     mapFromLocRange(const LocationRange &LocRange) const noexcept {
         assert(containsLocRange(LocRange));
 

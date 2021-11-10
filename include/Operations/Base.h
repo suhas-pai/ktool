@@ -25,7 +25,7 @@ public:
         OperationKind Kind;
     public:
         Options(OperationKind Kind) noexcept : Kind(Kind) {}
-        [[nodiscard]] constexpr inline OperationKind getKind() const noexcept {
+        [[nodiscard]] constexpr OperationKind getKind() const noexcept {
             return Kind;
         }
 
@@ -44,26 +44,26 @@ public:
     Operation(OperationKind Kind) noexcept;
     virtual ~Operation() noexcept = default;
 
-    [[nodiscard]] constexpr inline OperationKind getKind() const noexcept {
+    [[nodiscard]] constexpr OperationKind getKind() const noexcept {
         return Kind;
     }
 
     [[nodiscard]]
-    constexpr inline std::string_view getOptionShortName() const noexcept {
+    constexpr std::string_view getOptionShortName() const noexcept {
         return OperationKindGetOptionShortName(getKind());
     }
 
     [[nodiscard]]
-    constexpr inline std::string_view getOptionName() const noexcept {
+    constexpr std::string_view getOptionName() const noexcept {
         return OperationKindGetOptionName(getKind());
     }
 
-    [[nodiscard]] constexpr inline std::string_view getName() const noexcept {
+    [[nodiscard]] constexpr std::string_view getName() const noexcept {
         return OperationKindGetName(getKind());
     }
 
     [[nodiscard]]
-    constexpr inline std::string_view getDescription() const noexcept {
+    constexpr std::string_view getDescription() const noexcept {
         return OperationKindGetDescription(getKind());
     }
 

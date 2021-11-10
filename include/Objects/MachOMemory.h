@@ -161,7 +161,7 @@ public:
         return *this;
     }
 
-    constexpr inline MachOMemoryObject &
+    constexpr MachOMemoryObject &
     setHeaderFlags(const MachO::Header::FlagsType &Flags) noexcept {
         getHeader().setFlags(Flags);
         return *this;

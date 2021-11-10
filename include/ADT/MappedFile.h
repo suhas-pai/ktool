@@ -55,24 +55,24 @@ public:
         using Base::Base;
 
         using Flags = ProtectionsFlags;
-        [[nodiscard]] constexpr inline bool canRead() const noexcept {
+        [[nodiscard]] constexpr bool canRead() const noexcept {
             return hasFlag(Flags::Read);
         }
 
-        [[nodiscard]] constexpr inline bool canWrite() const noexcept {
+        [[nodiscard]] constexpr bool canWrite() const noexcept {
             return hasFlag(Flags::Write);
         }
 
-        [[nodiscard]] constexpr inline bool canExecute() const noexcept {
+        [[nodiscard]] constexpr bool canExecute() const noexcept {
             return hasFlag(Flags::Execute);
         }
 
-        constexpr inline Protections &setCanRead(bool Value = true) noexcept {
+        constexpr Protections &setCanRead(bool Value = true) noexcept {
             setValueForFlag(Flags::Read, Value);
             return *this;
         }
 
-        constexpr inline Protections &setCanWrite(bool Value = true) noexcept {
+        constexpr Protections &setCanWrite(bool Value = true) noexcept {
             setValueForFlag(Flags::Write, Value);
             return *this;
         }
@@ -83,7 +83,7 @@ public:
             return *this;
         }
 
-        constexpr inline Protections &clear() noexcept {
+        constexpr Protections &clear() noexcept {
             this->Base::clear();
             return *this;
         }

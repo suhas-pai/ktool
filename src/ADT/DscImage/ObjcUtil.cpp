@@ -463,10 +463,10 @@ namespace DscImage {
         MachO::BindActionCollection::Error *CollectionErrorOut) noexcept
     {
         const auto ObjcClassCategorySection =
-        SegmentCollection.FindSectionWithName({
-            { "__DATA_CONST",  { "__objc_catlist" } },
-            { "__DATA",        { "__objc_catlist" } },
-        });
+            SegmentCollection.FindSectionWithName({
+                { "__DATA_CONST",  { "__objc_catlist" } },
+                { "__DATA",        { "__objc_catlist" } },
+            });
 
         if (ObjcClassCategorySection == nullptr) {
             if (ErrorOut != nullptr) {
@@ -477,7 +477,7 @@ namespace DscImage {
         }
 
         const auto BindCollectionRange =
-        ObjcClassCategorySection->getMemoryRange();
+            ObjcClassCategorySection->getMemoryRange();
 
         auto BindCollection = MachO::BindActionCollection();
         const auto GetBindActionCollectionResult =

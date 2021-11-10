@@ -35,85 +35,85 @@ namespace MachO {
             BindSymbolFlags Flags;
         public:
             [[nodiscard]]
-            constexpr inline BindInfoKind getKind() const noexcept {
+            constexpr BindInfoKind getKind() const noexcept {
                 return Kind;
             }
 
             [[nodiscard]]
-            constexpr inline BindWriteKind getWriteKind() const noexcept {
+            constexpr BindWriteKind getWriteKind() const noexcept {
                 return WriteKind;
             }
 
-            [[nodiscard]] constexpr inline int64_t getAddend() const noexcept {
+            [[nodiscard]] constexpr int64_t getAddend() const noexcept {
                 return Addend;
             }
 
             [[nodiscard]]
-            constexpr inline int64_t getDylibOrdinal() const noexcept {
+            constexpr int64_t getDylibOrdinal() const noexcept {
                 return DylibOrdinal;
             }
 
             [[nodiscard]]
-            constexpr inline std::string_view getSymbol() const noexcept {
+            constexpr std::string_view getSymbol() const noexcept {
                 return *Symbol;
             }
 
             [[nodiscard]]
-            constexpr inline const std::string &getSymbolRef() const noexcept {
+            constexpr const std::string &getSymbolRef() const noexcept {
                 return *Symbol;
             }
 
             [[nodiscard]]
-            constexpr inline uint32_t getSegmentIndex() const noexcept {
+            constexpr uint32_t getSegmentIndex() const noexcept {
                 return SegmentIndex;
             }
 
             [[nodiscard]]
-            constexpr inline uint64_t getSegmentOffset() const noexcept {
+            constexpr uint64_t getSegmentOffset() const noexcept {
                 return SegmentOffset;
             }
 
             [[nodiscard]]
-            constexpr inline uint64_t getAddress() const noexcept {
+            constexpr uint64_t getAddress() const noexcept {
                 return Address;
             }
 
             [[nodiscard]]
-            constexpr inline uint64_t getOpcodeAddress() const noexcept {
+            constexpr uint64_t getOpcodeAddress() const noexcept {
                 return OpcodeAddress;
             }
 
             [[nodiscard]]
-            constexpr inline uint64_t getAddrInSeg() const noexcept {
+            constexpr uint64_t getAddrInSeg() const noexcept {
                 return AddrInSeg;
             }
 
             [[nodiscard]]
-            constexpr inline bool isNewSymbolName() const noexcept {
+            constexpr bool isNewSymbolName() const noexcept {
                 return sIsNewSymbolName;
             }
 
             [[nodiscard]]
-            constexpr inline BindSymbolFlags getFlags() const noexcept {
+            constexpr BindSymbolFlags getFlags() const noexcept {
                 return Flags;
             }
 
-            constexpr inline Info &setKind(BindInfoKind Value) noexcept {
+            constexpr Info &setKind(BindInfoKind Value) noexcept {
                 this->Kind = Value;
                 return *this;
             }
 
-            constexpr inline Info &setWriteKind(BindWriteKind Value) noexcept {
+            constexpr Info &setWriteKind(BindWriteKind Value) noexcept {
                 this->WriteKind = Value;
                 return *this;
             }
 
-            constexpr inline Info &setDylibOrdinal(uint32_t Value) noexcept {
+            constexpr Info &setDylibOrdinal(uint32_t Value) noexcept {
                 this->DylibOrdinal = Value;
                 return *this;
             }
 
-            constexpr inline Info &setAddend(int64_t Value) noexcept {
+            constexpr Info &setAddend(int64_t Value) noexcept {
                 this->Addend = Value;
                 return *this;
             }
@@ -124,27 +124,27 @@ namespace MachO {
                 return *this;
             }
 
-            constexpr inline Info &setSegmentIndex(uint32_t Value) noexcept {
+            constexpr Info &setSegmentIndex(uint32_t Value) noexcept {
                 this->SegmentIndex = Value;
                 return *this;
             }
 
-            constexpr inline Info &setSegmentOffset(uint64_t Value) noexcept {
+            constexpr Info &setSegmentOffset(uint64_t Value) noexcept {
                 this->SegmentOffset = Value;
                 return *this;
             }
 
-            constexpr inline Info &setAddress(uint64_t Value) noexcept {
+            constexpr Info &setAddress(uint64_t Value) noexcept {
                 this->SegmentOffset = Value;
                 return *this;
             }
 
-            constexpr inline Info &setOpcodeAddress(uint64_t Value) noexcept {
+            constexpr Info &setOpcodeAddress(uint64_t Value) noexcept {
                 this->SegmentOffset = Value;
                 return *this;
             }
 
-            constexpr inline Info &setAddrInSeg(uint64_t Value) noexcept {
+            constexpr Info &setAddrInSeg(uint64_t Value) noexcept {
                 this->AddrInSeg = Value;
                 return *this;
             }

@@ -101,7 +101,7 @@ namespace MachO {
         static const std::string_view &KindGetDescription(Kind Kind) noexcept;
 
         [[nodiscard]]
-        constexpr inline static bool KindIsRequiredByDyld(Kind Kind) noexcept {
+        constexpr static bool KindIsRequiredByDyld(Kind Kind) noexcept {
             return (static_cast<uint32_t>(Kind) & KindRequiredByDyld);
         }
 
@@ -244,17 +244,17 @@ namespace MachO {
         uint32_t CmdSize;
 
         [[nodiscard]]
-        constexpr inline uint32_t getCmd(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getCmd(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Cmd, IsBigEndian);
         }
 
         [[nodiscard]]
-        constexpr inline Kind getKind(bool IsBigEndian) const noexcept {
+        constexpr Kind getKind(bool IsBigEndian) const noexcept {
             return Kind(getCmd(IsBigEndian));
         }
 
         [[nodiscard]]
-        constexpr inline uint32_t getCmdSize(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getCmdSize(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(CmdSize, IsBigEndian);
         }
 
@@ -266,7 +266,7 @@ namespace MachO {
             return *this;
         }
 
-        [[nodiscard]] constexpr inline
+        [[nodiscard]] constexpr
         LoadCommand &setCmdSize(uint32_t Value, bool IsBigEndian) noexcept {
             this->CmdSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -288,7 +288,7 @@ namespace MachO {
         }
     };
 
-    [[nodiscard]] constexpr inline bool
+    [[nodiscard]] constexpr bool
     SegOrSectNameEquals(const char *SegOrSectName,
                         std::string_view Rhs) noexcept
     {
@@ -348,7 +348,7 @@ namespace MachO {
             }
 
             [[nodiscard]]
-            constexpr inline uint32_t getSize(bool IsBigEndian) const noexcept {
+            constexpr uint32_t getSize(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Size, IsBigEndian);
             }
 
@@ -362,12 +362,12 @@ namespace MachO {
                 return SwitchEndianIf(Align, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr inline
+            [[nodiscard]] constexpr
             uint32_t getRelocationsCount(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Nreloc, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr inline
+            [[nodiscard]] constexpr
             SegmentSectionFlags getFlags(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Flags, IsBigEndian);
             }
@@ -382,7 +382,7 @@ namespace MachO {
                 return SwitchEndianIf(Reserved2, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr inline std::optional<LocationRange>
+            [[nodiscard]] constexpr std::optional<LocationRange>
             getFileRange(bool IsBigEndian) const noexcept {
                 const auto Offset = getFileOffset(IsBigEndian);
                 const auto Size = getSize(IsBigEndian);
@@ -390,7 +390,7 @@ namespace MachO {
                 return LocationRange::CreateWithSize(Offset, Size);
             }
 
-            [[nodiscard]] constexpr inline std::optional<LocationRange>
+            [[nodiscard]] constexpr std::optional<LocationRange>
             getMemoryRange(bool IsBigEndian) const noexcept {
                 const auto Addr = getAddress(IsBigEndian);
                 const auto Size = getSize(IsBigEndian);
@@ -398,7 +398,7 @@ namespace MachO {
                 return LocationRange::CreateWithSize(Addr, Size);
             }
 
-            [[nodiscard]] constexpr inline
+            [[nodiscard]] constexpr
             bool segmentNameEquals(std::string_view Name) const noexcept {
                 return SegOrSectNameEquals(this->SegmentName, Name);
             }
@@ -420,25 +420,25 @@ namespace MachO {
                 return *this;
             }
 
-            constexpr inline
+            constexpr
             Section &setFileOffset(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Offset = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
             }
 
-            constexpr inline
+            constexpr
             Section &setAlign(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Align = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
             }
 
-            [[nodiscard]] constexpr inline Section &
+            [[nodiscard]] constexpr Section &
             setRelocationsCount(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Nreloc = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
             }
 
-            constexpr inline Section &
+            constexpr Section &
             setFlags(const SegmentSectionFlags &Flags,
                      bool IsBigEndian) noexcept
             {
@@ -446,7 +446,7 @@ namespace MachO {
                 return *this;
             }
 
-            [[nodiscard]] constexpr inline
+            [[nodiscard]] constexpr
             Section &setReserved1(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Reserved1 = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
@@ -477,12 +477,12 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline uint32_t getVmAddr(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getVmAddr(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(VmAddr, IsBigEndian);
         }
 
         [[nodiscard]]
-        constexpr inline uint32_t getVmSize(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getVmSize(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(VmSize, IsBigEndian);
         }
 
@@ -492,7 +492,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline uint32_t getFileSize(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getFileSize(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(FileSize, IsBigEndian);
         }
 
@@ -516,7 +516,7 @@ namespace MachO {
             return SwitchEndianIf(Nsects, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr inline std::optional<LocationRange>
+        [[nodiscard]] constexpr std::optional<LocationRange>
         getVmRange(bool IsBigEndian) const noexcept {
             const auto VmAddr = getVmAddr(IsBigEndian);
             const auto VmSize = getVmSize(IsBigEndian);
@@ -524,7 +524,7 @@ namespace MachO {
             return LocationRange::CreateWithSize(VmAddr, VmSize);
         }
 
-        [[nodiscard]] constexpr inline std::optional<LocationRange>
+        [[nodiscard]] constexpr std::optional<LocationRange>
         getFileRange(bool IsBigEndian) const noexcept {
             const auto Offset = getFileOffset(IsBigEndian);
             const auto Size = getFileSize(IsBigEndian);
@@ -533,11 +533,11 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline bool nameEquals(std::string_view Name) const noexcept {
+        constexpr bool nameEquals(std::string_view Name) const noexcept {
             return SegOrSectNameEquals(this->Name, Name);
         }
 
-        constexpr inline SegmentCommand &
+        constexpr SegmentCommand &
         setInitProt(const MemoryProtections &InitProt,
                     bool IsBigEndian) noexcept
         {
@@ -545,7 +545,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline SegmentCommand &
+        constexpr SegmentCommand &
         setMaxProt(const MemoryProtections &MaxProt,
                    bool IsBigEndian) noexcept
         {
@@ -553,7 +553,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline SegmentCommand &
+        constexpr SegmentCommand &
         setFlags(const SegmentFlags &Flags, bool IsBigEndian) noexcept {
             this->Flags = SwitchEndianIf(Flags.value(), IsBigEndian);
             return *this;
@@ -625,7 +625,7 @@ namespace MachO {
             }
 
             [[nodiscard]]
-            constexpr inline uint64_t getSize(bool IsBigEndian) const noexcept {
+            constexpr uint64_t getSize(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Size, IsBigEndian);
             }
 
@@ -639,12 +639,12 @@ namespace MachO {
                 return SwitchEndianIf(Align, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr inline
+            [[nodiscard]] constexpr
             uint32_t getRelocationsCount(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Nreloc, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr inline
+            [[nodiscard]] constexpr
             SegmentSectionFlags getFlags(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Flags, IsBigEndian);
             }
@@ -659,7 +659,7 @@ namespace MachO {
                 return SwitchEndianIf(Reserved2, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr inline std::optional<LocationRange>
+            [[nodiscard]] constexpr std::optional<LocationRange>
             getFileRange(bool IsBigEndian) const noexcept {
                 const auto Offset = getFileOffset(IsBigEndian);
                 const auto Size = getSize(IsBigEndian);
@@ -667,7 +667,7 @@ namespace MachO {
                 return LocationRange::CreateWithSize(Offset, Size);
             }
 
-            [[nodiscard]] constexpr inline std::optional<LocationRange>
+            [[nodiscard]] constexpr std::optional<LocationRange>
             getMemoryRange(bool IsBigEndian) const noexcept {
                 const auto Addr = getAddress(IsBigEndian);
                 const auto Size = getSize(IsBigEndian);
@@ -675,7 +675,7 @@ namespace MachO {
                 return LocationRange::CreateWithSize(Addr, Size);
             }
 
-            [[nodiscard]] constexpr inline
+            [[nodiscard]] constexpr
             bool segmentNameEquals(std::string_view Name) const noexcept {
                 return SegOrSectNameEquals(this->SegmentName, Name);
             }
@@ -697,25 +697,25 @@ namespace MachO {
                 return *this;
             }
 
-            constexpr inline
+            constexpr
             Section &setFileOffset(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Offset = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
             }
 
-            constexpr inline
+            constexpr
             Section &setAlign(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Align = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
             }
 
-            [[nodiscard]] constexpr inline Section &
+            [[nodiscard]] constexpr Section &
             setRelocationsCount(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Nreloc = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
             }
 
-            constexpr inline Section &
+            constexpr Section &
             setFlags(const SegmentSectionFlags &Flags,
                      bool IsBigEndian) noexcept
             {
@@ -723,7 +723,7 @@ namespace MachO {
                 return *this;
             }
 
-            [[nodiscard]] constexpr inline
+            [[nodiscard]] constexpr
             Section &setReserved1(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Reserved1 = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
@@ -754,12 +754,12 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline uint64_t getVmAddr(bool IsBigEndian) const noexcept {
+        constexpr uint64_t getVmAddr(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(VmAddr, IsBigEndian);
         }
 
         [[nodiscard]]
-        constexpr inline uint64_t getVmSize(bool IsBigEndian) const noexcept {
+        constexpr uint64_t getVmSize(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(VmSize, IsBigEndian);
         }
 
@@ -769,7 +769,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline uint64_t getFileSize(bool IsBigEndian) const noexcept {
+        constexpr uint64_t getFileSize(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(FileSize, IsBigEndian);
         }
 
@@ -793,7 +793,7 @@ namespace MachO {
             return SwitchEndianIf(Nsects, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr inline std::optional<LocationRange>
+        [[nodiscard]] constexpr std::optional<LocationRange>
         getVmRange(bool IsBigEndian) const noexcept {
             const auto VmAddr = getVmAddr(IsBigEndian);
             const auto VmSize = getVmSize(IsBigEndian);
@@ -801,7 +801,7 @@ namespace MachO {
             return LocationRange::CreateWithSize(VmAddr, VmSize);
         }
 
-        [[nodiscard]] constexpr inline std::optional<LocationRange>
+        [[nodiscard]] constexpr std::optional<LocationRange>
         getFileRange(bool IsBigEndian) const noexcept {
             const auto Offset = getFileOffset(IsBigEndian);
             const auto Size = getFileSize(IsBigEndian);
@@ -810,11 +810,11 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline bool nameEquals(std::string_view Name) const noexcept {
+        constexpr bool nameEquals(std::string_view Name) const noexcept {
             return SegOrSectNameEquals(this->Name, Name);
         }
 
-        constexpr inline SegmentCommand64 &
+        constexpr SegmentCommand64 &
         setInitProt(const MemoryProtections &InitProt,
                     bool IsBigEndian) noexcept
         {
@@ -822,7 +822,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline SegmentCommand64 &
+        constexpr SegmentCommand64 &
         setMaxProt(const MemoryProtections &MaxProt,
                    bool IsBigEndian) noexcept
         {
@@ -830,7 +830,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline SegmentCommand64 &
+        constexpr SegmentCommand64 &
         setFlags(const SegmentFlags &Flags, bool IsBigEndian) noexcept {
             this->Flags = SwitchEndianIf(Flags.value(), IsBigEndian);
             return *this;
@@ -900,11 +900,11 @@ namespace MachO {
         };
 
         [[nodiscard]]
-        constexpr inline uint32_t getOffset(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getOffset(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Offset, IsBigEndian);
         }
 
-        constexpr inline LoadCommandString &
+        constexpr LoadCommandString &
         setOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->Offset = SwitchEndianIf(Offset, IsBigEndian);
             return *this;
@@ -947,29 +947,29 @@ namespace MachO {
         using Masks = PackedVersionMasks;
         using Shifts = PackedVersionShifts;
 
-        [[nodiscard]] constexpr inline uint8_t getRevision() const noexcept {
+        [[nodiscard]] constexpr uint8_t getRevision() const noexcept {
             return getValueForMaskAndShift(Masks::Revision, Shifts::Revision);
         }
 
-        [[nodiscard]] constexpr inline uint8_t getMinor() const noexcept {
+        [[nodiscard]] constexpr uint8_t getMinor() const noexcept {
             return getValueForMaskAndShift(Masks::Minor, Shifts::Minor);
         }
 
-        [[nodiscard]] constexpr inline uint16_t getMajor() const noexcept {
+        [[nodiscard]] constexpr uint16_t getMajor() const noexcept {
             return getValueForMaskAndShift(Masks::Major, Shifts::Major);
         }
 
-        constexpr inline PackedVersion &setRevision(uint8_t Value) noexcept {
+        constexpr PackedVersion &setRevision(uint8_t Value) noexcept {
             setValueForMaskAndShift(Masks::Revision, Shifts::Revision, Value);
             return *this;
         }
 
-        constexpr inline PackedVersion &setMinor(uint8_t Value) noexcept {
+        constexpr PackedVersion &setMinor(uint8_t Value) noexcept {
             setValueForMaskAndShift(Masks::Minor, Shifts::Minor, Value);
             return *this;
         }
 
-        constexpr inline PackedVersion &setMajor(uint16_t Value) noexcept {
+        constexpr PackedVersion &setMajor(uint16_t Value) noexcept {
             setValueForMaskAndShift(Masks::Major, Shifts::Major, Value);
             return *this;
         }
@@ -1058,12 +1058,12 @@ namespace MachO {
                 return SwitchEndianIf(Name.Offset, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr inline
+            [[nodiscard]] constexpr
             PackedVersion getCurrentVersion(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(CurrentVersion, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr inline
+            [[nodiscard]] constexpr
             PackedVersion getCompatVersion(bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(CompatibilityVersion, IsBigEndian);
             }
@@ -1073,13 +1073,13 @@ namespace MachO {
                 return SwitchEndianIf(Timestamp, IsBigEndian);
             }
 
-            constexpr inline
+            constexpr
             Info &setNameOffset(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Name.Offset = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
             }
 
-            constexpr inline Info &
+            constexpr Info &
             setCurrentVersion(const PackedVersion &Version,
                               bool IsBigEndian) noexcept
             {
@@ -1089,7 +1089,7 @@ namespace MachO {
                 return *this;
             }
 
-            constexpr inline Info &
+            constexpr Info &
             setCompatVersion(const PackedVersion &Version,
                              bool IsBigEndian) noexcept
             {
@@ -1099,7 +1099,7 @@ namespace MachO {
                 return *this;
             }
 
-            constexpr inline
+            constexpr
             Info &setTimestamp(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Timestamp = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
@@ -1124,7 +1124,7 @@ namespace MachO {
             return (Kind == LoadCommand::Kind::SubFramework);
         }
 
-        [[nodiscard]] constexpr inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(bool IsBigEndian) noexcept {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
@@ -1486,7 +1486,7 @@ namespace MachO {
         return Result;
     }
 
-    [[nodiscard]] constexpr inline
+    [[nodiscard]] constexpr
     uint64_t SymbolTableEntrySymbolKindGetLongestDescription() noexcept {
         const auto Result =
             EnumHelper<SymbolTableEntrySymbolKind>::GetLongestAssocLength(
@@ -1583,7 +1583,7 @@ namespace MachO {
         uint32_t Value;
 
         [[nodiscard]]
-        constexpr inline uint16_t getDylibOrdinal() const noexcept {
+        constexpr uint16_t getDylibOrdinal() const noexcept {
             return GetDylibOrdinal(Desc);
         }
 
@@ -1650,11 +1650,11 @@ namespace MachO {
         uint64_t Value;
 
         [[nodiscard]]
-        constexpr inline uint16_t getDylibOrdinal() const noexcept {
+        constexpr uint16_t getDylibOrdinal() const noexcept {
             return GetDylibOrdinal(Desc);
         }
 
-        constexpr inline SymbolTableEntry64 &
+        constexpr SymbolTableEntry64 &
         setDylibOrdinal(uint16_t DylibOrdinal, bool IsBigEndian) noexcept {
             auto Desc = getDescription(IsBigEndian);
 
@@ -2187,13 +2187,13 @@ namespace MachO {
         GetConstHintList(const ConstMemoryMap &Map,
                          bool IsBigEndian) const noexcept;
 
-        constexpr inline TwoLevelHintsCommand &
+        constexpr TwoLevelHintsCommand &
         setHintsOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->Offset =  SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr inline TwoLevelHintsCommand &
+        constexpr TwoLevelHintsCommand &
         setHintsCount(uint32_t Value, bool IsBigEndian) noexcept {
             this->NHints = SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -2231,7 +2231,7 @@ namespace MachO {
             return SwitchEndianIf(CheckSum, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr inline PrebindChecksumCommand &
+        [[nodiscard]] constexpr PrebindChecksumCommand &
         setCheckSum(uint32_t Value, bool IsBigEndian) noexcept {
             this->CheckSum = SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -2340,17 +2340,17 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline uint32_t getDataSize(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getDataSize(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(DataSize, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr inline LinkeditDataCommand &
+        [[nodiscard]] constexpr LinkeditDataCommand &
         setDataOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->DataOff = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline LinkeditDataCommand &
+        [[nodiscard]] constexpr LinkeditDataCommand &
         setDataSize(uint32_t Value, bool IsBigEndian) noexcept {
             this->DataSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -2473,19 +2473,19 @@ namespace MachO {
             return SwitchEndianIf(CryptId, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr inline EncryptionInfoCommand &
+        [[nodiscard]] constexpr EncryptionInfoCommand &
         setCryptOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->CryptOff = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline EncryptionInfoCommand &
+        [[nodiscard]] constexpr EncryptionInfoCommand &
         setCryptSize(uint32_t Value, bool IsBigEndian) noexcept {
             this->CryptSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline EncryptionInfoCommand &
+        [[nodiscard]] constexpr EncryptionInfoCommand &
         setCryptId(uint32_t Value, bool IsBigEndian) noexcept {
             this->CryptId = SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -2532,34 +2532,34 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline uint32_t getCryptId(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getCryptId(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(CryptId, IsBigEndian);
         }
 
         [[nodiscard]]
-        constexpr inline uint32_t getPad(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getPad(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Pad, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr inline EncryptionInfoCommand64 &
+        [[nodiscard]] constexpr EncryptionInfoCommand64 &
         setCryptOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->CryptOff = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline EncryptionInfoCommand64 &
+        [[nodiscard]] constexpr EncryptionInfoCommand64 &
         setCryptSize(uint32_t Value, bool IsBigEndian) noexcept {
             this->CryptSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline EncryptionInfoCommand64 &
+        [[nodiscard]] constexpr EncryptionInfoCommand64 &
         setCryptId(uint32_t Value, bool IsBigEndian) noexcept {
             this->CryptId = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline EncryptionInfoCommand64 &
+        [[nodiscard]] constexpr EncryptionInfoCommand64 &
         setPad(uint32_t Value, bool IsBigEndian) noexcept {
             this->Pad = SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -2609,13 +2609,13 @@ namespace MachO {
             return SwitchEndianIf(Sdk, IsBigEndian);
         }
 
-        constexpr inline VersionMinimumCommand &
+        constexpr VersionMinimumCommand &
         setVersion(const PackedVersion &Version, bool IsBigEndian) noexcept {
             this->Version = SwitchEndianIf(Version.value(), IsBigEndian);
             return *this;
         }
 
-        constexpr inline VersionMinimumCommand &
+        constexpr VersionMinimumCommand &
         setSdk(const PackedVersion &Sdk, bool IsBigEndian) noexcept {
             this->Sdk = SwitchEndianIf(Sdk.value(), IsBigEndian);
             return *this;
@@ -2753,7 +2753,7 @@ namespace MachO {
                 return *this;
             }
 
-            constexpr inline
+            constexpr
             Tool &setVersion(PackedVersion Value, bool IsBigEndian) noexcept {
                 this->Version = Value.value();
                 return *this;
@@ -2812,7 +2812,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline PackedVersion getSdk(bool IsBigEndian) const noexcept {
+        constexpr PackedVersion getSdk(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Sdk, IsBigEndian);
         }
 
@@ -2821,7 +2821,7 @@ namespace MachO {
             return SwitchEndianIf(NTools, IsBigEndian);
         }
 
-        constexpr inline BuildVersionCommand &
+        constexpr BuildVersionCommand &
         setPlatform(PlatformKind Platform, bool IsBigEndian) noexcept {
             const auto Value = static_cast<uint32_t>(Platform);
             this->Platform = SwitchEndianIf(Value, IsBigEndian);
@@ -2829,19 +2829,19 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline BuildVersionCommand &
+        constexpr BuildVersionCommand &
         setMinOS(const PackedVersion &MinOS, bool IsBigEndian) noexcept {
             this->MinOS = SwitchEndianIf(MinOS.value(), IsBigEndian);
             return *this;
         }
 
-        constexpr inline BuildVersionCommand &
+        constexpr BuildVersionCommand &
         setSdk(const PackedVersion &Sdk, bool IsBigEndian) noexcept {
             this->Sdk = SwitchEndianIf(Sdk.value(), IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline BuildVersionCommand &
+        [[nodiscard]] constexpr BuildVersionCommand &
         setToolCount(uint32_t Value, bool IsBigEndian) noexcept {
             this->NTools = SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -2916,7 +2916,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline uint32_t getBindSize(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getBindSize(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(BindSize, IsBigEndian);
         }
 
@@ -2950,61 +2950,61 @@ namespace MachO {
             return SwitchEndianIf(ExportSize, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr inline DyldInfoCommand &
+        [[nodiscard]] constexpr DyldInfoCommand &
         setRebaseOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->RebaseOff = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline DyldInfoCommand &
+        [[nodiscard]] constexpr DyldInfoCommand &
         setRebaseSize(uint32_t Value, bool IsBigEndian) noexcept {
             this->RebaseSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline DyldInfoCommand &
+        [[nodiscard]] constexpr DyldInfoCommand &
         setBindOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->BindOff = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline DyldInfoCommand &
+        [[nodiscard]] constexpr DyldInfoCommand &
         setBindSize(uint32_t Value, bool IsBigEndian) noexcept {
             this->BindSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline DyldInfoCommand &
+        [[nodiscard]] constexpr DyldInfoCommand &
         setWeakBindOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->WeakBindOff = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline DyldInfoCommand &
+        [[nodiscard]] constexpr DyldInfoCommand &
         setWeakBindSize(uint32_t Value, bool IsBigEndian) noexcept {
             this->WeakBindSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline DyldInfoCommand &
+        [[nodiscard]] constexpr DyldInfoCommand &
         setLazyBindOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->LazyBindOff = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline DyldInfoCommand &
+        [[nodiscard]] constexpr DyldInfoCommand &
         setLazyBindSize(uint32_t Value, bool IsBigEndian) noexcept {
             this->LazyBindSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline DyldInfoCommand &
+        [[nodiscard]] constexpr DyldInfoCommand &
         setExportOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->ExportOff = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] constexpr inline DyldInfoCommand &
+        [[nodiscard]] constexpr DyldInfoCommand &
         setExportSize(uint32_t Value, bool IsBigEndian) noexcept {
             this->ExportSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -3266,22 +3266,22 @@ namespace MachO {
 	    uint32_t Size;
 
         [[nodiscard]]
-        constexpr inline uint32_t getOffset(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getOffset(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Offset, IsBigEndian);
         }
 
         [[nodiscard]]
-        constexpr inline uint32_t getSize(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getSize(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Size, IsBigEndian);
         }
 
-        constexpr inline LinkerOptionCommand &
+        constexpr LinkerOptionCommand &
         getOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->Offset = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr inline LinkerOptionCommand &
+        constexpr LinkerOptionCommand &
         getSize(uint32_t Value, bool IsBigEndian) noexcept {
             this->Size = SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -3317,22 +3317,22 @@ namespace MachO {
         uint32_t Size;
 
         [[nodiscard]]
-        constexpr inline uint32_t getOffset(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getOffset(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Offset, IsBigEndian);
         }
 
         [[nodiscard]]
-        constexpr inline uint32_t getSize(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getSize(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Size, IsBigEndian);
         }
 
-        constexpr inline SymbolSegmentCommand &
+        constexpr SymbolSegmentCommand &
         getOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->Offset = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr inline SymbolSegmentCommand &
+        constexpr SymbolSegmentCommand &
         getSize(uint32_t Value, bool IsBigEndian) noexcept {
             this->Size = SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -3395,7 +3395,7 @@ namespace MachO {
             return SwitchEndianIf(HeaderAddr, IsBigEndian);
         }
 
-        constexpr inline FixedVMFileCommand &
+        constexpr FixedVMFileCommand &
         setHeaderAddress(uint32_t Value, bool IsBigEndian) noexcept {
             this->HeaderAddr = SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -3442,13 +3442,13 @@ namespace MachO {
             return SwitchEndianIf(StackSize, IsBigEndian);
         }
 
-        constexpr inline EntryPointCommand &
+        constexpr EntryPointCommand &
         setEntryOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->EntryOffset = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr inline EntryPointCommand &
+        constexpr EntryPointCommand &
         setStackSize(uint32_t Value, bool IsBigEndian) noexcept {
             this->StackSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -3487,23 +3487,23 @@ namespace MachO {
         constexpr PackedVersion64() noexcept = default;
         constexpr PackedVersion64(uint64_t Integer) noexcept : Base(Integer) {}
 
-        [[nodiscard]] constexpr inline uint16_t getRevision3() const noexcept {
+        [[nodiscard]] constexpr uint16_t getRevision3() const noexcept {
             return getValueForMaskAndShift(Masks::Revision3, Shifts::Revision3);
         }
 
-        [[nodiscard]] constexpr inline uint16_t getRevision2() const noexcept {
+        [[nodiscard]] constexpr uint16_t getRevision2() const noexcept {
             return getValueForMaskAndShift(Masks::Revision2, Shifts::Revision2);
         }
 
-        [[nodiscard]] constexpr inline uint16_t getRevision1() const noexcept {
+        [[nodiscard]] constexpr uint16_t getRevision1() const noexcept {
             return getValueForMaskAndShift(Masks::Revision1, Shifts::Revision1);
         }
 
-        [[nodiscard]] constexpr inline uint16_t getMinor() const noexcept {
+        [[nodiscard]] constexpr uint16_t getMinor() const noexcept {
             return getValueForMaskAndShift(Masks::Minor, Shifts::Minor);
         }
 
-        [[nodiscard]] constexpr inline uint32_t getMajor() const noexcept {
+        [[nodiscard]] constexpr uint32_t getMajor() const noexcept {
             const auto Value =
                 getValueForMaskAndShift(Masks::Major, Shifts::Major);
 
@@ -3528,12 +3528,12 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline PackedVersion64 &setMinor(uint16_t Value) noexcept {
+        constexpr PackedVersion64 &setMinor(uint16_t Value) noexcept {
             setValueForMaskAndShift(Masks::Minor, Shifts::Minor, Value);
             return *this;
         }
 
-        constexpr inline PackedVersion64 &setMajor(uint32_t Value) noexcept {
+        constexpr PackedVersion64 &setMajor(uint32_t Value) noexcept {
             setValueForMaskAndShift(Masks::Major, Shifts::Major, Value);
             return *this;
         }
@@ -3570,7 +3570,7 @@ namespace MachO {
             return SwitchEndianIf(Version, IsBigEndian);
         }
 
-        constexpr inline SourceVersionCommand &
+        constexpr SourceVersionCommand &
         setVersion(const PackedVersion64 &Version, bool IsBigEndian) noexcept {
             this->Version = SwitchEndianIf(Version.value(), IsBigEndian);
             return *this;
@@ -3607,16 +3607,16 @@ namespace MachO {
         uint64_t Size;
 
         [[nodiscard]]
-        constexpr inline uint64_t getOffset(bool IsBigEndian) const noexcept {
+        constexpr uint64_t getOffset(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Offset, IsBigEndian);
         }
 
         [[nodiscard]]
-        constexpr inline uint64_t getSize(bool IsBigEndian) const noexcept {
+        constexpr uint64_t getSize(bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Size, IsBigEndian);
         }
 
-        constexpr inline
+        constexpr
         NoteCommand &setOffset(uint32_t Value, bool IsBigEndian) noexcept {
             this->Offset = SwitchEndianIf(Value, IsBigEndian);
             return *this;

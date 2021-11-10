@@ -30,19 +30,19 @@ public:
     constexpr PointerOrError(const std::nullptr_t &Error) noexcept = delete;
     constexpr PointerOrError(T *Ptr) noexcept : Ptr(Ptr) {}
 
-    [[nodiscard]] constexpr inline bool hasError() const noexcept {
+    [[nodiscard]] constexpr bool hasError() const noexcept {
         return ErrorStorage.hasValue();
     }
 
-    [[nodiscard]] constexpr inline bool hasPtr() const noexcept {
+    [[nodiscard]] constexpr bool hasPtr() const noexcept {
         return !hasError();
     }
 
-    [[nodiscard]] constexpr inline ErrorType getError() const noexcept {
+    [[nodiscard]] constexpr ErrorType getError() const noexcept {
         return ErrorStorage.getValue();
     }
 
-    [[nodiscard]] constexpr inline T *getPtr() const noexcept {
+    [[nodiscard]] constexpr T *getPtr() const noexcept {
         if (hasError()) {
             return nullptr;
         }
@@ -50,26 +50,26 @@ public:
         return Ptr;
     }
 
-    [[nodiscard]] constexpr inline T &getRef() const noexcept {
+    [[nodiscard]] constexpr T &getRef() const noexcept {
         assert(!hasError());
         return *Ptr;
     }
 
-    constexpr inline PointerOrError &setError(const ErrorType &Error) noexcept {
+    constexpr PointerOrError &setError(const ErrorType &Error) noexcept {
         ErrorStorage = Error;
         return *this;
     }
 
-    constexpr inline PointerOrError &setPtr(T *Ptr) const noexcept {
+    constexpr PointerOrError &setPtr(T *Ptr) const noexcept {
         this->Ptr = Ptr;
         return *this;
     }
 
-    [[nodiscard]] constexpr inline uint64_t value() const noexcept {
+    [[nodiscard]] constexpr uint64_t value() const noexcept {
         return reinterpret_cast<uint64_t>(Ptr);
     }
 
-    constexpr inline PointerOrError &clear() noexcept {
+    constexpr PointerOrError &clear() noexcept {
         Ptr = nullptr;
         return *this;
     }
@@ -100,7 +100,7 @@ public:
     TypedAllocationOrError(TypedAllocationOrError &&Ty) noexcept
     : Base(reinterpret_cast<T *>(Ty.value())) {}
 
-    [[nodiscard]] constexpr inline T *getAndClaimPtr() noexcept {
+    [[nodiscard]] constexpr T *getAndClaimPtr() noexcept {
         const auto Result = this->getPtr();
         this->clear();
 

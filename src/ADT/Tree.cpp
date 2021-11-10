@@ -17,19 +17,19 @@ BasicTreeNode &BasicTreeNode::SetAsParentOfChildren() noexcept {
 
 BasicTreeNode &
 BasicTreeNode::SetAsParentOfChildren(BasicTreeNode &Node) noexcept {
-    BASIC_TREE_NODE_ITERATE_CHILDREN(Node) {
-        Child->setParent(&Node);
-    }
+    Node.forEachChild([&](BasicTreeNode &Child) {
+        Child.setParent(&Node);
+    });
 
     return *this;
 }
 
 uint64_t BasicTreeNode::GetChildCount() const noexcept {
     auto ChildCount = uint64_t();
-    BASIC_TREE_NODE_ITERATE_CHILDREN(*this) {
+    forEachChild([&](const BasicTreeNode &Child) {
         (void)Child;
         ChildCount++;
-    }
+    });
 
     return ChildCount;
 }
@@ -40,10 +40,10 @@ SetParentOfSiblings(BasicTreeNode *Parent,
                     BasicTreeNode *End = nullptr) noexcept
 {
     auto Back = &Node;
-    BASIC_TREE_NODE_ITERATE_SIBLINGS_TILL_END(Node, End) {
-        Sibling->setParent(Parent);
-        Back = Sibling;
-    }
+    Node.forEachSiblingTillEnd(End, [&](BasicTreeNode &Sibling) {
+        Sibling.setParent(Parent);
+        Back = &Sibling;
+    });
 
     return *Back;
 }
@@ -64,12 +64,12 @@ void BasicTreeNode::ValidateChildArray() const noexcept {
     assert(SecondChild->getParent() == this);
 
     auto Prev = FirstChild;
-    BASIC_TREE_NODE_ITERATE_SIBLINGS(*SecondChild) {
-        assert(Sibling->getParent() == this);
-        assert(Sibling->getPrevSibling() == Prev);
+    SecondChild->forEachSibling([&](BasicTreeNode &Sibling) {
+        assert(Sibling.getParent() == this);
+        assert(Sibling.getPrevSibling() == Prev);
 
-        Prev = Sibling;
-    }
+        Prev = &Sibling;
+    });
 
     assert(Prev == getLastChild());
 }
@@ -144,10 +144,10 @@ BasicTree::~BasicTree() noexcept {}
 
 uint64_t BasicTree::GetCount() const noexcept {
     auto Count = uint64_t();
-    for (auto &Iter : *this) {
-        (void)Iter;
+    forEachNode([&](const BasicTreeNode &Node) {
+        (void)Node;
         Count++;
-    }
+    });
 
     return Count;
 }
@@ -247,7 +247,7 @@ static void IsolateNode(BasicTreeNode &Node) noexcept {
     // We try to merge Node's children with Node's siblings.
 
     const auto ParentPtr = Node.getParent();
-    if (const auto FirstChild = Node.getFirstChild(); FirstChild != nullptr) {
+    if (const auto FirstChild = Node.getFirstChild()) {
         if (const auto PrevSibling = Node.getPrevSibling()) {
             if (ParentPtr != nullptr) {
                 SetParentOfSiblings(ParentPtr, *FirstChild);

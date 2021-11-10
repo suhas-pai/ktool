@@ -1117,10 +1117,8 @@ namespace Mach {
                 switch (Any(SubKind)) {
                     case Any::Multiple:
                         return (AnyCpuSubKindTable + 0);
-
                     case Any::LittleEndian:
                         return (AnyCpuSubKindTable + 1);
-
                     case Any::BigEndian:
                         return (AnyCpuSubKindTable + 2);
                 }
@@ -1444,7 +1442,7 @@ namespace Mach {
     }
 
     namespace CpuSubKind {
-        [[nodiscard]] constexpr inline std::string_view
+        [[nodiscard]] constexpr std::string_view
         GetName(CpuKind CpuKind, int32_t CpuSubKind) noexcept {
             if (auto *Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->Name;
@@ -1453,7 +1451,7 @@ namespace Mach {
             return std::string_view();
         }
 
-        [[nodiscard]] constexpr inline std::string_view
+        [[nodiscard]] constexpr std::string_view
         GetFullName(CpuKind CpuKind, int32_t CpuSubKind) noexcept {
             if (auto *Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->FullName;
@@ -1462,7 +1460,7 @@ namespace Mach {
             return std::string_view();
         }
 
-        [[nodiscard]] constexpr inline std::string_view
+        [[nodiscard]] constexpr std::string_view
         GetDescription(CpuKind CpuKind, int32_t CpuSubKind) noexcept {
             if (auto *Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->Description;

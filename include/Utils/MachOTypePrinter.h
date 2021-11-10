@@ -233,8 +233,8 @@ struct MachOTypePrinter<MachO::FatHeader::Arch64> {
                 fprintf(OutFile,
                         "%sCpuType:    %s (Value: %" PRIu32 ")%s\n"
                         "%sCpuSubType: %s (Value: %" PRIu32 ")%s\n"
-                        "%sOffset:%-5s" OFFSET_64_FMT " (" OFFSET_64_RNG_FMT
-                        ")%s\n%sSize:       %" PRIu64 "%s\n"
+                        "%sOffset:%-5s" OFFSET_64_FMT " (" OFFSET_64_RNG_FMT ")"
+                        "%s\n%sSize:       %" PRIu64 "%s\n"
                         "%sAlign:      %" PRIu32 "%s\n",
                         LinePrefix, CpuKindName, static_cast<int32_t>(CpuKind),
                         LineSuffix,

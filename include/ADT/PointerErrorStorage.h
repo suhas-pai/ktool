@@ -14,7 +14,7 @@
 #include "TypeTraits/DisableIfNotEnumClass.h"
 
 [[nodiscard]]
-constexpr inline bool PointerHasErrorValue(uintptr_t Storage) noexcept {
+constexpr bool PointerHasErrorValue(uintptr_t Storage) noexcept {
     return (Storage <= std::numeric_limits<uint16_t>::max());
 }
 
@@ -31,11 +31,11 @@ public:
     constexpr PointerErrorStorage(Enum Error) noexcept
     : Storage(static_cast<uintptr_t>(Error)) {}
 
-    [[nodiscard]] constexpr inline bool hasValue() const noexcept {
+    [[nodiscard]] constexpr bool hasValue() const noexcept {
         return PointerHasErrorValue(this->Storage);
     }
 
-    [[nodiscard]] constexpr inline Enum getValue() const noexcept {
+    [[nodiscard]] constexpr Enum getValue() const noexcept {
         if (!hasValue()) {
             return Enum::None;
         }
@@ -43,7 +43,7 @@ public:
         return static_cast<Enum>(Storage);
     }
 
-    constexpr inline PointerErrorStorage &setValue(const Enum &Value) noexcept {
+    constexpr PointerErrorStorage &setValue(const Enum &Value) noexcept {
         if (Value != Enum::None) {
             Storage = static_cast<uintptr_t>(Value);
         }
@@ -51,7 +51,7 @@ public:
         return *this;
     }
 
-    constexpr inline PointerErrorStorage &clear() noexcept {
+    constexpr PointerErrorStorage &clear() noexcept {
         Storage = 0;
         return *this;
     }

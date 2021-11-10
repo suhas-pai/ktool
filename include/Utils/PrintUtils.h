@@ -87,12 +87,12 @@ enum PrintKind {
 };
 
 [[nodiscard]]
-constexpr inline bool PrintKindIsVerbose(PrintKind Kind) noexcept {
+constexpr bool PrintKindIsVerbose(PrintKind Kind) noexcept {
     return (Kind == PrintKind::Verbose);
 }
 
 [[nodiscard]]
-constexpr inline PrintKind PrintKindFromIsVerbose(bool IsVerbose) noexcept {
+constexpr PrintKind PrintKindFromIsVerbose(bool IsVerbose) noexcept {
     return (IsVerbose) ? PrintKind::Verbose : PrintKind::Default;
 }
 
@@ -106,10 +106,7 @@ inline int PrintUtilsCharMultTimes(FILE *OutFile, char Ch, int Times) noexcept {
 }
 
 inline int
-PrintUtilsStringMultTimes(FILE *OutFile,
-                          const char *Str,
-                          int Times) noexcept
-{
+PrintUtilsStringMultTimes(FILE *OutFile, const char *Str, int Times) noexcept {
     assert(Times >= 0 && "PrintUtilsStringMultTimes(): Times less than 0");
 
     auto Total = int();

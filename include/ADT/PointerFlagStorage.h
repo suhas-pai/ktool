@@ -19,11 +19,11 @@ public:
     constexpr PointerFlagStorage(bool Flag)
     : Ptr(reinterpret_cast<T *>(Flag)) {}
 
-    [[nodiscard]] constexpr inline bool hasFlag() const noexcept {
+    [[nodiscard]] constexpr bool hasFlag() const noexcept {
         return (reinterpret_cast<uint64_t>(Ptr) & 1);
     }
 
-    [[nodiscard]] constexpr inline T *getPtr() const noexcept {
+    [[nodiscard]] constexpr T *getPtr() const noexcept {
         if (hasFlag()) {
             return (reinterpret_cast<uint64_t>(Ptr) & ~1);
         }
@@ -31,12 +31,12 @@ public:
         return Ptr;
     }
 
-    constexpr inline PointerFlagStorage &setFlag(bool Flag) const noexcept {
+    constexpr PointerFlagStorage &setFlag(bool Flag) const noexcept {
         reinterpret_cast<uint64_t &>(Ptr) |= static_cast<uint64_t>(Flag);
         return *this;
     }
 
-    [[nodiscard]] constexpr inline operator T *() const noexcept {
+    [[nodiscard]] constexpr operator T *() const noexcept {
         return getPtr();
     }
 };

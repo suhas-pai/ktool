@@ -123,7 +123,7 @@ namespace MachO {
     }
 
     [[nodiscard]]
-    constexpr inline uint64_t RebaseWriteKindGetLongestDescription() noexcept {
+    constexpr uint64_t RebaseWriteKindGetLongestDescription() noexcept {
         const auto Result =
             EnumHelper<RebaseWriteKind>::GetLongestAssocLength(
                 RebaseWriteKindGetName);
@@ -150,21 +150,21 @@ namespace MachO {
         using Shifts = DyldInfoByteShifts;
         using WriteKind = RebaseWriteKind;
 
-        [[nodiscard]] constexpr inline Opcode getOpcode() const noexcept {
+        [[nodiscard]] constexpr Opcode getOpcode() const noexcept {
             return Opcode(getValueForMaskNoShift(Masks::Opcode));
         }
 
-        [[nodiscard]] constexpr inline uint8_t getImmediate() const noexcept {
+        [[nodiscard]] constexpr uint8_t getImmediate() const noexcept {
             return getValueForMaskNoShift(Masks::Immediate);
         }
 
-        constexpr inline RebaseByte &SetOpcode(Opcode Opcode) noexcept {
+        constexpr RebaseByte &SetOpcode(Opcode Opcode) noexcept {
             setValueForMaskNoShift(Masks::Opcode,
                                    static_cast<IntegerType>(Opcode));
             return *this;
         }
 
-        constexpr inline RebaseByte &SetImmediate(uint8_t Immediate) noexcept {
+        constexpr RebaseByte &SetImmediate(uint8_t Immediate) noexcept {
             setValueForMaskNoShift(Masks::Immediate, Immediate);
             return *this;
         }
@@ -236,17 +236,17 @@ namespace MachO {
 
         RebaseWriteKind Kind;
 
-        [[nodiscard]] constexpr inline bool hasError() const noexcept {
+        [[nodiscard]] constexpr bool hasError() const noexcept {
             return (Error != RebaseOpcodeParseError::None);
         }
 
         [[nodiscard]]
-        constexpr inline RebaseOpcodeParseError getError() const noexcept {
+        constexpr RebaseOpcodeParseError getError() const noexcept {
             return Error;
         }
 
         [[nodiscard]]
-        constexpr inline int64_t GetSegmentIndex() const noexcept {
+        constexpr int64_t GetSegmentIndex() const noexcept {
             if (HasSegmentIndex) {
                 return SegmentIndex;
             }
@@ -292,7 +292,7 @@ namespace MachO {
 
         RebaseOpcodeIterator(const RebaseOpcodeIterator &) = delete;
 
-        [[nodiscard]] constexpr inline bool isAtEnd() const noexcept {
+        [[nodiscard]] constexpr bool isAtEnd() const noexcept {
             return ReachedEnd;
         }
 
@@ -316,7 +316,7 @@ namespace MachO {
             return *Info;
         }
 
-        [[nodiscard]] constexpr inline RebaseByte getByte() const noexcept {
+        [[nodiscard]] constexpr RebaseByte getByte() const noexcept {
             return *Prev;
         }
 
@@ -351,7 +351,7 @@ namespace MachO {
             return isAtEnd();
         }
 
-        [[nodiscard]] constexpr inline
+        [[nodiscard]] constexpr
         bool operator!=(const RebaseOpcodeIteratorEnd &End) const noexcept {
             return !(*this == End);
         }
@@ -464,7 +464,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline RebaseOpcodeIteratorEnd end() const noexcept {
+        constexpr RebaseOpcodeIteratorEnd end() const noexcept {
             return RebaseOpcodeIteratorEnd();
         }
     };

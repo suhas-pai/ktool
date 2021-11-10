@@ -22,8 +22,14 @@ protected:
 
     uint64_t DepthLevel = 1;
 public:
-    TreeIterator(T *Current, T *End = nullptr) noexcept
-    : Current(Current), End(End) {}
+    TreeIterator(T *Current) noexcept
+    : TreeIterator(Current, Current->getParent()) {}
+
+    TreeIterator(T *Current, T *End) noexcept : Current(Current), End(End) {}
+
+    static inline TreeIterator Null() noexcept {
+        return TreeIterator(nullptr, nullptr);
+    }
 
     inline T *& operator*() noexcept { return Current; }
     inline const T *const &operator*() const noexcept { return Current; }
@@ -361,6 +367,94 @@ public:
         return ConstIterator(nullptr);
     }
 
+    template <typename T>
+    inline void forEachChild(const T &lambda) const noexcept {
+        BASIC_TREE_NODE_ITERATE_CHILDREN(*this) {
+            lambda(*Child);
+        }
+    }
+
+    template <typename T>
+    inline void forSelfAndEachChild(const T &lambda) const noexcept {
+        lambda(*this);
+        forEachChild(lambda);
+    }
+
+    template <typename T>
+    inline void forEachSibling(const T &lambda) const noexcept {
+        BASIC_TREE_NODE_ITERATE_SIBLINGS(*this) {
+            lambda(*Sibling);
+        }
+    }
+
+    template <typename T>
+    inline void forSelfAndEachSibling(const T &lambda) const noexcept {
+        lambda(*this);
+        forEachSibling(lambda);
+    }
+
+    template <typename T>
+    inline void
+    forEachSiblingTillEnd(const BasicTreeNode *End,
+                          const T &lambda) const noexcept
+    {
+        BASIC_TREE_NODE_ITERATE_SIBLINGS_TILL_END(*this, End) {
+            lambda(*Sibling);
+        }
+    }
+
+    template <typename T>
+    inline void
+    forSelfAndEachSiblingTillEnd(const BasicTreeNode *End,
+                                 const T &lambda) const noexcept
+    {
+        lambda(*this);
+        forEachSiblingTillEnd(End, lambda);
+    }
+
+    template <typename T>
+    inline void forEachChild(const T &lambda) noexcept {
+        BASIC_TREE_NODE_ITERATE_CHILDREN(*this) {
+            lambda(*Child);
+        }
+    }
+
+    template <typename T>
+    inline void forSelfAndEachChild(const T &lambda) noexcept {
+        lambda(*this);
+        forEachChild(lambda);
+    }
+
+    template <typename T>
+    inline void forEachSibling(const T &lambda) noexcept {
+        BASIC_TREE_NODE_ITERATE_SIBLINGS(*this) {
+            lambda(*Sibling);
+        }
+    }
+
+    template <typename T>
+    inline void forSelfAndEachSibling(const T &lambda) noexcept {
+        lambda(*this);
+        forEachSibling(lambda);
+    }
+
+    template <typename T>
+    inline void
+    forEachSiblingTillEnd(const BasicTreeNode *End, const T &lambda) noexcept {
+        BASIC_TREE_NODE_ITERATE_SIBLINGS_TILL_END(*this, End) {
+            lambda(*Sibling);
+        }
+    }
+
+    template <typename T>
+    inline void
+    forSelfAndEachSiblingTillEnd(const BasicTreeNode *End,
+                                 const T &lambda) noexcept
+    {
+        lambda(*this);
+        forEachSiblingTillEnd(End, lambda);
+    }
+
     template <typename NodePrinter>
     const BasicTreeNode &
     PrintHorizontal(FILE *OutFile,
@@ -372,7 +466,7 @@ public:
             fputc('\n', OutFile);
         }
 
-        auto Iter = TreeIterator<const BasicTreeNode>(this, getParent());
+        auto Iter = TreeIterator<const BasicTreeNode>(this);
         for (Iter++; !Iter.isAtEnd(); Iter++) {
             auto WrittenOut = int();
 
@@ -461,13 +555,18 @@ public:
     template <typename T>
     [[nodiscard]] inline std::vector<T *> GetAsList() const noexcept {
         auto Result = std::vector<T *>();
-        Result.reserve(GetCount());
-
-        for (const auto &Iter : *this) {
-            Result.emplace_back(reinterpret_cast<T *>(Iter));
-        }
+        forEachNode([&](const auto &Iter) noexcept {
+            Result.emplace_back(reinterpret_cast<T *>(&Iter));
+        });
 
         return Result;
+    }
+
+    template <typename T>
+    inline void forEachNode(const T &lambda) const noexcept {
+        if (Root != nullptr) {
+            Root->forSelfAndEachChild(lambda);
+        }
     }
 
     template <typename Comparator>
@@ -513,12 +612,12 @@ public:
             }
         };
 
-        for (const auto &Node : *this) {
-            if (Node->isLeaf()) {
-                continue;
+        forEachNode([&](const auto &Node) noexcept {
+            if (Node.isLeaf()) {
+                return;
             }
 
-            auto FirstChild = Node->getFirstChild();
+            auto FirstChild = Node.getFirstChild();
             for (auto IChild = FirstChild->getNextSibling();
                  IChild != nullptr;
                  IChild = IChild->getNextSibling())
@@ -533,14 +632,14 @@ public:
                     if (ShouldSwap(LeftRef, RightRef)) {
                         Swap(LeftRef, RightRef);
                         if (&LeftRef == FirstChild) {
-                            FirstChild = Node->getFirstChild();
+                            FirstChild = Node.getFirstChild();
                         }
 
                         std::swap(IChild, JChild);
                     }
                 }
             }
-        }
+        });
 
         return *this;
     }

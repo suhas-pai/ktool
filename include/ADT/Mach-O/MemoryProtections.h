@@ -60,15 +60,15 @@ namespace MachO {
         constexpr MemoryProtections(MaskIntegerType Integer) noexcept
         : ::BasicFlags<MemoryProtectionEnum>(Integer) {}
 
-        [[nodiscard]] constexpr inline bool isReadable() const noexcept {
+        [[nodiscard]] constexpr bool isReadable() const noexcept {
             return hasFlag(Masks::Read);
         }
 
-        [[nodiscard]] constexpr inline bool isWritable() const noexcept {
+        [[nodiscard]] constexpr bool isWritable() const noexcept {
             return hasFlag(Masks::Write);
         }
 
-        [[nodiscard]] constexpr inline bool isExecutable() const noexcept {
+        [[nodiscard]] constexpr bool isExecutable() const noexcept {
             return hasFlag(Masks::Execute);
         }
 

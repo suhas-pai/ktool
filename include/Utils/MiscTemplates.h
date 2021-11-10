@@ -14,7 +14,7 @@
 
 template <typename T, typename U>
 [[nodiscard]]
-constexpr inline bool IndexOutOfBounds(T Index, U Bounds) noexcept {
+constexpr bool IndexOutOfBounds(T Index, U Bounds) noexcept {
     static_assert(std::is_integral_v<T> && std::is_integral_v<U>,
                   "Types must be integer-types");
 
@@ -22,7 +22,7 @@ constexpr inline bool IndexOutOfBounds(T Index, U Bounds) noexcept {
 }
 
 template <typename T>
-[[nodiscard]] constexpr inline bool OrdinalToIndex(T Ordinal) noexcept {
+[[nodiscard]] constexpr bool OrdinalToIndex(T Ordinal) noexcept {
     static_assert(std::is_integral_v<T>, "Types must be integer-types");
     assert(Ordinal != 0);
 
@@ -73,6 +73,6 @@ struct LargestIntegerTypeCalculator<T, U, Rest...>  {
 };
 
 template <typename T, size_t N>
-[[nodiscard]] constexpr inline size_t countof(T (&arr)[N]) noexcept {
+[[nodiscard]] constexpr size_t countof(T (&arr)[N]) noexcept {
     return std::extent<T[N]>::value;
 }

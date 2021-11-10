@@ -351,16 +351,16 @@ namespace MachO {
         uint32_t SizeOfCmds;
         uint32_t Flags;
 
-        [[nodiscard]] constexpr inline bool hasValidMagic() const noexcept {
+        [[nodiscard]] constexpr bool hasValidMagic() const noexcept {
             return MagicIsValid(Magic);
         }
 
-        [[nodiscard]] constexpr inline bool hasValidFileKind() const noexcept {
+        [[nodiscard]] constexpr bool hasValidFileKind() const noexcept {
             const auto Value = SwitchEndianIf(FileKind, this->isBigEndian());
             return FileKindIsRecognized(static_cast<enum FileKind>(Value));
         }
 
-        [[nodiscard]] constexpr inline bool isBigEndian() const noexcept {
+        [[nodiscard]] constexpr bool isBigEndian() const noexcept {
             switch (this->Magic) {
                 case Magic::BigEndian:
                 case Magic::BigEndian64:
@@ -373,7 +373,7 @@ namespace MachO {
             return false;
         }
 
-        [[nodiscard]] constexpr inline bool is64Bit() const noexcept {
+        [[nodiscard]] constexpr bool is64Bit() const noexcept {
             switch (this->Magic) {
                 case Magic::Default64:
                 case Magic::BigEndian64:
@@ -387,17 +387,17 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline Mach::CpuKind getCpuKind() const noexcept {
+        constexpr Mach::CpuKind getCpuKind() const noexcept {
             return Mach::CpuKind(SwitchEndianIf(CpuKind, this->isBigEndian()));
         }
 
         [[nodiscard]]
-        constexpr inline int32_t getCpuSubKind() const noexcept {
+        constexpr int32_t getCpuSubKind() const noexcept {
             return SwitchEndianIf(CpuSubKind, this->isBigEndian());
         }
 
         [[nodiscard]]
-        constexpr inline enum FileKind getFileKind() const noexcept {
+        constexpr enum FileKind getFileKind() const noexcept {
             const auto Value = SwitchEndianIf(FileKind, this->isBigEndian());
             return static_cast<enum FileKind>(Value);
         }
@@ -410,35 +410,35 @@ namespace MachO {
             return SwitchEndianIf(SizeOfCmds, this->isBigEndian());
         }
 
-        [[nodiscard]] constexpr inline FlagsType getFlags() const noexcept {
+        [[nodiscard]] constexpr FlagsType getFlags() const noexcept {
             return SwitchEndianIf(Flags, this->isBigEndian());
         }
 
-        constexpr inline Header &setCpuKind(Mach::CpuKind Kind) noexcept {
+        constexpr Header &setCpuKind(Mach::CpuKind Kind) noexcept {
             const auto Value = static_cast<int32_t>(Kind);
             this->CpuKind = SwitchEndianIf(Value, this->isBigEndian());
 
             return *this;
         }
 
-        constexpr inline Header &setLoadCommandsCount(uint32_t Value) noexcept {
+        constexpr Header &setLoadCommandsCount(uint32_t Value) noexcept {
             this->Ncmds = SwitchEndianIf(Value, this->isBigEndian());
             return *this;
         }
 
-        constexpr inline Header &setLoadCommandsSize(uint32_t Value) noexcept {
+        constexpr Header &setLoadCommandsSize(uint32_t Value) noexcept {
             this->SizeOfCmds = SwitchEndianIf(Value, this->isBigEndian());
             return *this;
         }
 
-        constexpr inline Header &setFlags(const FlagsType &Flags) noexcept {
+        constexpr Header &setFlags(const FlagsType &Flags) noexcept {
             const auto FlagsValue = Flags.value();
             this->Flags = SwitchEndianIf(FlagsValue, this->isBigEndian());
 
             return *this;
         }
 
-        [[nodiscard]] constexpr inline uint64_t size() const noexcept {
+        [[nodiscard]] constexpr uint64_t size() const noexcept {
             if (this->is64Bit()) {
                 return (sizeof(*this) + sizeof(uint32_t));
             }
@@ -574,7 +574,7 @@ namespace MachO {
                 return SwitchEndianIf(Align, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr inline std::optional<LocationRange>
+            [[nodiscard]] constexpr std::optional<LocationRange>
             getFileRange(bool IsBigEndian) const noexcept {
                 const auto Offset = getFileOffset(IsBigEndian);
                 const auto Size = getFileSize(IsBigEndian);
@@ -582,7 +582,7 @@ namespace MachO {
                 return LocationRange::CreateWithSize(Offset, Size);
             }
 
-            constexpr inline
+            constexpr
             Arch32 &setCpuKind(Mach::CpuKind Kind, bool IsBigEndian) noexcept {
                 const auto Value = static_cast<int32_t>(Kind);
                 this->CpuKind = SwitchEndianIf(Value, IsBigEndian);
@@ -590,19 +590,19 @@ namespace MachO {
                 return *this;
             }
 
-            constexpr inline Arch32 &
+            constexpr Arch32 &
             setCpuSubKind(int32_t Value, bool IsBigEndian) noexcept {
                 this->CpuSubKind = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
             }
 
-            constexpr inline
+            constexpr
             Arch32 &getFileOffset(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Offset = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
             }
 
-            constexpr inline
+            constexpr
             Arch32 &setFileSize(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Size = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
@@ -647,7 +647,7 @@ namespace MachO {
                 return SwitchEndianIf(Reserved, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr inline std::optional<LocationRange>
+            [[nodiscard]] constexpr std::optional<LocationRange>
             getFileRange(bool IsBigEndian) const noexcept {
                 const auto Offset = getFileOffset(IsBigEndian);
                 const auto Size = getFileSize(IsBigEndian);
@@ -655,7 +655,7 @@ namespace MachO {
                 return LocationRange::CreateWithSize(Offset, Size);
             }
 
-            constexpr inline
+            constexpr
             Arch64 &setCpuKind(Mach::CpuKind Kind, bool IsBigEndian) noexcept {
                 const auto Value = static_cast<int32_t>(Kind);
                 this->CpuKind = SwitchEndianIf(Value, IsBigEndian);
@@ -663,19 +663,19 @@ namespace MachO {
                 return *this;
             }
 
-            constexpr inline Arch64 &
+            constexpr Arch64 &
             setCpuSubKind(int32_t Value, bool IsBigEndian) noexcept {
                 this->CpuSubKind = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
             }
 
-            constexpr inline
+            constexpr
             Arch64 &getFileOffset(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Offset = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
             }
 
-            constexpr inline
+            constexpr
             Arch64 &setFileSize(uint32_t Value, bool IsBigEndian) noexcept {
                 this->Size = SwitchEndianIf(Value, IsBigEndian);
                 return *this;

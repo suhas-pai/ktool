@@ -84,30 +84,30 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline ExportTrieExportKind getKind() const noexcept {
+        constexpr ExportTrieExportKind getKind() const noexcept {
             return Kind;
         }
 
         [[nodiscard]]
-        constexpr inline std::string_view getString() const noexcept {
+        constexpr std::string_view getString() const noexcept {
             return String;
         }
 
-        [[nodiscard]] constexpr inline bool isExport() const noexcept {
+        [[nodiscard]] constexpr bool isExport() const noexcept {
             return (getKind() != ExportTrieExportKind::None);
         }
 
-        [[nodiscard]] constexpr inline bool isReexport() const noexcept {
+        [[nodiscard]] constexpr bool isReexport() const noexcept {
             return (getKind() == ExportTrieExportKind::Reexport);
         }
 
         [[nodiscard]]
         inline ExportTrieExportChildNode *getIfExportNode() noexcept {
-            if (!this->isExport()) {
-                return nullptr;
+            if (this->isExport()) {
+                return reinterpret_cast<ExportTrieExportChildNode *>(this);
             }
 
-            return reinterpret_cast<ExportTrieExportChildNode *>(this);
+            return nullptr;
         }
 
         [[nodiscard]] inline
@@ -148,11 +148,11 @@ namespace MachO {
         using ExportTrieChildNode::ExportTrieChildNode;
 
         [[nodiscard]]
-        constexpr inline const ExportTrieExportInfo &getInfo() const noexcept {
+        constexpr const ExportTrieExportInfo &getInfo() const noexcept {
             return Info;
         }
 
-        constexpr inline ExportTrieExportChildNode &
+        constexpr ExportTrieExportChildNode &
         setInfo(const ExportTrieExportInfo &Value) noexcept {
             this->Info = Value;
             return *this;
@@ -173,7 +173,7 @@ namespace MachO {
             return Section;
         }
 
-        constexpr inline
+        constexpr
         ExportTrieChildNode &setSegment(const SegmentInfo *Value) noexcept {
             assert(!this->isReexport());
 
@@ -181,7 +181,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline
+        constexpr
         ExportTrieChildNode &setSection(const SectionInfo *Value) noexcept {
             assert(!this->isReexport());
 
@@ -237,7 +237,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline Iterator end() const noexcept {
-            return Iterator(nullptr);
+            return Iterator::Null();
         }
 
         [[nodiscard]] inline ConstIterator cbegin() const noexcept {
@@ -245,7 +245,20 @@ namespace MachO {
         }
 
         [[nodiscard]] inline ConstIterator cend() const noexcept {
-            return ConstIterator(nullptr);
+            return ConstIterator::Null();
+        }
+
+        template <typename T>
+        inline ExportTrieEntryCollection &forEach(const T &Callback) noexcept {
+            forEachNode(Callback);
+            return *this;
+        }
+
+        template <typename T>
+        inline const ExportTrieEntryCollection &
+        forEach(const T &Callback) const noexcept {
+            forEachNode(Callback);
+            return *this;
         }
     };
 
@@ -257,32 +270,32 @@ namespace MachO {
         const SectionInfo *Section = nullptr;
     public:
         [[nodiscard]]
-        constexpr inline const ExportTrieExportInfo &getInfo() const noexcept {
+        constexpr const ExportTrieExportInfo &getInfo() const noexcept {
             return Export;
         }
 
         [[nodiscard]]
-        constexpr inline ExportTrieExportInfo &getInfo() noexcept {
+        constexpr ExportTrieExportInfo &getInfo() noexcept {
             return Export;
         }
 
         [[nodiscard]]
-        constexpr inline const SegmentInfo *getSegment() const noexcept {
+        constexpr const SegmentInfo *getSegment() const noexcept {
             return Segment;
         }
 
         [[nodiscard]]
-        constexpr inline const SectionInfo *getSection() const noexcept {
+        constexpr const SectionInfo *getSection() const noexcept {
             return Section;
         }
 
-        constexpr inline ExportTrieExportCollectionEntryInfo &
+        constexpr ExportTrieExportCollectionEntryInfo &
         setSegment(const SegmentInfo *Value) noexcept {
             this->Segment = Value;
             return *this;
         }
 
-        constexpr inline ExportTrieExportCollectionEntryInfo &
+        constexpr ExportTrieExportCollectionEntryInfo &
         setSection(const SectionInfo *Value) noexcept {
             this->Section = Value;
             return *this;

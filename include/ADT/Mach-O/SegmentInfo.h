@@ -33,40 +33,40 @@ namespace MachO {
         uint32_t Reserved2;
     public:
         [[nodiscard]]
-        constexpr inline const SegmentInfo *getSegment() const noexcept {
+        constexpr const SegmentInfo *getSegment() const noexcept {
             return Segment;
         }
 
         [[nodiscard]]
-        constexpr inline std::string_view getName() const noexcept {
+        constexpr std::string_view getName() const noexcept {
             return Name;
         }
 
         [[nodiscard]]
-        constexpr inline const LocationRange &getFileRange() const noexcept {
+        constexpr const LocationRange &getFileRange() const noexcept {
             return FileRange;
         }
 
         [[nodiscard]]
-        constexpr inline const LocationRange &getMemoryRange() const noexcept {
+        constexpr const LocationRange &getMemoryRange() const noexcept {
             return MemoryRange;
         }
 
         [[nodiscard]]
-        constexpr inline SegmentSectionFlags getFlags() const noexcept {
+        constexpr SegmentSectionFlags getFlags() const noexcept {
             return Flags;
         }
 
         [[nodiscard]]
-        constexpr inline SegmentSectionKind getKind() const noexcept {
+        constexpr SegmentSectionKind getKind() const noexcept {
             return getFlags().getKind();
         }
 
-        [[nodiscard]] constexpr inline uint32_t getReserved1() const noexcept {
+        [[nodiscard]] constexpr uint32_t getReserved1() const noexcept {
             return Reserved1;
         }
 
-        [[nodiscard]] constexpr inline uint32_t getReserved2() const noexcept {
+        [[nodiscard]] constexpr uint32_t getReserved2() const noexcept {
             return Reserved2;
         }
 
@@ -82,30 +82,30 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline
+        constexpr
         SectionInfo &setFileRange(const LocationRange &LocRange) noexcept {
             this->FileRange = LocRange;
             return *this;
         }
 
-        constexpr inline
+        constexpr
         SectionInfo &setMemoryRange(const LocationRange &LocRange) noexcept {
             this->MemoryRange = LocRange;
             return *this;
         }
 
-        constexpr inline
+        constexpr
         SectionInfo &setFlags(SegmentSectionFlags Flags) noexcept {
             this->Flags = Flags;
             return *this;
         }
 
-        constexpr inline SectionInfo &setReserved1(uint32_t Num) noexcept {
+        constexpr SectionInfo &setReserved1(uint32_t Num) noexcept {
             this->Reserved1 = Num;
             return *this;
         }
 
-        constexpr inline SectionInfo &setReserved2(uint32_t Num) noexcept {
+        constexpr SectionInfo &setReserved2(uint32_t Num) noexcept {
             this->Reserved2 = Num;
             return *this;
         }
@@ -149,32 +149,32 @@ namespace MachO {
         std::vector<std::unique_ptr<SectionInfo>> SectionList;
     public:
         [[nodiscard]]
-        constexpr inline std::string_view getName() const noexcept {
+        constexpr std::string_view getName() const noexcept {
             return Name;
         }
 
         [[nodiscard]]
-        constexpr inline LocationRange getFileRange() const noexcept {
+        constexpr LocationRange getFileRange() const noexcept {
             return FileRange;
         }
 
         [[nodiscard]]
-        constexpr inline LocationRange getMemoryRange() const noexcept {
+        constexpr LocationRange getMemoryRange() const noexcept {
             return MemoryRange;
         }
 
         [[nodiscard]]
-        constexpr inline MemoryProtections getInitProt() const noexcept {
+        constexpr MemoryProtections getInitProt() const noexcept {
             return InitProt;
         }
 
         [[nodiscard]]
-        constexpr inline MemoryProtections getMaxProt() const noexcept {
+        constexpr MemoryProtections getMaxProt() const noexcept {
             return MaxProt;
         }
 
         [[nodiscard]]
-        constexpr inline SegmentFlags getFlags() const noexcept {
+        constexpr SegmentFlags getFlags() const noexcept {
             return Flags;
         }
 
@@ -184,11 +184,11 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr inline decltype(SectionList) &getSectionListRef() noexcept {
+        constexpr decltype(SectionList) &getSectionListRef() noexcept {
             return SectionList;
         }
 
-        constexpr inline SegmentInfo &setName(std::string_view Name) noexcept {
+        constexpr SegmentInfo &setName(std::string_view Name) noexcept {
             this->Name = Name;
             return *this;
         }
@@ -217,7 +217,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr inline SegmentInfo &setFlags(SegmentFlags Flags) noexcept {
+        constexpr SegmentInfo &setFlags(SegmentFlags Flags) noexcept {
             this->Flags = Flags;
             return *this;
         }

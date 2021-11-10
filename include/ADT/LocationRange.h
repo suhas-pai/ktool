@@ -68,34 +68,34 @@ public:
         return DoesAddOverflow<T>(Begin, Size);
     }
 
-    [[nodiscard]] constexpr inline uint64_t getBegin() const noexcept {
+    [[nodiscard]] constexpr uint64_t getBegin() const noexcept {
         return Begin;
     }
 
-    [[nodiscard]] constexpr inline uint64_t getEnd() const noexcept {
+    [[nodiscard]] constexpr uint64_t getEnd() const noexcept {
         return End;
     }
 
-    constexpr inline LocationRange &setBegin(uint64_t Begin) noexcept {
+    constexpr LocationRange &setBegin(uint64_t Begin) noexcept {
         this->Begin = Begin;
         return *this;
     }
 
-    constexpr inline LocationRange &setEnd(uint64_t End) noexcept {
+    constexpr LocationRange &setEnd(uint64_t End) noexcept {
         this->End = End;
         return *this;
     }
 
-    [[nodiscard]] constexpr inline uint64_t size() const noexcept {
+    [[nodiscard]] constexpr uint64_t size() const noexcept {
         return (End - Begin);
     }
 
-    [[nodiscard]] constexpr inline bool empty() const noexcept {
+    [[nodiscard]] constexpr bool empty() const noexcept {
         return (size() == 0);
     }
 
     [[nodiscard]]
-    constexpr inline bool containsLocation(uint64_t Location) const noexcept {
+    constexpr bool containsLocation(uint64_t Location) const noexcept {
         return (!empty() && (Location >= Begin && Location < End));
     }
 
@@ -114,7 +114,7 @@ public:
         return containsEndLocation(reinterpret_cast<uint64_t>(EndLocation));
     }
 
-    [[nodiscard]] constexpr inline
+    [[nodiscard]] constexpr
     bool containsRelativeEndLocation(uint64_t EndLocation) const noexcept {
         return (!empty() && (EndLocation <= End));
     }
@@ -125,7 +125,7 @@ public:
     }
 
     template <typename T>
-    [[nodiscard]] constexpr inline bool
+    [[nodiscard]] constexpr bool
     canContainTypeAtLocation(uint64_t Location,
                              uint64_t Count = 1) const noexcept
     {
@@ -143,7 +143,7 @@ public:
     }
 
     template <typename T>
-    [[nodiscard]] constexpr inline bool
+    [[nodiscard]] constexpr bool
     canContainTypeAtLocation(const void *Location,
                              uint64_t Count = 1) const noexcept
     {
@@ -152,7 +152,7 @@ public:
     }
 
     template <typename T>
-    [[nodiscard]] constexpr inline bool
+    [[nodiscard]] constexpr bool
     containsTypeAtRelativeLocation(uint64_t Location,
                                    uint64_t Count = 1) const noexcept
     {
@@ -189,7 +189,7 @@ public:
         return (ContainsBegin && ContainsEnd);
     }
 
-    [[nodiscard]] constexpr inline
+    [[nodiscard]] constexpr
     bool containsAsRelative(const LocationRange &LocRange) const noexcept {
         if (empty()) {
             return false;
@@ -235,7 +235,7 @@ public:
     }
 
     [[nodiscard]]
-    constexpr inline bool goesPastEnd(uint64_t Size) const noexcept {
+    constexpr bool goesPastEnd(uint64_t Size) const noexcept {
         return (End > Size);
     }
 
@@ -251,7 +251,7 @@ public:
     }
 
     [[nodiscard]]
-    constexpr inline bool isLargeEnoughForSize(uint64_t Size) const noexcept {
+    constexpr bool isLargeEnoughForSize(uint64_t Size) const noexcept {
         return (size() >= Size);
     }
 
