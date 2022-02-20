@@ -23,9 +23,9 @@ namespace DscImage {
         const uint8_t *Map;
         DyldSharedCache::ConstMappingInfoList MappingList;
     public:
-        explicit
+        explicit inline
         ConstDeVirtualizer(
-            const uint8_t *Map,
+            const uint8_t *const Map,
             const DyldSharedCache::ConstMappingInfoList &MappingList) noexcept
         : Map(Map), MappingList(MappingList) {}
 
@@ -39,7 +39,7 @@ namespace DscImage {
         }
 
         [[nodiscard]] inline const uint8_t *getBegin() const noexcept {
-            return getMap() + getBeginOffset();
+            return (getMap() + getBeginOffset());
         }
 
         [[nodiscard]] inline uint64_t getBeginAddr() const noexcept {
@@ -61,7 +61,7 @@ namespace DscImage {
         }
 
         [[nodiscard]] inline const uint8_t *getEnd() const noexcept {
-            return getMap() + getEndOffset();
+            return (getMap() + getEndOffset());
         }
 
         template <typename T>
@@ -89,8 +89,8 @@ namespace DscImage {
 
         template <typename T>
         [[nodiscard]] inline const T *
-        GetDataAtVmAddr(uint64_t VmAddr,
-                        uint64_t Size = sizeof(T)) const noexcept
+        GetDataAtVmAddr(const uint64_t VmAddr,
+                        const uint64_t Size = sizeof(T)) const noexcept
         {
             const auto Range = LocationRange::CreateWithSize(VmAddr, Size);
             if (const auto Info = GetMappingInfoForRange(Range.value())) {
@@ -103,7 +103,7 @@ namespace DscImage {
 
         [[nodiscard]]
         inline std::optional<std::string_view>
-        GetStringAtAddress(uint64_t Address) const noexcept {
+        GetStringAtAddress(const uint64_t Address) const noexcept {
             const auto Ptr = GetDataAtVmAddr<const char>(Address);
             if (Ptr == nullptr) {
                 return std::nullopt;
@@ -130,7 +130,7 @@ namespace DscImage {
         }
 
         [[nodiscard]] inline uint8_t *getBegin() const noexcept {
-            return getMap() + getBeginAddr();
+            return (getMap() + getBeginAddr());
         }
 
         template <typename T>
@@ -145,8 +145,8 @@ namespace DscImage {
 
         template <typename T>
         [[nodiscard]] inline T *
-        GetDataAtVmAddr(uint64_t VmAddr,
-                        uint64_t Size = sizeof(T)) const noexcept
+        GetDataAtVmAddr(const uint64_t VmAddr,
+                        const uint64_t Size = sizeof(T)) const noexcept
         {
             const auto Result =
                 ConstDeVirtualizer::GetDataAtVmAddr<T>(VmAddr, Size);

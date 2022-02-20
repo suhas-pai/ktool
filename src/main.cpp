@@ -38,12 +38,13 @@ static void PrintRunHelpMessage() noexcept {
             Operation::UsageOption.data());
 }
 
-static void PrintUnrecognizedOptionError(const char *Option) noexcept {
+static void PrintUnrecognizedOptionError(const char *const Option) noexcept {
     fprintf(stderr, "Unrecognized Option: \"%s\"\n", Option);
 }
 
 static void
-HandleDscImageOpenError(ConstDscMemoryObject::DscImageOpenError Error) noexcept
+HandleDscImageOpenError(
+    const ConstDscMemoryObject::DscImageOpenError Error) noexcept
 {
     if (Error == ConstDscMemoryObject::DscImageOpenError::None) {
         return;
@@ -96,7 +97,7 @@ GetImageWithPath(const ConstDscMemoryObject &Object,
 }
 
 [[nodiscard]] static bool
-MatchesOption(OperationKind Kind, const ArgvArrayIterator &Arg) noexcept {
+MatchesOption(const OperationKind Kind, const ArgvArrayIterator &Arg) noexcept {
     const auto ShortName = OperationKindGetOptionShortName(Kind);
     const auto LongName = OperationKindGetOptionName(Kind);
 
@@ -128,7 +129,7 @@ MatchesOption(OperationKind Kind, const ArgvArrayIterator &Arg) noexcept {
 constexpr static auto UsageString =
     "Usage: ktool [Operation] [Operation-Options] [Path] [Path-Options]\n";
 
-int main(int Argc, const char *Argv[]) {
+int main(const int Argc, const char *Argv[]) {
     // Skip the command-name at Argv[0]
 
     const auto ArgvArr = ArgvArray(Argc, Argv).fromIndex(1);

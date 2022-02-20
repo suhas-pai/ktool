@@ -15,14 +15,14 @@
 // The templates Convert [T = uint8_t *] to [T = const uint8_t *]
 
 template <typename T>
-constexpr static inline bool EnableIfLeb128Type =
+constexpr static bool EnableIfLeb128Type =
     std::is_same_v<
         std::add_pointer_t<
             std::add_const_t<
                 std::remove_pointer_t<T>>>, const uint8_t *>;
 
 [[maybe_unused]]
-constexpr static inline bool Leb128ByteIsDone(const uint8_t &Byte) noexcept {
+constexpr static bool Leb128ByteIsDone(const uint8_t &Byte) noexcept {
     return !(Byte & 0x80);
 }
 
@@ -32,7 +32,7 @@ static inline uint8_t Leb128ByteGetBits(const uint8_t &Byte) noexcept {
 }
 
 template <typename Integer>
-constexpr static inline uint8_t Leb128GetIntegerMaxShift() {
+constexpr static uint8_t Leb128GetIntegerMaxShift() {
     static_assert(std::is_integral_v<Integer>,
                   "Integer-Type is not an integer");
 
@@ -43,7 +43,7 @@ constexpr static inline uint8_t Leb128GetIntegerMaxShift() {
 }
 
 template <typename Integer>
-constexpr static inline uint8_t Leb128GetLastByteValueMax() {
+constexpr static uint8_t Leb128GetLastByteValueMax() {
     static_assert(std::is_integral_v<Integer>,
                   "Integer-Type is not an integer");
 
@@ -172,7 +172,7 @@ template <typename FakeIntegerLimit = IntegerLimitDefaultType,
           typename T,
           typename ValueType>
 
-[[nodiscard]] constexpr static inline T
+[[nodiscard]] constexpr static T
 ReadSleb128(const T &Begin, const T &End, ValueType *ValueOut) noexcept {
     const auto Result =
         ReadLeb128Base<true, FakeIntegerLimit, T, ValueType>(Begin,

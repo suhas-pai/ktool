@@ -14,11 +14,15 @@
 #include "FileDescriptor.h"
 
 FileDescriptor
-FileDescriptor::Open(const char *Path, OpenKind Kind, Flags Flags) noexcept {
+FileDescriptor::Open(const char *const Path,
+                     const OpenKind Kind,
+                     const Flags Flags) noexcept
+{
     return open(Path, static_cast<int>(Kind), static_cast<int>(Flags));
 }
 
-FileDescriptor FileDescriptor::Create(const char *Path, int Mode) noexcept {
+FileDescriptor
+FileDescriptor::Create(const char *const Path, const int Mode) noexcept {
     return creat(Path, Mode);
 }
 
@@ -26,17 +30,17 @@ FileDescriptor::~FileDescriptor() noexcept {
     this->Close();
 }
 
-bool FileDescriptor::Read(void *Buf, size_t Size) const noexcept {
+bool FileDescriptor::Read(void *const Buf, const size_t Size) const noexcept {
     assert(this->isOpen());
     return (static_cast<size_t>(read(Fd, Buf, Size)) == Size);
 }
 
-bool FileDescriptor::Write(const void *Buf, size_t Size) noexcept {
+bool FileDescriptor::Write(const void *const Buf, const size_t Size) noexcept {
     assert(this->isOpen());
     return (static_cast<size_t>(write(Fd, Buf, Size)) == Size);
 }
 
-bool FileDescriptor::TruncateToSize(uint64_t Size) noexcept {
+bool FileDescriptor::TruncateToSize(const uint64_t Size) noexcept {
     assert(this->isOpen());
     return (ftruncate(Fd, Size) == 0);
 }

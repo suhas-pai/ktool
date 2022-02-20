@@ -306,7 +306,7 @@ AddSortKind(PrintSharedLibrariesOperation::Options::SortKind SortKind,
 
 struct PrintSharedLibrariesOperation::Options
 PrintSharedLibrariesOperation::ParseOptionsImpl(const ArgvArray &Argv,
-                                                int *IndexOut) noexcept
+                                                int *const IndexOut) noexcept
 {
     auto Index = int();
     struct Options Options;

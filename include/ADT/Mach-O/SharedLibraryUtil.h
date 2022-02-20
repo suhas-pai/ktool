@@ -27,14 +27,14 @@ namespace MachO {
         Open(const ConstLoadCommandStorage &LoadCmdStorage,
              Error *ErrorOut) noexcept;
 
-        [[nodiscard]]
-        inline const SharedLibraryInfo &at(uint64_t Index) const noexcept {
+        [[nodiscard]] inline
+        const SharedLibraryInfo &at(const uint64_t Index) const noexcept {
             assert(!IndexOutOfBounds(Index, this->size()));
             return *List.at(Index).get();
         }
 
         [[nodiscard]] inline
-        const SharedLibraryInfo *atOrNull(uint64_t Index) const noexcept {
+        const SharedLibraryInfo *atOrNull(const uint64_t Index) const noexcept {
             if (!IndexOutOfBounds(Index, this->size())) {
                 return nullptr;
             }
@@ -42,8 +42,8 @@ namespace MachO {
             return List.at(Index).get();
         }
 
-        [[nodiscard]] inline
-        const SharedLibraryInfo &atOrdinal(uint64_t Ordinal) const noexcept {
+        [[nodiscard]] inline const SharedLibraryInfo &
+        atOrdinal(const uint64_t Ordinal) const noexcept {
             assert(Ordinal != 0);
 
             const auto Index = (Ordinal - 1);
@@ -51,7 +51,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline const SharedLibraryInfo *
-        atOrdinalOrNull(uint64_t Ordinal) const noexcept {
+        atOrdinalOrNull(const uint64_t Ordinal) const noexcept {
             assert(Ordinal != 0);
 
             const auto Index = (Ordinal - 1);

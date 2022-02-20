@@ -134,8 +134,8 @@ CompareActionsBySortKind(
 
 [[maybe_unused]] static int
 CompareObjcClasses(
-    const BasicTreeNode &LEntry,
-    const BasicTreeNode &REntry,
+    const TreeNode &LEntry,
+    const TreeNode &REntry,
     const struct PrintObjcClassListOperation::Options &Options) noexcept
 {
     const auto &Lhs = reinterpret_cast<const MachO::ObjcClassInfo &>(LEntry);
@@ -283,7 +283,7 @@ PrintObjcClassList(
             [&](FILE *OutFile,
                 int WrittenOut,
                 uint64_t DepthLevel,
-                const BasicTreeNode &TreeNode) noexcept
+                const TreeNode &TreeNode) noexcept
         {
             const auto &Node =
                 reinterpret_cast<const MachO::ObjcClassInfo &>(TreeNode);
@@ -604,7 +604,7 @@ AddSortKind(const char *Opt,
 
 struct PrintObjcClassListOperation::Options
 PrintObjcClassListOperation::ParseOptionsImpl(const ArgvArray &Argv,
-                                              int *IndexOut) noexcept
+                                              int *const IndexOut) noexcept
 {
     auto Index = int();
     struct Options Options;

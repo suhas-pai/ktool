@@ -16,8 +16,9 @@
 #include "Common.h"
 
 static void
-HandleLoadCommandStorageError(FILE *ErrFile,
-                              MachO::LoadCommandStorage::Error Error) noexcept
+HandleLoadCommandStorageError(
+    FILE *const ErrFile,
+    const MachO::LoadCommandStorage::Error Error) noexcept
 {
     switch (Error) {
         case MachO::LoadCommandStorage::Error::None:
@@ -43,7 +44,7 @@ HandleLoadCommandStorageError(FILE *ErrFile,
 
 MachO::LoadCommandStorage
 OperationCommon::GetLoadCommandStorage(MachOMemoryObject &Object,
-                                       FILE *ErrFile) noexcept
+                                       FILE *const ErrFile) noexcept
 {
     const auto LoadCommandStorage = Object.GetLoadCommandsStorage();
     const auto Error = LoadCommandStorage.getError();
@@ -59,7 +60,7 @@ OperationCommon::GetLoadCommandStorage(MachOMemoryObject &Object,
 MachO::ConstLoadCommandStorage
 OperationCommon::GetConstLoadCommandStorage(
     const ConstMachOMemoryObject &Object,
-    FILE *ErrFile) noexcept
+    FILE *const ErrFile) noexcept
 {
     const auto LoadCommandStorage = Object.GetLoadCommandsStorage();
     const auto Error = LoadCommandStorage.getError();
@@ -86,8 +87,8 @@ OperationCommon::GetLoadCommandStringValue(
 
 int
 OperationCommon::HandleSegmentCollectionError(
-    FILE *ErrFile,
-    MachO::SegmentInfoCollection::Error Error) noexcept
+    FILE *const ErrFile,
+    const MachO::SegmentInfoCollection::Error Error) noexcept
 {
     switch (Error) {
         case MachO::SegmentInfoCollection::Error::None:
@@ -117,8 +118,8 @@ OperationCommon::HandleSegmentCollectionError(
 
 int
 OperationCommon::HandleSharedLibraryCollectionError(
-    FILE *ErrFile,
-    MachO::SharedLibraryInfoCollection::Error Error) noexcept
+    FILE *const ErrFile,
+    const MachO::SharedLibraryInfoCollection::Error Error) noexcept
 {
     switch (Error) {
         case MachO::SharedLibraryInfoCollection::Error::None:
@@ -133,8 +134,8 @@ OperationCommon::HandleSharedLibraryCollectionError(
 }
 
 void
-OperationCommon::PrintSpecialDylibOrdinal(FILE *OutFile,
-                                          int64_t DylibOrdinal) noexcept
+OperationCommon::PrintSpecialDylibOrdinal(FILE *const OutFile,
+                                          const int64_t DylibOrdinal) noexcept
 {
     switch (MachO::BindByteDylibSpecialOrdinal(DylibOrdinal)) {
         case MachO::BindByteDylibSpecialOrdinal::DylibSelf:
@@ -156,8 +157,8 @@ OperationCommon::PrintSpecialDylibOrdinal(FILE *OutFile,
 
 int
 OperationCommon::HandleBindOpcodeParseError(
-    FILE *ErrFile,
-    MachO::BindOpcodeParseError Error) noexcept
+    FILE *const ErrFile,
+    const MachO::BindOpcodeParseError Error) noexcept
 {
     switch (Error) {
         case MachO::BindOpcodeParseError::None:
@@ -220,8 +221,8 @@ OperationCommon::HandleBindOpcodeParseError(
 
 int
 OperationCommon::HandleBindCollectionError(
-    FILE *ErrFile,
-    MachO::BindActionCollection::Error Error) noexcept
+    FILE *const ErrFile,
+    const MachO::BindActionCollection::Error Error) noexcept
 {
     switch (Error) {
         case MachO::BindActionCollection::Error::None:
@@ -238,8 +239,8 @@ OperationCommon::HandleBindCollectionError(
 
 int
 OperationCommon::HandleRebaseOpcodeParseError(
-    FILE *ErrFile,
-    MachO::RebaseOpcodeParseError Error) noexcept
+    FILE *const ErrFile,
+    const MachO::RebaseOpcodeParseError Error) noexcept
 {
     switch (Error) {
         case MachO::RebaseOpcodeParseError::None:
@@ -275,9 +276,9 @@ OperationCommon::HandleRebaseOpcodeParseError(
 
 void
 OperationCommon::PrintDylibOrdinalPath(
-    FILE *OutFile,
+    FILE *const OutFile,
     const MachO::SharedLibraryInfoCollection &Collection,
-    int64_t DylibOrdinal) noexcept
+    const int64_t DylibOrdinal) noexcept
 {
     if (DylibOrdinal <= 0) {
         fputs("<Invalid Dylib-Ordinal>", OutFile);
@@ -296,10 +297,10 @@ OperationCommon::PrintDylibOrdinalPath(
 
 void
 OperationCommon::PrintDylibOrdinalInfo(
-    FILE *OutFile,
+    FILE *const OutFile,
     const MachO::SharedLibraryInfoCollection &Collection,
-    int64_t DylibOrdinal,
-    PrintKind PrintKind) noexcept
+    const int64_t DylibOrdinal,
+    const PrintKind PrintKind) noexcept
 {
     const auto DylibIndex = DylibOrdinal - 1;
     if (DylibOrdinal <= 0) {
@@ -330,8 +331,8 @@ constexpr static auto SegmentSectionPairFormat =
 
 void
 OperationCommon::ParseSegmentSectionPair(
-    FILE *ErrFile,
-    std::string_view Pair,
+    FILE *const ErrFile,
+    const std::string_view Pair,
     std::string_view &SegmentNameOut,
     std::string_view &SectionNameOut) noexcept
 {
@@ -394,7 +395,7 @@ OperationCommon::ParseSegmentSectionPair(
 
 int
 OperationCommon::GetDyldInfoCommand(
-    FILE *ErrFile,
+    FILE *const ErrFile,
     const MachO::ConstLoadCommandStorage &LoadCmdStorage,
     const MachO::DyldInfoCommand *&DyldInfoCommandOut) noexcept
 {
@@ -452,12 +453,12 @@ OperationCommon::GetDyldInfoCommand(
 
 int
 OperationCommon::GetBindActionLists(
-    FILE *ErrFile,
+    FILE *const ErrFile,
     const ConstMemoryMap &Map,
     const MachO::SegmentInfoCollection &SegmentCollection,
     const MachO::DyldInfoCommand &DyldInfo,
-    bool IsBigEndian,
-    bool Is64Bit,
+    const bool IsBigEndian,
+    const bool Is64Bit,
     const MachO::BindActionList *& BindList,
     const MachO::LazyBindActionList *& LazyBindList,
     const MachO::WeakBindActionList *& WeakBindList) noexcept
@@ -519,13 +520,13 @@ OperationCommon::GetBindActionLists(
 
 int
 OperationCommon::GetBindActionCollection(
-    FILE *ErrFile,
+    FILE *const ErrFile,
     const ConstMemoryMap &Map,
     const LocationRange &Range,
     const MachO::ConstLoadCommandStorage &LoadCmdStorage,
     const MachO::SegmentInfoCollection &SegmentCollection,
     MachO::BindActionCollection &BindCollection,
-    bool Is64Bit) noexcept
+    const bool Is64Bit) noexcept
 {
     auto DyldInfoCmd = static_cast<const MachO::DyldInfoCommand *>(nullptr);
 
@@ -594,7 +595,9 @@ constexpr static int LongestFlagNameLength =
         MachO::Header::FlagsEnum::NlistOutOfSyncWithDyldInfo).length();
 
 std::vector<OperationCommon::FlagInfo>
-OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
+OperationCommon::GetFlagInfoList(
+    const MachO::Header::FlagsType Flags) noexcept
+{
     using namespace MachO;
 
     const auto MachOFlag = Header::FlagsEnum::NoUndefinedReferences;
@@ -1072,11 +1075,11 @@ OperationCommon::GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept {
 }
 
 void
-OperationCommon::PrintFlagInfoList(FILE *OutFile,
+OperationCommon::PrintFlagInfoList(FILE *const OutFile,
                                    const std::vector<FlagInfo> &FlagInfoList,
-                                   PrintKind PrintKind,
-                                   const char *LinePrefix,
-                                   const char *LineSuffix) noexcept
+                                   const PrintKind PrintKind,
+                                   const char *const LinePrefix,
+                                   const char *const LineSuffix) noexcept
 {
     auto LongestFlagNameLength = LargestIntHelper();
     for (const auto &Info : FlagInfoList) {
@@ -1107,8 +1110,8 @@ OperationCommon::PrintFlagInfoList(FILE *OutFile,
 
 int
 OperationCommon::HandleExportTrieParseError(
-    FILE *ErrFile,
-    MachO::ExportTrieParseError ParseError) noexcept
+    FILE *const ErrFile,
+    const MachO::ExportTrieParseError ParseError) noexcept
 {
     switch (ParseError) {
         case MachO::ExportTrieParseError::None:

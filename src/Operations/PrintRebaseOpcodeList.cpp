@@ -31,10 +31,10 @@ struct RebaseOpcodeInfo : public MachO::RebaseOpcodeIterateInfo {
 
 static inline void
 GetSegmentAndSection(const MachO::SegmentInfoCollection &Collection,
-                     int64_t SegmentIndex,
-                     uint64_t Address,
-                     const MachO::SegmentInfo **SegmentOut,
-                     const MachO::SectionInfo **SectionOut) noexcept
+                     const int64_t SegmentIndex,
+                     const uint64_t Address,
+                     const MachO::SegmentInfo **const SegmentOut,
+                     const MachO::SectionInfo **const SectionOut) noexcept
 {
     const auto *Segment = Collection.atOrNull(SegmentIndex);
     const auto *Section = static_cast<const MachO::SectionInfo *>(nullptr);

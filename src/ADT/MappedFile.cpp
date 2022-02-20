@@ -8,8 +8,8 @@
 
 #include "MappedFile.h"
 
-MappedFile::MappedFile(OpenError Error) noexcept : ErrorStorage(Error) {}
-MappedFile::MappedFile(void *Map, uint64_t Size) noexcept
+MappedFile::MappedFile(const OpenError Error) noexcept : ErrorStorage(Error) {}
+MappedFile::MappedFile(void *const Map, const uint64_t Size) noexcept
 : Map(Map), Size(Size) {}
 
 MappedFile::MappedFile(MappedFile &&Rhs) noexcept
@@ -20,8 +20,8 @@ MappedFile::MappedFile(MappedFile &&Rhs) noexcept
 
 MappedFile
 MappedFile::Open(const FileDescriptor &Fd,
-                 Protections Prot,
-                 MapKind MapKind) noexcept
+                 const Protections Prot,
+                 const MapKind MapKind) noexcept
 {
     const auto InfoOpt = Fd.GetInfo();
     if (!InfoOpt.has_value()) {

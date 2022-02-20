@@ -14,7 +14,7 @@ ConstMachOMemoryObject::ConstMachOMemoryObject(
 : MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()) {}
 
 ConstMachOMemoryObject::ConstMachOMemoryObject(
-    ObjectKind Kind,
+    const ObjectKind Kind,
     const ConstMemoryMap &Map) noexcept
 : MemoryObject(Kind), Map(Map.getBegin()), End(Map.getEnd()) {}
 
@@ -82,7 +82,7 @@ ConstMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept ->
     return new ConstMachOMemoryObject(Map);
 }
 
-bool ConstMachOMemoryObject::errorDidMatchFormat(Error Error) noexcept {
+bool ConstMachOMemoryObject::errorDidMatchFormat(const Error Error) noexcept {
     switch (Error) {
         case Error::None:
             return true;

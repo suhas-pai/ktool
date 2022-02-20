@@ -51,37 +51,36 @@ namespace MachO {
             return CompatVersion;
         }
 
-        constexpr
-        inline SharedLibraryInfo &setKind(LoadCommandKind Value) noexcept {
+        constexpr SharedLibraryInfo &setKind(LoadCommandKind Value) noexcept {
             this->Kind = Value;
             return *this;
         }
 
         constexpr
-        inline SharedLibraryInfo &setPath(const std::string &Value) noexcept {
+        SharedLibraryInfo &setPath(const std::string &Value) noexcept {
             this->Path = Value;
             return *this;
         }
 
-        constexpr SharedLibraryInfo &setIndex(uint32_t Value) noexcept {
+        constexpr SharedLibraryInfo &setIndex(const uint32_t Value) noexcept {
             this->Index = Value;
             return *this;
         }
 
         constexpr
-        inline SharedLibraryInfo &setTimestamp(uint32_t Value) noexcept {
+        SharedLibraryInfo &setTimestamp(const uint32_t Value) noexcept {
             this->Timestamp = Value;
             return *this;
         }
 
-        constexpr
-        SharedLibraryInfo &setCurrentVersion(PackedVersion Value) noexcept {
+        constexpr SharedLibraryInfo &
+        setCurrentVersion(const PackedVersion Value) noexcept {
             this->CurrentVersion = Value;
             return *this;
         }
 
-        constexpr
-        SharedLibraryInfo &setCompatVersion(PackedVersion Value) noexcept {
+        constexpr SharedLibraryInfo &
+        setCompatVersion(const PackedVersion Value) noexcept {
             this->CompatVersion = Value;
             return *this;
         }

@@ -19,7 +19,7 @@ namespace Mach {
     constexpr auto Arm64PtrAuthMask = static_cast<uint32_t>(0x0f000000);
 
     [[nodiscard]]
-    constexpr uint32_t Arm64PtrAuthGetVersion(uint32_t X) noexcept {
+    constexpr uint32_t Arm64PtrAuthGetVersion(const uint32_t X) noexcept {
         return (X & Arm64PtrAuthMask) >> 24;
     }
 
@@ -49,11 +49,11 @@ namespace Mach {
         Arm64_32 = (Arm | CpuKindIs64Bit32Mask)
     };
 
-    [[nodiscard]] inline bool CpuKindIs64Bit(CpuKind CpuKind) noexcept {
+    [[nodiscard]] inline bool CpuKindIs64Bit(const CpuKind CpuKind) noexcept {
         return (static_cast<int32_t>(CpuKind) & CpuKindIs64BitMask);
     }
 
-    [[nodiscard]] inline bool CpuKindIs64Bit32(CpuKind CpuKind) noexcept {
+    [[nodiscard]] inline bool CpuKindIs64Bit32(const CpuKind CpuKind) noexcept {
         return (static_cast<int32_t>(CpuKind) & CpuKindIs64Bit32Mask);
     }
 

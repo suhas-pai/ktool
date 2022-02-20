@@ -13,7 +13,7 @@
 #include "MachOMemory.h"
 #include "MemoryBase.h"
 
-MemoryObject::MemoryObject(ObjectKind Kind) noexcept : Kind(Kind) {
+MemoryObject::MemoryObject(const ObjectKind Kind) noexcept : Kind(Kind) {
     assert(Kind != ObjectKind::None);
 }
 

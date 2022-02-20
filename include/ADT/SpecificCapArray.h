@@ -21,11 +21,11 @@ public:
         return (freeSpace() == 0);
     }
 
-    [[nodiscard]] inline T &at(uint64_t Index) noexcept {
+    [[nodiscard]] inline T &at(const uint64_t Index) noexcept {
         return reinterpret_cast<T *>(DataBegin) + Index;
     }
 
-    [[nodiscard]] inline T &at(uint64_t Index) const noexcept {
+    [[nodiscard]] inline T &at(const uint64_t Index) const noexcept {
         return reinterpret_cast<const T *>(DataBegin) + Index;
     }
 

@@ -13,13 +13,13 @@
 
 struct EndianSwitcherFuncs {
     [[nodiscard]]
-    constexpr static inline uint16_t SwitchEndian16(uint16_t Value) noexcept {
+    constexpr static uint16_t SwitchEndian16(uint16_t Value) noexcept {
         Value = ((Value >> 8) & 0x00ff) | ((Value << 8) & 0xff00);
         return Value;
     }
 
     [[nodiscard]]
-    constexpr static inline uint32_t SwitchEndian32(uint32_t Value) noexcept {
+    constexpr static uint32_t SwitchEndian32(uint32_t Value) noexcept {
         Value = ((Value >> 8) & 0x00ff00ff) | ((Value << 8) & 0xff00ff00);
         Value = ((Value >> 16) & 0x0000ffff) | ((Value << 16) & 0xffff0000);
 
@@ -27,7 +27,7 @@ struct EndianSwitcherFuncs {
     }
 
     [[nodiscard]]
-    constexpr static inline uint64_t SwitchEndian64(uint64_t Value) noexcept {
+    constexpr static uint64_t SwitchEndian64(uint64_t Value) noexcept {
         Value =
             (Value & 0x00000000ffffffffULL) << 32 |
             (Value & 0xffffffff00000000ULL) >> 32;
@@ -50,7 +50,7 @@ struct EndianSwitcher {};
 template <>
 struct EndianSwitcher<int8_t> {
     [[nodiscard]]
-    constexpr static inline int8_t SwitchEndian(int8_t Value) noexcept {
+    constexpr static int8_t SwitchEndian(int8_t Value) noexcept {
         return Value;
     }
 };
@@ -58,7 +58,7 @@ struct EndianSwitcher<int8_t> {
 template <>
 struct EndianSwitcher<uint8_t> {
     [[nodiscard]]
-    constexpr static inline uint8_t SwitchEndian(uint8_t Value) noexcept {
+    constexpr static uint8_t SwitchEndian(uint8_t Value) noexcept {
         return Value;
     }
 };
@@ -66,7 +66,7 @@ struct EndianSwitcher<uint8_t> {
 template <>
 struct EndianSwitcher<int16_t> {
     [[nodiscard]]
-    constexpr static inline int16_t SwitchEndian(int16_t Value) noexcept {
+    constexpr static int16_t SwitchEndian(int16_t Value) noexcept {
         return EndianSwitcherFuncs::SwitchEndian16(Value);
     }
 };
@@ -74,7 +74,7 @@ struct EndianSwitcher<int16_t> {
 template <>
 struct EndianSwitcher<uint16_t> {
     [[nodiscard]]
-    constexpr static inline uint16_t SwitchEndian(uint16_t Value) noexcept {
+    constexpr static uint16_t SwitchEndian(uint16_t Value) noexcept {
         return EndianSwitcherFuncs::SwitchEndian16(static_cast<int16_t>(Value));
     }
 };
@@ -82,7 +82,7 @@ struct EndianSwitcher<uint16_t> {
 template <>
 struct EndianSwitcher<int32_t> {
     [[nodiscard]]
-    constexpr static inline int32_t SwitchEndian(int32_t Value) noexcept {
+    constexpr static int32_t SwitchEndian(int32_t Value) noexcept {
         return EndianSwitcherFuncs::SwitchEndian32(Value);
     }
 };
@@ -90,7 +90,7 @@ struct EndianSwitcher<int32_t> {
 template <>
 struct EndianSwitcher<uint32_t> {
     [[nodiscard]]
-    constexpr static inline uint32_t SwitchEndian(uint32_t Value) noexcept {
+    constexpr static uint32_t SwitchEndian(uint32_t Value) noexcept {
         return EndianSwitcherFuncs::SwitchEndian32(Value);
     }
 };
@@ -98,7 +98,7 @@ struct EndianSwitcher<uint32_t> {
 template <>
 struct EndianSwitcher<int64_t> {
     [[nodiscard]]
-    constexpr static inline int64_t SwitchEndian(int64_t Value) noexcept {
+    constexpr static int64_t SwitchEndian(int64_t Value) noexcept {
         return EndianSwitcherFuncs::SwitchEndian64(Value);
     }
 };
@@ -106,7 +106,7 @@ struct EndianSwitcher<int64_t> {
 template <>
 struct EndianSwitcher<uint64_t> {
     [[nodiscard]]
-    constexpr static inline uint64_t SwitchEndian(uint64_t Value) noexcept {
+    constexpr static uint64_t SwitchEndian(uint64_t Value) noexcept {
         return EndianSwitcherFuncs::SwitchEndian64(Value);
     }
 };

@@ -98,59 +98,59 @@ namespace MachO {
                 return Flags;
             }
 
-            constexpr Info &setKind(BindInfoKind Value) noexcept {
+            constexpr Info &setKind(const BindInfoKind Value) noexcept {
                 this->Kind = Value;
                 return *this;
             }
 
-            constexpr Info &setWriteKind(BindWriteKind Value) noexcept {
+            constexpr Info &setWriteKind(const BindWriteKind Value) noexcept {
                 this->WriteKind = Value;
                 return *this;
             }
 
-            constexpr Info &setDylibOrdinal(uint32_t Value) noexcept {
+            constexpr Info &setDylibOrdinal(const uint32_t Value) noexcept {
                 this->DylibOrdinal = Value;
                 return *this;
             }
 
-            constexpr Info &setAddend(int64_t Value) noexcept {
+            constexpr Info &setAddend(const int64_t Value) noexcept {
                 this->Addend = Value;
                 return *this;
             }
 
             constexpr
-            inline Info &setSymbol(const std::string *Value) noexcept {
+            inline Info &setSymbol(const std::string *const Value) noexcept {
                 this->Symbol = Value;
                 return *this;
             }
 
-            constexpr Info &setSegmentIndex(uint32_t Value) noexcept {
+            constexpr Info &setSegmentIndex(const uint32_t Value) noexcept {
                 this->SegmentIndex = Value;
                 return *this;
             }
 
-            constexpr Info &setSegmentOffset(uint64_t Value) noexcept {
+            constexpr Info &setSegmentOffset(const uint64_t Value) noexcept {
                 this->SegmentOffset = Value;
                 return *this;
             }
 
-            constexpr Info &setAddress(uint64_t Value) noexcept {
+            constexpr Info &setAddress(const uint64_t Value) noexcept {
                 this->SegmentOffset = Value;
                 return *this;
             }
 
-            constexpr Info &setOpcodeAddress(uint64_t Value) noexcept {
+            constexpr Info &setOpcodeAddress(const uint64_t Value) noexcept {
                 this->SegmentOffset = Value;
                 return *this;
             }
 
-            constexpr Info &setAddrInSeg(uint64_t Value) noexcept {
+            constexpr Info &setAddrInSeg(const uint64_t Value) noexcept {
                 this->AddrInSeg = Value;
                 return *this;
             }
 
             constexpr
-            inline Info &setIsNewSymbolName(bool Value = true) noexcept {
+            inline Info &setIsNewSymbolName(const bool Value = true) noexcept {
                 this->sIsNewSymbolName = Value;
                 return *this;
             }

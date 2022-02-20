@@ -33,8 +33,11 @@ protected:
         };
     };
 public:
-    constexpr MemoryObjectOrError(MemoryObject *Ptr) noexcept : Ptr(Ptr) {}
-    constexpr MemoryObjectOrError(ObjectKind ObjKind, uint8_t Error) noexcept
+    constexpr MemoryObjectOrError(MemoryObject *const Ptr) noexcept
+    : Ptr(Ptr) {}
+
+    constexpr
+    MemoryObjectOrError(const ObjectKind ObjKind, const uint8_t Error) noexcept
     : ObjKind(ObjKind), Error(static_cast<uint8_t>(Error)) {}
 
     [[nodiscard]] inline bool hasError() const noexcept {
@@ -66,7 +69,7 @@ private:
 protected:
     explicit MemoryObject(ObjectKind Kind) noexcept;
 public:
-    [[nodiscard]] static inline bool IsOfKind(ObjectKind Kind) noexcept {
+    [[nodiscard]] static inline bool IsOfKind(const ObjectKind Kind) noexcept {
         assert(0 && "IsOfKind() called on base-class");
     }
 

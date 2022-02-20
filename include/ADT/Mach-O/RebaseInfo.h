@@ -29,8 +29,8 @@ namespace MachO {
         DoRebaseUlebTimesSkipUleb = 0x80
     };
 
-    [[nodiscard]] constexpr
-    std::string_view RebaseByteOpcodeGetName(RebaseByteOpcode Opcode) noexcept {
+    [[nodiscard]] constexpr std::string_view
+    RebaseByteOpcodeGetName(const RebaseByteOpcode Opcode) noexcept {
         switch (Opcode) {
             case RebaseByteOpcode::Done:
                 return "REBASE_OPCODE_DONE";
@@ -55,8 +55,8 @@ namespace MachO {
         return std::string_view();
     }
 
-    [[nodiscard]] constexpr
-    std::string_view RebaseByteOpcodeGetDesc(RebaseByteOpcode Opcode) noexcept {
+    [[nodiscard]] constexpr std::string_view
+    RebaseByteOpcodeGetDesc(const RebaseByteOpcode Opcode) noexcept {
         switch (Opcode) {
             case RebaseByteOpcode::Done:
                 return "Done";
@@ -89,7 +89,7 @@ namespace MachO {
     };
 
     [[nodiscard]] constexpr std::string_view
-    RebaseWriteKindGetName(RebaseWriteKind Kind) noexcept {
+    RebaseWriteKindGetName(const RebaseWriteKind Kind) noexcept {
         using Enum = RebaseWriteKind;
         switch (Kind) {
             case Enum::None:
@@ -106,7 +106,7 @@ namespace MachO {
     }
 
     [[nodiscard]] constexpr std::string_view
-    RebaseWriteKindGetDescription(RebaseWriteKind Kind) noexcept {
+    RebaseWriteKindGetDescription(const RebaseWriteKind Kind) noexcept {
         using Enum = RebaseWriteKind;
         switch (Kind) {
             case Enum::None:
@@ -139,7 +139,7 @@ namespace MachO {
     };
 
     struct RebaseByte : private DyldInfoByteMasksAndShiftsHandler {
-        constexpr static inline auto DoneOpcode = RebaseByteOpcode::Done;
+        constexpr static auto DoneOpcode = RebaseByteOpcode::Done;
     public:
         constexpr RebaseByte() noexcept = default;
         constexpr RebaseByte(uint8_t Byte) noexcept
@@ -267,8 +267,8 @@ namespace MachO {
         bool ReachedEnd : 1;
     public:
         explicit
-        RebaseOpcodeIterator(const RebaseByte *Begin,
-                             const RebaseByte *End) noexcept
+        RebaseOpcodeIterator(const RebaseByte *const Begin,
+                             const RebaseByte *const End) noexcept
         : Iter(reinterpret_cast<const uint8_t *>(Begin),
                reinterpret_cast<const uint8_t *>(End)),
           ReachedEnd(false)
@@ -279,8 +279,8 @@ namespace MachO {
 
         explicit
         RebaseOpcodeIterator(
-            const RebaseByte *Begin,
-            const RebaseByte *End,
+            const RebaseByte *const Begin,
+            const RebaseByte *const End,
             std::unique_ptr<RebaseOpcodeIterateInfo> &&Info) noexcept
         : Iter(reinterpret_cast<const uint8_t *>(Begin),
                reinterpret_cast<const uint8_t *>(End)),
@@ -452,8 +452,8 @@ namespace MachO {
         bool Is64Bit : 1;
     public:
         explicit
-        RebaseOpcodeList(const uint8_t *Begin,
-                         const uint8_t *End,
+        RebaseOpcodeList(const uint8_t *const Begin,
+                         const uint8_t *const End,
                          bool Is64Bit) noexcept
         : Begin(reinterpret_cast<const RebaseByte *>(Begin)),
           End(reinterpret_cast<const RebaseByte *>(End)),
@@ -489,7 +489,7 @@ namespace MachO {
         bool NewSymbolName : 1;
 
         [[nodiscard]]
-        constexpr static inline bool CanIgnoreError(ErrorEnum Error) noexcept {
+        constexpr static bool CanIgnoreError(const ErrorEnum Error) noexcept {
             switch (Error) {
                 case ErrorEnum::None:
                 case ErrorEnum::OutOfBoundsSegmentAddr:
@@ -523,9 +523,9 @@ namespace MachO {
         bool Is64Bit : 1;
     public:
         explicit
-        RebaseActionIterator(const RebaseByte *Begin,
-                             const RebaseByte *End,
-                             bool Is64Bit) noexcept
+        RebaseActionIterator(const RebaseByte *const Begin,
+                             const RebaseByte *const End,
+                             const bool Is64Bit) noexcept
         : Iter(Begin, End, std::make_unique<RebaseActionIterateInfo>()),
           Is64Bit(Is64Bit)
         {
@@ -547,7 +547,7 @@ namespace MachO {
 
         [[nodiscard]] bool
         IsValidForSegmentCollection(const SegmentInfoCollection &Collection,
-                                    bool Is64Bit) noexcept
+                                    const bool Is64Bit) noexcept
         {
             const auto &Info = getInfo();
             const auto SegmentIndex = Info.SegmentIndex;
@@ -835,17 +835,17 @@ namespace MachO {
         bool Is64Bit : 1;
     public:
         explicit
-        RebaseActionList(const uint8_t *Begin,
-                         const uint8_t *End,
+        RebaseActionList(const uint8_t *const Begin,
+                         const uint8_t *const End,
                          bool Is64Bit) noexcept
         : Begin(reinterpret_cast<const RebaseByte *>(Begin)),
           End(reinterpret_cast<const RebaseByte *>(End)),
           Is64Bit(Is64Bit) {}
 
         explicit
-        RebaseActionList(const RebaseByte *Begin,
-                         const RebaseByte *End,
-                         bool Is64Bit) noexcept
+        RebaseActionList(const RebaseByte *const Begin,
+                         const RebaseByte *const End,
+                         const bool Is64Bit) noexcept
         : Begin(Begin), End(End), Is64Bit(Is64Bit) {}
 
         [[nodiscard]] inline IteratorType begin() const noexcept {
@@ -872,7 +872,8 @@ namespace MachO {
 
         inline RebaseOpcodeParseError
         GetListOfSymbols(std::vector<RebaseActionInfo> &SymbolListOut)
-        const noexcept {
+            const noexcept
+        {
             for (const auto &Iter : *this) {
                 const auto Error = Iter.getError();
                 if (!Iter.CanIgnoreError(Error)) {

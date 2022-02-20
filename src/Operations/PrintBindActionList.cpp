@@ -59,14 +59,14 @@ CompareActionsBySortKind(
 template <MachO::BindInfoKind BindKind>
 static void
 PrintBindAction(
-    const char *Name,
-    uint64_t Counter,
-    int SizeDigitLength,
+    const char *const Name,
+    const uint64_t Counter,
+    const int SizeDigitLength,
     const MachO::BindActionInfo &Action,
-    uint64_t LongestBindSymbolLength,
+    const uint64_t LongestBindSymbolLength,
     const MachO::SharedLibraryInfoCollection &LibraryCollection,
     const MachO::SegmentInfoCollection &SegmentCollection,
-    bool Is64Bit,
+    const bool Is64Bit,
     const struct PrintBindActionListOperation::Options &Options) noexcept
 {
     fprintf(Options.OutFile,
@@ -75,7 +75,9 @@ PrintBindAction(
             SizeDigitLength,
             Counter);
 
-    if (const auto *Segment = SegmentCollection.atOrNull(Action.SegmentIndex)) {
+    if (const auto *const Segment =
+            SegmentCollection.atOrNull(Action.SegmentIndex))
+    {
         const auto &MemoryRange = Segment->getMemoryRange();
         const auto FullAddr = MemoryRange.getBegin() + Action.AddrInSeg;
         const auto Section = Segment->FindSectionContainingAddress(FullAddr);
@@ -134,11 +136,11 @@ PrintBindAction(
 template <MachO::BindInfoKind BindKind>
 static void
 PrintBindActionList(
-    const char *Name,
+    const char *const Name,
     const std::vector<MachO::BindActionInfo> &List,
     const MachO::SegmentInfoCollection &SegmentCollection,
     const MachO::SharedLibraryInfoCollection &LibraryCollection,
-    bool Is64Bit,
+    const bool Is64Bit,
     const struct PrintBindActionListOperation::Options &Options) noexcept
 {
     if (List.empty()) {
@@ -470,7 +472,7 @@ ListHasSortKind(
 }
 
 static inline void
-AddSortKind(const char *Opt,
+AddSortKind(const char *const Opt,
             struct PrintBindActionListOperation::Options &Options,
             PrintBindActionListOperation::Options::SortKind SortKind) noexcept
 {
@@ -483,7 +485,7 @@ AddSortKind(const char *Opt,
 
 struct PrintBindActionListOperation::Options
 PrintBindActionListOperation::ParseOptionsImpl(const ArgvArray &Argv,
-                                               int *IndexOut) noexcept
+                                               int *const IndexOut) noexcept
 {
     auto Index = int();
     struct Options Options;

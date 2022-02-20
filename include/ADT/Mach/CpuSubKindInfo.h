@@ -1056,8 +1056,8 @@ namespace Mach {
         }
     };
 
-    [[nodiscard]]
-    constexpr const CpuKindInfo *GetInfoForCpuKind(CpuKind CpuKind) noexcept {
+    [[nodiscard]] constexpr
+    const CpuKindInfo *GetInfoForCpuKind(const CpuKind CpuKind) noexcept {
         switch (CpuKind) {
             case CpuKind::Any:
                 return (CpuKindInfoTable + 0);
@@ -1111,7 +1111,9 @@ namespace Mach {
     }
 
     [[nodiscard]] constexpr const CpuSubKindInfo *
-    GetInfoForCpuSubKind(CpuKind CpuKind, int32_t SubKind) noexcept {
+    GetInfoForCpuSubKind(const CpuKind CpuKind,
+                         const int32_t SubKind) noexcept
+    {
         switch (CpuKind) {
             case CpuKind::Any:
                 switch (Any(SubKind)) {
@@ -1443,8 +1445,8 @@ namespace Mach {
 
     namespace CpuSubKind {
         [[nodiscard]] constexpr std::string_view
-        GetName(CpuKind CpuKind, int32_t CpuSubKind) noexcept {
-            if (auto *Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
+        GetName(const CpuKind CpuKind, const int32_t CpuSubKind) noexcept {
+            if (auto *const Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->Name;
             }
 
@@ -1452,8 +1454,8 @@ namespace Mach {
         }
 
         [[nodiscard]] constexpr std::string_view
-        GetFullName(CpuKind CpuKind, int32_t CpuSubKind) noexcept {
-            if (auto *Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
+        GetFullName(const CpuKind CpuKind, const int32_t CpuSubKind) noexcept {
+            if (auto *const Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->FullName;
             }
 
@@ -1461,8 +1463,9 @@ namespace Mach {
         }
 
         [[nodiscard]] constexpr std::string_view
-        GetDescription(CpuKind CpuKind, int32_t CpuSubKind) noexcept {
-            if (auto *Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
+        GetDescription(const CpuKind CpuKind, const int32_t CpuSubKind) noexcept
+        {
+            if (auto *const Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->Description;
             }
 

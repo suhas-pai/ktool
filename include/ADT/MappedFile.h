@@ -67,18 +67,17 @@ public:
             return hasFlag(Flags::Execute);
         }
 
-        constexpr Protections &setCanRead(bool Value = true) noexcept {
+        constexpr Protections &setCanRead(const bool Value = true) noexcept {
             setValueForFlag(Flags::Read, Value);
             return *this;
         }
 
-        constexpr Protections &setCanWrite(bool Value = true) noexcept {
+        constexpr Protections &setCanWrite(const bool Value = true) noexcept {
             setValueForFlag(Flags::Write, Value);
             return *this;
         }
 
-        constexpr
-        inline Protections &setCanExecute(bool Value = true) noexcept {
+        constexpr Protections &setCanExecute(const bool Value = true) noexcept {
             setValueForFlag(Flags::Execute, Value);
             return *this;
         }

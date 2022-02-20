@@ -47,11 +47,14 @@ public:
     }
 
     [[nodiscard]] static bool errorDidMatchFormat(Error Error) noexcept;
-    [[nodiscard]] static inline bool errorDidMatchFormat(uint8_t Int) noexcept {
+
+    [[nodiscard]]
+    static inline bool errorDidMatchFormat(const uint8_t Int) noexcept {
         return errorDidMatchFormat(getErrorFromInt(Int));
     }
 
-    [[nodiscard]] static inline Error getErrorFromInt(uint8_t Int) noexcept {
+    [[nodiscard]]
+    static inline Error getErrorFromInt(const uint8_t Int) noexcept {
         return static_cast<Error>(Int);
     }
 
@@ -137,12 +140,19 @@ public:
 
         WarningEnum Warning = WarningEnum::None;
     public:
-        GetArchObjectResult(MemoryObject *Object) noexcept : Object(Object) {}
+        GetArchObjectResult(MemoryObject *const Object) noexcept
+        : Object(Object) {}
+
         GetArchObjectResult(std::nullptr_t) noexcept = delete;
 
-        GetArchObjectResult(ErrorEnum Error) noexcept : ErrorStorage(Error) {}
-        GetArchObjectResult(WarningEnum Warning) noexcept : Warning(Warning) {}
-        GetArchObjectResult(MemoryObject *Object, WarningEnum Warning) noexcept
+        GetArchObjectResult(const ErrorEnum Error) noexcept
+        : ErrorStorage(Error) {}
+
+        GetArchObjectResult(const WarningEnum Warning) noexcept
+        : Warning(Warning) {}
+
+        GetArchObjectResult(MemoryObject *const Object,
+                            const WarningEnum Warning) noexcept
         : Object(Object), Warning(Warning) {}
 
         [[nodiscard]] inline bool hasError() const noexcept {

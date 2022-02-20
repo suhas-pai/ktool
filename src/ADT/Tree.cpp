@@ -11,22 +11,22 @@
 #include "Utils/PrintUtils.h"
 #include "Tree.h"
 
-BasicTreeNode &BasicTreeNode::SetAsParentOfChildren() noexcept {
+TreeNode &TreeNode::SetAsParentOfChildren() noexcept {
     return SetAsParentOfChildren(*this);
 }
 
-BasicTreeNode &
-BasicTreeNode::SetAsParentOfChildren(BasicTreeNode &Node) noexcept {
-    Node.forEachChild([&](BasicTreeNode &Child) {
+TreeNode &
+TreeNode::SetAsParentOfChildren(TreeNode &Node) noexcept {
+    Node.forEachChild([&](TreeNode &Child) {
         Child.setParent(&Node);
     });
 
     return *this;
 }
 
-uint64_t BasicTreeNode::GetChildCount() const noexcept {
+uint64_t TreeNode::GetChildCount() const noexcept {
     auto ChildCount = uint64_t();
-    forEachChild([&](const BasicTreeNode &Child) {
+    forEachChild([&](const TreeNode &Child) {
         (void)Child;
         ChildCount++;
     });
@@ -34,13 +34,13 @@ uint64_t BasicTreeNode::GetChildCount() const noexcept {
     return ChildCount;
 }
 
-static BasicTreeNode &
-SetParentOfSiblings(BasicTreeNode *Parent,
-                    BasicTreeNode &Node,
-                    BasicTreeNode *End = nullptr) noexcept
+static TreeNode &
+SetParentOfSiblings(TreeNode *const Parent,
+                    TreeNode &Node,
+                    TreeNode *const End = nullptr) noexcept
 {
     auto Back = &Node;
-    Node.forEachSiblingTillEnd(End, [&](BasicTreeNode &Sibling) {
+    Node.forEachSiblingTillEnd(End, [&](TreeNode &Sibling) {
         Sibling.setParent(Parent);
         Back = &Sibling;
     });
@@ -48,7 +48,7 @@ SetParentOfSiblings(BasicTreeNode *Parent,
     return *Back;
 }
 
-void BasicTreeNode::ValidateChildArray() const noexcept {
+void TreeNode::ValidateChildArray() const noexcept {
     if (this->isLeaf()) {
         return;
     }
@@ -64,7 +64,7 @@ void BasicTreeNode::ValidateChildArray() const noexcept {
     assert(SecondChild->getParent() == this);
 
     auto Prev = FirstChild;
-    SecondChild->forEachSibling([&](BasicTreeNode &Sibling) {
+    SecondChild->forEachSibling([&](TreeNode &Sibling) {
         assert(Sibling.getParent() == this);
         assert(Sibling.getPrevSibling() == Prev);
 
@@ -75,9 +75,9 @@ void BasicTreeNode::ValidateChildArray() const noexcept {
 }
 
 static void
-AddSiblingsRaw(BasicTreeNode &This,
-               BasicTreeNode &Node,
-               BasicTreeNode *End) noexcept
+AddSiblingsRaw(TreeNode &This,
+               TreeNode &Node,
+               TreeNode *const End) noexcept
 {
     const auto NextSibling = This.getNextSibling();
     const auto Parent = This.getParent();
@@ -100,9 +100,9 @@ AddSiblingsRaw(BasicTreeNode &This,
 }
 
 static void
-AddChildrenRaw(BasicTreeNode &Parent,
-               BasicTreeNode &Node,
-               BasicTreeNode *End) noexcept
+AddChildrenRaw(TreeNode &Parent,
+               TreeNode &Node,
+               TreeNode *const End) noexcept
 {
     if (Parent.isLeaf()) {
         SetParentOfSiblings(&Parent, Node, End);
@@ -117,34 +117,34 @@ AddChildrenRaw(BasicTreeNode &Parent,
     AddSiblingsRaw(*Parent.getLastChild(), Node, End);
 }
 
-BasicTreeNode &BasicTreeNode::AddChild(BasicTreeNode &Node) noexcept {
+TreeNode &TreeNode::AddChild(TreeNode &Node) noexcept {
     AddChildrenRaw(*this, Node, nullptr);
     return *this;
 }
 
-BasicTreeNode &
-BasicTreeNode::AddChildren(BasicTreeNode &Node, BasicTreeNode *End) noexcept {
+TreeNode &
+TreeNode::AddChildren(TreeNode &Node, TreeNode *const End) noexcept {
     AddChildrenRaw(*this, Node, End);
     return *this;
 }
 
-BasicTreeNode &BasicTreeNode::AddSibling(BasicTreeNode &Node) noexcept {
+TreeNode &TreeNode::AddSibling(TreeNode &Node) noexcept {
     AddSiblingsRaw(*this, Node, nullptr);
     return *this;
 }
 
-BasicTreeNode &
-BasicTreeNode::AddSiblings(BasicTreeNode &Node, BasicTreeNode *End) noexcept {
+TreeNode &
+TreeNode::AddSiblings(TreeNode &Node, TreeNode *const End) noexcept {
     AddSiblingsRaw(*this, Node, End);
     return *this;
 }
 
-BasicTree::BasicTree(BasicTreeNode *Root) noexcept : Root(Root) {}
-BasicTree::~BasicTree() noexcept {}
+Tree::Tree(TreeNode *Root) noexcept : Root(Root) {}
+Tree::~Tree() noexcept {}
 
-uint64_t BasicTree::GetCount() const noexcept {
+uint64_t Tree::GetCount() const noexcept {
     auto Count = uint64_t();
-    forEachNode([&](const BasicTreeNode &Node) {
+    forEachNode([&](const TreeNode &Node) {
         (void)Node;
         Count++;
     });
@@ -152,9 +152,9 @@ uint64_t BasicTree::GetCount() const noexcept {
     return Count;
 }
 
-const BasicTreeNode *
-BasicTreeNode::FindPrevNodeForIterator(const BasicTreeNode *End,
-                                       uint64_t *DepthChangeOut) const noexcept
+const TreeNode *
+TreeNode::FindPrevNodeForIterator(const TreeNode *const End,
+                                  uint64_t *const DepthChangeOut) const noexcept
 {
     auto DepthChange = uint64_t();
     for (auto Node = this; Node != End; Node = Node->getParent()) {
@@ -172,10 +172,10 @@ BasicTreeNode::FindPrevNodeForIterator(const BasicTreeNode *End,
     return End;
 }
 
-const BasicTreeNode *
-BasicTreeNode::FindNextSiblingForIterator(
-    const BasicTreeNode *End,
-    uint64_t *DepthChangeOut) const noexcept
+const TreeNode *
+TreeNode::FindNextSiblingForIterator(
+    const TreeNode *const End,
+    uint64_t *const DepthChangeOut) const noexcept
 {
     auto DepthChange = uint64_t();
     for (auto Node = this; Node != End; Node = Node->getParent()) {
@@ -197,9 +197,9 @@ BasicTreeNode::FindNextSiblingForIterator(
     return End;
 }
 
-const BasicTreeNode *
-BasicTreeNode::FindNextNodeForIterator(const BasicTreeNode *End,
-                                       int64_t *DepthChangeOut) const noexcept
+const TreeNode *
+TreeNode::FindNextNodeForIterator(const TreeNode *const End,
+                                  int64_t *const DepthChangeOut) const noexcept
 {
     if (const auto FirstChild = getFirstChild()) {
         if (DepthChangeOut != nullptr) {
@@ -213,7 +213,7 @@ BasicTreeNode::FindNextNodeForIterator(const BasicTreeNode *End,
     return FindNextSiblingForIterator(End, Out);
 }
 
-static void ClearNode(BasicTreeNode &Node) noexcept {
+static void ClearNode(TreeNode &Node) noexcept {
     Node.setParent(nullptr);
     Node.setFirstChild(nullptr);
     Node.setPrevSibling(nullptr);
@@ -223,17 +223,17 @@ static void ClearNode(BasicTreeNode &Node) noexcept {
     delete &Node;
 }
 
-void BasicTreeNode::clearAndDestroy() noexcept {
+void TreeNode::clearAndDestroy() noexcept {
     ClearNode(*this);
 }
 
-static void IsolateNode(BasicTreeNode &Node) noexcept {
+static void IsolateNode(TreeNode &Node) noexcept {
     // Fix the pointers of the sibling nodes to not point to this node.
 
     auto ParentOnlyHasThisNode = false;
     if (const auto PrevSibling = Node.getPrevSibling()) {
         if (const auto NextSibling = Node.getNextSibling()) {
-            PrevSibling->setNextSibling(Node.getNextSibling());
+            PrevSibling->setNextSibling(NextSibling);
             NextSibling->setPrevSibling(Node.getPrevSibling());
         } else {
             PrevSibling->setNextSibling(nullptr);
@@ -289,7 +289,7 @@ static void IsolateNode(BasicTreeNode &Node) noexcept {
 }
 
 [[nodiscard]] static bool
-DoRemoveLeafParents(BasicTreeNode &LeafParent, BasicTreeNode &Root) noexcept {
+DoRemoveLeafParents(TreeNode &LeafParent, TreeNode &Root) noexcept {
     auto Child = &LeafParent;
     auto Parent = LeafParent.getParent();
     auto RemovedRoot = false;
@@ -311,9 +311,9 @@ DoRemoveLeafParents(BasicTreeNode &LeafParent, BasicTreeNode &Root) noexcept {
 }
 
 [[nodiscard]] static bool
-IsolateNodeAndRemoveFromParent(BasicTreeNode &Node,
-                               BasicTreeNode &Root,
-                               bool RemoveLeafParents) noexcept
+IsolateNodeAndRemoveFromParent(TreeNode &Node,
+                               TreeNode &Root,
+                               const bool RemoveLeafParents) noexcept
 {
     IsolateNode(Node);
 
@@ -330,8 +330,8 @@ IsolateNodeAndRemoveFromParent(BasicTreeNode &Node,
     return RemovedRoot;
 }
 
-BasicTreeNode *
-BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
+TreeNode *
+Tree::RemoveNode(TreeNode &Node, const bool RemoveParentLeafs) noexcept {
     if (&Node == Root) {
         if (Node.isLeaf()) {
             setRoot(nullptr);
@@ -361,7 +361,7 @@ BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
     }
 
     const auto NextNode =
-        const_cast<BasicTreeNode *>(Node.FindNextNodeForIterator());
+        const_cast<TreeNode *>(Node.FindNextNodeForIterator());
 
     if (IsolateNodeAndRemoveFromParent(Node, *Root, RemoveParentLeafs)) {
         setRoot(nullptr);
@@ -370,7 +370,7 @@ BasicTree::RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept {
     return NextNode;
 }
 
-void BasicTree::ValidateNodes() const noexcept {
+void Tree::ValidateNodes() const noexcept {
     for (const auto &Node : *this) {
         Node->ValidateChildArray();
     }

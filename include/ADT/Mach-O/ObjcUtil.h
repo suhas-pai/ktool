@@ -15,7 +15,7 @@
 
 namespace MachO {
     struct ObjcClassCategoryCollection;
-    struct ObjcClassInfoCollection : public BasicTree {
+    struct ObjcClassInfoCollection : public Tree {
         friend struct ObjcClassCategoryCollection;
     public:
         using Info = ObjcClassInfo;
@@ -84,14 +84,14 @@ namespace MachO {
         Open(const ConstMemoryMap &Map,
              const SegmentInfoCollection &SegmentCollection,
              const ConstDeVirtualizer &DeVirtualizer,
-             const BindActionList *BindList,
-             const LazyBindActionList *LazyBindList,
-             const WeakBindActionList *WeakBindList,
-             bool IsBigEndian,
-             bool Is64Bit,
-             Error *ErrorOut,
-             BindOpcodeParseError *ParseErrorOut,
-             BindActionCollection::Error *CollectionErrorOut) noexcept
+             const BindActionList *const BindList,
+             const LazyBindActionList *const LazyBindList,
+             const WeakBindActionList *const WeakBindList,
+             const bool IsBigEndian,
+             const bool Is64Bit,
+             Error *const ErrorOut,
+             BindOpcodeParseError *const ParseErrorOut,
+             BindActionCollection::Error *const CollectionErrorOut) noexcept
         {
             auto Result = ObjcClassInfoCollection();
             Result.Parse(Map,
@@ -235,15 +235,15 @@ namespace MachO {
         Open(const ConstMemoryMap &Map,
              const SegmentInfoCollection &SegmentCollection,
              const ConstDeVirtualizer &DeVirtualizer,
-             ObjcClassInfoCollection *ClassInfoTree,
-             const BindActionList *BindList,
-             const LazyBindActionList *LazyBindList,
-             const WeakBindActionList *WeakBindList,
-             bool IsBigEndian,
-             bool Is64Bit,
-             Error *ErrorOut,
-             BindOpcodeParseError *ParseErrorOut,
-             BindActionCollection::Error *CollectionErrorOut) noexcept
+             ObjcClassInfoCollection *const ClassInfoTree,
+             const BindActionList *const BindList,
+             const LazyBindActionList *const LazyBindList,
+             const WeakBindActionList *const WeakBindList,
+             const bool IsBigEndian,
+             const bool Is64Bit,
+             Error *const ErrorOut,
+             BindOpcodeParseError *const ParseErrorOut,
+             BindActionCollection::Error *const CollectionErrorOut) noexcept
         {
             auto Result = ObjcClassCategoryCollection();
             Result.CollectFrom(Map,

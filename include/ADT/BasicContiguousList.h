@@ -22,17 +22,20 @@ protected:
     EntryType *End;
 public:
     constexpr
-    BasicContiguousList(EntryType *Begin, EntryType *End) noexcept
+    BasicContiguousList(EntryType *const Begin, EntryType *const End) noexcept
     : Begin(Begin), End(End) {}
 
-    explicit BasicContiguousList(uint8_t *Begin, const uint8_t *End) noexcept
+    explicit
+    BasicContiguousList(uint8_t *const Begin, const uint8_t *const End) noexcept
     : Begin(reinterpret_cast<EntryType *>(Begin)),
       End(reinterpret_cast<EntryType *>(End)) {}
 
-    constexpr BasicContiguousList(EntryType *Begin, uint64_t Count) noexcept
+    constexpr
+    BasicContiguousList(EntryType *const Begin, const uint64_t Count) noexcept
     : Begin(Begin), End(Begin + Count) {}
 
-    constexpr BasicContiguousList(uint8_t *Begin, uint64_t Count) noexcept
+    constexpr
+    BasicContiguousList(uint8_t *const Begin, const uint64_t Count) noexcept
     : Begin(reinterpret_cast<EntryType *>(Begin)), End(this->Begin + Count) {}
 
     using Iterator = BasicContiguousIterator<EntryType>;
@@ -62,11 +65,12 @@ public:
         return End;
     }
 
-    [[nodiscard]] inline EntryType &at(uint64_t Index) noexcept {
+    [[nodiscard]] inline EntryType &at(const uint64_t Index) noexcept {
         return Begin[Index];
     }
 
-    [[nodiscard]] inline const EntryType &at(uint64_t Index) const noexcept {
+    [[nodiscard]]
+    inline const EntryType &at(const uint64_t Index) const noexcept {
         return Begin[Index];
     }
 
@@ -113,15 +117,19 @@ public:
     explicit BasicContiguousList(EntryType *Begin, EntryType *End) noexcept
     : Begin(Begin), End(End) {}
 
-    explicit BasicContiguousList(const uint8_t *Begin,
-                                 const uint8_t *End) noexcept
+    explicit
+    BasicContiguousList(const uint8_t *const Begin,
+                        const uint8_t *const End) noexcept
     : Begin(reinterpret_cast<EntryType *>(Begin)),
       End(reinterpret_cast<EntryType *>(End)) {}
 
-    explicit BasicContiguousList(EntryType *Begin, uint64_t Count) noexcept
+    explicit
+    BasicContiguousList(EntryType *const Begin, const uint64_t Count) noexcept
     : Begin(Begin), End(Begin + Count) {}
 
-    explicit BasicContiguousList(const uint8_t *Begin, uint64_t Count) noexcept
+    explicit
+    BasicContiguousList(const uint8_t *const Begin,
+                        const uint64_t Count) noexcept
     : Begin(reinterpret_cast<EntryType *>(Begin)), End(this->Begin + Count) {}
 
     using Iterator = BasicContiguousIterator<EntryType>;
@@ -149,7 +157,7 @@ public:
         return End;
     }
 
-    [[nodiscard]] inline EntryType &at(uint64_t Index) const noexcept {
+    [[nodiscard]] inline EntryType &at(const uint64_t Index) const noexcept {
         return Begin[Index];
     }
 
@@ -188,10 +196,10 @@ private:
     EntryType *Begin;
     EntryType *End;
 public:
-    BasicContiguousList(EntryType *Begin, EntryType *End) noexcept
+    BasicContiguousList(EntryType *const Begin, EntryType *const End) noexcept
     : Begin(Begin), End(End) {}
 
-    BasicContiguousList(EntryType *Begin, uint64_t Count) noexcept
+    BasicContiguousList(EntryType *const Begin, const uint64_t Count) noexcept
     : Begin(Begin), End(Begin + Count) {}
 
     using Iterator = BasicContiguousIterator<EntryType>;
@@ -221,7 +229,7 @@ public:
         return End;
     }
 
-    [[nodiscard]] inline EntryType &at(uint64_t Index) const noexcept {
+    [[nodiscard]] inline EntryType &at(const uint64_t Index) const noexcept {
         return Begin[Index];
     }
 
@@ -265,10 +273,10 @@ private:
     EntryType *Begin;
     EntryType *End;
 public:
-    BasicContiguousList(EntryType *Begin, EntryType *End) noexcept
+    BasicContiguousList(EntryType *const Begin, EntryType *const End) noexcept
     : Begin(Begin), End(End) {}
 
-    BasicContiguousList(EntryType *Begin, uint64_t Count) noexcept
+    BasicContiguousList(EntryType *const Begin, const uint64_t Count) noexcept
     : Begin(Begin), End(Begin + Count) {}
 
     using Iterator = BasicContiguousIterator<EntryType>;
@@ -296,7 +304,7 @@ public:
         return End;
     }
 
-    [[nodiscard]] inline EntryType &at(uint64_t Index) const noexcept {
+    [[nodiscard]] inline EntryType &at(const uint64_t Index) const noexcept {
         return Begin[Index];
     }
 

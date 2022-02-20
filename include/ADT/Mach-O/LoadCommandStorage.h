@@ -23,7 +23,9 @@ namespace MachO {
     protected:
         PtrType *End;
     public:
-        explicit LoadCommandStorageEndIteratorBase(PtrType *End) : End(End) {}
+        explicit
+        LoadCommandStorageEndIteratorBase(PtrType *const End) : End(End) {}
+
         [[nodiscard]] PtrType *getEnd() const noexcept { return End; }
     };
 
@@ -36,7 +38,8 @@ namespace MachO {
         bool IsBigEndian : 1;
     public:
         explicit
-        LoadCommandStorageIteratorBase(PtrType *Ptr, bool IsBigEndian) noexcept
+        LoadCommandStorageIteratorBase(PtrType *const Ptr,
+                                       const bool IsBigEndian) noexcept
         : Base(Ptr), IsBigEndian(IsBigEndian) {};
 
         using DifferenceType = std::ptrdiff_t;
@@ -203,12 +206,12 @@ namespace MachO {
                            bool IsBigEndian) noexcept;
     public:
         [[nodiscard]] static inline LoadCommandStorage
-        Open(uint8_t *Begin,
-             uint32_t Count,
-             uint32_t Size,
-             bool IsBigEndian,
-             bool Is64Bit,
-             bool Verify) noexcept
+        Open(uint8_t *const Begin,
+             const uint32_t Count,
+             const uint32_t Size,
+             const bool IsBigEndian,
+             const bool Is64Bit,
+             const bool Verify) noexcept
         {
             const auto Result =
                 ConstLoadCommandStorage::Open(Begin,

@@ -113,10 +113,10 @@ namespace MachO {
 
         template <typename T, typename = std::enable_if_t<!std::is_const_v<T>>>
         [[nodiscard]] inline T *
-        GetPtrForVirtualAddr(uint8_t *Map,
-                             uint64_t Addr,
-                             uint64_t Size = sizeof(T),
-                             T **EndOut = nullptr) const noexcept
+        GetPtrForVirtualAddr(uint8_t *const Map,
+                             const uint64_t Addr,
+                             const uint64_t Size = sizeof(T),
+                             T **const EndOut = nullptr) const noexcept
         {
             const auto Data =
                 GetDataForVirtualAddr(Map,
@@ -129,10 +129,10 @@ namespace MachO {
 
         template <typename T>
         [[nodiscard]] inline T *
-        GetPtrForVirtualAddr(const uint8_t *Map,
-                             uint64_t Addr,
-                             uint64_t Size = sizeof(T),
-                             T **EndOut = nullptr) const noexcept
+        GetPtrForVirtualAddr(const uint8_t *const Map,
+                             const uint64_t Addr,
+                             const uint64_t Size = sizeof(T),
+                             T **const EndOut = nullptr) const noexcept
         {
             const auto Data =
                 GetDataForVirtualAddr(
@@ -147,10 +147,10 @@ namespace MachO {
         template <typename T, typename = std::enable_if_t<!std::is_const_v<T>>>
         [[nodiscard]] inline T *
         GetPtrForVirtualAddrIgnoreSections(
-             uint8_t *Map,
-             uint64_t Addr,
-             uint64_t Size = sizeof(T),
-             T **EndOut = nullptr) const noexcept
+             uint8_t *const Map,
+             const uint64_t Addr,
+             const uint64_t Size = sizeof(T),
+             T **const EndOut = nullptr) const noexcept
         {
             const auto Data =
                 GetDataForVirtualAddrIgnoreSections(
@@ -165,10 +165,10 @@ namespace MachO {
         template <typename T>
         [[nodiscard]] inline T *
         GetPtrForVirtualAddrIgnoreSections(
-            const uint8_t *Map,
-            uint64_t Addr,
-            uint64_t Size = sizeof(T),
-            T **EndOut = nullptr) const noexcept
+            const uint8_t *const Map,
+            const uint64_t Addr,
+            const uint64_t Size = sizeof(T),
+            T **const EndOut = nullptr) const noexcept
         {
             const auto Data =
                 GetDataForVirtualAddrIgnoreSections(
@@ -181,13 +181,13 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        inline const SegmentInfo &at(uint64_t Index) const noexcept {
+        inline const SegmentInfo &at(const uint64_t Index) const noexcept {
             assert(IndexOutOfBounds(Index, this->size()));
             return *List.at(Index).get();
         }
 
-        [[nodiscard]]
-        inline const SegmentInfo *atOrNull(uint64_t Index) const noexcept {
+        [[nodiscard]] inline
+        const SegmentInfo *atOrNull(const uint64_t Index) const noexcept {
             if (IndexOutOfBounds(Index, this->size())) {
                 return nullptr;
             }

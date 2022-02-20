@@ -21,7 +21,7 @@ private:
 public:
     using BasicWrapperIterator<T *, std::ptrdiff_t>::BasicWrapperIterator;
 
-    constexpr BasicPointerAbstraction(uint8_t *Ptr) noexcept
+    constexpr BasicPointerAbstraction(uint8_t *const Ptr) noexcept
     : Base(reinterpret_cast<T *>(Ptr)) {}
 
     inline T *operator->() noexcept { return this->Item; }

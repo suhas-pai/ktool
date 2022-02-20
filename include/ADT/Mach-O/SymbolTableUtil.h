@@ -97,31 +97,31 @@ namespace MachO {
         }
 
         inline SymbolTableEntryCollectionEntryInfo &
-        setString(const std::string *Value) noexcept {
+        setString(const std::string *const Value) noexcept {
             this->String = Value;
             return *this;
         }
 
         inline SymbolTableEntryCollectionEntryInfo &
-        setSectionOrdinal(uint8_t Value) noexcept {
+        setSectionOrdinal(const uint8_t Value) noexcept {
             this->SectionOrdinal = Value;
             return *this;
         }
 
         inline SymbolTableEntryCollectionEntryInfo &
-        setDescription(uint16_t Value) noexcept {
+        setDescription(const uint16_t Value) noexcept {
             this->Desc = Value;
             return *this;
         }
 
-        inline
-        SymbolTableEntryCollectionEntryInfo &setIndex(uint64_t Index) noexcept {
+        inline SymbolTableEntryCollectionEntryInfo &
+        setIndex(const uint64_t Index) noexcept {
             this->Index = Index;
             return *this;
         }
 
-        inline
-        SymbolTableEntryCollectionEntryInfo &setValue(uint64_t Val) noexcept {
+        inline SymbolTableEntryCollectionEntryInfo &
+        setValue(const uint64_t Val) noexcept {
             this->Value = Val;
             return *this;
         }
@@ -172,7 +172,7 @@ namespace MachO {
 
         SymbolTableEntryCollection &
         Parse(const uint8_t *NlistBegin,
-              const uint64_t NlistCount,
+              uint64_t NlistCount,
               const char *StrTab,
               const char *StrEnd,
               bool IsBigEndian,
@@ -192,7 +192,7 @@ namespace MachO {
 
         SymbolTableEntryCollection &
         ParseIndirectSymbolIndexTable(const uint8_t *NlistBegin,
-                                      const uint64_t NlistCount,
+                                      uint64_t NlistCount,
                                       const uint32_t *IndexBegin,
                                       uint64_t IndexCount,
                                       const char *StrTab,
@@ -215,7 +215,7 @@ namespace MachO {
 
         SymbolTableEntryCollection &
         ParseIndirectSymbolsPtrSection(const uint8_t *NlistBegin,
-                                       const uint64_t NlistCount,
+                                       uint64_t NlistCount,
                                        const uint32_t *IndexBegin,
                                        uint64_t IndexCount,
                                        uint32_t SectReserved1,
@@ -240,15 +240,15 @@ namespace MachO {
                                        Error *ErrorOut) noexcept;
 
         [[nodiscard]] static inline SymbolTableEntryCollection
-        Open(const uint8_t *NlistBegin,
+        Open(const uint8_t *const NlistBegin,
              const uint64_t NlistCount,
-             const char *StrTab,
-             const char *StrEnd,
-             bool IsBigEndian,
-             bool Is64Bit,
-             KeyKindEnum KeyKind,
-             ParseOptions Options,
-             Error *ErrorOut) noexcept
+             const char *const StrTab,
+             const char *const StrEnd,
+             const bool IsBigEndian,
+             const bool Is64Bit,
+             const KeyKindEnum KeyKind,
+             const ParseOptions Options,
+             Error *const ErrorOut) noexcept
         {
             auto Collection = SymbolTableEntryCollection();
             Collection.Parse(NlistBegin,
@@ -265,13 +265,13 @@ namespace MachO {
         }
 
         [[nodiscard]] static inline SymbolTableEntryCollection
-        Open(const uint8_t *Map,
+        Open(const uint8_t *const Map,
              const SymTabCommand &SymTab,
-             bool IsBigEndian,
-             bool Is64Bit,
-             KeyKindEnum KeyKind,
-             ParseOptions Options,
-             Error *ErrorOut) noexcept
+             const bool IsBigEndian,
+             const bool Is64Bit,
+             const KeyKindEnum KeyKind,
+             const ParseOptions Options,
+             Error *const ErrorOut) noexcept
         {
             auto Collection = SymbolTableEntryCollection();
             Collection.Parse(Map,
@@ -287,14 +287,14 @@ namespace MachO {
 
         [[nodiscard]] static inline SymbolTableEntryCollection
         OpenForIndirectSymbolIndexTable(
-            const uint8_t *Map,
+            const uint8_t *const Map,
             const SymTabCommand &SymTab,
             const DynamicSymTabCommand &DySymTab,
-            bool IsBigEndian,
-            bool Is64Bit,
-            KeyKindEnum KeyKind,
-            ParseOptions Options,
-            Error *ErrorOut) noexcept
+            const bool IsBigEndian,
+            const bool Is64Bit,
+            const KeyKindEnum KeyKind,
+            const ParseOptions Options,
+            Error *const ErrorOut) noexcept
         {
             auto Collection = SymbolTableEntryCollection();
             Collection.ParseIndirectSymbolIndexTable(Map,
@@ -310,17 +310,17 @@ namespace MachO {
         }
 
         [[nodiscard]] static inline SymbolTableEntryCollection
-        OpenForIndirectSymbolIndexTable(const uint8_t *NlistBegin,
+        OpenForIndirectSymbolIndexTable(const uint8_t *const NlistBegin,
                                         const uint64_t NlistCount,
-                                        const uint32_t *IndexBegin,
+                                        const uint32_t *const IndexBegin,
                                         uint64_t IndexCount,
-                                        const char *StrTab,
-                                        const char *StrEnd,
-                                        bool IsBigEndian,
-                                        bool Is64Bit,
-                                        KeyKindEnum KeyKind,
-                                        ParseOptions Options,
-                                        Error *ErrorOut) noexcept
+                                        const char *const StrTab,
+                                        const char *const StrEnd,
+                                        const bool IsBigEndian,
+                                        const bool Is64Bit,
+                                        const KeyKindEnum KeyKind,
+                                        const ParseOptions Options,
+                                        Error *const ErrorOut) noexcept
         {
             auto Collection = SymbolTableEntryCollection();
             Collection.ParseIndirectSymbolIndexTable(NlistBegin,
@@ -339,19 +339,19 @@ namespace MachO {
         }
 
         [[nodiscard]] static inline SymbolTableEntryCollection
-        OpenForIndirectSymbolsPtrSection(const uint8_t *NlistBegin,
+        OpenForIndirectSymbolsPtrSection(const uint8_t *const NlistBegin,
                                          const uint64_t NlistCount,
-                                         const uint32_t *IndexBegin,
-                                         uint64_t IndexCount,
-                                         uint32_t SectReserved1,
-                                         uint64_t SectSize,
-                                         const char *StrTab,
-                                         const char *StrEnd,
-                                         bool IsBigEndian,
-                                         bool Is64Bit,
-                                         KeyKindEnum KeyKind,
-                                         ParseOptions Options,
-                                         Error *ErrorOut) noexcept
+                                         const uint32_t *const IndexBegin,
+                                         const uint64_t IndexCount,
+                                         const uint32_t SectReserved1,
+                                         const uint64_t SectSize,
+                                         const char *const StrTab,
+                                         const char *const StrEnd,
+                                         const bool IsBigEndian,
+                                         const bool Is64Bit,
+                                         const KeyKindEnum KeyKind,
+                                         const ParseOptions Options,
+                                         Error *const ErrorOut) noexcept
         {
             auto Collection = SymbolTableEntryCollection();
             Collection.ParseIndirectSymbolsPtrSection(NlistBegin,
@@ -372,15 +372,15 @@ namespace MachO {
         }
 
         [[nodiscard]] static inline SymbolTableEntryCollection
-        OpenForIndirectSymbolsPtrSection(const uint8_t *Map,
+        OpenForIndirectSymbolsPtrSection(const uint8_t *const Map,
                                          const SymTabCommand &SymTab,
                                          const DynamicSymTabCommand &DySymTab,
                                          const SectionInfo &Sect,
-                                         bool IsBigEndian,
-                                         bool Is64Bit,
-                                         KeyKindEnum KeyKind,
-                                         ParseOptions Options,
-                                         Error *ErrorOut) noexcept
+                                         const bool IsBigEndian,
+                                         const bool Is64Bit,
+                                         const KeyKindEnum KeyKind,
+                                         const ParseOptions Options,
+                                         Error *const ErrorOut) noexcept
         {
             auto Collection = SymbolTableEntryCollection();
             Collection.ParseIndirectSymbolsPtrSection(Map,

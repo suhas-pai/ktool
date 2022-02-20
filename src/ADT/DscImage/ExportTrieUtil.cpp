@@ -11,9 +11,9 @@
 namespace DscImage {
     const SegmentInfo *
     ExportTrieEntryCollection::LookupInfoForAddress(
-        const MachO::SegmentInfoCollection *Collection,
-        uint64_t Address,
-        const SectionInfo **SectionOut) const noexcept
+        const MachO::SegmentInfoCollection *const Collection,
+        const uint64_t Address,
+        const SectionInfo **const SectionOut) const noexcept
     {
         const auto SegCollection =
             reinterpret_cast<const SegmentInfoCollection *>(Collection);
@@ -34,7 +34,7 @@ namespace DscImage {
     ExportTrieEntryCollection
     ExportTrieEntryCollection::Open(
         const MachO::ConstExportTrieList &List,
-        const SegmentInfoCollection *Collection,
+        const SegmentInfoCollection *const Collection,
         Error *ErrorOut) noexcept
     {
         auto Result = ExportTrieEntryCollection();

@@ -177,7 +177,7 @@ PrintSymbolList(
 static int
 PrintSymbolPtrList(
     const ConstMachOMemoryObject &Object,
-    const uint8_t *MapBegin,
+    const uint8_t *const MapBegin,
     const struct PrintSymbolPtrSectionOperation::Options &Options) noexcept
 {
     const auto IsBigEndian = Object.isBigEndian();
@@ -421,7 +421,7 @@ AddSortKind(PrintSymbolPtrSectionOperation::Options::SortKind SortKind,
 
 struct PrintSymbolPtrSectionOperation::Options
 PrintSymbolPtrSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
-                                                 int *IndexOut) noexcept
+                                                 int *const IndexOut) noexcept
 {
     struct Options Options;
 

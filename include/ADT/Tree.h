@@ -11,7 +11,7 @@
 #include <vector>
 #include "Utils/PrintUtils.h"
 
-struct BasicTreeNode;
+struct TreeNode;
 struct Tree;
 
 template <typename T>
@@ -226,108 +226,108 @@ public:
          Sibling != (End);                                                    \
          Sibling = (Sibling)->get(Sibling->getNextSibling()))
 
-struct BasicTreeNode {
-    friend struct BasicTree;
+struct TreeNode {
+    friend struct Tree;
 protected:
-    BasicTreeNode *Parent = nullptr;
-    BasicTreeNode *FirstChild = nullptr;
-    BasicTreeNode *PrevSibling = nullptr;
-    BasicTreeNode *NextSibling = nullptr;
-    BasicTreeNode *LastChild = nullptr;
+    TreeNode *Parent = nullptr;
+    TreeNode *FirstChild = nullptr;
+    TreeNode *PrevSibling = nullptr;
+    TreeNode *NextSibling = nullptr;
+    TreeNode *LastChild = nullptr;
 
     void clearAndDestroy() noexcept;
 public:
-    BasicTreeNode() noexcept = default;
+    TreeNode() noexcept = default;
 
-    [[nodiscard]] virtual BasicTreeNode *createNew() const noexcept = 0;
-    virtual ~BasicTreeNode() noexcept = default;
+    [[nodiscard]] virtual TreeNode *createNew() const noexcept = 0;
+    virtual ~TreeNode() noexcept = default;
 
-    [[nodiscard]] inline BasicTreeNode *getParent() const noexcept {
+    [[nodiscard]] inline TreeNode *getParent() const noexcept {
         return Parent;
     }
 
-    inline BasicTreeNode &setParent(BasicTreeNode *Parent) noexcept {
+    inline TreeNode &setParent(TreeNode *const Parent) noexcept {
         this->Parent = Parent;
         return *this;
     }
 
-    [[nodiscard]] inline BasicTreeNode *getFirstChild() const noexcept {
+    [[nodiscard]] inline TreeNode *getFirstChild() const noexcept {
         return FirstChild;
     }
 
-    [[nodiscard]] inline BasicTreeNode *getLastChild() const noexcept {
+    [[nodiscard]] inline TreeNode *getLastChild() const noexcept {
         return LastChild;
     }
 
-    [[nodiscard]] inline BasicTreeNode *getPrevSibling() const noexcept {
+    [[nodiscard]] inline TreeNode *getPrevSibling() const noexcept {
         return PrevSibling;
     }
 
-    [[nodiscard]] inline BasicTreeNode *getNextSibling() const noexcept {
+    [[nodiscard]] inline TreeNode *getNextSibling() const noexcept {
         return NextSibling;
     }
 
     [[nodiscard]]
-    static inline BasicTreeNode *get(BasicTreeNode *Node) noexcept {
+    static inline TreeNode *get(TreeNode *const Node) noexcept {
         return Node;
     }
 
     [[nodiscard]] static
-    inline const BasicTreeNode *get(const BasicTreeNode *Node) noexcept {
+    inline const TreeNode *get(const TreeNode *const Node) noexcept {
         return Node;
     }
 
     [[nodiscard]] uint64_t GetChildCount() const noexcept;
 
-    BasicTreeNode &SetAsParentOfChildren() noexcept;
-    BasicTreeNode &SetAsParentOfChildren(BasicTreeNode &Node) noexcept;
+    TreeNode &SetAsParentOfChildren() noexcept;
+    TreeNode &SetAsParentOfChildren(TreeNode &Node) noexcept;
 
     void ValidateChildArray() const noexcept;
-    BasicTreeNode &AddChild(BasicTreeNode &Node) noexcept;
+    TreeNode &AddChild(TreeNode &Node) noexcept;
 
-    BasicTreeNode &
-    AddChildren(BasicTreeNode &Node, BasicTreeNode *End = nullptr) noexcept;
+    TreeNode &
+    AddChildren(TreeNode &Node, TreeNode *End = nullptr) noexcept;
 
-    BasicTreeNode &AddSibling(BasicTreeNode &Node) noexcept;
+    TreeNode &AddSibling(TreeNode &Node) noexcept;
 
-    BasicTreeNode &
-    AddSiblings(BasicTreeNode &Node, BasicTreeNode *End = nullptr) noexcept;
+    TreeNode &
+    AddSiblings(TreeNode &Node, TreeNode *End = nullptr) noexcept;
 
-    [[nodiscard]] const BasicTreeNode *
-    FindPrevNodeForIterator(const BasicTreeNode *End = nullptr,
+    [[nodiscard]] const TreeNode *
+    FindPrevNodeForIterator(const TreeNode *End = nullptr,
                             uint64_t *DepthChangeOut = nullptr) const noexcept;
 
-    [[nodiscard]] const BasicTreeNode *
+    [[nodiscard]] const TreeNode *
     FindNextSiblingForIterator(
-        const BasicTreeNode *End = nullptr,
+        const TreeNode *End = nullptr,
         uint64_t *DepthChangeOut = nullptr) const noexcept;
 
-    [[nodiscard]] const BasicTreeNode *
-    FindNextNodeForIterator(const BasicTreeNode *End = nullptr,
+    [[nodiscard]] const TreeNode *
+    FindNextNodeForIterator(const TreeNode *End = nullptr,
                             int64_t *DepthChangeOut = nullptr) const noexcept;
 
-    inline BasicTreeNode &setFirstChild(BasicTreeNode *Node) noexcept {
+    inline TreeNode &setFirstChild(TreeNode *const Node) noexcept {
         assert(Node != this);
 
         this->FirstChild = Node;
         return *this;
     }
 
-    inline BasicTreeNode &setPrevSibling(BasicTreeNode *Node) noexcept {
+    inline TreeNode &setPrevSibling(TreeNode *const Node) noexcept {
         assert(Node != this);
 
         this->PrevSibling = Node;
         return *this;
     }
 
-    inline BasicTreeNode &setNextSibling(BasicTreeNode *Node) noexcept {
+    inline TreeNode &setNextSibling(TreeNode *const Node) noexcept {
         assert(Node != this);
 
         this->NextSibling = Node;
         return *this;
     }
 
-    inline BasicTreeNode &setLastChild(BasicTreeNode *Node) noexcept {
+    inline TreeNode &setLastChild(TreeNode *const Node) noexcept {
         assert(Node != this);
 
         this->LastChild = Node;
@@ -348,7 +348,7 @@ public:
 
     [[nodiscard]] virtual uint64_t GetLength() const noexcept = 0;
 
-    using Iterator = TreeIterator<const BasicTreeNode>;
+    using Iterator = TreeIterator<const TreeNode>;
     using ConstIterator = Iterator;
 
     [[nodiscard]] inline Iterator begin() const noexcept {
@@ -395,7 +395,7 @@ public:
 
     template <typename T>
     inline void
-    forEachSiblingTillEnd(const BasicTreeNode *End,
+    forEachSiblingTillEnd(const TreeNode *const End,
                           const T &lambda) const noexcept
     {
         BASIC_TREE_NODE_ITERATE_SIBLINGS_TILL_END(*this, End) {
@@ -405,7 +405,7 @@ public:
 
     template <typename T>
     inline void
-    forSelfAndEachSiblingTillEnd(const BasicTreeNode *End,
+    forSelfAndEachSiblingTillEnd(const TreeNode *const End,
                                  const T &lambda) const noexcept
     {
         lambda(*this);
@@ -440,7 +440,7 @@ public:
 
     template <typename T>
     inline void
-    forEachSiblingTillEnd(const BasicTreeNode *End, const T &lambda) noexcept {
+    forEachSiblingTillEnd(const TreeNode *const End, const T &lambda) noexcept {
         BASIC_TREE_NODE_ITERATE_SIBLINGS_TILL_END(*this, End) {
             lambda(*Sibling);
         }
@@ -448,7 +448,7 @@ public:
 
     template <typename T>
     inline void
-    forSelfAndEachSiblingTillEnd(const BasicTreeNode *End,
+    forSelfAndEachSiblingTillEnd(const TreeNode *const End,
                                  const T &lambda) noexcept
     {
         lambda(*this);
@@ -456,9 +456,9 @@ public:
     }
 
     template <typename NodePrinter>
-    const BasicTreeNode &
-    PrintHorizontal(FILE *OutFile,
-                    int TabLength,
+    const TreeNode &
+    PrintHorizontal(FILE *const OutFile,
+                    const int TabLength,
                     const NodePrinter &NodePrinterFunc) const noexcept
     {
         const auto RootDepthLevel = 1;
@@ -466,7 +466,7 @@ public:
             fputc('\n', OutFile);
         }
 
-        auto Iter = TreeIterator<const BasicTreeNode>(this);
+        auto Iter = TreeIterator<const TreeNode>(this);
         for (Iter++; !Iter.isAtEnd(); Iter++) {
             auto WrittenOut = int();
 
@@ -511,17 +511,17 @@ public:
     }
 };
 
-struct BasicTree {
+struct Tree {
 protected:
-    BasicTreeNode *Root;
+    TreeNode *Root;
 public:
-    BasicTree() noexcept = default;
-    BasicTree(BasicTreeNode *Root) noexcept;
+    Tree() noexcept = default;
+    Tree(TreeNode *Root) noexcept;
 
-    virtual ~BasicTree() noexcept;
+    virtual ~Tree() noexcept;
 
-    using Iterator = TreeIterator<BasicTreeNode>;
-    using ConstIterator = TreeIterator<const BasicTreeNode>;
+    using Iterator = TreeIterator<TreeNode>;
+    using ConstIterator = TreeIterator<const TreeNode>;
 
     [[nodiscard]] inline Iterator begin() const noexcept {
         return Iterator(getRoot());
@@ -539,11 +539,11 @@ public:
         return ConstIterator(nullptr);
     }
 
-    [[nodiscard]] inline BasicTreeNode *getRoot() const noexcept {
+    [[nodiscard]] inline TreeNode *getRoot() const noexcept {
         return Root;
     }
 
-    inline BasicTree &setRoot(BasicTreeNode *Root) noexcept {
+    inline Tree &setRoot(TreeNode *Root) noexcept {
         this->Root = Root;
         return *this;
     }
@@ -570,8 +570,8 @@ public:
     }
 
     template <typename Comparator>
-    BasicTree &Sort(const Comparator &ShouldSwap) noexcept {
-        const auto Swap = [](BasicTreeNode &Lhs, BasicTreeNode &Rhs) noexcept {
+    Tree &Sort(const Comparator &ShouldSwap) noexcept {
+        const auto Swap = [](TreeNode &Lhs, TreeNode &Rhs) noexcept {
             const auto LPrevSibling = Lhs.getPrevSibling();
             const auto LNextSibling = Lhs.getNextSibling();
 
@@ -644,16 +644,15 @@ public:
         return *this;
     }
 
-    BasicTreeNode *
-    RemoveNode(BasicTreeNode &Node, bool RemoveParentLeafs) noexcept;
+    TreeNode *RemoveNode(TreeNode &Node, bool RemoveParentLeafs) noexcept;
 
     void ValidateNodes() const noexcept;
     [[nodiscard]] virtual uint64_t GetCount() const noexcept;
 
     template <typename NodePrinter>
-    const BasicTree &
-    PrintHorizontal(FILE *OutFile,
-                    int TabLength,
+    const Tree &
+    PrintHorizontal(FILE *const OutFile,
+                    const int TabLength,
                     const NodePrinter &NodePrinterFunc) const noexcept
     {
         if (empty()) {
@@ -665,12 +664,12 @@ public:
     }
 
     template <typename NodePrinter>
-    BasicTree &
-    PrintHorizontal(FILE *OutFile,
-                    int TabLength,
+    Tree &
+    PrintHorizontal(FILE *const OutFile,
+                    const int TabLength,
                     const NodePrinter &NodePrinterFunc) noexcept
     {
-        const_cast<const BasicTreeNode &>(*Root).
+        const_cast<const TreeNode &>(*Root).
             PrintHorizontal(OutFile, TabLength, NodePrinterFunc);
 
         return *this;

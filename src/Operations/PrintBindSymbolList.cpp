@@ -56,14 +56,14 @@ CompareActionsBySortKind(
 template <MachO::BindInfoKind BindKind>
 static void
 PrintBindAction(
-    const char *Name,
-    uint64_t Counter,
-    int SizeDigitLength,
+    const char *const Name,
+    const uint64_t Counter,
+    const int SizeDigitLength,
     const MachO::BindActionInfo &Action,
-    uint64_t LongestBindSymbolLength,
+    const uint64_t LongestBindSymbolLength,
     const MachO::SharedLibraryInfoCollection &LibraryCollection,
     const MachO::SegmentInfoCollection &SegmentCollection,
-    bool Is64Bit,
+    const bool Is64Bit,
     const struct PrintBindSymbolListOperation::Options &Options) noexcept
 {
     fprintf(Options.OutFile,
@@ -502,7 +502,7 @@ ListHasSortKind(
 
 static inline void
 AddSortKind(PrintBindSymbolListOperation::Options::SortKind SortKind,
-            const char *Option,
+            const char *const Option,
             struct PrintBindSymbolListOperation::Options &Options) noexcept
 {
     if (ListHasSortKind(Options.SortKindList, SortKind)) {
@@ -514,7 +514,7 @@ AddSortKind(PrintBindSymbolListOperation::Options::SortKind SortKind,
 
 struct PrintBindSymbolListOperation::Options
 PrintBindSymbolListOperation::ParseOptionsImpl(const ArgvArray &Argv,
-                                               int *IndexOut) noexcept
+                                               int *const IndexOut) noexcept
 {
     auto Index = int();
     struct Options Options;

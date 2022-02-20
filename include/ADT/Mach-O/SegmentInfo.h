@@ -71,13 +71,12 @@ namespace MachO {
         }
 
         constexpr
-        inline SectionInfo &setSegment(const SegmentInfo *Segment) noexcept {
+        SectionInfo &setSegment(const SegmentInfo *const Segment) noexcept {
             this->Segment = Segment;
             return *this;
         }
 
-        constexpr
-        inline SectionInfo &setName(const std::string &Name) noexcept {
+        constexpr SectionInfo &setName(const std::string &Name) noexcept {
             this->Name = Name;
             return *this;
         }
@@ -95,17 +94,17 @@ namespace MachO {
         }
 
         constexpr
-        SectionInfo &setFlags(SegmentSectionFlags Flags) noexcept {
+        SectionInfo &setFlags(const SegmentSectionFlags Flags) noexcept {
             this->Flags = Flags;
             return *this;
         }
 
-        constexpr SectionInfo &setReserved1(uint32_t Num) noexcept {
+        constexpr SectionInfo &setReserved1(const uint32_t Num) noexcept {
             this->Reserved1 = Num;
             return *this;
         }
 
-        constexpr SectionInfo &setReserved2(uint32_t Num) noexcept {
+        constexpr SectionInfo &setReserved2(const uint32_t Num) noexcept {
             this->Reserved2 = Num;
             return *this;
         }
@@ -113,24 +112,26 @@ namespace MachO {
         template <typename T = uint8_t,
                   typename = std::enable_if_t<!std::is_const_v<T>>>
 
-        [[nodiscard]] inline T *getData(uint8_t *Map) const noexcept {
+        [[nodiscard]] inline T *getData(uint8_t *const Map) const noexcept {
             return reinterpret_cast<T *>(Map + getFileRange().getBegin());
         }
 
         template <typename T = const uint8_t>
-        [[nodiscard]] inline T *getData(const uint8_t *Map) const noexcept {
+        [[nodiscard]]
+        inline T *getData(const uint8_t *const Map) const noexcept {
             return reinterpret_cast<T *>(Map + getFileRange().getBegin());
         }
 
         template <typename T = uint8_t,
                   typename = std::enable_if_t<!std::is_const_v<T>>>
 
-        [[nodiscard]] inline T *getDataEnd(uint8_t *Map) const noexcept {
+        [[nodiscard]] inline T *getDataEnd(uint8_t *const Map) const noexcept {
             return reinterpret_cast<T *>(Map + getFileRange().getEnd());
         }
 
         template <typename T = const uint8_t>
-        [[nodiscard]] inline T *getDataEnd(const uint8_t *Map) const noexcept {
+        [[nodiscard]]
+        inline T *getDataEnd(const uint8_t *const Map) const noexcept {
             return reinterpret_cast<T *>(Map + getFileRange().getEnd());
         }
     };
@@ -148,33 +149,27 @@ namespace MachO {
         SegmentFlags Flags;
         std::vector<std::unique_ptr<SectionInfo>> SectionList;
     public:
-        [[nodiscard]]
-        constexpr std::string_view getName() const noexcept {
+        [[nodiscard]] constexpr std::string_view getName() const noexcept {
             return Name;
         }
 
-        [[nodiscard]]
-        constexpr LocationRange getFileRange() const noexcept {
+        [[nodiscard]] constexpr LocationRange getFileRange() const noexcept {
             return FileRange;
         }
 
-        [[nodiscard]]
-        constexpr LocationRange getMemoryRange() const noexcept {
+        [[nodiscard]] constexpr LocationRange getMemoryRange() const noexcept {
             return MemoryRange;
         }
 
-        [[nodiscard]]
-        constexpr MemoryProtections getInitProt() const noexcept {
+        [[nodiscard]] constexpr MemoryProtections getInitProt() const noexcept {
             return InitProt;
         }
 
-        [[nodiscard]]
-        constexpr MemoryProtections getMaxProt() const noexcept {
+        [[nodiscard]] constexpr MemoryProtections getMaxProt() const noexcept {
             return MaxProt;
         }
 
-        [[nodiscard]]
-        constexpr SegmentFlags getFlags() const noexcept {
+        [[nodiscard]] constexpr SegmentFlags getFlags() const noexcept {
             return Flags;
         }
 
@@ -232,7 +227,7 @@ namespace MachO {
         FindSectionContainingRelativeAddress(uint64_t Address) const noexcept;
 
         [[nodiscard]] inline const SectionInfo *
-        getSectionAtOrdinal(uint64_t Ordinal) const noexcept {
+        getSectionAtOrdinal(const uint64_t Ordinal) const noexcept {
             const auto SectionIndex = OrdinalToIndex(Ordinal);
             if (IndexOutOfBounds(SectionIndex, SectionList.size())) {
                 return nullptr;
@@ -244,24 +239,26 @@ namespace MachO {
         template <typename T = uint8_t,
                   typename = std::enable_if_t<!std::is_const_v<T>>>
 
-        [[nodiscard]] inline T *getData(uint8_t *Map) const noexcept {
+        [[nodiscard]] inline T *getData(uint8_t *const Map) const noexcept {
             return reinterpret_cast<T *>(Map + getFileRange().getBegin());
         }
 
         template <typename T = const uint8_t>
-        [[nodiscard]] inline T *getData(const uint8_t *Map) const noexcept {
+        [[nodiscard]]
+        inline T *getData(const uint8_t *const Map) const noexcept {
             return reinterpret_cast<T *>(Map + getFileRange().getBegin());
         }
 
         template <typename T = uint8_t,
                   typename = std::enable_if_t<!std::is_const_v<T>>>
 
-        [[nodiscard]] inline T *getDataEnd(uint8_t *Map) const noexcept {
+        [[nodiscard]] inline T *getDataEnd(uint8_t *const Map) const noexcept {
             return reinterpret_cast<T *>(Map + getFileRange().getEnd());
         }
 
         template <typename T = const uint8_t>
-        [[nodiscard]] inline T *getDataEnd(const uint8_t *Map) const noexcept {
+        [[nodiscard]]
+        inline T *getDataEnd(const uint8_t *const Map) const noexcept {
             return reinterpret_cast<T *>(Map + getFileRange().getEnd());
         }
     };

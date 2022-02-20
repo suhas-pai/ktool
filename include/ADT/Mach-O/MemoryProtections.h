@@ -18,7 +18,7 @@ namespace MachO {
     };
 
     [[nodiscard]] constexpr std::string_view
-    MemoryProtectionGetName(MemoryProtectionEnum Val) noexcept {
+    MemoryProtectionGetName(const MemoryProtectionEnum Val) noexcept {
         switch (Val) {
             using Enum = MemoryProtectionEnum;
             case Enum::None:
@@ -35,7 +35,7 @@ namespace MachO {
     }
 
     [[nodiscard]] constexpr std::string_view
-    MemoryProtectionGetDesc(MemoryProtectionEnum Val) noexcept {
+    MemoryProtectionGetDesc(const MemoryProtectionEnum Val) noexcept {
         switch (Val) {
             using Enum = MemoryProtectionEnum;
             case Enum::None:
@@ -73,19 +73,19 @@ namespace MachO {
         }
 
         constexpr
-        inline MemoryProtections &setReadable(bool Value = true) noexcept {
+        MemoryProtections &setReadable(const bool Value = true) noexcept {
             setValueForFlag(Masks::Read, Value);
             return *this;
         }
 
         constexpr
-        inline MemoryProtections &setWritable(bool Value = true) noexcept {
+        MemoryProtections &setWritable(const bool Value = true) noexcept {
             setValueForFlag(Masks::Write, Value);
             return *this;
         }
 
         constexpr
-        inline MemoryProtections &setExecutable(bool Value = true) noexcept {
+        MemoryProtections &setExecutable(const bool Value = true) noexcept {
             setValueForFlag(Masks::Execute, Value);
             return *this;
         }

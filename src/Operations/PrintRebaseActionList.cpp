@@ -22,12 +22,12 @@ PrintRebaseActionListOperation::PrintRebaseActionListOperation(
 
 static void
 PrintRebaseAction(
-    uint64_t Counter,
-    int SizeDigitLength,
+    const uint64_t Counter,
+    const int SizeDigitLength,
     const MachO::RebaseActionInfo &Action,
     const MachO::SharedLibraryInfoCollection &LibraryCollection,
     const MachO::SegmentInfoCollection &SegmentCollection,
-    bool Is64Bit,
+    const bool Is64Bit,
     const struct PrintRebaseActionListOperation::Options &Options) noexcept
 {
     fprintf(Options.OutFile,
@@ -73,7 +73,9 @@ PrintRebaseActionList(
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
 
     for (const auto &LC : LoadCmdStorage) {
-        const auto *DyldLC = dyn_cast<MachO::DyldInfoCommand>(LC, IsBigEndian);
+        const auto *const DyldLC =
+            dyn_cast<MachO::DyldInfoCommand>(LC, IsBigEndian);
+
         if (DyldLC == nullptr) {
             continue;
         }
@@ -220,7 +222,7 @@ PrintRebaseActionListOperation::Run(const ConstMachOMemoryObject &Object,
 
 struct PrintRebaseActionListOperation::Options
 PrintRebaseActionListOperation::ParseOptionsImpl(const ArgvArray &Argv,
-                                                 int *IndexOut) noexcept
+                                                 int *const IndexOut) noexcept
 {
     auto Index = int();
     struct Options Options;

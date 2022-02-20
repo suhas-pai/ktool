@@ -32,10 +32,12 @@ public:
         FILE *OutFile = stdout;
         FILE *ErrFile = stderr;
 
-        Options(OperationKind Kind, FILE *OutFile) noexcept
+        Options(const OperationKind Kind, FILE *const OutFile) noexcept
         : Kind(Kind), OutFile(OutFile) {}
 
-        Options(OperationKind Kind, FILE *OutFile, FILE *ErrFile) noexcept
+        Options(const OperationKind Kind,
+                FILE *const OutFile,
+                FILE *const ErrFile) noexcept
         : Kind(Kind), OutFile(OutFile), ErrFile(ErrFile) {}
     };
 private:
@@ -112,11 +114,11 @@ public:
                             const char *Suffix = "") noexcept;
 
     static inline void
-    PrintEntireOptionUsageMenu(FILE *OutFile,
-                               OperationKind ForKind,
-                               const char *Prefix = "",
-                               const char *LinePrefix = "",
-                               const char *Suffix = "") noexcept
+    PrintEntireOptionUsageMenu(FILE *const OutFile,
+                               const OperationKind ForKind,
+                               const char *const Prefix = "",
+                               const char *const LinePrefix = "",
+                               const char *const Suffix = "") noexcept
     {
         PrintObjectKindSupportsList(OutFile, ForKind, Prefix, LinePrefix);
         PrintOptionHelpMenu(OutFile, ForKind, "", LinePrefix);
@@ -127,10 +129,10 @@ public:
     bool SupportsObjectKind(OperationKind OpKind, ObjectKind ObjKind) noexcept;
 
     inline const Operation &
-    printOptionHelpMenu(FILE *OutFile,
-                        const char *Prefix = "",
-                        const char *LinePrefix = "",
-                        const char *Suffix = "") const noexcept
+    printOptionHelpMenu(FILE *const OutFile,
+                        const char *const Prefix = "",
+                        const char *const LinePrefix = "",
+                        const char *const Suffix = "") const noexcept
     {
         PrintOptionHelpMenu(OutFile,
                             this->getKind(),
@@ -142,10 +144,10 @@ public:
     }
 
     inline const Operation &
-    printObjectKindSupportsList(FILE *OutFile,
-                                const char *Prefix = "",
-                                const char *LinePrefix = "",
-                                const char *Suffix = "") const noexcept
+    printObjectKindSupportsList(FILE *const OutFile,
+                                const char *const Prefix = "",
+                                const char *const LinePrefix = "",
+                                const char *const Suffix = "") const noexcept
     {
         PrintObjectKindSupportsList(OutFile,
                                     this->getKind(),
@@ -157,10 +159,10 @@ public:
     }
 
     inline const Operation &
-    printPathOptionHelpMenu(FILE *OutFile,
-                            const char *Prefix = "",
-                            const char *LinePrefix = "",
-                            const char *Suffix = "") const noexcept
+    printPathOptionHelpMenu(FILE *const OutFile,
+                            const char *const Prefix = "",
+                            const char *const LinePrefix = "",
+                            const char *const Suffix = "") const noexcept
     {
         PrintPathOptionHelpMenu(OutFile,
                                 this->getKind(),
@@ -172,10 +174,10 @@ public:
     }
 
     inline const Operation &
-    printEntireOptionUsageMenu(FILE *OutFile,
-                               const char *Prefix = "",
-                               const char *LinePrefix = "",
-                               const char *Suffix = "") const noexcept
+    printEntireOptionUsageMenu(FILE *const OutFile,
+                               const char *const Prefix = "",
+                               const char *const LinePrefix = "",
+                               const char *const Suffix = "") const noexcept
     {
         PrintEntireOptionUsageMenu(OutFile,
                                    this->getKind(),
@@ -187,7 +189,7 @@ public:
     }
 
     [[nodiscard]]
-    inline bool supportsObjectKind(ObjectKind Kind) const noexcept {
+    inline bool supportsObjectKind(const ObjectKind Kind) const noexcept {
         return SupportsObjectKind(this->getKind(), Kind);
     }
 
@@ -221,7 +223,7 @@ static inline bool isa(const Operation &Object) noexcept {
 template <typename OperationType,
           typename = IsSubclassOfOperation<OperationType>>
 
-static inline bool isa(const Operation *Object) noexcept {
+static inline bool isa(const Operation *const Object) noexcept {
     return OperationType::IsOfKind(*Object);
 }
 
@@ -239,7 +241,7 @@ static inline bool isa(const Operation &Object) noexcept {
 template <OperationKind Kind,
           typename OperationType = OperationTypeFromKind<Kind>>
 
-static inline bool isa(const Operation *Object) noexcept {
+static inline bool isa(const Operation *const Object) noexcept {
     return OperationType::IsOfKind(*Object);
 }
 
@@ -257,7 +259,7 @@ static inline bool isa(const Operation::Options &Object) noexcept {
 template <typename OptionType,
           typename = IsSubclassOfOperationOptions<OptionType>>
 
-static inline bool isa(const Operation::Options *Object) noexcept {
+static inline bool isa(const Operation::Options *const Object) noexcept {
     return OptionType::IsOfKind(Object);
 }
 
@@ -277,7 +279,7 @@ template <OperationKind Kind,
           typename OptionsType =
             struct OperationTypeFromKind<Kind>::Options>
 
-static inline bool isa(const Operation::Options *Object) noexcept {
+static inline bool isa(const Operation::Options *const Object) noexcept {
     return OptionsType::IsOfKind(*Object);
 }
 
@@ -307,7 +309,7 @@ static inline const OperationType &cast(const Operation &Object) {
 template <OperationKind Kind,
           typename OperationType = OperationTypeFromKind<Kind>>
 
-static inline OperationType *cast(Operation *Object) {
+static inline OperationType *cast(Operation *const Object) {
     assert(isa<Kind>(Object));
     return static_cast<OperationType *>(Object);
 }
@@ -317,7 +319,7 @@ static inline OperationType *cast(Operation *Object) {
 template <OperationKind Kind,
           typename OperationType = OperationTypeFromKind<Kind>>
 
-static inline const OperationType *cast(const Operation *Object) {
+static inline const OperationType *cast(const Operation *const Object) {
     assert(isa<Kind>(Object));
     return static_cast<const OperationType *>(Object);
 }
@@ -347,7 +349,7 @@ static inline const OptionKind &cast(const Operation::Options &Object) {
 template <OperationKind Kind,
           typename OptionKind = struct OperationTypeFromKind<Kind>::Options>
 
-static inline OptionKind *cast(Operation::Options *Object) {
+static inline OptionKind *cast(Operation::Options *const Object) {
     assert(isa<Kind>(Object));
     return static_cast<OptionKind *>(Object);
 }
@@ -357,7 +359,7 @@ static inline OptionKind *cast(Operation::Options *Object) {
 template <OperationKind Kind,
           typename OptionKind = struct OperationTypeFromKind<Kind>::Options>
 
-static inline const OptionKind *cast(const Operation::Options *Object) {
+static inline const OptionKind *cast(const Operation::Options *const Object) {
     assert(isa<Kind>(Object));
     return static_cast<const OptionKind *>(Object);
 }
@@ -368,7 +370,7 @@ static inline const OptionKind *cast(const Operation::Options *Object) {
 template <OperationKind Kind,
           typename OperationType = OperationTypeFromKind<Kind>>
 
-static inline OperationType *dyn_cast(Operation *Object) noexcept {
+static inline OperationType *dyn_cast(Operation *const Object) noexcept {
     if (isa<Kind>(Object)) {
         return cast<Kind>(Object);
     }
@@ -382,7 +384,7 @@ template <OperationKind Kind,
           typename OperationType = OperationTypeFromKind<Kind>>
 
 static inline
-const OperationType *dyn_cast(const Operation *Object) noexcept {
+const OperationType *dyn_cast(const Operation *const Object) noexcept {
     if (isa<Kind>(Object)) {
         return cast<Kind>(Object);
     }
@@ -395,7 +397,7 @@ const OperationType *dyn_cast(const Operation *Object) noexcept {
 template <OperationKind Kind,
           typename OptionType = struct OperationTypeFromKind<Kind>::Options>
 
-static inline OptionType *dyn_cast(Operation::Options *Object) noexcept {
+static inline OptionType *dyn_cast(Operation::Options *const Object) noexcept {
     if (isa<Kind>(Object)) {
         return cast<Kind>(Object);
     }
@@ -409,7 +411,7 @@ template <OperationKind Kind,
           typename OptionType = struct OperationTypeFromKind<Kind>::Options>
 
 static inline
-const OptionType *dyn_cast(const Operation::Options *Object) noexcept {
+const OptionType *dyn_cast(const Operation::Options *const Object) noexcept {
     if (isa<Kind>(Object)) {
         return cast<Kind>(Object);
     }

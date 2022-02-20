@@ -18,7 +18,7 @@ private:
     T *Ptr = nullptr;
 public:
     constexpr TypedAllocation() noexcept = default;
-    constexpr TypedAllocation(T *Ptr) noexcept : Ptr(Ptr) {}
+    constexpr TypedAllocation(T *const Ptr) noexcept : Ptr(Ptr) {}
 
     inline ~TypedAllocation() noexcept {
         delete Ptr;
@@ -30,14 +30,14 @@ public:
         return Ptr;
     }
 
-    constexpr TypedAllocation &set(T *Ptr) noexcept {
+    constexpr TypedAllocation &set(T *const Ptr) noexcept {
         delete this->Ptr;
         this->Ptr = Ptr;
 
         return *this;
     }
 
-    constexpr TypedAllocation &replace(T *Ptr) noexcept {
+    constexpr TypedAllocation &replace(T *const Ptr) noexcept {
         this->Ptr = Ptr;
         return *this;
     }
@@ -51,7 +51,7 @@ public:
     }
 
     template <typename U, typename = std::enable_if_t<std::is_base_of_v<T, U>>>
-    constexpr TypedAllocation &replace(U *Ptr) noexcept {
+    constexpr TypedAllocation &replace(U *const Ptr) noexcept {
         this->Ptr = Ptr;
         return *this;
     }
@@ -59,7 +59,7 @@ public:
     constexpr void operator=(T *Ptr) noexcept { set(Ptr); }
 
     template <typename U, typename = std::enable_if_t<std::is_base_of_v<T, U>>>
-    constexpr void operator=(U *Ptr) noexcept {
+    constexpr void operator=(U *const Ptr) noexcept {
         set(Ptr);
     }
 

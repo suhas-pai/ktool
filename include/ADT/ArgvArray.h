@@ -21,7 +21,7 @@ protected:
     const char *const *End;
 public:
     constexpr
-    ArgvArrayIterator(const char **Iter, const char *const *End) noexcept
+    ArgvArrayIterator(const char **const Iter, const char *const *End) noexcept
     : Base(Iter), End(End) {}
 
     inline ArgvArrayIterator &advance() noexcept {
@@ -117,14 +117,17 @@ struct ArgvArray : public BasicContiguousList<const char *> {
 private:
     using Base = BasicContiguousList<const char *>;
 public:
-    constexpr ArgvArray(const char **Begin, const char **End) noexcept
+    constexpr
+    ArgvArray(const char **const Begin, const char **const End) noexcept
     : Base(Begin, End) {}
 
-    constexpr ArgvArray(int Argc, const char *Argv[]) noexcept
+    constexpr ArgvArray(const int Argc, const char *Argv[]) noexcept
     : Base(Argv, Argc) {}
 
     constexpr
-    ArgvArray(const char *Argv[], int StartIndex, int EndIndex) noexcept
+    ArgvArray(const char *Argv[],
+              const int StartIndex,
+              const int EndIndex) noexcept
     : Base(Argv + StartIndex, Argv + EndIndex) {}
 
     using IteratorType = ArgvArrayIterator;
@@ -161,7 +164,7 @@ public:
         return static_cast<int>(Iter.getPtr() - getBegin());
     }
 
-    [[nodiscard]] inline ArgvArray fromIndex(int Index) const noexcept {
+    [[nodiscard]] inline ArgvArray fromIndex(const int Index) const noexcept {
         const auto Begin = this->getBegin();
         const auto End = this->getEnd();
         const auto NewBegin = Begin + Index;

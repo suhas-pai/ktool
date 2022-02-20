@@ -28,7 +28,7 @@ protected:
     uintptr_t Storage = 0;
 public:
     constexpr PointerErrorStorage() noexcept = default;
-    constexpr PointerErrorStorage(Enum Error) noexcept
+    constexpr PointerErrorStorage(const Enum Error) noexcept
     : Storage(static_cast<uintptr_t>(Error)) {}
 
     [[nodiscard]] constexpr bool hasValue() const noexcept {

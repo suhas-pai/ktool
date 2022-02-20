@@ -17,7 +17,6 @@ namespace Mach {
     struct CpuKindTemplateInfo {};
 
     using namespace std::literals;
-
     constexpr auto EmptyStringValue = std::string_view();
 
     template <>

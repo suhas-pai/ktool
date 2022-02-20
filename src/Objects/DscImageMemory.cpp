@@ -11,14 +11,14 @@
 ConstDscImageMemoryObject::ConstDscImageMemoryObject(
     const ConstMemoryMap &DscMap,
     const DyldSharedCache::ImageInfo &ImageInfo,
-    const uint8_t *Begin,
-    const uint8_t *End) noexcept
+    const uint8_t *const Begin,
+    const uint8_t *const End) noexcept
 : ConstMachOMemoryObject(ObjKind, ConstMemoryMap(Begin, End)), DscMap(DscMap),
   ImageInfo(ImageInfo) {}
 
 DscImageMemoryObject::DscImageMemoryObject(
     const MemoryMap &DscMap,
     const DyldSharedCache::ImageInfo &ImageInfo,
-    uint8_t *Begin,
-    uint8_t *End) noexcept
+    uint8_t *const Begin,
+    uint8_t *const End) noexcept
 : ConstDscImageMemoryObject(DscMap, ImageInfo, Begin, End) {}

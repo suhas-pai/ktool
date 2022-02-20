@@ -17,15 +17,17 @@ enum class PointerKind {
 };
 
 [[nodiscard]]
-constexpr PointerKind PointerKindFromIs64Bit(bool Is64Bit) noexcept {
+constexpr PointerKind PointerKindFromIs64Bit(const bool Is64Bit) noexcept {
     return (Is64Bit) ? PointerKind::s64Bit : PointerKind::s32Bit;
 }
 
-[[nodiscard]] constexpr bool PointerKindIs32Bit(PointerKind Kind) noexcept {
+[[nodiscard]]
+constexpr bool PointerKindIs32Bit(const PointerKind Kind) noexcept {
     return (Kind == PointerKind::s32Bit);
 }
 
-[[nodiscard]] constexpr bool PointerKindIs64Bit(PointerKind Kind) noexcept {
+[[nodiscard]]
+constexpr bool PointerKindIs64Bit(const PointerKind Kind) noexcept {
     return (Kind == PointerKind::s64Bit);
 }
 

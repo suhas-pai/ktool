@@ -17,8 +17,8 @@ public:
     constexpr static auto OpKind = OperationKind::PrintId;
 
     [[nodiscard]]
-    constexpr static inline bool IsOfKind(const Operation &Op) noexcept {
-        return (Op.getKind() == OpKind);
+    constexpr static bool IsOfKind(const Operation &Opt) noexcept {
+        return (Opt.getKind() == OpKind);
     }
 
     struct Options : public Operation::Options {
@@ -51,7 +51,7 @@ public:
     int Run(const MemoryObject &Object) const noexcept override;
 
     [[nodiscard]]
-    constexpr static bool SupportsObjectKind(ObjectKind Kind) noexcept {
+    constexpr static bool SupportsObjectKind(const ObjectKind Kind) noexcept {
         switch (Kind) {
             case ObjectKind::None:
                 assert(0 && "SupportsObjectKind() got Object-Kind None");

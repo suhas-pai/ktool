@@ -49,7 +49,7 @@ PrintArchListOperation::Run(const ConstFatMachOMemoryObject &Object,
 
 struct PrintArchListOperation::Options
 PrintArchListOperation::ParseOptionsImpl(const ArgvArray &Argv,
-                                         int *IndexOut) noexcept
+                                         int *const IndexOut) noexcept
 {
     auto Index = int();
     struct Options Options;

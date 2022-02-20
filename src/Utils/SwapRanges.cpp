@@ -13,11 +13,11 @@
 #include "SwapRanges.h"
 
 void
-SwapRanges(void *ArgLhsBegin,
-           void *ArgLhsEnd,
-           void *ArgRhsBegin,
-           void *ArgRhsEnd,
-           void *ArgEnd,
+SwapRanges(void *const ArgLhsBegin,
+           void *const ArgLhsEnd,
+           void *const ArgRhsBegin,
+           void *const ArgRhsEnd,
+           void *const ArgEnd,
            ByteVector &Buffer) noexcept
 {
     const auto End = reinterpret_cast<uint8_t *>(ArgEnd);

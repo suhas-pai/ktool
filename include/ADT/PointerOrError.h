@@ -28,7 +28,7 @@ public:
     : ErrorStorage(Error) {}
 
     constexpr PointerOrError(const std::nullptr_t &Error) noexcept = delete;
-    constexpr PointerOrError(T *Ptr) noexcept : Ptr(Ptr) {}
+    constexpr PointerOrError(T *const Ptr) noexcept : Ptr(Ptr) {}
 
     [[nodiscard]] constexpr bool hasError() const noexcept {
         return ErrorStorage.hasValue();
@@ -79,7 +79,7 @@ public:
         return setError(Error);
     }
 
-    inline PointerOrError &operator=(T *Ptr) const noexcept {
+    inline PointerOrError &operator=(T *const Ptr) const noexcept {
         return setPtr(Ptr);
     }
 };
@@ -94,7 +94,7 @@ public:
     : Base(Error) {}
 
     constexpr TypedAllocationOrError(const std::nullptr_t &) noexcept = delete;
-    constexpr TypedAllocationOrError(T *Ptr) noexcept : Base(Ptr) {}
+    constexpr TypedAllocationOrError(T *const Ptr) noexcept : Base(Ptr) {}
 
     TypedAllocationOrError(const TypedAllocationOrError &) noexcept = delete;
     TypedAllocationOrError(TypedAllocationOrError &&Ty) noexcept

@@ -75,7 +75,7 @@ namespace MachO {
             return hasValueForMask(Masks::WeakDefinition);
         }
 
-        constexpr ExportTrieFlags &setKind(Kind Value) noexcept {
+        constexpr ExportTrieFlags &setKind(const Kind Value) noexcept {
             setValueForMask(Masks::KindMask, static_cast<uint64_t>(Value));
             return *this;
         }
@@ -89,13 +89,13 @@ namespace MachO {
         }
 
         constexpr
-        inline ExportTrieFlags &setIsReexport(bool Value = true) noexcept {
+        ExportTrieFlags &setIsReexport(const bool Value = true) noexcept {
             setValueForMask(Masks::Reexport, Value);
             return *this;
         }
 
-        constexpr
-        ExportTrieFlags &setIsStubAndResolver(bool Value = true) noexcept {
+        constexpr ExportTrieFlags &
+        setIsStubAndResolver(const bool Value = true) noexcept {
             setValueForMask(Masks::StubAndResolver, Value);
             return *this;
         }
@@ -105,7 +105,7 @@ namespace MachO {
         }
 
         constexpr
-        inline ExportTrieFlags &setIsWeak(bool Value = true) noexcept {
+        inline ExportTrieFlags &setIsWeak(const bool Value = true) noexcept {
             setValueForMask(Masks::WeakDefinition, Value);
             return *this;
         }
@@ -127,7 +127,7 @@ namespace MachO {
     };
 
     [[nodiscard]] constexpr std::string_view
-    ExportTrieExportKindGetName(ExportTrieExportKind Kind) noexcept {
+    ExportTrieExportKindGetName(const ExportTrieExportKind Kind) noexcept {
         using Enum = ExportTrieExportKind;
         switch (Kind) {
             case Enum::None:
@@ -150,7 +150,9 @@ namespace MachO {
     }
 
     [[nodiscard]] constexpr std::string_view
-    ExportTrieExportKindGetDescription(ExportTrieExportKind Kind) noexcept {
+    ExportTrieExportKindGetDescription(
+        const ExportTrieExportKind Kind) noexcept
+    {
         using Enum = ExportTrieExportKind;
         switch (Kind) {
             case Enum::None:
@@ -326,8 +328,8 @@ namespace MachO {
             return *this;
         }
 
-        constexpr
-        ExportTrieExportInfo &setReexportDylibOrdinal(uint32_t Value) noexcept {
+        constexpr ExportTrieExportInfo &
+        setReexportDylibOrdinal(const uint32_t Value) noexcept {
             assert(this->isReexport());
 
             this->ReexportDylibOrdinal = Value;
@@ -343,7 +345,7 @@ namespace MachO {
         }
 
         constexpr
-        inline ExportTrieExportInfo &setImageOffset(uint64_t Value) noexcept {
+        ExportTrieExportInfo &setImageOffset(const uint64_t Value) noexcept {
             assert(!this->isReexport());
 
             this->ImageOffset = Value;
@@ -405,8 +407,7 @@ namespace MachO {
             return Prefix;
         }
 
-        constexpr
-        inline ExportTrieNodeInfo &setOffset(uint64_t Value) noexcept {
+        constexpr ExportTrieNodeInfo &setOffset(const uint64_t Value) noexcept {
             this->Offset = Value;
             return *this;
         }
@@ -542,13 +543,13 @@ namespace MachO {
         }
 
         constexpr
-        inline ExportTrieIterateInfo &setMaxDepth(uint64_t Value) noexcept {
+        ExportTrieIterateInfo &setMaxDepth(const uint64_t Value) noexcept {
             this->MaxDepth = Value;
             return *this;
         }
 
-        constexpr
-        ExportTrieIterateInfo &setKind(ExportTrieExportKind Value) noexcept {
+        constexpr ExportTrieIterateInfo &
+        setKind(const ExportTrieExportKind Value) noexcept {
             this->Kind = Value;
             return *this;
         }
@@ -709,7 +710,7 @@ namespace MachO {
             return ++(*this);
         }
 
-        inline ExportTrieIterator &operator+=(uint64_t Amt) noexcept {
+        inline ExportTrieIterator &operator+=(const uint64_t Amt) noexcept {
             for (auto I = uint64_t(); I != Amt; I++) {
                 ++(*this);
             }
@@ -752,7 +753,7 @@ namespace MachO {
         uint8_t *End;
     public:
         explicit
-        ExportTrieList(uint8_t *Begin, uint8_t *End) noexcept
+        ExportTrieList(uint8_t *const Begin, uint8_t *const End) noexcept
         : Begin(Begin), End(End) {}
 
         using IteratorType = ExportTrieIterator;
@@ -787,7 +788,8 @@ namespace MachO {
     struct ConstExportTrieList : public ExportTrieList {
     public:
         explicit
-        ConstExportTrieList(const uint8_t *Begin, const uint8_t *End) noexcept
+        ConstExportTrieList(const uint8_t *const Begin,
+                            const uint8_t *const End) noexcept
         : ExportTrieList(const_cast<uint8_t *>(Begin),
                          const_cast<uint8_t *>(End)) {}
 
@@ -904,19 +906,19 @@ namespace MachO {
         explicit ExportTrieExportList(uint8_t *Begin, uint8_t *End) noexcept
         : Begin(Begin), End(End) {}
 
-        [[nodiscard]] ExportTrieExportIterator begin() const noexcept {
+        [[nodiscard]] inline ExportTrieExportIterator begin() const noexcept {
             return ExportTrieExportIterator(Begin, End);
         }
 
-        [[nodiscard]] ExportTrieExportIterator cbegin() const noexcept {
+        [[nodiscard]] inline ExportTrieExportIterator cbegin() const noexcept {
             return ExportTrieExportIterator(Begin, End);
         }
 
-        [[nodiscard]] ExportTrieIteratorEnd end() noexcept {
+        [[nodiscard]] inline ExportTrieIteratorEnd end() noexcept {
             return ExportTrieIteratorEnd();
         }
 
-        [[nodiscard]] ExportTrieIteratorEnd cend() const noexcept {
+        [[nodiscard]] inline ExportTrieIteratorEnd cend() const noexcept {
             return ExportTrieIteratorEnd();
         }
     };
@@ -926,16 +928,15 @@ namespace MachO {
         const uint8_t *End;
     public:
         constexpr explicit
-        ConstExportTrieExportList(const uint8_t *Begin,
-                                  const uint8_t *End) noexcept
+        ConstExportTrieExportList(const uint8_t *const Begin,
+                                  const uint8_t *const End) noexcept
         : Begin(Begin), End(End) {}
 
         [[nodiscard]] inline ExportTrieExportIterator begin() const noexcept {
             return ExportTrieExportIterator(Begin, End);
         }
 
-        [[nodiscard]]
-        constexpr ExportTrieIteratorEnd end() const noexcept {
+        [[nodiscard]] constexpr ExportTrieIteratorEnd end() const noexcept {
             return ExportTrieIteratorEnd();
         }
 

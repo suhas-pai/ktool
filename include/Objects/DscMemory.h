@@ -63,8 +63,7 @@ protected:
 
     const uint8_t *End;
 
-    [[nodiscard]] static
-    PointerOrError<const uint8_t, DscImageOpenError>
+    [[nodiscard]] static PointerOrError<const uint8_t, DscImageOpenError>
     ValidateImageMapAndGetEnd(const ConstMemoryMap &Map) noexcept;
 
     CpuKind sCpuKind;
@@ -80,12 +79,15 @@ public:
         return (Obj.getKind() == ObjKind);
     }
 
-    [[nodiscard]] static bool errorDidMatchFormat(Error Error) noexcept;
-    [[nodiscard]] static inline bool errorDidMatchFormat(uint8_t Int) noexcept {
+    [[nodiscard]] static bool errorDidMatchFormat(const Error Error) noexcept;
+
+    [[nodiscard]]
+    static inline bool errorDidMatchFormat(const uint8_t Int) noexcept {
         return errorDidMatchFormat(getErrorFromInt(Int));
     }
 
-    [[nodiscard]] static inline Error getErrorFromInt(uint8_t Int) noexcept {
+    [[nodiscard]]
+    static inline Error getErrorFromInt(const uint8_t Int) noexcept {
         return static_cast<Error>(Int);
     }
 
@@ -201,25 +203,25 @@ public:
     }
 
     [[nodiscard]] inline std::optional<uint64_t>
-    GetFileOffsetForAddress(uint64_t Addr,
-                            uint64_t *MaxSizeOut = nullptr) const noexcept
+    GetFileOffsetForAddress(const uint64_t Addr,
+                            uint64_t *const MaxSizeOut = nullptr) const noexcept
     {
         return getHeaderV0().GetFileOffsetForAddress(Addr, MaxSizeOut);
     }
 
     template <typename T = uint8_t>
     [[nodiscard]]
-    inline const T *GetPtrForAddress(uint64_t Address) const noexcept {
+    inline const T *GetPtrForAddress(const uint64_t Address) const noexcept {
         return getHeaderV0().GetPtrForAddress<T>(Address);
     }
 
     [[nodiscard]] inline const DyldSharedCache::ImageInfo &
-    getImageInfoAtIndex(uint32_t Index) const noexcept {
+    getImageInfoAtIndex(const uint32_t Index) const noexcept {
         return getConstImageInfoList().at(Index);
     }
 
     [[nodiscard]] inline const DyldSharedCache::ImageInfo &
-    getConstImageInfoAtIndex(uint32_t Index) const noexcept {
+    getConstImageInfoAtIndex(const uint32_t Index) const noexcept {
         return getImageInfoAtIndex(Index);
     }
 
@@ -318,7 +320,8 @@ public:
     }
 
     template <typename T = uint8_t>
-    [[nodiscard]] inline T *GetPtrForAddress(uint64_t Address) const noexcept {
+    [[nodiscard]]
+    inline T *GetPtrForAddress(const uint64_t Address) const noexcept {
         return getHeaderV0().GetPtrForAddress<T>(Address);
     }
 
@@ -328,7 +331,7 @@ public:
     }
 
     [[nodiscard]] inline DyldSharedCache::ImageInfo *
-    GetImageInfoWithPath(std::string_view Path) const noexcept {
+    GetImageInfoWithPath(const std::string_view Path) const noexcept {
         const auto Result = ConstDscMemoryObject::GetImageInfoWithPath(Path);
         return const_cast<DyldSharedCache::ImageInfo *>(Result);
     }

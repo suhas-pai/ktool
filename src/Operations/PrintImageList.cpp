@@ -67,9 +67,9 @@ CompareInfosBySortKind(
 }
 
 static void
-PrintImageCount(FILE *OutFile,
-                uint32_t ImageCount,
-                bool PrintColon = true) noexcept
+PrintImageCount(FILE *const OutFile,
+                const uint32_t ImageCount,
+                const bool PrintColon = true) noexcept
 {
     fprintf(OutFile, "Provided file has %" PRIu32 " Images", ImageCount);
     if (PrintColon) {
@@ -183,7 +183,7 @@ ListHasSortKind(
 
 static inline void
 AddSortKind(PrintImageListOperation::Options::SortKind SortKind,
-            const char *Option,
+            const char *const Option,
             struct PrintImageListOperation::Options &Options) noexcept
 {
     if (ListHasSortKind(Options.SortKindList, SortKind)) {
@@ -195,7 +195,7 @@ AddSortKind(PrintImageListOperation::Options::SortKind SortKind,
 
 struct PrintImageListOperation::Options
 PrintImageListOperation::ParseOptionsImpl(const ArgvArray &Argv,
-                                          int *IndexOut) noexcept
+                                          int *const IndexOut) noexcept
 {
     auto Index = int();
     struct Options Options;

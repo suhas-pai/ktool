@@ -15,7 +15,7 @@
 
 namespace MachO {
     struct ObjcClassCategoryInfo;
-    struct ObjcClassInfo : public BasicTreeNode {
+    struct ObjcClassInfo : public TreeNode {
     public:
         using CategoryListType = std::vector<ObjcClassCategoryInfo *>;
     protected:
@@ -36,11 +36,11 @@ namespace MachO {
     public:
         ObjcClassInfo() noexcept : sIsExternal(false), sIsNull(false) {}
 
-        explicit ObjcClassInfo(std::string_view Name) noexcept
+        explicit ObjcClassInfo(const std::string_view Name) noexcept
         : Name(Name), sIsExternal(false), sIsNull(false) {}
 
         [[nodiscard]]
-        inline BasicTreeNode *createNew() const noexcept override {
+        inline TreeNode *createNew() const noexcept override {
             return new ObjcClassInfo;
         }
 
@@ -65,22 +65,22 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        static inline ObjcClassInfo &get(BasicTreeNode &Node) noexcept {
+        static inline ObjcClassInfo &get(TreeNode &Node) noexcept {
             return reinterpret_cast<ObjcClassInfo &>(Node);
         }
 
         [[nodiscard]] static
-        inline const ObjcClassInfo &get(const BasicTreeNode &Node) noexcept {
+        inline const ObjcClassInfo &get(const TreeNode &Node) noexcept {
             return reinterpret_cast<const ObjcClassInfo &>(Node);
         }
 
         [[nodiscard]]
-        static inline ObjcClassInfo *get(BasicTreeNode *Node) noexcept {
+        static inline ObjcClassInfo *get(TreeNode *const Node) noexcept {
             return reinterpret_cast<ObjcClassInfo *>(Node);
         }
 
         [[nodiscard]] static
-        inline const ObjcClassInfo *get(const BasicTreeNode *Node) noexcept {
+        inline const ObjcClassInfo *get(const TreeNode *const Node) noexcept {
             return reinterpret_cast<const ObjcClassInfo *>(Node);
         }
 
@@ -92,13 +92,13 @@ namespace MachO {
             return reinterpret_cast<ObjcClassInfo *>(Parent);
         }
 
-        inline ObjcClassInfo &setSuper(ObjcClassInfo *Parent) noexcept {
-            this->Parent = reinterpret_cast<BasicTreeNode *>(Parent);
+        inline ObjcClassInfo &setSuper(ObjcClassInfo *const Parent) noexcept {
+            this->Parent = reinterpret_cast<TreeNode *>(Parent);
             return *this;
         }
 
         inline ObjcClassInfo &
-        setLastChild(const ObjcClassInfo *LastChild) noexcept {
+        setLastChild(const ObjcClassInfo *const LastChild) noexcept {
             this->LastChild = const_cast<ObjcClassInfo *>(LastChild);
             return *this;
         }
@@ -156,22 +156,22 @@ namespace MachO {
             return *this;
         }
 
-        inline ObjcClassInfo &setDylibOrdinal(uint64_t Value) noexcept {
+        inline ObjcClassInfo &setDylibOrdinal(const uint64_t Value) noexcept {
             this->DylibOrdinal = Value;
             return *this;
         }
 
-        inline ObjcClassInfo &setIsExternal(bool Value = true) noexcept {
+        inline ObjcClassInfo &setIsExternal(const bool Value = true) noexcept {
             this->sIsExternal = Value;
             return *this;
         }
 
-        inline ObjcClassInfo &setIsNull(bool Value = true) noexcept {
+        inline ObjcClassInfo &setIsNull(const bool Value = true) noexcept {
             this->sIsNull = Value;
             return *this;
         }
 
-        inline ObjcClassInfo &setIsSwift(bool Value = true) noexcept {
+        inline ObjcClassInfo &setIsSwift(const bool Value = true) noexcept {
             this->sIsSwift = Value;
             return *this;
         }
@@ -182,14 +182,14 @@ namespace MachO {
             return *this;
         }
 
-        inline ObjcClassInfo &setAddr(uint64_t Value) noexcept {
+        inline ObjcClassInfo &setAddr(const uint64_t Value) noexcept {
             assert(!this->isExternal());
 
             this->Addr = Value;
             return *this;
         }
 
-        inline ObjcClassInfo &setBindAddr(uint64_t Value) noexcept {
+        inline ObjcClassInfo &setBindAddr(const uint64_t Value) noexcept {
             assert(this->isExternal());
 
             this->BindAddr = Value;
@@ -240,20 +240,20 @@ namespace MachO {
             return *this;
         }
 
-        constexpr
-        ObjcClassCategoryInfo &setClass(const ObjcClassInfo *Value) noexcept {
+        constexpr ObjcClassCategoryInfo &
+        setClass(const ObjcClassInfo *const Value) noexcept {
             this->Class = Value;
             return *this;
         }
 
         constexpr
-        inline ObjcClassCategoryInfo &setAddress(uint64_t Value) noexcept {
+        ObjcClassCategoryInfo &setAddress(const uint64_t Value) noexcept {
             this->Address = Value;
             return *this;
         }
 
         constexpr
-        inline ObjcClassCategoryInfo &setIsNull(bool Value = true) noexcept {
+        ObjcClassCategoryInfo &setIsNull(const bool Value = true) noexcept {
             this->sIsNull = Value;
             return *this;
         }

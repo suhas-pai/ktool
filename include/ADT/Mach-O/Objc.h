@@ -26,94 +26,99 @@ namespace MachO {
         uint32_t Reserved3;
 
         [[nodiscard]] constexpr
-        inline uint32_t getIsaAddress(bool IsBigEndian) const noexcept {
+        uint32_t getIsaAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Isa, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getSuperClassAddress(bool IsBigEndian) const noexcept {
+        uint32_t getSuperClassAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(SuperClass, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getCacheAddress(bool IsBigEndian) const noexcept {
+        uint32_t getCacheAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Cache, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getVtableAddress(bool IsBigEndian) const noexcept {
+        uint32_t getVtableAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Vtable, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        inline uint32_t getData(bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr uint32_t getData(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Data, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        inline uint32_t getReserved1(bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr uint32_t getReserved1(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Reserved1, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        inline uint32_t getReserved2(bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr uint32_t getReserved2(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Reserved2, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        inline uint32_t getReserved3(bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr uint32_t getReserved3(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Reserved3, IsBigEndian);
         }
 
-        constexpr
-        ObjcClass &setIsaAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        constexpr ObjcClass &
+        setIsaAddress(const uint32_t Value, const bool IsBigEndian) noexcept {
             this->Isa = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClass &
-        setSuperClassAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        setSuperClassAddress(const uint32_t Value,
+                             const bool IsBigEndian) noexcept
+        {
             this->SuperClass = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClass &
-        setCacheAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        setCacheAddress(const uint32_t Value, const bool IsBigEndian) noexcept {
             this->Cache = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClass &
-        setVtableAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        setVtableAddress(const uint32_t Value,
+                         const bool IsBigEndian) noexcept
+        {
             this->Vtable = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClass &
-        setData(uint32_t Value, bool IsBigEndian) noexcept {
+        setData(const uint32_t Value, const bool IsBigEndian) noexcept {
             this->Data = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClass &
-        setReserved1(uint32_t Value, bool IsBigEndian) noexcept {
+        setReserved1(const uint32_t Value, const bool IsBigEndian) noexcept {
             this->Reserved1 = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClass &
-        setReserved2(uint32_t Value, bool IsBigEndian) noexcept {
+        setReserved2(const uint32_t Value, const bool IsBigEndian) noexcept {
             this->Reserved2 = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClass &
-        setReserved3(uint32_t Value, bool IsBigEndian) noexcept {
+        setReserved3(const uint32_t Value, const bool IsBigEndian) noexcept {
             this->Reserved3 = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] inline bool isSwift(bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        inline bool isSwift(const bool IsBigEndian) const noexcept {
             const auto Mask =
                 (IsSwiftObjcClassPreStableMask | IsSwiftObjcClassStableMask);
 
@@ -132,94 +137,97 @@ namespace MachO {
         uint64_t Reserved3;
 
         [[nodiscard]] constexpr
-        inline uint64_t getIsaAddress(bool IsBigEndian) const noexcept {
+        uint64_t getIsaAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Isa, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint64_t getSuperClassAddress(bool IsBigEndian) const noexcept {
+        uint64_t getSuperClassAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(SuperClass, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint64_t getCacheAddress(bool IsBigEndian) const noexcept {
+        uint64_t getCacheAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Cache, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint64_t getVtableAddress(bool IsBigEndian) const noexcept {
+        uint64_t getVtableAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Vtable, IsBigEndian);
         }
 
         [[nodiscard]]
-        constexpr uint64_t getData(bool IsBigEndian) const noexcept {
+        constexpr uint64_t getData(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Data, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        inline uint64_t getReserved1(bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr uint64_t getReserved1(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Reserved1, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        inline uint64_t getReserved2(bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr uint64_t getReserved2(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Reserved2, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        inline uint64_t getReserved3(bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr uint64_t getReserved3(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Reserved3, IsBigEndian);
         }
 
-        constexpr
-        ObjcClass64 &setIsaAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        constexpr ObjcClass64 &
+        setIsaAddress(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->Isa = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClass64 &
-        setSuperClassAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        setSuperClassAddress(const uint64_t Value,
+                             const bool IsBigEndian) noexcept
+        {
             this->SuperClass = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClass64 &
-        setCacheAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        setCacheAddress(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->Cache = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClass64 &
-        setVtableAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        setVtableAddress(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->Vtable = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr
-        ObjcClass64 &setData(uint64_t Value, bool IsBigEndian) noexcept {
+        constexpr ObjcClass64 &
+        setData(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->Data = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr
-        ObjcClass64 &setReserved1(uint64_t Value, bool IsBigEndian) noexcept {
+        constexpr ObjcClass64 &
+        setReserved1(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->Reserved1 = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr
-        ObjcClass64 &setReserved2(uint64_t Value, bool IsBigEndian) noexcept {
+        constexpr ObjcClass64 &
+        setReserved2(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->Reserved2 = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr
-        ObjcClass64 &setReserved3(uint64_t Value, bool IsBigEndian) noexcept {
+        constexpr ObjcClass64 &
+        setReserved3(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->Reserved3 = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        [[nodiscard]] inline bool isSwift(bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        inline bool isSwift(const bool IsBigEndian) const noexcept {
             const auto Mask =
                 (IsSwiftObjcClassPreStableMask | IsSwiftObjcClassStableMask);
 
@@ -302,72 +310,79 @@ namespace MachO {
             return hasFlag(Flags::IsRealized);
         }
 
-        inline ObjcClassRoFlags &setIsMeta(bool Value = true) noexcept {
+        constexpr
+        ObjcClassRoFlags &setIsMeta(const bool Value = true) noexcept {
             setValueForFlag(Flags::IsMeta, Value);
             return *this;
         }
 
-        inline ObjcClassRoFlags &setIsRoot(bool Value = true) noexcept {
+        constexpr
+        ObjcClassRoFlags &setIsRoot(const bool Value = true) noexcept {
             setValueForFlag(Flags::IsRoot, Value);
             return *this;
         }
 
-        inline
-        ObjcClassRoFlags &setHasCxxStructors(bool Value = true) noexcept {
+        constexpr
+        ObjcClassRoFlags &setHasCxxStructors(const bool Value = true) noexcept {
             setValueForFlag(Flags::HasCxxStructors, Value);
             return *this;
         }
 
-        inline ObjcClassRoFlags &setIsHidden(bool Value = true) noexcept {
+        constexpr
+        ObjcClassRoFlags &setIsHidden(const bool Value = true) noexcept {
             setValueForFlag(Flags::IsHidden, Value);
             return *this;
         }
 
-        inline ObjcClassRoFlags &setIsException(bool Value = true) noexcept {
+        constexpr
+        ObjcClassRoFlags &setIsException(const bool Value = true) noexcept {
             setValueForFlag(Flags::IsException, Value);
             return *this;
         }
 
-        inline
-        ObjcClassRoFlags &setHasSwiftInitializer(bool Value = true) noexcept {
+        constexpr ObjcClassRoFlags &
+        setHasSwiftInitializer(const bool Value = true) noexcept {
             setValueForFlag(Flags::HasSwiftInitializer, Value);
             return *this;
         }
 
-        inline ObjcClassRoFlags &setIsARC(bool Value = true) noexcept {
+        constexpr ObjcClassRoFlags &setIsARC(const bool Value = true) noexcept {
             setValueForFlag(Flags::IsARC, Value);
             return *this;
         }
 
-        inline
-        ObjcClassRoFlags &setHasCxxDestructorOnly(bool Value = true) noexcept {
+        constexpr ObjcClassRoFlags &
+        setHasCxxDestructorOnly(const bool Value = true) noexcept {
             setValueForFlag(Flags::HasCxxDestructorOnly, Value);
             return *this;
         }
 
-        inline
-        ObjcClassRoFlags &setHasWeakWithoutARC(bool Value = true) noexcept {
+        constexpr ObjcClassRoFlags &
+        setHasWeakWithoutARC(const bool Value = true) noexcept {
             setValueForFlag(Flags::HasWeakWithoutARC, Value);
             return *this;
         }
 
-        inline ObjcClassRoFlags &
-        setForbidsAssociatedObjects(bool Value = true) noexcept {
+        constexpr ObjcClassRoFlags &
+        setForbidsAssociatedObjects(const bool Value = true) noexcept {
             setValueForFlag(Flags::ForbidsAssociatedObjects, Value);
             return *this;
         }
 
-        inline ObjcClassRoFlags &setIsFromBundle(bool Value = true) noexcept {
+        constexpr
+        ObjcClassRoFlags &setIsFromBundle(const bool Value = true) noexcept {
             setValueForFlag(Flags::IsFromBundle, Value);
             return *this;
         }
 
-        inline ObjcClassRoFlags &setIsFuture(bool Value = true) noexcept {
+        constexpr ObjcClassRoFlags &
+        setIsFuture(const bool Value = true) noexcept {
             setValueForFlag(Flags::IsFuture, Value);
             return *this;
         }
 
-        inline ObjcClassRoFlags &setIsRealized(bool Value = true) noexcept {
+        constexpr
+        ObjcClassRoFlags &setIsRealized(const bool Value = true) noexcept {
             setValueForFlag(Flags::IsRealized, Value);
             return *this;
         }
@@ -386,111 +401,121 @@ namespace MachO {
         uint32_t BaseProperties;
 
         [[nodiscard]] constexpr
-        inline ObjcClassRoFlags getFlags(bool IsBigEndian) const noexcept {
+        ObjcClassRoFlags getFlags(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Flags, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getInstanceStart(bool IsBigEndian) const noexcept {
+        uint32_t getInstanceStart(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(InstanceStart, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getInstanceSize(bool IsBigEndian) const noexcept {
+        uint32_t getInstanceSize(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(InstanceSize, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getIvarLayout(bool IsBigEndian) const noexcept {
+        uint32_t getIvarLayout(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(IvarLayout, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getNameAddress(bool IsBigEndian) const noexcept {
+        uint32_t getNameAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Name, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getMethodsAddress(bool IsBigEndian) const noexcept {
+        uint32_t getMethodsAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(BaseMethods, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getProtocolsAddress(bool IsBigEndian) const noexcept {
+        uint32_t getProtocolsAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(BaseProtocols, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getIvarsAddress(bool IsBigEndian) const noexcept {
+        uint32_t getIvarsAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Ivars, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getWeakIvarLayout(bool IsBigEndian) const noexcept {
+        uint32_t getWeakIvarLayout(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(WeakIvarLayout, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getPropertiesAddress(bool IsBigEndian) const noexcept {
+        uint32_t getPropertiesAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(BaseProperties, IsBigEndian);
         }
 
         constexpr ObjcClassRo &
-        setFlags(const ObjcClassRoFlags &Flags, bool IsBigEndian) noexcept {
+        setFlags(const ObjcClassRoFlags &Flags,
+                 const bool IsBigEndian) noexcept
+        {
             this->Flags = SwitchEndianIf(Flags.value(), IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo &
-        setInstanceStart(uint32_t Value, bool IsBigEndian) noexcept {
+        setInstanceStart(uint32_t Value, const bool IsBigEndian) noexcept {
             this->InstanceStart = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo &
-        setInstanceSize(uint32_t Value, bool IsBigEndian) noexcept {
+        setInstanceSize(const uint32_t Value, const bool IsBigEndian) noexcept {
             this->InstanceSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo &
-        setIvarLayout(uint32_t Value, bool IsBigEndian) noexcept {
+        setIvarLayout(const uint32_t Value, const bool IsBigEndian) noexcept {
             this->IvarLayout = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo &
-        setNameAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        setNameAddress(const uint32_t Value, const bool IsBigEndian) noexcept {
             this->Name = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo &
-        setMethodsAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        setMethodsAddress(const uint32_t Value,
+                          const bool IsBigEndian) noexcept
+        {
             this->BaseMethods = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo &
-        setProtocolsAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        setProtocolsAddress(const uint32_t Value,
+                            const bool IsBigEndian) noexcept
+        {
             this->BaseProtocols = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo &
-        setIvarsAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        setIvarsAddress(const uint32_t Value, const bool IsBigEndian) noexcept {
             this->Ivars = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo &
-        setWeakIvarLayout(uint32_t Value, bool IsBigEndian) noexcept {
+        setWeakIvarLayout(const uint32_t Value,
+                          const bool IsBigEndian) noexcept
+        {
             this->WeakIvarLayout = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo &
-        setPropertiesAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        setPropertiesAddress(const uint32_t Value,
+                             const bool IsBigEndian) noexcept
+        {
             this->BaseProperties = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
@@ -510,122 +535,136 @@ namespace MachO {
         uint64_t BaseProperties;
 
         [[nodiscard]] constexpr
-        inline ObjcClassRoFlags getFlags(bool IsBigEndian) const noexcept {
+        ObjcClassRoFlags getFlags(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Flags, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getInstanceStart(bool IsBigEndian) const noexcept {
+        uint32_t getInstanceStart(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(InstanceStart, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getInstanceSize(bool IsBigEndian) const noexcept {
+        uint32_t getInstanceSize(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(InstanceSize, IsBigEndian);
         }
 
         [[nodiscard]]
-        constexpr uint32_t getReserved(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getReserved(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Reserved, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint64_t getIvarLayout(bool IsBigEndian) const noexcept {
+        uint64_t getIvarLayout(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(IvarLayout, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint64_t getNameAddress(bool IsBigEndian) const noexcept {
+        uint64_t getNameAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Name, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint64_t getMethodsAddress(bool IsBigEndian) const noexcept {
+        uint64_t getMethodsAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(BaseMethods, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint64_t getProtocolsAddress(bool IsBigEndian) const noexcept {
+        uint64_t getProtocolsAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(BaseProtocols, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint64_t getIvarsAddress(bool IsBigEndian) const noexcept {
+        uint64_t getIvarsAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Ivars, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint64_t getWeakIvarLayout(bool IsBigEndian) const noexcept {
+        uint64_t getWeakIvarLayout(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(WeakIvarLayout, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint64_t getPropertiesAddress(bool IsBigEndian) const noexcept {
+        uint64_t getPropertiesAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(BaseProperties, IsBigEndian);
         }
 
         constexpr ObjcClassRo64 &
-        setFlags(const ObjcClassRoFlags &Flags, bool IsBigEndian) noexcept {
+        setFlags(const ObjcClassRoFlags &Flags,
+                 const bool IsBigEndian) noexcept
+        {
             this->Flags = SwitchEndianIf(Flags.value(), IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo64 &
-        setInstanceStart(uint32_t Value, bool IsBigEndian) noexcept {
+        setInstanceStart(const uint32_t Value,
+                         const bool IsBigEndian) noexcept
+        {
             this->InstanceStart = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo64 &
-        setInstanceSize(uint32_t Value, bool IsBigEndian) noexcept {
+        setInstanceSize(const uint32_t Value,
+                        const bool IsBigEndian) noexcept
+        {
             this->InstanceSize = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo64 &
-        setReserved(uint32_t Value, bool IsBigEndian) noexcept {
+        setReserved(const uint32_t Value, const bool IsBigEndian) noexcept {
             this->Reserved = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo64 &
-        setIvarLayout(uint64_t Value, bool IsBigEndian) noexcept {
+        setIvarLayout(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->IvarLayout = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo64 &
-        setNameAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        setNameAddress(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->Name = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo64 &
-        setMethodsAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        setMethodsAddress(const uint64_t Value,
+                          const bool IsBigEndian) noexcept
+        {
             this->BaseMethods = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo64 &
-        setProtocolsAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        setProtocolsAddress(const uint64_t Value,
+                            const bool IsBigEndian) noexcept
+        {
             this->BaseProtocols = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo64 &
-        setIvarsAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        setIvarsAddress(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->Ivars = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo64 &
-        setWeakIvarLayout(uint64_t Value, bool IsBigEndian) noexcept {
+        setWeakIvarLayout(const uint64_t Value,
+                          const bool IsBigEndian) noexcept
+        {
             this->WeakIvarLayout = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassRo64 &
-        setPropertiesAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        setPropertiesAddress(const uint64_t Value,
+                             const bool IsBigEndian) noexcept
+        {
             this->BaseProperties = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
@@ -642,90 +681,100 @@ namespace MachO {
         uint32_t V8;
 
         [[nodiscard]] constexpr
-        inline uint32_t getNameAddress(bool IsBigEndian) const noexcept {
+        uint32_t getNameAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Name, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getClassAddress(bool IsBigEndian) const noexcept {
+        uint32_t getClassAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Class, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        uint32_t getInstanceMethodsAddress(bool IsBigEndian) const noexcept {
+        [[nodiscard]] constexpr uint32_t
+        getInstanceMethodsAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(InstanceMethods, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        uint32_t getClassMethodsAddress(bool IsBigEndian) const noexcept {
+        uint32_t getClassMethodsAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(ClassMethods, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getProtocolsAddress(bool IsBigEndian) const noexcept {
+        uint32_t getProtocolsAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Protocols, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        uint32_t getInstancePropertiesAddress(bool IsBigEndian) const noexcept {
+        [[nodiscard]] constexpr uint32_t
+        getInstancePropertiesAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(InstanceProperties, IsBigEndian);
         }
 
         [[nodiscard]]
-        constexpr uint32_t getV7(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getV7(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(V7, IsBigEndian);
         }
 
         [[nodiscard]]
-        constexpr uint32_t getV8(bool IsBigEndian) const noexcept {
+        constexpr uint32_t getV8(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(V8, IsBigEndian);
         }
 
         constexpr ObjcClassCategory &
-        setNameAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        setNameAddress(const uint32_t Value, const bool IsBigEndian) noexcept {
             this->Name = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassCategory &
-        setClassAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        setClassAddress(const uint32_t Value, const bool IsBigEndian) noexcept {
             this->Class = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassCategory &
-        setInstanceMethodsAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        setInstanceMethodsAddress(const uint32_t Value,
+                                  const bool IsBigEndian) noexcept
+        {
             this->InstanceMethods = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassCategory &
-        setClassMethodsAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        setClassMethodsAddress(const uint32_t Value,
+                               const bool IsBigEndian) noexcept
+        {
             this->ClassMethods = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassCategory &
-        setProtocolsAddress(uint32_t Value, bool IsBigEndian) noexcept {
+        setProtocolsAddress(const uint32_t Value,
+                            const bool IsBigEndian) noexcept
+        {
             this->Protocols = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassCategory &
-        setInstancePropertiesAddress(uint32_t Value, bool IsBigEndian) noexcept
+        setInstancePropertiesAddress(const uint32_t Value,
+                                     const bool IsBigEndian) noexcept
         {
             this->InstanceProperties = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr
-        ObjcClassCategory &setV7(uint32_t Value, bool IsBigEndian) noexcept {
+        constexpr ObjcClassCategory &
+        setV7(const uint32_t Value, const bool IsBigEndian) noexcept
+        {
             this->V7 = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr
-        ObjcClassCategory &setV8(uint32_t Value, bool IsBigEndian) noexcept {
+        constexpr ObjcClassCategory &
+        setV8(const uint32_t Value,
+              const bool IsBigEndian) noexcept
+        {
             this->V8 = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
@@ -742,90 +791,97 @@ namespace MachO {
         uint64_t V8;
 
         [[nodiscard]] constexpr
-        inline uint64_t getNameAddress(bool IsBigEndian) const noexcept {
+        uint64_t getNameAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Name, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint64_t getClassAddress(bool IsBigEndian) const noexcept {
+        uint64_t getClassAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Class, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        uint64_t getInstanceMethodsAddress(bool IsBigEndian) const noexcept {
+        [[nodiscard]] constexpr uint64_t
+        getInstanceMethodsAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(InstanceMethods, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        uint64_t getClassMethodsAddress(bool IsBigEndian) const noexcept {
+        uint64_t getClassMethodsAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(ClassMethods, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint64_t getProtocolsAddress(bool IsBigEndian) const noexcept {
+        uint64_t getProtocolsAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Protocols, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        uint64_t getInstancePropertiesAddress(bool IsBigEndian) const noexcept {
+        [[nodiscard]] constexpr uint64_t
+        getInstancePropertiesAddress(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(InstanceProperties, IsBigEndian);
         }
 
         [[nodiscard]]
-        constexpr uint64_t getV7(bool IsBigEndian) const noexcept {
+        constexpr uint64_t getV7(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(V7, IsBigEndian);
         }
 
         [[nodiscard]]
-        constexpr uint64_t getV8(bool IsBigEndian) const noexcept {
+        constexpr uint64_t getV8(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(V8, IsBigEndian);
         }
 
         constexpr ObjcClassCategory64 &
-        setNameAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        setNameAddress(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->Name = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassCategory64 &
-        setClassAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        setClassAddress(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->Class = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassCategory64 &
-        setInstanceMethodsAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        setInstanceMethodsAddress(const uint64_t Value,
+                                  const bool IsBigEndian) noexcept
+        {
             this->InstanceMethods = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassCategory64 &
-        setClassMethodsAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        setClassMethodsAddress(const uint64_t Value,
+                               const bool IsBigEndian) noexcept
+        {
             this->ClassMethods = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassCategory64 &
-        setProtocolsAddress(uint64_t Value, bool IsBigEndian) noexcept {
+        setProtocolsAddress(const uint64_t Value,
+                            const bool IsBigEndian) noexcept
+        {
             this->Protocols = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr ObjcClassCategory64 &
-        setInstancePropertiesAddress(uint64_t Value, bool IsBigEndian) noexcept
+        setInstancePropertiesAddress(const uint64_t Value,
+                                     const bool IsBigEndian) noexcept
         {
             this->InstanceProperties = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr
-        ObjcClassCategory64 &setV7(uint64_t Value, bool IsBigEndian) noexcept {
+        constexpr ObjcClassCategory64 &
+        setV7(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->V7 = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr
-        ObjcClassCategory64 &setV8(uint64_t Value, bool IsBigEndian) noexcept {
+        constexpr ObjcClassCategory64 &
+        setV8(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->V8 = SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }

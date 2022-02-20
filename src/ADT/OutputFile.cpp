@@ -18,22 +18,22 @@ OutputFile::OutputFile() noexcept {
     this->Tmp = FileDescriptor::Create(FileName.data(), 0600);
 }
 
-bool OutputFile::Read(void *Buf, size_t Size) const noexcept {
+bool OutputFile::Read(void *const Buf, const size_t Size) const noexcept {
     assert(this->isOpen() && "OutputFile must be open");
     return Tmp.Read(Buf, Size);
 }
 
-bool OutputFile::Write(const void *Buf, size_t Size) noexcept {
+bool OutputFile::Write(const void *const Buf, const size_t Size) noexcept {
     assert(this->isOpen() && "OutputFile must be open");
     return Tmp.Write(Buf, Size);
 }
 
-bool OutputFile::TruncateToSize(uint64_t Length) noexcept {
+bool OutputFile::TruncateToSize(const uint64_t Length) noexcept {
     assert(this->isOpen() && "OutputFile must be open");
     return Tmp.TruncateToSize(Length);
 }
 
-bool OutputFile::Finalize(const char *Path) noexcept {
+bool OutputFile::Finalize(const char *const Path) noexcept {
     Close();
     return (rename(this->TmpPath, Path) == 0);
 }

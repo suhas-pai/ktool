@@ -51,11 +51,14 @@ public:
     virtual ~ConstMachOMemoryObject() noexcept = default;
 
     [[nodiscard]] static bool errorDidMatchFormat(Error Error) noexcept;
-    [[nodiscard]] static inline bool errorDidMatchFormat(uint8_t Int) noexcept {
+
+    [[nodiscard]]
+    static inline bool errorDidMatchFormat(const uint8_t Int) noexcept {
         return errorDidMatchFormat(getErrorFromInt(Int));
     }
 
-    [[nodiscard]] static inline Error getErrorFromInt(uint8_t Int) noexcept {
+    [[nodiscard]]
+    static inline Error getErrorFromInt(const uint8_t Int) noexcept {
         return static_cast<Error>(Int);
     }
 
@@ -80,7 +83,7 @@ public:
     }
 
     [[nodiscard]] inline MachO::ConstLoadCommandStorage
-    GetLoadCommandsStorage(bool Verify = true) const noexcept {
+    GetLoadCommandsStorage(const bool Verify = true) const noexcept {
         return getHeader().GetConstLoadCmdStorage(Verify);
     }
 
@@ -143,20 +146,19 @@ public:
         return const_cast<MachO::Header &>(getConstHeader());
     }
 
-    constexpr
-    inline MachOMemoryObject &setCpuKind(Mach::CpuKind Kind) noexcept {
+    constexpr MachOMemoryObject &setCpuKind(const Mach::CpuKind Kind) noexcept {
         getHeader().setCpuKind(Kind);
         return *this;
     }
 
     constexpr
-    inline MachOMemoryObject &setLoadCommandsCount(uint32_t Count) noexcept {
+    MachOMemoryObject &setLoadCommandsCount(const uint32_t Count) noexcept {
         getHeader().setLoadCommandsCount(Count);
         return *this;
     }
 
-    constexpr
-    inline MachOMemoryObject &setLoadCommandsSize(uint32_t Size) noexcept {
+    constexpr inline
+    MachOMemoryObject &setLoadCommandsSize(const uint32_t Size) noexcept {
         getHeader().setLoadCommandsSize(Size);
         return *this;
     }
@@ -168,12 +170,12 @@ public:
     }
 
     [[nodiscard]] inline MachO::LoadCommandStorage
-    GetLoadCommandsStorage(bool Verify = true) noexcept {
+    GetLoadCommandsStorage(const bool Verify = true) noexcept {
         return getHeader().GetLoadCmdStorage(Verify);
     }
 
     [[nodiscard]] inline MachO::ConstLoadCommandStorage
-    GetConstLoadCommandsStorage(bool Verify = true) const noexcept {
+    GetConstLoadCommandsStorage(const bool Verify = true) const noexcept {
         return ConstMachOMemoryObject::GetLoadCommandsStorage(Verify);
     }
 };

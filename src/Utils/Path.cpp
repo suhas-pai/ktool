@@ -15,7 +15,7 @@
 #include "Path.h"
 
 static auto Cd = std::string();
-std::string PathUtil::MakeAbsolute(std::string_view Path) noexcept {
+std::string PathUtil::MakeAbsolute(const std::string_view Path) noexcept {
     if (isAbsolute(Path)) {
         return std::string(Path);
     }
@@ -36,7 +36,9 @@ std::string PathUtil::MakeAbsolute(std::string_view Path) noexcept {
 }
 
 std::string
-PathUtil::ConcatPaths(std::string_view Lhs, std::string_view Rhs) noexcept {
+PathUtil::ConcatPaths(const std::string_view Lhs,
+                      const std::string_view Rhs) noexcept
+{
     assert(!Lhs.empty() && !Rhs.empty() && "Lhs or Rhs is empty");
 
     // Add one for the separator-slash

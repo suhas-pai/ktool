@@ -154,8 +154,8 @@ struct OperationKindInfo<OperationKind::PrintImageList> {
     typedef PrintImageListOperation Type;
 };
 
-[[nodiscard]] constexpr
-std::string_view OperationKindGetOptionShortName(OperationKind Kind) noexcept {
+[[nodiscard]] constexpr std::string_view
+OperationKindGetOptionShortName(const OperationKind Kind) noexcept {
     switch (Kind) {
         case OperationKind::None:
             assert(0 && "Object-Kind is None");
@@ -183,7 +183,7 @@ std::string_view OperationKindGetOptionShortName(OperationKind Kind) noexcept {
 }
 
 constexpr const std::string_view &
-OperationKindGetName(OperationKind Kind) noexcept {
+OperationKindGetName(const OperationKind Kind) noexcept {
     switch (Kind) {
         case OperationKind::None:
             assert(0 && "OperationKindGetName() got Operation-Kind None");
@@ -226,7 +226,7 @@ OperationKindGetName(OperationKind Kind) noexcept {
 }
 
 [[nodiscard]] constexpr
-std::string_view OperationKindGetOptionName(OperationKind Kind) noexcept {
+std::string_view OperationKindGetOptionName(const OperationKind Kind) noexcept {
     switch (Kind) {
         case OperationKind::None:
             assert(0 && "Object-Kind is None");
@@ -263,8 +263,8 @@ std::string_view OperationKindGetOptionName(OperationKind Kind) noexcept {
     }
 }
 
-[[nodiscard]] constexpr
-std::string_view OperationKindGetDescription(OperationKind Kind) noexcept {
+[[nodiscard]] constexpr std::string_view
+OperationKindGetDescription(const OperationKind Kind) noexcept {
     switch (Kind) {
         case OperationKind::None:
             assert(0 && "Object-Kind is None");

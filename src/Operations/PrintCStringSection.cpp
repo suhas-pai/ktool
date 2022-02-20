@@ -46,8 +46,8 @@ static inline bool ShouldExcludeString(std::string_view String) noexcept {
 }
 
 static void
-GetCStringList(FILE *OutFile,
-               const uint8_t *Map,
+GetCStringList(FILE *const OutFile,
+               const uint8_t *const Map,
                const MachO::SectionInfo &Section,
                std::vector<StringInfo> &StringList,
                LargestIntHelper<uint64_t> &LongestStringLength) noexcept
@@ -83,9 +83,9 @@ GetCStringList(FILE *OutFile,
 
 static int
 PrintCStringList(
-    const uint8_t *MapBegin,
+    const uint8_t *const MapBegin,
     const MachO::ConstLoadCommandStorage &LoadCmdStorage,
-    bool Is64Bit,
+    const bool Is64Bit,
     const struct PrintCStringSectionOperation::Options &Options) noexcept
 {
     auto Error = MachO::SegmentInfoCollection::Error::None;
@@ -235,7 +235,7 @@ PrintCStringSectionOperation::Run(const ConstMachOMemoryObject &Object,
 
 struct PrintCStringSectionOperation::Options
 PrintCStringSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
-                                               int *IndexOut) noexcept
+                                               int *const IndexOut) noexcept
 {
     struct Options Options;
 

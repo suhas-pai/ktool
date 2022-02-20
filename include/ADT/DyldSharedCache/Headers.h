@@ -65,8 +65,9 @@ namespace DyldSharedCache {
         }
 
         [[nodiscard]] inline uint64_t
-        getFileOffsetFromAddr(uint64_t Addr,
-                              uint64_t *MaxSizeOut = nullptr) const noexcept
+        getFileOffsetFromAddr(
+            const uint64_t Addr,
+            uint64_t *const MaxSizeOut = nullptr) const noexcept
         {
             const auto Range = getAddressRange();
             if (!Range || !Range->containsLocation(Addr)) {
@@ -78,8 +79,8 @@ namespace DyldSharedCache {
 
         [[nodiscard]] inline uint64_t
         getFileOffsetFromAddrUnsafe(
-            uint64_t Addr,
-            uint64_t *MaxSizeOut = nullptr) const noexcept
+            const uint64_t Addr,
+            uint64_t *const MaxSizeOut = nullptr) const noexcept
         {
             const auto Delta = Addr - this->Address;
             if (MaxSizeOut != nullptr) {
@@ -99,14 +100,15 @@ namespace DyldSharedCache {
         uint32_t Pad;
 
         [[nodiscard]]
-        inline const char *getPath(const uint8_t *Map) const noexcept {
+        inline const char *getPath(const uint8_t *const Map) const noexcept {
             return reinterpret_cast<const char *>(Map) + PathFileOffset;
         }
 
         [[nodiscard]]
         inline bool isAlias(const HeaderV0 &Header) const noexcept;
 
-        [[nodiscard]] inline bool isAlias(const uint8_t *Map) const noexcept {
+        [[nodiscard]]
+        inline bool isAlias(const uint8_t *const Map) const noexcept {
             return isAlias(*reinterpret_cast<const HeaderV0 *>(Map));
         }
     };
@@ -146,8 +148,8 @@ namespace DyldSharedCache {
         uint32_t RangeTableCount;
         uint64_t DyldSectionAddr;
 
-        [[nodiscard]] inline
-        ImageInfoExtra &getImageInfoExtraAtIndex(uint32_t Index) noexcept {
+        [[nodiscard]] inline ImageInfoExtra &
+        getImageInfoExtraAtIndex(const uint32_t Index) noexcept {
             auto &Result =
                 const_cast<ImageInfoExtra &>(
                     getConstImageInfoExtraAtIndex(Index));
@@ -157,12 +159,12 @@ namespace DyldSharedCache {
 
         [[nodiscard]]
         inline const ImageInfoExtra &
-        getImageInfoExtraAtIndex(uint32_t Index) const noexcept {
+        getImageInfoExtraAtIndex(const uint32_t Index) const noexcept {
             return getConstImageInfoExtraAtIndex(Index);
         }
 
         [[nodiscard]] inline const ImageInfoExtra &
-        getConstImageInfoExtraAtIndex(uint32_t Index) const noexcept {
+        getConstImageInfoExtraAtIndex(const uint32_t Index) const noexcept {
             assert(!IndexOutOfBounds(Index, ImageExtrasCount));
 
             const auto Map = reinterpret_cast<const uint8_t *>(this);
@@ -282,7 +284,8 @@ namespace DyldSharedCache {
         }
 
         template <typename T = uint8_t>
-        [[nodiscard]] inline T *GetPtrForAddress(uint64_t Address) noexcept {
+        [[nodiscard]]
+        inline T *GetPtrForAddress(const uint64_t Address) noexcept {
             auto Size = uint64_t();
             if (const auto Offset = GetFileOffsetForAddress(Address, &Size)) {
                 if (Size < sizeof(T)) {
@@ -297,8 +300,8 @@ namespace DyldSharedCache {
         }
 
         template <typename T = uint8_t>
-        [[nodiscard]]
-        inline const T *GetPtrForAddress(uint64_t Address) const noexcept {
+        [[nodiscard]] inline
+        const T *GetPtrForAddress(const uint64_t Address) const noexcept {
             auto Size = uint64_t();
             if (const auto Offset = GetFileOffsetForAddress(Address, &Size)) {
                 if (Size < sizeof(T)) {

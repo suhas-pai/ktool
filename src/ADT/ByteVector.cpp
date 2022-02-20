@@ -13,7 +13,7 @@
 #include "LocationRange.h"
 #include "RelativeRange.h"
 
-ByteVector::ByteVector(uint64_t Capacity) noexcept {
+ByteVector::ByteVector(const uint64_t Capacity) noexcept {
     Reserve(Capacity);
 }
 
@@ -21,7 +21,7 @@ ByteVector::~ByteVector() noexcept {
     delete[] DataBegin;
 }
 
-uint64_t ByteVector::getAllocSizeForCapacity(uint64_t Capacity) noexcept {
+uint64_t ByteVector::getAllocSizeForCapacity(const uint64_t Capacity) noexcept {
     auto ThisCapacity = capacity();
     if (ThisCapacity == 0) {
         return Capacity;
@@ -38,7 +38,7 @@ void ByteVector::grow() noexcept {
     growTo(getAllocSizeForCapacity(capacity() + 1));
 }
 
-void ByteVector::growTo(uint64_t Capacity) noexcept {
+void ByteVector::growTo(const uint64_t Capacity) noexcept {
     const auto NewDataBegin = new uint8_t[Capacity];
     std::copy(DataBegin, DataEnd, NewDataBegin);
 
@@ -49,7 +49,7 @@ void ByteVector::growTo(uint64_t Capacity) noexcept {
     this->DataBegin = NewDataBegin;
 }
 
-void ByteVector::growIfNecessaryForSize(uint64_t Size) noexcept {
+void ByteVector::growIfNecessaryForSize(const uint64_t Size) noexcept {
     if (freeSpace() >= Size) {
         return;
     }
@@ -57,12 +57,13 @@ void ByteVector::growIfNecessaryForSize(uint64_t Size) noexcept {
     growTo(getAllocSizeForCapacity(size() + Size));
 }
 
-ByteVector &ByteVector::Reserve(uint64_t Capacity) noexcept {
+ByteVector &ByteVector::Reserve(const uint64_t Capacity) noexcept {
     growTo(Capacity);
     return *this;
 }
 
-ByteVector &ByteVector::Add(const uint8_t *Bytes, uint64_t Size) noexcept {
+ByteVector &
+ByteVector::Add(const uint8_t *const Bytes, const uint64_t Size) noexcept {
     growIfNecessaryForSize(Size);
 
     memcpy(DataEnd, Bytes, Size);
@@ -71,15 +72,18 @@ ByteVector &ByteVector::Add(const uint8_t *Bytes, uint64_t Size) noexcept {
     return *this;
 }
 
-ByteVector &ByteVector::Add(const uint8_t *Begin, uint8_t *End) noexcept {
+ByteVector &
+ByteVector::Add(const uint8_t *const Begin, uint8_t *const End) noexcept {
     return Add(Begin, (End - Begin));
 }
 
-ByteVector &ByteVector::Remove(uint8_t *Loc, uint64_t Size) noexcept {
+ByteVector &
+ByteVector::Remove(uint8_t *const Loc, const uint64_t Size) noexcept {
     return Remove(Loc, Loc + Size);
 }
 
-ByteVector &ByteVector::Remove(uint8_t *Loc, uint8_t *End) noexcept {
+ByteVector &
+ByteVector::Remove(uint8_t *const Loc, uint8_t *const End) noexcept {
     const auto ThisRange = LocationRange::CreateWithEnd(DataBegin, DataEnd);
     const auto LocRange = LocationRange::CreateWithEnd(Loc, End);
 
@@ -92,7 +96,8 @@ ByteVector &ByteVector::Remove(uint8_t *Loc, uint8_t *End) noexcept {
     return *this;
 }
 
-ByteVector &ByteVector::Remove(uint64_t Idx, uint64_t Size) noexcept {
+ByteVector &
+ByteVector::Remove(const uint64_t Idx, const uint64_t Size) noexcept {
     return Remove(DataBegin + Idx, DataBegin + Idx + Size);
 }
 

@@ -11,13 +11,13 @@
 namespace DscImage {
     ObjcClassInfoCollection &
     ObjcClassInfoCollection::Parse(
-        const uint8_t *Map,
+        const uint8_t *const Map,
         const MachO::SegmentInfoCollection &SegmentCollection,
         const ConstDeVirtualizer &DeVirtualizer,
         const MachO::BindActionCollection &BindCollection,
-        bool IsBigEndian,
-        bool Is64Bit,
-        Error *ErrorOut) noexcept
+        const bool IsBigEndian,
+        const bool Is64Bit,
+        Error *const ErrorOut) noexcept
     {
         auto Error = MachO::ObjcParse::Error::None;
         auto ExternalAndRootClassList = std::vector<Info *>();
@@ -131,14 +131,14 @@ namespace DscImage {
         const ConstMemoryMap &ImageMap,
         const MachO::SegmentInfoCollection &SegmentCollection,
         const ConstDeVirtualizer &DeVirtualizer,
-        const MachO::BindActionList *BindList,
-        const MachO::LazyBindActionList *LazyBindList,
-        const MachO::WeakBindActionList *WeakBindList,
-        bool IsBigEndian,
-        bool Is64Bit,
-        Error *ErrorOut,
+        const MachO::BindActionList *const BindList,
+        const MachO::LazyBindActionList *const LazyBindList,
+        const MachO::WeakBindActionList *const WeakBindList,
+        const bool IsBigEndian,
+        const bool Is64Bit,
+        Error *const ErrorOut,
         MachO::BindOpcodeParseError *ParseErrorOut,
-        MachO::BindActionCollection::Error *CollectionErrorOut) noexcept
+        MachO::BindActionCollection::Error *const CollectionErrorOut) noexcept
     {
         auto Error = MachO::ObjcParse::Error::None;
         auto ExternalAndRootClassList = std::vector<Info *>();
@@ -289,14 +289,14 @@ namespace DscImage {
     template <PointerKind Kind>
     static void
     ParseObjcClassCategorySection(
-        const uint8_t *Map,
-        const MachO::SectionInfo *SectInfo,
+        const uint8_t *const Map,
+        const MachO::SectionInfo *const SectInfo,
         const ConstDeVirtualizer &DeVirtualizer,
-        const MachO::BindActionCollection *BindCollection,
-        ObjcClassInfoCollection *ClassInfoTree,
+        const MachO::BindActionCollection *const BindCollection,
+        ObjcClassInfoCollection *const ClassInfoTree,
         std::vector<
             std::unique_ptr<MachO::ObjcClassCategoryInfo>> &CategoryList,
-        bool IsBigEndian) noexcept
+        const bool IsBigEndian) noexcept
     {
         using PtrAddrType = PointerAddrConstTypeFromKind<Kind>;
         using ObjcCategoryType =
@@ -401,14 +401,14 @@ namespace DscImage {
 
     ObjcClassCategoryCollection &
     ObjcClassCategoryCollection::CollectFrom(
-        const uint8_t *Map,
+        const uint8_t *const Map,
         const MachO::SegmentInfoCollection &SegmentCollection,
         const ConstDeVirtualizer &DeVirtualizer,
-        const MachO::BindActionCollection *BindCollection,
-        ObjcClassInfoCollection *ClassInfoTree,
-        bool IsBigEndian,
-        bool Is64Bit,
-        Error *ErrorOut) noexcept
+        const MachO::BindActionCollection *const BindCollection,
+        ObjcClassInfoCollection *const ClassInfoTree,
+        const bool IsBigEndian,
+        const bool Is64Bit,
+        Error *const ErrorOut) noexcept
     {
         const auto ObjcClassCategorySection =
             SegmentCollection.FindSectionWithName({
@@ -452,15 +452,15 @@ namespace DscImage {
         const ConstMemoryMap &Map,
         const MachO::SegmentInfoCollection &SegmentCollection,
         const ConstDeVirtualizer &DeVirtualizer,
-        ObjcClassInfoCollection *ClassInfoTree,
-        const MachO::BindActionList *BindList,
-        const MachO::LazyBindActionList *LazyBindList,
-        const MachO::WeakBindActionList *WeakBindList,
-        bool IsBigEndian,
-        bool Is64Bit,
-        Error *ErrorOut,
-        MachO::BindOpcodeParseError *ParseErrorOut,
-        MachO::BindActionCollection::Error *CollectionErrorOut) noexcept
+        ObjcClassInfoCollection *const ClassInfoTree,
+        const MachO::BindActionList *const BindList,
+        const MachO::LazyBindActionList *const LazyBindList,
+        const MachO::WeakBindActionList *const WeakBindList,
+        const bool IsBigEndian,
+        const bool Is64Bit,
+        Error *const ErrorOut,
+        MachO::BindOpcodeParseError *const ParseErrorOut,
+        MachO::BindActionCollection::Error *const CollectionErrorOut) noexcept
     {
         const auto ObjcClassCategorySection =
             SegmentCollection.FindSectionWithName({

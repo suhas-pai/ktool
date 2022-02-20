@@ -15,11 +15,12 @@
 #include "DscMemory.h"
 
 ConstDscMemoryObject::ConstDscMemoryObject(const ConstMemoryMap &Map,
-                                           CpuKind CpuKind) noexcept
+                                           const CpuKind CpuKind) noexcept
 : MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()),
   sCpuKind(CpuKind) {}
 
-DscMemoryObject::DscMemoryObject(const MemoryMap &Map, CpuKind CpuKind) noexcept
+DscMemoryObject::DscMemoryObject(const MemoryMap &Map,
+                                 const CpuKind CpuKind) noexcept
 : ConstDscMemoryObject(Map, CpuKind) {}
 
 [[nodiscard]] static ConstDscMemoryObject::Error
@@ -127,7 +128,7 @@ ConstDscMemoryObject::Open(const ConstMemoryMap &Map) noexcept ->
     return new ConstDscMemoryObject(Map, CpuKind);
 }
 
-bool ConstDscMemoryObject::errorDidMatchFormat(Error Error) noexcept {
+bool ConstDscMemoryObject::errorDidMatchFormat(const Error Error) noexcept {
     switch (Error) {
         case Error::None:
             return true;
@@ -272,7 +273,8 @@ ConstDscMemoryObject::ValidateImageMapAndGetEnd(
 }
 
 const DyldSharedCache::ImageInfo *
-ConstDscMemoryObject::GetImageInfoWithPath(std::string_view Path) const noexcept
+ConstDscMemoryObject::GetImageInfoWithPath(
+    const std::string_view Path) const noexcept
 {
     const auto Map = getMap().getBegin();
     for (const auto &ImageInfo : getConstImageInfoList()) {

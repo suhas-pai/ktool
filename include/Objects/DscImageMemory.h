@@ -123,8 +123,8 @@ public:
     }
 
     [[nodiscard]] inline std::optional<uint64_t>
-    GetFileOffsetForAddress(uint64_t Addr,
-                            uint64_t *MaxSizeOut) const noexcept
+    GetFileOffsetForAddress(const uint64_t Addr,
+                            uint64_t *const MaxSizeOut) const noexcept
     {
         return getDscHeaderV0().GetFileOffsetForAddress(Addr, MaxSizeOut);
     }
@@ -199,7 +199,7 @@ public:
     }
 
     [[nodiscard]] inline MachO::LoadCommandStorage
-    GetLoadCommands(bool Verify = true) noexcept {
+    GetLoadCommands(const bool Verify = true) noexcept {
         auto Result = ConstMachOMemoryObject::GetLoadCommandsStorage(Verify);
         return *reinterpret_cast<const MachO::LoadCommandStorage *>(&Result);
     }

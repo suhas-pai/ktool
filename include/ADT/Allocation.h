@@ -18,7 +18,8 @@ public:
     constexpr Allocation() noexcept = default;
 
     template <typename T>
-    explicit Allocation(T *Ptr) noexcept : Ptr(reinterpret_cast<void *>(Ptr)) {}
+    explicit Allocation(T *const Ptr) noexcept
+    : Ptr(reinterpret_cast<void *>(Ptr)) {}
 
     inline ~Allocation() noexcept {
         delete reinterpret_cast<uint8_t *>(Ptr);
@@ -39,13 +40,13 @@ public:
     }
 
     template <typename T>
-    inline Allocation &replace(T *Ptr) noexcept {
+    inline Allocation &replace(T *const Ptr) noexcept {
         this->Ptr = Ptr;
         return *this;
     }
 
     template <typename T>
-    inline void operator=(T *Ptr) noexcept { Set(Ptr); }
+    inline void operator=(T *const Ptr) noexcept { Set(Ptr); }
 
     template <typename T>
     inline operator T *() noexcept { return static_cast<T *>(Ptr); }

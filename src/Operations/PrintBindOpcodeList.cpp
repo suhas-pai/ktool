@@ -19,7 +19,8 @@ PrintBindOpcodeListOperation::PrintBindOpcodeListOperation(
     const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}
 
-static void PrintFlags(FILE *OutFile, MachO::BindSymbolFlags Flags) noexcept {
+static void
+PrintFlags(FILE *const OutFile, const MachO::BindSymbolFlags Flags) noexcept {
     fputs(" - <", OutFile);
 
     if (!Flags.empty()) {
@@ -54,10 +55,10 @@ struct BindOpcodeInfo : public MachO::BindOpcodeIterateInfo {
 
 static inline void
 GetSegmentAndSection(const MachO::SegmentInfoCollection &Collection,
-                     int64_t SegmentIndex,
-                     uint64_t Address,
-                     const MachO::SegmentInfo **SegmentOut,
-                     const MachO::SectionInfo **SectionOut) noexcept
+                     const int64_t SegmentIndex,
+                     const uint64_t Address,
+                     const MachO::SegmentInfo **const SegmentOut,
+                     const MachO::SectionInfo **const SectionOut) noexcept
 {
     const auto *Segment = Collection.atOrNull(SegmentIndex);
     const auto *Section = static_cast<const MachO::SectionInfo *>(nullptr);
@@ -76,7 +77,7 @@ CollectBindOpcodeList(
     const MachO::SharedLibraryInfoCollection &LibraryCollection,
     const MachO::SegmentInfoCollection &SegmentCollection,
     const ListType &List,
-    bool Is64Bit) noexcept
+    const bool Is64Bit) noexcept
 {
     auto OpcodeInfo = BindOpcodeInfo();
     auto InfoList = std::vector<BindOpcodeInfo>();
@@ -267,11 +268,11 @@ done:
 template <MachO::BindInfoKind BindKind>
 void
 PrintBindOpcodeList(
-    const char *Name,
+    const char *const Name,
     const MachO::SharedLibraryInfoCollection &LibraryCollection,
     const MachO::SegmentInfoCollection &SegmentCollection,
     const std::vector<BindOpcodeInfo> &List,
-    bool Is64Bit,
+    const bool Is64Bit,
     const struct PrintBindOpcodeListOperation::Options &Options) noexcept
 {
     auto Counter = static_cast<uint64_t>(1);
@@ -692,7 +693,7 @@ PrintBindOpcodeListOperation::Run(const ConstMachOMemoryObject &Object,
 
 struct PrintBindOpcodeListOperation::Options
 PrintBindOpcodeListOperation::ParseOptionsImpl(const ArgvArray &Argv,
-                                               int *IndexOut) noexcept
+                                               int *const IndexOut) noexcept
 {
     auto Index = int();
     struct Options Options;

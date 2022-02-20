@@ -18,7 +18,7 @@ namespace MachO {
         const SegmentInfoCollection &Collection;
     public:
         explicit
-        DeVirtualizer(uint8_t *Map,
+        DeVirtualizer(uint8_t *const Map,
                       const SegmentInfoCollection &Collection) noexcept
         : Map(Map), Collection(Collection) {}
 
@@ -34,7 +34,8 @@ namespace MachO {
 
         template <typename T>
         [[nodiscard]] T *
-        GetDataAtAddress(uint64_t Address, T **EndOut = nullptr) const noexcept
+        GetDataAtAddress(const uint64_t Address,
+                         T **const EndOut = nullptr) const noexcept
         {
             const auto Result =
                 Collection.GetPtrForVirtualAddr<T>(Map,
@@ -46,9 +47,9 @@ namespace MachO {
 
         template <typename T>
         [[nodiscard]] T *
-        GetDataAtAddress(uint64_t Address,
-                         uint64_t Size,
-                         T **EndOut = nullptr) const noexcept
+        GetDataAtAddress(const uint64_t Address,
+                         const uint64_t Size,
+                         T **const EndOut = nullptr) const noexcept
         {
             const auto Result =
                 Collection.GetPtrForVirtualAddr<T>(Map, Address, Size, EndOut);
@@ -58,8 +59,9 @@ namespace MachO {
 
         template <typename T>
         [[nodiscard]] T *
-        GetDataAtAddressIgnoreSections(uint64_t Address,
-                                       T **EndOut = nullptr) const noexcept
+        GetDataAtAddressIgnoreSections(
+            const uint64_t Address,
+            T **const EndOut = nullptr) const noexcept
         {
             const auto Result =
                 Collection.GetPtrForVirtualAddrIgnoreSections<T>(Map,
@@ -71,9 +73,10 @@ namespace MachO {
 
         template <typename T>
         [[nodiscard]] T *
-        GetDataAtAddressIgnoreSections(uint64_t Address,
-                                       uint64_t Size,
-                                       T **EndOut = nullptr) const noexcept
+        GetDataAtAddressIgnoreSections(
+            const uint64_t Address,
+            const uint64_t Size,
+            T **const EndOut = nullptr) const noexcept
         {
             const auto Result =
                 Collection.GetPtrForVirtualAddrIgnoreSections<T>(Map,
@@ -103,7 +106,7 @@ namespace MachO {
 
     struct ConstDeVirtualizer : public DeVirtualizer {
         explicit ConstDeVirtualizer(
-            const uint8_t *Map,
+            const uint8_t *const Map,
             const SegmentInfoCollection &Collection) noexcept
         : DeVirtualizer(const_cast<uint8_t *>(Map), Collection) {}
 
@@ -114,7 +117,8 @@ namespace MachO {
 
         template <typename T>
         [[nodiscard]] T *
-        GetDataAtAddress(uint64_t Address, T **EndOut = nullptr) const noexcept
+        GetDataAtAddress(const uint64_t Address,
+                         T **const EndOut = nullptr) const noexcept
         {
             const auto Result =
                 Collection.GetPtrForVirtualAddr<T>(Map,
@@ -126,9 +130,9 @@ namespace MachO {
 
         template <typename T>
         [[nodiscard]] T *
-        GetDataAtAddress(uint64_t Address,
-                         uint64_t Size,
-                         T **EndOut = nullptr) const noexcept
+        GetDataAtAddress(const uint64_t Address,
+                         const uint64_t Size,
+                         T **const EndOut = nullptr) const noexcept
         {
             const auto Result =
                 Collection.GetPtrForVirtualAddr<T>(Map, Address, Size, EndOut);

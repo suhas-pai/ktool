@@ -18,7 +18,7 @@
 #include "MemoryProtections.h"
 
 namespace MachO {
-    constexpr static inline auto KindRequiredByDyld = 0x80000000ul;
+    constexpr static auto KindRequiredByDyld = 0x80000000ul;
     enum class LoadCommandKind : uint32_t {
         Segment = 1,
         SymbolTable,
@@ -85,9 +85,9 @@ namespace MachO {
 
     [[nodiscard]] inline SizeRangeError
     CheckSizeRange(const ConstMemoryMap &Map,
-                   uint32_t Offset,
-                   uint32_t Size,
-                   uint64_t *EndOut) noexcept
+                   const uint32_t Offset,
+                   const uint32_t Size,
+                   uint64_t *const EndOut) noexcept
     {
         auto End = static_cast<uint64_t>(Offset) + Size;
         auto Range = LocationRange::CreateWithEnd(Offset, End);
@@ -131,11 +131,13 @@ namespace MachO {
         const uint8_t *End;
     public:
         explicit
-        NakedOpcodeList(const uint8_t *Begin, const uint8_t *End) noexcept
+        NakedOpcodeList(const uint8_t *const Begin,
+                        const uint8_t *const End) noexcept
         : Begin(Begin), End(End) {}
 
         explicit
-        NakedOpcodeList(const uint8_t *Begin, uint32_t Size) noexcept
+        NakedOpcodeList(const uint8_t *const Begin,
+                        const uint32_t Size) noexcept
         : Begin(Begin), End(this->Begin + Size) {}
 
         struct EndIterator {};
@@ -148,7 +150,8 @@ namespace MachO {
             const uint8_t *End;
         public:
             explicit
-            IteratorInfo(const uint8_t *Iter, const uint8_t *End) noexcept
+            IteratorInfo(const uint8_t *const Iter,
+                         const uint8_t *const End) noexcept
             : Iter(Iter), End(End) {}
 
             [[nodiscard]] inline const uint8_t *getPtr() const noexcept {
@@ -198,7 +201,9 @@ namespace MachO {
         protected:
             IteratorInfo Info;
         public:
-            explicit Iterator(const uint8_t *Iter, const uint8_t *End) noexcept
+            explicit
+            Iterator(const uint8_t *const Iter,
+                     const uint8_t *const End) noexcept
             : Info(Iter, End) {}
 
             [[nodiscard]] inline const uint8_t *getPtr() const noexcept {
@@ -246,7 +251,7 @@ namespace MachO {
                 return ++(*this);
             }
 
-            inline Iterator &operator+=(uint64_t Amt) noexcept {
+            inline Iterator &operator+=(const uint64_t Amt) noexcept {
                 for (auto I = uint64_t(); I != Amt; I++) {
                     (*this)++;
                 }
@@ -273,7 +278,7 @@ namespace MachO {
     };
 
     [[nodiscard]] constexpr
-    std::string_view SegmentFlagsGetName(SegmentFlagsEnum Val) noexcept {
+    std::string_view SegmentFlagsGetName(const SegmentFlagsEnum Val) noexcept {
         switch (Val) {
             using Enum = SegmentFlagsEnum;
             case Enum::HighVM:
@@ -290,7 +295,7 @@ namespace MachO {
     }
 
     [[nodiscard]] constexpr
-    std::string_view SegmentFlagsGetDesc(SegmentFlagsEnum Val) noexcept {
+    std::string_view SegmentFlagsGetDesc(const SegmentFlagsEnum Val) noexcept {
         switch (Val) {
             using Enum = SegmentFlagsEnum;
             case Enum::HighVM:
@@ -314,7 +319,7 @@ namespace MachO {
         using FlagIntegerType = std::underlying_type_t<FlagEnum>;
 
         constexpr SegmentFlags() noexcept = default;
-        constexpr SegmentFlags(FlagIntegerType Integer) noexcept
+        constexpr SegmentFlags(const FlagIntegerType Integer) noexcept
         : Base(Integer) {}
 
         [[nodiscard]] constexpr bool isHighVM() const noexcept {
@@ -338,35 +343,34 @@ namespace MachO {
             return hasFlag(FlagEnum::ReadOnlyAfterFixup);
         }
 
-        constexpr SegmentFlags &setHighVM(bool Value = true) noexcept {
+        constexpr SegmentFlags &setHighVM(const bool Value = true) noexcept {
             setValueForFlag(FlagEnum::HighVM, Value);
             return *this;
         }
 
         constexpr
-        inline SegmentFlags &setFixedVMLibary(bool Value = true) noexcept {
+        SegmentFlags &setFixedVMLibary(const bool Value = true) noexcept {
             setValueForFlag(FlagEnum::FixedVMLibary, Value);
             return *this;
         }
 
         constexpr
-        inline SegmentFlags &setNoRelocations(bool Value = true) noexcept {
+        SegmentFlags &setNoRelocations(const bool Value = true) noexcept {
             setValueForFlag(FlagEnum::NoRelocations, Value);
             return *this;
         }
 
         constexpr
-        inline SegmentFlags &setIsProtected(bool Value = true) noexcept {
+        SegmentFlags &setIsProtected(const bool Value = true) noexcept {
             setValueForFlag(FlagEnum::ProtectionVersion1, Value);
             return *this;
         }
 
         constexpr
-        inline SegmentFlags &setReadOnlyAfterFixup(bool Value = true) noexcept {
+        SegmentFlags &setReadOnlyAfterFixup(const bool Value = true) noexcept {
             setValueForFlag(FlagEnum::ReadOnlyAfterFixup, Value);
             return *this;
         }
-
     };
 
     enum class SegmentSectionKind {
@@ -397,7 +401,7 @@ namespace MachO {
     };
 
     constexpr std::string_view
-    SegmentSectionKindGetName(SegmentSectionKind Type) noexcept {
+    SegmentSectionKindGetName(const SegmentSectionKind Type) noexcept {
         using Enum = SegmentSectionKind;
         switch (Type) {
             case Enum::Regular:
@@ -452,7 +456,7 @@ namespace MachO {
     }
 
     constexpr std::string_view
-    SegmentSectionKindGetDescription(SegmentSectionKind Type) noexcept {
+    SegmentSectionKindGetDescription(const SegmentSectionKind Type) noexcept {
         using Enum = SegmentSectionKind;
         switch (Type) {
             case Enum::Regular:
@@ -506,10 +510,10 @@ namespace MachO {
         return std::string_view();
     }
 
-    constexpr static inline auto SegmentSectionUserSettableAttributesMask =
+    constexpr static auto SegmentSectionUserSettableAttributesMask =
         static_cast<uint32_t>(0xff000000);
 
-    constexpr static inline auto SegmentSectionSystemSettableAttributesMask =
+    constexpr static auto SegmentSectionSystemSettableAttributesMask =
         static_cast<uint32_t>(0xff000000);
 
     enum class SegmentSectionAttributesMasks : uint32_t {
@@ -588,62 +592,61 @@ namespace MachO {
         }
 
         constexpr SegmentSectionAttributes &
-        setIsAllInstructions(bool Value = true) noexcept {
+        setIsAllInstructions(const bool Value = true) noexcept {
             setValueForMask(MaskKind::IsAllInstructions, Value);
             return *this;
         }
 
         constexpr SegmentSectionAttributes &
-        setNoRanlibTableOfContents(bool Value) noexcept {
+        setNoRanlibTableOfContents(const bool Value) noexcept {
             setValueForMask(MaskKind::NoRanlibTableOfContents, Value);
             return *this;
         }
 
         constexpr SegmentSectionAttributes &
-        setStripStaticSymbols(bool Value = true) noexcept {
+        setStripStaticSymbols(const bool Value = true) noexcept {
             setValueForMask(MaskKind::StripStaticSymbols, Value);
             return *this;
         }
 
         constexpr SegmentSectionAttributes &
-        setNoDeadStripping(bool Value = true) noexcept {
+        setNoDeadStripping(const bool Value = true) noexcept {
             setValueForMask(MaskKind::NoDeadStripping, Value);
             return *this;
         }
 
-        constexpr
-        SegmentSectionAttributes &setLiveSupport(bool Value = true) noexcept {
+        constexpr SegmentSectionAttributes &
+        setLiveSupport(const bool Value = true) noexcept {
             setValueForMask(MaskKind::LiveSupport, Value);
             return *this;
         }
 
         constexpr SegmentSectionAttributes &
-        setSelfModifyingCode(bool Value = true) noexcept {
+        setSelfModifyingCode(const bool Value = true) noexcept {
             setValueForMask(MaskKind::SelfModifyingCode, Value);
             return *this;
         }
 
         constexpr SegmentSectionAttributes &
-        setIsDebugSection(bool Value = true) noexcept {
+        setIsDebugSection(const bool Value = true) noexcept {
             setValueForMask(MaskKind::IsDebugSection, Value);
             return *this;
         }
 
         constexpr SegmentSectionAttributes &
-        setHasSomeInstructions(bool Value = true) noexcept {
+        setHasSomeInstructions(const bool Value = true) noexcept {
             setValueForMask(MaskKind::HasSomeInstructions, Value);
             return *this;
         }
 
         constexpr SegmentSectionAttributes &
-        setHasExternalRelocEntries(bool Value = true) noexcept {
+        setHasExternalRelocEntries(const bool Value = true) noexcept {
             setValueForMask(MaskKind::HasExternalRelocEntries, Value);
             return *this;
         }
 
-        constexpr
-        SegmentSectionAttributes &
-        setHasLocalRelocEntries(bool Value = true) noexcept {
+        constexpr SegmentSectionAttributes &
+        setHasLocalRelocEntries(const bool Value = true) noexcept {
             setValueForMask(MaskKind::HasLocalRelocEntries, Value);
             return *this;
         }
@@ -676,14 +679,14 @@ namespace MachO {
             return Kind(getValueForMask(MaskType::Kind));
         }
 
-        [[nodiscard]] constexpr
-        SegmentSectionFlags &setAttributes(Attributes Attributes) noexcept {
+        [[nodiscard]] constexpr SegmentSectionFlags &
+        setAttributes(const Attributes Attributes) noexcept {
             setValueForMask(MaskType::Attributes, Attributes.value());
             return *this;
         }
 
         [[nodiscard]]
-        constexpr SegmentSectionFlags &setType(Kind Kind) noexcept {
+        constexpr SegmentSectionFlags &setType(const Kind Kind) noexcept {
             setValueForMask(MaskType::Kind, static_cast<MaskIntegerType>(Kind));
             return *this;
         }

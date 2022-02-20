@@ -47,7 +47,7 @@ namespace MachO::ObjcParse {
     AddClassToList(
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
         ObjcClassInfo &&Class,
-        uint64_t ClassAddr) noexcept
+        const uint64_t ClassAddr) noexcept
     {
         const auto Ptr =
             List.insert({
@@ -59,8 +59,8 @@ namespace MachO::ObjcParse {
     }
 
     inline void
-    SetSuperClassForClassInfo(ObjcClassInfo *Super,
-                              ObjcClassInfo *Info) noexcept
+    SetSuperClassForClassInfo(ObjcClassInfo *const Super,
+                              ObjcClassInfo *const Info) noexcept
     {
         if (Super != Info) {
             Super->AddChild(*Info);
@@ -70,7 +70,7 @@ namespace MachO::ObjcParse {
     }
 
     inline std::string_view
-    GetNameFromBindActionSymbol(std::string_view Symbol) noexcept {
+    GetNameFromBindActionSymbol(const std::string_view Symbol) noexcept {
         constexpr auto Prefix = std::string_view("_OBJC_CLASS_$_");
         if (Symbol.compare(0, Prefix.size(), Prefix) == 0) {
             return std::string_view(Symbol.data() + Prefix.length());
@@ -81,7 +81,7 @@ namespace MachO::ObjcParse {
 
     inline void
     SetSuperWithBindAction(
-        ObjcClassInfo *Info,
+        ObjcClassInfo *const Info,
         const BindActionCollection::Info &Action,
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
         std::vector<ObjcClassInfo *> &ExternalAndRootClassList) noexcept
@@ -121,12 +121,12 @@ namespace MachO::ObjcParse {
 
     template <PointerKind Kind, typename S, typename T>
     static void
-    ParseObjcClass(uint64_t Addr,
+    ParseObjcClass(const uint64_t Addr,
                    const S &DeVirtualizeAddr,
                    const T &DeVirtualizeString,
                    const BindActionCollection &BindCollection,
                    ObjcClassInfo &Info,
-                   bool IsBigEndian) noexcept
+                   const bool IsBigEndian) noexcept
     {
         using ClassType = ClassTypeCalculator<Kind>;
         using ClassRoType = ClassRoTypeCalculator<Kind>;
@@ -168,8 +168,8 @@ namespace MachO::ObjcParse {
     SetSuperIfExists(
         const BindActionCollection &BindCollection,
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
-        ObjcClassInfo *Info,
-        bool IsBigEndian) noexcept
+        ObjcClassInfo *const Info,
+        const bool IsBigEndian) noexcept
     {
         const auto Addr = reinterpret_cast<uint64_t>(Info->getSuper()) & ~1;
         const auto Iter = List.find(Addr);
@@ -185,13 +185,13 @@ namespace MachO::ObjcParse {
     template <PointerKind Kind, typename S, typename T>
     static void
     FixSuperForClassInfo(
-        ObjcClassInfo *Info,
+        ObjcClassInfo *const Info,
         const S &DeVirtualizeAddr,
         const T &DeVirtualizeString,
         const BindActionCollection &BindCollection,
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
         std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
-        bool IsBigEndian) noexcept
+        const bool IsBigEndian) noexcept
     {
         // BindAddr points to the `SuperClass` field inside ObjcClass[64]
 
@@ -246,12 +246,12 @@ namespace MachO::ObjcParse {
     template <PointerKind Kind, typename S, typename T>
     static void
     HandleAddrForObjcClass(
-        uint64_t Addr,
+        const uint64_t Addr,
         const S &DeVirtualizeAddr,
         const T &DeVirtualizeString,
         const BindActionCollection &BindCollection,
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
-        bool IsBigEndian) noexcept
+        const bool IsBigEndian) noexcept
     {
         if (Addr == 0) {
             return;
@@ -278,7 +278,7 @@ namespace MachO::ObjcParse {
         const BindActionCollection &BindCollection,
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
         std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
-        bool IsBigEndian) noexcept
+        const bool IsBigEndian) noexcept
     {
         for (auto &Iter : List) {
             const auto &Info = Iter.second.get();
@@ -305,14 +305,14 @@ namespace MachO::ObjcParse {
     template <PointerKind Kind, typename S, typename T>
     static Error
     ParseObjcClassListSection(
-        const uint8_t *Begin,
-        const uint8_t *End,
+        const uint8_t *const Begin,
+        const uint8_t *const End,
         const S &DeVirtualizeAddr,
         const T &DeVirtualizeString,
         const BindActionCollection &BindCollection,
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &ClassList,
         std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
-        bool IsBigEndian) noexcept
+        const bool IsBigEndian) noexcept
     {
         using PtrAddrType = PointerAddrConstTypeFromKind<Kind>;
         if (!IntegerIsPointerAligned<Kind>(End - Begin)) {
@@ -340,9 +340,9 @@ namespace MachO::ObjcParse {
     }
 
     [[nodiscard]] inline ObjcClassInfo
-    CreateExternalClass(std::string_view Name,
-                        uint64_t DylibOrdinal,
-                        uint64_t BindAddr) noexcept
+    CreateExternalClass(const std::string_view Name,
+                        const uint64_t DylibOrdinal,
+                        const uint64_t BindAddr) noexcept
     {
         auto NewInfo = ObjcClassInfo();
 
@@ -358,14 +358,14 @@ namespace MachO::ObjcParse {
     template <PointerKind Kind, typename S, typename T>
     static Error
     ParseObjcClassRefsSection(
-        const uint8_t *Map,
-        const SectionInfo *SectionInfo,
+        const uint8_t *const Map,
+        const SectionInfo *const SectionInfo,
         const S &DeVirtualizeAddr,
         const T &DeVirtualizeString,
         const BindActionCollection &BindCollection,
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &ClassList,
         std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
-        bool IsBigEndian) noexcept
+        const bool IsBigEndian) noexcept
     {
         using PointerAddrType = PointerAddrConstTypeFromKind<Kind>;
 
@@ -380,7 +380,9 @@ namespace MachO::ObjcParse {
         auto ListAddr = SectionInfo->getMemoryRange().getBegin();
 
         for (const auto &Addr : List) {
-            if (const auto *It = BindCollection.GetInfoForAddress(ListAddr)) {
+            if (const auto *const It =
+                    BindCollection.GetInfoForAddress(ListAddr))
+            {
                 const auto Name = GetNameFromBindActionSymbol(It->getSymbol());
                 auto NewInfo =
                     CreateExternalClass(Name, It->getDylibOrdinal(), ListAddr);

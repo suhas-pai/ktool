@@ -21,17 +21,17 @@
 namespace MachO {
     struct ExportTrieEntryCollection;
     struct ExportTrieExportChildNode;
-    struct ExportTrieChildNode : public BasicTreeNode {
+    struct ExportTrieChildNode : public TreeNode {
         friend ExportTrieEntryCollection;
     protected:
         ExportTrieExportKind Kind;
         std::string String;
     public:
         ~ExportTrieChildNode() noexcept = default;
-        using BasicTreeNode::BasicTreeNode;
+        using TreeNode::TreeNode;
 
         [[nodiscard]]
-        inline BasicTreeNode *createNew() const noexcept override {
+        inline TreeNode *createNew() const noexcept override {
             return new ExportTrieChildNode;
         }
 
@@ -60,22 +60,22 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        static inline ExportTrieChildNode &get(BasicTreeNode &Node) noexcept {
+        static inline ExportTrieChildNode &get(TreeNode &Node) noexcept {
             return reinterpret_cast<ExportTrieChildNode &>(Node);
         }
 
         [[nodiscard]] static inline
-        const ExportTrieChildNode &get(const BasicTreeNode &Node) noexcept {
+        const ExportTrieChildNode &get(const TreeNode &Node) noexcept {
             return reinterpret_cast<const ExportTrieChildNode &>(Node);
         }
 
         [[nodiscard]]
-        static inline ExportTrieChildNode *get(BasicTreeNode *Node) noexcept {
+        static inline ExportTrieChildNode *get(TreeNode *Node) noexcept {
             return reinterpret_cast<ExportTrieChildNode *>(Node);
         }
 
         [[nodiscard]] static inline
-        const ExportTrieChildNode *get(const BasicTreeNode *Node) noexcept {
+        const ExportTrieChildNode *get(const TreeNode *Node) noexcept {
             return reinterpret_cast<const ExportTrieChildNode *>(Node);
         }
 
@@ -159,7 +159,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        inline BasicTreeNode *createNew() const noexcept override {
+        inline TreeNode *createNew() const noexcept override {
             return new ExportTrieExportChildNode;
         }
 
@@ -190,7 +190,7 @@ namespace MachO {
         }
     };
 
-    struct ExportTrieEntryCollection : public BasicTree {
+    struct ExportTrieEntryCollection : public Tree {
     public:
         using ChildNode = ExportTrieChildNode;
         using ExportChildNode = ExportTrieExportChildNode;
@@ -223,8 +223,8 @@ namespace MachO {
 
         inline
         ChildNode *RemoveNode(ChildNode &Ref, bool RemoveParentLeafs) noexcept {
-            auto &Node = reinterpret_cast<BasicTreeNode &>(Ref);
-            const auto Result = BasicTree::RemoveNode(Node, RemoveParentLeafs);
+            auto &Node = reinterpret_cast<TreeNode &>(Ref);
+            const auto Result = Tree::RemoveNode(Node, RemoveParentLeafs);
 
             return reinterpret_cast<ChildNode *>(Result);
         }
@@ -302,7 +302,7 @@ namespace MachO {
         }
     };
 
-    struct ExportTrieExportCollection : public BasicTree {
+    struct ExportTrieExportCollection : public Tree {
     public:
         using EntryInfo = ExportTrieExportCollectionEntryInfo;
         using Error = ExportTrieParseError;

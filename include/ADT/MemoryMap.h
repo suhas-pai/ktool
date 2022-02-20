@@ -114,7 +114,7 @@ public:
 
 struct MemoryMap : public ConstMemoryMap {
 public:
-    constexpr MemoryMap(uint8_t *Begin, uint8_t *End) noexcept
+    constexpr MemoryMap(uint8_t *const Begin, uint8_t *const End) noexcept
     : ConstMemoryMap(Begin, End) {}
 
     [[nodiscard]] inline uint8_t *getBegin() const noexcept {
@@ -136,18 +136,18 @@ public:
     }
 
     [[nodiscard]]
-    constexpr MemoryMap mapFromPtr(uint8_t *Begin) const noexcept {
+    constexpr MemoryMap mapFromPtr(uint8_t *const Begin) const noexcept {
         assert(containsPtr(Begin));
         return MemoryMap(Begin, getEnd());
     }
 
     [[nodiscard]] constexpr
-    inline ConstMemoryMap constMapFromPtr(uint8_t *Begin) const noexcept {
+    ConstMemoryMap constMapFromPtr(const uint8_t *Begin) const noexcept {
         return ConstMemoryMap::mapFromPtr(Begin);
     }
 
     [[nodiscard]]
-    constexpr MemoryMap mapFromOffset(uint64_t Offset) const noexcept {
+    constexpr MemoryMap mapFromOffset(const uint64_t Offset) const noexcept {
         assert(containsOffset(Offset));
         return MemoryMap(getBegin() + Offset, getEnd());
     }

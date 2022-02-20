@@ -10,12 +10,12 @@
 #include "PrintUtils.h"
 
 int
-PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
-                                       const char *SegmentName,
-                                       const char *SectionName,
-                                       bool Pad,
-                                       const char *Prefix,
-                                       const char *Suffix) noexcept
+PrintUtilsWriteMachOSegmentSectionPair(FILE *const OutFile,
+                                       const char *const SegmentName,
+                                       const char *const SectionName,
+                                       const bool Pad,
+                                       const char *const Prefix,
+                                       const char *const Suffix) noexcept
 {
     constexpr static auto NameLengthMax = 16;
     auto WrittenOut = fprintf(OutFile, "%s", Prefix);
@@ -62,12 +62,12 @@ PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
 }
 
 int
-PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
-                                       const MachO::SegmentInfo *Segment,
-                                       const MachO::SectionInfo *Section,
-                                       bool Pad,
-                                       const char *Prefix,
-                                       const char *Suffix) noexcept
+PrintUtilsWriteMachOSegmentSectionPair(FILE *const OutFile,
+                                       const MachO::SegmentInfo *const Segment,
+                                       const MachO::SectionInfo *const Section,
+                                       const bool Pad,
+                                       const char *const Prefix,
+                                       const char *const Suffix) noexcept
 {
     auto SegmentName = static_cast<const char *>(nullptr);
     auto SectionName = static_cast<const char *>(nullptr);

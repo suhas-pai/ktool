@@ -25,21 +25,23 @@ namespace DscImage {
              bool Is64Bit,
              Error *ErrorOut) noexcept;
 
-        [[nodiscard]] inline
-        uint64_t getFullAddressFromRelative(uint64_t Relative) const noexcept {
+        [[nodiscard]] inline uint64_t
+        getFullAddressFromRelative(const uint64_t Relative) const noexcept {
             return ImageAddress + Relative;
         }
 
         [[nodiscard]] inline const SegmentInfo *
-        FindSegmentWithImageRelativeAddress(uint64_t Address) const noexcept {
+        FindSegmentWithImageRelativeAddress(const uint64_t Address)
+            const noexcept
+        {
             const auto FullAddr = getFullAddressFromRelative(Address);
             return FindSegmentContainingAddress(FullAddr);
         }
 
         [[nodiscard]] inline const SectionInfo *
         FindSectionWithImageRelativeAddress(
-            uint64_t Address,
-            const SegmentInfo **SegmentOut = nullptr) const noexcept
+            const uint64_t Address,
+            const SegmentInfo **const SegmentOut = nullptr) const noexcept
         {
             const auto FullAddr = getFullAddressFromRelative(Address);
             if (const auto Segment = FindSegmentContainingAddress(FullAddr)) {

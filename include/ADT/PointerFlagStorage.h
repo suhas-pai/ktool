@@ -31,7 +31,7 @@ public:
         return Ptr;
     }
 
-    constexpr PointerFlagStorage &setFlag(bool Flag) const noexcept {
+    constexpr PointerFlagStorage &setFlag(const bool Flag) const noexcept {
         reinterpret_cast<uint64_t &>(Ptr) |= static_cast<uint64_t>(Flag);
         return *this;
     }

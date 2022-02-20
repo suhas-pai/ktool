@@ -258,7 +258,7 @@ HandleTreeOption(
         [&](FILE *OutFile,
             int WrittenOut,
             uint64_t DepthLevel,
-            const BasicTreeNode &Node) noexcept
+            const TreeNode &Node) noexcept
     {
         const auto &Info =
             reinterpret_cast<const MachO::ExportTrieChildNode &>(Node);
@@ -809,7 +809,7 @@ AddSectionRequirement(
 
 struct PrintExportTrieOperation::Options
 PrintExportTrieOperation::ParseOptionsImpl(const ArgvArray &Argv,
-                                           int *IndexOut) noexcept
+                                           int *const IndexOut) noexcept
 {
     auto Index = int();
     struct Options Options;

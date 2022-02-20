@@ -18,14 +18,13 @@ struct PrintSharedLibrariesOperation : public Operation {
 public:
     constexpr static auto OpKind = OperationKind::PrintSharedLibraries;
 
-    [[nodiscard]]
-    constexpr static inline bool IsOfKind(const Operation &Op) noexcept {
+    [[nodiscard]] constexpr static bool IsOfKind(const Operation &Op) noexcept {
         return (Op.getKind() == OpKind);
     }
 
     struct Options : public Operation::Options {
         [[nodiscard]] constexpr
-        static inline bool IsOfKind(const Operation::Options &Opt) noexcept {
+        static bool IsOfKind(const Operation::Options &Opt) noexcept {
             return (Opt.getKind() == OpKind);
         }
 
@@ -59,7 +58,7 @@ public:
     int Run(const MemoryObject &Object) const noexcept override;
 
     [[nodiscard]]
-    constexpr static bool SupportsObjectKind(ObjectKind Kind) noexcept {
+    constexpr static bool SupportsObjectKind(const ObjectKind Kind) noexcept {
         switch (Kind) {
             case ObjectKind::None:
                 assert(0 && "SupportsObjectKind() got Object-Kind None");

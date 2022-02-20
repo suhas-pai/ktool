@@ -37,7 +37,7 @@ namespace MachO {
     };
 
     [[nodiscard]] constexpr std::string_view
-    BindByteOpcodeGetName(BindByteOpcode Opcode) noexcept {
+    BindByteOpcodeGetName(const BindByteOpcode Opcode) noexcept {
         using Enum = BindByteOpcode;
         switch (Opcode) {
             case Enum::Done:
@@ -74,7 +74,7 @@ namespace MachO {
     }
 
     [[nodiscard]] constexpr std::string_view
-    BindByteOpcodeGetDescription(BindByteOpcode Opcode) noexcept {
+    BindByteOpcodeGetDescription(const BindByteOpcode Opcode) noexcept {
         using Enum = BindByteOpcode;
         switch (Opcode) {
             case Enum::Done:
@@ -122,8 +122,8 @@ namespace MachO {
         TextPcrel32
     };
 
-    [[nodiscard]] constexpr
-    static std::string_view BindWriteKindGetName(BindWriteKind Kind) noexcept {
+    [[nodiscard]] constexpr static
+    std::string_view BindWriteKindGetName(const BindWriteKind Kind) noexcept {
         using Enum = BindWriteKind;
         switch (Kind) {
             case Enum::None:
@@ -139,8 +139,8 @@ namespace MachO {
         return std::string_view();
     }
 
-    [[nodiscard]] constexpr
-    std::string_view BindWriteKindGetDescription(BindWriteKind Kind) noexcept {
+    [[nodiscard]] constexpr std::string_view
+    BindWriteKindGetDescription(const BindWriteKind Kind) noexcept {
         using Enum = BindWriteKind;
         switch (Kind) {
             case Enum::None:
@@ -174,7 +174,7 @@ namespace MachO {
 
     [[nodiscard]] constexpr std::string_view
     BindByteDylibSpecialOrdinalGetName(
-        BindByteDylibSpecialOrdinal Ordinal) noexcept
+        const BindByteDylibSpecialOrdinal Ordinal) noexcept
     {
         using Enum = BindByteDylibSpecialOrdinal;
         switch (Ordinal) {
@@ -193,7 +193,7 @@ namespace MachO {
 
     [[nodiscard]] constexpr std::string_view
     BindByteDylibSpecialOrdinalGetDescription(
-        BindByteDylibSpecialOrdinal Ordinal) noexcept
+        const BindByteDylibSpecialOrdinal Ordinal) noexcept
     {
         using Enum = BindByteDylibSpecialOrdinal;
         switch (Ordinal) {
@@ -254,14 +254,14 @@ namespace MachO {
             return getValueForMaskNoShift(Masks::Immediate);
         }
 
-        constexpr BindByte &setOpcode(Opcode Opcode) noexcept {
+        constexpr BindByte &setOpcode(const Opcode Opcode) noexcept {
             const auto OpcodeInt = static_cast<IntegerType>(Opcode);
 
             setValueForMaskNoShift(Masks::Opcode, OpcodeInt);
             return *this;
         }
 
-        constexpr BindByte &setImmediate(uint8_t Immediate) noexcept {
+        constexpr BindByte &setImmediate(const uint8_t Immediate) noexcept {
             setValueForMaskNoShift(Masks::Immediate, Immediate);
             return *this;
         }
@@ -353,8 +353,8 @@ namespace MachO {
         bool ReachedEnd : 1;
     public:
         constexpr explicit
-        BindOpcodeIteratorBase(const BindByte *Begin,
-                               const BindByte *End) noexcept
+        BindOpcodeIteratorBase(const BindByte *const Begin,
+                               const BindByte *const End) noexcept
         : Iter(reinterpret_cast<const uint8_t *>(Begin),
                reinterpret_cast<const uint8_t *>(End)),
           ReachedEnd(false)
@@ -367,8 +367,8 @@ namespace MachO {
 
         constexpr explicit
         BindOpcodeIteratorBase(
-            const BindByte *Begin,
-            const BindByte *End,
+            const BindByte *const Begin,
+            const BindByte *const End,
             std::unique_ptr<BindOpcodeIterateInfo> &&Info) noexcept
         : Iter(reinterpret_cast<const uint8_t *>(Begin),
                reinterpret_cast<const uint8_t *>(End)),
@@ -388,7 +388,7 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        inline uint64_t getOffset(const BindByte *Ptr) const noexcept {
+        inline uint64_t getOffset(const BindByte *const Ptr) const noexcept {
             const auto Base = reinterpret_cast<const uint8_t *>(Ptr);
 
             assert(Base <= Iter->getPtr());
@@ -657,8 +657,8 @@ namespace MachO {
         bool Is64Bit : 1;
     public:
         constexpr explicit
-        BindOpcodeListBase(const uint8_t *Begin,
-                           const uint8_t *End,
+        BindOpcodeListBase(const uint8_t *const Begin,
+                           const uint8_t *const End,
                            bool Is64Bit) noexcept
         : Begin(reinterpret_cast<const BindByte *>(Begin)),
           End(reinterpret_cast<const BindByte *>(End)),
@@ -682,7 +682,9 @@ namespace MachO {
     struct BindNakedOpcodeList : public NakedOpcodeList {
         using NakedOpcodeList::NakedOpcodeList;
         struct Iterator : public NakedOpcodeList::Iterator {
-            explicit Iterator(const uint8_t *Iter, const uint8_t *End) noexcept
+            explicit
+            Iterator(const uint8_t *const Iter,
+                     const uint8_t *const End) noexcept
             : NakedOpcodeList::Iterator(Iter, End) {}
 
             [[nodiscard]] inline BindByte getByte() const noexcept {
@@ -760,8 +762,8 @@ namespace MachO {
         bool NewSymbolName : 1;
         SpecificCapArray<BindOpcodeThreadedData> ThreadedDataTable;
 
-        [[nodiscard]]
-        constexpr static inline bool canIgnoreError(ErrorEnum Error) noexcept {
+        [[nodiscard]] constexpr
+        static inline bool canIgnoreError(const ErrorEnum Error) noexcept {
             switch (Error) {
                 case ErrorEnum::None:
                 case ErrorEnum::EmptySymbol:
@@ -808,10 +810,10 @@ namespace MachO {
         bool Is64Bit : 1;
     public:
         constexpr explicit
-        BindActionIteratorBase(const uint8_t *Map,
+        BindActionIteratorBase(const uint8_t *const Map,
                                const SegmentInfoCollection &Collection,
-                               const BindByte *Begin,
-                               const BindByte *End,
+                               const BindByte *const Begin,
+                               const BindByte *const End,
                                bool Is64Bit) noexcept
         : Map(Map), SegmentCollection(Collection),
           Iter(Begin, End, std::make_unique<BindActionIterateInfo>()),
@@ -834,13 +836,13 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        inline uint64_t getOffset(const uint8_t *Base) const noexcept {
+        inline uint64_t getOffset(const uint8_t *const Base) const noexcept {
             assert(Base <= Iter->getPtr());
             return (Iter->getPtr() - Base);
         }
 
         [[nodiscard]]
-        inline uint64_t getOffset(const BindByte *Ptr) const noexcept {
+        inline uint64_t getOffset(const BindByte *const Ptr) const noexcept {
             const auto Base = reinterpret_cast<const uint8_t *>(Ptr);
 
             assert(Base <= Iter->getPtr());
@@ -850,7 +852,7 @@ namespace MachO {
         [[nodiscard]]
         constexpr bool IsValidForSegmentCollection(
             const SegmentInfoCollection &Collection,
-            bool Is64Bit) noexcept
+            const bool Is64Bit) noexcept
         {
             const auto &Info = getInfo();
             const auto SegmentIndex = Info.Action.SegmentIndex;
@@ -1044,7 +1046,9 @@ namespace MachO {
                 }
             }
 
-            const auto CheckChangeToSegmentAddress = [&](int64_t Add) noexcept {
+            const auto CheckChangeToSegmentAddress =
+                [&](const int64_t Add) noexcept
+            {
                 auto NewSegAddAddress = int64_t();
                 if (DoesAddOverflow(SegAddAddress, Add, &NewSegAddAddress)) {
                     return false;
@@ -1247,11 +1251,11 @@ namespace MachO {
         bool Is64Bit : 1;
     public:
         constexpr explicit
-        BindActionListBase(const uint8_t *Map,
+        BindActionListBase(const uint8_t *const Map,
                            const SegmentInfoCollection &Collection,
-                           const uint8_t *Begin,
-                           const uint8_t *End,
-                           bool Is64Bit) noexcept
+                           const uint8_t *const Begin,
+                           const uint8_t *const End,
+                           const bool Is64Bit) noexcept
         : Map(Map),
           SegmentCollection(Collection),
           Begin(reinterpret_cast<const BindByte *>(Begin)),
