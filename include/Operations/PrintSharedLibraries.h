@@ -18,8 +18,9 @@ struct PrintSharedLibrariesOperation : public Operation {
 public:
     constexpr static auto OpKind = OperationKind::PrintSharedLibraries;
 
-    [[nodiscard]] constexpr static bool IsOfKind(const Operation &Op) noexcept {
-        return (Op.getKind() == OpKind);
+    [[nodiscard]]
+    constexpr static bool IsOfKind(const Operation &Opt) noexcept {
+        return (Opt.getKind() == OpKind);
     }
 
     struct Options : public Operation::Options {
