@@ -31,12 +31,12 @@ public:
         Options() noexcept : Operation::Options(OpKind), Verbose(false) {}
 
         union {
-            uint8_t PrintAll = 7;
+            uint8_t PrintAll;
 
             struct {
-                bool PrintNormal : 1;
-                bool PrintLazy : 1;
-                bool PrintWeak : 1;
+                bool PrintNormal : 1 = true;
+                bool PrintLazy : 1 = true;
+                bool PrintWeak : 1 = true;
             };
         };
 

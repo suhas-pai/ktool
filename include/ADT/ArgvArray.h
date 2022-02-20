@@ -13,10 +13,10 @@
 
 #include "BasicContiguousList.h"
 
-struct ArgvArrayIterator : public BasicContiguousIterator<const char *const> {
+struct ArgvArrayIterator : public BasicContiguousIterator<const char *> {
     friend struct ArgvArrayList;
 private:
-    using Base = BasicContiguousIterator<const char *const>;
+    using Base = BasicContiguousIterator<const char *>;
 protected:
     const char *const *End;
 public:

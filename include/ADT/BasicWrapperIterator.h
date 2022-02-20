@@ -65,32 +65,32 @@ public:
     }
 
     [[nodiscard]]
-    constexpr bool operator==(const BasicWrapperIterator &Rhs) noexcept {
+    constexpr bool operator==(const BasicWrapperIterator &Rhs) const noexcept {
         return (Item == Rhs.Item);
     }
 
     [[nodiscard]]
-    constexpr bool operator!=(const BasicWrapperIterator &Rhs) noexcept {
+    constexpr bool operator!=(const BasicWrapperIterator &Rhs) const noexcept {
         return (Item != Rhs.Item);
     }
 
     [[nodiscard]]
-    constexpr bool operator<(const BasicWrapperIterator &Rhs) noexcept {
+    constexpr bool operator<(const BasicWrapperIterator &Rhs) const noexcept {
         return (Item < Rhs.Item);
     }
 
     [[nodiscard]]
-    constexpr bool operator<=(const BasicWrapperIterator &Rhs) noexcept {
+    constexpr bool operator<=(const BasicWrapperIterator &Rhs) const noexcept {
         return (Item <= Rhs.Item);
     }
 
     [[nodiscard]]
-    constexpr bool operator>(const BasicWrapperIterator &Rhs) noexcept {
+    constexpr bool operator>(const BasicWrapperIterator &Rhs) const noexcept {
         return (Item > Rhs.Item);
     }
 
     [[nodiscard]]
-    constexpr bool operator>=(const BasicWrapperIterator &Rhs) noexcept {
+    constexpr bool operator>=(const BasicWrapperIterator &Rhs) const noexcept {
         return (Item >= Rhs.Item);
     }
 
