@@ -8,8 +8,8 @@
 
 #pragma once
 
+#include <concepts>
 #include <cstdint>
-#include <type_traits>
 
 struct EndianSwitcherFuncs {
     [[nodiscard]]
@@ -44,7 +44,7 @@ struct EndianSwitcherFuncs {
     }
 };
 
-template <typename T>
+template <std::integral T>
 struct EndianSwitcher {};
 
 template <>
@@ -111,18 +111,12 @@ struct EndianSwitcher<uint64_t> {
     }
 };
 
-template <typename T>
+template <std::integral T>
 [[nodiscard]] constexpr T SwitchEndian(T Value) noexcept {
-    static_assert(std::is_integral_v<T>, "T must be an integer-type");
     return EndianSwitcher<T>::SwitchEndian(Value);
 }
 
-template <typename T>
+template <std::integral T>
 [[nodiscard]] constexpr T SwitchEndianIf(T Value, bool Cond) noexcept {
-    static_assert(std::is_integral_v<T>, "T must be an integer-type");
-    if (Cond) {
-        Value = SwitchEndian(Value);
-    }
-
-    return Value;
+    return Cond ? SwitchEndian(Value) : Value;
 }

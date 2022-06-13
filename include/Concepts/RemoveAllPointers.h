@@ -1,5 +1,5 @@
 //
-//  include/TypeTraits/RemoveAllPointers.h
+//  include/Concepts/RemoveAllPointers.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/4/20.
@@ -11,12 +11,12 @@
 #include <type_traits>
 #include "Identity.h"
 
-namespace TypeTraits {
+namespace Concepts {
     template<typename T>
     struct RemoveAllPointers :
         std::conditional_t<std::is_pointer_v<T>,
                            RemoveAllPointers<std::remove_pointer_t<T>>,
-                           TypeTraits::Identity<T>>
+                           Concepts::Identity<T>>
     {};
 
     template <typename T>

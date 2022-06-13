@@ -11,19 +11,17 @@
 #include <bitset>
 #include <cassert>
 
-#include "TypeTraits/IsEnumClass.h"
+#include "Concepts/EnumClass.h"
 
-template <typename T = uint64_t>
+template <std::integral T = uint64_t>
 [[nodiscard]]
 constexpr static T GetValueForMask(const T Integer, const T Mask) noexcept {
-    static_assert(std::is_integral_v<T>, "T must be an integer-type");
     return (Integer & Mask);
 }
 
-template <typename T = uint64_t>
+template <std::integral T = uint64_t>
 constexpr
 static T SetValueForMask(T &Integer, const T Mask, const T Value) noexcept {
-    static_assert(std::is_integral_v<T>, "T must be an integer-type");
     assert((Value & Mask) == Value &&
            "SetValueForMask(): Value falls outside mask");
 
@@ -33,17 +31,15 @@ static T SetValueForMask(T &Integer, const T Mask, const T Value) noexcept {
     return Integer;
 }
 
-template <typename T = uint64_t>
+template <std::integral T = uint64_t>
 [[nodiscard]] constexpr
 static inline T
 GetValueForMaskAndShift(const T Integer, const T Mask, const T Shift) noexcept {
-    static_assert(std::is_integral_v<T>, "T must be an integer-type");
-
     const auto MaskedValue = GetValueForMask(Integer, Mask);
     return (MaskedValue >> Shift);
 }
 
-template <typename T = uint64_t>
+template <std::integral T = uint64_t>
 constexpr static
 T
 SetValueForMaskAndShift(T &Integer,
@@ -51,20 +47,15 @@ SetValueForMaskAndShift(T &Integer,
                         const T Shift,
                         const T Value) noexcept
 {
-    static_assert(std::is_integral_v<T>, "T must be an integer-type");
     return SetValueForMask(Integer, Mask, (Value << Shift));
 }
 
-template <typename MaskType,
+template <Concepts::EnumClass MaskType,
           typename IntegerTypeT = std::underlying_type_t<MaskType>>
 
 struct BasicMasksHandler {
 public:
     using IntegerType = IntegerTypeT;
-    static_assert(std::is_integral_v<IntegerType>,
-                  "IntegerType must be an integer type");
-    static_assert(TypeTraits::IsEnumClassValue<MaskType>,
-                  "EnumType must be an enum class");
 protected:
     IntegerType Integer = 0;
 public:
@@ -171,14 +162,12 @@ public:
 };
 
 template <typename MaskType,
-          typename ShiftType,
+          Concepts::EnumClass ShiftType,
           typename IntegerTypeT = std::underlying_type_t<MaskType>>
 
 struct BasicMasksAndShiftsHandler :
     public BasicMasksHandler<MaskType, IntegerTypeT>
 {
-    static_assert(TypeTraits::IsEnumClassValue<ShiftType>,
-                  "ShiftsType must be an enum class");
 public:
     using IntegerType = IntegerTypeT;
 private:

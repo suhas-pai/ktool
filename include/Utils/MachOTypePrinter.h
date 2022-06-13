@@ -11,7 +11,7 @@
 #include "ADT/MachO.h"
 #include "Timestamp.h"
 
-template <typename OffsetType, typename SizeType>
+template <std::integral OffsetType, std::integral SizeType>
 static inline int
 MachOPrintOffsetSizeRange(FILE *OutFile,
                           const OffsetType &Offset,
@@ -22,10 +22,6 @@ MachOPrintOffsetSizeRange(FILE *OutFile,
                           bool Pad,
                           OffsetType *EndOut = nullptr) noexcept
 {
-    static_assert(std::is_integral_v<OffsetType> &&
-                  std::is_integral_v<SizeType>,
-                  "Types must be an integer-types");
-
     constexpr auto OffsetTypeIs64Bit = std::is_same_v<OffsetType, uint64_t>;
 
     auto End = OffsetType();
@@ -85,7 +81,7 @@ MachOPrintOffsetSizeRange(FILE *OutFile,
     return WrittenOut;
 }
 
-template <typename OffsetType, typename EndType>
+template <std::integral OffsetType, std::integral EndType>
 static inline int
 MachOPrintOffsetEndRange(FILE *OutFile,
                          const OffsetType &Offset,
@@ -96,10 +92,6 @@ MachOPrintOffsetEndRange(FILE *OutFile,
                          bool Pad,
                          OffsetType *EndOut = nullptr) noexcept
 {
-    static_assert(std::is_integral_v<OffsetType> &&
-                  std::is_integral_v<EndType>,
-                  "Types must be an integer-types");
-
     constexpr auto OffsetTypeIs64Bit = std::is_same_v<OffsetType, uint64_t>;
     auto ExpectedWrittenOut =
         (Is64Bit) ?

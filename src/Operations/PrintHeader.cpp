@@ -706,7 +706,9 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
                           "\n");
 }
 
-template <void (*PrintKeyFunc)(FILE *, const char *) = PrintDscKey, typename T>
+template <void (*PrintKeyFunc)(FILE *, const char *) = PrintDscKey,
+          std::integral T>
+
 static inline void
 PrintDscSizeRange(FILE *OutFile,
                   const RelativeRange &DscRange,
@@ -718,7 +720,6 @@ PrintDscSizeRange(FILE *OutFile,
                   bool IsOffset = false,
                   bool PrintNewLine = false) noexcept
 {
-    static_assert(std::is_integral_v<T>);
     constexpr auto Is64Bit = std::is_same_v<T, uint64_t>;
 
     PrintKeyFunc(OutFile, AddressName);

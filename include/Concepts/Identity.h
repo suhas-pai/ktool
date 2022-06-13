@@ -1,5 +1,5 @@
 //
-//  include/TypeTraits/Identity.h
+//  include/Concepts/Identity.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/4/20.
@@ -8,7 +8,7 @@
 
 #pragma once
 
-namespace TypeTraits {
+namespace Concepts {
     template <typename T>
     struct Identity {
         using Type = T;

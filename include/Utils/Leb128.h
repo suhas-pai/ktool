@@ -15,7 +15,7 @@
 // The templates Convert [T = uint8_t *] to [T = const uint8_t *]
 
 template <typename T>
-constexpr static bool EnableIfLeb128Type =
+concept Leb128Type =
     std::is_same_v<
         std::add_pointer_t<
             std::add_const_t<
@@ -31,22 +31,16 @@ static inline uint8_t Leb128ByteGetBits(const uint8_t &Byte) noexcept {
     return (Byte & 0x7f);
 }
 
-template <typename Integer>
+template <std::integral Integer>
 constexpr static uint8_t Leb128GetIntegerMaxShift() {
-    static_assert(std::is_integral_v<Integer>,
-                  "Integer-Type is not an integer");
-
     constexpr auto BitSize = static_cast<uint8_t>(sizeof(Integer) * 8);
     constexpr auto MaxFactor = static_cast<uint8_t>(BitSize / 7);
 
     return static_cast<uint8_t>(MaxFactor * 7);
 }
 
-template <typename Integer>
+template <std::integral Integer>
 constexpr static uint8_t Leb128GetLastByteValueMax() {
-    static_assert(std::is_integral_v<Integer>,
-                  "Integer-Type is not an integer");
-
     constexpr auto BitSize = (sizeof(Integer) * 8);
     constexpr auto Mod = (BitSize % 7);
 
@@ -72,7 +66,7 @@ Leb128SignExtendIfNecessary(uint64_t Value,
 
 template <bool Signed,
           typename FakeIntegerLimit = IntegerLimitDefaultType,
-          typename T,
+          Leb128Type T,
           typename ValueType>
 
 constexpr static
@@ -86,7 +80,6 @@ T ReadLeb128Base(T Begin, T End, ValueType *ValueOut) noexcept {
                            RealIntegerLimitType,
                            ValueType>;
 
-    static_assert(EnableIfLeb128Type<T>, "[S/U]leb128 Type is not uint8_t *");
     static_assert(std::is_integral_v<RealIntegerLimitType>,
                   "Integer-Type is not an integer-type");
     static_assert(Signed ^ std::is_unsigned_v<RealIntegerLimitType>,

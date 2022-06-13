@@ -9,7 +9,6 @@
 #pragma once
 
 #include <cassert>
-#include <type_traits>
 
 #include "BasicContiguousIterator.h"
 #include "BasicWrapperIterator.h"
@@ -287,7 +286,6 @@ public:
     }
 
     [[nodiscard]] inline Iterator end() const noexcept { return Iterator(End); }
-
     [[nodiscard]] inline ConstIterator cbegin() const noexcept {
         return ConstIterator(Begin);
     }

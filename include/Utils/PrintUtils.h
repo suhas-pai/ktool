@@ -526,10 +526,8 @@ PrintUtilsWriteBackwards(FILE *OutFile, const char *String, int Length) noexcept
     return fprintf(OutFile, "%" PRINTF_PRECISION_FMT "s", Length, String);
 }
 
-template <typename T>
+template <std::integral T>
 [[nodiscard]] inline int PrintUtilsGetIntegerDigitLength(T Integer) noexcept {
-    static_assert(std::is_integral_v<T>, "T must be an integer-type");
-
     auto DigitLength = int();
     do {
         DigitLength++;

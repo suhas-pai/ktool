@@ -9,10 +9,6 @@
 #pragma once
 
 #include <string_view>
-
-#include "TypeTraits/DisableIfNotConst.h"
-#include "TypeTraits/DisableIfNotPointer.h"
-
 #include "LoadCommandsCommon.h"
 
 namespace MachO {
@@ -705,23 +701,6 @@ namespace MachO {
         typedef const Type *ConstPtrType;
     };
 
-    template <typename... T>
-    struct IsLoadCommandSubType {};
-
     template <typename T>
-    struct IsLoadCommandSubType<T> {
-        constexpr static auto value = std::is_base_of_v<LoadCommand, T>;
-    };
-
-    template <typename T, typename U, typename... Rest>
-    struct IsLoadCommandSubType<T, U, Rest...> {
-        constexpr static auto value =
-            IsLoadCommandSubType<T>::value &&
-            IsLoadCommandSubType<U, Rest...>::value;
-    };
-
-    template <typename T, typename... Rest>
-    using EnableIfLoadCommandSubtype =
-        typename std::enable_if_t<
-            IsLoadCommandSubType<T, Rest...>::value, bool>;
+    concept LoadCommandSubtype = std::is_base_of_v<LoadCommand, T>;
 }

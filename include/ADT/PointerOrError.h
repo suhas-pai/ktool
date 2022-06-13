@@ -13,10 +13,8 @@
 
 #include "ADT/PointerErrorStorage.h"
 
-template <typename T, typename ErrorType>
+template <typename T, Concepts::EnumClass ErrorType>
 struct PointerOrError {
-    static_assert(TypeTraits::IsEnumClassValue<ErrorType>,
-                  "ErrorType must be an enum-class");
 protected:
     union {
         PointerErrorStorage<ErrorType> ErrorStorage;

@@ -19,13 +19,14 @@
 #include <utility>
 
 #include "ADT/TypedAllocation.h"
-#include "TypeTraits/DisableIfNotConst.h"
-#include "TypeTraits/RemovePointersAndRefs.h"
+
+#include "Concepts/Const.h"
+#include "Concepts/RemovePointersAndRefs.h"
 
 template <typename From, typename To, typename Enabler = void>
 struct CastChecks {
 private:
-    using ToType = typename TypeTraits::RemovePointersAndRefs<To>::Type;
+    using ToType = typename Concepts::RemovePointersAndRefs<To>::Type;
 public:
     [[nodiscard]] static inline bool CanCast(const From &Fr) {
         return ToType::IsOfKind(Fr);
@@ -130,8 +131,7 @@ struct CastReturnTypeCalculator<From *, To *> {
 };
 
 template <typename From, typename To>
-struct CastReturnTypeCalculator<const From *, const To *,
-                                TypeTraits::DisableIfNotConst<From>>
+struct CastReturnTypeCalculator<const From *, const To *> requires Concepts::Const<From>
 {
     using Type = const To *;
     [[nodiscard]] static inline Type Convert(const From *Fr) {
@@ -179,8 +179,7 @@ template <typename To, typename From>
     return CastReturnTypeConvert<From &, To>(Fr);
 }
 
-template <typename To, typename From,
-          typename = TypeTraits::DisableIfNotConst<From>>
+template <typename To, Concepts::Const From>
 
 [[nodiscard]]
 static inline CastReturnType<const From &, To> cast(const From &Fr) {
@@ -194,9 +193,7 @@ template <typename To, typename From>
     return CastReturnTypeConvert<From *, To>(Fr);
 }
 
-template <typename To, typename From,
-          typename = TypeTraits::DisableIfNotConst<From>>
-
+template <typename To, Concepts::Const From>
 [[nodiscard]]
 static inline CastReturnType<const From *, To> cast(const From *Fr) {
     assert(isa<To>(Fr));
@@ -232,9 +229,7 @@ template <typename To, typename From,
     return nullptr;
 }
 
-template <typename To, typename From,
-          typename = TypeTraits::DisableIfNotConst<From>>
-
+template <typename To, Concepts::Const From>
 [[nodiscard]] static inline const To *dyn_cast(const From &Fr) {
     if (isa<To>(Fr)) {
         return cast<To>(Fr);
@@ -252,9 +247,7 @@ template <typename To, typename From>
     return nullptr;
 }
 
-template <typename To, typename From,
-          typename = TypeTraits::DisableIfNotConst<From>>
-
+template <typename To, Concepts::Const From>
 [[nodiscard]] static inline const To *dyn_cast(const From *Fr) {
     if (isa<To>(Fr)) {
         return cast<To>(Fr);

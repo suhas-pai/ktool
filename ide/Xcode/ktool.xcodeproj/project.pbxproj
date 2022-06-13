@@ -75,9 +75,6 @@
 		F300066224BC1DE2008EE096 /* DscImageMemory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DscImageMemory.h; path = ../../include/Objects/DscImageMemory.h; sourceTree = "<group>"; };
 		F300066324BC31D3008EE096 /* DscImageMemory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DscImageMemory.cpp; path = ../../src/Objects/DscImageMemory.cpp; sourceTree = "<group>"; };
 		F3104AA9243193E100B24FEB /* ktool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ktool; sourceTree = BUILT_PRODUCTS_DIR; };
-		F3104AB92431948B00B24FEB /* DisableIfNotConst.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DisableIfNotConst.h; path = ../../include/TypeTraits/DisableIfNotConst.h; sourceTree = "<group>"; };
-		F3104ABA243194D600B24FEB /* DisableIfNotPointer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DisableIfNotPointer.h; path = ../../include/TypeTraits/DisableIfNotPointer.h; sourceTree = "<group>"; };
-		F3104ABB2431950B00B24FEB /* DisableIfNotEnumClass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DisableIfNotEnumClass.h; path = ../../include/TypeTraits/DisableIfNotEnumClass.h; sourceTree = "<group>"; };
 		F3104AC32431960E00B24FEB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../src/main.cpp; sourceTree = "<group>"; };
 		F3104AC62431966D00B24FEB /* SwitchEndian.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SwitchEndian.h; path = ../../include/Utils/SwitchEndian.h; sourceTree = "<group>"; };
 		F314A9D924AFF5C800796991 /* PrintSymbolPtrSection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintSymbolPtrSection.h; path = ../../include/Operations/PrintSymbolPtrSection.h; sourceTree = "<group>"; };
@@ -88,10 +85,6 @@
 		F31C4E7F2479B1EA0057FE50 /* EnumHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EnumHelper.h; path = ../../include/ADT/EnumHelper.h; sourceTree = "<group>"; };
 		F31C4E80247BB7370057FE50 /* PointerFlagStorage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PointerFlagStorage.h; path = ../../include/ADT/PointerFlagStorage.h; sourceTree = "<group>"; };
 		F33DFDCF2438503800BF3E47 /* Casting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Casting.h; path = ../../include/Utils/Casting.h; sourceTree = "<group>"; };
-		F33DFDD0243867F900BF3E47 /* IsEnumClass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = IsEnumClass.h; path = ../../include/TypeTraits/IsEnumClass.h; sourceTree = "<group>"; };
-		F33DFDD324393B8000BF3E47 /* RemoveAllPointers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RemoveAllPointers.h; path = ../../include/TypeTraits/RemoveAllPointers.h; sourceTree = "<group>"; };
-		F33DFDD424394CEC00BF3E47 /* RemovePointersAndRefs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RemovePointersAndRefs.h; path = ../../include/TypeTraits/RemovePointersAndRefs.h; sourceTree = "<group>"; };
-		F33DFDD524394D4A00BF3E47 /* Identity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Identity.h; path = ../../include/TypeTraits/Identity.h; sourceTree = "<group>"; };
 		F33E8CD02473AA52009C4EA0 /* BindInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BindInfo.h; path = "../../include/ADT/Mach-O/BindInfo.h"; sourceTree = "<group>"; };
 		F33E8CD12473AAA0009C4EA0 /* LoadCommandsCommon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadCommandsCommon.h; path = "../../include/ADT/Mach-O/LoadCommandsCommon.h"; sourceTree = "<group>"; };
 		F33E8CD22473B0DD009C4EA0 /* ExportTrie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ExportTrie.h; path = "../../include/ADT/Mach-O/ExportTrie.h"; sourceTree = "<group>"; };
@@ -226,6 +219,12 @@
 		F3F08B7A244D27CB007F3271 /* CpuSubKindInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CpuSubKindInfo.h; path = ../../include/ADT/Mach/CpuSubKindInfo.h; sourceTree = "<group>"; };
 		F3F08B7B244D27CB007F3271 /* CpuKindInfoTemplates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CpuKindInfoTemplates.h; path = ../../include/ADT/Mach/CpuKindInfoTemplates.h; sourceTree = "<group>"; };
 		F3F08B7C244D2834007F3271 /* Info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Info.h; path = ../../include/ADT/Mach/Info.h; sourceTree = "<group>"; };
+		F3F11526285656D30023F1EB /* EnumClass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EnumClass.h; path = ../../include/Concepts/EnumClass.h; sourceTree = "<group>"; };
+		F3F11527285656D30023F1EB /* RemoveAllPointers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RemoveAllPointers.h; path = ../../include/Concepts/RemoveAllPointers.h; sourceTree = "<group>"; };
+		F3F11528285656D30023F1EB /* Identity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Identity.h; path = ../../include/Concepts/Identity.h; sourceTree = "<group>"; };
+		F3F11529285656D30023F1EB /* Pointer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Pointer.h; path = ../../include/Concepts/Pointer.h; sourceTree = "<group>"; };
+		F3F1152A285656D30023F1EB /* Const.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Const.h; path = ../../include/Concepts/Const.h; sourceTree = "<group>"; };
+		F3F1152B285656D30023F1EB /* RemovePointersAndRefs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RemovePointersAndRefs.h; path = ../../include/Concepts/RemovePointersAndRefs.h; sourceTree = "<group>"; };
 		F3FBAE6D24F6153F00B9CC7A /* MemoryProtections.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MemoryProtections.h; path = "../../include/ADT/Mach-O/MemoryProtections.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -277,7 +276,6 @@
 				F31C4E7D2479B1650057FE50 /* External */,
 				F3104AC82431C3F100B24FEB /* Objects */,
 				F3B196252439B30200AE997A /* Operations */,
-				F3104AB62431943900B24FEB /* TypeTraits */,
 				F3104AC52431965900B24FEB /* Utils */,
 			);
 			name = include;
@@ -286,6 +284,7 @@
 		F3104AB52431943000B24FEB /* ADT */ = {
 			isa = PBXGroup;
 			children = (
+				F3F11525285656C70023F1EB /* Concepts */,
 				F33EC4F924C256E900A8DB06 /* DscImage */,
 				F39740F724B926CF00710C62 /* DyldSharedCache */,
 				F3856AA1244BBAC7007980C9 /* Mach */,
@@ -319,20 +318,6 @@
 				F36FBF7924380DD40075D461 /* TypedAllocation.h */,
 			);
 			name = ADT;
-			sourceTree = "<group>";
-		};
-		F3104AB62431943900B24FEB /* TypeTraits */ = {
-			isa = PBXGroup;
-			children = (
-				F3104AB92431948B00B24FEB /* DisableIfNotConst.h */,
-				F3104ABA243194D600B24FEB /* DisableIfNotPointer.h */,
-				F3104ABB2431950B00B24FEB /* DisableIfNotEnumClass.h */,
-				F33DFDD524394D4A00BF3E47 /* Identity.h */,
-				F33DFDD0243867F900BF3E47 /* IsEnumClass.h */,
-				F33DFDD324393B8000BF3E47 /* RemoveAllPointers.h */,
-				F33DFDD424394CEC00BF3E47 /* RemovePointersAndRefs.h */,
-			);
-			name = TypeTraits;
 			sourceTree = "<group>";
 		};
 		F3104AC52431965900B24FEB /* Utils */ = {
@@ -569,6 +554,19 @@
 				F300065F24BA90AD008EE096 /* PrintImageList.h */,
 			);
 			name = Operations;
+			sourceTree = "<group>";
+		};
+		F3F11525285656C70023F1EB /* Concepts */ = {
+			isa = PBXGroup;
+			children = (
+				F3F1152A285656D30023F1EB /* Const.h */,
+				F3F11529285656D30023F1EB /* Pointer.h */,
+				F3F11528285656D30023F1EB /* Identity.h */,
+				F3F11526285656D30023F1EB /* EnumClass.h */,
+				F3F11527285656D30023F1EB /* RemoveAllPointers.h */,
+				F3F1152B285656D30023F1EB /* RemovePointersAndRefs.h */,
+			);
+			name = Concepts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

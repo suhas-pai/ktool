@@ -7,9 +7,9 @@
 //
 
 #pragma once
-#include <type_traits>
 
 #include "ADT/MemoryMap.h"
+#include "Concepts/Const.h"
 #include "SegmentInfo.h"
 
 namespace MachO {
@@ -111,7 +111,7 @@ namespace MachO {
             uint64_t Size,
             const uint8_t **EndOut = nullptr) const noexcept;
 
-        template <typename T, typename = std::enable_if_t<!std::is_const_v<T>>>
+        template <Concepts::NotConst T>
         [[nodiscard]] inline T *
         GetPtrForVirtualAddr(uint8_t *const Map,
                              const uint64_t Addr,
@@ -144,7 +144,7 @@ namespace MachO {
             return reinterpret_cast<T *>(Data);
         }
 
-        template <typename T, typename = std::enable_if_t<!std::is_const_v<T>>>
+        template <Concepts::NotConst T>
         [[nodiscard]] inline T *
         GetPtrForVirtualAddrIgnoreSections(
              uint8_t *const Map,

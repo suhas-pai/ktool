@@ -1,5 +1,5 @@
 //
-//  include/TypeTraits/DisableIfNotPointer.h
+//  include/Concepts/Const.h
 //  ktool
 //
 //  Created by Suhas Pai on 3/29/20.
@@ -9,7 +9,10 @@
 #pragma once
 #include <type_traits>
 
-namespace TypeTraits {
+namespace Concepts {
     template <typename T>
-    using DisableIfNotPointer = typename std::enable_if_t<std::is_pointer_v<T>>;
+    concept Const = std::is_const_v<T>;
+
+    template <typename T>
+    concept NotConst = !std::is_const_v<T>;
 }

@@ -8,23 +8,21 @@
 
 #pragma once
 
+#include <concepts>
+
 #include "IntegerLimit.h"
 #include "MiscTemplates.h"
 
 template <typename W = IntegerLimitDefaultType,
-          typename T,
-          typename U,
-          typename V,
+          std::integral T,
+          std::integral U,
+          std::integral V,
           typename = std::enable_if_t<!std::is_pointer_v<T>>>
 
 [[nodiscard]] inline bool DoesAddOverflow(T Lhs, U Rhs, V *ResultOut) noexcept {
     using RealW = IntegerLimitRealValueType<V>;
 
     static_assert(!std::is_const_v<V>, "ResultOut-Type cannot be const");
-    static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
-                  std::is_integral_v<V> && std::is_integral_v<RealW>,
-                  "Types must be Integer-Types");
-
     static_assert(sizeof(RealW) <= sizeof(V),
                   "Integer-Limit Type is larger than ResultOut-Type");
 
@@ -37,37 +35,27 @@ template <typename W = IntegerLimitDefaultType,
     return false;
 }
 
-template <typename T, typename U>
+template <std::integral T, std::integral U>
 [[nodiscard]] inline bool DoesAddOverflow(T Lhs, U Rhs) noexcept {
-    static_assert(std::is_integral_v<T> && std::is_integral_v<U>,
-                  "Types must be Integer-Types");
-
     auto Result = LargestIntegerType<T, U>();
     return __builtin_add_overflow(Lhs, Rhs, &Result);
 }
 
 
-template <typename V, typename T, typename U>
+template <std::integral V, std::integral T, std::integral U>
 [[nodiscard]] inline bool DoesAddOverflow(T Lhs, U Rhs) noexcept {
-    static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
-                  std::is_integral_v<V>, "Types must be Integer-Types");
-
     auto Result = V();
     return __builtin_add_overflow(Lhs, Rhs, &Result);
 }
 
 template <typename W = IntegerLimitDefaultType,
-          typename T,
-          typename U,
-          typename V>
+          std::integral T,
+          std::integral U,
+          std::integral V>
 
 [[nodiscard]]
 inline bool DoesMultiplyOverflow(T Lhs, U Rhs, V *ResultOut) noexcept {
     using RealW = IntegerLimitRealValueType<V>;
-    static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
-                  std::is_integral_v<V> && std::is_integral_v<RealW>,
-                  "Types must be Integer-Types");
-
     static_assert(sizeof(RealW) <= sizeof(V),
                   "Integer-Limit Type is larger than ResultOut-Type");
 
@@ -80,38 +68,27 @@ inline bool DoesMultiplyOverflow(T Lhs, U Rhs, V *ResultOut) noexcept {
     return false;
 }
 
-template <typename T, typename U>
+template <std::integral T, std::integral U>
 [[nodiscard]] inline bool DoesMultiplyOverflow(T Lhs, U Rhs) noexcept {
-    static_assert(std::is_integral_v<T> && std::is_integral_v<U>,
-                  "Types must be Integer-Types");
-
     auto Result = LargestIntegerType<T, U>();
     return __builtin_mul_overflow(Lhs, Rhs, &Result);
 }
 
-template <typename V, typename T, typename U>
+template <std::integral V, std::integral T, std::integral U>
 [[nodiscard]] inline bool DoesMultiplyOverflow(T Lhs, U Rhs) noexcept {
-    static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
-                  std::is_integral_v<V>, "Types must be Integer-Types");
-
     auto Result = V();
     return __builtin_mul_overflow(Lhs, Rhs, &Result);
 }
 
 template <typename X = IntegerLimitDefaultType,
-          typename T,
-          typename U,
-          typename V,
-          typename W>
+          std::integral T,
+          std::integral U,
+          std::integral V,
+          std::integral W>
 
 [[nodiscard]] inline
 bool DoesMultiplyAndAddOverflow(T Lhs, U Rhs, V Add, W *ResultOut) noexcept {
     using RealX = IntegerLimitRealValueType<W>;
-    static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
-                  std::is_integral_v<V> && std::is_integral_v<W> &&
-                  std::is_integral_v<RealX>,
-                  "Types must be Integer-Types");
-
     static_assert(sizeof(RealX) <= sizeof(W),
                   "Integer-Limit Type is larger than ResultOut-Type");
 
@@ -128,12 +105,9 @@ bool DoesMultiplyAndAddOverflow(T Lhs, U Rhs, V Add, W *ResultOut) noexcept {
     return false;
 }
 
-template <typename T, typename U, typename V>
+template <std::integral T, std::integral U, std::integral V>
 [[nodiscard]]
 inline bool DoesMultiplyAndAddOverflow(T Lhs, U Rhs, V Add) noexcept {
-    static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
-                  std::is_integral_v<V>, "Types must be Integer-Types");
-
     auto Result = LargestIntegerType<T, U, V>();
     if (DoesMultiplyOverflow(Lhs, Rhs, &Result)) {
         return true;
@@ -142,13 +116,9 @@ inline bool DoesMultiplyAndAddOverflow(T Lhs, U Rhs, V Add) noexcept {
     return DoesAddOverflow(Result, Add, &Result);
 }
 
-template <typename W, typename T, typename U, typename V>
+template <std::integral W, std::integral T, std::integral U, std::integral V>
 [[nodiscard]]
 inline bool DoesMultiplyAndAddOverflow(T Lhs, U Rhs, V Add) noexcept {
-    static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
-                  std::is_integral_v<V> && std::is_integral_v<W>,
-                  "Types are not integer-types");
-
     auto Result = W();
     if (DoesMultiplyOverflow(Lhs, Rhs, &Result)) {
         return true;
@@ -158,19 +128,14 @@ inline bool DoesMultiplyAndAddOverflow(T Lhs, U Rhs, V Add) noexcept {
 }
 
 template <typename X = IntegerLimitDefaultType,
-          typename T,
-          typename U,
-          typename V,
+          std::integral T,
+          std::integral U,
+          std::integral V,
           typename W>
 
 [[nodiscard]] inline bool
 DoesAddAndMultiplyOverflow(T Lhs, U Rhs, V Multiply, W *ResultOut) noexcept {
     using RealX = IntegerLimitRealValueType<W>;
-    static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
-                  std::is_integral_v<V> && std::is_integral_v<W> &&
-                  std::is_integral_v<RealX>,
-                  "Types must be Integer-Types");
-
     static_assert(sizeof(RealX) <= sizeof(W),
                   "Integer-Limit Type is larger than ResultOut-Type");
 
@@ -187,12 +152,9 @@ DoesAddAndMultiplyOverflow(T Lhs, U Rhs, V Multiply, W *ResultOut) noexcept {
     return false;
 }
 
-template <typename T, typename U, typename V>
+template <std::integral T, std::integral U, std::integral V>
 [[nodiscard]]
 inline bool DoesAddAndMultiplyOverflow(T Lhs, U Rhs, V Multiply) noexcept {
-    static_assert(std::is_integral_v<T> && std::is_integral_v<U> &&
-                  std::is_integral_v<V>, "Types must be Integer-Types");
-
     auto Result = LargestIntegerType<T, U, V>();
     if (DoesAddOverflow(Lhs, Rhs, &Result)) {
         return true;
@@ -201,10 +163,8 @@ inline bool DoesAddAndMultiplyOverflow(T Lhs, U Rhs, V Multiply) noexcept {
     return DoesMultiplyOverflow(Result, Multiply, &Result);
 }
 
-template <typename T, typename U>
+template <std::integral T, std::integral U>
 [[nodiscard]] inline bool DoesAddOverflow(T *Lhs, U Rhs) noexcept {
-    static_assert(std::is_integral_v<U>, "Types must be Integer-Types");
-
     auto Add = uint64_t();
     auto Result = T();
 
@@ -216,11 +176,9 @@ template <typename T, typename U>
     return __builtin_add_overflow(Begin, Add, &Result);
 }
 
-template <typename T, typename U>
+template <typename T, std::integral U>
 [[nodiscard]]
 inline bool DoesAddOverflow(T *Lhs, U Rhs, T **ResultOut) noexcept {
-    static_assert(std::is_integral_v<U>, "Types must be Integer-Types");
-
     auto Add = uint64_t();
     auto Result = uintptr_t();
 

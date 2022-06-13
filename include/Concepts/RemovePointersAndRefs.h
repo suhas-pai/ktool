@@ -1,5 +1,5 @@
 //
-//  include/TypeTraits/RemovePointersAndRefs.h
+//  include/Concepts/RemovePointersAndRefs.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/4/20.
@@ -9,7 +9,7 @@
 #pragma once
 #include "RemoveAllPointers.h"
 
-namespace TypeTraits {
+namespace Concepts {
     template<typename T>
     struct __RemovePtrRefLoopBase :
         std::conditional_t<std::is_reference_v<T>,

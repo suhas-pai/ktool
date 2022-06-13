@@ -12,20 +12,15 @@
 #include <cstddef>
 #include <type_traits>
 
-template <typename T, typename U>
+template <std::integral T, std::integral U>
 [[nodiscard]]
 constexpr bool IndexOutOfBounds(T Index, U Bounds) noexcept {
-    static_assert(std::is_integral_v<T> && std::is_integral_v<U>,
-                  "Types must be integer-types");
-
     return (Index >= Bounds);
 }
 
-template <typename T>
+template <std::integral T>
 [[nodiscard]] constexpr bool OrdinalToIndex(T Ordinal) noexcept {
-    static_assert(std::is_integral_v<T>, "Types must be integer-types");
     assert(Ordinal != 0);
-
     return (Ordinal - 1);
 }
 

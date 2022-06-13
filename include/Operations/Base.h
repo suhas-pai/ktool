@@ -201,28 +201,22 @@ template <OperationKind Kind>
 using OperationTypeFromKind = typename OperationKindInfo<Kind>::Type;
 
 template <typename T>
-using IsSubclassOfOperationOptions =
-    typename std::enable_if_t<std::is_base_of<Operation::Options, T>::value>;
+concept SubclassOfOperationOptions = std::is_base_of_v<Operation::Options, T>;
 
 template <typename T>
-using IsSubclassOfOperation =
-    typename std::enable_if_t<std::is_base_of<Operation, T>::value>;
+concept SubclassOfOperation = std::is_base_of_v<Operation, T>;
 
 // isa<T> templates
 // isa<OperationType>(const Operation &) -> bool
 
-template <typename OperationType,
-          typename = IsSubclassOfOperation<OperationType>>
-
+template <SubclassOfOperation OperationType>
 static inline bool isa(const Operation &Object) noexcept {
     return OperationType::IsOfKind(Object);
 }
 
 // isa<OperationType>(const Operation *) -> bool
 
-template <typename OperationType,
-          typename = IsSubclassOfOperation<OperationType>>
-
+template <SubclassOfOperation OperationType>
 static inline bool isa(const Operation *const Object) noexcept {
     return OperationType::IsOfKind(*Object);
 }
@@ -247,18 +241,14 @@ static inline bool isa(const Operation *const Object) noexcept {
 
 // isa<OptionType>(const Operation::Options &) -> bool
 
-template <typename OptionType,
-          typename = IsSubclassOfOperationOptions<OptionType>>
-
+template <SubclassOfOperationOptions OptionType>
 static inline bool isa(const Operation::Options &Object) noexcept {
     return OptionType::IsOfKind(Object);
 }
 
 // isa<OptionType>(const Operation::Options *) -> bool
 
-template <typename OptionType,
-          typename = IsSubclassOfOperationOptions<OptionType>>
-
+template <SubclassOfOperationOptions OptionType>
 static inline bool isa(const Operation::Options *const Object) noexcept {
     return OptionType::IsOfKind(Object);
 }

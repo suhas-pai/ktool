@@ -8,15 +8,12 @@
 
 #pragma once
 
+#include "Concepts/EnumClass.h"
 #include "External/magic_enum.h"
-#include "TypeTraits/IsEnumClass.h"
 #include "LargestIntHelper.h"
 
-template <typename Enum>
+template <Concepts::EnumClass Enum>
 struct EnumHelper {
-    static_assert(TypeTraits::IsEnumClassValue<Enum>,
-                  "Type is not an enum-class");
-
     using IntegerType = std::underlying_type_t<Enum>;
     [[nodiscard]] constexpr static Enum max() noexcept {
         constexpr auto List = magic_enum::enum_values<Enum>();

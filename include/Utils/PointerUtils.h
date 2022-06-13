@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <concepts>
 #include <type_traits>
 #include "ADT/PointerKind.h"
 
@@ -34,16 +35,13 @@ template <PointerKind Kind>
     }
 }
 
-template <PointerKind Kind, typename T>
-[[nodiscard]]
-constexpr bool IntegerIsPointerAligned(T Integer) noexcept {
-    static_assert(std::is_integral_v<T>, "Type must be integer-type");
+template <PointerKind Kind, std::integral T>
+[[nodiscard]] constexpr bool IntegerIsPointerAligned(T Integer) noexcept {
     return ((Integer % PointerSize<Kind>()) == 0);
 }
 
-template <typename T>
+template <std::integral T>
 [[nodiscard]] constexpr
 inline bool IntegerIsPointerAligned(T Integer, bool Is64Bit) noexcept {
-    static_assert(std::is_integral_v<T>, "Type must be integer-type");
     return ((Integer % PointerSize(Is64Bit)) == 0);
 }

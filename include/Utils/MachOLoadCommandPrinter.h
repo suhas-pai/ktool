@@ -9,7 +9,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <type_traits>
 
 #include "ADT/Mach-O/LoadCommands.h"
 #include "ADT/MachO.h"
@@ -21,7 +20,7 @@
 #include "SwitchEndian.h"
 #include "Timestamp.h"
 
-template <typename OffsetType, typename SizeType>
+template <std::integral OffsetType, std::integral SizeType>
 static inline int
 __MLCP_WriteOffsetRange(FILE *OutFile,
                         const OffsetType &Offset,
@@ -29,10 +28,6 @@ __MLCP_WriteOffsetRange(FILE *OutFile,
                         bool Pad,
                         SizeType *EndOut) noexcept
 {
-    static_assert(std::is_integral_v<OffsetType> &&
-                  std::is_integral_v<SizeType>,
-                  "SizeType must be an integer-type");
-
     auto End = SizeType();
     auto WrittenOut = int();
     auto DidOverflow = DoesAddOverflow(Offset, Size, &End);
@@ -83,17 +78,13 @@ __MLCP_WriteOffsetRange(FILE *OutFile,
     return WrittenOut;
 }
 
-template <typename SizeOneType, typename SizeTwoType>
+template <std::integral SizeOneType, std::integral SizeTwoType>
 static inline int
 __MLCP_WriteSizeDiff(FILE *OutFile,
                      const SizeOneType &SizeOne,
                      const SizeTwoType &SizeTwo,
                      bool Pad) noexcept
 {
-    static_assert(std::is_integral_v<SizeOneType> &&
-                  std::is_integral_v<SizeTwoType>,
-                  "SizeType must be an integer-type");
-
     static_assert(std::is_same_v<SizeOneType, SizeTwoType>,
                   "SizeOneType and SizeTwoSize muwt be the same type");
 
@@ -192,9 +183,9 @@ __MLCP_WritePastEOFWarning(FILE *OutFile,
 }
 
 template <bool OneLine,
-          typename FileOffType,
-          typename VmAddrType,
-          typename SizeType>
+          std::integral FileOffType,
+          std::integral VmAddrType,
+          std::integral SizeType>
 
 static inline void
 MachOLoadCommandPrinterWriteFileAndVmRange(FILE *OutFile,
@@ -206,11 +197,6 @@ MachOLoadCommandPrinterWriteFileAndVmRange(FILE *OutFile,
                                            bool Verbose,
                                            const char *LinePrefix = "") noexcept
 {
-    static_assert(std::is_integral_v<FileOffType> &&
-                  std::is_integral_v<VmAddrType> &&
-                  std::is_integral_v<SizeType>,
-                  "Types need to be integer-types!");
-
     fprintf(OutFile, "%sFile:%c", LinePrefix, (OneLine) ? ' ' : '\t');
 
     const auto ShouldPrintSizeInfo = (!OneLine || Verbose);

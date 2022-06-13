@@ -8,12 +8,11 @@
 
 #pragma once
 
+#include <concepts>
 #include <cstdint>
-#include <type_traits>
 
-template <typename T = uint64_t>
+template <std::integral T = uint64_t>
 struct LargestIntHelper {
-    static_assert(std::is_integral_v<T>, "Type must be an integer");
 protected:
     T Integer;
 public:

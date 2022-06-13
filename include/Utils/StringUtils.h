@@ -8,11 +8,11 @@
 
 #pragma once
 
+#include <concepts>
+
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
-
-#include <type_traits>
 
 [[nodiscard]] constexpr bool IsDigit(char Ch) noexcept {
     return (static_cast<unsigned>(Ch - '0') < 10);
@@ -44,10 +44,8 @@
     return (Ch - '0');
 }
 
-template <typename T>
+template <std::integral T>
 [[nodiscard]] constexpr T ParseNumber(const char *String) noexcept {
-    static_assert(std::is_integral_v<T>, "T must be an integer-type!");
-
     auto Iter = String;
     auto Number = T();
 

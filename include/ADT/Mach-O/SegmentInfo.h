@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "ADT/LocationRange.h"
+#include "Concepts/Const.h"
 #include "Utils/MiscTemplates.h"
 
 #include "LoadCommandsCommon.h"
@@ -109,9 +110,7 @@ namespace MachO {
             return *this;
         }
 
-        template <typename T = uint8_t,
-                  typename = std::enable_if_t<!std::is_const_v<T>>>
-
+        template <Concepts::NotConst T = uint8_t>
         [[nodiscard]] inline T *getData(uint8_t *const Map) const noexcept {
             return reinterpret_cast<T *>(Map + getFileRange().getBegin());
         }
@@ -122,9 +121,7 @@ namespace MachO {
             return reinterpret_cast<T *>(Map + getFileRange().getBegin());
         }
 
-        template <typename T = uint8_t,
-                  typename = std::enable_if_t<!std::is_const_v<T>>>
-
+        template <Concepts::NotConst T = uint8_t>
         [[nodiscard]] inline T *getDataEnd(uint8_t *const Map) const noexcept {
             return reinterpret_cast<T *>(Map + getFileRange().getEnd());
         }
@@ -236,9 +233,7 @@ namespace MachO {
             return getSectionList().at(SectionIndex).get();
         }
 
-        template <typename T = uint8_t,
-                  typename = std::enable_if_t<!std::is_const_v<T>>>
-
+        template <Concepts::NotConst T = uint8_t>
         [[nodiscard]] inline T *getData(uint8_t *const Map) const noexcept {
             return reinterpret_cast<T *>(Map + getFileRange().getBegin());
         }
@@ -249,9 +244,7 @@ namespace MachO {
             return reinterpret_cast<T *>(Map + getFileRange().getBegin());
         }
 
-        template <typename T = uint8_t,
-                  typename = std::enable_if_t<!std::is_const_v<T>>>
-
+        template <Concepts::NotConst T = uint8_t>
         [[nodiscard]] inline T *getDataEnd(uint8_t *const Map) const noexcept {
             return reinterpret_cast<T *>(Map + getFileRange().getEnd());
         }

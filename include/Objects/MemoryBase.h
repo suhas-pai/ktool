@@ -13,9 +13,6 @@
 #include "ADT/PointerErrorStorage.h"
 #include "ADT/RelativeRange.h"
 
-#include "TypeTraits/DisableIfNotConst.h"
-#include "TypeTraits/DisableIfNotPointer.h"
-
 #include "Kind.h"
 
 struct MemoryObject;

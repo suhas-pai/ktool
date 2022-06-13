@@ -11,14 +11,14 @@
 #include <cstdint>
 #include <limits>
 
-#include "TypeTraits/DisableIfNotEnumClass.h"
+#include "Concepts/EnumClass.h"
 
 [[nodiscard]]
-constexpr bool PointerHasErrorValue(uintptr_t Storage) noexcept {
+constexpr bool PointerHasErrorValue(const uintptr_t Storage) noexcept {
     return (Storage <= std::numeric_limits<uint16_t>::max());
 }
 
-template <typename Enum, typename = TypeTraits::DisableIfNotEnumClass<Enum>>
+template <Concepts::EnumClass Enum>
 struct PointerErrorStorage {
     static_assert(sizeof(uintptr_t) == sizeof(void *),
                   "uintptr_t is not pointer-size");
