@@ -58,9 +58,7 @@ CollectRebaseOpcodeList(
     auto OpcodeInfo = RebaseOpcodeInfo();
     auto InfoList = std::vector<RebaseOpcodeInfo>();
 
-    auto AddressOverflows = false;
     auto Counter = uint64_t();
-
     for (const auto &Iter : List) {
         const auto &Byte = Iter.getByte();
         const auto &IterInfo = Iter.getInfo();
@@ -139,7 +137,6 @@ CollectRebaseOpcodeList(
                 auto Add = uint64_t();
 
                 if (DoesMultiplyOverflow(PtrSize, OpcodeInfo.Count, &Add)) {
-                    AddressOverflows = true;
                     continue;
                 }
 
@@ -147,7 +144,6 @@ CollectRebaseOpcodeList(
                                     Add,
                                     &OpcodeInfo.AddrInSeg))
                 {
-                    AddressOverflows = true;
                     continue;
                 }
 
@@ -169,13 +165,11 @@ CollectRebaseOpcodeList(
                 auto StepSize = int64_t();
 
                 if (DoesAddOverflow(IterInfo.Skip, PtrSize, &StepSize)) {
-                    AddressOverflows = true;
                     break;
                 }
 
                 auto Add = int64_t();
                 if (DoesMultiplyOverflow(StepSize, IterInfo.Count, &Add)) {
-                    AddressOverflows = true;
                     break;
                 }
 
@@ -183,7 +177,6 @@ CollectRebaseOpcodeList(
                                     Add,
                                     &OpcodeInfo.AddrInSeg))
                 {
-                    AddressOverflows = true;
                     break;
                 }
 

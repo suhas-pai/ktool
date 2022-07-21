@@ -5,7 +5,7 @@ SRC=src
 SRCS=$(shell find $(SRC) -type f -name '*.cpp')
 OBJS=$(foreach obj,$(SRCS:src/%=%),$(OBJ)/$(basename $(obj)).o)
 
-CFLAGS=-Iinclude/ -Wall -std=c++17
+CFLAGS=-Iinclude/ -Wall -std=c++20
 DEBUGCFLAGS=$(CFLAGS) -g3
 RELEASECFLAGS=$(CFLAGS) -Ofast
 
