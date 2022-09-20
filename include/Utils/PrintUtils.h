@@ -9,9 +9,10 @@
 #pragma once
 
 #include <cassert>
+#include <charconv>
 #include <cstdio>
 #include <inttypes.h>
-#include <string_view>
+#include <string>
 
 #include "ADT/LargestIntHelper.h"
 #include "DoesOverflow.h"
@@ -28,6 +29,9 @@
 
 #define OFFSET_32_LEN LENGTH_OF("0x12345678")
 #define OFFSET_64_LEN LENGTH_OF("0x123456789ABCDEFG")
+
+#define MAX_32_NUM_LEN LENGTH_OF(4294967295)
+#define MAX_64_NUM_LEN LENGTH_OF(9223372036854775807)
 
 #define OFFSET_LEN(Is64Bit) ((Is64Bit) ? OFFSET_64_LEN : OFFSET_32_LEN)
 
@@ -281,6 +285,28 @@ PrintUtilsWriteOffsetSizeRange(FILE *OutFile,
     }
 
     return Result;
+}
+
+template <std::integral T>
+inline int
+PrintUtilsWriteNumber(FILE *const OutFile,
+                      const T Number,
+                      const char *const Prefix = "",
+                      const char *const Suffix = "")
+{
+    if constexpr (std::is_same_v<T, uint64_t>) {
+        return fprintf(OutFile, "%s%" PRIu64 "%s", Prefix, Number, Suffix);
+    }
+
+    if constexpr (std::is_same_v<T, uint32_t>){
+        return fprintf(OutFile, "%s%" PRIu32 "%s", Prefix, Number, Suffix);
+    }
+
+    if constexpr (std::is_same_v<T, uint16_t>){
+        return fprintf(OutFile, "%s%" PRIu16 "%s", Prefix, Number, Suffix);
+    }
+
+    return fprintf(OutFile, "%s%" PRIu8 "%s", Prefix, (uint8_t)Number, Suffix);
 }
 
 inline int
@@ -606,6 +632,24 @@ constexpr static std::string_view PrintUtilFormatSizeNames[] = {
     "Yottabyte"
 };
 
+template <std::integral T>
+inline int
+PrintUtilsWriteFormattedNumber(FILE *const OutFile,
+                               const T Number,
+                               const char *const Prefix = "",
+                               const char *const Suffix = "") noexcept
+{
+    char buffer[MAX_64_NUM_LEN + 1] = {};
+    std::to_chars(buffer, buffer + sizeof(buffer), Number);
+
+    auto String = std::string(buffer);
+    for (auto I = (int64_t)String.length() - 3; I > 0; I -= 3) {
+        String.insert(I, 1, ',');
+    }
+
+    return fprintf(OutFile, "%s%s%s", Prefix, String.c_str(), Suffix);
+}
+
 inline int
 PrintUtilsWriteFormattedSize(FILE *OutFile,
                              uint64_t Size,
@@ -618,6 +662,7 @@ PrintUtilsWriteFormattedSize(FILE *OutFile,
     auto Index = uint32_t();
 
     if (Result < Base) {
+        fprintf(OutFile, "%s%" PRIu64 " bytes%s", Prefix, Size, Suffix);
         return 0;
     }
 
@@ -630,7 +675,7 @@ PrintUtilsWriteFormattedSize(FILE *OutFile,
     assert(Index < countof(PrintUtilFormatSizeNames));
 
     const auto &Name = PrintUtilFormatSizeNames[Index];
-    fprintf(stdout, "%s%.3f %s%s", Prefix, Result, Name.data(), Suffix);
+    fprintf(OutFile, "%s%.3f %s%s", Prefix, Result, Name.data(), Suffix);
 
     return 0;
 }

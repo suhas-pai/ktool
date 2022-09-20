@@ -35,8 +35,8 @@ struct DylibInfo {
 
     std::string_view Name;
 
-    MachO::PackedVersion CurrentVersion;
-    MachO::PackedVersion CompatVersion;
+    Dyld3::PackedVersion CurrentVersion;
+    Dyld3::PackedVersion CompatVersion;
     uint32_t Timestamp;
 };
 

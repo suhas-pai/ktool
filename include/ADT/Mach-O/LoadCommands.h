@@ -7,9 +7,11 @@
 //
 
 #pragma once
-
 #include <cstring>
+
 #include "ADT/BasicContiguousList.h"
+#include "ADT/Dyld3/PackedVersion.h"
+#include "ADT/Dyld3/PlatformKind.h"
 
 #include "BindInfo.h"
 #include "ExportTrie.h"
@@ -938,63 +940,9 @@ namespace MachO {
         uint32_t GetLength(uint32_t CmdSize, bool IsBigEndian) const noexcept;
     };
 
-    enum class PackedVersionMasks : uint32_t {
-        Revision = 0xff,
-        Minor = 0xff00,
-        Major = 0xffff0000
-    };
-
-    enum class PackedVersionShifts : uint32_t {
-        Revision,
-        Minor = 8,
-        Major = 16
-    };
-
-    struct PackedVersion :
-        public
-            BasicMasksAndShiftsHandler<PackedVersionMasks, PackedVersionShifts>
-    {
-    private:
-        using Base =
-            BasicMasksAndShiftsHandler<PackedVersionMasks, PackedVersionShifts>;
-    public:
-        constexpr PackedVersion() noexcept = default;
-        constexpr PackedVersion(uint32_t Integer) noexcept : Base(Integer) {}
-
-        using Masks = PackedVersionMasks;
-        using Shifts = PackedVersionShifts;
-
-        [[nodiscard]] constexpr uint8_t getRevision() const noexcept {
-            return getValueForMaskAndShift(Masks::Revision, Shifts::Revision);
-        }
-
-        [[nodiscard]] constexpr uint8_t getMinor() const noexcept {
-            return getValueForMaskAndShift(Masks::Minor, Shifts::Minor);
-        }
-
-        [[nodiscard]] constexpr uint16_t getMajor() const noexcept {
-            return getValueForMaskAndShift(Masks::Major, Shifts::Major);
-        }
-
-        constexpr PackedVersion &setRevision(const uint8_t Value) noexcept {
-            setValueForMaskAndShift(Masks::Revision, Shifts::Revision, Value);
-            return *this;
-        }
-
-        constexpr PackedVersion &setMinor(const uint8_t Value) noexcept {
-            setValueForMaskAndShift(Masks::Minor, Shifts::Minor, Value);
-            return *this;
-        }
-
-        constexpr PackedVersion &setMajor(const uint16_t Value) noexcept {
-            setValueForMaskAndShift(Masks::Major, Shifts::Major, Value);
-            return *this;
-        }
-    };
-
     struct FixedVmSharedLibraryInfo {
         LoadCommandString Name;
-        PackedVersion MinorVersion;
+        Dyld3::PackedVersion MinorVersion;
         uint32_t HeaderAddr;
     };
 
@@ -1075,12 +1023,12 @@ namespace MachO {
                 return SwitchEndianIf(Name.Offset, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr PackedVersion
+            [[nodiscard]] constexpr Dyld3::PackedVersion
             getCurrentVersion(const bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(CurrentVersion, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr PackedVersion
+            [[nodiscard]] constexpr Dyld3::PackedVersion
             getCompatVersion(const bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(CompatibilityVersion, IsBigEndian);
             }
@@ -1099,7 +1047,7 @@ namespace MachO {
             }
 
             constexpr Info &
-            setCurrentVersion(const PackedVersion &Version,
+            setCurrentVersion(const Dyld3::PackedVersion &Version,
                               const bool IsBigEndian) noexcept
             {
                 const auto Value = Version.value();
@@ -1109,7 +1057,7 @@ namespace MachO {
             }
 
             constexpr Info &
-            setCompatVersion(const PackedVersion &Version,
+            setCompatVersion(const Dyld3::PackedVersion &Version,
                              const bool IsBigEndian) noexcept
             {
                 const auto Value = Version.value();
@@ -1586,7 +1534,7 @@ namespace MachO {
         return ((Desc >> 8) & 0xff);
     }
 
-    constexpr inline uint16_t
+    constexpr uint16_t
     SetDylibOrdinal(uint16_t &Desc, const uint16_t Ordinal) noexcept {
         Desc |= ((Ordinal << 8) & 0xff00);
         return Desc;
@@ -2662,17 +2610,17 @@ namespace MachO {
         uint32_t Sdk;
 
         [[nodiscard]] constexpr
-        inline PackedVersion getVersion(const bool IsBigEndian) const noexcept {
+        Dyld3::PackedVersion getVersion(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Version, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline PackedVersion getSdk(const bool IsBigEndian) const noexcept {
+        Dyld3::PackedVersion getSdk(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Sdk, IsBigEndian);
         }
 
         constexpr VersionMinimumCommand &
-        setVersion(const PackedVersion &Version,
+        setVersion(const Dyld3::PackedVersion &Version,
                    const bool IsBigEndian) noexcept
         {
             this->Version = SwitchEndianIf(Version.value(), IsBigEndian);
@@ -2680,81 +2628,13 @@ namespace MachO {
         }
 
         constexpr VersionMinimumCommand &
-        setSdk(const PackedVersion &Sdk, const bool IsBigEndian) noexcept {
+        setSdk(const Dyld3::PackedVersion &Sdk,
+               const bool IsBigEndian) noexcept
+        {
             this->Sdk = SwitchEndianIf(Sdk.value(), IsBigEndian);
             return *this;
         }
     };
-
-    enum class PlatformKind : uint32_t {
-        macOS = 1,
-        iOS,
-        tvOS,
-        watchOS,
-        bridgeOS,
-        iOSMac,
-        macCatalyst = iOSMac,
-        iOSSimulator,
-        tvOSSimulator,
-        watchOSSimulator,
-        DriverKit
-    };
-
-    [[nodiscard]] constexpr std::string_view
-    PlatformKindGetName(const PlatformKind Kind) noexcept {
-        switch (Kind) {
-            case PlatformKind::macOS:
-                return "PLATFORM_KIND_MACOS";
-            case PlatformKind::iOS:
-                return "PLATFORM_KIND_IOS";
-            case PlatformKind::tvOS:
-                return "PLATFORM_TVOS";
-            case PlatformKind::watchOS:
-                return "PLATFORM_WATCHOS";
-            case PlatformKind::bridgeOS:
-                return "PLATFORM_BRDIGEOS";
-            case PlatformKind::iOSMac:
-                return "PLATFORM_IOSMAC";
-            case PlatformKind::iOSSimulator:
-                return "PLATFORM_IOSSIMULATOR";
-            case PlatformKind::tvOSSimulator:
-                return "PLATFORM_TVOSSIMULATOR";
-            case PlatformKind::watchOSSimulator:
-                return "PLATFORM_WATCHOSSIMULATOR";
-            case PlatformKind::DriverKit:
-                return "PLATFORM_DRIVERKIT";
-        }
-
-        return std::string_view();
-    }
-
-    [[nodiscard]] constexpr std::string_view
-    PlatformKindGetDescription(const PlatformKind Kind) noexcept {
-        switch (Kind) {
-            case PlatformKind::macOS:
-                return "macOS";
-            case PlatformKind::iOS:
-                return "iOS";
-            case PlatformKind::tvOS:
-                return "tvOS";
-            case PlatformKind::watchOS:
-                return "watchOS";
-            case PlatformKind::bridgeOS:
-                return "bridgeOS";
-            case PlatformKind::iOSMac:
-                return "iOSMac";
-            case PlatformKind::iOSSimulator:
-                return "iOS Simulator";
-            case PlatformKind::tvOSSimulator:
-                return "tvOS Simulator";
-            case PlatformKind::watchOSSimulator:
-                return "watchOS Simulator";
-            case PlatformKind::DriverKit:
-                return "Driver";
-        }
-
-        return std::string_view();
-    }
 
     struct BuildVersionCommand : public LoadCommand {
         [[nodiscard]]
@@ -2806,8 +2686,8 @@ namespace MachO {
                 return static_cast<enum Kind>(Integer);
             }
 
-            [[nodiscard]] constexpr
-            PackedVersion getVersion(const bool IsBigEndian) const noexcept {
+            [[nodiscard]] constexpr inline Dyld3::PackedVersion
+            getVersion(const bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Version, IsBigEndian);
             }
 
@@ -2819,7 +2699,7 @@ namespace MachO {
             }
 
             constexpr Tool &
-            setVersion(const PackedVersion Value,
+            setVersion(const Dyld3::PackedVersion Value,
                        const bool IsBigEndian) noexcept
             {
                 this->Version = Value.value();
@@ -2868,17 +2748,17 @@ namespace MachO {
         uint32_t NTools;
 
         [[nodiscard]] constexpr
-        PlatformKind getPlatform(const bool IsBigEndian) const noexcept {
-            return PlatformKind(SwitchEndianIf(Platform, IsBigEndian));
+        Dyld3::PlatformKind getPlatform(const bool IsBigEndian) const noexcept {
+            return Dyld3::PlatformKind(SwitchEndianIf(Platform, IsBigEndian));
         }
 
         [[nodiscard]] constexpr
-        PackedVersion getMinOS(const bool IsBigEndian) const noexcept {
+        Dyld3::PackedVersion getMinOS(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(MinOS, IsBigEndian);
         }
 
-        [[nodiscard]]
-        constexpr PackedVersion getSdk(const bool IsBigEndian) const noexcept {
+        [[nodiscard]] constexpr
+        Dyld3::PackedVersion getSdk(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Sdk, IsBigEndian);
         }
 
@@ -2888,7 +2768,7 @@ namespace MachO {
         }
 
         constexpr BuildVersionCommand &
-        setPlatform(PlatformKind Platform, bool IsBigEndian) noexcept {
+        setPlatform(Dyld3::PlatformKind Platform, bool IsBigEndian) noexcept {
             const auto Value = static_cast<uint32_t>(Platform);
             this->Platform = SwitchEndianIf(Value, IsBigEndian);
 
@@ -2896,13 +2776,17 @@ namespace MachO {
         }
 
         constexpr BuildVersionCommand &
-        setMinOS(const PackedVersion &MinOS, const bool IsBigEndian) noexcept {
+        setMinOS(const Dyld3::PackedVersion &MinOS,
+                 const bool IsBigEndian) noexcept
+        {
             this->MinOS = SwitchEndianIf(MinOS.value(), IsBigEndian);
             return *this;
         }
 
         constexpr BuildVersionCommand &
-        setSdk(const PackedVersion &Sdk, const bool IsBigEndian) noexcept {
+        setSdk(const Dyld3::PackedVersion &Sdk,
+                 const bool IsBigEndian) noexcept
+        {
             this->Sdk = SwitchEndianIf(Sdk.value(), IsBigEndian);
             return *this;
         }
@@ -3340,7 +3224,7 @@ namespace MachO {
         }
 
         uint32_t Offset;
-	    uint32_t Size;
+        uint32_t Size;
 
         [[nodiscard]]
         constexpr uint32_t getOffset(const bool IsBigEndian) const noexcept {
@@ -3537,90 +3421,6 @@ namespace MachO {
         }
     };
 
-    enum class PackedVersion64Masks : uint64_t {
-        Revision3 = 0x3ff,
-        Revision2 = 0xffc00,
-        Revision1 = 0x3ff00000,
-        Minor = 0xffc0000000,
-        Major = 0xffffff0000000000
-    };
-
-    enum class PackedVersion64Shifts : uint64_t {
-        Revision3,
-        Revision2 = 10,
-        Revision1 = 20,
-        Minor = 30,
-        Major = 40
-    };
-
-    struct PackedVersion64 :
-        public
-            ::BasicMasksAndShiftsHandler<
-                PackedVersion64Masks, PackedVersion64Shifts>
-    {
-    private:
-        using Base =
-            ::BasicMasksAndShiftsHandler<
-                PackedVersion64Masks, PackedVersion64Shifts>;
-    public:
-        using Masks = PackedVersion64Masks;
-        using Shifts = PackedVersion64Shifts;
-
-        constexpr PackedVersion64() noexcept = default;
-        constexpr PackedVersion64(uint64_t Integer) noexcept : Base(Integer) {}
-
-        [[nodiscard]] constexpr uint16_t getRevision3() const noexcept {
-            return getValueForMaskAndShift(Masks::Revision3, Shifts::Revision3);
-        }
-
-        [[nodiscard]] constexpr uint16_t getRevision2() const noexcept {
-            return getValueForMaskAndShift(Masks::Revision2, Shifts::Revision2);
-        }
-
-        [[nodiscard]] constexpr uint16_t getRevision1() const noexcept {
-            return getValueForMaskAndShift(Masks::Revision1, Shifts::Revision1);
-        }
-
-        [[nodiscard]] constexpr uint16_t getMinor() const noexcept {
-            return getValueForMaskAndShift(Masks::Minor, Shifts::Minor);
-        }
-
-        [[nodiscard]] constexpr uint32_t getMajor() const noexcept {
-            const auto Value =
-                getValueForMaskAndShift(Masks::Major, Shifts::Major);
-
-            return static_cast<uint32_t>(Value);
-        }
-
-        constexpr
-        PackedVersion64 &setRevision3(const uint16_t Value) noexcept {
-            setValueForMaskAndShift(Masks::Revision3, Shifts::Revision3, Value);
-            return *this;
-        }
-
-        constexpr
-        PackedVersion64 &setRevision2(const uint16_t Value) noexcept {
-            setValueForMaskAndShift(Masks::Revision2, Shifts::Revision2, Value);
-            return *this;
-        }
-
-        constexpr
-        PackedVersion64 &setRevision1(const uint16_t Value) noexcept {
-            setValueForMaskAndShift(Masks::Revision1, Shifts::Revision1, Value);
-            return *this;
-        }
-
-        constexpr PackedVersion64 &setMinor(const uint16_t Value) noexcept {
-            setValueForMaskAndShift(Masks::Minor, Shifts::Minor, Value);
-            return *this;
-        }
-
-        constexpr PackedVersion64 &setMajor(const uint32_t Value) noexcept {
-            setValueForMaskAndShift(Masks::Major, Shifts::Major, Value);
-            return *this;
-        }
-    };
-
     struct SourceVersionCommand : public LoadCommand {
         [[nodiscard]]
         constexpr static bool IsOfKind(const LoadCommand::Kind Kind) noexcept {
@@ -3647,13 +3447,13 @@ namespace MachO {
 
         uint64_t Version;
 
-        [[nodiscard]] constexpr
-        PackedVersion64 getVersion(const bool IsBigEndian) const noexcept {
+        [[nodiscard]] constexpr Dyld3::PackedVersion64
+        getVersion(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Version, IsBigEndian);
         }
 
         constexpr SourceVersionCommand &
-        setVersion(const PackedVersion64 &Version,
+        setVersion(const Dyld3::PackedVersion64 &Version,
                    const bool IsBigEndian) noexcept
         {
             this->Version = SwitchEndianIf(Version.value(), IsBigEndian);

@@ -1620,12 +1620,12 @@ MachOLoadCommandPrinterWriteVersionMinimumCmd(
     MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile, Verbose);
     fputs("\tVersion: ", OutFile);
 
-    MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
+    MachOTypePrinter<Dyld3::PackedVersion>::PrintWithoutZeros(
         OutFile, VersionMin.getVersion(IsBigEndian));
 
     fputs("\tSDK: ", OutFile);
 
-    MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
+    MachOTypePrinter<Dyld3::PackedVersion>::PrintWithoutZeros(
         OutFile, VersionMin.getSdk(IsBigEndian));
 
     fputc('\n', OutFile);
@@ -2010,8 +2010,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion> {
     {
         const auto Platform = BuildVersion.getPlatform(IsBigEndian);
         const auto PlatformDesc =
-            MachO::PlatformKindGetDescription(Platform).data() ?:
-            "<Unrecognized>";
+            Dyld3::PlatformKindGetDescription(Platform).data();
 
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
                                                                Verbose);
@@ -2020,12 +2019,12 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion> {
                 "\tMinimum OS Version: ",
                 PlatformDesc);
 
-        MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
+        MachOTypePrinter<Dyld3::PackedVersion>::PrintWithoutZeros(
             OutFile, BuildVersion.getMinOS(IsBigEndian));
 
         fputs("\n\tSdk: ", OutFile);
 
-        MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(
+        MachOTypePrinter<Dyld3::PackedVersion>::PrintWithoutZeros(
             OutFile, BuildVersion.getSdk(IsBigEndian));
 
         const auto &ToolList = BuildVersion.getConstToolList(IsBigEndian);
@@ -2063,7 +2062,7 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::BuildVersion> {
                 Tool.KindGetDescription(ToolKind).data() ?: "Unrecognized";
 
             fprintf(OutFile, "\t\tKind:    %s\n\t\tVersion: ", KindDesc);
-            MachOTypePrinter<MachO::PackedVersion>::PrintWithoutZeros(OutFile,
+            MachOTypePrinter<Dyld3::PackedVersion>::PrintWithoutZeros(OutFile,
                 Tool.getVersion(IsBigEndian), "", "");
 
             fputc('\n', OutFile);

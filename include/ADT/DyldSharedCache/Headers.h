@@ -15,11 +15,13 @@
 #include "ADT/LargestIntHelper.h"
 #include "ADT/LocationRange.h"
 
+#include "ADT/Dyld3/PackedVersion.h"
+#include "ADT/Dyld3/PlatformKind.h"
 #include "ADT/Mach-O/MemoryProtections.h"
 
 #define DscHeaderHasField(Header, Field) \
-    (Header->MappingOffset >= (offsetof(DyldCacheHeader, Field) + \
-     SizeOfField(DyldCacheHeader, Field)))
+    (Header.MappingOffset >= (offsetof(DyldSharedCache::HeaderV8, Field) + \
+     SizeOfField(DyldSharedCache::HeaderV8, Field)))
 
 namespace DyldSharedCache {
     enum class HeaderVersion {
@@ -30,7 +32,8 @@ namespace DyldSharedCache {
         V4,
         V5,
         V6,
-        V7
+        V7,
+        V8
     };
 
     struct MappingInfo {
@@ -48,6 +51,96 @@ namespace DyldSharedCache {
         [[nodiscard]]
         inline MachO::MemoryProtections getInitProt() const noexcept {
             return InitProt;
+        }
+
+        [[nodiscard]]
+        inline std::optional<LocationRange> getAddressRange() const noexcept {
+            return LocationRange::CreateWithSize(Address, Size);
+        }
+
+        [[nodiscard]]
+        inline std::optional<LocationRange> getFileRange() const noexcept {
+            return LocationRange::CreateWithSize(FileOffset, Size);
+        }
+
+        [[nodiscard]] inline bool isEmpty() const noexcept {
+            return (Size == 0);
+        }
+
+        [[nodiscard]] inline uint64_t
+        getFileOffsetFromAddr(
+            const uint64_t Addr,
+            uint64_t *const MaxSizeOut = nullptr) const noexcept
+        {
+            const auto Range = getAddressRange();
+            if (!Range || !Range->containsLocation(Addr)) {
+                return 0;
+            }
+
+            return getFileOffsetFromAddrUnsafe(Addr, MaxSizeOut);
+        }
+
+        [[nodiscard]] inline uint64_t
+        getFileOffsetFromAddrUnsafe(
+            const uint64_t Addr,
+            uint64_t *const MaxSizeOut = nullptr) const noexcept
+        {
+            const auto Delta = Addr - this->Address;
+            if (MaxSizeOut != nullptr) {
+                *MaxSizeOut = (this->Address + this->Size) - Addr;
+            }
+
+            return FileOffset + Delta;
+        }
+    };
+
+    struct MappingWithSlideInfo {
+        enum class FlagsEnum : uint64_t {
+            AuthData  = 1 << 0,
+            DirtyData = 1 << 1,
+            ConstData = 1 << 2
+        };
+
+        struct FlagsDef : public BasicFlags<FlagsEnum> {
+        private:
+            using Base = ::BasicFlags<FlagsEnum>;
+        public:
+            explicit FlagsDef(const uint64_t Flags) : Base(Flags) {}
+
+            [[nodiscard]] inline bool isAuthData() const noexcept {
+                return hasFlag(FlagsEnum::AuthData);
+            }
+
+            [[nodiscard]] inline bool isDirtyData() const noexcept {
+                return hasFlag(FlagsEnum::DirtyData);
+            }
+
+            [[nodiscard]] inline bool isConstData() const noexcept {
+                return hasFlag(FlagsEnum::ConstData);
+            }
+        };
+
+        uint64_t Address;
+        uint64_t Size;
+        uint64_t FileOffset;
+        uint64_t SlideInfoFileOffset;
+        uint64_t SlideInfoFileSize;
+        uint64_t Flags;
+        uint32_t MaxProt;
+        uint32_t InitProt;
+
+        [[nodiscard]]
+        inline MachO::MemoryProtections getMaxProt() const noexcept {
+            return MaxProt;
+        }
+
+        [[nodiscard]]
+        inline MachO::MemoryProtections getInitProt() const noexcept {
+            return InitProt;
+        }
+
+        [[nodiscard]] inline FlagsDef getFlags() const noexcept {
+            return FlagsDef(Flags);
         }
 
         [[nodiscard]]
@@ -182,6 +275,10 @@ namespace DyldSharedCache {
     using MappingInfoList = BasicContiguousList<MappingInfo>;
     using ConstMappingInfoList = BasicContiguousList<const MappingInfo>;
 
+    using MappingWithSlideInfoList = BasicContiguousList<MappingWithSlideInfo>;
+    using ConstMappingWithSlideInfoList =
+        BasicContiguousList<const MappingWithSlideInfo>;
+
     using ImageTextInfoList = BasicContiguousList<ImageTextInfo>;
     using ConstImageTextInfoList = BasicContiguousList<const ImageTextInfo>;
 
@@ -196,23 +293,32 @@ namespace DyldSharedCache {
         uint32_t MappingOffset;
         uint32_t MappingCount;
 
-        uint32_t ImagesOffset;
-        uint32_t ImagesCount;
+        uint32_t ImagesOffsetOld;
+        uint32_t ImagesCountOld;
 
         uint64_t DyldBaseAddress;
+
+        [[nodiscard]] inline bool isV1() const noexcept;
+        [[nodiscard]] inline bool isV2() const noexcept;
+        [[nodiscard]] inline bool isV3() const noexcept;
+        [[nodiscard]] inline bool isV4() const noexcept;
+        [[nodiscard]] inline bool isV5() const noexcept;
+        [[nodiscard]] inline bool isV6() const noexcept;
+        [[nodiscard]] inline bool isV7() const noexcept;
+        [[nodiscard]] inline bool isV8() const noexcept;
 
         [[nodiscard]] inline HeaderVersion getVersion() const noexcept;
 
         [[nodiscard]] inline
         std::optional<LocationRange> getImageInfoListRange() const noexcept {
             auto End = uint64_t();
-            if (DoesMultiplyAndAddOverflow(ImagesCount, sizeof(ImageInfo),
-                                           ImagesOffset, &End))
+            if (DoesMultiplyAndAddOverflow(ImagesCountOld, sizeof(ImageInfo),
+                                           ImagesOffsetOld, &End))
             {
                 return std::nullopt;
             }
 
-            return LocationRange::CreateWithEnd(ImagesOffset, End);
+            return LocationRange::CreateWithEnd(ImagesOffsetOld, End);
         }
 
         [[nodiscard]] inline
@@ -228,8 +334,9 @@ namespace DyldSharedCache {
         }
 
         [[nodiscard]] inline ImageInfoList getImageInfoList() noexcept {
-            const auto Ptr = reinterpret_cast<uint8_t *>(this) + ImagesOffset;
-            return BasicContiguousList<ImageInfo>(Ptr, ImagesCount);
+            const auto Ptr =
+                reinterpret_cast<uint8_t *>(this) + ImagesOffsetOld;
+            return BasicContiguousList<ImageInfo>(Ptr, ImagesCountOld);
         }
 
         [[nodiscard]]
@@ -240,9 +347,9 @@ namespace DyldSharedCache {
         [[nodiscard]]
         inline ConstImageInfoList getConstImageInfoList() const noexcept {
             const auto Map = reinterpret_cast<const uint8_t *>(this);
-            const auto Ptr = Map + ImagesOffset;
+            const auto Ptr = Map + ImagesOffsetOld;
 
-            return ConstImageInfoList(Ptr, ImagesCount);
+            return ConstImageInfoList(Ptr, ImagesCountOld);
         }
 
         [[nodiscard]] inline MappingInfoList getMappingInfoList() noexcept {
@@ -392,9 +499,7 @@ namespace DyldSharedCache {
         CacheKind Kind;
     };
 
-    /*
-     * From dyld v421.1
-     */
+    // From dyld v421.1
 
     struct HeaderV4 : public HeaderV3 {
         uint32_t BranchPoolsOffset;
@@ -537,6 +642,10 @@ namespace DyldSharedCache {
 
             return Range;
         }
+
+        [[nodiscard]] inline Dyld3::PlatformKind getPlatform() const noexcept {
+            return Dyld3::PlatformKind(Platform);
+        }
     };
 
     // From dyld v625.13
@@ -584,9 +693,156 @@ namespace DyldSharedCache {
         }
     };
 
+    // From dyld v832.7.1
+    struct HeaderV7 : public HeaderV6 {
+        uint32_t MappingWithSlideOffset;
+        uint32_t MappingWithSlideCount;
+
+        [[nodiscard]] inline std::optional<LocationRange>
+        getMappingWithSlideInfoRange() const noexcept {
+            return
+                LocationRange::CreateWithSize(MappingWithSlideOffset,
+                                              MappingWithSlideCount);
+        }
+
+        [[nodiscard]] inline
+        MappingWithSlideInfoList getMappingWithSlideInfoList() noexcept {
+            const auto Ptr =
+                reinterpret_cast<uint8_t *>(this) + MappingWithSlideOffset;
+
+            return MappingWithSlideInfoList(Ptr, MappingWithSlideCount);
+        }
+
+        [[nodiscard]] inline ConstMappingWithSlideInfoList
+        getMappingWithSlideInfoList() const noexcept {
+            return getConstMappingWithSlideInfoList();
+        }
+
+        [[nodiscard]] inline ConstMappingWithSlideInfoList
+        getConstMappingWithSlideInfoList() const noexcept {
+            const auto Map = reinterpret_cast<const uint8_t *>(this);
+            const auto Ptr = Map + MappingWithSlideOffset;
+
+            return ConstMappingWithSlideInfoList(Ptr, MappingWithSlideCount);
+        }
+    };
+
+    // From dyld v940
+    struct HeaderV8 : public HeaderV7 {
+        uint64_t DylibsPBLStateArrayAddrUnused;
+        uint64_t DylibsPBLSetAddr;
+        uint64_t ProgramsPBLSetPoolAddr;
+        uint64_t ProgramsPBLSetPoolSize;
+        uint64_t ProgramTrieAddr;
+        uint32_t ProgramTrieSize;
+        uint32_t OsVersion;
+        uint32_t AltPlatform;
+        uint32_t AltOsVersion;
+        uint64_t SwiftOptsOffset;
+        uint64_t SwiftOptsSize;
+        uint32_t SubCacheArrayOffset;
+        uint32_t SubCacheArrayCount;
+        uint8_t  SymbolFileUUID[16];
+        uint64_t RosettaReadOnlyAddr;
+        uint64_t RosettaReadOnlySize;
+        uint64_t RosettaReadWriteAddr;
+        uint64_t RosettaReadWriteSize;
+        uint32_t ImagesOffset;
+        uint32_t ImagesCount;
+
+        [[nodiscard]] inline
+        std::optional<LocationRange> getImageInfoListRange() const noexcept {
+            auto End = uint64_t();
+            if (DoesMultiplyAndAddOverflow(ImagesCount, sizeof(ImageInfo),
+                                           ImagesOffset, &End))
+            {
+                return std::nullopt;
+            }
+
+            return LocationRange::CreateWithEnd(ImagesOffset, End);
+        }
+
+        [[nodiscard]] inline ImageInfoList getImageInfoList() noexcept {
+            const auto Ptr = reinterpret_cast<uint8_t *>(this) + ImagesOffset;
+            return BasicContiguousList<ImageInfo>(Ptr, ImagesCount);
+        }
+
+        [[nodiscard]]
+        inline ConstImageInfoList getImageInfoList() const noexcept {
+            return getConstImageInfoList();
+        }
+
+        [[nodiscard]]
+        inline ConstImageInfoList getConstImageInfoList() const noexcept {
+            const auto Map = reinterpret_cast<const uint8_t *>(this);
+            const auto Ptr = Map + ImagesOffsetOld;
+
+            return ConstImageInfoList(Ptr, ImagesCount);
+        }
+
+        [[nodiscard]] inline std::optional<LocationRange>
+        getProgramsPBLSetPoolRange() const noexcept {
+            return
+                LocationRange::CreateWithSize(ProgramsPBLSetPoolAddr,
+                                              ProgramsPBLSetPoolSize);
+        }
+
+        [[nodiscard]] inline
+        std::optional<LocationRange> getProgramTrieRange() const noexcept {
+            return
+                LocationRange::CreateWithSize(ProgramTrieAddr, ProgramTrieSize);
+        }
+
+        [[nodiscard]] inline
+        std::optional<LocationRange> getSwiftOptsRange() const noexcept {
+            return
+                LocationRange::CreateWithSize(SwiftOptsOffset, SwiftOptsSize);
+        }
+
+        [[nodiscard]] inline
+        std::optional<LocationRange> getSubCacheArrayRange() const noexcept {
+            return
+                LocationRange::CreateWithSize(SubCacheArrayOffset,
+                                              SubCacheArrayCount);
+        }
+
+        [[nodiscard]] inline
+        std::optional<LocationRange> getRosettaReadOnlyRange() const noexcept {
+            return
+                LocationRange::CreateWithSize(RosettaReadOnlyAddr,
+                                              RosettaReadOnlySize);
+        }
+
+        [[nodiscard]] inline
+        std::optional<LocationRange> getRosettaReadWriteRange() const noexcept {
+            return
+                LocationRange::CreateWithSize(RosettaReadWriteAddr,
+                                              RosettaReadWriteSize);
+        }
+
+        [[nodiscard]]
+        constexpr Dyld3::PackedVersion getOsVersion() const noexcept {
+            return Dyld3::PackedVersion(OsVersion);
+        }
+
+        [[nodiscard]]
+        constexpr Dyld3::PackedVersion getAltOsVersion() const noexcept {
+            return Dyld3::PackedVersion(AltOsVersion);
+        }
+
+        [[nodiscard]]
+        constexpr Dyld3::PlatformKind getAltPlatform() const noexcept {
+            return Dyld3::PlatformKind(AltPlatform);
+        }
+    };
+
     HeaderVersion HeaderV0::getVersion() const noexcept {
         auto Version = HeaderVersion::V0;
-        if (MappingOffset >= sizeof(HeaderV6)) {
+        if (MappingOffset >= sizeof(HeaderV8)) {
+            Version = HeaderVersion::V8;
+        } else if (MappingOffset >= sizeof(HeaderV7)) {
+            Version = HeaderVersion::V7;
+        } else if (MappingOffset >= sizeof(HeaderV6)) {
             Version = HeaderVersion::V6;
         } else if (MappingOffset >= sizeof(HeaderV5)) {
             Version = HeaderVersion::V5;
@@ -603,5 +859,37 @@ namespace DyldSharedCache {
         return Version;
     }
 
-    using Header = HeaderV6;
+    [[nodiscard]] inline bool HeaderV0::isV1() const noexcept {
+        return MappingOffset >= sizeof(DyldSharedCache::HeaderV1);
+    }
+
+    [[nodiscard]] inline bool HeaderV0::isV2() const noexcept {
+        return MappingOffset >= sizeof(DyldSharedCache::HeaderV2);
+    }
+
+    [[nodiscard]] inline bool HeaderV0::isV3() const noexcept {
+        return MappingOffset >= sizeof(DyldSharedCache::HeaderV3);
+    }
+
+    [[nodiscard]] inline bool HeaderV0::isV4() const noexcept {
+        return MappingOffset >= sizeof(DyldSharedCache::HeaderV4);
+    }
+
+    [[nodiscard]] inline bool HeaderV0::isV5() const noexcept {
+        return MappingOffset >= sizeof(DyldSharedCache::HeaderV5);
+    }
+
+    [[nodiscard]] inline bool HeaderV0::isV6() const noexcept {
+        return MappingOffset >= sizeof(DyldSharedCache::HeaderV6);
+    }
+
+    [[nodiscard]] inline bool HeaderV0::isV7() const noexcept {
+        return MappingOffset >= sizeof(DyldSharedCache::HeaderV7);
+    }
+
+    [[nodiscard]] inline bool HeaderV0::isV8() const noexcept {
+        return MappingOffset >= sizeof(DyldSharedCache::HeaderV8);
+    }
+
+    using Header = HeaderV8;
 }

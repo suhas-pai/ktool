@@ -23,28 +23,28 @@ template <>
 struct MemoryProtectionsEnumInfo<MemoryProtectionsEnum::None> {
     constexpr static const auto Kind = MemoryProtectionsEnum::None;
     constexpr static const auto Name = std::string_view("VM_PROT_NONE");
-    constexpr static const auto Decription = std::string_view("None");
+    constexpr static const auto Description = std::string_view("None");
 };
 
 template <>
 struct MemoryProtectionsEnumInfo<MemoryProtectionsEnum::Read> {
     constexpr static const auto Kind = MemoryProtectionsEnum::Read;
     constexpr static const auto Name = std::string_view("VM_PROT_READ");
-    constexpr static const auto Decription = std::string_view("Read");
+    constexpr static const auto Description = std::string_view("Read");
 };
 
 template <>
 struct MemoryProtectionsEnumInfo<MemoryProtectionsEnum::Write> {
     constexpr static const auto Kind = MemoryProtectionsEnum::Write;
     constexpr static const auto Name = std::string_view("VM_PROT_WRITE");
-    constexpr static const auto Decription = std::string_view("Write");
+    constexpr static const auto Description = std::string_view("Write");
 };
 
 template <>
 struct MemoryProtectionsEnumInfo<MemoryProtectionsEnum::Execute> {
     constexpr static const auto Kind = MemoryProtectionsEnum::Execute;
     constexpr static const auto Name = std::string_view("VM_PROT_EXECUTE");
-    constexpr static const auto Decription = std::string_view("Execute");
+    constexpr static const auto Description = std::string_view("Execute");
 };
 
 struct MemoryProtections : public ::BasicFlags<MemoryProtectionsEnum> {
@@ -56,15 +56,15 @@ public:
     constexpr MemoryProtections(MaskIntegerType Integer) noexcept
     : ::BasicFlags<MemoryProtectionsEnum>(Integer) {}
 
-    [[nodiscard]] constexpr inline bool IsReadable() const noexcept {
+    [[nodiscard]] constexpr bool isReadable() const noexcept {
         return hasFlag(Masks::Read);
     }
 
-    [[nodiscard]] constexpr inline bool IsWritable() const noexcept {
+    [[nodiscard]] constexpr bool isWritable() const noexcept {
         return hasFlag(Masks::Write);
     }
 
-    [[nodiscard]] constexpr inline bool IsExecutable() const noexcept {
+    [[nodiscard]] constexpr bool isExecutable() const noexcept {
         return hasFlag(Masks::Execute);
     }
 

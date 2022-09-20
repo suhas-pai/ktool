@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <unistd.h>
 
 #include "ADT/Allocation.h"
 #include "ADT/ArgvArray.h"
@@ -254,7 +255,7 @@ int main(const int Argc, const char *Argv[]) {
     const auto OpsArgv = ArgvArr.fromIndex(1);
     if (OpsArgv.empty()) {
         fprintf(stderr,
-                "Please provide a file for operation %s.\n",
+                "Please provide a file for operation %s\n",
                 Ops->getName().data());
 
         PrintRunHelpMessage();

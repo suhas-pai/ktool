@@ -72,13 +72,13 @@ ValidateMap(const ConstMemoryMap &Map,
 
     auto MappingEnd = uint64_t();
 
-    const auto Header = Map.getBeginAs<DyldSharedCache::HeaderV0>();
-    const auto MappingOffset = Header->MappingOffset;
+    const auto &Header = *Map.getBeginAs<DyldSharedCache::HeaderV8>();
+    const auto MappingOffset = Header.MappingOffset;
     const auto AllowedRange =
         LocationRange::CreateWithEnd(MappingOffset, Map.size());
 
     if (DoesMultiplyAndAddOverflow(sizeof(DyldSharedCache::MappingInfo),
-                                   Header->MappingCount, MappingOffset,
+                                   Header.MappingCount, MappingOffset,
                                    &MappingEnd))
     {
         return ConstDscMemoryObject::Error::InvalidMappingInfoListRange;
@@ -91,17 +91,22 @@ ValidateMap(const ConstMemoryMap &Map,
         return ConstDscMemoryObject::Error::InvalidMappingInfoListRange;
     }
 
-    const auto ImageOffset = Header->ImagesOffset;
-    auto ImageEnd = uint64_t();
+    const auto ImagesOffset =
+        Header.isV8() ? Header.ImagesOffset : Header.ImagesOffsetOld;
+    const auto ImageCount =
+        Header.isV8() ? Header.ImagesCount : Header.ImagesCountOld;
 
+    auto ImageEnd = uint64_t();
     if (DoesAddAndMultiplyOverflow(sizeof(DyldSharedCache::ImageInfo),
-                                   Header->ImagesCount, Header->ImagesOffset,
+                                   ImageCount, ImagesOffset,
                                    &ImageEnd))
     {
         return ConstDscMemoryObject::Error::InvalidImageInfoListRange;
     }
 
-    const auto ImageRange = LocationRange::CreateWithEnd(ImageOffset, ImageEnd);
+    const auto ImageRange =
+        LocationRange::CreateWithEnd(ImagesOffset, ImageEnd);
+
     if (!AllowedRange.contains(ImageRange)) {
         return ConstDscMemoryObject::Error::InvalidImageInfoListRange;
     }

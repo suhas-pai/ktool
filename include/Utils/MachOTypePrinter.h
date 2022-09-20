@@ -349,8 +349,8 @@ struct MachOTypePrinter<MachO::FatHeader> {
 };
 
 template <>
-struct MachOTypePrinter<MachO::PackedVersion> {
-    using Type = MachO::PackedVersion;
+struct MachOTypePrinter<Dyld3::PackedVersion> {
+    using Type = Dyld3::PackedVersion;
 
     template <bool RightPad = false>
     static int
@@ -496,14 +496,14 @@ struct MachOTypePrinter<struct MachO::DylibCommand::Info> {
             fprintf(OutFile, "%sCurrent Version:       ", LinePrefix);
 
         WrittenOut +=
-            MachOTypePrinter<MachO::PackedVersion>::Print(OutFile,
+            MachOTypePrinter<Dyld3::PackedVersion>::Print(OutFile,
                 Info.getCurrentVersion(IsBigEndian), "", LineSuffix);
 
         WrittenOut +=
             fprintf(OutFile, "\n%sCompatibility Version: ", LinePrefix);
 
         WrittenOut +=
-            MachOTypePrinter<MachO::PackedVersion>::Print(OutFile,
+            MachOTypePrinter<Dyld3::PackedVersion>::Print(OutFile,
                 Info.getCompatVersion(IsBigEndian), "", LineSuffix);
 
         const auto Timestamp = Info.getTimestamp(IsBigEndian);
@@ -529,12 +529,12 @@ struct MachOTypePrinter<struct MachO::DylibCommand::Info> {
     {
         auto WrittenOut = fprintf(OutFile, "%sCurrent-Version: ", LinePrefix);
         WrittenOut +=
-            MachOTypePrinter<MachO::PackedVersion>::Print<true>(OutFile,
+            MachOTypePrinter<Dyld3::PackedVersion>::Print<true>(OutFile,
                 Info.getCurrentVersion(IsBigEndian), "", ",");
 
         WrittenOut += fprintf(OutFile, "Compatibility-Version: ");
         WrittenOut +=
-            MachOTypePrinter<MachO::PackedVersion>::Print<true>(OutFile,
+            MachOTypePrinter<Dyld3::PackedVersion>::Print<true>(OutFile,
                 Info.getCompatVersion(IsBigEndian), "", ",");
 
         const auto Timestamp = Info.getTimestamp(IsBigEndian);

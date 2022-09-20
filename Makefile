@@ -37,11 +37,11 @@ $(DEBUGTARGET): $(DEBUGOBJS)
 
 $(OBJ)/%.o: $(SRC)/%.cpp
 	@mkdir -p $(shell dirname $@)
-	@$(CC) $(RELEASECFLAGS) -Iinclude/$(shell dirname $(<:src/%=%)) -c $< -o $@
+	$(CC) $(RELEASECFLAGS) -Iinclude/$(shell dirname $(<:src/%=%)) -c $< -o $@
 
 $(OBJ)/%.d.o: $(SRC)/%.cpp
 	@mkdir -p $(shell dirname $@)
-	@$(CC) $(DEBUGCFLAGS) -Iinclude/$(shell dirname $(<:src/%=%)) -c $< -o $@
+	$(CC) $(DEBUGCFLAGS) -Iinclude/$(shell dirname $(<:src/%=%)) -c $< -o $@
 
 print_info:
 	@echo $(OBJS)

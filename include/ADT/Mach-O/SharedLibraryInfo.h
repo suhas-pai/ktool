@@ -20,8 +20,8 @@ namespace MachO {
         uint32_t Index;
         uint32_t Timestamp;
 
-        PackedVersion CurrentVersion;
-        PackedVersion CompatVersion;
+        Dyld3::PackedVersion CurrentVersion;
+        Dyld3::PackedVersion CompatVersion;
     public:
         [[nodiscard]]
         constexpr LoadCommand::Kind getKind() const noexcept {
@@ -42,12 +42,12 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr PackedVersion getCurrentVersion() const noexcept {
+        constexpr Dyld3::PackedVersion getCurrentVersion() const noexcept {
             return CurrentVersion;
         }
 
         [[nodiscard]]
-        constexpr PackedVersion getCompatVersion() const noexcept {
+        constexpr Dyld3::PackedVersion getCompatVersion() const noexcept {
             return CompatVersion;
         }
 
@@ -74,13 +74,13 @@ namespace MachO {
         }
 
         constexpr SharedLibraryInfo &
-        setCurrentVersion(const PackedVersion Value) noexcept {
+        setCurrentVersion(const Dyld3::PackedVersion Value) noexcept {
             this->CurrentVersion = Value;
             return *this;
         }
 
         constexpr SharedLibraryInfo &
-        setCompatVersion(const PackedVersion Value) noexcept {
+        setCompatVersion(const Dyld3::PackedVersion Value) noexcept {
             this->CompatVersion = Value;
             return *this;
         }

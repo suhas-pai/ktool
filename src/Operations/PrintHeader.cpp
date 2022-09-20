@@ -262,6 +262,15 @@ enum class DscRangeKind {
     OtherImageArray,
     OtherTrie,
 
+    // HeaderV7
+
+    // HeaderV8
+    ProgramsPBLSetPool,
+    ProgramTrie,
+    SwiftOpts,
+    RosettaReadOnly,
+    RosettaReadWrite,
+
     End,
 };
 
@@ -451,6 +460,56 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
             }
         }
 
+        // Nothing in V7
+        if (Version < DyldSharedCache::HeaderVersion::V8) {
+            return Result;
+        }
+
+        case DscRangeKind::ProgramsPBLSetPool: {
+            if (const auto Range = Header.getProgramsPBLSetPoolRange()) {
+                AddRangeToList(Result, DscRange {
+                    .Kind = DscRangeKind::ProgramsPBLSetPool,
+                    .Range = Range.value()
+                });
+            }
+        }
+
+        case DscRangeKind::ProgramTrie: {
+            if (const auto Range = Header.getProgramTrieRange()) {
+                AddRangeToList(Result, DscRange {
+                    .Kind = DscRangeKind::ProgramTrie,
+                    .Range = Range.value()
+                });
+            }
+        }
+
+        case DscRangeKind::SwiftOpts: {
+            if (const auto Range = Header.getSwiftOptsRange()) {
+                AddRangeToList(Result, DscRange {
+                    .Kind = DscRangeKind::SwiftOpts,
+                    .Range = Range.value()
+                });
+            }
+        }
+
+        case DscRangeKind::RosettaReadOnly: {
+            if (const auto Range = Header.getRosettaReadOnlyRange()) {
+                AddRangeToList(Result, DscRange {
+                    .Kind = DscRangeKind::RosettaReadOnly,
+                    .Range = Range.value()
+                });
+            }
+        }
+
+        case DscRangeKind::RosettaReadWrite: {
+            if (const auto Range = Header.getRosettaReadOnlyRange()) {
+                AddRangeToList(Result, DscRange {
+                    .Kind = DscRangeKind::RosettaReadWrite,
+                    .Range = Range.value()
+                });
+            }
+        }
+
         case DscRangeKind::End:
             break;
     }
@@ -542,6 +601,22 @@ PrintDscRangeOverlapsErrorOrNewline(
             case DscRangeKind::OtherTrie:
                 fputs("Other-Trie Range", Options.ErrFile);
                 break;
+            case DscRangeKind::ProgramsPBLSetPool:
+                fputs("Programs Prebuilt Loader Set Pool Range",
+                      Options.ErrFile);
+                break;
+            case DscRangeKind::ProgramTrie:
+                fputs("Program Trie Range", Options.ErrFile);
+                break;
+            case DscRangeKind::SwiftOpts:
+                fputs("Swift Optimizations Range", Options.ErrFile);
+                break;
+            case DscRangeKind::RosettaReadOnly:
+                fputs("Rosetta Read Only Range", Options.ErrFile);
+                break;
+            case DscRangeKind::RosettaReadWrite:
+                fputs("Rosetta Read Write Range", Options.ErrFile);
+                break;
             case DscRangeKind::End:
                 assert(0 && "Overlap-Kind End is set");
         }
@@ -557,9 +632,13 @@ PrintDscRangeOverlapsErrorOrNewline(
 }
 
 constexpr static auto LongestDscKey =
-    LENGTH_OF("Program Closures Trie Address");
+    LENGTH_OF("Programs Prebuilt Loader Set Pool Address");
 
-static void PrintDscKey(FILE *OutFile, const char *Key) noexcept {
+static void
+PrintDscKey(FILE *OutFile, const char *Key, const char *Prefix = "") noexcept {
+    fputs(Prefix, OutFile);
+    fflush(OutFile);
+
     PrintUtilsRightPadSpaces(OutFile,
                              fprintf(OutFile, "%s: ", Key),
                              LongestDscKey + LENGTH_OF(": "));
@@ -576,8 +655,81 @@ WarnIfOutOfRange(FILE *OutFile,
     if (!LocRangeOpt.has_value() ||
         !Range.containsLocRange(LocRangeOpt.value()))
     {
-        fprintf(OutFile, " (Past EOF!)");
+        fputs(" (Past EOF!)", OutFile);
     }
+
+    if (PrintNewLine) {
+        fputc('\n', OutFile);
+    }
+}
+
+template <std::integral T>
+static inline int
+PrintSize(FILE *const OutFile,
+          const T Size,
+          const bool Verbose,
+          const char *Suffix = "") noexcept
+{
+    auto WrittenOut = PrintUtilsWriteFormattedSize(OutFile, Size);
+    if (Verbose && Size != 0) {
+        WrittenOut += PrintUtilsWriteNumber(OutFile, Size, " (", " bytes)");
+    }
+
+    WrittenOut += fputs(Suffix, OutFile);
+    fflush(OutFile);
+
+    return WrittenOut;
+}
+
+template <
+    void (*PrintKeyFunc)(FILE *, const char *, const char *) = PrintDscKey,
+    std::integral AddrType,
+    std::integral SizeType>
+
+static inline void
+PrintDscSizeRange(FILE *OutFile,
+                  const RelativeRange &DscRange,
+                  const char *AddressName,
+                  const char *SizeName,
+                  AddrType Address,
+                  SizeType Size,
+                  bool Verbose,
+                  const char *const Prefix = "",
+                  const char *const Suffix = "",
+                  bool IsOffset = false,
+                  bool PrintNewLine = false) noexcept
+{
+    PrintKeyFunc(OutFile, AddressName, Prefix);
+    PrintUtilsWriteOffset(OutFile, Address);
+
+    const auto VerboseAndNonZeroSize = (Verbose && Size != 0);
+    constexpr auto SizeIs64Bit = std::is_same_v<SizeType, uint64_t>;
+
+    if (VerboseAndNonZeroSize) {
+        constexpr auto AddrIs64Bit = std::is_same_v<AddrType, uint64_t>;
+        if constexpr (AddrIs64Bit || SizeIs64Bit) {
+            PrintUtilsWriteOffsetSizeRange(OutFile,
+                                           static_cast<uint64_t>(Address),
+                                           static_cast<uint64_t>(Size),
+                                           " (",
+                                           ")");
+        } else {
+            PrintUtilsWriteOffsetSizeRange(OutFile,
+                                           static_cast<uint32_t>(Address),
+                                           static_cast<uint32_t>(Size),
+                                           " (",
+                                           ")");
+        }
+    }
+
+    if (IsOffset) {
+        WarnIfOutOfRange(OutFile, DscRange, Address, Size, false);
+    }
+
+    fputc('\n', OutFile);
+
+    PrintKeyFunc(OutFile, SizeName, Prefix);
+    PrintSize(OutFile, Size, Verbose);
 
     if (PrintNewLine) {
         fputc('\n', OutFile);
@@ -591,7 +743,9 @@ PrintMappingInfoList(const struct PrintHeaderOperation::Options &Options,
     const auto MappingCountDigitLength =
         PrintUtilsGetIntegerDigitLength(Object.getMappingCount());
 
+    constexpr auto LongestKeyLength = LENGTH_OF("File-Offset: ");
     auto Index = static_cast<int>(1);
+
     for (const auto &Mapping : Object.getMappingInfoList()) {
         const auto InitProt = Mapping.getInitProt();
         const auto MaxProt = Mapping.getMaxProt();
@@ -602,10 +756,14 @@ PrintMappingInfoList(const struct PrintHeaderOperation::Options &Options,
                 Index,
                 MEM_PROT_INIT_MAX_RNG_FMT_ARGS(InitProt, MaxProt));
 
+        PrintUtilsRightPadSpaces(Options.OutFile,
+                                 fputs("\t\tFile-Offset: ", Options.OutFile),
+                                 LENGTH_OF("\t\t") + LongestKeyLength);
+
         PrintUtilsWriteOffset(Options.OutFile,
                               Mapping.FileOffset,
-                              true,
-                              "\t\tFile-Offset: ");
+                              /*Pad=*/true,
+                              /*Prefix=*/"");
 
         const auto PrintRange = (!Mapping.isEmpty() && Options.Verbose);
         if (PrintRange) {
@@ -616,10 +774,14 @@ PrintMappingInfoList(const struct PrintHeaderOperation::Options &Options,
                                            ")");
         }
 
+        PrintUtilsRightPadSpaces(Options.OutFile,
+                                 fputs("\n\t\tAddress: ", Options.OutFile),
+                                 LENGTH_OF("\n\t\t") + LongestKeyLength);
+
         PrintUtilsWriteOffset(Options.OutFile,
                               Mapping.Address,
-                              true,
-                              "\n\t\tAddress:     ");
+                              /*Pad=*/true,
+                              /*Prefix=*/"");
 
         if (PrintRange) {
             PrintUtilsWriteOffsetSizeRange(Options.OutFile,
@@ -629,21 +791,112 @@ PrintMappingInfoList(const struct PrintHeaderOperation::Options &Options,
                                            ")");
         }
 
-        fputs("\n\t\tSize:        ", Options.OutFile);
         PrintUtilsRightPadSpaces(Options.OutFile,
-                                 fprintf(Options.OutFile,
-                                         "%" PRIu64,
-                                         Mapping.Size),
-                                 OFFSET_64_LEN);
+                                 fputs("\n\t\tSize: ", Options.OutFile),
+                                 LENGTH_OF("\n\t\t") + LongestKeyLength);
 
-        if (Options.Verbose) {
-            PrintUtilsWriteFormattedSize(Options.OutFile,
-                                         Mapping.Size,
-                                         " (",
-                                         ")");
+        PrintSize(Options.OutFile,
+                  Mapping.Size,
+                  Options.Verbose,
+                  /*Suffix=*/"\n");
+        Index++;
+    }
+}
+
+static void
+PrintMappingWithSlideInfoList(
+    const struct PrintHeaderOperation::Options &Options,
+    const ConstDscMemoryObject &Object)
+{
+    const auto MappingCountDigitLength =
+        PrintUtilsGetIntegerDigitLength(Object.getMappingCount());
+
+    const auto LongestKeyLength = LENGTH_OF("Slide-Info File Offset: ");
+    auto Index = static_cast<int>(1);
+
+    const auto &Header = Object.getHeaderV7();
+    for (const auto &Mapping : Header.getMappingWithSlideInfoList()) {
+        const auto InitProt = Mapping.getInitProt();
+        const auto MaxProt = Mapping.getMaxProt();
+
+        fprintf(Options.OutFile,
+                "\tMapping %0*d: " MEM_PROT_INIT_MAX_RNG_FMT " \n",
+                MappingCountDigitLength,
+                Index,
+                MEM_PROT_INIT_MAX_RNG_FMT_ARGS(InitProt, MaxProt));
+
+        PrintUtilsRightPadSpaces(Options.OutFile,
+                                 fputs("\t\tFile-Offset: ", Options.OutFile),
+                                 LENGTH_OF("\t\t") + LongestKeyLength);
+
+        PrintUtilsWriteOffset(Options.OutFile,
+                              Mapping.FileOffset,
+                              /*Pad=*/true,
+                              /*Prefix=*/"");
+
+        const auto PrintRange = (!Mapping.isEmpty() && Options.Verbose);
+        if (PrintRange) {
+            PrintUtilsWriteOffsetSizeRange(Options.OutFile,
+                                           Mapping.FileOffset,
+                                           Mapping.Size,
+                                           " (",
+                                           ")");
         }
 
-        fputc('\n', Options.OutFile);
+        PrintUtilsRightPadSpaces(Options.OutFile,
+                                 fputs("\n\t\tAddress: ", Options.OutFile),
+                                 LENGTH_OF("\n\t\t") + LongestKeyLength);
+
+        PrintUtilsWriteOffset(Options.OutFile,
+                              Mapping.Address,
+                              /*Pad=*/true,
+                              /*Prefix=*/"");
+
+        if (PrintRange) {
+            PrintUtilsWriteOffsetSizeRange(Options.OutFile,
+                                           Mapping.Address,
+                                           Mapping.Size,
+                                           " (",
+                                           ")");
+        }
+
+        PrintUtilsRightPadSpaces(Options.OutFile,
+                                 fputs("\n\t\tSize: ", Options.OutFile),
+                                 LENGTH_OF("\n\t\t") + LongestKeyLength);
+
+        PrintSize(Options.OutFile,
+                  Mapping.Size,
+                  Options.Verbose,
+                  /*Suffix=*/"\n");
+
+        PrintUtilsRightPadSpaces(
+            Options.OutFile,
+            fputs("\t\tSlide-Info File Offset: ", Options.OutFile),
+            LENGTH_OF("\t\t") + LongestKeyLength);
+
+        PrintUtilsWriteOffset(Options.OutFile,
+                              Mapping.SlideInfoFileOffset,
+                              /*Pad=*/true,
+                              /*Prefix=*/"");
+
+        if (PrintRange) {
+            PrintUtilsWriteOffsetSizeRange(Options.OutFile,
+                                           Mapping.SlideInfoFileOffset,
+                                           Mapping.SlideInfoFileSize,
+                                           " (",
+                                           ")");
+        }
+
+        PrintUtilsRightPadSpaces(
+            Options.OutFile,
+            fputs("\n\t\tSlide-Info File Size: ", Options.OutFile),
+            LENGTH_OF("\n\t\t") + LongestKeyLength);
+
+        PrintSize(Options.OutFile,
+                  Mapping.SlideInfoFileSize,
+                  Options.Verbose,
+                  /*Suffix=*/"\n");
+
         Index++;
     }
 }
@@ -682,21 +935,28 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
                           "\n");
 
     PrintDscKey(Options.OutFile, "Mapping Count");
-    fprintf(Options.OutFile, "%" PRIu32 "\n", Header.MappingCount);
+    PrintUtilsWriteFormattedNumber(Options.OutFile,
+                                   Header.MappingCount,
+                                   /*Prefix=*/"",
+                                   /*Suffix=*/"\n");
 
     if (Object.getMappingCount() <= 10) {
+        fputs("Mappings: \n", Options.OutFile);
         PrintMappingInfoList(Options, Object);
     }
 
     PrintDscKey(Options.OutFile, "Images Offset");
     PrintUtilsWriteOffset(Options.OutFile,
-                          Header.ImagesOffset,
+                          Object.getImagesOffset(),
                           false,
                           "",
                           "\n");
 
     PrintDscKey(Options.OutFile, "Images Count");
-    fprintf(Options.OutFile, "%" PRIu32 "\n", Header.ImagesCount);
+    PrintUtilsWriteFormattedNumber(Options.OutFile,
+                                   Object.getImageCount(),
+                                   /*Prefix=*/"",
+                                   /*Suffix=*/"\n");
 
     PrintDscKey(Options.OutFile, "Dyld Base-Address");
     PrintUtilsWriteOffset(Options.OutFile,
@@ -704,58 +964,6 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
                           false,
                           "",
                           "\n");
-}
-
-template <void (*PrintKeyFunc)(FILE *, const char *) = PrintDscKey,
-          std::integral T>
-
-static inline void
-PrintDscSizeRange(FILE *OutFile,
-                  const RelativeRange &DscRange,
-                  const char *AddressName,
-                  const char *SizeName,
-                  T Address,
-                  T Size,
-                  bool Verbose,
-                  bool IsOffset = false,
-                  bool PrintNewLine = false) noexcept
-{
-    constexpr auto Is64Bit = std::is_same_v<T, uint64_t>;
-
-    PrintKeyFunc(OutFile, AddressName);
-    PrintUtilsWriteOffset(OutFile, Address);
-
-    const auto VerboseAndNonZeroSize = (Verbose && Size != 0);
-    if (VerboseAndNonZeroSize) {
-        PrintUtilsWriteOffsetSizeRange(OutFile, Address, Size, " (", ")");
-    }
-
-    if (IsOffset) {
-        WarnIfOutOfRange(OutFile, DscRange, Address, Size, false);
-    }
-
-    fputc('\n', OutFile);
-    PrintKeyFunc(OutFile, SizeName);
-
-    auto SizeWrittenOut = 0;
-    auto SizeMaxLength = 0;
-
-    if constexpr (Is64Bit) {
-        SizeWrittenOut = fprintf(OutFile, "%" PRIu64, Size);
-        SizeMaxLength = OFFSET_64_LEN;
-    } else {
-        SizeWrittenOut = fprintf(OutFile, "%" PRIu32, Size);
-        SizeMaxLength = OFFSET_32_LEN;
-    }
-
-    if (VerboseAndNonZeroSize) {
-        PrintUtilsRightPadSpaces(OutFile, SizeWrittenOut, SizeMaxLength);
-        PrintUtilsWriteFormattedSize(OutFile, Size, " (", ")");
-    }
-
-    if (PrintNewLine) {
-        fputc('\n', OutFile);
-    }
 }
 
 static void
@@ -771,7 +979,9 @@ PrintDscHeaderV1Info(const ConstDscMemoryObject &Object,
                       Header.CodeSignatureOffset,
                       Header.CodeSignatureSize,
                       Options.Verbose,
-                      true);
+                      /*Prefix=*/"",
+                      /*Suffix=*/"",
+                      /*IsOffset=*/true);
 
     PrintDscRangeOverlapsErrorOrNewline(Options,
                                         List,
@@ -784,7 +994,9 @@ PrintDscHeaderV1Info(const ConstDscMemoryObject &Object,
                       Header.SlideInfoOffset,
                       Header.SlideInfoSize,
                       Options.Verbose,
-                      true);
+                      /*Prefix=*/"",
+                      /*Suffix=*/"",
+                      /*IsOffset=*/true);
 
     PrintDscRangeOverlapsErrorOrNewline(Options, List, DscRangeKind::SlideInfo);
     fputc('\n', Options.OutFile);
@@ -803,7 +1015,9 @@ PrintDscHeaderV2Info(const ConstDscMemoryObject &Object,
                       Header.LocalSymbolsOffset,
                       Header.LocalSymbolsSize,
                       Options.Verbose,
-                      true);
+                      /*Prefix=*/"",
+                      /*Suffix=*/"",
+                      /*IsOffset=*/true);
 
     PrintDscRangeOverlapsErrorOrNewline(Options,
                                         List,
@@ -811,6 +1025,27 @@ PrintDscHeaderV2Info(const ConstDscMemoryObject &Object,
 
     PrintDscKey(Options.OutFile, "Uuid");
     PrintUtilsWriteUuid(Options.OutFile, Header.Uuid, "", "\n\n");
+}
+
+template <std::integral OffsetType, std::integral SizeType>
+static void
+PrintOffsetCountPair(FILE *const OutFile,
+                     const RelativeRange &Range,
+                     const char *const OffsetKey,
+                     const char *const CountKey,
+                     const OffsetType Offset,
+                     const SizeType Count,
+                     const char *const Suffix = "")
+{
+    PrintDscKey(OutFile, OffsetKey);
+
+    PrintUtilsWriteOffset(OutFile, Offset);
+    WarnIfOutOfRange(OutFile, Range, Offset, 1);
+
+    PrintDscKey(OutFile, CountKey);
+    PrintUtilsWriteFormattedNumber(OutFile, Offset);
+
+    fprintf(OutFile, "%s", Suffix);
 }
 
 static void
@@ -839,17 +1074,13 @@ PrintDscHeaderV4Info(const ConstDscMemoryObject &Object,
                      const DscRangeList &List) noexcept
 {
     const auto &Header = Object.getHeaderV4();
-
-    PrintDscKey(Options.OutFile, "Branch-Pools Offset");
-    PrintUtilsWriteOffset(Options.OutFile, Header.BranchPoolsOffset);
-
-    WarnIfOutOfRange(Options.OutFile,
-                     Object.getRange(),
-                     Header.BranchPoolsOffset,
-                     1);
-
-    PrintDscKey(Options.OutFile, "Branch-Pools Count");
-    fprintf(Options.OutFile, "%" PRIu32 "\n", Header.BranchPoolsCount);
+    PrintOffsetCountPair(Options.OutFile,
+                         Object.getRange(),
+                         "Branch-Pools Offset",
+                         "Branch-Pools Count",
+                         Header.BranchPoolsOffset,
+                         Header.BranchPoolsCount,
+                         "\n");
 
     PrintDscSizeRange(Options.OutFile,
                       Object.getRange(),
@@ -863,22 +1094,18 @@ PrintDscHeaderV4Info(const ConstDscMemoryObject &Object,
                                         List,
                                         DscRangeKind::AcceleratorInfo);
 
-    PrintDscKey(Options.OutFile, "Images-Text Offset");
-    PrintUtilsWriteOffset(Options.OutFile, Header.ImagesTextOffset);
+    PrintOffsetCountPair(Options.OutFile,
+                         Object.getRange(),
+                         "Images-Text Offset",
+                         "Images-Text Count",
+                         Header.ImagesTextOffset,
+                         Header.ImagesTextCount);
 
-    WarnIfOutOfRange(Options.OutFile,
-                     Object.getRange(),
-                     Header.ImagesTextOffset,
-                     1);
-
-    PrintDscKey(Options.OutFile, "Images-Text Count");
-    fprintf(Options.OutFile, "%" PRIu64, Header.ImagesTextCount);
-
-    if (Header.ImagesTextCount != Header.ImagesCount) {
+    if (Header.ImagesTextCount != Object.getImageCount()) {
         fprintf(Options.OutFile,
                 " (Invalid: %" PRIu64 " Image-Texts vs %" PRIu32 " Images",
                 Header.ImagesTextCount,
-                Header.ImagesCount);
+                Object.getImageCount());
     }
 
     PrintDscRangeOverlapsErrorOrNewline(Options,
@@ -888,12 +1115,23 @@ PrintDscHeaderV4Info(const ConstDscMemoryObject &Object,
     fputc('\n', Options.OutFile);
 }
 
-static
+static inline
 void PrintBoolValue(FILE *OutFile, const char *Key, bool Value) noexcept {
     PrintDscKey(OutFile, Key);
 
     fputs((Value) ? "true" : "false", OutFile);
     fputc('\n', OutFile);
+}
+
+static inline void
+PrintPlatformKindValue(FILE *const OutFile,
+                       const char *const Key,
+                       const Dyld3::PlatformKind Platform)
+{
+    PrintDscKey(OutFile, Key);
+    fprintf(OutFile,
+            "%s\n",
+            Dyld3::PlatformKindGetDescription(Platform).data());
 }
 
 static void
@@ -950,13 +1188,7 @@ PrintDscHeaderV5Info(const ConstDscMemoryObject &Object,
                                         List,
                                         DscRangeKind::ProgClosuresTrie);
 
-    PrintDscKey(Options.OutFile, "Platform");
-
-    const auto Platform = MachO::PlatformKind(Header.Platform);
-    const auto PlatformStr =
-        MachO::PlatformKindGetDescription(Platform).data() ?: "<unrecognized>";
-
-    fprintf(Options.OutFile, "%s\n", PlatformStr);
+    PrintPlatformKindValue(Options.OutFile, "Platform", Header.getPlatform());
 
     PrintDscKey(Options.OutFile, "Closure-Format Version");
     fprintf(Options.OutFile, "%" PRIu32 "\n", Header.FormatVersion);
@@ -981,22 +1213,15 @@ PrintDscHeaderV5Info(const ConstDscMemoryObject &Object,
                       Header.SharedRegionStart,
                       Header.SharedRegionSize,
                       Options.Verbose,
-                      false,
-                      true);
+                      /*Prefix=*/"",
+                      /*Suffix=*/"",
+                      /*IsOffset=*/false,
+                      /*PrintNewLine=*/true);
 
     PrintDscKey(Options.OutFile, "Max Slide");
-    const auto WrittenOut =
-        fprintf(Options.OutFile, "%" PRIu64, Header.MaxSlide);
+    PrintSize(Options.OutFile, Header.MaxSlide, Options.Verbose, "\n");
 
-    if (Options.Verbose) {
-        PrintUtilsRightPadSpaces(Options.OutFile, WrittenOut, OFFSET_64_LEN);
-        PrintUtilsWriteFormattedSize(Options.OutFile,
-                                     Header.MaxSlide,
-                                     " (",
-                                     ")");
-    }
-
-    fputs("\n\n", Options.OutFile);
+    fputc('\n', Options.OutFile);
 }
 
 static void
@@ -1033,8 +1258,8 @@ PrintDscHeaderV6Info(const ConstDscMemoryObject &Object,
                       Object.getRange(),
                       "Other Image Array Address",
                       "Other Image Array Size",
-                      Header.DylibsImageArrayAddr,
-                      Header.DylibsImageArraySize,
+                      Header.OtherImageArrayAddr,
+                      Header.OtherImageArraySize,
                       Options.Verbose);
 
     PrintDscRangeOverlapsErrorOrNewline(Options,
@@ -1045,15 +1270,158 @@ PrintDscHeaderV6Info(const ConstDscMemoryObject &Object,
                       Object.getRange(),
                       "Other Trie Address",
                       "Other Trie Size",
-                      Header.DylibsTrieAddr,
-                      Header.DylibsTrieSize,
+                      Header.OtherTrieAddr,
+                      Header.OtherTrieSize,
                       Options.Verbose);
 
     PrintDscRangeOverlapsErrorOrNewline(Options, List, DscRangeKind::OtherTrie);
+    fputc('\n', Options.OutFile);
+}
+
+static void
+PrintDscHeaderV7Info(const ConstDscMemoryObject &Object,
+                     const struct PrintHeaderOperation::Options &Options,
+                     const DscRangeList &List) noexcept
+{
+    const auto &Header = Object.getHeaderV7();
+    PrintOffsetCountPair(Options.OutFile,
+                         Object.getRange(),
+                         "Mapping With Slide Info Address",
+                         "Mapping With Slide Info Count",
+                         Header.MappingWithSlideOffset,
+                         Header.MappingWithSlideCount,
+                         /*Suffix=*/"\n");
+
+    if (Header.MappingWithSlideCount <= 10) {
+        fputs("Mappings With Slide Info: \n", Options.OutFile);
+        PrintMappingWithSlideInfoList(Options, Object);
+    }
+
+    fputc('\n', Options.OutFile);
+}
+
+static void
+PrintPackedVersion(FILE *const OutFile,
+                   const char *const Key,
+                   const Dyld3::PackedVersion &Version)
+{
+    PrintDscKey(OutFile, Key);
+    MachOTypePrinter<Dyld3::PackedVersion>::Print(OutFile,
+                                                  Version,
+                                                  "",
+                                                  "\n");
+}
+
+static void
+PrintDscHeaderV8Info(const ConstDscMemoryObject &Object,
+                     const struct PrintHeaderOperation::Options &Options,
+                     const DscRangeList &List) noexcept
+{
+    const auto &Header = Object.getHeaderV8();
+
+    PrintDscKey(Options.OutFile, "Dylibs Prebuilt Loader Set Address");
+    PrintUtilsWriteOffset(Options.OutFile,
+                          Header.DylibsPBLSetAddr,
+                          /*pad=*/false,
+                          "",
+                          "\n");
+
+    PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
+                      "Programs Prebuilt Loader Set Pool Address",
+                      "Programs Prebuilt Loader Set Pool Size",
+                      Header.ProgramsPBLSetPoolAddr,
+                      Header.ProgramsPBLSetPoolSize,
+                      Options.Verbose);
+
+    PrintDscRangeOverlapsErrorOrNewline(Options,
+                                        List,
+                                        DscRangeKind::ProgramsPBLSetPool);
+
+    PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
+                      "Program Trie Address",
+                      "Program Trie Size",
+                      Header.ProgramTrieAddr,
+                      Header.ProgramTrieSize,
+                      Options.Verbose);
+
+    PrintDscRangeOverlapsErrorOrNewline(Options,
+                                        List,
+                                        DscRangeKind::ProgramTrie);
+
+    PrintPackedVersion(Options.OutFile, "OS Version", Header.getOsVersion());
+    PrintPlatformKindValue(Options.OutFile,
+                           "Alternate Platform",
+                           Header.getAltPlatform());
+
+    PrintPackedVersion(Options.OutFile,
+                       "Alternate OS Version",
+                       Header.getAltOsVersion());
+
+    PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
+                      "Swift Optimizations Offset",
+                      "Swift Optimizations Size",
+                      Header.SwiftOptsOffset,
+                      Header.SwiftOptsSize,
+                      Options.Verbose,
+                      /*Prefix=*/"",
+                      /*Suffix=*/"",
+                      /*IsOffset=*/true);
+
+    PrintDscRangeOverlapsErrorOrNewline(Options,
+                                        List,
+                                        DscRangeKind::SwiftOpts);
+
+    PrintOffsetCountPair(Options.OutFile,
+                         Object.getRange(),
+                         "SubCache Array Offset",
+                         "SubCache Array Count",
+                         Header.SubCacheArrayOffset,
+                         Header.SubCacheArrayCount,
+                         /*Suffix=*/"\n");
+
+    PrintDscKey(Options.OutFile, "Symbol File UUID");
+    PrintUtilsWriteUuid(Options.OutFile, Header.SymbolFileUUID, "", "\n");
+
+    PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
+                      "Rosetta Read-Only Address",
+                      "Rosetta Read-Only Size",
+                      Header.RosettaReadOnlyAddr,
+                      Header.RosettaReadOnlySize,
+                      Options.Verbose);
+
+    PrintDscRangeOverlapsErrorOrNewline(Options,
+                                        List,
+                                        DscRangeKind::RosettaReadOnly);
+
+    PrintDscSizeRange(Options.OutFile,
+                      Object.getRange(),
+                      "Rosetta Read-Write Address",
+                      "Rosetta Read-Write Size",
+                      Header.RosettaReadWriteAddr,
+                      Header.RosettaReadWriteSize,
+                      Options.Verbose);
+
+    // HACK: Temp fix to bad output
+    fflush(Options.OutFile);
+
+    PrintDscRangeOverlapsErrorOrNewline(Options,
+                                        List,
+                                        DscRangeKind::RosettaReadWrite);
 }
 
 constexpr static auto LongestAccKey = LENGTH_OF("Bottom-Up List Offset");
-static void PrintAcceleratorKey(FILE *OutFile, const char *Key) noexcept {
+static inline void
+PrintAcceleratorKey(FILE *const OutFile,
+                    const char *const Key,
+                    const char *Prefix = "") noexcept
+{
+    fputs(Prefix, OutFile);
+    fflush(OutFile);
+
     PrintUtilsRightPadSpaces(OutFile,
                              fprintf(OutFile, "%s: ", Key),
                              LongestAccKey + LENGTH_OF(": "));
@@ -1073,7 +1441,7 @@ WriteAcceleratorOffsetCountPair(FILE *OutFile,
     WarnIfOutOfRange(OutFile, Range, Offset, 1);
 
     PrintAcceleratorKey(OutFile, CountName);
-    fprintf(OutFile, "%" PRIu32 "\n", Count);
+    PrintUtilsWriteFormattedNumber(OutFile, Count, "", "\n");
 }
 
 static void
@@ -1089,7 +1457,10 @@ PrintAcceleratorInfo(
     fprintf(OutFile, "%" PRIu32 "\n", Info.Version);
 
     PrintAcceleratorKey(OutFile, "Image-Extras Count");
-    fprintf(OutFile, "%" PRIu32 "\n", Info.ImageExtrasCount);
+    PrintUtilsWriteFormattedNumber(Options.OutFile,
+                                   Info.ImageExtrasCount,
+                                   /*Prefix=*/"",
+                                   /*Suffix=*/"\n");
 
     PrintAcceleratorKey(OutFile, "Image-Extras Offset");
     PrintUtilsWriteOffset(OutFile, Info.ImageExtrasOffset, true, "", "\n");
@@ -1104,8 +1475,10 @@ PrintAcceleratorInfo(
                                            Info.DylibTrieOffset,
                                            Info.DylibTrieSize,
                                            Options.Verbose,
-                                           false,
-                                           true);
+                                           /*Prefix=*/"",
+                                           /*Suffix=*/"",
+                                           /*IsOffset=*/false,
+                                           /*PrintNewLine=*/true);
 
     WriteAcceleratorOffsetCountPair(OutFile,
                                     Range,
@@ -1186,6 +1559,16 @@ PrintHeaderOperation::Run(const ConstDscMemoryObject &Object,
     }
 
     PrintDscHeaderV6Info(Object, Options, List);
+    if (Version < DyldSharedCache::HeaderVersion::V7) {
+        goto done;
+    }
+
+    PrintDscHeaderV7Info(Object, Options, List);
+    if (Version < DyldSharedCache::HeaderVersion::V8) {
+        goto done;
+    }
+
+    PrintDscHeaderV8Info(Object, Options, List);
 
 done:
     if (const auto Info = Object.getHeaderV4().GetAcceleratorInfo()) {
