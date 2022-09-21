@@ -24,6 +24,8 @@ static int
 PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
                       const struct PrintIdOperation::Options &Options) noexcept
 {
+    using LCKind = MachO::LoadCommand::Kind;
+
     const auto IsBigEndian = Object.isBigEndian();
     const auto LoadCmdStorage =
         OperationCommon::GetConstLoadCommandStorage(Object, Options.ErrFile);
@@ -32,9 +34,7 @@ PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
     auto Id = std::string_view();
 
     for (const auto &LC : LoadCmdStorage) {
-        const auto *Dylib =
-            dyn_cast<MachO::LoadCommand::Kind::IdDylib>(LC, IsBigEndian);
-
+        const auto *const Dylib = dyn_cast<LCKind::IdDylib>(LC, IsBigEndian);
         if (Dylib == nullptr) {
             continue;
         }
