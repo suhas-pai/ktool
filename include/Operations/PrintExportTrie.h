@@ -8,7 +8,9 @@
 
 #pragma once
 
+#include <set>
 #include <variant>
+
 #include "Base.h"
 #include "Kind.h"
 #include "Objects/MachOMemory.h"
@@ -52,7 +54,7 @@ public:
         bool Verbose : 1;
 
         std::vector<SegmentSectionPair> SectionRequirements;
-        std::vector<MachO::ExportTrieExportKind> KindRequirements;
+        std::set<MachO::ExportTrieExportKind> KindRequirements;
     };
 protected:
     Options Options;

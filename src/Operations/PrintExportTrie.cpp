@@ -48,15 +48,7 @@ ExportMeetsRequirements(
     const struct PrintExportTrieOperation::Options &Options) noexcept
 {
     if (!Options.KindRequirements.empty()) {
-        auto MeetsReq = false;
-        for (const auto &KindReq : Options.KindRequirements) {
-            if (Kind == KindReq) {
-                MeetsReq = true;
-                break;
-            }
-        }
-
-        if (!MeetsReq) {
+        if (!Options.KindRequirements.contains(Kind)) {
             return false;
         }
 
@@ -711,7 +703,7 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
 
 static void
 AddKindRequirement(FILE *ErrFile,
-                   std::vector<MachO::ExportTrieExportKind> &List,
+                   std::set<MachO::ExportTrieExportKind> &List,
                    ArgvArrayIterator &Argument)
 {
     if (Argument.isOption()) {
@@ -726,12 +718,12 @@ AddKindRequirement(FILE *ErrFile,
     const auto Kind = MachO::ExportTrieExportKindFromString(String);
     const auto ListEnd = List.cend();
 
-    if (std::find(List.cbegin(), ListEnd, Kind) != ListEnd) {
+    if (List.contains(Kind)) {
         fprintf(ErrFile, "Note: Kind %s specified twice\n", String.data());
         return;
     }
 
-    List.emplace_back(Kind);
+    List.insert(Kind);
     Argument.moveBack();
 }
 
