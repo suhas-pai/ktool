@@ -104,8 +104,8 @@ struct OperationCommon {
         bool Is64Bit) noexcept;
 
     struct FlagInfo {
-        const std::string_view &Name;
-        const std::string_view &Description;
+        std::string_view Name;
+        std::string_view Description;
 
         uint32_t Mask;
     };
