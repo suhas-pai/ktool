@@ -716,7 +716,6 @@ AddKindRequirement(FILE *ErrFile,
 
     const auto String = Argument.GetStringView();
     const auto Kind = MachO::ExportTrieExportKindFromString(String);
-    const auto ListEnd = List.cend();
 
     if (List.contains(Kind)) {
         fprintf(ErrFile, "Note: Kind %s specified twice\n", String.data());
