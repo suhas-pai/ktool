@@ -775,7 +775,7 @@ namespace DyldSharedCache {
         [[nodiscard]]
         inline ConstImageInfoList getConstImageInfoList() const noexcept {
             const auto Map = reinterpret_cast<const uint8_t *>(this);
-            const auto Ptr = Map + ImagesOffsetOld;
+            const auto Ptr = Map + ImagesOffset;
 
             return ConstImageInfoList(Ptr, ImagesCount);
         }

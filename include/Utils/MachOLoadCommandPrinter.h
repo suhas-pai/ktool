@@ -1366,10 +1366,9 @@ MachOLoadCommandPrinterWriteEncryptionInfoCmd(
     const auto Size = Info.getCryptSize(IsBigEndian);
     const auto CryptID = Info.getCryptId(IsBigEndian);
 
-    fprintf(OutFile,
-            "\tCryptOff: " OFFSET_32_FMT ", CryptSize: %" PRIu32 " (",
-            Offset, Size);
+    fprintf(OutFile, "\tCryptOff: " OFFSET_32_FMT ", CryptSize: ", Offset);
 
+    PrintUtilsWriteFormattedSize(OutFile, Size, "", " (");
     auto End = uint64_t();
 
     PrintUtilsWriteSizeRange32(OutFile, Is64Bit, Offset, Size, &End, "", "), ");
@@ -1770,9 +1769,10 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Main> {
         MachOLoadCommandPrinterWriteKindName<LCKindInfo::Kind>(OutFile,
                                                                Verbose);
         fprintf(OutFile,
-                "\tEntry-Offset: " OFFSET_64_FMT ", Stack-Size: %" PRIu64 "\n",
-                EntryOffset,
-                StackSize);
+                "\tEntry-Offset: " OFFSET_64_FMT ", Stack-Size: ",
+                EntryOffset);
+
+        PrintUtilsWriteFormattedSize(OutFile, StackSize, "", "\n");
     }
 };
 
@@ -1974,10 +1974,11 @@ struct MachOLoadCommandPrinter<MachO::LoadCommand::Kind::Note> {
                                                                Verbose);
         fprintf(OutFile,
                 "\tOwner: " CHAR_ARR_FMT(16) ", Offset: " OFFSET_64_FMT
-                ", Size: %" PRIu64 " (",
+                ", Size: ",
                 Note.DataOwner,
-                Offset,
-                Size);
+                Offset);
+
+        PrintUtilsWriteFormattedSize(OutFile, Size, "", " (");
 
         auto End = uint64_t();
         PrintUtilsWriteSizeRange64(OutFile,

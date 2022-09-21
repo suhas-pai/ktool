@@ -140,7 +140,7 @@ namespace MachO {
                     return "MH_FILESET";
             }
 
-            return std::string_view();
+            return "<unrecognized>";
         }
 
         [[nodiscard]] constexpr static std::string_view
@@ -172,7 +172,7 @@ namespace MachO {
                     return "FileSet";
             }
 
-            return std::string_view();
+            return "<unrecognized>";
         }
 
         enum class FlagsEnum : uint32_t {

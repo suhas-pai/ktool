@@ -127,10 +127,11 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
                     FileKindValue);
         }
 
-        fprintf(Options.OutFile, "Ncmds: %" PRIu32 "\n", Ncmds);
-        fprintf(Options.OutFile, "SizeOfCmds: %" PRIu32, SizeOfCmds);
-
-        PrintUtilsWriteFormattedSize(Options.OutFile, SizeOfCmds, " (", ")\n");
+        PrintUtilsWriteFormattedNumber(Options.OutFile, Ncmds, "Ncmds: ", "\n");
+        PrintUtilsWriteFormattedNumber(Options.OutFile,
+                                       SizeOfCmds,
+                                       "SizeOfCmds: ",
+                                       "\n");
 
         const auto FlagInfoList = OperationCommon::GetFlagInfoList(Flags);
         fprintf(Options.OutFile,
@@ -174,15 +175,18 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
             fprintf(Options.OutFile, "FileType:   %s\n", FileKindDesc);
         } else {
             fprintf(Options.OutFile,
-                    "FileType:   Unrecognized (%" PRIu32 ")\n",
+                    "FileType:   Unrecognized (Value: %" PRIu32 ")\n",
                     FileKindValue);
         }
 
-        fprintf(Options.OutFile,
-                "Ncmds:      %" PRIu32 "\n"
-                "SizeOfCmds: %" PRIu32 "\n",
-                Ncmds,
-                SizeOfCmds);
+        PrintUtilsWriteFormattedNumber(Options.OutFile,
+                                       Ncmds,
+                                       "Ncmds:      ",
+                                       "\n");
+        PrintUtilsWriteFormattedNumber(Options.OutFile,
+                                       SizeOfCmds,
+                                       "SizeOfCmds: ",
+                                       "\n");
 
         fprintf(Options.OutFile, "Flags:      0x%X\n", FlagsValue);
     }
@@ -1065,7 +1069,7 @@ PrintDscHeaderV3Info(
             return;
     }
 
-    fputs("<Unrecognized>", Options.OutFile);
+    fputs("<Unrecognized>\n", Options.OutFile);
 }
 
 static void

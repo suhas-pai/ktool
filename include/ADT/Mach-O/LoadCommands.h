@@ -1409,8 +1409,7 @@ namespace MachO {
         const SymbolTableEntrySymbolKind Kind) noexcept
     {
         switch (Kind) {
-            using Enum = SymbolTableEntrySymbolKind;
-            case Enum::Undefined:
+            case SymbolTableEntrySymbolKind::Undefined:
                 return "N_UNDF";
             case SymbolTableEntrySymbolKind::Absolute:
                 return "N_ABS";
@@ -1430,8 +1429,7 @@ namespace MachO {
         const SymbolTableEntrySymbolKind Kind) noexcept
     {
         switch (Kind) {
-            using Enum = SymbolTableEntrySymbolKind;
-            case Enum::Undefined:
+            case SymbolTableEntrySymbolKind::Undefined:
                 return "Undefined";
             case SymbolTableEntrySymbolKind::Absolute:
                 return "Absolute";
