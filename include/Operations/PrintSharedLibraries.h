@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <set>
+
 #include "ADT/ArgvArray.h"
 #include "Objects/MachOMemory.h"
 #include "Base.h"
@@ -39,7 +41,7 @@ public:
 
         Options() noexcept : Operation::Options(OpKind), Verbose(false) {}
 
-        std::vector<SortKind> SortKindList;
+        std::set<SortKind> SortKindList;
         bool Verbose : 1;
     };
 protected:

@@ -283,24 +283,15 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
     return 0;
 }
 
-[[nodiscard]] static inline bool
-ListHasSortKind(
-    const std::vector<PrintSharedLibrariesOperation::Options::SortKind> &List,
-    const PrintSharedLibrariesOperation::Options::SortKind &Sort) noexcept
-{
-    const auto ListEnd = List.cend();
-    return (std::find(List.cbegin(), ListEnd, Sort) != ListEnd);
-}
-
 static inline void
 AddSortKind(PrintSharedLibrariesOperation::Options::SortKind SortKind,
             const char *Argument,
             struct PrintSharedLibrariesOperation::Options &Options) noexcept
 {
-    if (ListHasSortKind(Options.SortKindList, SortKind)) {
+    if (Options.SortKindList.contains(SortKind)) {
         fprintf(Options.OutFile, "Option %s specified twice\n", Argument);
     } else {
-        Options.SortKindList.push_back(SortKind);
+        Options.SortKindList.emplace(SortKind);
     }
 }
 
