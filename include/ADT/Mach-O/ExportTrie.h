@@ -104,8 +104,7 @@ namespace MachO {
             return setKind(ExportSymbolKind::ThreadLocal);
         }
 
-        constexpr
-        inline ExportTrieFlags &setIsWeak(const bool Value = true) noexcept {
+        constexpr ExportTrieFlags &setIsWeak(const bool Value = true) noexcept {
             setValueForMask(Masks::WeakDefinition, Value);
             return *this;
         }
@@ -262,8 +261,8 @@ namespace MachO {
             return String;
         }
 
-        [[nodiscard]] constexpr
-        inline std::string_view getReexportImportName() const noexcept {
+        [[nodiscard]]
+        constexpr std::string_view getReexportImportName() const noexcept {
             assert(this->isReexport());
             return ReexportImportName;
         }
@@ -280,19 +279,16 @@ namespace MachO {
             return ResolverStubAddress;
         }
 
-        [[nodiscard]]
-        constexpr uint64_t getImageOffset() const noexcept {
+        [[nodiscard]] constexpr uint64_t getImageOffset() const noexcept {
             assert(!this->isReexport());
             return ImageOffset;
         }
 
-        [[nodiscard]]
-        constexpr ExportTrieFlags getFlags() const noexcept {
+        [[nodiscard]] constexpr ExportTrieFlags getFlags() const noexcept {
             return Flags;
         }
 
-        [[nodiscard]]
-        constexpr ExportSymbolKind getKind() const noexcept {
+        [[nodiscard]] constexpr ExportSymbolKind getKind() const noexcept {
             return getFlags().getKind();
         }
 
@@ -417,14 +413,13 @@ namespace MachO {
             return *this;
         }
 
-        constexpr
-        inline ExportTrieNodeInfo &setChildCount(uint16_t Value) noexcept {
+        constexpr ExportTrieNodeInfo &setChildCount(uint16_t Value) noexcept {
             this->ChildCount = Value;
             return *this;
         }
 
         constexpr
-        inline ExportTrieNodeInfo &setPrefix(std::string_view Value) noexcept {
+        ExportTrieNodeInfo &setPrefix(std::string_view Value) noexcept {
             this->Prefix = Value;
             return *this;
         }
@@ -463,13 +458,13 @@ namespace MachO {
             return ChildOrdinal;
         }
 
-        [[nodiscard]] constexpr
-        inline decltype(RangeListSize) getRangeListSize() const noexcept {
+        [[nodiscard]]
+        constexpr decltype(RangeListSize) getRangeListSize() const noexcept {
             return RangeListSize;
         }
 
         constexpr
-        inline ExportTrieStackInfo &setChildOrdinal(uint16_t Value) noexcept {
+        ExportTrieStackInfo &setChildOrdinal(uint16_t Value) noexcept {
             this->ChildOrdinal = Value;
             return *this;
         }
@@ -508,17 +503,17 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr
-        inline const std::vector<LocationRange> &getRangeList() const noexcept {
+        const std::vector<LocationRange> &getRangeList() const noexcept {
             return RangeList;
         }
 
-        [[nodiscard]] constexpr
-        inline std::vector<LocationRange> &getRangeListRef() noexcept {
+        [[nodiscard]]
+        constexpr std::vector<LocationRange> &getRangeListRef() noexcept {
             return RangeList;
         }
 
-        [[nodiscard]] constexpr
-        inline const std::vector<StackInfo> &getStackList() const noexcept {
+        [[nodiscard]]
+        constexpr const std::vector<StackInfo> &getStackList() const noexcept {
             return StackList;
         }
 
@@ -527,13 +522,12 @@ namespace MachO {
             return StackList;
         }
 
-        [[nodiscard]]
-        constexpr ExportTrieExportKind getKind() const noexcept {
+        [[nodiscard]] constexpr ExportTrieExportKind getKind() const noexcept {
             return Kind;
         }
 
-        [[nodiscard]] constexpr
-        inline const ExportTrieExportInfo &getExportInfo() const noexcept {
+        [[nodiscard]]
+        constexpr const ExportTrieExportInfo &getExportInfo() const noexcept {
             return Export;
         }
 
@@ -615,8 +609,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr
-        inline ExportTrieIterateInfo &setIsStubAndResolver() noexcept {
+        constexpr ExportTrieIterateInfo &setIsStubAndResolver() noexcept {
             setKind(ExportTrieExportKind::StubAndResolver);
             return *this;
         }

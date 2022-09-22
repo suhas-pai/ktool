@@ -406,28 +406,26 @@ namespace MachO {
                 return ReachedEnd;
             }
         }
-        [[nodiscard]] constexpr
-        inline const BindOpcodeIteratorBase &operator*() const noexcept {
+        [[nodiscard]]
+        constexpr const BindOpcodeIteratorBase &operator*() const noexcept {
             return *this;
         }
 
-        [[nodiscard]] constexpr
-        inline const BindOpcodeIteratorBase *operator->() const noexcept {
+        [[nodiscard]]
+        constexpr const BindOpcodeIteratorBase *operator->() const noexcept {
             return this;
         }
 
-        [[nodiscard]]
-        constexpr BindOpcodeIterateInfo &getInfo() noexcept {
-            return *Info;
-        }
-
-        [[nodiscard]] constexpr
-        inline const BindOpcodeIterateInfo &getInfo() const noexcept {
+        [[nodiscard]] constexpr BindOpcodeIterateInfo &getInfo() noexcept {
             return *Info;
         }
 
         [[nodiscard]]
-        constexpr const BindByte &getByte() const noexcept {
+        constexpr const BindOpcodeIterateInfo &getInfo() const noexcept {
+            return *Info;
+        }
+
+        [[nodiscard]] constexpr const BindByte &getByte() const noexcept {
             return *reinterpret_cast<const BindByte *>(Prev);
         }
 
@@ -448,8 +446,7 @@ namespace MachO {
             return ++(*this);
         }
 
-        constexpr
-        inline BindOpcodeIteratorBase &operator+=(uint64_t Amt) noexcept {
+        constexpr BindOpcodeIteratorBase &operator+=(uint64_t Amt) noexcept {
             for (auto I = uint64_t(); I != Amt; I++) {
                 ++(*this);
             }
@@ -458,7 +455,7 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr
-        inline bool operator==(const BindOpcodeIteratorEnd &) const noexcept {
+        bool operator==(const BindOpcodeIteratorEnd &) const noexcept {
             return isAtEnd();
         }
 
@@ -887,13 +884,12 @@ namespace MachO {
             return Iter.isAtEnd();
         }
 
-        [[nodiscard]] constexpr
-        inline const BindActionIterateInfo &operator*() const noexcept {
+        [[nodiscard]]
+        constexpr const BindActionIterateInfo &operator*() const noexcept {
             return getInfo();
         }
 
-        [[nodiscard]] constexpr
-        inline const BindActionIterateInfo *operator->() const noexcept {
+        [[nodiscard]] const BindActionIterateInfo *operator->() const noexcept {
             return &getInfo();
         }
 
@@ -911,8 +907,7 @@ namespace MachO {
             return ++(*this);
         }
 
-        constexpr
-        inline BindActionIteratorBase &operator+=(uint64_t Amt) noexcept {
+        constexpr BindActionIteratorBase &operator+=(uint64_t Amt) noexcept {
             for (auto I = uint64_t(); I != Amt; I++) {
                 ++(*this);
             }
@@ -921,7 +916,7 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr
-        inline bool operator==(const BindActionIteratorEnd &) const noexcept {
+        bool operator==(const BindActionIteratorEnd &) const noexcept {
             return isAtEnd();
         }
 

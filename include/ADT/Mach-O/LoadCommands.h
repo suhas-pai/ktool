@@ -497,7 +497,7 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getFileOffset(const bool IsBigEndian) const noexcept {
+        uint32_t getFileOffset(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(FileOff, IsBigEndian);
         }
 
@@ -2176,12 +2176,12 @@ namespace MachO {
         uint32_t NHints;
 
         [[nodiscard]] constexpr
-        inline uint32_t getHintsOffset(const bool IsBigEndian) const noexcept {
+        uint32_t getHintsOffset(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(Offset, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
-        inline uint32_t getHintsCount(const bool IsBigEndian) const noexcept {
+        uint32_t getHintsCount(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(NHints, IsBigEndian);
         }
 
@@ -2231,8 +2231,8 @@ namespace MachO {
 
         uint32_t CheckSum;
 
-        [[nodiscard]] constexpr
-        inline uint32_t getCheckSum(const bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr uint32_t getCheckSum(const bool IsBigEndian) const noexcept {
             return SwitchEndianIf(CheckSum, IsBigEndian);
         }
 
@@ -2684,12 +2684,12 @@ namespace MachO {
                 return static_cast<enum Kind>(Integer);
             }
 
-            [[nodiscard]] constexpr inline Dyld3::PackedVersion
+            [[nodiscard]] constexpr Dyld3::PackedVersion
             getVersion(const bool IsBigEndian) const noexcept {
                 return SwitchEndianIf(Version, IsBigEndian);
             }
 
-            constexpr inline Tool &
+            constexpr Tool &
             setKind(const enum Kind Value, const bool IsBigEndian) noexcept
             {
                 this->Kind = static_cast<uint32_t>(Value);

@@ -141,8 +141,8 @@ namespace MachO {
             return BindAddr;
         }
 
-        [[nodiscard]] constexpr
-        inline const CategoryListType &getCategoryList() const noexcept {
+        [[nodiscard]]
+        constexpr const CategoryListType &getCategoryList() const noexcept {
             return CategoryList;
         }
 
@@ -177,7 +177,7 @@ namespace MachO {
         }
 
         constexpr
-        inline ObjcClassInfo &setFlags(const ObjcClassRoFlags &Value) noexcept {
+        ObjcClassInfo &setFlags(const ObjcClassRoFlags &Value) noexcept {
             this->Flags = Value;
             return *this;
         }

@@ -296,23 +296,22 @@ namespace MachO {
             return ReachedEnd;
         }
 
-        [[nodiscard]] constexpr
-        inline const RebaseOpcodeIterator &operator*() const noexcept {
+        [[nodiscard]]
+        constexpr const RebaseOpcodeIterator &operator*() const noexcept {
             return *this;
         }
 
-        [[nodiscard]] constexpr
-        inline const RebaseOpcodeIterator *operator->() const noexcept {
+        [[nodiscard]]
+        constexpr const RebaseOpcodeIterator *operator->() const noexcept {
             return this;
         }
 
-        [[nodiscard]]
-        inline RebaseOpcodeIterateInfo &getInfo() noexcept {
+        [[nodiscard]] constexpr RebaseOpcodeIterateInfo &getInfo() noexcept {
             return *Info;
         }
 
         [[nodiscard]]
-        inline const RebaseOpcodeIterateInfo &getInfo() const noexcept {
+        constexpr const RebaseOpcodeIterateInfo &getInfo() const noexcept {
             return *Info;
         }
 
@@ -320,11 +319,11 @@ namespace MachO {
             return *Prev;
         }
 
-        [[nodiscard]] inline bool hasError() const noexcept {
+        [[nodiscard]] constexpr bool hasError() const noexcept {
             return Info->hasError();
         }
 
-        [[nodiscard]] inline ErrorEnum getError() const noexcept {
+        [[nodiscard]] constexpr ErrorEnum getError() const noexcept {
             return Info->getError();
         }
 
@@ -337,8 +336,7 @@ namespace MachO {
             return ++(*this);
         }
 
-        constexpr
-        inline RebaseOpcodeIterator &operator+=(uint64_t Amt) noexcept {
+        constexpr RebaseOpcodeIterator &operator+=(uint64_t Amt) noexcept {
             for (auto I = uint64_t(); I != Amt; I++) {
                 ++(*this);
             }
@@ -347,7 +345,7 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr
-        inline bool operator==(const RebaseOpcodeIteratorEnd &) const noexcept {
+        bool operator==(const RebaseOpcodeIteratorEnd &) const noexcept {
             return isAtEnd();
         }
 

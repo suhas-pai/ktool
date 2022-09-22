@@ -404,7 +404,7 @@ namespace MachO {
     static void ParseObjcClassCategorySection(
         const uint8_t *Map,
         const SectionInfo *SectInfo,
-        const ConstDeVirtualizer &DeVirtualizer,
+        const ConstDeVirtualizer &DeVirt,
         const BindActionCollection *BindCollection,
         ObjcClassInfoCollection *ClassInfoTree,
         std::vector<std::unique_ptr<ObjcClassCategoryInfo>> &CategoryList,
@@ -426,7 +426,7 @@ namespace MachO {
 
                 const auto SwitchedAddr = SwitchEndianIf(Addr, IsBigEndian);
                 const auto Category =
-                    DeVirtualizer.GetDataAtAddressIgnoreSections<
+                    DeVirt.GetDataAtAddressIgnoreSections<
                         ObjcCategoryType>(SwitchedAddr);
 
                 Info->setAddress(SwitchedAddr);
@@ -438,9 +438,7 @@ namespace MachO {
                 }
 
                 const auto NameAddr = Category->getNameAddress(IsBigEndian);
-                const auto Name = DeVirtualizer.GetStringAtAddress(NameAddr);
-
-                if (Name.has_value()) {
+                if (const auto Name = DeVirt.GetStringAtAddress(NameAddr)) {
                     Info->setName(std::string(Name.value()));
                 }
 
@@ -487,7 +485,7 @@ namespace MachO {
 
                 auto SwitchedAddr = SwitchEndianIf(Addr, IsBigEndian);
                 const auto Category =
-                    DeVirtualizer.GetDataAtAddressIgnoreSections<
+                    DeVirt.GetDataAtAddressIgnoreSections<
                         ObjcCategoryType>(SwitchedAddr);
 
                 Info->setAddress(SwitchedAddr);
@@ -499,9 +497,7 @@ namespace MachO {
                 }
 
                 const auto NameAddr = Category->getNameAddress(IsBigEndian);
-                const auto Name = DeVirtualizer.GetStringAtAddress(NameAddr);
-
-                if (Name.has_value()) {
+                if (const auto Name = DeVirt.GetStringAtAddress(NameAddr)) {
                     Info->setName(std::string(Name.value()));
                 }
 

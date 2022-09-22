@@ -291,7 +291,7 @@ namespace DscImage {
     ParseObjcClassCategorySection(
         const uint8_t *const Map,
         const MachO::SectionInfo *const SectInfo,
-        const ConstDeVirtualizer &DeVirtualizer,
+        const ConstDeVirtualizer &DeVirt,
         const MachO::BindActionCollection *const BindCollection,
         ObjcClassInfoCollection *const ClassInfoTree,
         std::vector<
@@ -315,8 +315,7 @@ namespace DscImage {
 
                 const auto SwitchedAddr = SwitchEndianIf(Addr, IsBigEndian);
                 const auto Category =
-                    DeVirtualizer.GetDataAtVmAddr<
-                        ObjcCategoryType>(SwitchedAddr);
+                    DeVirt.GetDataAtVmAddr<ObjcCategoryType>(SwitchedAddr);
 
                 Info->setAddress(SwitchedAddr);
                 if (Category == nullptr) {
@@ -327,9 +326,7 @@ namespace DscImage {
                 }
 
                 const auto NameAddr = Category->getNameAddress(IsBigEndian);
-                const auto Name = DeVirtualizer.GetStringAtAddress(NameAddr);
-
-                if (Name.has_value()) {
+                if (const auto Name = DeVirt.GetStringAtAddress(NameAddr)) {
                     Info->setName(std::string(Name.value()));
                 }
 
@@ -372,11 +369,10 @@ namespace DscImage {
         } else {
             for (const auto &Addr : List) {
                 auto Info = std::make_unique<MachO::ObjcClassCategoryInfo>();
-
                 auto SwitchedAddr = SwitchEndianIf(Addr, IsBigEndian);
+
                 const auto Category =
-                    DeVirtualizer.GetDataAtVmAddr<
-                        ObjcCategoryType>(SwitchedAddr);
+                    DeVirt.GetDataAtVmAddr<ObjcCategoryType>(SwitchedAddr);
 
                 Info->setAddress(SwitchedAddr);
                 if (Category == nullptr) {
@@ -387,9 +383,7 @@ namespace DscImage {
                 }
 
                 const auto NameAddr = Category->getNameAddress(IsBigEndian);
-                const auto Name = DeVirtualizer.GetStringAtAddress(NameAddr);
-
-                if (Name.has_value()) {
+                if (const auto Name = DeVirt.GetStringAtAddress(NameAddr)) {
                     Info->setName(std::string(Name.value()));
                 }
 

@@ -170,8 +170,8 @@ namespace MachO {
             return Flags;
         }
 
-        [[nodiscard]] constexpr
-        inline const decltype(SectionList) &getSectionList() const noexcept {
+        [[nodiscard]]
+        constexpr const decltype(SectionList) &getSectionList() const noexcept {
             return SectionList;
         }
 
@@ -185,26 +185,22 @@ namespace MachO {
             return *this;
         }
 
-        constexpr
-        inline SegmentInfo &setFileRange(LocationRange LocRange) noexcept {
+        constexpr SegmentInfo &setFileRange(LocationRange LocRange) noexcept {
             this->FileRange = LocRange;
             return *this;
         }
 
-        constexpr
-        inline SegmentInfo &setMemoryRange(LocationRange LocRange) noexcept {
+        constexpr SegmentInfo &setMemoryRange(LocationRange LocRange) noexcept {
             this->MemoryRange = LocRange;
             return *this;
         }
 
-        constexpr
-        inline SegmentInfo &setInitProt(MemoryProtections Prot) noexcept {
+        constexpr SegmentInfo &setInitProt(MemoryProtections Prot) noexcept {
             this->InitProt = Prot;
             return *this;
         }
 
-        constexpr
-        inline SegmentInfo &setMaxProt(MemoryProtections Prot) noexcept {
+        constexpr SegmentInfo &setMaxProt(MemoryProtections Prot) noexcept {
             this->MaxProt = Prot;
             return *this;
         }
