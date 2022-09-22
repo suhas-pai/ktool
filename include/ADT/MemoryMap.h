@@ -18,8 +18,7 @@ protected:
     const uint8_t *Begin;
     const uint8_t *End;
 public:
-    constexpr
-    ConstMemoryMap(const void *Begin, const void *End) noexcept
+    constexpr ConstMemoryMap(const void *Begin, const void *End) noexcept
     : Begin(static_cast<const uint8_t *>(Begin)),
       End(static_cast<const uint8_t *>(End))
     {
@@ -87,14 +86,14 @@ public:
         return getRange().isLargeEnoughForSize(Size);
     }
 
-    [[nodiscard]] constexpr
-    inline ConstMemoryMap mapFromPtr(const void *Begin) const noexcept {
+    [[nodiscard]]
+    constexpr ConstMemoryMap mapFromPtr(const void *Begin) const noexcept {
         assert(containsPtr(Begin));
         return ConstMemoryMap(Begin, getEnd());
     }
 
-    [[nodiscard]] constexpr
-    inline ConstMemoryMap mapFromOffset(uint64_t Offset) const noexcept {
+    [[nodiscard]]
+    constexpr ConstMemoryMap mapFromOffset(uint64_t Offset) const noexcept {
         assert(containsOffset(Offset));
         return ConstMemoryMap(getBegin() + Offset, getEnd());
     }
@@ -152,7 +151,7 @@ public:
     }
 
     [[nodiscard]] constexpr
-    inline ConstMemoryMap constMapFromOffset(uint64_t Offset) const noexcept {
+    ConstMemoryMap constMapFromOffset(uint64_t Offset) const noexcept {
         return ConstMemoryMap::mapFromOffset(Offset);
     }
 

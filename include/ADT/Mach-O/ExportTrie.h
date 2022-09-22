@@ -217,8 +217,8 @@ namespace MachO {
         return Enum::None;
     }
 
-    [[nodiscard]] constexpr
-    inline uint64_t ExportTrieExportKindGetLongestNameLength() noexcept {
+    [[nodiscard]]
+    constexpr uint64_t ExportTrieExportKindGetLongestNameLength() noexcept {
         const auto Result =
             EnumHelper<ExportTrieExportKind>::GetLongestAssocLength(
                 ExportTrieExportKindGetName);

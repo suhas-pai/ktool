@@ -157,7 +157,7 @@ public:
         return *this;
     }
 
-    constexpr inline
+    constexpr
     MachOMemoryObject &setLoadCommandsSize(const uint32_t Size) noexcept {
         getHeader().setLoadCommandsSize(Size);
         return *this;

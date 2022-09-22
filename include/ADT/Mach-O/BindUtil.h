@@ -118,8 +118,7 @@ namespace MachO {
                 return *this;
             }
 
-            constexpr
-            inline Info &setSymbol(const std::string *const Value) noexcept {
+            constexpr Info &setSymbol(const std::string *const Value) noexcept {
                 this->Symbol = Value;
                 return *this;
             }
@@ -150,13 +149,12 @@ namespace MachO {
             }
 
             constexpr
-            inline Info &setIsNewSymbolName(const bool Value = true) noexcept {
+            Info &setIsNewSymbolName(const bool Value = true) noexcept {
                 this->sIsNewSymbolName = Value;
                 return *this;
             }
 
-            constexpr
-            inline Info &setFlags(const BindSymbolFlags &Value) noexcept {
+            constexpr Info &setFlags(const BindSymbolFlags &Value) noexcept {
                 this->Flags = Value;
                 return *this;
             }

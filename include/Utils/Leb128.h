@@ -26,8 +26,8 @@ constexpr static bool Leb128ByteIsDone(const uint8_t &Byte) noexcept {
     return !(Byte & 0x80);
 }
 
-[[maybe_unused]] constexpr
-static inline uint8_t Leb128ByteGetBits(const uint8_t &Byte) noexcept {
+[[maybe_unused]]
+constexpr static uint8_t Leb128ByteGetBits(const uint8_t &Byte) noexcept {
     return (Byte & 0x7f);
 }
 
@@ -69,8 +69,8 @@ template <bool Signed,
           Leb128Type T,
           typename ValueType>
 
-constexpr static
-T ReadLeb128Base(T Begin, T End, ValueType *ValueOut) noexcept {
+constexpr
+static T ReadLeb128Base(T Begin, T End, ValueType *ValueOut) noexcept {
     using MaxValueType = std::conditional_t<Signed, int64_t, uint64_t>;
     using RealIntegerLimitType =
         IntegerLimitRealValueType<ValueType, MaxValueType>;
@@ -141,13 +141,11 @@ T ReadLeb128Base(T Begin, T End, ValueType *ValueOut) noexcept {
     return nullptr;
 }
 
-
 template <typename FakeIntegerLimit = IntegerLimitDefaultType,
           typename T,
           typename ValueType>
 
-constexpr
-static inline T ReadUleb128(T Begin, T End, ValueType *ValueOut) noexcept {
+constexpr static T ReadUleb128(T Begin, T End, ValueType *ValueOut) noexcept {
     const auto Result =
         ReadLeb128Base<false, FakeIntegerLimit, T, ValueType>(Begin,
                                                               End,

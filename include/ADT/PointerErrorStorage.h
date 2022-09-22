@@ -56,8 +56,7 @@ public:
         return *this;
     }
 
-    constexpr
-    inline PointerErrorStorage &operator=(const Enum &Value) noexcept {
+    constexpr PointerErrorStorage &operator=(const Enum &Value) noexcept {
         setValue(Value);
         return *this;
     }

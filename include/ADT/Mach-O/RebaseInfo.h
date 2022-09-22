@@ -270,7 +270,7 @@ namespace MachO {
         RebaseOpcodeIterator(const RebaseByte *const Begin,
                              const RebaseByte *const End) noexcept
         : Iter(reinterpret_cast<const uint8_t *>(Begin),
-               reinterpret_cast<const uint8_t *>(End)),
+               reinterpret_cast<const uint8_t *>(End))
         {
             Info = std::make_unique<RebaseOpcodeIterateInfo>();
             Advance();
@@ -285,7 +285,6 @@ namespace MachO {
                reinterpret_cast<const uint8_t *>(End)),
           Info(std::move(Info))
         {
-            ReachedEnd = false;
             Advance();
         }
 

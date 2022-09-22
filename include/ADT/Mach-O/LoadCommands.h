@@ -279,8 +279,8 @@ namespace MachO {
             return KindIsRecognized(getKind(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        bool isRequiredByDyld(const bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr bool isRequiredByDyld(const bool IsBigEndian) const noexcept {
             return KindIsRequiredByDyld(getKind(IsBigEndian));
         }
 
@@ -416,8 +416,7 @@ namespace MachO {
                 return *this;
             }
 
-            constexpr
-            Section &
+            constexpr Section &
             setSize(const uint32_t Value, const bool IsBigEndian) noexcept {
                 this->Size = SwitchEndianIf(Value, IsBigEndian);
                 return *this;
@@ -1001,8 +1000,7 @@ namespace MachO {
             return hasValidCmdSize(getCmdSize(IsBigEndian));
         }
 
-        [[nodiscard]] constexpr
-        static inline LoadCommand::CmdSizeInvalidKind
+        [[nodiscard]] constexpr static LoadCommand::CmdSizeInvalidKind
         hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(DylibCommand)) {
                 return LoadCommand::CmdSizeInvalidKind::TooSmall;
@@ -1444,8 +1442,8 @@ namespace MachO {
         return std::string_view();
     }
 
-    [[nodiscard]] constexpr
-    inline uint64_t SymbolTableEntrySymbolKindGetLongestName() noexcept {
+    [[nodiscard]]
+    constexpr uint64_t SymbolTableEntrySymbolKindGetLongestName() noexcept {
         const auto Result =
             EnumHelper<SymbolTableEntrySymbolKind>::GetLongestAssocLength(
                 SymbolTableEntrySymbolKindGetName);
@@ -2678,8 +2676,8 @@ namespace MachO {
             uint32_t Kind;
             uint32_t Version;
 
-            [[nodiscard]] constexpr
-            enum Kind getKind(const bool IsBigEndian) const noexcept {
+            [[nodiscard]]
+            constexpr enum Kind getKind(const bool IsBigEndian) const noexcept {
                 const auto Integer = SwitchEndianIf(Kind, IsBigEndian);
                 return static_cast<enum Kind>(Integer);
             }

@@ -72,8 +72,7 @@ public:
         return *this;
     }
 
-    constexpr
-    inline PointerOrError &operator=(const ErrorType &Error) const noexcept {
+    constexpr PointerOrError &operator=(const ErrorType &Error) const noexcept {
         return setError(Error);
     }
 

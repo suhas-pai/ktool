@@ -32,16 +32,14 @@ static T SetValueForMask(T &Integer, const T Mask, const T Value) noexcept {
 }
 
 template <std::integral T = uint64_t>
-[[nodiscard]] constexpr
-static inline T
+[[nodiscard]] constexpr static T
 GetValueForMaskAndShift(const T Integer, const T Mask, const T Shift) noexcept {
     const auto MaskedValue = GetValueForMask(Integer, Mask);
     return (MaskedValue >> Shift);
 }
 
 template <std::integral T = uint64_t>
-constexpr static
-T
+constexpr static T
 SetValueForMaskAndShift(T &Integer,
                         const T Mask,
                         const T Shift,
@@ -92,33 +90,33 @@ public:
         return BitSet.count();
     }
 
-    [[nodiscard]] constexpr
-    inline bool operator==(const BasicMasksHandler &Rhs) const noexcept {
+    [[nodiscard]]
+    constexpr bool operator==(const BasicMasksHandler &Rhs) const noexcept {
         return Integer == Rhs.Integer;
     }
 
-    [[nodiscard]] constexpr
-    inline bool operator!=(const BasicMasksHandler &Rhs) const noexcept {
+    [[nodiscard]]
+    constexpr bool operator!=(const BasicMasksHandler &Rhs) const noexcept {
         return Integer != Rhs.Integer;
     }
 
-    [[nodiscard]] constexpr
-    inline bool operator<(const BasicMasksHandler &Rhs) const noexcept {
+    [[nodiscard]]
+    constexpr bool operator<(const BasicMasksHandler &Rhs) const noexcept {
         return Integer < Rhs.Integer;
     }
 
-    [[nodiscard]] constexpr
-    inline bool operator<=(const BasicMasksHandler &Rhs) const noexcept {
+    [[nodiscard]]
+    constexpr bool operator<=(const BasicMasksHandler &Rhs) const noexcept {
         return Integer <= Rhs.Integer;
     }
 
-    [[nodiscard]] constexpr
-    inline bool operator>(const BasicMasksHandler &Rhs) const noexcept {
+    [[nodiscard]]
+    constexpr bool operator>(const BasicMasksHandler &Rhs) const noexcept {
         return Integer > Rhs.Integer;
     }
 
-    [[nodiscard]] constexpr
-    inline bool operator>=(const BasicMasksHandler &Rhs) const noexcept {
+    [[nodiscard]]
+    constexpr bool operator>=(const BasicMasksHandler &Rhs) const noexcept {
         return Integer >= Rhs.Integer;
     }
 

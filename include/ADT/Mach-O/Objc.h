@@ -375,8 +375,8 @@ namespace MachO {
             return *this;
         }
 
-        constexpr ObjcClassRoFlags &
-        setIsFuture(const bool Value = true) noexcept {
+        constexpr
+        ObjcClassRoFlags &setIsFuture(const bool Value = true) noexcept {
             setValueForFlag(Flags::IsFuture, Value);
             return *this;
         }

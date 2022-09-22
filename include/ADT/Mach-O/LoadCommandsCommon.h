@@ -338,8 +338,7 @@ namespace MachO {
             return hasFlag(FlagEnum::ProtectionVersion1);
         }
 
-        [[nodiscard]]
-        constexpr bool isReadOnlyAfterFixup() const noexcept {
+        [[nodiscard]] constexpr bool isReadOnlyAfterFixup() const noexcept {
             return hasFlag(FlagEnum::ReadOnlyAfterFixup);
         }
 
@@ -541,21 +540,18 @@ namespace MachO {
 
         using Base::Base;
 
-        [[nodiscard]]
-        constexpr bool isAllInstructions() const noexcept {
+        [[nodiscard]] constexpr bool isAllInstructions() const noexcept {
             return hasValueForMask(MaskKind::IsAllInstructions);
         }
 
-        [[nodiscard]]
-        constexpr bool noRanlibTableOfContents() const noexcept {
+        [[nodiscard]] constexpr bool noRanlibTableOfContents() const noexcept {
             const auto NoRanlibTableOfContents =
                 hasValueForMask(MaskKind::NoRanlibTableOfContents);
 
             return NoRanlibTableOfContents;
         }
 
-        [[nodiscard]]
-        constexpr bool shouldStripStaticSymbols() const noexcept {
+        [[nodiscard]] constexpr bool shouldStripStaticSymbols() const noexcept {
             return hasValueForMask(MaskKind::StripStaticSymbols);
         }
 
@@ -567,8 +563,7 @@ namespace MachO {
             return hasValueForMask(MaskKind::LiveSupport);
         }
 
-        [[nodiscard]]
-        constexpr bool hasSelfModifyingCode() const noexcept {
+        [[nodiscard]] constexpr bool hasSelfModifyingCode() const noexcept {
             return hasValueForMask(MaskKind::SelfModifyingCode);
         }
 
@@ -576,18 +571,15 @@ namespace MachO {
             return hasValueForMask(MaskKind::IsDebugSection);
         }
 
-        [[nodiscard]]
-        constexpr bool hasSomeInstructions() const noexcept {
+        [[nodiscard]] constexpr bool hasSomeInstructions() const noexcept {
             return hasValueForMask(MaskKind::HasSomeInstructions);
         }
 
-        [[nodiscard]]
-        constexpr bool hasExternalRelocEntries() const noexcept {
+        [[nodiscard]] constexpr bool hasExternalRelocEntries() const noexcept {
             return hasValueForMask(MaskKind::HasExternalRelocEntries);
         }
 
-        [[nodiscard]]
-        constexpr bool hasLocalRelocEntries() const noexcept {
+        [[nodiscard]] constexpr bool hasLocalRelocEntries() const noexcept {
             return hasValueForMask(MaskKind::HasLocalRelocEntries);
         }
 
@@ -670,8 +662,7 @@ namespace MachO {
 
         using Base::Base;
 
-        [[nodiscard]]
-        constexpr Attributes getAttributes() const noexcept {
+        [[nodiscard]] constexpr Attributes getAttributes() const noexcept {
             return Attributes(getValueForMask(MaskType::Attributes));
         }
 

@@ -22,8 +22,8 @@ public:
     }
 
     struct Options : public Operation::Options {
-        [[nodiscard]] constexpr
-        static inline bool IsOfKind(const Operation::Options &Opt) noexcept {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const Operation::Options &Opt) noexcept {
             return (Opt.getKind() == OpKind);
         }
 
