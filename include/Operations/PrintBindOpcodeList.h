@@ -27,7 +27,7 @@ public:
             return (Opt.getKind() == OpKind);
         }
 
-        Options() noexcept : Operation::Options(OpKind), Verbose(false) {}
+        Options() noexcept : Operation::Options(OpKind) {}
 
         union {
             uint8_t PrintAll;
@@ -39,7 +39,7 @@ public:
             };
         };
 
-        bool Verbose : 1;
+        bool Verbose : 1 = false;
     };
 protected:
     Options Options;

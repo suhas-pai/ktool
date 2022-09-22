@@ -28,7 +28,7 @@ public:
             return (Opt.getKind() == OpKind);
         }
 
-        Options() noexcept : Operation::Options(OpKind), Verbose(false) {}
+        Options() noexcept : Operation::Options(OpKind) {}
 
         union {
             uint8_t PrintAll;
@@ -46,7 +46,7 @@ public:
             ByType
         };
 
-        bool Verbose : 1;
+        bool Verbose : 1 = false;
         std::vector<SortKind> SortKindList;
     };
 protected:

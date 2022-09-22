@@ -157,17 +157,14 @@ namespace MachO {
         SymbolTableEntryCollection() noexcept = default;
 
         struct ParseOptions {
-            bool IgnoreAbsolute          : 1;
-            bool IgnoreExternal          : 1;
-            bool IgnoreUndefined         : 1;
-            bool IgnoreIndirect          : 1;
-            bool IgnorePreboundUndefined : 1;
-            bool IgnoreSectionDefined    : 1;
+            bool IgnoreAbsolute          : 1 = false;
+            bool IgnoreExternal          : 1 = false;
+            bool IgnoreUndefined         : 1 = false;
+            bool IgnoreIndirect          : 1 = false;
+            bool IgnorePreboundUndefined : 1 = false;
+            bool IgnoreSectionDefined    : 1 = false;
 
-            ParseOptions() noexcept
-            : IgnoreAbsolute(false), IgnoreExternal(false),
-              IgnoreUndefined(false), IgnoreIndirect(false),
-              IgnorePreboundUndefined(false), IgnoreSectionDefined(false) {}
+            ParseOptions() noexcept {}
         };
 
         SymbolTableEntryCollection &

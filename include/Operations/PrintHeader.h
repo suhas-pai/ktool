@@ -28,8 +28,8 @@ public:
             return (Opt.getKind() == OpKind);
         }
 
-        Options() noexcept : Operation::Options(OpKind), Verbose(false) {}
-        bool Verbose : 1;
+        Options() noexcept : Operation::Options(OpKind) {}
+        bool Verbose : 1 = false;
     };
 protected:
     Options Options;

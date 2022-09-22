@@ -27,17 +27,17 @@ namespace MachO {
         std::string Name;
         uint64_t DylibOrdinal = 0;
 
-        bool sIsExternal : 1;
-        bool sIsNull : 1;
-        bool sIsSwift : 1;
+        bool sIsExternal : 1 = false;
+        bool sIsNull : 1 = false;
+        bool sIsSwift : 1 = false;
 
         ObjcClassRoFlags Flags;
         CategoryListType CategoryList;
     public:
-        ObjcClassInfo() noexcept : sIsExternal(false), sIsNull(false) {}
+        ObjcClassInfo() noexcept {}
 
         explicit ObjcClassInfo(const std::string_view Name) noexcept
-        : Name(Name), sIsExternal(false), sIsNull(false) {}
+        : Name(Name) {}
 
         [[nodiscard]]
         inline TreeNode *createNew() const noexcept override {
@@ -212,17 +212,15 @@ namespace MachO {
         std::string Name;
         const ObjcClassInfo *Class = nullptr;
         uint64_t Address = 0;
-        bool sIsNull : 1;
+        bool sIsNull : 1 = false;
     public:
-        ObjcClassCategoryInfo() : sIsNull(false) {}
+        ObjcClassCategoryInfo() {}
 
-        [[nodiscard]]
-        constexpr std::string_view getName() const noexcept {
+        [[nodiscard]] constexpr std::string_view getName() const noexcept {
             return Name;
         }
 
-        [[nodiscard]]
-        constexpr const ObjcClassInfo *getClass() const noexcept {
+        [[nodiscard]] constexpr const ObjcClassInfo *getClass() const noexcept {
             return Class;
         }
 

@@ -27,13 +27,11 @@ public:
             return (Opt.getKind() == OpKind);
         }
 
-        Options() noexcept
-        : Operation::Options(OpKind), PrintCategories(false), PrintTree(false),
-          Verbose(false) {}
+        Options() noexcept : Operation::Options(OpKind) {}
 
-        bool PrintCategories : 1;
-        bool PrintTree : 1;
-        bool Verbose : 1;
+        bool PrintCategories : 1 = false;
+        bool PrintTree : 1 = false;
+        bool Verbose : 1 = false;
 
         enum class SortKind {
             None,

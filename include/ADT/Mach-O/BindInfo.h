@@ -350,14 +350,13 @@ namespace MachO {
         std::unique_ptr<BindOpcodeIterateInfo> Info;
 
         const BindByte *Prev;
-        bool ReachedEnd : 1;
+        bool ReachedEnd : 1 = false;
     public:
         constexpr explicit
         BindOpcodeIteratorBase(const BindByte *const Begin,
                                const BindByte *const End) noexcept
         : Iter(reinterpret_cast<const uint8_t *>(Begin),
-               reinterpret_cast<const uint8_t *>(End)),
-          ReachedEnd(false)
+               reinterpret_cast<const uint8_t *>(End))
         {
             Info = std::make_unique<BindOpcodeIterateInfo>();
             Info->Kind = BindKind;

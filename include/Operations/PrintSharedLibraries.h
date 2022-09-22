@@ -39,10 +39,10 @@ public:
             ByTimeStamp
         };
 
-        Options() noexcept : Operation::Options(OpKind), Verbose(false) {}
+        Options() noexcept : Operation::Options(OpKind) {}
 
         std::set<SortKind> SortKindList;
-        bool Verbose : 1;
+        bool Verbose : 1 = false;
     };
 protected:
     Options Options;

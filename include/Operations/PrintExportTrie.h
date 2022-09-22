@@ -44,14 +44,12 @@ public:
             }
         };
 
-        Options() noexcept
-        : Operation::Options(OpKind), PrintTree(false), OnlyCount(false),
-          Sort(false), Verbose(false) {}
+        Options() noexcept : Operation::Options(OpKind) {}
 
-        bool PrintTree : 1;
-        bool OnlyCount : 1;
-        bool Sort : 1;
-        bool Verbose : 1;
+        bool PrintTree : 1 = false;
+        bool OnlyCount : 1 = false;
+        bool Sort : 1 = false;
+        bool Verbose : 1 = false;
 
         std::vector<SegmentSectionPair> SectionRequirements;
         std::set<MachO::ExportTrieExportKind> KindRequirements;

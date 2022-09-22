@@ -264,14 +264,13 @@ namespace MachO {
         std::unique_ptr<RebaseOpcodeIterateInfo> Info;
 
         const RebaseByte *Prev;
-        bool ReachedEnd : 1;
+        bool ReachedEnd : 1 = false;
     public:
         explicit
         RebaseOpcodeIterator(const RebaseByte *const Begin,
                              const RebaseByte *const End) noexcept
         : Iter(reinterpret_cast<const uint8_t *>(Begin),
                reinterpret_cast<const uint8_t *>(End)),
-          ReachedEnd(false)
         {
             Info = std::make_unique<RebaseOpcodeIterateInfo>();
             Advance();

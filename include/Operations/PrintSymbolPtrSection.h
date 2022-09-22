@@ -24,7 +24,7 @@ public:
             return (Opt.getKind() == OpKind);
         }
 
-        Options() noexcept : Operation::Options(OpKind), Verbose(false) {}
+        Options() noexcept : Operation::Options(OpKind) {}
 
         std::string_view SegmentName;
         std::string_view SectionName;
@@ -37,7 +37,7 @@ public:
         };
 
         std::vector<SortKind> SortKindList;
-        bool Verbose : 1;
+        bool Verbose : 1 = false;
     };
 protected:
     Options Options;

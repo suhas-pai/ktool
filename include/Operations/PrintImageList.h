@@ -24,7 +24,7 @@ public:
             return (Opt.getKind() == OpKind);
         }
 
-        Options() noexcept : Operation::Options(OpKind), Verbose(false) {}
+        Options() noexcept : Operation::Options(OpKind) {}
         enum class SortKind {
             ByAddress,
             ByInode,
@@ -34,8 +34,8 @@ public:
 
         std::vector<SortKind> SortKindList;
 
-        bool OnlyCount : 1;
-        bool Verbose : 1;
+        bool OnlyCount : 1 = false;
+        bool Verbose : 1 = false;
     };
 protected:
     Options Options;

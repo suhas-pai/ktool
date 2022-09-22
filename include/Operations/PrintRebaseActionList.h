@@ -28,11 +28,10 @@ public:
             return (Opt.getKind() == OpKind);
         }
 
-        Options() noexcept
-        : Operation::Options(OpKind), Sort(false), Verbose(false) {}
+        Options() noexcept : Operation::Options(OpKind) {}
 
-        bool Sort : 1;
-        bool Verbose : 1;
+        bool Sort : 1 = false;
+        bool Verbose : 1 = false;
     };
 protected:
     Options Options;
