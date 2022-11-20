@@ -23,6 +23,8 @@ namespace Dyld3 {
             Major = 16
         };
     protected:
+        using ADT::FlagsBase<uint32_t>::FlagsBase;
+        
         [[nodiscard]] constexpr auto
         getForMaskShift(const Masks Mask, const Shifts Shift) const noexcept {
             const auto Value = (Flags & static_cast<uint32_t>(Mask));
@@ -100,6 +102,8 @@ namespace Dyld3 {
             return *this;
         }
     public:
+        using ADT::FlagsBase<uint64_t>::FlagsBase;
+
         [[nodiscard]] constexpr auto getRevision3() const noexcept -> uint16_t {
             return getForMaskShift(Masks::Revision3, Shifts::Revision3);
         }

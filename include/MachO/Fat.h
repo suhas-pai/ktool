@@ -27,7 +27,7 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto archCount() const noexcept {
-            return SwitchEndianIf(ArchCount, isBigEndian());
+            return ADT::SwitchEndianIf(ArchCount, isBigEndian());
         }
     };
 

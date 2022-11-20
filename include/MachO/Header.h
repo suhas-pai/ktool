@@ -16,7 +16,7 @@
 #include "Magic.h"
 
 namespace MachO {
-    enum class FileKind {
+    enum class FileKind : uint32_t {
         Object = 1,
         Executable,
         FixedVMSharedLib,
@@ -127,9 +127,9 @@ namespace MachO {
         };
 
         Magic Magic;
-        Mach::CpuKind CpuKind;
+        int32_t CpuKind;
         int32_t CpuSubKind;
-        FileKind FileKind;
+        uint32_t FileKind;
         uint32_t Ncmds;
         uint32_t SizeOfCmds;
         uint32_t Flags;
@@ -143,27 +143,28 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto cpuKind() const noexcept {
-            return SwitchEndianIf(CpuKind, isBigEndian());
+            return Mach::CpuKind(ADT::SwitchEndianIf(CpuKind, isBigEndian()));
         }
 
         [[nodiscard]] constexpr auto cpuSubKind() const noexcept {
-            return SwitchEndianIf(CpuSubKind, isBigEndian());
+            return ADT::SwitchEndianIf(CpuSubKind, isBigEndian());
         }
 
         [[nodiscard]] constexpr auto fileKind() const noexcept {
-            return SwitchEndianIf(FileKind, isBigEndian());
+            const auto Value = ADT::SwitchEndianIf(FileKind, isBigEndian());
+            return ::MachO::FileKind(Value);
         }
 
         [[nodiscard]] constexpr auto ncmds() const noexcept {
-            return SwitchEndianIf(Ncmds, isBigEndian());
+            return ADT::SwitchEndianIf(Ncmds, isBigEndian());
         }
 
         [[nodiscard]] constexpr auto sizeOfCmds() const noexcept {
-            return SwitchEndianIf(SizeOfCmds, isBigEndian());
+            return ADT::SwitchEndianIf(SizeOfCmds, isBigEndian());
         }
 
         [[nodiscard]] constexpr auto flags() const noexcept {
-            return SwitchEndianIf(Flags, isBigEndian());
+            return ADT::SwitchEndianIf(Flags, isBigEndian());
         }
     };
 }

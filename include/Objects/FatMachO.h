@@ -41,12 +41,12 @@ namespace Objects {
 
         [[nodiscard]] auto
         getMachOForCpu(Mach::CpuKind CpuKind,
-                       int32_t SubKind) const noexcept ->
-            ADT::PointerOrError<MachO, MachO::OpenError>;
+                       int32_t SubKind) const noexcept
+            -> ADT::PointerOrError<MachO, MachO::OpenError>;
 
-        [[nodiscard]] auto
-        getMachOForIndex(const uint32_t Index) const noexcept ->
-            ADT::PointerOrError<MachO, MachO::OpenError>;
+        [[nodiscard]]
+        auto getMachOForIndex(const uint32_t Index) const noexcept
+            -> ADT::PointerOrError<MachO, MachO::OpenError>;
 
         [[nodiscard]] constexpr auto getMemoryMap() const noexcept {
             return Map;

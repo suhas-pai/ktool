@@ -125,8 +125,8 @@ namespace Objects {
 
     [[nodiscard]] auto
     FatMachO::getMachOForCpu(const Mach::CpuKind CpuKind,
-                             const int32_t SubKind) const noexcept ->
-        ADT::PointerOrError<MachO, MachO::OpenError>
+                             const int32_t SubKind) const noexcept
+        -> ADT::PointerOrError<MachO, MachO::OpenError>
     {
         const auto Header = header();
         const auto ArchCount = Header.archCount();
@@ -158,8 +158,8 @@ namespace Objects {
         return nullptr;
     }
 
-    [[nodiscard]] auto
-    FatMachO::getMachOForIndex(const uint32_t Index) const noexcept ->
+    [[nodiscard]]
+    auto FatMachO::getMachOForIndex(const uint32_t Index) const noexcept ->
         ADT::PointerOrError<MachO, MachO::OpenError>
     {
         const auto Header = header();
