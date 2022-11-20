@@ -54,18 +54,34 @@ namespace ADT {
         }
 
         [[nodiscard]]
-        constexpr auto containsIdx(const uint64_t Idx) const noexcept {
+        constexpr auto containsIndex(const uint64_t Idx) const noexcept {
             return (Idx < size());
         }
 
         [[nodiscard]]
         constexpr auto contains(const Range &Other) const noexcept {
+            if (Other.empty()) {
+                return false;
+            }
+
             return (Begin <= Other.Begin && End >= Other.End);
         }
 
         [[nodiscard]]
-        constexpr auto containsAsIdx(const Range &Other) const noexcept {
-            return (Other.End <= End);
+        constexpr auto overlaps(const Range &Other) const noexcept {
+            if (empty() || Other.empty()) {
+                return false;
+            }
+
+            return
+                containsLoc(Other.Begin) ||
+                containsEnd(Other.End) ||
+                Other.contains(*this);
+        }
+
+        [[nodiscard]]
+        constexpr auto containsAsIndex(const Range &Other) const noexcept {
+            return containsIndex(Other.Begin) && containsEnd(Other.End);
         }
     };
 }

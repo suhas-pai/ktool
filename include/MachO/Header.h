@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <string>
+#include <string_view>
 #include "ADT/Range.h"
 
 #include "Mach/Machine.h"
@@ -21,6 +21,43 @@ namespace MachO {
         Default64 = 0xFEEDFACF,
         Swapped64 = 0xCEFADEFC
     };
+
+    constexpr auto MagicIsValid(const Magic Magic) noexcept {
+        switch (Magic) {
+            case Magic::Default:
+            case Magic::Swapped:
+            case Magic::Default64:
+            case Magic::Swapped64:
+                return true;
+        }
+
+        return false;
+    }
+
+    constexpr auto MagicIs64Bit(const Magic Magic) noexcept {
+        return (Magic == Magic::Default64 || Magic == Magic::Swapped64);
+    }
+
+    constexpr auto MagicIsBigEndian(const Magic Magic) noexcept {
+        return (Magic == Magic::Swapped || Magic == Magic::Swapped64);
+    }
+
+    constexpr auto MagicGetString(const Magic Magic) noexcept
+        -> std::string_view
+    {
+        switch (Magic) {
+            case Magic::Default:
+                return "MH_MAGIC";
+            case Magic::Swapped:
+                return "MH_CIGAM";
+            case Magic::Default64:
+                return "MH_MAGIC_64";
+            case Magic::Swapped64:
+                return "MH_CIGAM_64";
+        }
+
+        assert(false && "Called MagicGetString() with unknown Magic");
+    }
 
     enum class FileKind {
         Object = 1,
@@ -36,6 +73,59 @@ namespace MachO {
         KextBundle,
         FileSet
     };
+
+    constexpr auto FileKindIsValid(const FileKind FileKind) noexcept {
+        switch (FileKind) {
+            case FileKind::Object:
+            case FileKind::Executable:
+            case FileKind::FixedVMSharedLib:
+            case FileKind::Core:
+            case FileKind::PreLoadedExecutable:
+            case FileKind::DynamicLibrary:
+            case FileKind::DynamicLinker:
+            case FileKind::Bundle:
+            case FileKind::DylibStub:
+            case FileKind::Dsym:
+            case FileKind::KextBundle:
+            case FileKind::FileSet:
+                return true;
+        }
+
+        return false;
+    }
+
+    constexpr auto FileKindGetString(const FileKind FileKind) noexcept
+        -> std::string_view
+    {
+        switch (FileKind) {
+            case FileKind::Object:
+                return "MH_OBJECT";
+            case FileKind::Executable:
+                return "MH_EXECUTE";
+            case FileKind::FixedVMSharedLib:
+                return "MH_FVMLIB";
+            case FileKind::Core:
+                return "MH_CORE";
+            case FileKind::PreLoadedExecutable:
+                return "MH_PRELOAD";
+            case FileKind::DynamicLibrary:
+                return "MH_DYLIB";
+            case FileKind::DynamicLinker:
+                return "MH_DYLINKER";
+            case FileKind::Bundle:
+                return "MH_BUNDLE";
+            case FileKind::DylibStub:
+                return "MH_DYLIB_STUB";
+            case FileKind::Dsym:
+                return "MH_DSYM";
+            case FileKind::KextBundle:
+                return "MH_KEXT";
+            case FileKind::FileSet:
+                return "MH_FILESET";
+        }
+
+        assert(false && "Called FileKindGetString() with unknown FileKind");
+    }
 
     struct Header {
         enum class FlagsEnum {
@@ -82,8 +172,17 @@ namespace MachO {
         Magic Magic;
         Mach::CpuKind CpuKind;
         int32_t CpuSubKind;
+        FileKind FileKind;
         uint32_t Ncmds;
         uint32_t SizeOfCmds;
         uint32_t Flags;
+
+        [[nodiscard]] constexpr auto isBigEndian() const noexcept {
+            return MagicIsBigEndian(Magic);
+        }
+
+        [[nodiscard]] constexpr auto is64Bit() const noexcept {
+            return MagicIs64Bit(Magic);
+        }
     };
 }

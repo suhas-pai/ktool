@@ -7,7 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F308429D2921CD1500D989D8 /* FileMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F308429C2921CD1500D989D8 /* FileMap.cpp */; };
+		F32062A629248857002B99D9 /* PrintHeader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F32062A529248857002B99D9 /* PrintHeader.cpp */; };
 		F33C25CB28EA146700289314 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F33C25CA28EA146700289314 /* main.cpp */; };
+		F39FAE8D2929C5450057DC6F /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39FAE8C2929C5450057DC6F /* Base.cpp */; };
+		F39FAE902929C8370057DC6F /* MachO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39FAE8F2929C8370057DC6F /* MachO.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,14 +27,31 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		F308429A2921CCAC00D989D8 /* FileMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FileMap.h; path = ../include/ADT/FileMap.h; sourceTree = "<group>"; };
+		F308429C2921CD1500D989D8 /* FileMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = FileMap.cpp; path = ../src/ADT/FileMap.cpp; sourceTree = "<group>"; };
+		F32062A129248580002B99D9 /* Kind.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Kind.h; path = ../include/Operations/Kind.h; sourceTree = "<group>"; };
+		F32062A529248857002B99D9 /* PrintHeader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintHeader.cpp; path = ../src/Operations/PrintHeader.cpp; sourceTree = "<group>"; };
+		F32062A82924887A002B99D9 /* PrintHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintHeader.h; path = ../include/Operations/PrintHeader.h; sourceTree = "<group>"; };
 		F33C25BF28EA144500289314 /* ktool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ktool; sourceTree = BUILT_PRODUCTS_DIR; };
 		F33C25CA28EA146700289314 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../src/main.cpp; sourceTree = "<group>"; };
+		F33F6FFA28EE46C600A4563B /* FlagsBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FlagsBase.h; path = ../include/ADT/FlagsBase.h; sourceTree = "<group>"; };
+		F34C28252929D4880010B711 /* Kind.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Kind.h; path = ../include/Objects/Kind.h; sourceTree = "<group>"; };
+		F39FAE882929C0A50057DC6F /* MachO.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MachO.h; path = ../include/Objects/MachO.h; sourceTree = "<group>"; };
+		F39FAE892929C0BD0057DC6F /* Base.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Base.h; path = ../include/Objects/Base.h; sourceTree = "<group>"; };
+		F39FAE8A2929C1B50057DC6F /* MemoryMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MemoryMap.h; path = ../include/ADT/MemoryMap.h; sourceTree = "<group>"; };
+		F39FAE8C2929C5450057DC6F /* Base.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Base.cpp; path = ../src/Objects/Base.cpp; sourceTree = "<group>"; };
+		F39FAE8E2929C5970057DC6F /* PointerOrError.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PointerOrError.h; path = ../include/ADT/PointerOrError.h; sourceTree = "<group>"; };
+		F39FAE8F2929C8370057DC6F /* MachO.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = MachO.cpp; path = ../src/Objects/MachO.cpp; sourceTree = "<group>"; };
+		F39FAE912929CD670057DC6F /* Base.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Base.h; path = ../include/Operations/Base.h; sourceTree = "<group>"; };
 		F3AD81F828ECBD74005DE822 /* Range.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Range.h; path = ../include/ADT/Range.h; sourceTree = "<group>"; };
 		F3AD81FC28ECBF52005DE822 /* Machine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Machine.h; path = ../include/Mach/Machine.h; sourceTree = "<group>"; };
 		F3AD81FD28ECBF56005DE822 /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Header.h; path = ../include/MachO/Header.h; sourceTree = "<group>"; };
 		F3AD81FE28ECBF9D005DE822 /* VmProt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = VmProt.h; path = ../include/Mach/VmProt.h; sourceTree = "<group>"; };
 		F3AD81FF28ECC6D9005DE822 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		F3AD820028ECC6D9005DE822 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../Makefile; sourceTree = "<group>"; };
+		F3B00A8C28F7E13400F9E004 /* PackedVersion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PackedVersion.h; path = ../include/Dyld3/PackedVersion.h; sourceTree = "<group>"; };
+		F3B00A8D28F7ED9B00F9E004 /* Platform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Platform.h; path = ../include/Dyld3/Platform.h; sourceTree = "<group>"; };
+		F3EFBBFF28ED3CAC006FB054 /* LoadCommands.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadCommands.h; path = ../include/MachO/LoadCommands.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,6 +65,32 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F308429B2921CD0000D989D8 /* ADT */ = {
+			isa = PBXGroup;
+			children = (
+				F308429C2921CD1500D989D8 /* FileMap.cpp */,
+			);
+			name = ADT;
+			sourceTree = "<group>";
+		};
+		F32062A02924855B002B99D9 /* Operations */ = {
+			isa = PBXGroup;
+			children = (
+				F39FAE912929CD670057DC6F /* Base.h */,
+				F32062A129248580002B99D9 /* Kind.h */,
+				F32062A82924887A002B99D9 /* PrintHeader.h */,
+			);
+			name = Operations;
+			sourceTree = "<group>";
+		};
+		F32062A42924883A002B99D9 /* Operations */ = {
+			isa = PBXGroup;
+			children = (
+				F32062A529248857002B99D9 /* PrintHeader.cpp */,
+			);
+			name = Operations;
+			sourceTree = "<group>";
+		};
 		F33C25B628EA144500289314 = {
 			isa = PBXGroup;
 			children = (
@@ -66,6 +113,9 @@
 		F33C25C928EA145D00289314 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				F308429B2921CD0000D989D8 /* ADT */,
+				F39FAE8B2929C52D0057DC6F /* Objects */,
+				F32062A42924883A002B99D9 /* Operations */,
 				F33C25CA28EA146700289314 /* main.cpp */,
 			);
 			name = src;
@@ -75,8 +125,11 @@
 			isa = PBXGroup;
 			children = (
 				F3AD81F728ECBD65005DE822 /* ADT */,
+				F3B00A8B28F7E11E00F9E004 /* Dyld3 */,
 				F3AD81F928ECBD8B005DE822 /* Mach */,
 				F33C25CF28EA14D300289314 /* MachO */,
+				F39FAE872929C07F0057DC6F /* Objects */,
+				F32062A02924855B002B99D9 /* Operations */,
 			);
 			name = include;
 			sourceTree = "<group>";
@@ -85,14 +138,38 @@
 			isa = PBXGroup;
 			children = (
 				F3AD81FD28ECBF56005DE822 /* Header.h */,
+				F3EFBBFF28ED3CAC006FB054 /* LoadCommands.h */,
 			);
 			name = MachO;
+			sourceTree = "<group>";
+		};
+		F39FAE872929C07F0057DC6F /* Objects */ = {
+			isa = PBXGroup;
+			children = (
+				F39FAE892929C0BD0057DC6F /* Base.h */,
+				F34C28252929D4880010B711 /* Kind.h */,
+				F39FAE882929C0A50057DC6F /* MachO.h */,
+			);
+			name = Objects;
+			sourceTree = "<group>";
+		};
+		F39FAE8B2929C52D0057DC6F /* Objects */ = {
+			isa = PBXGroup;
+			children = (
+				F39FAE8C2929C5450057DC6F /* Base.cpp */,
+				F39FAE8F2929C8370057DC6F /* MachO.cpp */,
+			);
+			name = Objects;
 			sourceTree = "<group>";
 		};
 		F3AD81F728ECBD65005DE822 /* ADT */ = {
 			isa = PBXGroup;
 			children = (
+				F33F6FFA28EE46C600A4563B /* FlagsBase.h */,
+				F308429A2921CCAC00D989D8 /* FileMap.h */,
 				F3AD81F828ECBD74005DE822 /* Range.h */,
+				F39FAE8A2929C1B50057DC6F /* MemoryMap.h */,
+				F39FAE8E2929C5970057DC6F /* PointerOrError.h */,
 			);
 			name = ADT;
 			sourceTree = "<group>";
@@ -104,6 +181,15 @@
 				F3AD81FE28ECBF9D005DE822 /* VmProt.h */,
 			);
 			name = Mach;
+			sourceTree = "<group>";
+		};
+		F3B00A8B28F7E11E00F9E004 /* Dyld3 */ = {
+			isa = PBXGroup;
+			children = (
+				F3B00A8C28F7E13400F9E004 /* PackedVersion.h */,
+				F3B00A8D28F7ED9B00F9E004 /* Platform.h */,
+			);
+			name = Dyld3;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -133,7 +219,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1400;
+				LastUpgradeCheck = 1410;
 				TargetAttributes = {
 					F33C25BE28EA144500289314 = {
 						CreatedOnToolsVersion = 14.0;
@@ -163,7 +249,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F39FAE8D2929C5450057DC6F /* Base.cpp in Sources */,
+				F39FAE902929C8370057DC6F /* MachO.cpp in Sources */,
+				F308429D2921CD1500D989D8 /* FileMap.cpp in Sources */,
 				F33C25CB28EA146700289314 /* main.cpp in Sources */,
+				F32062A629248857002B99D9 /* PrintHeader.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -203,6 +293,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -261,6 +352,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -283,7 +375,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				OTHER_CFLAGS = (
 					"-I${PROJECT_DIR}/../include",
 					"-I${PROJECT_DIR}/../External/fmt/include",
@@ -296,7 +390,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				OTHER_CFLAGS = (
 					"-I${PROJECT_DIR}/../include",
 					"-I${PROJECT_DIR}/../External/fmt/include",
