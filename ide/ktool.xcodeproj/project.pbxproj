@@ -10,6 +10,7 @@
 		F308429D2921CD1500D989D8 /* FileMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F308429C2921CD1500D989D8 /* FileMap.cpp */; };
 		F32062A629248857002B99D9 /* PrintHeader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F32062A529248857002B99D9 /* PrintHeader.cpp */; };
 		F33C25CB28EA146700289314 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F33C25CA28EA146700289314 /* main.cpp */; };
+		F34C282B292A12ED0010B711 /* FatMachO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F34C282A292A12ED0010B711 /* FatMachO.cpp */; };
 		F39FAE8D2929C5450057DC6F /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39FAE8C2929C5450057DC6F /* Base.cpp */; };
 		F39FAE902929C8370057DC6F /* MachO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39FAE8F2929C8370057DC6F /* MachO.cpp */; };
 /* End PBXBuildFile section */
@@ -29,6 +30,7 @@
 /* Begin PBXFileReference section */
 		F308429A2921CCAC00D989D8 /* FileMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FileMap.h; path = ../include/ADT/FileMap.h; sourceTree = "<group>"; };
 		F308429C2921CD1500D989D8 /* FileMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = FileMap.cpp; path = ../src/ADT/FileMap.cpp; sourceTree = "<group>"; };
+		F30BB524292A267000AF300B /* SwitchEndian.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SwitchEndian.h; path = ../include/ADT/SwitchEndian.h; sourceTree = "<group>"; };
 		F32062A129248580002B99D9 /* Kind.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Kind.h; path = ../include/Operations/Kind.h; sourceTree = "<group>"; };
 		F32062A529248857002B99D9 /* PrintHeader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintHeader.cpp; path = ../src/Operations/PrintHeader.cpp; sourceTree = "<group>"; };
 		F32062A82924887A002B99D9 /* PrintHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintHeader.h; path = ../include/Operations/PrintHeader.h; sourceTree = "<group>"; };
@@ -36,6 +38,10 @@
 		F33C25CA28EA146700289314 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../src/main.cpp; sourceTree = "<group>"; };
 		F33F6FFA28EE46C600A4563B /* FlagsBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FlagsBase.h; path = ../include/ADT/FlagsBase.h; sourceTree = "<group>"; };
 		F34C28252929D4880010B711 /* Kind.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Kind.h; path = ../include/Objects/Kind.h; sourceTree = "<group>"; };
+		F34C2827292A10DF0010B711 /* FatMachO.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FatMachO.h; path = ../include/Objects/FatMachO.h; sourceTree = "<group>"; };
+		F34C2828292A11040010B711 /* Fat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Fat.h; path = ../include/MachO/Fat.h; sourceTree = "<group>"; };
+		F34C2829292A11390010B711 /* Magic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Magic.h; path = ../include/MachO/Magic.h; sourceTree = "<group>"; };
+		F34C282A292A12ED0010B711 /* FatMachO.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = FatMachO.cpp; path = ../src/Objects/FatMachO.cpp; sourceTree = "<group>"; };
 		F39FAE882929C0A50057DC6F /* MachO.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MachO.h; path = ../include/Objects/MachO.h; sourceTree = "<group>"; };
 		F39FAE892929C0BD0057DC6F /* Base.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Base.h; path = ../include/Objects/Base.h; sourceTree = "<group>"; };
 		F39FAE8A2929C1B50057DC6F /* MemoryMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MemoryMap.h; path = ../include/ADT/MemoryMap.h; sourceTree = "<group>"; };
@@ -137,8 +143,10 @@
 		F33C25CF28EA14D300289314 /* MachO */ = {
 			isa = PBXGroup;
 			children = (
+				F34C2828292A11040010B711 /* Fat.h */,
 				F3AD81FD28ECBF56005DE822 /* Header.h */,
 				F3EFBBFF28ED3CAC006FB054 /* LoadCommands.h */,
+				F34C2829292A11390010B711 /* Magic.h */,
 			);
 			name = MachO;
 			sourceTree = "<group>";
@@ -148,6 +156,7 @@
 			children = (
 				F39FAE892929C0BD0057DC6F /* Base.h */,
 				F34C28252929D4880010B711 /* Kind.h */,
+				F34C2827292A10DF0010B711 /* FatMachO.h */,
 				F39FAE882929C0A50057DC6F /* MachO.h */,
 			);
 			name = Objects;
@@ -157,6 +166,7 @@
 			isa = PBXGroup;
 			children = (
 				F39FAE8C2929C5450057DC6F /* Base.cpp */,
+				F34C282A292A12ED0010B711 /* FatMachO.cpp */,
 				F39FAE8F2929C8370057DC6F /* MachO.cpp */,
 			);
 			name = Objects;
@@ -170,6 +180,7 @@
 				F3AD81F828ECBD74005DE822 /* Range.h */,
 				F39FAE8A2929C1B50057DC6F /* MemoryMap.h */,
 				F39FAE8E2929C5970057DC6F /* PointerOrError.h */,
+				F30BB524292A267000AF300B /* SwitchEndian.h */,
 			);
 			name = ADT;
 			sourceTree = "<group>";
@@ -253,6 +264,7 @@
 				F39FAE902929C8370057DC6F /* MachO.cpp in Sources */,
 				F308429D2921CD1500D989D8 /* FileMap.cpp in Sources */,
 				F33C25CB28EA146700289314 /* main.cpp in Sources */,
+				F34C282B292A12ED0010B711 /* FatMachO.cpp in Sources */,
 				F32062A629248857002B99D9 /* PrintHeader.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

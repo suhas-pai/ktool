@@ -8,57 +8,14 @@
 #pragma once
 
 #include <string_view>
+
 #include "ADT/Range.h"
+#include "ADT/SwitchEndian.h"
 
 #include "Mach/Machine.h"
-#include "Mach/VmProt.h"
+#include "Magic.h"
 
 namespace MachO {
-    enum class Magic : uint32_t {
-        Default = 0xFEEDFACE,
-        Swapped = 0xCEFADEFE,
-
-        Default64 = 0xFEEDFACF,
-        Swapped64 = 0xCEFADEFC
-    };
-
-    constexpr auto MagicIsValid(const Magic Magic) noexcept {
-        switch (Magic) {
-            case Magic::Default:
-            case Magic::Swapped:
-            case Magic::Default64:
-            case Magic::Swapped64:
-                return true;
-        }
-
-        return false;
-    }
-
-    constexpr auto MagicIs64Bit(const Magic Magic) noexcept {
-        return (Magic == Magic::Default64 || Magic == Magic::Swapped64);
-    }
-
-    constexpr auto MagicIsBigEndian(const Magic Magic) noexcept {
-        return (Magic == Magic::Swapped || Magic == Magic::Swapped64);
-    }
-
-    constexpr auto MagicGetString(const Magic Magic) noexcept
-        -> std::string_view
-    {
-        switch (Magic) {
-            case Magic::Default:
-                return "MH_MAGIC";
-            case Magic::Swapped:
-                return "MH_CIGAM";
-            case Magic::Default64:
-                return "MH_MAGIC_64";
-            case Magic::Swapped64:
-                return "MH_CIGAM_64";
-        }
-
-        assert(false && "Called MagicGetString() with unknown Magic");
-    }
-
     enum class FileKind {
         Object = 1,
         Executable,
@@ -183,6 +140,30 @@ namespace MachO {
 
         [[nodiscard]] constexpr auto is64Bit() const noexcept {
             return MagicIs64Bit(Magic);
+        }
+
+        [[nodiscard]] constexpr auto cpuKind() const noexcept {
+            return SwitchEndianIf(CpuKind, isBigEndian());
+        }
+
+        [[nodiscard]] constexpr auto cpuSubKind() const noexcept {
+            return SwitchEndianIf(CpuSubKind, isBigEndian());
+        }
+
+        [[nodiscard]] constexpr auto fileKind() const noexcept {
+            return SwitchEndianIf(FileKind, isBigEndian());
+        }
+
+        [[nodiscard]] constexpr auto ncmds() const noexcept {
+            return SwitchEndianIf(Ncmds, isBigEndian());
+        }
+
+        [[nodiscard]] constexpr auto sizeOfCmds() const noexcept {
+            return SwitchEndianIf(SizeOfCmds, isBigEndian());
+        }
+
+        [[nodiscard]] constexpr auto flags() const noexcept {
+            return SwitchEndianIf(Flags, isBigEndian());
         }
     };
 }

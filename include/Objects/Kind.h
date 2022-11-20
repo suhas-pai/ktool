@@ -10,6 +10,7 @@
 namespace Objects {
     enum class Kind {
         None,
-        MachO
+        MachO,
+        FatMachO
     };
 }

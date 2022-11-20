@@ -7,6 +7,7 @@
 
 #include "Objects/Base.h"
 #include "Objects/MachO.h"
+#include "Objects/FatMachO.h"
 
 namespace Objects {
     Base::~Base() noexcept {}
@@ -18,6 +19,19 @@ namespace Objects {
             case Kind::MachO: {
                 const auto Object = Objects::MachO::Open(Map);
                 using ErrorKind = Objects::MachO::OpenError;
+
+                const auto Error = Object.getError();
+                if (Error == ErrorKind::None) {
+                    return Object.getPtr();
+                }
+
+                if (Object.getError() != ErrorKind::WrongFormat) {
+                    return nullptr;
+                }
+            }
+            case Kind::FatMachO: {
+                const auto Object = Objects::FatMachO::Open(Map);
+                using ErrorKind = Objects::FatMachO::OpenError;
 
                 const auto Error = Object.getError();
                 if (Error == ErrorKind::None) {

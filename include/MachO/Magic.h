@@ -1,0 +1,134 @@
+//
+//  MachO/Magic.h
+//  ktool
+//
+//  Created by suhaspai on 11/20/22.
+//
+
+#pragma once
+
+namespace MachO {
+    enum class Magic : uint32_t {
+        Default = 0xFEEDFACE,
+        Swapped = 0xCEFADEFE,
+
+        Default64 = 0xFEEDFACF,
+        Swapped64 = 0xCEFADEFC,
+
+        Fat = 0xCAFEBABE,
+        SwappedFat = 0xBEBAFECA,
+
+        Fat64 = 0xCAFEBABF,
+        SwappedFat64 = 0xBFBAFECA
+    };
+
+    constexpr auto MagicIsValid(const Magic Magic) noexcept {
+        switch (Magic) {
+            case Magic::Default:
+            case Magic::Swapped:
+            case Magic::Default64:
+            case Magic::Swapped64:
+            case Magic::Fat:
+            case Magic::SwappedFat:
+            case Magic::Fat64:
+            case Magic::SwappedFat64:
+                return true;
+        }
+
+        return false;
+    }
+
+    constexpr auto MagicIsThin(const Magic Magic) noexcept {
+        switch (Magic) {
+            case Magic::Default:
+            case Magic::Swapped:
+            case Magic::Default64:
+            case Magic::Swapped64:
+                return true;
+            case Magic::Fat:
+            case Magic::SwappedFat:
+            case Magic::Fat64:
+            case Magic::SwappedFat64:
+                return false;
+        }
+
+        return false;
+    }
+
+    constexpr auto MagicIsFat(const Magic Magic) noexcept {
+        switch (Magic) {
+            case Magic::Fat:
+            case Magic::SwappedFat:
+            case Magic::Fat64:
+            case Magic::SwappedFat64:
+                return true;
+            case Magic::Default:
+            case Magic::Swapped:
+            case Magic::Default64:
+            case Magic::Swapped64:
+                return false;
+        }
+
+        return false;
+    }
+
+    constexpr auto MagicIs64Bit(const Magic Magic) noexcept {
+        switch (Magic) {
+            case Magic::Default64:
+            case Magic::Swapped64:
+            case Magic::Fat64:
+            case Magic::SwappedFat64:
+                return true;
+            case Magic::Default:
+            case Magic::Swapped:
+            case Magic::Fat:
+            case Magic::SwappedFat:
+                return false;
+        }
+
+        return false;
+    }
+
+    constexpr auto MagicIsBigEndian(const Magic Magic) noexcept {
+        switch (Magic) {
+            case Magic::Swapped:
+            case Magic::Swapped64:
+            case Magic::SwappedFat:
+            case Magic::SwappedFat64:
+                return true;
+            case Magic::Default:
+            case Magic::Default64:
+            case Magic::Fat:
+            case Magic::Fat64:
+                return false;
+        }
+
+        return false;
+    }
+
+    constexpr auto MagicGetString(const Magic Magic) noexcept
+        -> std::string_view
+    {
+        switch (Magic) {
+            case Magic::Default:
+                return "MH_MAGIC";
+            case Magic::Swapped:
+                return "MH_CIGAM";
+            case Magic::Default64:
+                return "MH_MAGIC_64";
+            case Magic::Swapped64:
+                return "MH_CIGAM_64";
+            case Magic::Fat:
+                return "FAT_MAGIC";
+            case Magic::SwappedFat:
+                return "FAT_CIGAM";
+            case Magic::Fat64:
+                return "FAT_MAGIC_64";
+            case Magic::SwappedFat64:
+                return "FAT_CIGAM_64";
+        }
+
+        assert(false && "Called MagicGetString() with unknown Magic");
+    }
+
+}

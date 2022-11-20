@@ -7,7 +7,9 @@
 
 #pragma once
 
+#include "Objects/FatMachO.h"
 #include "Objects/MachO.h"
+
 #include "Base.h"
 
 namespace Operations {
@@ -24,6 +26,8 @@ namespace Operations {
         explicit PrintHeader(FILE *OutFile, const struct Options &Options);
 
         virtual bool run(const Objects::Base &Base) const noexcept override;
+
         void run(const Objects::MachO &MachO) const noexcept;
+        void run(const Objects::FatMachO &MachO) const noexcept;
     };
 }

@@ -13,11 +13,18 @@ namespace Operations {
     
     void PrintHeader::run(const Objects::MachO &MachO) const noexcept {
         const auto Header = MachO.header();
+
+        const auto CpuKind = Header.cpuKind();
+        const auto CpuSubKind = Header.cpuSubKind();
+        const auto FileKind = Header.fileKind();
+        const auto Ncmds = Header.ncmds();
+        const auto SizeOfCmds = Header.sizeOfCmds();
+        const auto Flags = Header.flags();
+
         const auto SubKindString =
-            Mach::CpuKindAndSubKindIsValid(Header.CpuKind, Header.CpuSubKind) ?
-                Mach::CpuKindAndSubKindGetString(
-                    Header.CpuKind, Header.CpuSubKind).data() :
-                    "Unrecognized";
+            Mach::CpuKindAndSubKindIsValid(CpuKind, CpuSubKind) ?
+                Mach::CpuKindAndSubKindGetString(CpuKind, CpuSubKind).data() :
+                "Unrecognized";
 
         fprintf(OutFile,
                 "Apple %s Mach-O File\n"
@@ -29,17 +36,28 @@ namespace Operations {
                 "\tSizeOfCmds: %d\n"
                 "\tFlags:      %d\n",
                 MachO.is64Bit() ? "64-Bit" : "32-Bit",
-                MachO::MagicGetString(MachO.header().Magic).data(),
-                Mach::CpuKindIsValid(MachO.header().CpuKind) ?
-                    Mach::CpuKindGetString(MachO.header().CpuKind).data() :
+                MachO::MagicGetString(Header.Magic).data(),
+                Mach::CpuKindIsValid(CpuKind) ?
+                    Mach::CpuKindGetString(CpuKind).data() :
                     "Unrecognized",
                 SubKindString,
-                MachO::FileKindIsValid(MachO.header().FileKind) ?
-                    MachO::FileKindGetString(MachO.header().FileKind).data() :
+                MachO::FileKindIsValid(FileKind) ?
+                    MachO::FileKindGetString(FileKind).data() :
                     "Unrecognized",
-                MachO.header().Ncmds,
-                MachO.header().SizeOfCmds,
-                MachO.header().Flags);
+                Ncmds,
+                SizeOfCmds,
+                Flags);
+    }
+
+    void PrintHeader::run(const Objects::FatMachO &MachO) const noexcept {
+        const auto Header = MachO.header();
+        fprintf(OutFile,
+                "Apple %s Fat Mach-O File\n"
+                "\tMagic:      %s\n"
+                "\tArch Count: %d\n",
+                MachO.is64Bit() ? "64-Bit" : "32-Bit",
+                MachO::MagicGetString(Header.Magic).data(),
+                Header.archCount());
     }
 
     bool PrintHeader::run(const Objects::Base &Base) const noexcept {
@@ -48,6 +66,9 @@ namespace Operations {
                 assert(false && "run() got Object with Kind::None");
             case Objects::Kind::MachO:
                 run(static_cast<const Objects::MachO &>(Base));
+                return true;
+            case Objects::Kind::FatMachO:
+                run(static_cast<const Objects::FatMachO &>(Base));
                 return true;
         }
 

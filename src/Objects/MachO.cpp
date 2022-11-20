@@ -5,7 +5,6 @@
 //  Created by suhaspai on 11/19/22.
 //
 
-#include "MachO/Header.h"
 #include "Objects/MachO.h"
 
 namespace Objects {
@@ -15,14 +14,18 @@ namespace Objects {
         const auto Header = Map.base<::MachO::Header>();
         if (Header == nullptr) {
             const auto Magic = Map.base<::MachO::Magic>();
+            if (Magic == nullptr) {
+                return OpenError::SizeTooSmall;
+            }
+            
             const auto Result =
-                ::MachO::MagicIsValid(*Magic) ?
+                ::MachO::MagicIsThin(*Magic) ?
                     OpenError::SizeTooSmall : OpenError::WrongFormat;
 
             return Result;
         }
 
-        if (!::MachO::MagicIsValid(Header->Magic)) {
+        if (!::MachO::MagicIsThin(Header->Magic)) {
             return OpenError::WrongFormat;
         }
 

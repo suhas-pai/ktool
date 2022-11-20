@@ -18,17 +18,44 @@ namespace ADT {
         constexpr explicit MemoryMap(void *Base, uint64_t Size)
         : Base(Base), Size(Size) {}
 
-        [[nodiscard]] inline auto getRange() const noexcept {
-            return Range::FromSize(reinterpret_cast<uint64_t>(Base), Size);
-        }
+        explicit MemoryMap(const MemoryMap &Map, const Range &Range)
+        : Base(reinterpret_cast<void *>(reinterpret_cast<uint64_t>(Map.Base) +
+               Range.getBegin())),
+          Size(Range.size()) {}
 
-        template <typename T = void *>
-        [[nodiscard]] inline auto base() const noexcept {
-            return reinterpret_cast<T *>(Base);
+        [[nodiscard]] inline auto range() const noexcept {
+            return Range::FromSize(reinterpret_cast<uint64_t>(Base), Size);
         }
 
         [[nodiscard]] constexpr auto size() const noexcept {
             return Size;
+        }
+
+        template <typename T = void *, bool Verify = true>
+        [[nodiscard]]
+        inline auto base(const uint64_t Count = 1) const noexcept -> T * {
+            if constexpr (Verify) {
+                if (size() < (sizeof(T) * Count)) {
+                    return nullptr;
+                }
+            }
+
+            return reinterpret_cast<T *>(Base);
+        }
+
+        template <typename T = void *, bool Verify = true>
+        [[nodiscard]] inline
+        auto get(const uint64_t Offset, const uint64_t Count = 1) const noexcept
+            -> T *
+        {
+            if constexpr (Verify) {
+                if (size() < (Offset + sizeof(T) * Count)) {
+                    return nullptr;
+                }
+            }
+
+            const auto AdjBase = reinterpret_cast<uint64_t>(Base) + Offset;
+            return reinterpret_cast<T *>(AdjBase);
         }
     };
 }

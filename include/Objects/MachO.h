@@ -35,7 +35,7 @@ namespace Objects {
         }
 
         [[nodiscard]] constexpr auto header() const noexcept {
-            return *getMemoryMap().base<::MachO::Header>();
+            return *getMemoryMap().base<::MachO::Header, false>();
         }
 
         [[nodiscard]] constexpr auto isBigEndian() const noexcept {

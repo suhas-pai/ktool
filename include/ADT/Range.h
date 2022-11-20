@@ -6,27 +6,29 @@
 //
 
 #pragma once
+
 #include <cassert>
+#include <concepts>
 
 namespace ADT {
     struct Range {
     protected:
         uint64_t Begin;
-        uint64_t End;
+        uint64_t Size;
 
         constexpr explicit
-        Range(const uint64_t Begin, const uint64_t End) noexcept
-        : Begin(Begin), End(End) {}
+        Range(const uint64_t Begin, const uint64_t Size) noexcept
+        : Begin(Begin), Size(Size) {}
     public:
         [[nodiscard]] constexpr static
         auto FromSize(const uint64_t Begin, const uint64_t Size) noexcept {
-            return Range(Begin, Begin + Size);
+            return Range(Begin, Size);
         }
 
         [[nodiscard]] constexpr static
         auto FromEnd(const uint64_t Begin, const uint64_t End) noexcept {
             assert(Begin <= End);
-            return Range(Begin, End);
+            return Range(Begin, (End - Begin));
         }
 
         [[nodiscard]] constexpr static auto FromEmpty() noexcept {
@@ -34,28 +36,34 @@ namespace ADT {
         }
 
         [[nodiscard]] constexpr auto getBegin() const noexcept { return Begin; }
-        [[nodiscard]] constexpr auto getEnd() const noexcept { return End; }
-        [[nodiscard]] constexpr auto size() const noexcept {
-            return (End - Begin);
+        [[nodiscard]] constexpr auto size() const noexcept { return Size; }
+        [[nodiscard]] constexpr auto getEnd() const noexcept {
+            return Begin + Size;
+        }
+
+        template <std::integral T>
+        [[nodiscard]] constexpr auto canRepresentIn() {
+            return (Begin <= std::numeric_limits<T>::max() &&
+                    (Begin + Size) <= std::numeric_limits<T>::max());
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {
-            return (Begin == End);
+            return (Size == 0);
         }
 
         [[nodiscard]]
         constexpr auto containsLoc(const uint64_t Loc) const noexcept {
-            return (Loc >= Begin && Loc < End);
+            return (Loc >= Begin && (Loc - Begin) < Size);
         }
 
         [[nodiscard]]
         constexpr auto containsEnd(const uint64_t Loc) const noexcept {
-            return (Loc > Begin && Loc <= End);
+            return (Loc > Begin && (Loc - Begin) <= Size);
         }
 
         [[nodiscard]]
         constexpr auto containsIndex(const uint64_t Idx) const noexcept {
-            return (Idx < size());
+            return (Idx < Size);
         }
 
         [[nodiscard]]
@@ -64,7 +72,14 @@ namespace ADT {
                 return false;
             }
 
-            return (Begin <= Other.Begin && End >= Other.End);
+            const auto MinSize = (Other.Size + (Other.Begin - Begin));
+            return (Begin <= Other.Begin && Size >= MinSize);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        constexpr auto canContain(const uint64_t Count = 1) const noexcept {
+            return (Size >= (sizeof(T) * Count));
         }
 
         [[nodiscard]]
@@ -73,15 +88,19 @@ namespace ADT {
                 return false;
             }
 
-            return
-                containsLoc(Other.Begin) ||
-                containsEnd(Other.End) ||
-                Other.contains(*this);
+            return (containsLoc(Other.Begin) ||
+                    containsEnd(Other.getEnd()) ||
+                    Other.contains(*this));
         }
 
         [[nodiscard]]
         constexpr auto containsAsIndex(const Range &Other) const noexcept {
-            return containsIndex(Other.Begin) && containsEnd(Other.End);
+            return containsIndex(Other.Begin) && containsEnd(Other.getEnd());
+        }
+
+        [[nodiscard]]
+        constexpr auto offsetSubrange(const auto &Range) const noexcept {
+            return Range(Begin + Range.Offset, Range.Size);
         }
     };
 }
