@@ -225,6 +225,45 @@ namespace Mach {
         assert(false && "CpuKindGetString() called with unknown CpuKind");
     }
 
+    constexpr auto CpuKindGetDesc(const CpuKind CpuKind) noexcept ->
+        std::string_view
+    {
+        switch (CpuKind) {
+            case CpuKind::Any:
+                return "Any";
+            case CpuKind::Vax:
+                return "Vax";
+            case CpuKind::Motorola680x0:
+                return "Motorola 68000";
+            case CpuKind::IntelX86:
+                return "Intel x86";
+            case CpuKind::IntelX86_64:
+                return "Intel x86_64";
+            case CpuKind::Motorola98000:
+                return "Motorola 98000";
+            case CpuKind::Hppa:
+                return "Hppa";
+            case CpuKind::Arm:
+                return "Arm";
+            case CpuKind::Arm64:
+                return "Arm64";
+            case CpuKind::Arm64_32:
+                return "Arm64_32";
+            case CpuKind::Motorola88000:
+                return "Motorola 88000";
+            case CpuKind::Sparc:
+                return "Sparc";
+            case CpuKind::IntelI860:
+                return "Intel I860";
+            case CpuKind::PowerPC:
+                return "PowerPC";
+            case CpuKind::PowerPC64:
+                return "PowerPC (64-bit)";
+        }
+
+        assert(false && "CpuKindGetDesc() called with unknown CpuKind");
+    }
+
     constexpr auto
     CpuKindAndSubKindIsValid(const CpuKind CpuKind,
                              const uint32_t SubKind) noexcept
@@ -651,5 +690,267 @@ namespace Mach {
         }
 
         assert(false && "CpuKindGetString() called with unknown CpuKind");
+    }
+
+    constexpr auto
+    CpuKindAndSubKindGetDesc(const CpuKind CpuKind,
+                             const uint32_t SubKind) noexcept
+        -> std::string_view
+    {
+        switch (CpuKind) {
+            case CpuKind::Any:
+                if (SubKind == -1) {
+                    return "Any";
+                }
+
+                break;
+            case CpuKind::Vax:
+                switch (Vax(SubKind)) {
+                    case Vax::All:
+                        return "Vax All";
+                    case Vax::v780:
+                        return "Vax 780";
+                    case Vax::v785:
+                        return "Vax 785";
+                    case Vax::v750:
+                        return "Vax 750";
+                    case Vax::v730:
+                        return "Vax 730";
+                    case Vax::UvaxI:
+                        return "Vax UvaxU";
+                    case Vax::UvaxII:
+                        return "Vax UvaxII";
+                    case Vax::v8200:
+                        return "Vax 8200";
+                    case Vax::v8500:
+                        return "Vax 8500";
+                    case Vax::v8600:
+                        return "Vax 8600";
+                    case Vax::v8650:
+                        return "Vax 8650";
+                    case Vax::v8800:
+                        return "Vax 8800";
+                    case Vax::UvaxIII:
+                        return "Vax UvaxIII";
+                }
+
+                assert(false &&
+                       "CpuKindGetDesc() called with unknown Vax CpuSubKind");
+            case CpuKind::Motorola680x0:
+                switch (Motorola68000(SubKind)) {
+                    case Motorola68000::All:
+                        return "Motorola 68000 All";
+                    case Motorola68000::v68040:
+                        return "Motorola 68040";
+                    case Motorola68000::v68030_Only:
+                        return "Motorola 68030";
+                }
+
+                assert(false &&
+                       "CpuKindGetDesc() called with unknown Motorola 68000 "
+                       "CpuSubKind");
+            case CpuKind::IntelX86:
+                switch (Intelx86(SubKind)) {
+                    case Intelx86::x86:
+                        return "Intel x86";
+                    case Intelx86::x86Arch1:
+                        return "Intel x86 Arch1";
+                    case Intelx86::v486SX:
+                        return "Intel 486SX";
+                    case Intelx86::Pentium:
+                        return "Intel Pentium";
+                    case Intelx86::PentiumPro:
+                        return "Intel Pentium Pro";
+                    case Intelx86::PentiumM3:
+                        return "Intel Pentium M3";
+                    case Intelx86::PentiumM5:
+                        return "Intel Pentium M5";
+                    case Intelx86::Celeron:
+                        return "Intel Celeron";
+                    case Intelx86::CeleronMobile:
+                        return "Intel Celeron Mobile";
+                    case Intelx86::Pentium3:
+                        return "Intel Pentium 3";
+                    case Intelx86::Pentium3m:
+                        return "Intel Pentium 3M";
+                    case Intelx86::Pentium3Xeon:
+                        return "Intel Pentium 3 Xeon";
+                    case Intelx86::PentiumM:
+                        return "Intel Pentium M";
+                    case Intelx86::Pentium4:
+                        return "Intel Pentium 4";
+                    case Intelx86::Pentium4m:
+                        return "Intel Pentium 4M";
+                    case Intelx86::Itanium:
+                        return "Intel Itanium";
+                    case Intelx86::Itanium2:
+                        return "Intel Itanium 2";
+                    case Intelx86::Xeon:
+                        return "Intel Xeon";
+                    case Intelx86::XeonMP:
+                        return "Intel Xeon MP";
+                }
+
+                assert(false &&
+                       "CpuKindGetDesc() called with unknown x86 CpuSubKind");
+            case CpuKind::IntelX86_64:
+                switch (Intelx86_64(SubKind)) {
+                    case Intelx86_64::All:
+                        return "Intel x86_64";
+                    case Intelx86_64::Haswell:
+                        return "Intel x86_64 Haswell";
+                }
+
+                assert(false &&
+                       "CpuKindGetDesc() called with unknown x86_64 "
+                       "CpuSubKind");
+            case CpuKind::Motorola98000:
+                switch (Motorola98000(SubKind)) {
+                    case Motorola98000::All:
+                        return "Motorola 98000";
+                    case Motorola98000::v98601:
+                        return "Motorola 98601";
+                }
+
+                assert(false &&
+                       "CpuKindGetDesc() called with unknown Motorola 98000 "
+                       "CpuSubKind");
+            case CpuKind::Hppa:
+                switch (Hppa(SubKind)) {
+                    case Hppa::v7100:
+                        return "Hppa 7100";
+                    case Hppa::v7100LC:
+                        return "Hppa 7100LC";
+                }
+
+                assert(false &&
+                       "CpuKindGetDesc() called with unknown Motorola 98000 "
+                       "CpuSubKind");
+            case CpuKind::Arm:
+                switch (Arm(SubKind)) {
+                    case Arm::All:
+                        return "Arm all";
+                    case Arm::v4t:
+                        return "Armv4t";
+                    case Arm::v6:
+                        return "Armv6";
+                    case Arm::v5tej:
+                        return "Armv5-tej";
+                    case Arm::Xscale:
+                        return "Arm Xscale";
+                    case Arm::v7:
+                        return "Armv7";
+                    case Arm::v7f:
+                        return "Armv7f";
+                    case Arm::v7s:
+                        return "Armv7s";
+                    case Arm::v7k:
+                        return "Armv7k";
+                    case Arm::v8:
+                        return "Armv8";
+                    case Arm::v6m:
+                        return "Armv6m";
+                    case Arm::v7m:
+                        return "Armv7m";
+                    case Arm::v7em:
+                        return "Armv7em";
+                    case Arm::v8m:
+                        return "Armv8m";
+                }
+
+                assert(false &&
+                       "CpuKindGetDesc() called with unknown Arm CpuSubKind");
+            case CpuKind::Arm64:
+                switch (Arm64(SubKind)) {
+                    case Arm64::All:
+                        return "Arm64 All";
+                    case Arm64::v8:
+                        return "Arm64 v8";
+                    case Arm64::arm64e:
+                        return "Arm64e";
+                }
+
+                assert(false &&
+                       "CpuKindGetDesc() called with unknown arm64 CpuSubKind");
+            case CpuKind::Arm64_32:
+                switch (Arm64_32(SubKind)) {
+                    case Arm64_32::All:
+                        return "Arm64_32 All";
+                    case Arm64_32::v8:
+                        return "Arm64_32 v8";
+                }
+
+                assert(false &&
+                       "CpuKindGetDesc() called with unknown arm64_32 "
+                       "CpuSubKind");
+            case CpuKind::Motorola88000:
+                switch (Motorola88000(SubKind)) {
+                    case Motorola88000::All:
+                        return "Motorola All";
+                    case Motorola88000::v88100:
+                        return "Motorola 88100";
+                    case Motorola88000::v88110:
+                        return "Motorola 88110";
+                }
+
+                assert(false &&
+                       "CpuKindGetDesc() called with unknown Motorola 98000 "
+                       "CpuSubKind");
+            case CpuKind::Sparc:
+                if (SubKind == 0) {
+                    return "Sparc All";
+                }
+
+                assert(false &&
+                       "CpuKindGetDesc() called with unknown Sparc "
+                       "CpuSubKind");
+            case CpuKind::IntelI860:
+                switch (IntelI860(SubKind)) {
+                    case IntelI860::All:
+                        return "Intel I860 All";
+                    case IntelI860::v860:
+                        return "Intel I860 860";
+                }
+
+                assert(false &&
+                       "CpuKindGetDesc() called with unknown I860 "
+                       "CpuSubKind");
+            case CpuKind::PowerPC:
+            case CpuKind::PowerPC64:
+                switch (PowerPC(SubKind)) {
+                    case PowerPC::All:
+                        return "PowerPC all";
+                    case PowerPC::v601:
+                        return "PowerPC 601";
+                    case PowerPC::v602:
+                        return "PowerPC 602";
+                    case PowerPC::v603:
+                        return "PowerPC 603";
+                    case PowerPC::v603e:
+                        return "PowerPC 604";
+                    case PowerPC::v603ev:
+                        return "PowerPC 603ev";
+                    case PowerPC::v604:
+                        return "PowerPC 604";
+                    case PowerPC::v604e:
+                        return "PowerPC 604e";
+                    case PowerPC::v620:
+                        return "PowerPC 620";
+                    case PowerPC::v750:
+                        return "PowerPC 750";
+                    case PowerPC::v7400:
+                        return "PowerPC 7400";
+                    case PowerPC::v7450:
+                        return "PowerPC 7450";
+                    case PowerPC::v970:
+                        return "PowerPC 970";
+                }
+
+                assert(false &&
+                       "CpuKindGetDesc() called with unknown PowerPC[64] "
+                       "CpuSubKind");
+        }
+
+        assert(false && "CpuKindGetDesc() called with unknown CpuKind");
     }
 }

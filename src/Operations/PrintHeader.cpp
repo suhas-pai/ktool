@@ -23,32 +23,61 @@ namespace Operations {
         const auto SizeOfCmds = Header.sizeOfCmds();
         const auto Flags = Header.flags();
 
-        const auto SubKindString =
-            Mach::CpuKindAndSubKindIsValid(CpuKind, CpuSubKind) ?
-                Mach::CpuKindAndSubKindGetString(CpuKind, CpuSubKind).data() :
-                "Unrecognized";
+        if (Opt.Verbose) {
+            const auto SubKindString =
+                Mach::CpuKindAndSubKindIsValid(CpuKind, CpuSubKind) ?
+                    Mach::CpuKindAndSubKindGetDesc(CpuKind, CpuSubKind).data() :
+                    "Unrecognized";
 
-        fprintf(OutFile,
-                "Apple %s Mach-O File\n"
-                "\tMagic:      %s\n"
-                "\tCputype:    %s\n"
-                "\tCpuSubtype: %s\n"
-                "\tFiletype:   %s\n"
-                "\tNcmds:      %d\n"
-                "\tSizeOfCmds: %d\n"
-                "\tFlags:      %d\n",
-                MachO.is64Bit() ? "64-Bit" : "32-Bit",
-                MachO::MagicGetString(Header.Magic).data(),
-                Mach::CpuKindIsValid(CpuKind) ?
-                    Mach::CpuKindGetString(CpuKind).data() :
-                    "Unrecognized",
-                SubKindString,
-                MachO::FileKindIsValid(FileKind) ?
-                    MachO::FileKindGetString(FileKind).data() :
-                    "Unrecognized",
-                Ncmds,
-                SizeOfCmds,
-                Flags);
+            fprintf(OutFile,
+                    "Apple %s Mach-O File\n"
+                    "\tMagic:      %s\n"
+                    "\tCputype:    %s\n"
+                    "\tCpuSubtype: %s\n"
+                    "\tFiletype:   %s\n"
+                    "\tNcmds:      %d\n"
+                    "\tSizeOfCmds: %d\n"
+                    "\tFlags:      0x%x\n",
+                    MachO.is64Bit() ? "64-Bit" : "32-Bit",
+                    MachO::MagicGetDesc(Header.Magic).data(),
+                    Mach::CpuKindIsValid(CpuKind) ?
+                        Mach::CpuKindGetDesc(CpuKind).data() : "Unrecognized",
+                    SubKindString,
+                    MachO::FileKindIsValid(FileKind) ?
+                        MachO::FileKindGetDesc(FileKind).data() :
+                        "Unrecognized",
+                    Ncmds,
+                    SizeOfCmds,
+                    Flags);
+        } else {
+            const auto SubKindString =
+                Mach::CpuKindAndSubKindIsValid(CpuKind, CpuSubKind) ?
+                    Mach::CpuKindAndSubKindGetString(CpuKind,
+                                                     CpuSubKind).data() :
+                    "Unrecognized";
+
+            fprintf(OutFile,
+                    "Apple %s Mach-O File\n"
+                    "\tMagic:      %s\n"
+                    "\tCputype:    %s\n"
+                    "\tCpuSubtype: %s\n"
+                    "\tFiletype:   %s\n"
+                    "\tNcmds:      %d\n"
+                    "\tSizeOfCmds: %d\n"
+                    "\tFlags:      0x%x\n",
+                    MachO.is64Bit() ? "64-Bit" : "32-Bit",
+                    MachO::MagicGetString(Header.Magic).data(),
+                    Mach::CpuKindIsValid(CpuKind) ?
+                        Mach::CpuKindGetString(CpuKind).data() :
+                        "Unrecognized",
+                    SubKindString,
+                    MachO::FileKindIsValid(FileKind) ?
+                        MachO::FileKindGetString(FileKind).data() :
+                        "Unrecognized",
+                    Ncmds,
+                    SizeOfCmds,
+                    Flags);
+        }
 
         return Result.set(RunError::None);
     }

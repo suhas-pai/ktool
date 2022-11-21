@@ -131,4 +131,27 @@ namespace MachO {
         assert(false && "Called MagicGetString() with unknown Magic");
     }
 
+    constexpr auto MagicGetDesc(const Magic Magic) noexcept -> std::string_view
+    {
+        switch (Magic) {
+            case Magic::Default:
+                return "Default";
+            case Magic::Swapped:
+                return "Swapped";
+            case Magic::Default64:
+                return "Default (64-bit)";
+            case Magic::Swapped64:
+                return "Swapped (64-bit)";
+            case Magic::Fat:
+                return "Fat";
+            case Magic::SwappedFat:
+                return "Fat (Swapped)";
+            case Magic::Fat64:
+                return "Fat (64-bit)";
+            case Magic::SwappedFat64:
+                return "Fat (64-bit, Swapped)";
+        }
+
+        assert(false && "Called MagicGetDesc() with unknown Magic");
+    }
 }

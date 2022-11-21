@@ -84,6 +84,39 @@ namespace MachO {
         assert(false && "Called FileKindGetString() with unknown FileKind");
     }
 
+    constexpr auto FileKindGetDesc(const FileKind FileKind) noexcept
+        -> std::string_view
+    {
+        switch (FileKind) {
+            case FileKind::Object:
+                return "Object";
+            case FileKind::Executable:
+                return "Executable";
+            case FileKind::FixedVMSharedLib:
+                return "Fixed VM Shared-Library";
+            case FileKind::Core:
+                return "Core";
+            case FileKind::PreLoadedExecutable:
+                return "Preloaded Executable";
+            case FileKind::DynamicLibrary:
+                return "Dylib";
+            case FileKind::DynamicLinker:
+                return "Dylinker";
+            case FileKind::Bundle:
+                return "Bundle";
+            case FileKind::DylibStub:
+                return "Dylib Stub";
+            case FileKind::Dsym:
+                return "Dsym";
+            case FileKind::KextBundle:
+                return "Kext Bundle";
+            case FileKind::FileSet:
+                return "Fileset";
+        }
+
+        assert(false && "Called FileKindGetDesc() with unknown FileKind");
+    }
+
     struct Header {
         enum class FlagsEnum {
             NoUndefineds = 1 << 0,
