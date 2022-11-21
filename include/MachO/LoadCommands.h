@@ -777,6 +777,16 @@ namespace MachO {
         uint32_t CryptOffset;
         uint32_t CryptSize;
         uint32_t CryptId;
+
+        [[nodiscard]]
+        constexpr auto cryptRange(const bool IsBigEndian) const noexcept {
+            const auto CryptOffset =
+                ADT::SwitchEndianIf(this->CryptOffset, IsBigEndian);
+            const auto CryptSize =
+                ADT::SwitchEndianIf(this->CryptSize, IsBigEndian);
+
+            return ADT::Range::FromSize(CryptOffset, CryptSize);
+        }
     };
 
     struct EncryptionInfo64Command : public LoadCommand {
@@ -784,6 +794,16 @@ namespace MachO {
         uint32_t CryptSize;
         uint32_t CryptId;
         uint32_t Pad;
+
+        [[nodiscard]]
+        constexpr auto cryptRange(const bool IsBigEndian) const noexcept {
+            const auto CryptOffset =
+                ADT::SwitchEndianIf(this->CryptOffset, IsBigEndian);
+            const auto CryptSize =
+                ADT::SwitchEndianIf(this->CryptSize, IsBigEndian);
+
+            return ADT::Range::FromSize(CryptOffset, CryptSize);
+        }
     };
 
     struct VersionMinCommand : public LoadCommand {
