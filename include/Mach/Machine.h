@@ -717,7 +717,7 @@ namespace Mach {
                     case Vax::v730:
                         return "Vax 730";
                     case Vax::UvaxI:
-                        return "Vax UvaxU";
+                        return "Vax UvaxI";
                     case Vax::UvaxII:
                         return "Vax UvaxII";
                     case Vax::v8200:
@@ -902,8 +902,7 @@ namespace Mach {
                 }
 
                 assert(false &&
-                       "CpuKindGetDesc() called with unknown Sparc "
-                       "CpuSubKind");
+                       "CpuKindGetDesc() called with unknown Sparc CpuSubKind");
             case CpuKind::IntelI860:
                 switch (IntelI860(SubKind)) {
                     case IntelI860::All:
@@ -913,8 +912,7 @@ namespace Mach {
                 }
 
                 assert(false &&
-                       "CpuKindGetDesc() called with unknown I860 "
-                       "CpuSubKind");
+                       "CpuKindGetDesc() called with unknown I860 CpuSubKind");
             case CpuKind::PowerPC:
             case CpuKind::PowerPC64:
                 switch (PowerPC(SubKind)) {
