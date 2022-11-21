@@ -117,48 +117,155 @@ namespace MachO {
         assert(false && "Called FileKindGetDesc() with unknown FileKind");
     }
 
+    enum class Flags : uint32_t {
+        NoUndefineds = 1 << 0,
+        IncrementalLink = 1 << 1,
+        DynamicLinkerLink = 1 << 2,
+
+        BindAtLoad    = 1 << 3,
+        PreBound      = 1 << 4,
+        SplitSegments = 1 << 5,
+        LazyInit      = 1 << 6,
+
+        TwoLevelNamespaces  = 1 << 7,
+        ForceFlatNamespaces = 1 << 8,
+
+        NoMultipleDefinitions = 1 << 9,
+        NoFixPrebinding = 1 << 10,
+
+        Prebindable = 1 << 11,
+        AllModulesBound = 1 << 12,
+        SubsectionsViaSymbols = 1 << 13,
+
+        Canonical = 1 << 14,
+        WeakDefines = 1 << 15,
+
+        BindsToWeak = 1 << 16,
+        AllowStackExecution = 1 << 17,
+
+        RootSafe = 1 << 18,
+        SetuidSafe = 1 << 19,
+
+        NoReexportedDylibs = 1 << 20,
+        PositionIndependentExec = 1 << 21,
+        DeadStrippableDylib = 1 << 22,
+        HasTlvDescriptors = 1 << 23,
+        NoHeapExecution = 1 << 24,
+        AppExtensionSafe = 1 << 25,
+
+        NlistOutOfSyncDyldInfo = 1 << 26,
+
+        SimSupport = 1 << 27,
+        DylibInCache = static_cast<uint32_t>(1 << 31),
+    };
+
+    [[nodiscard]] constexpr auto FlagsIsValid(const Flags Flag) noexcept {
+        switch (Flag) {
+            case Flags::NoUndefineds:
+            case Flags::IncrementalLink:
+            case Flags::DynamicLinkerLink:
+            case Flags::BindAtLoad:
+            case Flags::PreBound:
+            case Flags::SplitSegments:
+            case Flags::LazyInit:
+            case Flags::TwoLevelNamespaces:
+            case Flags::ForceFlatNamespaces:
+            case Flags::NoMultipleDefinitions:
+            case Flags::NoFixPrebinding:
+            case Flags::Prebindable:
+            case Flags::AllModulesBound:
+            case Flags::SubsectionsViaSymbols:
+            case Flags::Canonical:
+            case Flags::WeakDefines:
+            case Flags::BindsToWeak:
+            case Flags::AllowStackExecution:
+            case Flags::RootSafe:
+            case Flags::SetuidSafe:
+            case Flags::NoReexportedDylibs:
+            case Flags::PositionIndependentExec:
+            case Flags::DeadStrippableDylib:
+            case Flags::HasTlvDescriptors:
+            case Flags::NoHeapExecution:
+            case Flags::AppExtensionSafe:
+            case Flags::NlistOutOfSyncDyldInfo:
+            case Flags::SimSupport:
+            case Flags::DylibInCache:
+                return true;
+        }
+
+        return false;
+
+        assert(false && "Called FlagsGetString() with unknown Flag");
+    }
+
+    [[nodiscard]]
+    constexpr auto FlagsGetString(const Flags Flag) noexcept -> std::string_view
+    {
+        switch (Flag) {
+            case Flags::NoUndefineds:
+                return "MH_UNDEF";
+            case Flags::IncrementalLink:
+                return "MH_INCRLINK";
+            case Flags::DynamicLinkerLink:
+                return "MH_DYLDLINK";
+            case Flags::BindAtLoad:
+                return "MH_BINDATLOAD";
+            case Flags::PreBound:
+                return "MH_PREBOUND";
+            case Flags::SplitSegments:
+                return "MH_SPLTTSEGS";
+            case Flags::LazyInit:
+                return "MH_LAZY_INIT";
+            case Flags::TwoLevelNamespaces:
+                return "MH_TWOLEVEL";
+            case Flags::ForceFlatNamespaces:
+                return "MH_FORCE_FLAT";
+            case Flags::NoMultipleDefinitions:
+                return "MH_NOMULTIDEF";
+            case Flags::NoFixPrebinding:
+                return "MH_NOFIXPREBINDING";
+            case Flags::Prebindable:
+                return "MH_PREBINDABLE";
+            case Flags::AllModulesBound:
+                return "MH_ALLMODSBOUND";
+            case Flags::SubsectionsViaSymbols:
+                return "MH_SUBSECTIONS_VIA_SYMBOL";
+            case Flags::Canonical:
+                return "MH_CANOICAL";
+            case Flags::WeakDefines:
+                return "MH_WEAK_DEFS";
+            case Flags::BindsToWeak:
+                return "MH_BINDS_TO_WEAK";
+            case Flags::AllowStackExecution:
+                return "MH_ALLOW_STACK_EXECUTION";
+            case Flags::RootSafe:
+                return "MH_ROOT_SAFE";
+            case Flags::SetuidSafe:
+                return "MH_SETUID_SAFE";
+            case Flags::NoReexportedDylibs:
+                return "MH_NO_REEXPORTED_DYLIBS";
+            case Flags::PositionIndependentExec:
+                return "MH_PIE";
+            case Flags::DeadStrippableDylib:
+                return "MH_DEAD_STRIPPABLE_DYLIB";
+            case Flags::HasTlvDescriptors:
+                return "MH_HAS_TLV_DESCRIPTORS";
+            case Flags::NoHeapExecution:
+                return "MH_NO_HEAP_EXECUTION";
+            case Flags::AppExtensionSafe:
+                return "MH_APP_EXTENSION_SAFE";
+            case Flags::NlistOutOfSyncDyldInfo:
+                return "MH_NLIST_OUTOFSYNC_WITH_DYLDINFO";
+            case Flags::SimSupport:
+                return "MH_SIM_SUPPORT";
+            case Flags::DylibInCache:
+                return "MH_DYLIB_IN_CACHE";
+        }
+
+        assert(false && "Called FlagsGetString() with unknown Flag");
+    }
+
     struct Header {
-        enum class FlagsEnum {
-            NoUndefineds = 1 << 0,
-            IncrementalLink = 1 << 1,
-            DynamicLinkerLink = 1 << 2,
-
-            BindAtLoad    = 1 << 3,
-            PreBound      = 1 << 4,
-            SplitSegments = 1 << 5,
-            LazyInit      = 1 << 6,
-
-            TwoLevelNamespaces  = 1 << 7,
-            ForceFlatNamespaces = 1 << 8,
-
-            NoMultipleDefinitions = 1 << 9,
-            NoFixPrebinding = 1 << 10,
-
-            Prebindable = 1 << 11,
-            AllModulesBound = 1 << 12,
-            SubsectionsViaSymbols = 1 << 13,
-
-            Canonical = 1 << 14,
-            WeakDefines = 1 << 15,
-
-            AllowStackExecution = 1 << 16,
-
-            RootSafe = 1 << 17,
-            SetuidSafe = 1 << 18,
-
-            NoReexportedDylibs = 1 << 19,
-            PositionIndependentExec = 1 << 20,
-            DeadStrippableDylib = 1 << 21,
-            HasTlvDescriptors = 1 << 22,
-            NoHeapExecution = 1 << 23,
-            AppExtensionSafe = 1 << 24,
-
-            NlistOutOfSyncDyldInfo = 1 << 25,
-
-            SimSupport = 1 << 26,
-            DylibInCache = 1 << 31,
-        };
-
         Magic Magic;
         int32_t CpuKind;
         int32_t CpuSubKind;
@@ -197,7 +304,7 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto flags() const noexcept {
-            return ADT::SwitchEndianIf(Flags, isBigEndian());
+            return ::MachO::Flags(ADT::SwitchEndianIf(Flags, isBigEndian()));
         }
     };
 }

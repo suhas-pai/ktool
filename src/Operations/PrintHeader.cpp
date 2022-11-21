@@ -79,6 +79,31 @@ namespace Operations {
                     Flags);
         }
 
+        auto FlagBits = static_cast<uint32_t>(Flags);
+        auto Counter = 1;
+        auto StartIndex = 0;
+
+        while ((FlagBits >> StartIndex) != 0) {
+            const auto BitIndex = __builtin_ctz(FlagBits >> StartIndex);
+            const auto Mask = 1 << (StartIndex + BitIndex);
+            const auto Flag = ::MachO::Flags(FlagBits & Mask);
+
+            if (MachO::FlagsIsValid(Flag)) {
+                fprintf(OutFile,
+                        "\t\t %d. %s\n",
+                        Counter,
+                        MachO::FlagsGetString(Flag).data());
+            } else {
+                fprintf(OutFile,
+                        "\t\t %d. Unknown Flag (Bit %d)\n",
+                        Counter,
+                        (StartIndex + BitIndex));
+            }
+
+            StartIndex += (BitIndex + 1);
+            Counter++;
+        }
+
         return Result.set(RunError::None);
     }
 
