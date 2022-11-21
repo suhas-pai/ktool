@@ -8,7 +8,7 @@
 #pragma once
 
 namespace Objects {
-    enum class Kind {
+    enum class Kind : uint8_t {
         None,
         MachO,
         FatMachO

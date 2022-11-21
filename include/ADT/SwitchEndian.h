@@ -75,7 +75,8 @@ namespace ADT {
     struct EndianSwitcher<uint16_t> {
         [[nodiscard]]
         constexpr static auto SwitchEndian(const uint16_t Value) noexcept {
-            return EndianSwitcherFuncs::SwitchEndian16(static_cast<int16_t>(Value));
+            const auto Casted = static_cast<int16_t>(Value);
+            return EndianSwitcherFuncs::SwitchEndian16(Casted);
         }
     };
 

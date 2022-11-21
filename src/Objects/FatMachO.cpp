@@ -34,9 +34,7 @@ namespace Objects {
     auto FatMachO::Open(const ADT::MemoryMap &Map) noexcept ->
         ADT::PointerOrError<FatMachO, OpenError>
     {
-        if (const auto Error = ValidateHeader(Map);
-            Error != OpenError::None)
-        {
+        if (const auto Error = ValidateHeader(Map); Error != OpenError::None) {
             return Error;
         }
 
@@ -46,9 +44,7 @@ namespace Objects {
     auto FatMachO::OpenAndValidateArchs(const ADT::MemoryMap &Map) noexcept ->
         ADT::PointerOrError<FatMachO, OpenError>
     {
-        if (const auto Error = ValidateHeader(Map);
-            Error != OpenError::None)
-        {
+        if (const auto Error = ValidateHeader(Map); Error != OpenError::None) {
             return Error;
         }
 
@@ -57,7 +53,8 @@ namespace Objects {
             return new FatMachO(Map);
         }
 
-        if (!Map.range().canContain<::MachO::FatArch>(Header.archCount())) {
+        const auto ArchCount = Header.archCount();
+        if (!Map.range().canContain<::MachO::FatArch>(ArchCount)) {
             if (!Map.range().canContain<::MachO::FatArch>()) {
                 return OpenError::SizeTooSmall;
             }
@@ -65,7 +62,6 @@ namespace Objects {
             return OpenError::TooManyArchitectures;
         }
 
-        const auto ArchCount = Header.archCount();
         if (Header.is64Bit()) {
             const auto ArchList =
                 Map.get<::MachO::FatArch64>(
@@ -73,13 +69,17 @@ namespace Objects {
             
             for (auto I = 0; I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
-                if (!Map.range().contains(Arch.range())) {
+                const auto ArchRange = Arch.range(Header.isBigEndian());
+
+                if (!Map.range().contains(ArchRange)) {
                     return OpenError::ArchOutOfBounds;
                 }
 
                 for (auto J = 0; J != I; J++) {
                     const auto &Inner = ArchList[J];
-                    if (Inner.range().overlaps(Arch.range())) {
+                    const auto InnerRange = Inner.range(Header.isBigEndian());
+
+                    if (InnerRange.overlaps(ArchRange)) {
                         return OpenError::OverlappingArchs;
                     }
 
@@ -93,21 +93,21 @@ namespace Objects {
         } else {
             const auto ArchList =
                 Map.get<::MachO::FatArch>(
-                    sizeof(struct ::MachO::FatHeader), Header.archCount());
+                    sizeof(struct ::MachO::FatHeader), ArchCount);
 
-            for (auto I = 0; I != Header.ArchCount; I++) {
+            for (auto I = 0; I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
-                if (!Arch.range().canRepresentIn<uint32_t>()) {
-                    return OpenError::ArchOutOfBounds;
-                }
+                const auto ArchRange = Arch.range(Header.isBigEndian());
 
-                if (!Map.range().contains(Arch.range())) {
+                if (!Map.range().contains(ArchRange)) {
                     return OpenError::ArchOutOfBounds;
                 }
 
                 for (auto J = 0; J != I; J++) {
                     const auto &Inner = ArchList[J];
-                    if (Inner.range().overlaps(Arch.range())) {
+                    const auto InnerRange = Inner.range(Header.isBigEndian());
+
+                    if (InnerRange.overlaps(ArchRange)) {
                         return OpenError::OverlappingArchs;
                     }
 
@@ -124,14 +124,12 @@ namespace Objects {
     }
 
     [[nodiscard]] auto
-    FatMachO::getMachOForCpu(const Mach::CpuKind CpuKind,
-                             const int32_t SubKind) const noexcept
-        -> ADT::PointerOrError<MachO, MachO::OpenError>
+    FatMachO::getArchObjectForCpu(const Mach::CpuKind CpuKind,
+                                  const int32_t SubKind) const noexcept
+        -> Objects::OpenResult
     {
-        const auto Header = header();
-        const auto ArchCount = Header.archCount();
-
-        if (Header.is64Bit()) {
+        const auto ArchCount = archCount();
+        if (is64Bit()) {
             const auto ArchList =
                 Map.get<::MachO::FatArch64>(
                     sizeof(struct ::MachO::FatHeader), ArchCount);
@@ -139,7 +137,10 @@ namespace Objects {
             for (auto I = 0; I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
                 if (Arch.CpuKind == CpuKind && Arch.CpuSubKind == SubKind) {
-                    return MachO::Open(ADT::MemoryMap(Map, Arch.range()));
+                    const auto ArchRange = Arch.range(isBigEndian());
+                    const auto ObjectMap = ADT::MemoryMap(Map, ArchRange);
+
+                    return Objects::OpenFrom(ObjectMap, Kind::FatMachO);
                 }
             }
         } else {
@@ -147,37 +148,41 @@ namespace Objects {
                 Map.get<::MachO::FatArch>(
                     sizeof(struct ::MachO::FatHeader), ArchCount);
 
-            for (auto I = 0; I != Header.ArchCount; I++) {
+            for (auto I = 0; I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
                 if (Arch.CpuKind == CpuKind && Arch.CpuSubKind == SubKind) {
-                    return MachO::Open(ADT::MemoryMap(Map, Arch.range()));
+                    const auto ArchRange = Arch.range(isBigEndian());
+                    const auto ObjectMap = ADT::MemoryMap(Map, ArchRange);
+
+                    return Objects::OpenFrom(ObjectMap, Kind::FatMachO);
                 }
             }
         }
 
-        return nullptr;
+        return OpenErrorNone;
     }
 
     [[nodiscard]]
-    auto FatMachO::getMachOForIndex(const uint32_t Index) const noexcept ->
-        ADT::PointerOrError<MachO, MachO::OpenError>
+    auto FatMachO::getArchObjectAtIndex(const uint32_t Index) const noexcept ->
+        Objects::OpenResult
     {
-        const auto Header = header();
-        const auto ArchCount = Header.archCount();
-
+        const auto ArchCount = archCount();
         assert(Index < ArchCount);
-        if (Header.is64Bit()) {
+
+        if (is64Bit()) {
             const auto ArchList =
                 Map.get<::MachO::FatArch64>(
                     sizeof(struct ::MachO::FatHeader), ArchCount);
 
-            return MachO::Open(ADT::MemoryMap(Map, ArchList[Index].range()));
+            const auto ArchRange = ArchList[Index].range(isBigEndian());
+            return Objects::Open(ADT::MemoryMap(Map, ArchRange));
         }
 
         const auto ArchList =
             Map.get<::MachO::FatArch>(
                 sizeof(struct ::MachO::FatHeader), ArchCount);
 
-        return MachO::Open(ADT::MemoryMap(Map, ArchList[Index].range()));
+        const auto ArchRange = ArchList[Index].range(isBigEndian());
+        return Objects::Open(ADT::MemoryMap(Map, ArchRange));
     }
 }

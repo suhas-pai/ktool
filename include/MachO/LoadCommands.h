@@ -113,7 +113,8 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto fileRange(const bool IsBigEndian) const noexcept {
-            const auto FileSize = ADT::SwitchEndianIf(this->FileSize, IsBigEndian);
+            const auto FileSize =
+                ADT::SwitchEndianIf(this->FileSize, IsBigEndian);
             const auto FileOffset =
                 ADT::SwitchEndianIf(this->FileOffset, IsBigEndian);
 
@@ -330,7 +331,8 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto fileRange(const bool IsBigEndian) const noexcept {
-            const auto FileSize = ADT::SwitchEndianIf(this->FileSize, IsBigEndian);
+            const auto FileSize =
+                ADT::SwitchEndianIf(this->FileSize, IsBigEndian);
             const auto FileOffset =
                 ADT::SwitchEndianIf(this->FileOffset, IsBigEndian);
 
@@ -431,7 +433,8 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto minorVersion(const bool IsBE) const noexcept {
-            return Dyld3::PackedVersion(ADT::SwitchEndianIf(MinorVersion, IsBE));
+            const auto Swapped = ADT::SwitchEndianIf(MinorVersion, IsBE);
+            return Dyld3::PackedVersion(Swapped);
         }
     };
 
@@ -448,12 +451,14 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto currentVersion(const bool IsBE) const noexcept {
-            return Dyld3::PackedVersion(ADT::SwitchEndianIf(CurrentVersion, IsBE));
+            const auto Swapped = ADT::SwitchEndianIf(CurrentVersion, IsBE);
+            return Dyld3::PackedVersion(Swapped);
         }
 
         [[nodiscard]]
         constexpr auto compatVersion(const bool IsBE) const noexcept {
-            return Dyld3::PackedVersion(ADT::SwitchEndianIf(CompatVersion, IsBE));
+            const auto Swapped = ADT::SwitchEndianIf(CompatVersion, IsBE);
+            return Dyld3::PackedVersion(Swapped);
         }
     };
 
@@ -502,10 +507,10 @@ namespace MachO {
 
         [[nodiscard]] constexpr auto
         GetBitset(const LoadCommand *const Cmd,
-                  const bool IsBigEndian) const noexcept
+                  const bool IsBE) const noexcept
         {
-            const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBigEndian);
-            const auto CmdSize = ADT::SwitchEndianIf(Cmd->CmdSize, IsBigEndian);
+            const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBE);
+            const auto CmdSize = ADT::SwitchEndianIf(Cmd->CmdSize, IsBE);
 
             if (Offset >= CmdSize) {
                 return std::optional<std::bitset<64>>();
@@ -572,9 +577,9 @@ namespace MachO {
         uint32_t StrSize;
 
         [[nodiscard]]
-        constexpr auto strRange(const bool IsBigEndian) const noexcept {
-            const auto StrOffset = ADT::SwitchEndianIf(this->StrOffset, IsBigEndian);
-            const auto StrSize = ADT::SwitchEndianIf(this->StrSize, IsBigEndian);
+        constexpr auto strRange(const bool IsBE) const noexcept {
+            const auto StrOffset = ADT::SwitchEndianIf(this->StrOffset, IsBE);
+            const auto StrSize = ADT::SwitchEndianIf(this->StrSize, IsBE);
 
             return ADT::Range::FromSize(StrOffset, StrSize);
         }
@@ -752,9 +757,9 @@ namespace MachO {
         uint32_t DataSize;
 
         [[nodiscard]]
-        constexpr auto dataRange(const bool IsBigEndian) const noexcept {
-            const auto DataOff = ADT::SwitchEndianIf(this->DataOff, IsBigEndian);
-            const auto DataSize = ADT::SwitchEndianIf(this->DataSize, IsBigEndian);
+        constexpr auto dataRange(const bool IsBE) const noexcept {
+            const auto DataOff = ADT::SwitchEndianIf(this->DataOff, IsBE);
+            const auto DataSize = ADT::SwitchEndianIf(this->DataSize, IsBE);
 
             return ADT::Range::FromSize(DataOff, DataSize);
         }
@@ -786,8 +791,8 @@ namespace MachO {
         uint32_t Sdk;
 
         [[nodiscard]]
-        constexpr auto version(const bool IsBigEndian) const noexcept {
-            return Dyld3::PackedVersion(ADT::SwitchEndianIf(Version, IsBigEndian));
+        constexpr auto version(const bool IsBE) const noexcept {
+            return Dyld3::PackedVersion(ADT::SwitchEndianIf(Version, IsBE));
         }
 
         [[nodiscard]]
@@ -831,8 +836,8 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto version(const bool IsBigEndian) const noexcept {
-            return Dyld3::PackedVersion(ADT::SwitchEndianIf(Version, IsBigEndian));
+        constexpr auto version(const bool IsBE) const noexcept {
+            return Dyld3::PackedVersion(ADT::SwitchEndianIf(Version, IsBE));
         }
     };
 
@@ -855,7 +860,8 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto bindRange(const bool IsBigEndian) const noexcept {
-            const auto BindSize = ADT::SwitchEndianIf(this->BindSize, IsBigEndian);
+            const auto BindSize =
+                ADT::SwitchEndianIf(this->BindSize, IsBigEndian);
             const auto BindOffset =
                 ADT::SwitchEndianIf(this->BindOffset, IsBigEndian);
 
@@ -933,8 +939,8 @@ namespace MachO {
         uint64_t Version;
 
         [[nodiscard]]
-        constexpr auto version(const bool IsBigEndian) const noexcept {
-            return Dyld3::PackedVersion64(ADT::SwitchEndianIf(Version, IsBigEndian));
+        constexpr auto version(const bool IsBE) const noexcept {
+            return Dyld3::PackedVersion64(ADT::SwitchEndianIf(Version, IsBE));
         }
     };
 

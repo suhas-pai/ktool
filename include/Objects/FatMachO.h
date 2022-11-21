@@ -40,13 +40,13 @@ namespace Objects {
             ADT::PointerOrError<FatMachO, OpenError>;
 
         [[nodiscard]] auto
-        getMachOForCpu(Mach::CpuKind CpuKind,
-                       int32_t SubKind) const noexcept
-            -> ADT::PointerOrError<MachO, MachO::OpenError>;
+        getArchObjectForCpu(Mach::CpuKind CpuKind,
+                            int32_t SubKind) const noexcept
+            -> Objects::OpenResult;
 
         [[nodiscard]]
-        auto getMachOForIndex(const uint32_t Index) const noexcept
-            -> ADT::PointerOrError<MachO, MachO::OpenError>;
+        auto getArchObjectAtIndex(const uint32_t Index) const noexcept
+            -> Objects::OpenResult;
 
         [[nodiscard]] constexpr auto getMemoryMap() const noexcept {
             return Map;
@@ -61,7 +61,11 @@ namespace Objects {
         }
 
         [[nodiscard]] constexpr auto is64Bit() const noexcept {
-            return header().isBigEndian();
+            return header().is64Bit();
+        }
+
+        [[nodiscard]] constexpr auto archCount() const noexcept {
+            return header().archCount();
         }
     };
 }

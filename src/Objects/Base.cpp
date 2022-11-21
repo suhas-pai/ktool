@@ -12,7 +12,7 @@
 namespace Objects {
     Base::~Base() noexcept {}
 
-    auto Open(const ADT::MemoryMap &Map) noexcept -> Base * {
+    auto Open(const ADT::MemoryMap &Map) noexcept -> OpenResult {
         const auto Kind = Kind::None;
         switch (Kind) {
             case Kind::None:
@@ -25,8 +25,8 @@ namespace Objects {
                     return Object.getPtr();
                 }
 
-                if (Object.getError() != ErrorKind::WrongFormat) {
-                    return nullptr;
+                if (Error != ErrorKind::WrongFormat) {
+                    return OpenError(Kind::MachO, static_cast<uint32_t>(Error));
                 }
             }
             case Kind::FatMachO: {
@@ -38,12 +38,62 @@ namespace Objects {
                     return Object.getPtr();
                 }
 
-                if (Object.getError() != ErrorKind::WrongFormat) {
-                    return nullptr;
+                if (Error!= ErrorKind::WrongFormat) {
+                    const auto Result =
+                        OpenError(Kind::FatMachO, static_cast<uint32_t>(Error));
+
+                    return Result;
                 }
             }
         }
 
-        return nullptr;
+        return OpenErrorUnrecognized;
+    }
+
+    auto
+    OpenFrom(const ADT::MemoryMap &Map,
+             const Kind FromKind) noexcept
+        -> OpenResult
+    {
+        const auto Kind = Kind::None;
+        switch (Kind) {
+            case Kind::None:
+            case Kind::MachO: {
+                const auto Object = Objects::MachO::Open(Map);
+                using ErrorKind = Objects::MachO::OpenError;
+
+                const auto Error = Object.getError();
+                if (Error == ErrorKind::None) {
+                    return Object.getPtr();
+                }
+
+                if (Error != ErrorKind::WrongFormat) {
+                    return OpenError(Kind::MachO, static_cast<uint32_t>(Error));
+                }
+            }
+            case Kind::FatMachO: {
+                // Fat Mach-O Files can't have Fat Mach-O Architectures
+                if (FromKind == Kind::FatMachO) {
+                    break;
+                }
+
+                const auto Object = Objects::FatMachO::Open(Map);
+                using ErrorKind = Objects::FatMachO::OpenError;
+
+                const auto Error = Object.getError();
+                if (Error == ErrorKind::None) {
+                    return Object.getPtr();
+                }
+
+                if (Error != ErrorKind::WrongFormat) {
+                    const auto Result =
+                        OpenError(Kind::FatMachO, static_cast<uint32_t>(Error));
+
+                    return Result;
+                }
+            }
+        }
+
+        return OpenErrorUnrecognized;
     }
 }

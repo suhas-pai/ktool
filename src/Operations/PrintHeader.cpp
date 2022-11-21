@@ -11,9 +11,11 @@ namespace Operations {
     PrintHeader::PrintHeader(FILE *OutFile, const struct Options &Options)
     : OutFile(OutFile), Opt(Options) {}
     
-    void PrintHeader::run(const Objects::MachO &MachO) const noexcept {
-        const auto Header = MachO.header();
+    auto
+    PrintHeader::run(const Objects::MachO &MachO) const noexcept -> RunResult {
+        auto Result = RunResult(Objects::Kind::MachO);
 
+        const auto Header = MachO.header();
         const auto CpuKind = Header.cpuKind();
         const auto CpuSubKind = Header.cpuSubKind();
         const auto FileKind = Header.fileKind();
@@ -47,31 +49,40 @@ namespace Operations {
                 Ncmds,
                 SizeOfCmds,
                 Flags);
+
+        return Result.set(RunError::None);
     }
 
-    void PrintHeader::run(const Objects::FatMachO &MachO) const noexcept {
-        const auto Header = MachO.header();
+    auto
+    PrintHeader::run(const Objects::FatMachO &Fat) const noexcept -> RunResult {
+        auto Result = RunResult(Objects::Kind::FatMachO);
+        if (Opt.ArchIndex != -1) {
+            const auto ArchIndex = static_cast<int32_t>(Opt.ArchIndex);
+            return runOnArchOfFatMachO<RunError>(Result, Fat, ArchIndex);
+        }
+
+        const auto Header = Fat.header();
         fprintf(OutFile,
                 "Apple %s Fat Mach-O File\n"
                 "\tMagic:      %s\n"
                 "\tArch Count: %d\n",
-                MachO.is64Bit() ? "64-Bit" : "32-Bit",
+                Fat.is64Bit() ? "64-Bit" : "32-Bit",
                 MachO::MagicGetString(Header.Magic).data(),
                 Header.archCount());
+
+        return Result.set(RunError::None);
     }
 
-    bool PrintHeader::run(const Objects::Base &Base) const noexcept {
+    RunResult PrintHeader::run(const Objects::Base &Base) const noexcept {
         switch (Base.kind()) {
             case Objects::Kind::None:
                 assert(false && "run() got Object with Kind::None");
             case Objects::Kind::MachO:
-                run(static_cast<const Objects::MachO &>(Base));
-                return true;
+                return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
-                run(static_cast<const Objects::FatMachO &>(Base));
-                return true;
+                return run(static_cast<const Objects::FatMachO &>(Base));
         }
 
-        return false;
+        return RunResultUnsupported;
     }
 }

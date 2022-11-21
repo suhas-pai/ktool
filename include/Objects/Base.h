@@ -8,6 +8,8 @@
 #pragma once
 
 #include "ADT/MemoryMap.h"
+#include "ADT/PointerOrError.h"
+
 #include "Kind.h"
 
 namespace Objects {
@@ -27,5 +29,31 @@ namespace Objects {
         }
     };
 
-    auto Open(const ADT::MemoryMap &Map) noexcept -> Base *;
+    struct OpenError {
+        Kind Kind : 8 = Kind::None;
+        uint32_t Error = 0;
+
+        constexpr OpenError() noexcept = default;
+        constexpr OpenError(const enum Kind Kind, const uint32_t Error) noexcept
+        : Kind(Kind), Error(Error) {}
+
+        [[nodiscard]] constexpr auto isNone() const noexcept {
+            return Error == 0;
+        }
+
+        [[nodiscard]] constexpr auto isUnrecognizedFormat() const noexcept {
+            return Kind == Kind::None && Error == 1;
+        }
+    } __attribute__((packed));
+
+    constexpr static auto OpenErrorNone = OpenError();
+    constexpr static auto OpenErrorUnrecognized = OpenError(Kind::None, 1);
+
+    using OpenResult = typename ADT::PointerOrError<Base, OpenError>;
+
+    auto Open(const ADT::MemoryMap &Map) noexcept -> OpenResult;
+
+    auto
+    OpenFrom(const ADT::MemoryMap &Map, const Kind FromKind) noexcept
+        -> OpenResult;
 }

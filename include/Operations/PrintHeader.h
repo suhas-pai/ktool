@@ -17,6 +17,7 @@ namespace Operations {
     public:
         struct Options {
             bool Verbose : 1;
+            int64_t ArchIndex = -1;
         };
     protected:
         FILE *OutFile;
@@ -25,9 +26,18 @@ namespace Operations {
         static constexpr auto Kind = Operations::Kind::PrintHeader;
         explicit PrintHeader(FILE *OutFile, const struct Options &Options);
 
-        virtual bool run(const Objects::Base &Base) const noexcept override;
+        enum class RunError : uint32_t {
+            None,
+            InvalidArchIndex,
+            ArchObjectOpenError
+        };
 
-        void run(const Objects::MachO &MachO) const noexcept;
-        void run(const Objects::FatMachO &MachO) const noexcept;
+        virtual
+        RunResult run(const Objects::Base &Base) const noexcept override;
+
+        RunResult run(const Objects::MachO &MachO) const noexcept;
+        RunResult run(const Objects::FatMachO &MachO) const noexcept;
+
+        [[nodiscard]] constexpr auto options() const noexcept { return Opt; }
     };
 }

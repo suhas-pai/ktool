@@ -17,15 +17,15 @@ namespace Mach {
             Executable = 1 << 2
         };
 
-        [[nodiscard]] constexpr auto isReadable() const noexcept -> bool {
+        [[nodiscard]] constexpr auto readable() const noexcept -> bool {
             return (Flags & static_cast<uint32_t>(Masks::Readable));
         }
 
-        [[nodiscard]] constexpr auto isWritable() const noexcept -> bool {
+        [[nodiscard]] constexpr auto writable() const noexcept -> bool {
             return (Flags & static_cast<uint32_t>(Masks::Writable));
         }
 
-        [[nodiscard]] constexpr auto isExecutable() const noexcept -> bool {
+        [[nodiscard]] constexpr auto executable() const noexcept -> bool {
             return (Flags & static_cast<uint32_t>(Masks::Executable));
         }
 

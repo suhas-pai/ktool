@@ -38,7 +38,11 @@ namespace MachO {
         uint32_t Size;
         uint32_t Align;
 
-        [[nodiscard]] constexpr auto range() const noexcept {
+        [[nodiscard]]
+        constexpr auto range(const bool IsBigEndian) const noexcept {
+            const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBigEndian);
+            const auto Size = ADT::SwitchEndianIf(this->Size, IsBigEndian);
+
             return ADT::Range::FromSize(Offset, Size);
         }
     };
@@ -50,7 +54,11 @@ namespace MachO {
         uint64_t Size;
         uint32_t Align;
 
-        [[nodiscard]] constexpr auto range() const noexcept {
+        [[nodiscard]]
+        constexpr auto range(const bool IsBigEndian) const noexcept {
+            const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBigEndian);
+            const auto Size = ADT::SwitchEndianIf(this->Size, IsBigEndian);
+
             return ADT::Range::FromSize(Offset, Size);
         }
     };

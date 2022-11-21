@@ -31,6 +31,7 @@
 		F308429A2921CCAC00D989D8 /* FileMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FileMap.h; path = ../include/ADT/FileMap.h; sourceTree = "<group>"; };
 		F308429C2921CD1500D989D8 /* FileMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = FileMap.cpp; path = ../src/ADT/FileMap.cpp; sourceTree = "<group>"; };
 		F30BB524292A267000AF300B /* SwitchEndian.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SwitchEndian.h; path = ../include/ADT/SwitchEndian.h; sourceTree = "<group>"; };
+		F30BB525292ADE8F00AF300B /* Misc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Misc.h; path = ../include/ADT/Misc.h; sourceTree = "<group>"; };
 		F32062A129248580002B99D9 /* Kind.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Kind.h; path = ../include/Operations/Kind.h; sourceTree = "<group>"; };
 		F32062A529248857002B99D9 /* PrintHeader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintHeader.cpp; path = ../src/Operations/PrintHeader.cpp; sourceTree = "<group>"; };
 		F32062A82924887A002B99D9 /* PrintHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintHeader.h; path = ../include/Operations/PrintHeader.h; sourceTree = "<group>"; };
@@ -179,6 +180,7 @@
 				F308429A2921CCAC00D989D8 /* FileMap.h */,
 				F3AD81F828ECBD74005DE822 /* Range.h */,
 				F39FAE8A2929C1B50057DC6F /* MemoryMap.h */,
+				F30BB525292ADE8F00AF300B /* Misc.h */,
 				F39FAE8E2929C5970057DC6F /* PointerOrError.h */,
 				F30BB524292A267000AF300B /* SwitchEndian.h */,
 			);
