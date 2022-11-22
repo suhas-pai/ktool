@@ -1,17 +1,17 @@
 //
-//  Operations/PrintLoadCommands.h
+//  Operations/PrintArchs.h
 //  ktool
 //
-//  Created by suhaspai on 11/21/22.
+//  Created by suhaspai on 11/22/22.
 //
 
 #pragma once
 
-#include "Objects/MachO.h"
+#include "Objects/FatMachO.h"
 #include "Base.h"
 
 namespace Operations {
-    struct PrintLoadCommands : public Base {
+    struct PrintArchs : public Base {
     public:
         struct Options {
             bool Verbose : 1 = false;
@@ -20,11 +20,8 @@ namespace Operations {
         FILE *OutFile;
         Options Opt;
     public:
-        static constexpr auto Kind = Operations::Kind::PrintLoadCommands;
-        
-        explicit
-        PrintLoadCommands(FILE *OutFile,
-                          const struct Options &Options) noexcept;
+        static constexpr auto Kind = Operations::Kind::PrintArchs;
+        explicit PrintArchs(FILE *OutFile, const struct Options &Options);
 
         enum class RunError : uint32_t {
             None,
@@ -35,8 +32,9 @@ namespace Operations {
 
         virtual
         RunResult run(const Objects::Base &Base) const noexcept override;
-        auto run(const Objects::MachO &MachO) const noexcept -> RunResult;
+        RunResult run(const Objects::FatMachO &MachO) const noexcept;
 
         [[nodiscard]] constexpr auto &options() const noexcept { return Opt; }
     };
 }
+

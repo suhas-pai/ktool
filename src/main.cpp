@@ -18,6 +18,7 @@
 #include "Operations/PrintId.h"
 #include "Operations/PrintLoadCommands.h"
 #include "Operations/PrintLibraries.h"
+#include "Operations/PrintArchs.h"
 
 struct OperationInfo {
     std::string Path;
@@ -240,6 +241,26 @@ auto main(const int argc, const char *const argv[]) -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintLibraries>(
                 new Operations::PrintLibraries(stdout, Options));
+    } else if (OperationString == "--archs") {
+        const auto ArgOptions =
+            ::ArgOptions(ArgFlags::Option | ArgFlags::NotNeeded);
+
+        auto Options = Operations::PrintArchs::Options();
+        while (true) {
+            const auto NextArg =
+                GetNextArg("", OperationString.data(), ArgOptions);
+
+            if (NextArg == "-v" || NextArg == "--verbose") {
+                Options.Verbose = true;
+            } else {
+                break;
+            }
+        }
+
+        Operation.Kind = Operations::Kind::PrintArchs;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintArchs>(
+                new Operations::PrintArchs(stdout, Options));
     } else {
         fprintf(stderr, "Unrecognized option: %s\n", OperationString.data());
         return 1;
@@ -302,15 +323,21 @@ auto main(const int argc, const char *const argv[]) -> int {
                     return 1;
             }
         }
+        case Operations::Kind::PrintLoadCommands: {
+            switch (Operations::PrintLoadCommands::RunError(Result.Error)) {
+                case Operations::PrintLoadCommands::RunError::None:
+                    break;
+            }
+        }
         case Operations::Kind::PrintLibraries: {
             switch (Operations::PrintLibraries::RunError(Result.Error)) {
                 case Operations::PrintLibraries::RunError::None:
                     break;
             }
         }
-        case Operations::Kind::PrintLoadCommands: {
-            switch (Operations::PrintLoadCommands::RunError(Result.Error)) {
-                case Operations::PrintLoadCommands::RunError::None:
+        case Operations::Kind::PrintArchs: {
+            switch (Operations::PrintArchs::RunError(Result.Error)) {
+                case Operations::PrintArchs::RunError::None:
                     break;
             }
         }

@@ -10,6 +10,7 @@ namespace Operations {
         PrintHeader,
         PrintId,
         PrintLoadCommands,
-        PrintLibraries
+        PrintLibraries,
+        PrintArchs
     };
 }

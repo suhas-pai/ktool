@@ -48,12 +48,12 @@ namespace Objects {
         auto getArchObjectAtIndex(const uint32_t Index) const noexcept
             -> Objects::OpenResult;
 
-        [[nodiscard]] constexpr auto getMemoryMap() const noexcept {
+        [[nodiscard]] constexpr auto map() const noexcept {
             return Map;
         }
 
         [[nodiscard]] constexpr auto header() const noexcept {
-            return *getMemoryMap().base<::MachO::FatHeader, false>();
+            return *map().base<::MachO::FatHeader, false>();
         }
 
         [[nodiscard]] constexpr auto isBigEndian() const noexcept {
@@ -66,6 +66,16 @@ namespace Objects {
 
         [[nodiscard]] constexpr auto archCount() const noexcept {
             return header().archCount();
+        }
+
+        [[nodiscard]] constexpr auto archs() const noexcept {
+            assert(!is64Bit());
+            return map().get<::MachO::FatArch>(sizeof(header()), archCount());
+        }
+
+        [[nodiscard]] constexpr auto archs64() const noexcept {
+            assert(is64Bit());
+            return map().get<::MachO::FatArch64>(sizeof(header()), archCount());
         }
     };
 }
