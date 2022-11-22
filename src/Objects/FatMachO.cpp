@@ -66,7 +66,10 @@ namespace Objects {
             const auto ArchList =
                 Map.get<::MachO::FatArch64>(
                     sizeof(struct ::MachO::FatHeader), ArchCount);
-            
+
+            // Don't Swap CpuKind and CpuSubKind, because we're only comparing
+            // them against values in the same endian.
+
             for (auto I = 0; I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
                 const auto ArchRange = Arch.range(Header.isBigEndian());
@@ -94,6 +97,9 @@ namespace Objects {
             const auto ArchList =
                 Map.get<::MachO::FatArch>(
                     sizeof(struct ::MachO::FatHeader), ArchCount);
+
+            // Don't Swap CpuKind and CpuSubKind, because we're only comparing
+            // them against values in the same endian.
 
             for (auto I = 0; I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
@@ -129,6 +135,8 @@ namespace Objects {
         -> Objects::OpenResult
     {
         const auto ArchCount = archCount();
+        const auto IsBigEndian = this->isBigEndian();
+
         if (is64Bit()) {
             const auto ArchList =
                 Map.get<::MachO::FatArch64>(
@@ -136,7 +144,9 @@ namespace Objects {
 
             for (auto I = 0; I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
-                if (Arch.CpuKind == CpuKind && Arch.CpuSubKind == SubKind) {
+                if (Arch.cpuKind(IsBigEndian) == CpuKind &&
+                    Arch.cpuSubKind(IsBigEndian) == SubKind)
+                {
                     const auto ArchRange = Arch.range(isBigEndian());
                     const auto ObjectMap = ADT::MemoryMap(Map, ArchRange);
 
@@ -150,7 +160,9 @@ namespace Objects {
 
             for (auto I = 0; I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
-                if (Arch.CpuKind == CpuKind && Arch.CpuSubKind == SubKind) {
+                if (Arch.cpuKind(IsBigEndian) == CpuKind &&
+                    Arch.cpuSubKind(IsBigEndian) == SubKind)
+                {
                     const auto ArchRange = Arch.range(isBigEndian());
                     const auto ObjectMap = ADT::MemoryMap(Map, ArchRange);
 

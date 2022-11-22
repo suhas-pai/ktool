@@ -1,5 +1,5 @@
 //
-//  Misc.h
+//  ADT/Misc.h
 //  ktool
 //
 //  Created by suhaspai on 11/20/22.
@@ -11,8 +11,10 @@
 #include <concepts>
 #include <optional>
 
+#include <array>
 #include <string>
 #include <string_view>
+#include <time.h>
 
 namespace ADT {
     template <std::integral T>
@@ -39,7 +41,8 @@ namespace ADT {
         return Result;
     }
 
-    [[nodiscard]] std::string getFullPath(std::string_view Path) noexcept {
+    [[nodiscard]]
+    inline std::string getFullPath(const std::string_view Path) noexcept {
         if (Path.front() == '/') {
             return std::string(Path);
         }
@@ -69,4 +72,7 @@ namespace ADT {
         String.append(Path);
         return String;
     }
+
+    [[nodiscard]]
+    std::string GetHumanReadableTimestamp(const time_t Timestamp) noexcept;
 }

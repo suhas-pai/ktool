@@ -28,7 +28,7 @@ namespace Operations {
         const auto ObjectOrError = Objects::Open(FileMap.map());
         if (ObjectOrError.hasError()) {
             fprintf(stderr,
-                    "File (at path %s) is not recognized\n",
+                    "File (at path %s) is of an unrecognized format\n",
                     Options.Path.data());
             exit(1);
         }
@@ -60,8 +60,7 @@ namespace Operations {
                         if (Options.ArchIndex != -1) {
                             fputs("Operation doesn't support Mach-O Files, but "
                                   "does support Fat Mach-O Files.\nDrop "
-                                  "--arch-index option to run on Fat Mach-O "
-                                  "Option\n",
+                                  "--arch-index option to run on Fat Mach-O\n",
                                   stderr);
                             exit(1);
                         }
@@ -73,9 +72,9 @@ namespace Operations {
                 }
 
                 if (Options.ArchIndex == -1) {
-                    fputs("Operation doesn't support Fat Mach-O Files. "
-                          "Please select an arch by its index using "
-                          "option --arch-index\n",
+                    fputs("Operation doesn't support Fat Mach-O Files. Please "
+                          "select an arch by its index using option "
+                          "--arch-index\n",
                           stderr);
                     exit(1);
                 }

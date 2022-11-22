@@ -5,7 +5,9 @@
 //  Created by suhaspai on 11/21/22.
 //
 
+#include "ADT/Misc.h"
 #include "ADT/PrintUtils.h"
+
 #include "MachO/LoadCommandsMap.h"
 #include "Operations/PrintLoadCommands.h"
 
@@ -158,26 +160,29 @@ namespace Operations {
             case MachO::LoadCommandKind::LazyLoadDylib:
             case MachO::LoadCommandKind::LoadUpwardDylib:
             case MachO::LoadCommandKind::LoadWeakDylib: {
-                const auto &DylibCommand =
+                const auto &DylibCmd =
                     MachO::cast<MachO::DylibCommand>(LC, IsBigEndian);
 
-                const auto NameOpt = DylibCommand.name(IsBigEndian);
-                const auto &Dylib = DylibCommand.Dylib;
-                const auto CurrentVersion = Dylib.currentVersion(IsBigEndian);
-                const auto CompatVersion = Dylib.compatVersion(IsBigEndian);
+                const auto NameOpt = DylibCmd.name(IsBigEndian);
+                const auto CurrentVersion =
+                    DylibCmd.currentVersion(IsBigEndian);
+
+                const auto CompatVersion = DylibCmd.compatVersion(IsBigEndian);
+                const auto Timestamp = DylibCmd.timestamp(IsBigEndian);
+                const auto TimestampString =
+                    ADT::GetHumanReadableTimestamp(Timestamp);
 
                 fprintf(OutFile,
                         "%sName:            \"" STRING_VIEW_FMT "\"\n"
-                        "%sTimestamp:       %" PRIu32 "\n"
                         "%sCurrent Version: " DYLD3_PACKED_VERSION_FMT "\n"
-                        "%sCompat Version:  " DYLD3_PACKED_VERSION_FMT "\n",
+                        "%sCompat Version:  " DYLD3_PACKED_VERSION_FMT "\n"
+                        "%sTimestamp:       %s (Value: %" PRIu32 ")\n",
                         Prefix,
                         STRING_VIEW_FMT_ARGS(
-                            NameOpt.has_value() ?
-                                NameOpt.value() : Malformed),
-                        Prefix, Dylib.timeStamp(IsBigEndian),
+                            NameOpt.has_value() ? NameOpt.value() : Malformed),
                         Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(CurrentVersion),
-                        Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(CompatVersion));
+                        Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(CompatVersion),
+                        Prefix, TimestampString.c_str(), Timestamp);
 
                 break;
             }
@@ -469,8 +474,8 @@ namespace Operations {
                     MachO::cast<MachO::UuidCommand>(LC, IsBigEndian);
 
                 fprintf(OutFile,
-                        "%s%.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2x"
-                        "%.2x%.2x%.2X%.2X",
+                        "%sUuid: %.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-"
+                        "%.2X%.2x%.2x%.2x%.2X%.2X\n",
                         Prefix,
                         UuidCmd.Uuid[0],
                         UuidCmd.Uuid[1],

@@ -5,7 +5,7 @@
 //  Created by suhaspai on 11/22/22.
 //
 
-#include "ADT/Maximizer.h"
+#include "ADT/Misc.h"
 #include "ADT/PrintUtils.h"
 
 #include "MachO/LoadCommandsMap.h"
@@ -114,13 +114,15 @@ namespace Operations {
         auto LoadCommandIndex = uint32_t();
 
         for (const auto &LoadCommand : LoadCommandsMap) {
+            using namespace MachO;
+            using Kind = LoadCommandKind;
+
             if (const auto DylibCmd =
-                    MachO::dyn_cast<MachO::LoadCommandKind::LoadDylib,
-                                    MachO::LoadCommandKind::LoadWeakDylib,
-                                    MachO::LoadCommandKind::ReexportDylib,
-                                    MachO::LoadCommandKind::LazyLoadDylib,
-                                    MachO::LoadCommandKind::LoadUpwardDylib>(
-                        &LoadCommand, IsBigEndian))
+                    dyn_cast<Kind::LoadDylib,
+                             Kind::LoadWeakDylib,
+                             Kind::ReexportDylib,
+                             Kind::LazyLoadDylib,
+                             Kind::LoadUpwardDylib>(&LoadCommand, IsBigEndian))
             {
                 const auto NameOpt = DylibCmd->name(IsBigEndian);
                 const auto Info = DylibInfo {
@@ -128,7 +130,7 @@ namespace Operations {
                     .Kind = DylibCmd->kind(IsBigEndian),
                     .CurrentVersion = DylibCmd->currentVersion(IsBigEndian),
                     .CompatVersion = DylibCmd->compatVersion(IsBigEndian),
-                    .Timestamp = DylibCmd->timeStamp(IsBigEndian),
+                    .Timestamp = DylibCmd->timestamp(IsBigEndian),
                     .Index = LoadCommandIndex
                 };
 
@@ -164,18 +166,24 @@ namespace Operations {
 
         auto Counter = static_cast<uint32_t>(1);
         for (const auto &DylibInfo : DylibList) {
+            const auto TimestampString =
+                ADT::GetHumanReadableTimestamp(DylibInfo.Timestamp);
+
             fprintf(OutFile,
                     "Library %" PRIu32 ": (LC %" PRIu32 ")\n"
                     "\tKind:            %s\n"
                     "\tPath:            \"%s\"\t\n"
                     "\tCurrent Version: " DYLD3_PACKED_VERSION_FMT "\n"
-                    "\tCompat Version:  " DYLD3_PACKED_VERSION_FMT "\n",
+                    "\tCompat Version:  " DYLD3_PACKED_VERSION_FMT "\n"
+                    "\tTimestamp:       %s (Value: %" PRIu32 ")\n",
                     Counter,
                     DylibInfo.Index,
                     MachO::LoadCommandKindGetString(DylibInfo.Kind).data(),
                     DylibInfo.Name.data(),
                     DYLD3_PACKED_VERSION_FMT_ARGS(DylibInfo.CurrentVersion),
-                    DYLD3_PACKED_VERSION_FMT_ARGS(DylibInfo.CompatVersion));
+                    DYLD3_PACKED_VERSION_FMT_ARGS(DylibInfo.CompatVersion),
+                    TimestampString.c_str(),
+                    DylibInfo.Timestamp);
 
             fputc('\n', OutFile);
             Counter++;

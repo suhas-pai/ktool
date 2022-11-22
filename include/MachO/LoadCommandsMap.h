@@ -24,13 +24,11 @@ namespace MachO {
         auto operator++(int) noexcept -> LoadCommandsIterator;
         auto operator+=(int) noexcept -> decltype(*this);
 
-        [[nodiscard]]
-        constexpr auto operator*() const noexcept -> MachO::LoadCommand & {
+        [[nodiscard]] constexpr auto &operator*() const noexcept {
             return *Ptr;
         }
 
-        [[nodiscard]]
-        constexpr auto operator->() const noexcept -> MachO::LoadCommand * {
+        [[nodiscard]] constexpr auto operator->() const noexcept {
             return Ptr;
         }
 

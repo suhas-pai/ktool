@@ -857,7 +857,7 @@ namespace MachO {
         uint32_t CompatVersion;
 
         [[nodiscard]]
-        constexpr auto timeStamp(const bool IsBigEndian) const noexcept {
+        constexpr auto timestamp(const bool IsBigEndian) const noexcept {
             return ADT::SwitchEndianIf(Timestamp, IsBigEndian);
         }
 
@@ -907,8 +907,8 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto timeStamp(const bool IsBigEndian) const noexcept {
-            return Dylib.timeStamp(IsBigEndian);
+        constexpr auto timestamp(const bool IsBigEndian) const noexcept {
+            return Dylib.timestamp(IsBigEndian);
         }
 
         [[nodiscard]]

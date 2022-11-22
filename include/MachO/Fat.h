@@ -39,6 +39,31 @@ namespace MachO {
         uint32_t Align;
 
         [[nodiscard]]
+        constexpr auto cpuKind(const bool IsBigEndian) const noexcept {
+            return Mach::CpuKind(ADT::SwitchEndianIf(CpuKind, IsBigEndian));
+        }
+
+        [[nodiscard]]
+        constexpr auto cpuSubKind(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(CpuSubKind, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        constexpr auto offset(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(Offset, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        constexpr auto size(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(Size, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        constexpr auto align(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(Align, IsBigEndian);
+        }
+
+        [[nodiscard]]
         constexpr auto range(const bool IsBigEndian) const noexcept {
             const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBigEndian);
             const auto Size = ADT::SwitchEndianIf(this->Size, IsBigEndian);
@@ -48,11 +73,36 @@ namespace MachO {
     };
 
     struct FatArch64 {
-        Mach::CpuKind CpuKind;
+        int32_t CpuKind;
         int32_t CpuSubKind;
         uint64_t Offset;
         uint64_t Size;
         uint32_t Align;
+
+        [[nodiscard]]
+        constexpr auto cpuKind(const bool IsBigEndian) const noexcept {
+            return Mach::CpuKind(ADT::SwitchEndianIf(CpuKind, IsBigEndian));
+        }
+
+        [[nodiscard]]
+        constexpr auto cpuSubKind(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(CpuSubKind, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        constexpr auto offset(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(Offset, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        constexpr auto size(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(Size, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        constexpr auto align(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(Align, IsBigEndian);
+        }
 
         [[nodiscard]]
         constexpr auto range(const bool IsBigEndian) const noexcept {

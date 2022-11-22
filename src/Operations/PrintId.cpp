@@ -42,11 +42,11 @@ namespace Operations {
         const auto LoadCommandsMap =
             ::MachO::LoadCommandsMap(LoadCommandsMemoryMap, IsBigEndian);
 
-        for (const auto &LoadCommand : LoadCommandsMap) {
-            if (const auto ID =
-                    MachO::dyn_cast<MachO::LoadCommandKind::IdDylib>(
-                        &LoadCommand, IsBigEndian))
-            {
+        for (const auto &LC : LoadCommandsMap) {
+            using namespace MachO;
+            using Kind = LoadCommandKind;
+
+            if (const auto ID = dyn_cast<Kind::IdDylib>(&LC, IsBigEndian)) {
                 const auto NameOpt = ID->name(IsBigEndian);
                 if (!NameOpt) {
                     return Result.set(RunError::BadIdString);
