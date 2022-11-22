@@ -16,6 +16,8 @@
 		F36BCD5C292C198C00C911E8 /* PrintId.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36BCD5B292C198C00C911E8 /* PrintId.cpp */; };
 		F39FAE8D2929C5450057DC6F /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39FAE8C2929C5450057DC6F /* Base.cpp */; };
 		F39FAE902929C8370057DC6F /* MachO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39FAE8F2929C8370057DC6F /* MachO.cpp */; };
+		F3B0E4DF292CB0D5009D3D61 /* PrintLibraries.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B0E4DE292CB0D5009D3D61 /* PrintLibraries.cpp */; };
+		F3B0E4E2292CBE4E009D3D61 /* PrintUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B0E4E1292CBE4E009D3D61 /* PrintUtils.cpp */; };
 		F3B6EB36292C606100098762 /* PrintLoadCommands.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B6EB35292C606100098762 /* PrintLoadCommands.cpp */; };
 /* End PBXBuildFile section */
 
@@ -67,6 +69,10 @@
 		F3AD820028ECC6D9005DE822 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../Makefile; sourceTree = "<group>"; };
 		F3B00A8C28F7E13400F9E004 /* PackedVersion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PackedVersion.h; path = ../include/Dyld3/PackedVersion.h; sourceTree = "<group>"; };
 		F3B00A8D28F7ED9B00F9E004 /* Platform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Platform.h; path = ../include/Dyld3/Platform.h; sourceTree = "<group>"; };
+		F3B0E4DD292CB0CD009D3D61 /* PrintLibraries.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintLibraries.h; path = ../include/Operations/PrintLibraries.h; sourceTree = "<group>"; };
+		F3B0E4DE292CB0D5009D3D61 /* PrintLibraries.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintLibraries.cpp; path = ../src/Operations/PrintLibraries.cpp; sourceTree = "<group>"; };
+		F3B0E4E0292CBB89009D3D61 /* Maximizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Maximizer.h; path = ../include/ADT/Maximizer.h; sourceTree = "<group>"; };
+		F3B0E4E1292CBE4E009D3D61 /* PrintUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintUtils.cpp; path = ../src/ADT/PrintUtils.cpp; sourceTree = "<group>"; };
 		F3B6EB34292C601C00098762 /* PrintLoadCommands.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintLoadCommands.h; path = ../include/Operations/PrintLoadCommands.h; sourceTree = "<group>"; };
 		F3B6EB35292C606100098762 /* PrintLoadCommands.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintLoadCommands.cpp; path = ../src/Operations/PrintLoadCommands.cpp; sourceTree = "<group>"; };
 		F3B6EB37292C632100098762 /* PrintUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintUtils.h; path = ../include/ADT/PrintUtils.h; sourceTree = "<group>"; };
@@ -88,6 +94,7 @@
 			isa = PBXGroup;
 			children = (
 				F308429C2921CD1500D989D8 /* FileMap.cpp */,
+				F3B0E4E1292CBE4E009D3D61 /* PrintUtils.cpp */,
 			);
 			name = ADT;
 			sourceTree = "<group>";
@@ -99,6 +106,7 @@
 				F32062A129248580002B99D9 /* Kind.h */,
 				F32062A82924887A002B99D9 /* PrintHeader.h */,
 				F36BCD5A292C195C00C911E8 /* PrintId.h */,
+				F3B0E4DD292CB0CD009D3D61 /* PrintLibraries.h */,
 				F3B6EB34292C601C00098762 /* PrintLoadCommands.h */,
 			);
 			name = Operations;
@@ -110,6 +118,7 @@
 				F36BCD54292C092000C911E8 /* Base.cpp */,
 				F32062A529248857002B99D9 /* PrintHeader.cpp */,
 				F36BCD5B292C198C00C911E8 /* PrintId.cpp */,
+				F3B0E4DE292CB0D5009D3D61 /* PrintLibraries.cpp */,
 				F3B6EB35292C606100098762 /* PrintLoadCommands.cpp */,
 			);
 			name = Operations;
@@ -207,6 +216,7 @@
 				F308429A2921CCAC00D989D8 /* FileMap.h */,
 				F3AD81F828ECBD74005DE822 /* Range.h */,
 				F39FAE8A2929C1B50057DC6F /* MemoryMap.h */,
+				F3B0E4E0292CBB89009D3D61 /* Maximizer.h */,
 				F30BB525292ADE8F00AF300B /* Misc.h */,
 				F39FAE8E2929C5970057DC6F /* PointerOrError.h */,
 				F3B6EB37292C632100098762 /* PrintUtils.h */,
@@ -295,10 +305,12 @@
 				F39FAE902929C8370057DC6F /* MachO.cpp in Sources */,
 				F308429D2921CD1500D989D8 /* FileMap.cpp in Sources */,
 				F33C25CB28EA146700289314 /* main.cpp in Sources */,
+				F3B0E4E2292CBE4E009D3D61 /* PrintUtils.cpp in Sources */,
 				F3B6EB36292C606100098762 /* PrintLoadCommands.cpp in Sources */,
 				F36BCD59292C178500C911E8 /* LoadCommandsMap.cpp in Sources */,
 				F34C282B292A12ED0010B711 /* FatMachO.cpp in Sources */,
 				F32062A629248857002B99D9 /* PrintHeader.cpp in Sources */,
+				F3B0E4DF292CB0D5009D3D61 /* PrintLibraries.cpp in Sources */,
 				F36BCD55292C092000C911E8 /* Base.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

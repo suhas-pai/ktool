@@ -9,6 +9,7 @@ namespace Operations {
     enum class Kind {
         PrintHeader,
         PrintId,
-        PrintLoadCommands
+        PrintLoadCommands,
+        PrintLibraries
     };
 }

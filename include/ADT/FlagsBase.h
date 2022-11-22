@@ -65,6 +65,9 @@ namespace ADT {
             return Flags;
         }
 
+        constexpr auto
+        operator<=>(const FlagsBase<T> &Rhs) const noexcept = default;
+
         constexpr auto operator<=>(const T Rhs) const noexcept {
             return (Flags <=> Rhs);
         }

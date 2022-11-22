@@ -37,6 +37,6 @@ namespace Operations {
         RunResult run(const Objects::Base &Base) const noexcept override;
 
         auto run(const Objects::MachO &MachO) const noexcept -> RunResult;
-        [[nodiscard]] constexpr auto options() const noexcept { return Opt; }
+        [[nodiscard]] constexpr auto &options() const noexcept { return Opt; }
     };
 }

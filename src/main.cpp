@@ -17,6 +17,7 @@
 #include "Operations/PrintHeader.h"
 #include "Operations/PrintId.h"
 #include "Operations/PrintLoadCommands.h"
+#include "Operations/PrintLibraries.h"
 
 struct OperationInfo {
     std::string Path;
@@ -151,8 +152,6 @@ auto main(const int argc, const char *const argv[]) -> int {
             ::ArgOptions(ArgFlags::Option | ArgFlags::NotNeeded);
 
         auto Options = Operations::PrintHeader::Options();
-        auto Path = std::string();
-
         while (true) {
             const auto NextArg =
                 GetNextArg("", OperationString.data(), ArgOptions);
@@ -190,13 +189,11 @@ auto main(const int argc, const char *const argv[]) -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintId>(
                 new Operations::PrintId(stdout, Options));
-    } else if (OperationString == "--lc") {
+    } else if (OperationString == "-l" || OperationString == "--lc") {
         const auto ArgOptions =
             ::ArgOptions(ArgFlags::Option | ArgFlags::NotNeeded);
 
         auto Options = Operations::PrintLoadCommands::Options();
-        auto Path = std::string();
-
         while (true) {
             const auto NextArg =
                 GetNextArg("", OperationString.data(), ArgOptions);
@@ -212,6 +209,37 @@ auto main(const int argc, const char *const argv[]) -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintLoadCommands>(
                 new Operations::PrintLoadCommands(stdout, Options));
+    } else if (OperationString == "-L" || OperationString == "--libraries") {
+        const auto ArgOptions =
+            ::ArgOptions(ArgFlags::Option | ArgFlags::NotNeeded);
+
+        auto Options = Operations::PrintLibraries::Options();
+        while (true) {
+            const auto NextArg =
+                GetNextArg("", OperationString.data(), ArgOptions);
+
+            using SortKind = Operations::PrintLibraries::Options::SortKind;
+            if (NextArg == "-v" || NextArg == "--verbose") {
+                Options.Verbose = true;
+            } else if (NextArg == "--sort-by-current-version") {
+                Options.SortKindList.emplace_back(SortKind::ByCurrentVersion);
+            } else if (NextArg == "--sort-by-compat-version") {
+                Options.SortKindList.emplace_back(SortKind::ByCurrentVersion);
+            } else if (NextArg == "--sort-by-index") {
+                Options.SortKindList.emplace_back(SortKind::ByIndex);
+            } else if (NextArg == "--sort-by-name") {
+                Options.SortKindList.emplace_back(SortKind::ByName);
+            } else if (NextArg == "--sort-by-timestamp") {
+                Options.SortKindList.emplace_back(SortKind::ByTimeStamp);
+            } else {
+                break;
+            }
+        }
+
+        Operation.Kind = Operations::Kind::PrintLibraries;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintLibraries>(
+                new Operations::PrintLibraries(stdout, Options));
     } else {
         fprintf(stderr, "Unrecognized option: %s\n", OperationString.data());
         return 1;
@@ -272,6 +300,12 @@ auto main(const int argc, const char *const argv[]) -> int {
                 case Operations::PrintId::RunError::IdNotFound:
                     fputs("Id String not found\n", stderr);
                     return 1;
+            }
+        }
+        case Operations::Kind::PrintLibraries: {
+            switch (Operations::PrintLibraries::RunError(Result.Error)) {
+                case Operations::PrintLibraries::RunError::None:
+                    break;
             }
         }
         case Operations::Kind::PrintLoadCommands: {

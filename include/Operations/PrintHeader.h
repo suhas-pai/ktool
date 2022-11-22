@@ -38,6 +38,6 @@ namespace Operations {
         RunResult run(const Objects::MachO &MachO) const noexcept;
         RunResult run(const Objects::FatMachO &MachO) const noexcept;
 
-        [[nodiscard]] constexpr auto options() const noexcept { return Opt; }
+        [[nodiscard]] constexpr auto &options() const noexcept { return Opt; }
     };
 }

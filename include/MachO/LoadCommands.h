@@ -905,6 +905,21 @@ namespace MachO {
         constexpr auto name(const bool IsBigEndian) const noexcept {
             return Dylib.Name.string(this, IsBigEndian);
         }
+
+        [[nodiscard]]
+        constexpr auto timeStamp(const bool IsBigEndian) const noexcept {
+            return Dylib.timeStamp(IsBigEndian);
+        }
+
+        [[nodiscard]]
+        constexpr auto currentVersion(const bool IsBigEndian) const noexcept {
+            return Dylib.currentVersion(IsBigEndian);
+        }
+
+        [[nodiscard]]
+        constexpr auto compatVersion(const bool IsBigEndian) const noexcept {
+            return Dylib.compatVersion(IsBigEndian);
+        }
     };
 
     struct SubFrameworkCommand : public LoadCommand {
@@ -2716,6 +2731,22 @@ namespace MachO {
         return LC->kind(IsBigEndian) == Kind;
     }
 
+    template <LoadCommandDerived First,
+              LoadCommandDerived Second,
+              LoadCommandDerived... Rest>
+    [[nodiscard]]
+    constexpr auto isa(const LoadCommand *const LC, bool IsBE) noexcept {
+        return isa<First>(LC, IsBE) || isa<Second, Rest...>(LC, IsBE);
+    }
+
+    template <LoadCommandKind First,
+              LoadCommandKind Second,
+              LoadCommandKind... Rest>
+    [[nodiscard]]
+    constexpr auto isa(const LoadCommand *const LC, bool IsBE) noexcept {
+        return isa<First>(LC, IsBE) || isa<Second, Rest...>(LC, IsBE);
+    }
+
     template <LoadCommandDerived T>
     [[nodiscard]]
     constexpr auto &cast(LoadCommand *const LC, bool IsBigEndian) noexcept {
@@ -2825,4 +2856,53 @@ namespace MachO {
 
         return static_cast<const T *>(nullptr);
     }
+
+    template <LoadCommandKind First,
+              LoadCommandKind Second,
+              LoadCommandKind... Rest>
+
+    [[nodiscard]] constexpr
+    auto dyn_cast(LoadCommand *const LC, const bool IsBigEndian) noexcept {
+        using T = typename LoadCommandTypeFromKind<First>::type;
+        using U = typename LoadCommandTypeFromKind<Second>::type;
+
+        static_assert(
+            std::is_same_v<T, U> &&
+            std::conjunction<
+                std::is_same<
+                    T,
+                    typename LoadCommandTypeFromKind<Rest>::type>...>::value,
+            "Types of the several LoadCommandKinds don't match!");
+
+        if (isa<First, Second, Rest...>(LC, IsBigEndian)) {
+            return static_cast<T *>(LC);
+        }
+
+        return static_cast<T *>(nullptr);
+    }
+
+    template <LoadCommandKind First,
+              LoadCommandKind Second,
+              LoadCommandKind... Rest>
+
+    [[nodiscard]] constexpr auto
+    dyn_cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept {
+        using T = typename LoadCommandTypeFromKind<First>::type;
+        using U = typename LoadCommandTypeFromKind<Second>::type;
+
+        static_assert(
+            std::is_same_v<T, U> &&
+            std::conjunction<
+                std::is_same<
+                    T,
+                    typename LoadCommandTypeFromKind<Rest>::type>...>::value,
+            "Types of the several LoadCommandKinds don't match!");
+
+        if (isa<First, Second, Rest...>(LC, IsBigEndian)) {
+            return static_cast<const T *>(LC);
+        }
+
+        return static_cast<const T *>(nullptr);
+    }
+
 }

@@ -8,11 +8,30 @@
 #pragma once
 
 #include <charconv>
+#include <concepts>
 #include <cstdio>
 #include <inttypes.h>
 
+namespace ADT {
+    template <std::integral T>
+    [[nodiscard]] constexpr auto GetIntegerDigitCount(T Integer) noexcept {
+        auto DigitLength = int();
+        do {
+            DigitLength++;
+        } while (Integer /= 10);
+
+        return DigitLength;
+    }
+
+    auto PadSpaces(FILE *OutFile, int SpaceAmount) noexcept -> int;
+    auto RightPadSpaces(FILE *OutFile, int WrittenOut, int RightPad) -> int;
+}
+
 #define STRING_VIEW_FMT "%*s"
 #define STRING_VIEW_FMT_ARGS(SV) static_cast<int>((SV).length()), (SV).data()
+
+#define RIGHTPAD_FMT "-*"
+#define STR_LENGTH(s) (sizeof(s) - 1)
 
 #define ADDRESS_32_FMT "0x%08" PRIX32
 #define ADDRESS_64_FMT "0x%016" PRIX64

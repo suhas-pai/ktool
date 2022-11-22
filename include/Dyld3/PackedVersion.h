@@ -6,6 +6,8 @@
 //
 
 #pragma once
+
+#include <compare>
 #include "ADT/FlagsBase.h"
 
 namespace Dyld3 {
@@ -65,6 +67,9 @@ namespace Dyld3 {
         constexpr auto setMajor(const uint16_t Value) noexcept {
             return setWithMaskShift(Masks::Major, Shifts::Major, Value);
         }
+
+        constexpr auto
+        operator<=>(const Dyld3::PackedVersion &Rhs) const noexcept = default;
     };
 
     struct PackedVersion64 : public ADT::FlagsBase<uint64_t> {
@@ -143,6 +148,9 @@ namespace Dyld3 {
         constexpr auto setMajor(const uint32_t Value) noexcept {
             return setWithMaskShift(Masks::Major, Shifts::Major, Value);
         }
+
+        constexpr auto
+        operator<=>(const Dyld3::PackedVersion64 &Rhs) const noexcept = default;
     };
 
 #define DYLD3_PACKED_VERSION_FMT "%u.%u.%u"

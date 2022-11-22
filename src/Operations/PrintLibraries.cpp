@@ -1,9 +1,12 @@
 //
-//  PrintLibraries.cpp
+//  Operations/PrintLibraries.cpp
 //  ktool
 //
 //  Created by suhaspai on 11/22/22.
 //
+
+#include "ADT/Maximizer.h"
+#include "ADT/PrintUtils.h"
 
 #include "MachO/LoadCommandsMap.h"
 #include "Operations/PrintLibraries.h"
@@ -30,15 +33,74 @@ namespace Operations {
                "PrintLibraries::supportsObjectKind");
     }
 
+    struct DylibInfo {
+        std::string_view Name;
+        MachO::LoadCommandKind Kind;
+
+        Dyld3::PackedVersion CurrentVersion;
+        Dyld3::PackedVersion CompatVersion;
+
+        uint32_t Timestamp;
+        uint32_t Index;
+    };
+
+    static int
+    CompareEntriesBySortKind(
+        const DylibInfo &Lhs,
+        const DylibInfo &Rhs,
+        const Operations::PrintLibraries::Options::SortKind SortKind) noexcept
+    {
+        switch (SortKind) {
+            using SortKind = Operations::PrintLibraries::Options::SortKind;
+            case SortKind::ByCurrentVersion:
+                if (Lhs.CurrentVersion == Rhs.CurrentVersion) {
+                    return 0;
+                }
+
+                if (Lhs.CurrentVersion < Rhs.CurrentVersion) {
+                    return -1;
+                }
+
+                return 1;
+            case SortKind::ByCompatVersion: {
+                if (Lhs.CompatVersion == Rhs.CompatVersion) {
+                    return 0;
+                } else if (Lhs.CompatVersion < Rhs.CompatVersion) {
+                    return -1;
+                }
+
+                return 1;
+            }
+            case SortKind::ByIndex: {
+                if (Lhs.Index == Rhs.Index) {
+                    return 0;
+                } else if (Lhs.Index < Rhs.Index) {
+                    return -1;
+                }
+
+                return 1;
+            }
+            case SortKind::ByTimeStamp: {
+                if (Lhs.Timestamp == Rhs.Timestamp) {
+                    return 0;
+                } else if (Lhs.Timestamp < Rhs.Timestamp) {
+                    return -1;
+                }
+
+                return 1;
+            }
+            case SortKind::ByName:
+                return Lhs.Name.compare(Rhs.Name);
+        }
+
+        assert(false && "CompareEntriesBySortKind got unrecognized SortKind");
+    }
+
     auto
     PrintLibraries::run(const Objects::MachO &MachO) const noexcept ->
         RunResult
     {
         auto Result = RunResult(Objects::Kind::MachO);
-        if (MachO.fileKind() != MachO::FileKind::DynamicLibrary) {
-            return Result.set(RunError::NotADylib);
-        }
-
         const auto LoadCommandsMemoryMap =
             ADT::MemoryMap(MachO.map(), MachO.header().loadCommandsRange());
 
@@ -46,38 +108,80 @@ namespace Operations {
         const auto LoadCommandsMap =
             ::MachO::LoadCommandsMap(LoadCommandsMemoryMap, IsBigEndian);
 
+        constexpr auto Malformed = std::string_view("<malformed>");
+
+        auto DylibList = std::vector<DylibInfo>();
+        auto LoadCommandIndex = uint32_t();
+
         for (const auto &LoadCommand : LoadCommandsMap) {
-            if (const auto ID =
-                    MachO::dyn_cast<MachO::LoadCommandKind::IdDylib>(
+            if (const auto DylibCmd =
+                    MachO::dyn_cast<MachO::LoadCommandKind::LoadDylib,
+                                    MachO::LoadCommandKind::LoadWeakDylib,
+                                    MachO::LoadCommandKind::ReexportDylib,
+                                    MachO::LoadCommandKind::LazyLoadDylib,
+                                    MachO::LoadCommandKind::LoadUpwardDylib>(
                         &LoadCommand, IsBigEndian))
             {
-                const auto NameOpt = ID->name(IsBigEndian);
-                if (!NameOpt) {
-                    return Result.set(RunError::BadIdString);
-                }
+                const auto NameOpt = DylibCmd->name(IsBigEndian);
+                const auto Info = DylibInfo {
+                    .Name = NameOpt.has_value() ? NameOpt.value() : Malformed,
+                    .Kind = DylibCmd->kind(IsBigEndian),
+                    .CurrentVersion = DylibCmd->currentVersion(IsBigEndian),
+                    .CompatVersion = DylibCmd->compatVersion(IsBigEndian),
+                    .Timestamp = DylibCmd->timeStamp(IsBigEndian),
+                    .Index = LoadCommandIndex
+                };
 
-                fprintf(OutFile, "ID: %s\n", NameOpt.value().data());
-                if (Opt.Verbose) {
-                    const auto &Dylib = ID->Dylib;
-                    const auto CurrentVersion =
-                        Dylib.currentVersion(IsBigEndian);
-                    const auto CompatVersion =
-                        Dylib.compatVersion(IsBigEndian);
-
-                    fprintf(OutFile,
-                            "\tCurrent Version: " DYLD3_PACKED_VERSION_FMT "\n"
-                            "\tCompat Version:  " DYLD3_PACKED_VERSION_FMT "\n"
-                            "\tTimestamp:       %d\n",
-                            DYLD3_PACKED_VERSION_FMT_ARGS(CurrentVersion),
-                            DYLD3_PACKED_VERSION_FMT_ARGS(CompatVersion),
-                            Dylib.Timestamp);
-                }
-
-                return Result.set(RunError::None);
+                DylibList.emplace_back(std::move(Info));
             }
+
+            LoadCommandIndex++;
         }
 
-        return Result.set(RunError::IdNotFound);
+        if (!Opt.SortKindList.empty()) {
+            const auto Comparator =
+                [&](const auto &Lhs, const auto &Rhs) noexcept
+            {
+                for (const auto &Sort : Opt.SortKindList) {
+                    const auto Compare =
+                        CompareEntriesBySortKind(Lhs, Rhs, Sort);
+
+                    if (Compare != 0) {
+                        return (Compare < 0);
+                    }
+                }
+
+                return false;
+            };
+
+            std::sort(DylibList.begin(), DylibList.end(), Comparator);
+        }
+
+        const auto DylibListSize = DylibList.size();
+        fprintf(OutFile,
+                "Provided file has %" PRIuPTR " Shared Libraries:\n",
+                DylibListSize);
+
+        auto Counter = static_cast<uint32_t>(1);
+        for (const auto &DylibInfo : DylibList) {
+            fprintf(OutFile,
+                    "Library %" PRIu32 ": (LC %" PRIu32 ")\n"
+                    "\tKind:            %s\n"
+                    "\tPath:            \"%s\"\t\n"
+                    "\tCurrent Version: " DYLD3_PACKED_VERSION_FMT "\n"
+                    "\tCompat Version:  " DYLD3_PACKED_VERSION_FMT "\n",
+                    Counter,
+                    DylibInfo.Index,
+                    MachO::LoadCommandKindGetString(DylibInfo.Kind).data(),
+                    DylibInfo.Name.data(),
+                    DYLD3_PACKED_VERSION_FMT_ARGS(DylibInfo.CurrentVersion),
+                    DYLD3_PACKED_VERSION_FMT_ARGS(DylibInfo.CompatVersion));
+
+            fputc('\n', OutFile);
+            Counter++;
+        }
+
+        return Result.set(RunError::None);
     }
 
     auto PrintLibraries::run(const Objects::Base &Base) const noexcept ->

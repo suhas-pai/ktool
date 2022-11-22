@@ -13,7 +13,7 @@
 namespace Operations {
     auto PrintUnsupportedError(const std::string_view Path) noexcept {
         fprintf(stderr,
-                "print-header isn't supported for file at path %s\n",
+                "Operation doesn't support file at path %s\n",
                 Path.data());
         exit(1);
     }
@@ -49,7 +49,7 @@ namespace Operations {
             case Objects::Kind::None:
                 assert(false && "Got Object-Kind None in runAndHandleFile");
             case Objects::Kind::MachO:
-                if (supportsObjectKind(Objects::Kind::MachO)) {
+                if (!supportsObjectKind(Objects::Kind::MachO)) {
                     PrintUnsupportedError(Options.Path);
                 }
 
