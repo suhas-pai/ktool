@@ -126,8 +126,8 @@ namespace Operations {
     auto
     PrintHeader::run(const Objects::FatMachO &Fat) const noexcept -> RunResult {
         auto Result = RunResult(Objects::Kind::FatMachO);
-
         const auto Header = Fat.header();
+        
         fprintf(OutFile,
                 "Apple %s Fat Mach-O File\n"
                 "\tMagic:      %s\n"
@@ -139,7 +139,9 @@ namespace Operations {
         return Result.set(RunError::None);
     }
 
-    RunResult PrintHeader::run(const Objects::Base &Base) const noexcept {
+    auto PrintHeader::run(const Objects::Base &Base) const noexcept ->
+        RunResult
+    {
         switch (Base.kind()) {
             case Objects::Kind::None:
                 assert(false && "run() got Object with Kind::None");

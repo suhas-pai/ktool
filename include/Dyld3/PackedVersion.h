@@ -87,8 +87,8 @@ namespace Dyld3 {
     protected:
         [[nodiscard]] constexpr auto
         getForMaskShift(const Masks Mask, const Shifts Shift) const noexcept {
-            const auto Value = (Flags & static_cast<uint32_t>(Mask));
-            return (Value >> static_cast<uint32_t>(Shift));
+            const auto Value = (Flags & static_cast<uint64_t>(Mask));
+            return (Value >> static_cast<uint64_t>(Shift));
         }
 
         [[nodiscard]] constexpr auto
@@ -116,7 +116,7 @@ namespace Dyld3 {
             return getForMaskShift(Masks::Revision1, Shifts::Revision1);
         }
 
-        [[nodiscard]] constexpr auto minor() const noexcept {
+        [[nodiscard]] constexpr auto minor() const noexcept -> uint16_t {
             return getForMaskShift(Masks::Minor, Shifts::Minor);
         }
 
@@ -151,11 +151,11 @@ namespace Dyld3 {
     (VERSION).minor(), \
     (VERSION).revision()
 
-#define DYLD3_PACKED_VERSION_64_FMT "%u.%u.%u.%u.%u"
+#define DYLD3_PACKED_VERSION_64_FMT "%llu.%u.%u.%u.%u"
 #define DYLD3_PACKED_VERSION_64_FMT_ARGS(VERSION) \
     (VERSION).major(), \
     (VERSION).minor(), \
     (VERSION).revision1(), \
     (VERSION).revision2(), \
-    (VERSION).revision3(),
+    (VERSION).revision3()
 }

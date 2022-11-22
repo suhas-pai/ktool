@@ -17,6 +17,8 @@ namespace Mach {
             Executable = 1 << 2
         };
 
+        using ADT::FlagsBase<uint32_t>::FlagsBase;
+
         [[nodiscard]] constexpr auto readable() const noexcept -> bool {
             return (Flags & static_cast<uint32_t>(Masks::Readable));
         }
@@ -44,4 +46,10 @@ namespace Mach {
             return *this;
         }
     };
+
+#define MACH_VMPROT_FMT "%c%c%c"
+#define MACH_VMPROT_FMT_ARGS(VMPROT) \
+    (VMPROT).readable() ? 'R' : '-', \
+    (VMPROT).writable() ? 'W' : '-', \
+    (VMPROT).executable() ? 'X' : '-'
 }

@@ -1,23 +1,24 @@
 //
-//  PrintId.cpp
+//  PrintLibraries.cpp
 //  ktool
 //
-//  Created by suhaspai on 11/21/22.
+//  Created by suhaspai on 11/22/22.
 //
 
 #include "MachO/LoadCommandsMap.h"
-#include "Operations/PrintId.h"
+#include "Operations/PrintLibraries.h"
 
 namespace Operations {
-    PrintId::PrintId(FILE *OutFile, const struct Options &Options)
+    PrintLibraries::PrintLibraries(FILE *OutFile, const struct Options &Options)
     : OutFile(OutFile), Opt(Options) {}
 
     bool
-    PrintId::supportsObjectKind(const Objects::Kind Kind) const noexcept {
+    PrintLibraries::supportsObjectKind(const Objects::Kind Kind) const noexcept {
         switch (Kind) {
             case Objects::Kind::None:
                 assert(false &&
-                       "Got Object-Kind None in PrintId::supportsObjectKind");
+                       "Got Object-Kind None in "
+                       "PrintLibraries::supportsObjectKind");
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
@@ -25,11 +26,14 @@ namespace Operations {
         }
 
         assert(false &&
-               "Got unknown Object-Kind in PrintId::supportsObjectKind");
+               "Got unknown Object-Kind in "
+               "PrintLibraries::supportsObjectKind");
     }
 
     auto
-    PrintId::run(const Objects::MachO &MachO) const noexcept -> RunResult {
+    PrintLibraries::run(const Objects::MachO &MachO) const noexcept ->
+        RunResult
+    {
         auto Result = RunResult(Objects::Kind::MachO);
         if (MachO.fileKind() != MachO::FileKind::DynamicLibrary) {
             return Result.set(RunError::NotADylib);
@@ -76,7 +80,7 @@ namespace Operations {
         return Result.set(RunError::IdNotFound);
     }
 
-    auto PrintId::run(const Objects::Base &Base) const noexcept ->
+    auto PrintLibraries::run(const Objects::Base &Base) const noexcept ->
         RunResult
     {
         switch (Base.kind()) {
@@ -88,6 +92,6 @@ namespace Operations {
                 return RunResultUnsupported;
         }
 
-        assert(false && "Got unrecognized Object-Kind in PrintId::run");
+        assert(false && "Got unrecognized Object-Kind in PrintLibraries::run");
     }
 }

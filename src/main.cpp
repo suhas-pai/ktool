@@ -16,6 +16,7 @@
 
 #include "Operations/PrintHeader.h"
 #include "Operations/PrintId.h"
+#include "Operations/PrintLoadCommands.h"
 
 struct OperationInfo {
     std::string Path;
@@ -189,6 +190,28 @@ auto main(const int argc, const char *const argv[]) -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintId>(
                 new Operations::PrintId(stdout, Options));
+    } else if (OperationString == "--lc") {
+        const auto ArgOptions =
+            ::ArgOptions(ArgFlags::Option | ArgFlags::NotNeeded);
+
+        auto Options = Operations::PrintLoadCommands::Options();
+        auto Path = std::string();
+
+        while (true) {
+            const auto NextArg =
+                GetNextArg("", OperationString.data(), ArgOptions);
+
+            if (NextArg == "-v" || NextArg == "--verbose") {
+                Options.Verbose = true;
+            } else {
+                break;
+            }
+        }
+
+        Operation.Kind = Operations::Kind::PrintLoadCommands;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintLoadCommands>(
+                new Operations::PrintLoadCommands(stdout, Options));
     } else {
         fprintf(stderr, "Unrecognized option: %s\n", OperationString.data());
         return 1;
@@ -249,6 +272,12 @@ auto main(const int argc, const char *const argv[]) -> int {
                 case Operations::PrintId::RunError::IdNotFound:
                     fputs("Id String not found\n", stderr);
                     return 1;
+            }
+        }
+        case Operations::Kind::PrintLoadCommands: {
+            switch (Operations::PrintLoadCommands::RunError(Result.Error)) {
+                case Operations::PrintLoadCommands::RunError::None:
+                    break;
             }
         }
     }
