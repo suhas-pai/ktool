@@ -64,10 +64,10 @@ namespace Operations {
                         "%sSegname:       \"" STRING_VIEW_FMT "\"\n"
                         "%sVm Addr:       " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sVm Size:       %" PRId32 "\n"
+                        "%sVm Size:       %" PRId32 " (%s)\n"
                         "%sFile Offset:   " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sFile Size:     %" PRId32 "\n"
+                        "%sFile Size:     %" PRId32 " (%s)\n"
                         "%sMax Prot:      " MACH_VMPROT_FMT "\n"
                         "%sInit Prot:     " MACH_VMPROT_FMT "\n"
                         "%sSection Count: %" PRIu32 "\n"
@@ -75,10 +75,10 @@ namespace Operations {
                         Prefix, STRING_VIEW_FMT_ARGS(Segment.segmentName()),
                         Prefix, VmAddr,
                         ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
-                        Prefix, VmSize,
+                        Prefix, VmSize, ADT::FormattedSize(VmSize).data(),
                         Prefix, FileOffset,
                         ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
-                        Prefix, FileSize,
+                        Prefix, FileSize, ADT::FormattedSize(FileSize).data(),
                         Prefix,
                         MACH_VMPROT_FMT_ARGS(Segment.maxProt(IsBigEndian)),
                         Prefix,
@@ -101,10 +101,10 @@ namespace Operations {
                         "%sSegname:       \"" STRING_VIEW_FMT "\"\n"
                         "%sVm Addr:       " ADDRESS_64_FMT " ("
                             ADDR_RANGE_64_FMT ")\n"
-                        "%sVm Size:       %" PRId64 "\n"
+                        "%sVm Size:       %" PRId64 " (%s)\n"
                         "%sFile Offset:   " ADDRESS_64_FMT " ("
                             ADDR_RANGE_64_FMT ")\n"
-                        "%sFile Size:     %" PRId64 "\n"
+                        "%sFile Size:     %" PRId64 " (%s)\n"
                         "%sMax Prot:      " MACH_VMPROT_FMT "\n"
                         "%sInit Prot:     " MACH_VMPROT_FMT "\n"
                         "%sSection Count: %" PRIu32 "\n"
@@ -112,10 +112,10 @@ namespace Operations {
                         Prefix, STRING_VIEW_FMT_ARGS(Segment.segmentName()),
                         Prefix, VmAddr,
                         ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
-                        Prefix, VmSize,
+                        Prefix, VmSize, ADT::FormattedSize(VmSize).data(),
                         Prefix, FileOffset,
                         ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
-                        Prefix, FileSize,
+                        Prefix, FileSize, ADT::FormattedSize(FileSize).data(),
                         Prefix,
                         MACH_VMPROT_FMT_ARGS(Segment.maxProt(IsBigEndian)),
                         Prefix,
@@ -354,12 +354,12 @@ namespace Operations {
                         "%sSymbol Count         %" PRIu32 "\n"
                         "%sString Table Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sString Table Size:   %" PRIu32 "\n",
+                        "%sString Table Size:   %" PRIu32 " (%s)\n",
                         Prefix, SymOff,
                         Prefix, SymCount,
                         Prefix, StrOff,
                         ADDR_RANGE_FMT_ARGS(StrOff, StrSize),
-                        Prefix, StrSize);
+                        Prefix, StrSize, ADT::FormattedSize(StrSize).data());
 
                 break;
             }
@@ -526,10 +526,10 @@ namespace Operations {
                 fprintf(OutFile,
                         "%sData Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sData Size:   %" PRIu32 "\n",
+                        "%sData Size:   %" PRIu32 " (%s)\n",
                         Prefix, DataOff,
                         ADDR_RANGE_FMT_ARGS(DataOff, DataSize),
-                        Prefix, DataSize);
+                        Prefix, DataSize, ADT::FormattedSize(DataSize).data());
                 break;
             }
             case MachO::LoadCommandKind::FileSetEntry: {
@@ -564,11 +564,11 @@ namespace Operations {
                 fprintf(OutFile,
                         "%sCrypt Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sCrypt Size:   %" PRIu32 "\n"
+                        "%sCrypt Size:   %" PRIu32 " (%s)\n"
                         "%sCrypt Id:     %" PRIu32 "\n",
                         Prefix, CryptOffset,
                         ADDR_RANGE_FMT_ARGS(CryptOffset, CryptSize),
-                        Prefix, CryptSize,
+                        Prefix, CryptSize, ADT::FormattedSize(CryptSize).data(),
                         Prefix, CryptId);
                 break;
             }
@@ -585,12 +585,12 @@ namespace Operations {
                 fprintf(OutFile,
                         "%sCrypt Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sCrypt Size:   %" PRIu32 "\n"
+                        "%sCrypt Size:   %" PRIu32 " (%s)\n"
                         "%sCrypt Id:     %" PRIu32 "\n"
                         "%sPad:          %" PRIu32 "\n",
                         Prefix, CryptOffset,
                         ADDR_RANGE_FMT_ARGS(CryptOffset, CryptSize),
-                        Prefix, CryptSize,
+                        Prefix, CryptSize, ADT::FormattedSize(CryptSize).data(),
                         Prefix, CryptId,
                         Prefix, Pad);
                 break;
@@ -668,34 +668,38 @@ namespace Operations {
                 fprintf(OutFile,
                         "%sRebase Offset:      " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sRebase Size:        %" PRIu32 "\n"
+                        "%sRebase Size:        %" PRIu32 " (%s)\n"
                         "%sBind Offset:        " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sBind Size:          %" PRIu32 "\n"
+                        "%sBind Size:          %" PRIu32 " (%s)\n"
                         "%sWeak Bind Offset:   " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sWeak Bind Size:     %" PRIu32 "\n"
+                        "%sWeak Bind Size:     %" PRIu32 " (%s)\n"
                         "%sLazy Bind Offset:   " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sLazy Bind Size:     %" PRIu32 "\n"
+                        "%sLazy Bind Size:     %" PRIu32 " (%s)\n"
                         "%sExport Trie Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sExport Trie Size:   %" PRIu32 "\n",
+                        "%sExport Trie Size:   %" PRIu32 " (%s)\n",
                         Prefix, RebaseOffset,
                         ADDR_RANGE_FMT_ARGS(RebaseOffset, RebaseSize),
                         Prefix, RebaseSize,
+                        ADT::FormattedSize(RebaseSize).data(),
                         Prefix, BindOffset,
                         ADDR_RANGE_FMT_ARGS(BindOffset, BindSize),
-                        Prefix, BindSize,
+                        Prefix, BindSize, ADT::FormattedSize(BindSize).data(),
                         Prefix, WeakBindOffset,
                         ADDR_RANGE_FMT_ARGS(WeakBindOffset, WeakBindSize),
                         Prefix, WeakBindSize,
+                        ADT::FormattedSize(WeakBindSize).data(),
                         Prefix, LazyBindOffset,
                         ADDR_RANGE_FMT_ARGS(LazyBindOffset, LazyBindSize),
                         Prefix, LazyBindSize,
+                        ADT::FormattedSize(LazyBindSize).data(),
                         Prefix, ExportTrieOffset,
                         ADDR_RANGE_FMT_ARGS(ExportTrieOffset, ExportTrieSize),
-                        Prefix, ExportTrieSize);
+                        Prefix, ExportTrieSize,
+                        ADT::FormattedSize(ExportTrieSize).data());
                 break;
             }
             case MachO::LoadCommandKind::LinkerOption: {
@@ -717,10 +721,10 @@ namespace Operations {
                 fprintf(OutFile,
                         "%sOffset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sSize:   %" PRIu32 "\n",
+                        "%sSize:   %" PRIu32 " (%s)\n",
                         Prefix, Offset,
                         ADDR_RANGE_FMT_ARGS(Offset, Size),
-                        Prefix, Size);
+                        Prefix, Size, ADT::FormattedSize(Size).data());
                 break;
             }
             case MachO::LoadCommandKind::FixedVMFile: {
@@ -750,9 +754,10 @@ namespace Operations {
 
                 fprintf(OutFile,
                         "%sEntry Offset: " ADDRESS_64_FMT "\n"
-                        "%sStack Size:   %" PRIu64 "\n",
+                        "%sStack Size:   %" PRIu64 " (%s)\n",
                         Prefix, EntryOffset,
-                        Prefix, StackSize);
+                        Prefix, StackSize,
+                        ADT::FormattedSize(StackSize).data());
                 break;
             }
             case MachO::LoadCommandKind::SourceVersion: {
@@ -780,11 +785,11 @@ namespace Operations {
                         "%sData Owner: \"" STRING_VIEW_FMT "\"\n"
                         "%sOffset: " ADDRESS_64_FMT " ("
                             ADDR_RANGE_64_FMT ")\n"
-                        "%sSize:   %" PRIu64 "\n",
+                        "%sSize:   %" PRIu64 " (%s)\n",
                         Prefix, STRING_VIEW_FMT_ARGS(DataOwner),
                         Prefix, Offset,
                         ADDR_RANGE_FMT_ARGS(Offset, Size),
-                        Prefix, Size);
+                        Prefix, Size, ADT::FormattedSize(Size).data());
 
                 break;
             }

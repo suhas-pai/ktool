@@ -11,6 +11,7 @@
 #include <concepts>
 #include <cstdio>
 #include <inttypes.h>
+#include <string>
 
 namespace ADT {
     template <std::integral T>
@@ -25,6 +26,7 @@ namespace ADT {
 
     auto PadSpaces(FILE *OutFile, int SpaceAmount) noexcept -> int;
     auto RightPadSpaces(FILE *OutFile, int WrittenOut, int RightPad) -> int;
+    auto FormattedSize(uint64_t Size) -> std::string;
 }
 
 #define STRING_VIEW_FMT "%*s"

@@ -78,11 +78,12 @@ namespace Operations {
                 fprintf(OutFile,
                         "\tOffset:     " ADDRESS_64_FMT " ("
                             ADDR_RANGE_64_FMT ")\n"
-                        "\tSize:       %" PRIu64 "\n"
+                        "\tSize:       %" PRIu64 " (%s)\n"
                         "\tAlign:      %" PRIu32 "\n",
                         Offset,
                         ADDR_RANGE_FMT_ARGS(Offset, Size),
                         Size,
+                        ADT::FormattedSize(Size).data(),
                         Align);
             }
         } else {
@@ -127,11 +128,12 @@ namespace Operations {
                 fprintf(OutFile,
                         "\tOffset:     " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "\tSize:       %" PRIu32 "\n"
+                        "\tSize:       %" PRIu32 " (%s)\n"
                         "\tAlign:      %" PRIu32 "\n",
                         Offset,
                         ADDR_RANGE_FMT_ARGS(Offset, Size),
                         Size,
+                        ADT::FormattedSize(Size).data(),
                         Align);
             }
         }
