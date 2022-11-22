@@ -38,15 +38,16 @@ namespace ADT {
             return (Data & 1);
         }
 
-        [[nodiscard]] constexpr auto getError() const noexcept {
+        [[nodiscard]] constexpr auto error() const noexcept {
             const auto Result =
                 hasError() ?
-                    static_cast<ErrorType>(Data >> 1) : static_cast<ErrorType>(0);
+                    static_cast<ErrorType>(Data >> 1) :
+                    static_cast<ErrorType>(0);
 
             return Result;
         }
 
-        [[nodiscard]] constexpr auto getPtr() const noexcept {
+        [[nodiscard]] constexpr auto ptr() const noexcept {
             return !hasError() ? Ptr : nullptr;
         }
     };
@@ -71,11 +72,11 @@ namespace ADT {
             return (reinterpret_cast<uint64_t>(Ptr) & 1);
         }
 
-        [[nodiscard]] constexpr auto getError() const noexcept {
+        [[nodiscard]] constexpr auto error() const noexcept {
             return Error;
         }
 
-        [[nodiscard]] constexpr auto getPtr() const noexcept {
+        [[nodiscard]] constexpr auto ptr() const noexcept {
             return !hasError() ? Ptr : nullptr;
         }
     };

@@ -20,9 +20,9 @@ namespace Objects {
                 const auto Object = Objects::MachO::Open(Map);
                 using ErrorKind = Objects::MachO::OpenError;
 
-                const auto Error = Object.getError();
+                const auto Error = Object.error();
                 if (Error == ErrorKind::None) {
-                    return Object.getPtr();
+                    return Object.ptr();
                 }
 
                 if (Error != ErrorKind::WrongFormat) {
@@ -33,9 +33,9 @@ namespace Objects {
                 const auto Object = Objects::FatMachO::Open(Map);
                 using ErrorKind = Objects::FatMachO::OpenError;
 
-                const auto Error = Object.getError();
+                const auto Error = Object.error();
                 if (Error == ErrorKind::None) {
-                    return Object.getPtr();
+                    return Object.ptr();
                 }
 
                 if (Error!= ErrorKind::WrongFormat) {
@@ -62,9 +62,9 @@ namespace Objects {
                 const auto Object = Objects::MachO::Open(Map);
                 using ErrorKind = Objects::MachO::OpenError;
 
-                const auto Error = Object.getError();
+                const auto Error = Object.error();
                 if (Error == ErrorKind::None) {
-                    return Object.getPtr();
+                    return Object.ptr();
                 }
 
                 if (Error != ErrorKind::WrongFormat) {
@@ -80,9 +80,9 @@ namespace Objects {
                 const auto Object = Objects::FatMachO::Open(Map);
                 using ErrorKind = Objects::FatMachO::OpenError;
 
-                const auto Error = Object.getError();
+                const auto Error = Object.error();
                 if (Error == ErrorKind::None) {
-                    return Object.getPtr();
+                    return Object.ptr();
                 }
 
                 if (Error != ErrorKind::WrongFormat) {

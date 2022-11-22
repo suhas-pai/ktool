@@ -50,7 +50,6 @@ namespace Objects {
     constexpr static auto OpenErrorUnrecognized = OpenError(Kind::None, 1);
 
     using OpenResult = typename ADT::PointerOrError<Base, OpenError>;
-
     auto Open(const ADT::MemoryMap &Map) noexcept -> OpenResult;
 
     auto

@@ -7,6 +7,7 @@
 
 namespace Operations {
     enum class Kind {
-        PrintHeader
+        PrintHeader,
+        PrintId
     };
 }

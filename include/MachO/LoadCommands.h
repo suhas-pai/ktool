@@ -10,6 +10,7 @@
 #include <bitset>
 #include <optional>
 #include <string_view>
+#include <type_traits>
 
 #include "ADT/FlagsBase.h"
 #include "ADT/Range.h"
@@ -21,80 +22,297 @@
 #include "Mach/VmProt.h"
 
 namespace MachO {
-    struct LoadCommand {
-        static constexpr auto LoadCommandReqByDyld = 1 << 31;
-        enum class KindEnum : uint32_t {
-            Segment = 1,
-            SymbolTable,
-            SymbolSegment,
-            Thread,
-            UnixThread,
-            LoadFixedVMSharedLib,
-            IdFixedVMSharedLib,
-            Identity,
-            FixedVMFile,
-            PrePage,
-            DynamicSymbolTable,
-            LoadDylib,
-            IdDylib,
-            LoadDylinker,
-            IdDylinker,
-            PreBoundDylib,
-            Routines,
-            SubFramework,
-            SubUmbrella,
-            SubClient,
-            SubLibrary,
-            TwoLevelHints,
-            PreBindChecksum,
-            LoadWeakDylib = static_cast<uint32_t>(LoadCommandReqByDyld | 0x22),
-            Segment64 = 0x23,
-            Routines64,
-            Uuid,
-            RPath,
-            CodeSignature,
-            SegmentSplitInfo,
-            ReexportDylib = static_cast<uint32_t>(LoadCommandReqByDyld | 0x1f),
-            LazyLoadDylib = 0x20,
-            EncryptionInfo,
-            DyldInfo,
-            DyldInfoOnly = static_cast<uint32_t>(LoadCommandReqByDyld | 0x22),
-            LoadUpwardDylib = 0x23,
-            VersionMinMacOS,
-            VersionMinIOS,
-            FunctionStarts,
-            DyldEnvironment,
-            Main = static_cast<uint32_t>(LoadCommandReqByDyld | 0x28),
-            DataInCode = 0x29,
-            SourceVersion,
-            DylibCodeSignDRS,
-            EncryptionInfo64,
-            LinkerOption,
-            LinkerOptimizationHint,
-            VersionMinTVOS,
-            VersionMinWatchOS,
-            Note,
-            BuildVersion,
-            DyldExportsTrie =
-                static_cast<uint32_t>(LoadCommandReqByDyld | 0x33),
-            DyldChainedFixups =
-                static_cast<uint32_t>(LoadCommandReqByDyld | 0x34),
-            FileSetEntry = static_cast<uint32_t>(LoadCommandReqByDyld | 0x35)
-        };
+    static constexpr auto LoadCommandReqByDyld = 1 << 31;
+    enum class LoadCommandKind : uint32_t {
+        Segment = 1,
+        SymbolTable,
+        SymbolSegment,
+        Thread,
+        UnixThread,
+        LoadFixedVMSharedLib,
+        IdFixedVMSharedLib,
+        Identity,
+        FixedVMFile,
+        PrePage,
+        DynamicSymbolTable,
+        LoadDylib,
+        IdDylib,
+        LoadDylinker,
+        IdDylinker,
+        PreBoundDylib,
+        Routines,
+        SubFramework,
+        SubUmbrella,
+        SubClient,
+        SubLibrary,
+        TwoLevelHints,
+        PreBindChecksum,
+        LoadWeakDylib = static_cast<uint32_t>(LoadCommandReqByDyld | 0x18),
+        Segment64 = 0x19,
+        Routines64,
+        Uuid,
+        Rpath,
+        CodeSignature,
+        SegmentSplitInfo,
+        ReexportDylib = static_cast<uint32_t>(LoadCommandReqByDyld | 0x1f),
+        LazyLoadDylib = 0x20,
+        EncryptionInfo,
+        DyldInfo,
+        DyldInfoOnly = static_cast<uint32_t>(LoadCommandReqByDyld | 0x22),
+        LoadUpwardDylib = 0x23,
+        VersionMinMacOS,
+        VersionMinIOS,
+        FunctionStarts,
+        DyldEnvironment,
+        Main = static_cast<uint32_t>(LoadCommandReqByDyld | 0x28),
+        DataInCode = 0x29,
+        SourceVersion,
+        DylibCodeSignDRS,
+        EncryptionInfo64,
+        LinkerOption,
+        LinkerOptimizationHint,
+        VersionMinTVOS,
+        VersionMinWatchOS,
+        Note,
+        BuildVersion,
+        DyldExportsTrie =
+            static_cast<uint32_t>(LoadCommandReqByDyld | 0x33),
+        DyldChainedFixups =
+            static_cast<uint32_t>(LoadCommandReqByDyld | 0x34),
+        FileSetEntry = static_cast<uint32_t>(LoadCommandReqByDyld | 0x35)
+    };
 
-        KindEnum Kind;
+    [[nodiscard]]
+    constexpr auto LoadCommandKindIsValid(const LoadCommandKind Kind) noexcept {
+        switch (Kind) {
+            case LoadCommandKind::Segment:
+            case LoadCommandKind::SymbolTable:
+            case LoadCommandKind::SymbolSegment:
+            case LoadCommandKind::Thread:
+            case LoadCommandKind::UnixThread:
+            case LoadCommandKind::LoadFixedVMSharedLib:
+            case LoadCommandKind::IdFixedVMSharedLib:
+            case LoadCommandKind::Identity:
+            case LoadCommandKind::FixedVMFile:
+            case LoadCommandKind::PrePage:
+            case LoadCommandKind::DynamicSymbolTable:
+            case LoadCommandKind::LoadDylib:
+            case LoadCommandKind::IdDylib:
+            case LoadCommandKind::LoadDylinker:
+            case LoadCommandKind::IdDylinker:
+            case LoadCommandKind::PreBoundDylib:
+            case LoadCommandKind::Routines:
+            case LoadCommandKind::SubFramework:
+            case LoadCommandKind::SubUmbrella:
+            case LoadCommandKind::SubClient:
+            case LoadCommandKind::SubLibrary:
+            case LoadCommandKind::TwoLevelHints:
+            case LoadCommandKind::PreBindChecksum:
+            case LoadCommandKind::LoadWeakDylib:
+            case LoadCommandKind::Segment64:
+            case LoadCommandKind::Routines64:
+            case LoadCommandKind::Uuid:
+            case LoadCommandKind::Rpath:
+            case LoadCommandKind::CodeSignature:
+            case LoadCommandKind::SegmentSplitInfo:
+            case LoadCommandKind::ReexportDylib:
+            case LoadCommandKind::LazyLoadDylib:
+            case LoadCommandKind::EncryptionInfo:
+            case LoadCommandKind::DyldInfo:
+            case LoadCommandKind::DyldInfoOnly:
+            case LoadCommandKind::LoadUpwardDylib:
+            case LoadCommandKind::VersionMinMacOS:
+            case LoadCommandKind::VersionMinIOS:
+            case LoadCommandKind::FunctionStarts:
+            case LoadCommandKind::DyldEnvironment:
+            case LoadCommandKind::Main:
+            case LoadCommandKind::DataInCode:
+            case LoadCommandKind::SourceVersion:
+            case LoadCommandKind::DylibCodeSignDRS:
+            case LoadCommandKind::EncryptionInfo64:
+            case LoadCommandKind::LinkerOption:
+            case LoadCommandKind::LinkerOptimizationHint:
+            case LoadCommandKind::VersionMinTVOS:
+            case LoadCommandKind::VersionMinWatchOS:
+            case LoadCommandKind::Note:
+            case LoadCommandKind::BuildVersion:
+            case LoadCommandKind::DyldExportsTrie:
+            case LoadCommandKind::DyldChainedFixups:
+            case LoadCommandKind::FileSetEntry:
+                return true;
+        }
+
+        return false;
+    }
+
+    [[nodiscard]] constexpr
+    auto LoadCommandKindGetString(const LoadCommandKind Kind) noexcept
+        -> std::string_view
+    {
+        switch (Kind) {
+            case LoadCommandKind::Segment:
+                return "LC_SEGMENT";
+            case LoadCommandKind::SymbolTable:
+                return "LC_SYMTAB";
+            case LoadCommandKind::SymbolSegment:
+                return "LC_SYMSEG";
+            case LoadCommandKind::Thread:
+                return "LC_THREAD";
+            case LoadCommandKind::UnixThread:
+                return "LC_UNIXTHREAD";
+            case LoadCommandKind::LoadFixedVMSharedLib:
+                return "LC_LOADFVMLIB";
+            case LoadCommandKind::IdFixedVMSharedLib:
+                return "LC_IDFVMLIB";
+            case LoadCommandKind::Identity:
+                return "LC_IDENT";
+            case LoadCommandKind::FixedVMFile:
+                return "LC_FVMFILE";
+            case LoadCommandKind::PrePage:
+                return "LC_PREPAGE";
+            case LoadCommandKind::DynamicSymbolTable:
+                return "LC_DYSYMTAB";
+            case LoadCommandKind::LoadDylib:
+                return "LC_LOAD_DYLIB";
+            case LoadCommandKind::IdDylib:
+                return "LC_ID_DYLIB";
+            case LoadCommandKind::LoadDylinker:
+                return "LC_LOAD_DYLINKER";
+            case LoadCommandKind::IdDylinker:
+                return "LC_ID_DYLINKER";
+            case LoadCommandKind::PreBoundDylib:
+                return "LC_PREBOUND_DYLIB";
+            case LoadCommandKind::Routines:
+                return "LC_ROUTINES";
+            case LoadCommandKind::SubFramework:
+                return "LC_SUB_FRAMEWORK";
+            case LoadCommandKind::SubUmbrella:
+                return "LC_SUB_UMBRELLA";
+            case LoadCommandKind::SubClient:
+                return "LC_SUB_CLIENT";
+            case LoadCommandKind::SubLibrary:
+                return "LC_SUB_LIBRARY";
+            case LoadCommandKind::TwoLevelHints:
+                return "LC_TWOLEVEL_HINTS";
+            case LoadCommandKind::PreBindChecksum:
+                return "LC_PREBIND_CKSUM";
+            case LoadCommandKind::LoadWeakDylib:
+                return "LC_LOAD_WEAK_DYLIB";
+            case LoadCommandKind::Segment64:
+                return "LC_SEGMENT_64";
+            case LoadCommandKind::Routines64:
+                return "LC_ROUTINES_64";
+            case LoadCommandKind::Uuid:
+                return "LC_UUID";
+            case LoadCommandKind::Rpath:
+                return "LC_RPATH";
+            case LoadCommandKind::CodeSignature:
+                return "LC_CODE_SIGNATURE";
+            case LoadCommandKind::SegmentSplitInfo:
+                return "LC_SEGMENT_SPLIT_INFO";
+            case LoadCommandKind::ReexportDylib:
+                return "LC_REEXPORT_DYLIB";
+            case LoadCommandKind::LazyLoadDylib:
+                return "LC_LAZY_LOAD_DYLIB";
+            case LoadCommandKind::EncryptionInfo:
+                return "LC_ENCRYPTION_INFO";
+            case LoadCommandKind::DyldInfo:
+                return "LC_DYLD_INFO";
+            case LoadCommandKind::DyldInfoOnly:
+                return "LC_DYLD_INFO_ONLY";
+            case LoadCommandKind::LoadUpwardDylib:
+                return "LC_LOAD_UPWARD_DYLIB";
+            case LoadCommandKind::VersionMinMacOS:
+                return "LC_VERSION_MIN_MACOSX";
+            case LoadCommandKind::VersionMinIOS:
+                return "LC_VERSION_MIN_IPHONEOS";
+            case LoadCommandKind::FunctionStarts:
+                return "LC_FUNCTION_STARTS";
+            case LoadCommandKind::DyldEnvironment:
+                return "LC_DYLD_ENVIRONMENT";
+            case LoadCommandKind::Main:
+                return "LC_MAIN";
+            case LoadCommandKind::DataInCode:
+                return "LC_DATA_IN_CODE";
+            case LoadCommandKind::SourceVersion:
+                return "LC_SOURCE_VERSION";
+            case LoadCommandKind::DylibCodeSignDRS:
+                return "LC_DYLIB_CODE_SIGN_DRS";
+            case LoadCommandKind::EncryptionInfo64:
+                return "LC_ENCRYPTION_INFO_64";
+            case LoadCommandKind::LinkerOption:
+                return "LC_LINKER_OPTION";
+            case LoadCommandKind::LinkerOptimizationHint:
+                return "LC_LINKER_OPTIMIZATION_HINT";
+            case LoadCommandKind::VersionMinTVOS:
+                return "LC_VERSION_MIN_TVOS";
+            case LoadCommandKind::VersionMinWatchOS:
+                return "LC_VERSION_MIN_WATCHOS";
+            case LoadCommandKind::Note:
+                return "LC_NOTE";
+            case LoadCommandKind::BuildVersion:
+                return "LC_BUILD_VERSION";
+            case LoadCommandKind::DyldExportsTrie:
+                return "LC_DYLD_EXPORTS_TRIE";
+            case LoadCommandKind::DyldChainedFixups:
+                return "LC_DYLD_CHAINED_FIXUPS";
+            case LoadCommandKind::FileSetEntry:
+                return "LC_FILESET_ENTRY";
+        }
+
+        assert(false &&
+               "Called LoadCommandKindGetString() with unknown "
+               "LoadCommandKind");
+    }
+
+    struct LoadCommand {
+        uint32_t Kind;
         uint32_t CmdSize;
+
+        [[nodiscard]]
+        constexpr auto kind(const bool IsBigEndian) const noexcept {
+            return LoadCommandKind(ADT::SwitchEndianIf(Kind, IsBigEndian));
+        }
+
+        [[nodiscard]]
+        constexpr auto cmdsize(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(CmdSize, IsBigEndian);
+        }
     };
 
     static_assert(sizeof(LoadCommand) == 8,
                   "struct LoadCommand doesn't have CmdSize 8");
 
+    enum class CmdSizeInvalidKind {
+        None,
+        TooSmall,
+        TooLarge
+    };
+
+    [[nodiscard]] auto
+    ValidateCmdsize(const LoadCommand *LC, bool IsBigEndian) noexcept
+        -> CmdSizeInvalidKind;
+
     struct SegmentCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static auto IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::Segment;
+        }
+
         char SegmentName[16];
 
         [[nodiscard]] constexpr auto segmentName() const noexcept {
             const auto Length = strnlen(SegmentName, sizeof(SegmentName));
             return std::string_view(SegmentName, Length);
+        }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(SegmentCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
         }
 
         uint32_t VmAddr;
@@ -125,6 +343,11 @@ namespace MachO {
         Mach::VmProt InitProt;
 
         uint32_t SectionCount;
+
+        [[nodiscard]]
+        constexpr auto sectionCount(const bool IsBigEndian) noexcept {
+            return ADT::SwitchEndianIf(SectionCount, IsBigEndian);
+        }
 
         struct FlagsStruct : public ADT::FlagsBase<uint32_t> {
         public:
@@ -305,10 +528,42 @@ namespace MachO {
             uint32_t Reserved1;
             uint32_t Reserved2;
         };
+
+        [[nodiscard]] constexpr auto
+        hasValidCmdSize(const bool IsBigEndian) noexcept {
+            if (const auto Result = hasValidCmdSize(cmdsize(IsBigEndian));
+                Result != CmdSizeInvalidKind::None)
+            {
+                return Result;
+            }
+
+            const auto SectionSize =
+                sizeof(Section) * sectionCount(IsBigEndian);
+
+            if (sizeof(*this) + SectionSize < cmdsize(IsBigEndian)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
     };
 
     struct SegmentCommand64 : public LoadCommand {
+        [[nodiscard]]
+        constexpr static auto IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::Segment64;
+        }
+
         char SegmentName[16];
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(SegmentCommand64)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
 
         [[nodiscard]] constexpr auto segmentName() const noexcept {
             const auto Length = strnlen(SegmentName, sizeof(SegmentName));
@@ -343,6 +598,11 @@ namespace MachO {
         Mach::VmProt InitProt;
 
         uint32_t SectionCount;
+
+        [[nodiscard]]
+        constexpr auto sectionCount(const bool IsBigEndian) noexcept {
+            return ADT::SwitchEndianIf(SectionCount, IsBigEndian);
+        }
 
         using FlagsStruct = SegmentCommand::FlagsStruct;
         struct Section {
@@ -396,12 +656,55 @@ namespace MachO {
                 return FlagsStruct(ADT::SwitchEndianIf(Flags, IsBigEndian));
             }
         };
-        
+
+        [[nodiscard]] constexpr auto
+        hasValidCmdSize(const bool IsBigEndian) noexcept {
+            if (const auto Result = hasValidCmdSize(cmdsize(IsBigEndian));
+                Result != CmdSizeInvalidKind::None)
+            {
+                return Result;
+            }
+
+            const auto SectionSize =
+                sizeof(Section) * sectionCount(IsBigEndian);
+
+            if (sizeof(*this) + SectionSize < cmdsize(IsBigEndian)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
         uint32_t Flags;
 
         [[nodiscard]]
         constexpr auto flags(const bool IsBigEndian) const noexcept {
             return FlagsStruct(ADT::SwitchEndianIf(Flags, IsBigEndian));
+        }
+    };
+
+    struct ThreadCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static auto IsOfKind(const LoadCommandKind Kind) noexcept {
+            const auto IsOfKind =
+                Kind == LoadCommandKind::Thread ||
+                Kind == LoadCommandKind::UnixThread;
+
+            return IsOfKind;
+        }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(ThreadCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
         }
     };
 
@@ -439,7 +742,35 @@ namespace MachO {
     };
 
     struct FvmLibraryCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static auto IsOfKind(const LoadCommandKind Kind) noexcept {
+            return
+                Kind == LoadCommandKind::LoadFixedVMSharedLib ||
+                Kind == LoadCommandKind::IdFixedVMSharedLib;
+        }
+
         FvmLibrary Library;
+    };
+
+    struct IdentCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::Identity;
+        }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(IdentCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]] constexpr auto
+        hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct Dylib {
@@ -463,7 +794,36 @@ namespace MachO {
     };
 
     struct DylibCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return
+                Kind == LoadCommandKind::LoadDylib ||
+                Kind == LoadCommandKind::IdDylib ||
+                Kind == LoadCommandKind::ReexportDylib ||
+                Kind == LoadCommandKind::LazyLoadDylib ||
+                Kind == LoadCommandKind::LoadUpwardDylib;
+        }
+
         Dylib Dylib;
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(DylibCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
+
+        [[nodiscard]]
+        constexpr auto name(const bool IsBigEndian) const noexcept {
+            return Dylib.Name.string(this, IsBigEndian);
+        }
     };
 
     struct SubFrameworkCommand : public LoadCommand {
@@ -473,9 +833,28 @@ namespace MachO {
         constexpr auto umbrella(const bool IsBigEndian) const noexcept {
             return Umbrella.string(this, IsBigEndian);
         }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(SubFrameworkCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct SubClientCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::SubClient;
+        }
+
         LoadCommandString Client;
 
         [[nodiscard]]
@@ -485,20 +864,58 @@ namespace MachO {
     };
 
     struct SubUmbrellaCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::SubUmbrella;
+        }
+
         LoadCommandString SubUmbrella;
 
         [[nodiscard]]
         constexpr auto subUmbrella(const bool IsBigEndian) const noexcept {
             return SubUmbrella.string(this, IsBigEndian);
         }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(SubUmbrellaCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct SubLibraryCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::SubLibrary;
+        }
+
         LoadCommandString SubLibrary;
 
         [[nodiscard]]
         constexpr auto subLibrary(const bool IsBigEndian) const noexcept {
             return SubLibrary.string(this, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(SubLibraryCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
         }
     };
 
@@ -538,15 +955,46 @@ namespace MachO {
     };
 
     struct PreboundDylibCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::PreBoundDylib;
+        }
+
         LoadCommandString Name;
         uint32_t ModulesCount;
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(PreboundDylibCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct DylinkerCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return
+                Kind == LoadCommandKind::LoadDylinker ||
+                Kind == LoadCommandKind::IdDylinker;
+        }
+
         LoadCommandString Name;
     };
 
     struct RoutinesCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::Routines;
+        }
+
         uint32_t InitAddress;
         uint32_t InitModule;
 
@@ -559,6 +1007,11 @@ namespace MachO {
     };
 
     struct RoutinesCommand64 : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::Routines64;
+        }
+
         uint64_t InitAddress;
         uint64_t InitModule;
 
@@ -571,6 +1024,11 @@ namespace MachO {
     };
 
     struct SymTabCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::SymbolTable;
+        }
+
         uint32_t SymOffset;
         uint32_t SymCount;
         uint32_t StrOffset;
@@ -583,9 +1041,28 @@ namespace MachO {
 
             return ADT::Range::FromSize(StrOffset, StrSize);
         }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(PreboundDylibCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct DynamicSymTab : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::DynamicSymbolTable;
+        }
+
         uint32_t LocalSymbolsIndex;
         uint32_t LocalSymbolsCount;
 
@@ -612,6 +1089,20 @@ namespace MachO {
 
         uint32_t LocalRelOffset;
         uint32_t LocalRelCount;
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(PreboundDylibCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct DylibTableOfContents {
@@ -732,6 +1223,11 @@ namespace MachO {
     };
 
     struct TwoLevelHintsCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::TwoLevelHints;
+        }
+
         uint32_t Offset;
         uint32_t HintsCount;
     };
@@ -741,18 +1237,88 @@ namespace MachO {
     };
 
     struct PrebindChecksumCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::PreBindChecksum;
+        }
+
         uint32_t Checksum;
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(PrebindChecksumCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(PrebindChecksumCommand)) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct UuidCommand : public LoadCommand {
         uint8_t Uuid[16];
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(UuidCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(UuidCommand)) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct RpathCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::Rpath;
+        }
+
         LoadCommandString Path;
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(RpathCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct LinkeditDataCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return
+                Kind == LoadCommandKind::CodeSignature ||
+                Kind == LoadCommandKind::SegmentSplitInfo ||
+                Kind == LoadCommandKind::FunctionStarts ||
+                Kind == LoadCommandKind::DyldEnvironment ||
+                Kind == LoadCommandKind::DataInCode ||
+                Kind == LoadCommandKind::DylibCodeSignDRS ||
+                Kind == LoadCommandKind::LinkerOptimizationHint ||
+                Kind == LoadCommandKind::DyldExportsTrie ||
+                Kind == LoadCommandKind::DyldChainedFixups;
+        }
+
         uint32_t DataOff;
         uint32_t DataSize;
 
@@ -763,17 +1329,59 @@ namespace MachO {
 
             return ADT::Range::FromSize(DataOff, DataSize);
         }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(LinkeditDataCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(LinkeditDataCommand)) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
-    struct FilesetEntryCommand : public LoadCommand {
+    struct FileSetEntryCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::FileSetEntry;
+        }
+
         uint64_t VmAddress;
         uint64_t FileOffset;
 
         uint32_t EntryId;
         uint32_t Reserved;
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(PreboundDylibCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(FileSetEntryCommand)) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct EncryptionInfoCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::EncryptionInfo;
+        }
+
         uint32_t CryptOffset;
         uint32_t CryptSize;
         uint32_t CryptId;
@@ -787,9 +1395,30 @@ namespace MachO {
 
             return ADT::Range::FromSize(CryptOffset, CryptSize);
         }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(EncryptionInfoCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(EncryptionInfoCommand)) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
-    struct EncryptionInfo64Command : public LoadCommand {
+   struct EncryptionInfo64Command : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::EncryptionInfo64;
+        }
+
         uint32_t CryptOffset;
         uint32_t CryptSize;
         uint32_t CryptId;
@@ -804,9 +1433,34 @@ namespace MachO {
 
             return ADT::Range::FromSize(CryptOffset, CryptSize);
         }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(EncryptionInfo64Command)) {
+                return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(EncryptionInfo64Command)) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct VersionMinCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return
+                Kind == LoadCommandKind::VersionMinMacOS ||
+                Kind == LoadCommandKind::VersionMinIOS ||
+                Kind == LoadCommandKind::VersionMinTVOS ||
+                Kind == LoadCommandKind::VersionMinWatchOS;
+        }
+
         uint32_t Version;
         uint32_t Sdk;
 
@@ -819,24 +1473,21 @@ namespace MachO {
         constexpr auto sdk(const bool IsBigEndian) const noexcept {
             return Dyld3::PackedVersion(ADT::SwitchEndianIf(Sdk, IsBigEndian));
         }
-    };
 
-    struct BuildVersionCommand : public LoadCommand {
-        uint32_t Platform;
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(VersionMinCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(VersionMinCommand)) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
 
-        uint32_t MinimumOS;
-        uint32_t Sdk;
-
-        uint32_t ToolsCount;
-
-        [[nodiscard]]
-        constexpr auto platform(const bool IsBigEndian) const noexcept {
-            return Dyld3::Platform(ADT::SwitchEndianIf(Platform, IsBigEndian));
+            return CmdSizeInvalidKind::None;
         }
 
         [[nodiscard]]
-        constexpr auto sdk(const bool IsBigEndian) const noexcept {
-            return Dyld3::PackedVersion(ADT::SwitchEndianIf(Sdk, IsBigEndian));
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
         }
     };
 
@@ -861,7 +1512,63 @@ namespace MachO {
         }
     };
 
+    struct BuildVersionCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::BuildVersion;
+        }
+
+        uint32_t Platform;
+
+        uint32_t MinimumOS;
+        uint32_t Sdk;
+
+        uint32_t ToolsCount;
+
+        [[nodiscard]]
+        constexpr auto platform(const bool IsBigEndian) const noexcept {
+            return Dyld3::Platform(ADT::SwitchEndianIf(Platform, IsBigEndian));
+        }
+
+        [[nodiscard]]
+        constexpr auto sdk(const bool IsBigEndian) const noexcept {
+            return Dyld3::PackedVersion(ADT::SwitchEndianIf(Sdk, IsBigEndian));
+        }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(BuildVersionCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            if (const auto Result = hasValidCmdSize(cmdsize(IsBigEndian));
+                Result != CmdSizeInvalidKind::None)
+            {
+                return Result;
+            }
+
+            const auto ToolListSize = sizeof(BuildTool) * ToolsCount;
+            if (sizeof(*this) + ToolListSize < cmdsize(IsBigEndian)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+    };
+
     struct DyldInfoCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return
+                Kind == LoadCommandKind::DyldInfo ||
+                Kind == LoadCommandKind::DyldInfoOnly;
+        }
+
         uint32_t RebaseOffset;
         uint32_t RebaseSize;
 
@@ -926,13 +1633,55 @@ namespace MachO {
 
             return ADT::Range::FromSize(ExportTrieOffset, ExportTrieSize);
         }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(VersionMinCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(VersionMinCommand)) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct LinkerOptionCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::LinkerOption;
+        }
+
         uint32_t Count;
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(LinkerOptionCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(LinkerOptionCommand)) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct SymbolSegmentCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::SymbolSegment;
+        }
+
         uint32_t Offset;
         uint32_t Size;
 
@@ -943,24 +1692,99 @@ namespace MachO {
 
             return ADT::Range::FromSize(Offset, Size);
         }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(SymbolSegmentCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(SymbolSegmentCommand)) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct FvmFileCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::FixedVMFile;
+        }
+
         LoadCommandString Name;
         uint32_t HeaderAddress;
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(FvmFileCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct EntryPointCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::Main;
+        }
+
         uint64_t EntryOffset;
         uint64_t StackSize;
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(EntryPointCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(EntryPointCommand)) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     struct SourceVersionCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::SourceVersion;
+        }
+
         uint64_t Version;
 
         [[nodiscard]]
         constexpr auto version(const bool IsBE) const noexcept {
             return Dyld3::PackedVersion64(ADT::SwitchEndianIf(Version, IsBE));
+        }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(SourceVersionCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
         }
     };
 
@@ -988,6 +1812,12 @@ namespace MachO {
     };
 
     struct NoteCommand : public LoadCommand {
+        [[nodiscard]]
+        constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
+            return Kind == LoadCommandKind::Note;
+        }
+
+
         char DataOwner[16];
 
         [[nodiscard]] constexpr auto dataOwner() const noexcept {
@@ -1005,5 +1835,382 @@ namespace MachO {
 
             return ADT::Range::FromSize(Offset, Size);
         }
+
+        [[nodiscard]] constexpr static auto
+        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(NoteCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(NoteCommand)) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
+
+    template <LoadCommandKind Kind>
+    struct LoadCommandTypeFromKind {};
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::Segment> {
+        using type = SegmentCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::SymbolTable> {
+        using type = SymTabCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::SymbolSegment> {
+        using type = SymbolSegmentCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::UnixThread> {
+        using type = ThreadCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::LoadFixedVMSharedLib> {
+        using type = FvmLibraryCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::IdFixedVMSharedLib> {
+        using type = FvmLibraryCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::Identity> {
+        using type = IdentCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::FixedVMFile> {
+        using type = FvmFileCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::PrePage> {
+        using type = LoadCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::DynamicSymbolTable> {
+        using type = DynamicSymTab;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::LoadDylib> {
+        using type = DylibCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::IdDylib> {
+        using type = DylibCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::LoadDylinker> {
+        using type = DylinkerCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::IdDylinker> {
+        using type = DylinkerCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::PreBoundDylib> {
+        using type = PreboundDylibCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::Routines> {
+        using type = RoutinesCommand;
+    };
+    
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::SubFramework> {
+        using type = SubFrameworkCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::SubUmbrella> {
+        using type = SubUmbrellaCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::SubClient> {
+        using type = SubClientCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::SubLibrary> {
+        using type = SubLibraryCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::TwoLevelHints> {
+        using type = TwoLevelHintsCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::PreBindChecksum> {
+        using type = PrebindChecksumCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::LoadWeakDylib> {
+        using type = DylibCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::Segment64> {
+        using type = SegmentCommand64;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::Routines64> {
+        using type = RoutinesCommand64;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::Uuid> {
+        using type = UuidCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::Rpath> {
+        using type = RpathCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::CodeSignature> {
+        using type = LinkeditDataCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::SegmentSplitInfo> {
+        using type = LinkeditDataCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::ReexportDylib> {
+        using type = DylibCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::LazyLoadDylib> {
+        using type = DylibCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::EncryptionInfo> {
+        using type = EncryptionInfoCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::DyldInfo> {
+        using type = EncryptionInfoCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::DyldInfoOnly> {
+        using type = EncryptionInfoCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::LoadUpwardDylib> {
+        using type = DylibCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::VersionMinMacOS> {
+        using type = VersionMinCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::VersionMinIOS> {
+        using type = VersionMinCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::FunctionStarts> {
+        using type = LinkeditDataCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::DyldEnvironment> {
+        using type = LinkeditDataCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::Main> {
+        using type = EntryPointCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::DataInCode> {
+        using type = LinkeditDataCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::SourceVersion> {
+        using type = SourceVersionCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::DylibCodeSignDRS> {
+        using type = LinkeditDataCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::EncryptionInfo64> {
+        using type = EncryptionInfo64Command;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::LinkerOption> {
+        using type = LinkerOptionCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::LinkerOptimizationHint> {
+        using type = LinkeditDataCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::VersionMinTVOS> {
+        using type = VersionMinCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::VersionMinWatchOS> {
+        using type = VersionMinCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::Note> {
+        using type = NoteCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::BuildVersion> {
+        using type = BuildVersionCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::DyldExportsTrie> {
+        using type = LinkeditDataCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::DyldChainedFixups> {
+        using type = LinkeditDataCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::FileSetEntry> {
+        using type = FileSetEntryCommand;
+    };
+
+    template <typename T>
+    concept LoadCommandDerived = std::is_base_of_v<LoadCommand, T>;
+
+    template <LoadCommandDerived T>
+    [[nodiscard]]
+    constexpr auto isa(const LoadCommand *const LC, bool IsBigEndian) noexcept {
+        return T::IsOfKind(LC->kind(IsBigEndian));
+    }
+
+    template <LoadCommandKind Kind>
+    [[nodiscard]]
+    constexpr auto isa(const LoadCommand *const LC, bool IsBigEndian) noexcept {
+        return LC->kind(IsBigEndian) == Kind;
+    }
+
+    template <LoadCommandDerived T>
+    [[nodiscard]]
+    constexpr auto cast(LoadCommand *const LC, bool IsBigEndian) noexcept {
+        assert(isa<T>(LC, IsBigEndian));
+        return static_cast<T *>(LC);
+    }
+
+    template <LoadCommandDerived T>
+    [[nodiscard]] constexpr
+    auto cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept {
+        assert(isa<T>(LC, IsBigEndian));
+        return static_cast<const T *>(LC);
+    }
+
+    template <LoadCommandKind Kind>
+    [[nodiscard]]
+    constexpr auto cast(LoadCommand *const LC, bool IsBigEndian) noexcept {
+        assert(isa<Kind>(LC, IsBigEndian));
+
+        using T = typename LoadCommandTypeFromKind<Kind>::type;
+        return static_cast<T *>(LC);
+    }
+
+    template <LoadCommandKind Kind>
+    [[nodiscard]] constexpr
+    auto cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept {
+        assert(isa<Kind>(LC, IsBigEndian));
+
+        using T = typename LoadCommandTypeFromKind<Kind>::type;
+        return static_cast<const T *>(LC);
+    }
+
+    template <LoadCommandDerived T>
+    [[nodiscard]] constexpr
+    auto dyn_cast(LoadCommand *const LC, const bool IsBigEndian) noexcept
+        -> T *
+    {
+        if (isa<T>(LC, IsBigEndian)) {
+            return static_cast<T *>(LC);
+        }
+
+        return nullptr;
+    }
+
+    template <LoadCommandDerived T>
+    [[nodiscard]] constexpr auto
+    dyn_cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept
+        -> const T *
+    {
+        if (isa<T>(LC, IsBigEndian)) {
+            return static_cast<const T *>(LC);
+        }
+
+        return nullptr;
+    }
+
+    template <LoadCommandKind Kind>
+    [[nodiscard]]
+    constexpr auto dyn_cast(LoadCommand *const LC, bool IsBigEndian) noexcept {
+        using T = typename LoadCommandTypeFromKind<Kind>::type;
+        if (isa<Kind>(LC, IsBigEndian)) {
+            return static_cast<T *>(LC);
+        }
+
+        return static_cast<T *>(nullptr);
+    }
+
+    template <LoadCommandKind Kind>
+    [[nodiscard]] constexpr auto
+    dyn_cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept {
+        using T = typename LoadCommandTypeFromKind<Kind>::type;
+        if (isa<Kind>(LC, IsBigEndian)) {
+            return static_cast<const T *>(LC);
+        }
+
+        return static_cast<const T *>(nullptr);
+    }
 }

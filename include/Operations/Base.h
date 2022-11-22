@@ -8,6 +8,7 @@
 #pragma once
 
 #include "Objects/Base.h"
+#include "Objects/FatMachO.h"
 #include "Kind.h"
 
 namespace Operations {
@@ -16,7 +17,6 @@ namespace Operations {
         uint32_t Error = 0;
         Objects::Kind Kind = Objects::Kind::None;
 
-        constexpr explicit RunResult() noexcept = default;
         constexpr explicit RunResult(const Objects::Kind Kind) noexcept
         : Kind(Kind) {}
 
@@ -49,39 +49,30 @@ namespace Operations {
         }
     };
 
-    constexpr static auto RunResultNone = RunResult();
     constexpr static auto RunResultUnsupported =
         RunResult(Objects::Kind::None, 1);
 
     struct Base {
     public:
         virtual ~Base() noexcept {}
-        virtual RunResult run(const Objects::Base &Base) const noexcept = 0;
 
+        virtual
+        auto supportsObjectKind(Objects::Kind Kind) const noexcept -> bool = 0;
 
-        template <typename T>
+        struct HandleFileOptions {
+            int64_t ArchIndex = -1;
+            std::string_view Path;
+        };
+
         auto
-        runOnArchOfFatMachO(RunResult &Result,
-                            const Objects::FatMachO &Fat,
-                            const uint32_t ArchIndex) const noexcept
-        {
-            if (ArchIndex >= Fat.archCount()) {
-                return Result.set(T::InvalidArchIndex);
-            }
+        runAndHandleFile(HandleFileOptions Options) const noexcept -> RunResult;
 
-            const auto ArchObject =
-                Fat.getArchObjectAtIndex(static_cast<int32_t>(ArchIndex));
+        auto
+        runAndHandleFile(const Objects::Base &Base,
+                         HandleFileOptions Options) const noexcept
+            -> RunResult;
 
-            const auto Error = ArchObject.getError();
-            if (!Error.isNone()) {
-                if (Error.isUnrecognizedFormat()) {
-                    return RunResultUnsupported;
-                }
-
-                return Result.set(T::ArchObjectOpenError, Error);
-            }
-
-            return run(*ArchObject.getPtr());
-        }
+        virtual
+        auto run(const Objects::Base &Base) const noexcept -> RunResult = 0;
     };
 }

@@ -42,15 +42,15 @@ namespace Dyld3 {
             return *this;
         }
     public:
-        [[nodiscard]] constexpr auto getRevision() const noexcept {
+        [[nodiscard]] constexpr auto revision() const noexcept {
             return getForMaskShift(Masks::Revision, Shifts::Revision);
         }
 
-        [[nodiscard]] constexpr auto getMinor() const noexcept {
+        [[nodiscard]] constexpr auto minor() const noexcept {
             return getForMaskShift(Masks::Minor, Shifts::Minor);
         }
 
-        [[nodiscard]] constexpr auto getMajor() const noexcept {
+        [[nodiscard]] constexpr auto major() const noexcept {
             return getForMaskShift(Masks::Major, Shifts::Major);
         }
 
@@ -104,23 +104,23 @@ namespace Dyld3 {
     public:
         using ADT::FlagsBase<uint64_t>::FlagsBase;
 
-        [[nodiscard]] constexpr auto getRevision3() const noexcept -> uint16_t {
+        [[nodiscard]] constexpr auto revision3() const noexcept -> uint16_t {
             return getForMaskShift(Masks::Revision3, Shifts::Revision3);
         }
 
-        [[nodiscard]] constexpr auto getRevision2() const noexcept -> uint16_t {
+        [[nodiscard]] constexpr auto revision2() const noexcept -> uint16_t {
             return getForMaskShift(Masks::Revision2, Shifts::Revision2);
         }
 
-        [[nodiscard]] constexpr auto getRevision1() const noexcept -> uint16_t {
+        [[nodiscard]] constexpr auto revision1() const noexcept -> uint16_t {
             return getForMaskShift(Masks::Revision1, Shifts::Revision1);
         }
 
-        [[nodiscard]] constexpr auto getMinor() const noexcept {
+        [[nodiscard]] constexpr auto minor() const noexcept {
             return getForMaskShift(Masks::Minor, Shifts::Minor);
         }
 
-        [[nodiscard]] constexpr auto getMajor() const noexcept {
+        [[nodiscard]] constexpr auto major() const noexcept {
             return getForMaskShift(Masks::Major, Shifts::Major);
         }
 
@@ -144,4 +144,18 @@ namespace Dyld3 {
             return setWithMaskShift(Masks::Major, Shifts::Major, Value);
         }
     };
+
+#define DYLD3_PACKED_VERSION_FMT "%u.%u.%u"
+#define DYLD3_PACKED_VERSION_FMT_ARGS(VERSION) \
+    (VERSION).major(), \
+    (VERSION).minor(), \
+    (VERSION).revision()
+
+#define DYLD3_PACKED_VERSION_64_FMT "%u.%u.%u.%u.%u"
+#define DYLD3_PACKED_VERSION_64_FMT_ARGS(VERSION) \
+    (VERSION).major(), \
+    (VERSION).minor(), \
+    (VERSION).revision1(), \
+    (VERSION).revision2(), \
+    (VERSION).revision3(),
 }

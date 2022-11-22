@@ -306,5 +306,13 @@ namespace MachO {
         [[nodiscard]] constexpr auto flags() const noexcept {
             return ::MachO::Flags(ADT::SwitchEndianIf(Flags, isBigEndian()));
         }
+
+        [[nodiscard]] constexpr auto size() const noexcept {
+            return sizeof(*this) + (is64Bit() ? sizeof(uint32_t) : 0);
+        }
+
+        [[nodiscard]] constexpr auto loadCommandsRange() const noexcept {
+            return ADT::Range::FromSize(size(), sizeOfCmds());
+        }
     };
 }

@@ -43,6 +43,12 @@ namespace ADT {
             return reinterpret_cast<T *>(Base);
         }
 
+        template <typename T = void *>
+        [[nodiscard]]
+        inline auto end(const uint64_t Count = 1) const noexcept -> const T * {
+            return reinterpret_cast<const T *>(reinterpret_cast<uint64_t>(Base) + Size);
+        }
+
         template <typename T = void *, bool Verify = true>
         [[nodiscard]] inline
         auto get(const uint64_t Offset, const uint64_t Count = 1) const noexcept

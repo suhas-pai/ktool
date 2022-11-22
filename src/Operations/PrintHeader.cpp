@@ -10,7 +10,23 @@
 namespace Operations {
     PrintHeader::PrintHeader(FILE *OutFile, const struct Options &Options)
     : OutFile(OutFile), Opt(Options) {}
-    
+
+    bool
+    PrintHeader::supportsObjectKind(const Objects::Kind Kind) const noexcept {
+        switch (Kind) {
+            case Objects::Kind::None:
+                assert(false &&
+                       "Got Object-Kind None in "
+                       "PrintHeader::supportsObjectKind");
+            case Objects::Kind::MachO:
+            case Objects::Kind::FatMachO:
+                return true;
+        }
+
+        assert(false &&
+               "Got unknown Object-Kind in PrintHeader::supportsObjectKind");
+    }
+
     auto
     PrintHeader::run(const Objects::MachO &MachO) const noexcept -> RunResult {
         auto Result = RunResult(Objects::Kind::MachO);
@@ -110,10 +126,6 @@ namespace Operations {
     auto
     PrintHeader::run(const Objects::FatMachO &Fat) const noexcept -> RunResult {
         auto Result = RunResult(Objects::Kind::FatMachO);
-        if (Opt.ArchIndex != -1) {
-            const auto ArchIndex = static_cast<int32_t>(Opt.ArchIndex);
-            return runOnArchOfFatMachO<RunError>(Result, Fat, ArchIndex);
-        }
 
         const auto Header = Fat.header();
         fprintf(OutFile,
@@ -137,6 +149,6 @@ namespace Operations {
                 return run(static_cast<const Objects::FatMachO &>(Base));
         }
 
-        return RunResultUnsupported;
+        assert(false && "Got unrecognized Object-Kind in PrintHeader::run");
     }
 }

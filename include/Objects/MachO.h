@@ -30,12 +30,16 @@ namespace Objects {
         static auto Open(const ADT::MemoryMap &Map) noexcept ->
             ADT::PointerOrError<MachO, OpenError>;
 
-        [[nodiscard]] constexpr auto getMemoryMap() const noexcept {
+        [[nodiscard]] constexpr auto map() const noexcept {
             return Map;
         }
 
         [[nodiscard]] constexpr auto header() const noexcept {
-            return *getMemoryMap().base<::MachO::Header, false>();
+            return *map().base<::MachO::Header, false>();
+        }
+
+        [[nodiscard]] constexpr auto fileKind() const noexcept {
+            return header().fileKind();
         }
 
         [[nodiscard]] constexpr auto isBigEndian() const noexcept {
