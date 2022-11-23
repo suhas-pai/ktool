@@ -8,7 +8,10 @@
 #pragma once
 
 #include "ADT/PointerOrError.h"
+
 #include "MachO/Header.h"
+#include "MachO/LoadCommandsMap.h"
+
 #include "Base.h"
 
 namespace Objects {
@@ -50,6 +53,14 @@ namespace Objects {
 
         [[nodiscard]] inline auto is64Bit() const noexcept {
             return header().is64Bit();
+        }
+
+        [[nodiscard]] inline auto loadCommandsMap() const noexcept {
+            const auto IsBigEndian = isBigEndian();
+            const auto LoadCommandsMemoryMap =
+                ADT::MemoryMap(map(), header().loadCommandsRange());
+
+            return ::MachO::LoadCommandsMap(LoadCommandsMemoryMap, IsBigEndian);
         }
     };
 }

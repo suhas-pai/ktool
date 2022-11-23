@@ -1,5 +1,5 @@
 //
-//  PrintArchs.cpp
+//  Operations/PrintArchs.cpp
 //  ktool
 //
 //  Created by suhaspai on 11/22/22.
@@ -9,7 +9,7 @@
 #include "Operations/PrintArchs.h"
 
 namespace Operations {
-    PrintArchs::PrintArchs(FILE *OutFile, const struct Options &Options)
+    PrintArchs::PrintArchs(FILE *const OutFile, const struct Options &Options)
     : OutFile(OutFile), Opt(Options) {}
 
     bool

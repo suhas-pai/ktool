@@ -9,7 +9,7 @@
 #include "Operations/PrintHeader.h"
 
 namespace Operations {
-    PrintHeader::PrintHeader(FILE *OutFile, const struct Options &Options)
+    PrintHeader::PrintHeader(FILE *const OutFile, const struct Options &Options)
     : OutFile(OutFile), Opt(Options) {}
 
     bool
@@ -112,7 +112,7 @@ namespace Operations {
                         MachO::FlagsGetString(Flag).data());
             } else {
                 fprintf(OutFile,
-                        "\t\t %d. Unknown Flag (Bit %d)\n",
+                        "\t\t %d. <unknown> (Bit-Index %d)\n",
                         Counter,
                         (StartIndex + BitIndex));
             }

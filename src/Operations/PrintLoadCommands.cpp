@@ -8,11 +8,15 @@
 #include "ADT/Misc.h"
 #include "ADT/PrintUtils.h"
 
+#include "Dyld3/Platform.h"
+
+#include "MachO/LoadCommands.h"
 #include "MachO/LoadCommandsMap.h"
+
 #include "Operations/PrintLoadCommands.h"
 
 namespace Operations {
-    PrintLoadCommands::PrintLoadCommands(FILE *OutFile,
+    PrintLoadCommands::PrintLoadCommands(FILE *const OutFile,
                                          const struct Options &Options) noexcept
     : OutFile(OutFile), Opt(Options) {}
 
@@ -39,17 +43,12 @@ namespace Operations {
     PrintLoadCommand(FILE *const OutFile,
                      const MachO::LoadCommand &LC,
                      const bool IsBigEndian,
+                     const bool Verbose,
                      const char *Prefix = "") noexcept
     {
         const auto Kind = LC.kind(IsBigEndian);
-        fprintf(OutFile,
-                "%sCmd:     %s\n"
-                "%sCmdSize: %" PRIu32 "\n\n",
-                Prefix,
-                MachO::LoadCommandKindGetString(Kind).data(),
-                Prefix, LC.cmdsize(IsBigEndian));
-
         constexpr auto Malformed = std::string_view("<malformed>");
+
         switch (Kind) {
             case MachO::LoadCommandKind::Segment: {
                 const auto &Segment =
@@ -59,6 +58,7 @@ namespace Operations {
                 const auto VmSize = Segment.vmSize(IsBigEndian);
                 const auto FileOffset = Segment.fileOffset(IsBigEndian);
                 const auto FileSize = Segment.fileSize(IsBigEndian);
+                const auto SectionCount = Segment.sectionCount(IsBigEndian);
 
                 fprintf(OutFile,
                         "%sSegname:       \"" STRING_VIEW_FMT "\"\n"
@@ -83,8 +83,52 @@ namespace Operations {
                         MACH_VMPROT_FMT_ARGS(Segment.maxProt(IsBigEndian)),
                         Prefix,
                         MACH_VMPROT_FMT_ARGS(Segment.initProt(IsBigEndian)),
-                        Prefix, Segment.sectionCount(IsBigEndian),
+                        Prefix, SectionCount,
                         Prefix, Segment.flags(IsBigEndian).value());
+
+                if (SectionCount == 0) {
+                    break;
+                }
+
+                const auto SectionList = Segment.sections();
+                fputc('\n', OutFile);
+
+                for (auto I = uint32_t(); I != SectionCount; I++) {
+                    const auto &Section = SectionList[I];
+
+                    const auto Addr = Section.addr(IsBigEndian);
+                    const auto Size = Section.size(IsBigEndian);
+                    const auto FileOffset = Section.fileOffset(IsBigEndian);
+                    const auto FormattedSize = ADT::FormattedSize(Size);
+
+                    fprintf(OutFile,
+                            "%sSection %" PRIu32 ":\n"
+                            "%s\tSection Name:      \"" STRING_VIEW_FMT "\"\n"
+                            "%s\tSegment Name:      \"" STRING_VIEW_FMT "\"\n"
+                            "%s\tAddress:           " ADDRESS_32_FMT " ("
+                                ADDR_RANGE_32_FMT ")\n"
+                            "%s\tSize:              %" PRIu32 " (%s)\n"
+                            "%s\tFile Offset:       " ADDRESS_32_FMT " ("
+                                ADDR_RANGE_32_FMT ")\n"
+                            "%s\tAlign:             %" PRIu32 "\n"
+                            "%s\tReloc File Offset: " ADDRESS_32_FMT "\n"
+                            "%s\tReloc Count:       %" PRIu32 "\n"
+                            "%s\tReserved 1:        %" PRIu32 "\n"
+                            "%s\tReserved 2:        %" PRIu32 "\n",
+                            Prefix, I + 1,
+                            Prefix, STRING_VIEW_FMT_ARGS(Section.sectionName()),
+                            Prefix, STRING_VIEW_FMT_ARGS(Section.segmentName()),
+                            Prefix, Addr,
+                            ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
+                            Prefix, Size, FormattedSize.data(),
+                            Prefix, FileOffset,
+                            ADDR_RANGE_FMT_ARGS(FileOffset, Size),
+                            Prefix, Section.align(IsBigEndian),
+                            Prefix, Section.relocFileOffset(IsBigEndian),
+                            Prefix, Section.relocsCount(IsBigEndian),
+                            Prefix, Section.reserved1(IsBigEndian),
+                            Prefix, Section.reserved2(IsBigEndian));
+                }
 
                 break;
             }
@@ -96,6 +140,7 @@ namespace Operations {
                 const auto VmSize = Segment.vmSize(IsBigEndian);
                 const auto FileOffset = Segment.fileOffset(IsBigEndian);
                 const auto FileSize = Segment.fileSize(IsBigEndian);
+                const auto SectionCount = Segment.sectionCount(IsBigEndian);
 
                 fprintf(OutFile,
                         "%sSegname:       \"" STRING_VIEW_FMT "\"\n"
@@ -120,8 +165,54 @@ namespace Operations {
                         MACH_VMPROT_FMT_ARGS(Segment.maxProt(IsBigEndian)),
                         Prefix,
                         MACH_VMPROT_FMT_ARGS(Segment.initProt(IsBigEndian)),
-                        Prefix, Segment.sectionCount(IsBigEndian),
+                        Prefix, SectionCount,
                         Prefix, Segment.flags(IsBigEndian).value());
+
+                if (SectionCount == 0) {
+                    break;
+                }
+
+                const auto SectionList = Segment.sections();
+                fputc('\n', OutFile);
+
+                for (auto I = uint32_t(); I != SectionCount; I++) {
+                    const auto &Section = SectionList[I];
+
+                    const auto Addr = Section.addr(IsBigEndian);
+                    const auto Size = Section.size(IsBigEndian);
+                    const auto FileOffset = Section.fileOffset(IsBigEndian);
+                    const auto FormattedSize = ADT::FormattedSize(Size);
+
+                    fprintf(OutFile,
+                            "%sSection %" PRIu32 ":\n"
+                            "%s\tSection Name:      \"" STRING_VIEW_FMT "\"\n"
+                            "%s\tSegment Name:      \"" STRING_VIEW_FMT "\"\n"
+                            "%s\tAddress:           " ADDRESS_64_FMT " ("
+                                ADDR_RANGE_64_FMT ")\n"
+                            "%s\tSize:              %" PRIu64 " (%s)\n"
+                            "%s\tFile Offset:       " ADDRESS_32_FMT " ("
+                                ADDR_RANGE_32_64_FMT ")\n"
+                            "%s\tAlign:             %" PRIu32 "\n"
+                            "%s\tReloc File Offset: " ADDRESS_32_FMT "\n"
+                            "%s\tReloc Count:       %" PRIu32 "\n"
+                            "%s\tReserved 1:        %" PRIu32 "\n"
+                            "%s\tReserved 2:        %" PRIu32 "\n"
+                            "%s\tReserved 3:        %" PRIu32 "\n",
+                            Prefix, I + 1,
+                            Prefix, STRING_VIEW_FMT_ARGS(Section.sectionName()),
+                            Prefix, STRING_VIEW_FMT_ARGS(Section.segmentName()),
+                            Prefix, Addr,
+                            ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
+                            Prefix, Size, FormattedSize.data(),
+                            Prefix, FileOffset,
+                            ADDR_RANGE_FMT_ARGS(FileOffset, Size),
+                            Prefix, Section.align(IsBigEndian),
+                            Prefix, Section.relocFileOffset(IsBigEndian),
+                            Prefix, Section.relocsCount(IsBigEndian),
+                            Prefix, Section.reserved1(IsBigEndian),
+                            Prefix, Section.reserved2(IsBigEndian),
+                            Prefix, Section.reserved3(IsBigEndian));
+                }
 
                 break;
             }
@@ -619,7 +710,9 @@ namespace Operations {
                 const auto Platform = BuildVersionCmd.platform(IsBigEndian);
                 if (Dyld3::PlatformIsValid(Platform)) {
                     const auto PlatformString =
-                        Dyld3::PlatformGetString(Platform);
+                        Verbose ?
+                            Dyld3::PlatformGetDesc(Platform) :
+                            Dyld3::PlatformGetString(Platform);
 
                     fprintf(OutFile,
                             "%sPlatform:    %s\n",
@@ -801,19 +894,28 @@ namespace Operations {
         RunResult
     {
         auto Result = RunResult(Objects::Kind::MachO);
-        const auto LoadCommandsMemoryMap =
-            ADT::MemoryMap(MachO.map(), MachO.header().loadCommandsRange());
+        auto Counter = static_cast<uint32_t>(1);
 
         const auto IsBigEndian = MachO.isBigEndian();
-        const auto LoadCommandsMap =
-            ::MachO::LoadCommandsMap(LoadCommandsMemoryMap, IsBigEndian);
+        for (const auto &LoadCommand : MachO.loadCommandsMap()) {
+            const auto Kind = LoadCommand.kind(IsBigEndian);
+            if (MachO::LoadCommandKindIsValid(Kind)) {
+                fprintf(OutFile,
+                        "LC %" PRIu32 ": %s\n",
+                        Counter,
+                        MachO::LoadCommandKindGetString(Kind).data());
+            } else {
+                fprintf(OutFile,
+                        "LC %" PRIu32 ": <unknown> (%" PRIu32 ")\n",
+                        Counter,
+                        static_cast<uint32_t>(Kind));
+            }
 
-        auto Counter = static_cast<uint32_t>(1);
-        for (const auto &LoadCommand : LoadCommandsMap) {
-            fprintf(OutFile, "Load-Command %" PRIu32 ":\n", Counter);
-            PrintLoadCommand(OutFile, LoadCommand, IsBigEndian, "  ");
-            fputc('\n', OutFile);
-
+            PrintLoadCommand(OutFile,
+                             LoadCommand,
+                             IsBigEndian,
+                             Opt.Verbose,
+                             "\t");
             Counter++;
         }
 

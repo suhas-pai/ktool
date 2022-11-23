@@ -6,6 +6,8 @@
 //
 
 #pragma once
+
+#include <assert.h>
 #include <string_view>
 
 namespace Dyld3 {
@@ -70,5 +72,35 @@ namespace Dyld3 {
         }
 
         assert(false && "PlatformGetString() called with unknown Platform");
+    }
+
+    [[nodiscard]] constexpr
+    auto PlatformGetDesc(const enum Platform Platform) noexcept ->
+        std::string_view
+    {
+        switch (Platform) {
+            case Platform::macOS:
+                return "macOS";
+            case Platform::iOS:
+                return "iOS";
+            case Platform::tvOS:
+                return "tvOS";
+            case Platform::watchOS:
+                return "watchOS";
+            case Platform::bridgeOS:
+                return "bridgeOS";
+            case Platform::macCatalyst:
+                return "macCatalyst";
+            case Platform::iOSSimulator:
+                return "iOSSimulator";
+            case Platform::tvOSSimulator:
+                return "tvOSSimulator";
+            case Platform::watchOSSimulator:
+                return "watchOSSimulator";
+            case Platform::DriverKit:
+                return "DriverKit";
+        }
+
+        assert(false && "PlatformGetDesc() called with unknown Platform");
     }
 }

@@ -1,15 +1,18 @@
 //
-//  PrintId.cpp
+//  Operations/PrintId.cpp
 //  ktool
 //
 //  Created by suhaspai on 11/21/22.
 //
 
+#include "ADT/Misc.h"
+#include "ADT/PrintUtils.h"
+
 #include "MachO/LoadCommandsMap.h"
 #include "Operations/PrintId.h"
 
 namespace Operations {
-    PrintId::PrintId(FILE *OutFile, const struct Options &Options)
+    PrintId::PrintId(FILE *const OutFile, const struct Options &Options)
     : OutFile(OutFile), Opt(Options) {}
 
     bool
@@ -35,14 +38,8 @@ namespace Operations {
             return Result.set(RunError::NotADylib);
         }
 
-        const auto LoadCommandsMemoryMap =
-            ADT::MemoryMap(MachO.map(), MachO.header().loadCommandsRange());
-
         const auto IsBigEndian = MachO.isBigEndian();
-        const auto LoadCommandsMap =
-            ::MachO::LoadCommandsMap(LoadCommandsMemoryMap, IsBigEndian);
-
-        for (const auto &LC : LoadCommandsMap) {
+        for (const auto &LC : MachO.loadCommandsMap()) {
             using namespace MachO;
             using Kind = LoadCommandKind;
 
@@ -58,7 +55,7 @@ namespace Operations {
                     Name = NameOpt.value();
                 }
 
-                fprintf(OutFile, "ID: %s\n", NameOpt.value().data());
+                fprintf(OutFile, "ID: %s\n", Name.data());
                 if (Opt.Verbose) {
                     const auto &Dylib = ID->Dylib;
                     const auto CurrentVersion =
@@ -66,13 +63,18 @@ namespace Operations {
                     const auto CompatVersion =
                         Dylib.compatVersion(IsBigEndian);
 
+                    const auto Timestamp = Dylib.timestamp(IsBigEndian);
+                    const auto TimestampString =
+                        ADT::GetHumanReadableTimestamp(Timestamp);
+
                     fprintf(OutFile,
                             "\tCurrent Version: " DYLD3_PACKED_VERSION_FMT "\n"
                             "\tCompat Version:  " DYLD3_PACKED_VERSION_FMT "\n"
-                            "\tTimestamp:       %d\n",
+                            "\tTimestamp:       %s (Value: %" PRIu32 ")\n",
                             DYLD3_PACKED_VERSION_FMT_ARGS(CurrentVersion),
                             DYLD3_PACKED_VERSION_FMT_ARGS(CompatVersion),
-                            Dylib.Timestamp);
+                            TimestampString.data(),
+                            Timestamp);
                 }
 
                 return Result.set(RunError::None);

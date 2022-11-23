@@ -14,7 +14,8 @@
 #include "Operations/PrintLibraries.h"
 
 namespace Operations {
-    PrintLibraries::PrintLibraries(FILE *OutFile, const struct Options &Options)
+    PrintLibraries::PrintLibraries(FILE *const OutFile,
+                                   const struct Options &Options)
     : OutFile(OutFile), Opt(Options) {}
 
     bool
@@ -31,8 +32,7 @@ namespace Operations {
         }
 
         assert(false &&
-               "Got unknown Object-Kind in "
-               "PrintLibraries::supportsObjectKind");
+               "Got unknown Object-Kind in PrintLibraries::supportsObjectKind");
     }
 
     struct DylibInfo {
@@ -103,19 +103,14 @@ namespace Operations {
         RunResult
     {
         auto Result = RunResult(Objects::Kind::MachO);
-        const auto LoadCommandsMemoryMap =
-            ADT::MemoryMap(MachO.map(), MachO.header().loadCommandsRange());
 
         const auto IsBigEndian = MachO.isBigEndian();
-        const auto LoadCommandsMap =
-            ::MachO::LoadCommandsMap(LoadCommandsMemoryMap, IsBigEndian);
-
         constexpr auto Malformed = std::string_view("<malformed>");
 
         auto DylibList = std::vector<DylibInfo>();
         auto LoadCommandIndex = uint32_t();
 
-        for (const auto &LoadCommand : LoadCommandsMap) {
+        for (const auto &LoadCommand : MachO.loadCommandsMap()) {
             using namespace MachO;
             using Kind = LoadCommandKind;
 
@@ -143,9 +138,7 @@ namespace Operations {
         }
 
         if (!Opt.SortKindList.empty()) {
-            const auto Comparator =
-                [&](const auto &Lhs, const auto &Rhs) noexcept
-            {
+            const auto Lambda = [&](const auto &Lhs, const auto &Rhs) noexcept {
                 for (const auto &Sort : Opt.SortKindList) {
                     const auto Compare =
                         CompareEntriesBySortKind(Lhs, Rhs, Sort);
@@ -158,7 +151,7 @@ namespace Operations {
                 return false;
             };
 
-            std::sort(DylibList.begin(), DylibList.end(), Comparator);
+            std::sort(DylibList.begin(), DylibList.end(), Lambda);
         }
 
         const auto DylibListSize = DylibList.size();
@@ -187,7 +180,6 @@ namespace Operations {
                     TimestampString.c_str(),
                     DylibInfo.Timestamp);
 
-            fputc('\n', OutFile);
             Counter++;
         }
 

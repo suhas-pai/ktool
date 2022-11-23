@@ -5,6 +5,7 @@
 //  Created by suhaspai on 11/21/22.
 //
 
+#pragma once
 #include <compare>
 
 #include "ADT/MemoryMap.h"
