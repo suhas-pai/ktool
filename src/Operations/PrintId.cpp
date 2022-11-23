@@ -48,8 +48,14 @@ namespace Operations {
 
             if (const auto ID = dyn_cast<Kind::IdDylib>(&LC, IsBigEndian)) {
                 const auto NameOpt = ID->name(IsBigEndian);
+                auto Name = std::string_view("<malformed>");
+
                 if (!NameOpt) {
-                    return Result.set(RunError::BadIdString);
+                    if (!Opt.Verbose) {
+                        return Result.set(RunError::BadIdString);
+                    }
+                } else {
+                    Name = NameOpt.value();
                 }
 
                 fprintf(OutFile, "ID: %s\n", NameOpt.value().data());
