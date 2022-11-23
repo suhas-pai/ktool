@@ -6,6 +6,7 @@
 //
 
 #pragma once
+#include <string_view>
 
 namespace Dyld3 {
     enum class Platform : uint32_t {

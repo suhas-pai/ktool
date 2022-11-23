@@ -12,6 +12,7 @@
 #include <optional>
 
 #include <array>
+#include <cstring>
 #include <string>
 #include <string_view>
 #include <time.h>

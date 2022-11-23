@@ -22,12 +22,12 @@ namespace Operations {
 
         constexpr
         RunResult(const Objects::Kind Kind, const uint32_t Error) noexcept
-        : Kind(Kind), Error(Error) {}
+        : Error(Error), Kind(Kind){}
 
         constexpr explicit
         RunResult(const uint32_t Error,
                   const Objects::OpenError OpenError) noexcept
-        : Error(Error), OpenError(OpenError) {}
+        : OpenError(OpenError), Error(Error) {}
 
         [[nodiscard]] constexpr auto isUnsupportedError() const noexcept {
             return Kind == Objects::Kind::None && Error == 1;
@@ -44,7 +44,7 @@ namespace Operations {
         set(const T Error, Objects::OpenError OpenError) noexcept {
             this->Error = static_cast<std::underlying_type_t<T>>(Error);
             this->OpenError = OpenError;
-            
+
             return *this;
         }
     };
@@ -53,6 +53,8 @@ namespace Operations {
         RunResult(Objects::Kind::None, 1);
 
     struct Base {
+    protected:
+        explicit Base() noexcept = default;
     public:
         virtual ~Base() noexcept {}
 

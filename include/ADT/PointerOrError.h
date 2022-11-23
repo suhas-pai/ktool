@@ -63,7 +63,7 @@ namespace ADT {
     public:
         constexpr PointerOrError(PointerType *const Ptr) noexcept : Ptr(Ptr) {}
         constexpr PointerOrError(const ErrorType Error) noexcept
-        : Error(Error), Ptr(reinterpret_cast<PointerType *>(0x1)) {}
+        : Ptr(reinterpret_cast<PointerType *>(0x1)), Error(Error) {}
 
         constexpr PointerOrError(const std::nullptr_t &Nullptr) noexcept
             = delete;

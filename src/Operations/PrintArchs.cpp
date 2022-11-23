@@ -57,7 +57,7 @@ namespace Operations {
                 } else {
                     fprintf(OutFile,
                             "\tCputype:    <unknown> (Value: %" PRId32 ")\n",
-                            CpuKind);
+                            static_cast<int32_t>(CpuKind));
                 }
 
                 if (Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind)) {
@@ -88,7 +88,7 @@ namespace Operations {
             }
         } else {
             const auto ArchList = Fat.archs();
-            for (auto I = 0; I != ArchCount; I++) {
+            for (auto I = uint32_t(); I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
 
                 const auto CpuKind = Arch.cpuKind(IsBigEndian);
@@ -107,7 +107,7 @@ namespace Operations {
                 } else {
                     fprintf(OutFile,
                             "\tCputype:    <unknown> (Value: %" PRId32 ")\n",
-                            CpuKind);
+                            static_cast<int32_t>(CpuKind));
                 }
 
                 if (Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind)) {

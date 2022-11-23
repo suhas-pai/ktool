@@ -5,6 +5,8 @@
 //  Created by suhaspai on 11/22/22.
 //
 
+#include <algorithm>
+
 #include "ADT/Misc.h"
 #include "ADT/PrintUtils.h"
 

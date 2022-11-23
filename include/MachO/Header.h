@@ -266,7 +266,7 @@ namespace MachO {
     }
 
     struct Header {
-        Magic Magic;
+        MachO::Magic Magic;
         int32_t CpuKind;
         int32_t CpuSubKind;
         uint32_t FileKind;

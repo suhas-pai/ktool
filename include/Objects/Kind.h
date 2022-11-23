@@ -6,6 +6,7 @@
 //
 
 #pragma once
+#include <cstdint>
 
 namespace Objects {
     enum class Kind : uint8_t {

@@ -68,7 +68,6 @@
 		F3AD81FD28ECBF56005DE822 /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Header.h; path = ../include/MachO/Header.h; sourceTree = "<group>"; };
 		F3AD81FE28ECBF9D005DE822 /* VmProt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = VmProt.h; path = ../include/Mach/VmProt.h; sourceTree = "<group>"; };
 		F3AD81FF28ECC6D9005DE822 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
-		F3AD820028ECC6D9005DE822 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../Makefile; sourceTree = "<group>"; };
 		F3B00A8C28F7E13400F9E004 /* PackedVersion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PackedVersion.h; path = ../include/Dyld3/PackedVersion.h; sourceTree = "<group>"; };
 		F3B00A8D28F7ED9B00F9E004 /* Platform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Platform.h; path = ../include/Dyld3/Platform.h; sourceTree = "<group>"; };
 		F3B0E4DD292CB0CD009D3D61 /* PrintLibraries.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintLibraries.h; path = ../include/Operations/PrintLibraries.h; sourceTree = "<group>"; };
@@ -135,7 +134,6 @@
 		F33C25B628EA144500289314 = {
 			isa = PBXGroup;
 			children = (
-				F3AD820028ECC6D9005DE822 /* Makefile */,
 				F3AD81FF28ECC6D9005DE822 /* README.md */,
 				F33C25CD28EA147700289314 /* include */,
 				F33C25C928EA145D00289314 /* src */,
@@ -383,6 +381,10 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				"OTHER_CPLUSPLUSFLAGS[arch=*]" = (
+					"-Wall",
+					"-I../include",
+				);
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -435,6 +437,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 12.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				"OTHER_CPLUSPLUSFLAGS[arch=*]" = "-Wall";
 				SDKROOT = macosx;
 			};
 			name = Release;

@@ -8,6 +8,8 @@
 #pragma once
 
 #include <compare>
+#include <cstdint>
+
 #include "ADT/FlagsBase.h"
 
 namespace Dyld3 {
@@ -26,7 +28,7 @@ namespace Dyld3 {
         };
     protected:
         using ADT::FlagsBase<uint32_t>::FlagsBase;
-        
+
         [[nodiscard]] constexpr auto
         getForMaskShift(const Masks Mask, const Shifts Shift) const noexcept {
             const auto Value = (Flags & static_cast<uint32_t>(Mask));

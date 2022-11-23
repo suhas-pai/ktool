@@ -25,16 +25,15 @@ namespace Operations {
         static constexpr auto Kind = Operations::Kind::PrintHeader;
         explicit PrintHeader(FILE *OutFile, const struct Options &Options);
 
+        ~PrintHeader() noexcept override {}
+
         enum class RunError : uint32_t {
             None,
         };
 
-        virtual
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
-        virtual
         RunResult run(const Objects::Base &Base) const noexcept override;
-
         RunResult run(const Objects::MachO &MachO) const noexcept;
         RunResult run(const Objects::FatMachO &MachO) const noexcept;
 

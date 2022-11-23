@@ -8,6 +8,7 @@
 #pragma once
 
 #include <bitset>
+#include <cstring>
 #include <optional>
 #include <string_view>
 #include <type_traits>
@@ -885,7 +886,7 @@ namespace MachO {
                 Kind == LoadCommandKind::LoadUpwardDylib;
         }
 
-        Dylib Dylib;
+        MachO::Dylib Dylib;
 
         [[nodiscard]] constexpr static auto
         hasValidCmdSize(const uint32_t CmdSize) noexcept {
@@ -1040,7 +1041,7 @@ namespace MachO {
 
             const auto Length = Cmd->CmdSize - Offset;
             auto BitSet = uint64_t();
-            
+
             if (Length >= 8) {
                 BitSet = *static_cast<const uint64_t *>(Ptr);
             } else if (Length >= 4) {
@@ -1646,7 +1647,7 @@ namespace MachO {
         constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
             return Kind == LoadCommandKind::Uuid;
         }
-        
+
         uint8_t Uuid[16];
 
         [[nodiscard]] constexpr static auto
@@ -2530,7 +2531,7 @@ namespace MachO {
     struct LoadCommandTypeFromKind<LoadCommandKind::Routines> {
         using type = RoutinesCommand;
     };
-    
+
     template <>
     struct LoadCommandTypeFromKind<LoadCommandKind::SubFramework> {
         using type = SubFrameworkCommand;

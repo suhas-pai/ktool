@@ -9,6 +9,7 @@
 
 #include <compare>
 #include <concepts>
+#include <limits>
 #include <type_traits>
 
 namespace ADT {
@@ -109,4 +110,4 @@ namespace ADT {
 \
     [[maybe_unused]] static constexpr auto operator!=(const ENUM Mask, std::underlying_type_t<ENUM> Num) noexcept { \
         return (Num == static_cast<std::underlying_type_t<ENUM>>(Mask)); \
-    } \
+    }

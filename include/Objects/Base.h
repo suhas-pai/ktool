@@ -15,7 +15,7 @@
 namespace Objects {
     struct Base {
     private:
-        Kind Kind = Kind::None;
+        Objects::Kind Kind = Kind::None;
     public:
         explicit Base(const enum Kind Kind) noexcept : Kind(Kind) {
             assert(Kind != Kind::None);
@@ -30,7 +30,7 @@ namespace Objects {
     };
 
     struct OpenError {
-        Kind Kind : 8 = Kind::None;
+        Objects::Kind Kind : 8 = Kind::None;
         uint32_t Error = 0;
 
         constexpr OpenError() noexcept = default;

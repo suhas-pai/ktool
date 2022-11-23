@@ -15,7 +15,7 @@
 
 namespace MachO {
     struct FatHeader {
-        Magic Magic;
+        MachO::Magic Magic;
         uint32_t ArchCount;
 
         [[nodiscard]] constexpr auto isBigEndian() const noexcept {

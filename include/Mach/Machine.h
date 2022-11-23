@@ -270,7 +270,7 @@ namespace Mach {
     {
         switch (CpuKind) {
             case CpuKind::Any:
-                return (SubKind == -1);
+                return SubKind == static_cast<uint32_t>(-1);
             case CpuKind::Vax:
                 switch (Vax(SubKind)) {
                     case Vax::All:
@@ -436,7 +436,7 @@ namespace Mach {
     {
         switch (CpuKind) {
             case CpuKind::Any:
-                if (SubKind == -1) {
+                if (SubKind == static_cast<uint32_t>(-1)) {
                     return "CPU_SUBTYPE_ANY";
                 }
 
@@ -699,7 +699,7 @@ namespace Mach {
     {
         switch (CpuKind) {
             case CpuKind::Any:
-                if (SubKind == -1) {
+                if (SubKind == static_cast<uint32_t>(-1)) {
                     return "Any";
                 }
 

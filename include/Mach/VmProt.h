@@ -6,6 +6,8 @@
 //
 
 #pragma once
+
+#include <cstdint>
 #include "ADT/FlagsBase.h"
 
 namespace Mach {

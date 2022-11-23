@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <string_view>
+
 namespace MachO {
     enum class Magic : uint32_t {
         Default = 0xFEEDFACE,

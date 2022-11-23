@@ -5,6 +5,7 @@
 //  Created by suhaspai on 11/15/22.
 //
 
+#include "ADT/PrintUtils.h"
 #include "Operations/PrintHeader.h"
 
 namespace Operations {
@@ -53,7 +54,7 @@ namespace Operations {
                     "\tFiletype:   %s\n"
                     "\tNcmds:      %d\n"
                     "\tSizeOfCmds: %d\n"
-                    "\tFlags:      0x%x\n",
+                    "\tFlags:      0x%" PRIx32 "\n",
                     MachO.is64Bit() ? "64-Bit" : "32-Bit",
                     MachO::MagicGetDesc(Header.Magic).data(),
                     Mach::CpuKindIsValid(CpuKind) ?
@@ -64,7 +65,7 @@ namespace Operations {
                         "Unrecognized",
                     Ncmds,
                     SizeOfCmds,
-                    Flags);
+                    static_cast<uint32_t>(Flags));
         } else {
             const auto SubKindString =
                 Mach::CpuKindAndSubKindIsValid(CpuKind, CpuSubKind) ?
@@ -80,7 +81,7 @@ namespace Operations {
                     "\tFiletype:   %s\n"
                     "\tNcmds:      %d\n"
                     "\tSizeOfCmds: %d\n"
-                    "\tFlags:      0x%x\n",
+                    "\tFlags:      0x%" PRIx32 "\n",
                     MachO.is64Bit() ? "64-Bit" : "32-Bit",
                     MachO::MagicGetString(Header.Magic).data(),
                     Mach::CpuKindIsValid(CpuKind) ?
@@ -92,7 +93,7 @@ namespace Operations {
                         "Unrecognized",
                     Ncmds,
                     SizeOfCmds,
-                    Flags);
+                    static_cast<uint32_t>(Flags));
         }
 
         auto FlagBits = static_cast<uint32_t>(Flags);
@@ -127,7 +128,7 @@ namespace Operations {
     PrintHeader::run(const Objects::FatMachO &Fat) const noexcept -> RunResult {
         auto Result = RunResult(Objects::Kind::FatMachO);
         const auto Header = Fat.header();
-        
+
         fprintf(OutFile,
                 "Apple %s Fat Mach-O File\n"
                 "\tMagic:      %s\n"

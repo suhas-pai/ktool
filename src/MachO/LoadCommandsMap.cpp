@@ -1,5 +1,5 @@
 //
-//  LoadCommandsMap.cpp
+//  src/MachO/LoadCommandsMap.cpp
 //  ktool
 //
 //  Created by suhaspai on 11/21/22.
@@ -41,10 +41,10 @@ namespace MachO {
 
         return *this;
     }
-    
+
     LoadCommandsMap::LoadCommandsMap(const ADT::MemoryMap Map,
                                      const bool IsBigEndian) noexcept
-    : Map(Map), IsBigEndian(IsBigEndian) {}
+    : IsBigEndian(IsBigEndian), Map(Map) {}
 
     auto LoadCommandsMap::begin() const noexcept -> LoadCommandsIterator {
         return LoadCommandsIterator(Map.base<LoadCommand>(), IsBigEndian);

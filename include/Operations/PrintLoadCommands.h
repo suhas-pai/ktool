@@ -21,21 +21,21 @@ namespace Operations {
         Options Opt;
     public:
         static constexpr auto Kind = Operations::Kind::PrintLoadCommands;
-        
+
         explicit
         PrintLoadCommands(FILE *OutFile,
                           const struct Options &Options) noexcept;
+
+        ~PrintLoadCommands() noexcept override {}
 
         enum class RunError : uint32_t {
             None,
         };
 
-        virtual
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
-        virtual
         RunResult run(const Objects::Base &Base) const noexcept override;
-        auto run(const Objects::MachO &MachO) const noexcept -> RunResult;
+        RunResult run(const Objects::MachO &MachO) const noexcept;
 
         [[nodiscard]] constexpr auto &options() const noexcept { return Opt; }
     };

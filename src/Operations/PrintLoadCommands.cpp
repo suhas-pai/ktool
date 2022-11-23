@@ -768,7 +768,7 @@ namespace Operations {
                 fprintf(OutFile,
                         "%sVersion: " DYLD3_PACKED_VERSION_64_FMT "\n",
                         Prefix, DYLD3_PACKED_VERSION_64_FMT_ARGS(Version));
-                
+
                 break;
             }
             case MachO::LoadCommandKind::PrePage:

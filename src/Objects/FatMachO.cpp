@@ -70,7 +70,7 @@ namespace Objects {
             // Don't Swap CpuKind and CpuSubKind, because we're only comparing
             // them against values in the same endian.
 
-            for (auto I = 0; I != ArchCount; I++) {
+            for (auto I = uint32_t(); I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
                 const auto ArchRange = Arch.range(Header.isBigEndian());
 
@@ -78,7 +78,7 @@ namespace Objects {
                     return OpenError::ArchOutOfBounds;
                 }
 
-                for (auto J = 0; J != I; J++) {
+                for (auto J = uint32_t(); J != I; J++) {
                     const auto &Inner = ArchList[J];
                     const auto InnerRange = Inner.range(Header.isBigEndian());
 
@@ -101,7 +101,7 @@ namespace Objects {
             // Don't Swap CpuKind and CpuSubKind, because we're only comparing
             // them against values in the same endian.
 
-            for (auto I = 0; I != ArchCount; I++) {
+            for (auto I = uint32_t(); I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
                 const auto ArchRange = Arch.range(Header.isBigEndian());
 
@@ -109,7 +109,7 @@ namespace Objects {
                     return OpenError::ArchOutOfBounds;
                 }
 
-                for (auto J = 0; J != I; J++) {
+                for (auto J = uint32_t(); J != I; J++) {
                     const auto &Inner = ArchList[J];
                     const auto InnerRange = Inner.range(Header.isBigEndian());
 
@@ -142,7 +142,7 @@ namespace Objects {
                 Map.get<::MachO::FatArch64>(
                     sizeof(struct ::MachO::FatHeader), ArchCount);
 
-            for (auto I = 0; I != ArchCount; I++) {
+            for (auto I = uint32_t(); I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
                 if (Arch.cpuKind(IsBigEndian) == CpuKind &&
                     Arch.cpuSubKind(IsBigEndian) == SubKind)
@@ -158,7 +158,7 @@ namespace Objects {
                 Map.get<::MachO::FatArch>(
                     sizeof(struct ::MachO::FatHeader), ArchCount);
 
-            for (auto I = 0; I != ArchCount; I++) {
+            for (auto I = uint32_t(); I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
                 if (Arch.cpuKind(IsBigEndian) == CpuKind &&
                     Arch.cpuSubKind(IsBigEndian) == SubKind)

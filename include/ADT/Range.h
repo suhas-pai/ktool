@@ -9,6 +9,7 @@
 
 #include <cassert>
 #include <concepts>
+#include <limits>
 
 namespace ADT {
     struct Range {

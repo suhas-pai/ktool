@@ -27,6 +27,8 @@ namespace Objects {
             TooManyLoadCommands
         };
 
+        ~MachO() noexcept override {}
+
         static auto Open(const ADT::MemoryMap &Map) noexcept ->
             ADT::PointerOrError<MachO, OpenError>;
 
@@ -34,19 +36,19 @@ namespace Objects {
             return Map;
         }
 
-        [[nodiscard]] constexpr auto header() const noexcept {
+        [[nodiscard]] inline auto header() const noexcept {
             return *map().base<::MachO::Header, false>();
         }
 
-        [[nodiscard]] constexpr auto fileKind() const noexcept {
+        [[nodiscard]] inline auto fileKind() const noexcept {
             return header().fileKind();
         }
 
-        [[nodiscard]] constexpr auto isBigEndian() const noexcept {
+        [[nodiscard]] inline auto isBigEndian() const noexcept {
             return header().isBigEndian();
         }
 
-        [[nodiscard]] constexpr auto is64Bit() const noexcept {
+        [[nodiscard]] inline auto is64Bit() const noexcept {
             return header().is64Bit();
         }
     };

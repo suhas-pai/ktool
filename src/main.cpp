@@ -276,7 +276,7 @@ auto main(const int argc, const char *const argv[]) -> int {
 
     Operation.Path = ADT::getFullPath(PathArg);
     FileOptions.Path = Operation.Path;
-    
+
     while (true) {
         const auto ArgOptions =
             ::ArgOptions(ArgFlags::Option | ArgFlags::NotNeeded);

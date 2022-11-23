@@ -17,7 +17,7 @@ namespace Objects {
             if (Magic == nullptr) {
                 return OpenError::SizeTooSmall;
             }
-            
+
             const auto Result =
                 ::MachO::MagicIsThin(*Magic) ?
                     OpenError::SizeTooSmall : OpenError::WrongFormat;

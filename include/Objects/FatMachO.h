@@ -32,9 +32,11 @@ namespace Objects {
             ArchsForSameCpu
         };
 
+        ~FatMachO() noexcept override {}
+
         static auto Open(const ADT::MemoryMap &Map) noexcept ->
             ADT::PointerOrError<FatMachO, OpenError>;
-        
+
         static auto
         OpenAndValidateArchs(const ADT::MemoryMap &Map) noexcept ->
             ADT::PointerOrError<FatMachO, OpenError>;
@@ -52,28 +54,28 @@ namespace Objects {
             return Map;
         }
 
-        [[nodiscard]] constexpr auto header() const noexcept {
+        [[nodiscard]] inline auto header() const noexcept {
             return *map().base<::MachO::FatHeader, false>();
         }
 
-        [[nodiscard]] constexpr auto isBigEndian() const noexcept {
+        [[nodiscard]] inline auto isBigEndian() const noexcept {
             return header().isBigEndian();
         }
 
-        [[nodiscard]] constexpr auto is64Bit() const noexcept {
+        [[nodiscard]] inline auto is64Bit() const noexcept {
             return header().is64Bit();
         }
 
-        [[nodiscard]] constexpr auto archCount() const noexcept {
+        [[nodiscard]] inline auto archCount() const noexcept {
             return header().archCount();
         }
 
-        [[nodiscard]] constexpr auto archs() const noexcept {
+        [[nodiscard]] inline auto archs() const noexcept {
             assert(!is64Bit());
             return map().get<::MachO::FatArch>(sizeof(header()), archCount());
         }
 
-        [[nodiscard]] constexpr auto archs64() const noexcept {
+        [[nodiscard]] inline auto archs64() const noexcept {
             assert(is64Bit());
             return map().get<::MachO::FatArch64>(sizeof(header()), archCount());
         }

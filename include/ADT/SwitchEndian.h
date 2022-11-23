@@ -8,6 +8,7 @@
 #pragma once
 
 #include <concepts>
+#include <cstdint>
 #include <type_traits>
 
 namespace ADT {
@@ -67,7 +68,7 @@ namespace ADT {
     struct EndianSwitcher<int16_t> {
         [[nodiscard]]
         constexpr static auto SwitchEndian(const int16_t Value) noexcept {
-            return EndianSwitcherFuncs::SwitchEndian16(Value);
+            return int16_t(EndianSwitcherFuncs::SwitchEndian16(Value));
         }
     };
 
@@ -84,7 +85,7 @@ namespace ADT {
     struct EndianSwitcher<int32_t> {
         [[nodiscard]]
         constexpr static auto SwitchEndian(const int32_t Value) noexcept {
-            return EndianSwitcherFuncs::SwitchEndian32(Value);
+            return int32_t(EndianSwitcherFuncs::SwitchEndian32(Value));
         }
     };
 
@@ -100,7 +101,7 @@ namespace ADT {
     struct EndianSwitcher<int64_t> {
         [[nodiscard]]
         constexpr static auto SwitchEndian(const int64_t Value) noexcept {
-            return EndianSwitcherFuncs::SwitchEndian64(Value);
+            return int64_t(EndianSwitcherFuncs::SwitchEndian64(Value));
         }
     };
 
