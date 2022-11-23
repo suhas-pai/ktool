@@ -6,6 +6,8 @@
 //
 
 #pragma once
+
+#include <assert.h>
 #include <string_view>
 
 namespace Mach {
@@ -752,7 +754,7 @@ namespace Mach {
             case CpuKind::IntelX86:
                 switch (Intelx86(SubKind)) {
                     case Intelx86::x86:
-                        return "Intel x86";
+                        return "Intel x86 All";
                     case Intelx86::x86Arch1:
                         return "Intel x86 Arch1";
                     case Intelx86::v486SX:
@@ -796,7 +798,7 @@ namespace Mach {
             case CpuKind::IntelX86_64:
                 switch (Intelx86_64(SubKind)) {
                     case Intelx86_64::All:
-                        return "Intel x86_64";
+                        return "Intel x86_64 All";
                     case Intelx86_64::Haswell:
                         return "Intel x86_64 Haswell";
                 }
@@ -807,7 +809,7 @@ namespace Mach {
             case CpuKind::Motorola98000:
                 switch (Motorola98000(SubKind)) {
                     case Motorola98000::All:
-                        return "Motorola 98000";
+                        return "Motorola 98000 All";
                     case Motorola98000::v98601:
                         return "Motorola 98601";
                 }
@@ -917,7 +919,7 @@ namespace Mach {
             case CpuKind::PowerPC64:
                 switch (PowerPC(SubKind)) {
                     case PowerPC::All:
-                        return "PowerPC all";
+                        return "PowerPC All";
                     case PowerPC::v601:
                         return "PowerPC 601";
                     case PowerPC::v602:

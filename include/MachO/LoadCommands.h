@@ -8,6 +8,7 @@
 #pragma once
 
 #include <bitset>
+#include <cassert>
 #include <cstring>
 #include <optional>
 #include <string_view>
@@ -389,6 +390,40 @@ namespace MachO {
                 ProtectedVersion1 = 1 << 3,
                 ReadOnly = 1 << 4
             };
+
+            [[nodiscard]] constexpr
+            static auto KindIsValid(const FlagsStruct::Kind Kind) noexcept {
+                switch (Kind) {
+                    case Kind::HighVm:
+                    case Kind::FixedVmLibrary:
+                    case Kind::NoRelocations:
+                    case Kind::ProtectedVersion1:
+                    case Kind::ReadOnly:
+                        return true;
+                }
+
+                return false;
+            }
+
+            [[nodiscard]] constexpr static
+            auto KindGetString(const FlagsStruct::Kind Kind) noexcept
+                -> std::string_view
+            {
+                switch (Kind) {
+                    case Kind::HighVm:
+                        return "SG_HIGHVM";
+                    case Kind::FixedVmLibrary:
+                        return "SG_FVMLIB";
+                    case Kind::NoRelocations:
+                        return "SG_NORELOC";
+                    case Kind::ProtectedVersion1:
+                        return "SG_PROTECTED_VERSION_1";
+                    case Kind::ReadOnly:
+                        return "SG_READ_ONLY";
+                }
+
+                assert(false && "KindGetString got unknown Kind");
+            }
 
             using ADT::FlagsBase<uint32_t>::FlagsBase;
 

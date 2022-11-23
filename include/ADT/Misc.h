@@ -17,6 +17,8 @@
 #include <string_view>
 #include <time.h>
 
+#define bit_sizeof(T) (sizeof(T) * 8)
+
 namespace ADT {
     template <std::integral T>
     constexpr std::optional<T> to_int(const std::string_view &String) noexcept {

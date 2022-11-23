@@ -5,6 +5,7 @@
 //  Created by suhaspai on 11/21/22.
 //
 
+#include "ADT/FlagsIterator.h"
 #include "ADT/Misc.h"
 #include "ADT/PrintUtils.h"
 
@@ -59,6 +60,7 @@ namespace Operations {
                 const auto FileOffset = Segment.fileOffset(IsBigEndian);
                 const auto FileSize = Segment.fileSize(IsBigEndian);
                 const auto SectionCount = Segment.sectionCount(IsBigEndian);
+                const auto Flags = Segment.flags(IsBigEndian);
 
                 fprintf(OutFile,
                         "%sSegname:       \"" STRING_VIEW_FMT "\"\n"
@@ -84,7 +86,13 @@ namespace Operations {
                         Prefix,
                         MACH_VMPROT_FMT_ARGS(Segment.initProt(IsBigEndian)),
                         Prefix, SectionCount,
-                        Prefix, Segment.flags(IsBigEndian).value());
+                        Prefix, Flags.value());
+
+                if (!Flags.empty()) {
+                    for (const auto &Flag : ADT::FlagsIterator(Flags.value())) {
+                        printf("Index: %" PRIu32, Flag);
+                    }
+                }
 
                 if (SectionCount == 0) {
                     break;
@@ -122,7 +130,7 @@ namespace Operations {
                             ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
                             Prefix, Size, FormattedSize.data(),
                             Prefix, FileOffset,
-                            ADDR_RANGE_FMT_ARGS(FileOffset, Size),
+                            ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + Size),
                             Prefix, Section.align(IsBigEndian),
                             Prefix, Section.relocFileOffset(IsBigEndian),
                             Prefix, Section.relocsCount(IsBigEndian),
@@ -141,6 +149,7 @@ namespace Operations {
                 const auto FileOffset = Segment.fileOffset(IsBigEndian);
                 const auto FileSize = Segment.fileSize(IsBigEndian);
                 const auto SectionCount = Segment.sectionCount(IsBigEndian);
+                const auto Flags = Segment.flags(IsBigEndian);
 
                 fprintf(OutFile,
                         "%sSegname:       \"" STRING_VIEW_FMT "\"\n"
@@ -166,7 +175,26 @@ namespace Operations {
                         Prefix,
                         MACH_VMPROT_FMT_ARGS(Segment.initProt(IsBigEndian)),
                         Prefix, SectionCount,
-                        Prefix, Segment.flags(IsBigEndian).value());
+                        Prefix, Flags.value());
+
+                if (!Flags.empty()) {
+                    auto Counter = static_cast<uint8_t>(1);
+                    for (const auto &Bit : ADT::FlagsIterator(Flags.value())) {
+                        using Flags = MachO::SegmentCommand64::FlagsStruct;
+                        const auto Flag = static_cast<Flags::Kind>(1 << Bit);
+
+                        fprintf(OutFile,
+                                "%s\t%" PRIu8 ". Bit %" PRIu32 ": %s\n",
+                                Prefix,
+                                Counter,
+                                Bit,
+                                Flags::KindIsValid(Flag) ?
+                                    Flags::KindGetString(Flag).data() :
+                                    "<unknown>");
+
+                        Counter++;
+                    }
+                }
 
                 if (SectionCount == 0) {
                     break;
@@ -205,7 +233,7 @@ namespace Operations {
                             ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
                             Prefix, Size, FormattedSize.data(),
                             Prefix, FileOffset,
-                            ADDR_RANGE_FMT_ARGS(FileOffset, Size),
+                            ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + Size),
                             Prefix, Section.align(IsBigEndian),
                             Prefix, Section.relocFileOffset(IsBigEndian),
                             Prefix, Section.relocsCount(IsBigEndian),
@@ -449,7 +477,7 @@ namespace Operations {
                         Prefix, SymOff,
                         Prefix, SymCount,
                         Prefix, StrOff,
-                        ADDR_RANGE_FMT_ARGS(StrOff, StrSize),
+                        ADDR_RANGE_FMT_ARGS(StrOff, StrOff + StrSize),
                         Prefix, StrSize, ADT::FormattedSize(StrSize).data());
 
                 break;
@@ -619,7 +647,7 @@ namespace Operations {
                             ADDR_RANGE_32_FMT ")\n"
                         "%sData Size:   %" PRIu32 " (%s)\n",
                         Prefix, DataOff,
-                        ADDR_RANGE_FMT_ARGS(DataOff, DataSize),
+                        ADDR_RANGE_FMT_ARGS(DataOff, DataOff + DataSize),
                         Prefix, DataSize, ADT::FormattedSize(DataSize).data());
                 break;
             }
@@ -711,8 +739,8 @@ namespace Operations {
                 if (Dyld3::PlatformIsValid(Platform)) {
                     const auto PlatformString =
                         Verbose ?
-                            Dyld3::PlatformGetDesc(Platform) :
-                            Dyld3::PlatformGetString(Platform);
+                            Dyld3::PlatformGetString(Platform) :
+                            Dyld3::PlatformGetDesc(Platform);
 
                     fprintf(OutFile,
                             "%sPlatform:    %s\n",

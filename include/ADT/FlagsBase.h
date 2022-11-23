@@ -34,6 +34,11 @@ namespace ADT {
         constexpr auto setForValue(const E Mask, const bool Value) noexcept {
             return Value ? addMask(Mask) : removeMask(Mask);
         }
+
+        template <typename E>
+        [[nodiscard]] constexpr auto has(const E Mask) const noexcept {
+            return (Flags & static_cast<T>(Mask));
+        }
     public:
         constexpr FlagsBase() {}
         constexpr FlagsBase(const T Flags) : Flags(Flags) {}
@@ -58,11 +63,15 @@ namespace ADT {
             return *this;
         }
 
-        constexpr auto operator~() const noexcept {
+        [[nodiscard]] constexpr auto operator~() const noexcept {
             return ~Flags;
         }
 
-        constexpr auto value() const noexcept {
+        [[nodiscard]] constexpr auto empty() const noexcept {
+            return Flags == 0;
+        }
+
+        [[nodiscard]] constexpr auto value() const noexcept {
             return Flags;
         }
 

@@ -5,7 +5,12 @@
 //  Created by suhaspai on 11/15/22.
 //
 
+#include "ADT/FlagsIterator.h"
 #include "ADT/PrintUtils.h"
+
+#include "Mach/Machine.h"
+#include "MachO/Header.h"
+
 #include "Operations/PrintHeader.h"
 
 namespace Operations {
@@ -34,90 +39,59 @@ namespace Operations {
 
         const auto Header = MachO.header();
         const auto CpuKind = Header.cpuKind();
-        const auto CpuSubKind = Header.cpuSubKind();
+        const auto SubKind = Header.cpuSubKind();
         const auto FileKind = Header.fileKind();
         const auto Ncmds = Header.ncmds();
         const auto SizeOfCmds = Header.sizeOfCmds();
         const auto Flags = Header.flags();
 
-        if (Opt.Verbose) {
-            const auto SubKindString =
-                Mach::CpuKindAndSubKindIsValid(CpuKind, CpuSubKind) ?
-                    Mach::CpuKindAndSubKindGetDesc(CpuKind, CpuSubKind).data() :
-                    "Unrecognized";
-
-            fprintf(OutFile,
-                    "Apple %s Mach-O File\n"
-                    "\tMagic:      %s\n"
-                    "\tCputype:    %s\n"
-                    "\tCpuSubtype: %s\n"
-                    "\tFiletype:   %s\n"
-                    "\tNcmds:      %d\n"
-                    "\tSizeOfCmds: %d\n"
-                    "\tFlags:      0x%" PRIx32 "\n",
-                    MachO.is64Bit() ? "64-Bit" : "32-Bit",
-                    MachO::MagicGetDesc(Header.Magic).data(),
-                    Mach::CpuKindIsValid(CpuKind) ?
-                        Mach::CpuKindGetDesc(CpuKind).data() : "Unrecognized",
-                    SubKindString,
-                    MachO::FileKindIsValid(FileKind) ?
-                        MachO::FileKindGetDesc(FileKind).data() :
-                        "Unrecognized",
-                    Ncmds,
-                    SizeOfCmds,
-                    static_cast<uint32_t>(Flags));
-        } else {
-            const auto SubKindString =
-                Mach::CpuKindAndSubKindIsValid(CpuKind, CpuSubKind) ?
+        const auto SubKindString =
+            Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind) ?
+                Opt.Verbose ?
                     Mach::CpuKindAndSubKindGetString(CpuKind,
-                                                     CpuSubKind).data() :
-                    "Unrecognized";
+                                                        SubKind).data() :
+                    Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind).data()
+                : "Unrecognized";
 
-            fprintf(OutFile,
-                    "Apple %s Mach-O File\n"
-                    "\tMagic:      %s\n"
-                    "\tCputype:    %s\n"
-                    "\tCpuSubtype: %s\n"
-                    "\tFiletype:   %s\n"
-                    "\tNcmds:      %d\n"
-                    "\tSizeOfCmds: %d\n"
-                    "\tFlags:      0x%" PRIx32 "\n",
-                    MachO.is64Bit() ? "64-Bit" : "32-Bit",
-                    MachO::MagicGetString(Header.Magic).data(),
-                    Mach::CpuKindIsValid(CpuKind) ?
+        fprintf(OutFile,
+                "Apple %s Mach-O File\n"
+                "\tMagic:      %s\n"
+                "\tCputype:    %s\n"
+                "\tCpuSubtype: %s\n"
+                "\tFiletype:   %s\n"
+                "\tNcmds:      %d\n"
+                "\tSizeOfCmds: %d\n"
+                "\tFlags:      0x%" PRIx32 "\n",
+                MachO.is64Bit() ? "64-Bit" : "32-Bit",
+                Opt.Verbose ?
+                    MachO::MagicGetString(Header.Magic).data() :
+                    MachO::MagicGetDesc(Header.Magic).data(),
+                Mach::CpuKindIsValid(CpuKind) ?
+                    Opt.Verbose ?
                         Mach::CpuKindGetString(CpuKind).data() :
-                        "Unrecognized",
-                    SubKindString,
-                    MachO::FileKindIsValid(FileKind) ?
+                        Mach::CpuKindGetDesc(CpuKind).data()
+                    : "Unrecognized",
+                SubKindString,
+                MachO::FileKindIsValid(FileKind) ?
+                    Opt.Verbose ?
                         MachO::FileKindGetString(FileKind).data() :
-                        "Unrecognized",
-                    Ncmds,
-                    SizeOfCmds,
-                    static_cast<uint32_t>(Flags));
-        }
+                        MachO::FileKindGetDesc(FileKind).data()
+                    : "Unrecognized",
+                Ncmds,
+                SizeOfCmds,
+                Flags.value());
 
-        auto FlagBits = static_cast<uint32_t>(Flags);
-        auto Counter = 1;
-        auto StartIndex = 0;
+        auto Counter = static_cast<uint8_t>(1);
+        for (const auto &Bit : ADT::FlagsIterator(Flags.value())) {
+            const auto Flag = ::MachO::Flags::Kind(1 << Bit);
+            fprintf(OutFile,
+                    "\t\t %" PRIu8 ". Bit %" PRIu32 ": %s\n",
+                    Counter,
+                    Bit,
+                    MachO::Flags::KindIsValid(Flag) ?
+                        MachO::Flags::KindGetString(Flag).data() :
+                        "<unknown>");
 
-        while ((FlagBits >> StartIndex) != 0) {
-            const auto BitIndex = __builtin_ctz(FlagBits >> StartIndex);
-            const auto Mask = 1 << (StartIndex + BitIndex);
-            const auto Flag = ::MachO::Flags(FlagBits & Mask);
-
-            if (MachO::FlagsIsValid(Flag)) {
-                fprintf(OutFile,
-                        "\t\t %d. %s\n",
-                        Counter,
-                        MachO::FlagsGetString(Flag).data());
-            } else {
-                fprintf(OutFile,
-                        "\t\t %d. <unknown> (Bit-Index %d)\n",
-                        Counter,
-                        (StartIndex + BitIndex));
-            }
-
-            StartIndex += (BitIndex + 1);
             Counter++;
         }
 
