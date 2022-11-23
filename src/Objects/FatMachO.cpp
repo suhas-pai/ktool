@@ -6,6 +6,7 @@
 //
 
 #include "Objects/FatMachO.h"
+#include "MachO/Fat.h"
 
 namespace Objects {
     static auto ValidateHeader(const ADT::MemoryMap &Map) {
@@ -26,6 +27,20 @@ namespace Objects {
 
         if (!::MachO::MagicIsFat(Header->Magic)) {
             return FatMachO::OpenError::WrongFormat;
+        }
+
+        const auto ArchCount = Header->archCount();
+        const auto ArchSize =
+            Header->is64Bit() ?
+                sizeof(::MachO::FatArch64) : sizeof(::MachO::FatArch);
+
+        const auto TotalArchListSize = ArchSize * ArchCount;
+        if (sizeof(*Header) + TotalArchListSize > Map.size()) {
+            if (ArchCount == 1) {
+                return FatMachO::OpenError::SizeTooSmall;
+            }
+
+            return FatMachO::OpenError::TooManyArchitectures;
         }
 
         return FatMachO::OpenError::None;
@@ -54,14 +69,6 @@ namespace Objects {
         }
 
         const auto ArchCount = Header.archCount();
-        if (!Map.range().canContain<::MachO::FatArch>(ArchCount)) {
-            if (!Map.range().canContain<::MachO::FatArch>()) {
-                return OpenError::SizeTooSmall;
-            }
-
-            return OpenError::TooManyArchitectures;
-        }
-
         if (Header.is64Bit()) {
             const auto ArchList =
                 Map.get<::MachO::FatArch64>(
@@ -138,10 +145,7 @@ namespace Objects {
         const auto IsBigEndian = this->isBigEndian();
 
         if (is64Bit()) {
-            const auto ArchList =
-                Map.get<::MachO::FatArch64>(
-                    sizeof(struct ::MachO::FatHeader), ArchCount);
-
+            const auto ArchList = archs64();
             for (auto I = uint32_t(); I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
                 if (Arch.cpuKind(IsBigEndian) == CpuKind &&
@@ -154,10 +158,7 @@ namespace Objects {
                 }
             }
         } else {
-            const auto ArchList =
-                Map.get<::MachO::FatArch>(
-                    sizeof(struct ::MachO::FatHeader), ArchCount);
-
+            const auto ArchList = archs();
             for (auto I = uint32_t(); I != ArchCount; I++) {
                 const auto &Arch = ArchList[I];
                 if (Arch.cpuKind(IsBigEndian) == CpuKind &&
@@ -182,19 +183,15 @@ namespace Objects {
         assert(Index < ArchCount);
 
         if (is64Bit()) {
-            const auto ArchList =
-                Map.get<::MachO::FatArch64>(
-                    sizeof(struct ::MachO::FatHeader), ArchCount);
-
+            const auto ArchList = archs64();
             const auto ArchRange = ArchList[Index].range(isBigEndian());
+
             return Objects::Open(ADT::MemoryMap(Map, ArchRange));
         }
 
-        const auto ArchList =
-            Map.get<::MachO::FatArch>(
-                sizeof(struct ::MachO::FatHeader), ArchCount);
-
+        const auto ArchList = archs();
         const auto ArchRange = ArchList[Index].range(isBigEndian());
+
         return Objects::Open(ADT::MemoryMap(Map, ArchRange));
     }
 }

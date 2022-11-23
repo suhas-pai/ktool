@@ -49,22 +49,22 @@ namespace ADT {
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {
-            return (Size == 0);
+            return Size == 0;
         }
 
         [[nodiscard]]
         constexpr auto containsLoc(const uint64_t Loc) const noexcept {
-            return (Loc >= Begin && (Loc - Begin) < Size);
+            return Loc >= Begin && (Loc - Begin) < Size;
         }
 
         [[nodiscard]]
         constexpr auto containsEnd(const uint64_t Loc) const noexcept {
-            return (Loc > Begin && (Loc - Begin) <= Size);
+            return Loc > Begin && (Loc - Begin) <= Size;
         }
 
         [[nodiscard]]
         constexpr auto containsIndex(const uint64_t Idx) const noexcept {
-            return (Idx < Size);
+            return Idx < Size;
         }
 
         [[nodiscard]]
@@ -74,13 +74,13 @@ namespace ADT {
             }
 
             const auto MinSize = (Other.Size + (Other.Begin - Begin));
-            return (Begin <= Other.Begin && Size >= MinSize);
+            return Begin <= Other.Begin && Size >= MinSize;
         }
 
         template <typename T>
         [[nodiscard]]
         constexpr auto canContain(const uint64_t Count = 1) const noexcept {
-            return (Size >= (sizeof(T) * Count));
+            return Size >= (sizeof(T) * Count);
         }
 
         [[nodiscard]]

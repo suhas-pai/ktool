@@ -58,8 +58,6 @@ namespace ADT {
         assert(Index < FormatSizeNames.size());
 
         const auto &Name = FormatSizeNames[Index];
-        //fprintf(OutFile, "%s%.3f %s%s", Prefix, Result, Name.data(), Suffix);
-
         auto Result = std::string();
 
         Result.reserve(STR_LENGTH("1023.999 ") + 1 + Name.length());
