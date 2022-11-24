@@ -98,7 +98,7 @@ auto main(const int argc, const char *const argv[]) -> int {
         if (!ArgOptions.option()) {
             if (Result.front() == '-') {
                 fprintf(stderr,
-                        "Option %s needs %s. Found path instead\n",
+                        "Option %s needs %s. Found option instead\n",
                         Option,
                         Need);
                 exit(1);
@@ -108,7 +108,7 @@ auto main(const int argc, const char *const argv[]) -> int {
         if (!ArgOptions.path()) {
             if (Result.front() == '/') {
                 fprintf(stderr,
-                        "Option %s needs %s. Found option instead\n",
+                        "Option %s needs %s. Found path instead\n",
                         Option,
                         Need);
                 exit(1);
@@ -278,6 +278,27 @@ auto main(const int argc, const char *const argv[]) -> int {
 
             if (NextArg == "-v" || NextArg == "--verbose") {
                 Options.Verbose = true;
+            } else if (NextArg == "--limit") {
+                const auto LimitArg =
+                    GetNextArg("limit number",
+                               OperationString.data(),
+                               ::ArgOptions(ArgFlags::EverythingElse));
+
+                const auto LimitArgOpt = ADT::to_int<uint32_t>(LimitArg);
+                if (!LimitArgOpt) {
+                    fprintf(stderr,
+                            "%s is not a valid limit-number\n",
+                            argv[I]);
+                    return 1;
+                }
+
+                const auto Limit = LimitArgOpt.value();
+                if (Limit == 0) {
+                    fputs("A limit of 0 is invalid\n", stderr);
+                    return 1;
+                }
+
+                Options.Limit = Limit;
             } else if (NextArg == "--sort") {
                 Options.Sort = true;
             } else {

@@ -7,9 +7,11 @@
 
 #pragma once
 
+#include <limits>
+#include <optional>
+
 #include "Objects/MachO.h"
 #include "Base.h"
-#include <optional>
 
 namespace Operations {
     struct PrintCStringSection : public Base {
@@ -17,6 +19,7 @@ namespace Operations {
         struct Options {
             bool Sort : 1 = false;
             bool Verbose : 1 = false;
+            uint64_t Limit = std::numeric_limits<uint64_t>::max();
         };
     protected:
         FILE *OutFile;

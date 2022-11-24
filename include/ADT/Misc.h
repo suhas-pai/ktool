@@ -33,7 +33,7 @@ namespace ADT {
 
         auto Result = static_cast<T>(Front - '0');
         for (const auto &Ch : String.substr(1)) {
-            if (Ch < '1' || Ch > '9') {
+            if (Ch < '0' || Ch > '9') {
                 return std::nullopt;
             }
 

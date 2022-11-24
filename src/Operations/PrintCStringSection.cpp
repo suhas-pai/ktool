@@ -98,14 +98,19 @@ namespace Operations {
                          const uint64_t SectFileOff,
                          const uint64_t SectVmAddr,
                          const uint64_t SectSize,
+                         const uint64_t Limit,
                          uint64_t &LongestCStringLength) noexcept
     {
         auto Result = std::vector<CStringInfo>();
         auto Length = uint64_t();
         auto LongestLength = ADT::Maximizer<uint64_t>();
+        auto StringCount = uint64_t();
 
-        for (auto I = 0; I < SectSize; I += Length + 1) {
-            const auto StringPtr = SectData + I;
+        for (auto Pos = uint64_t();
+             StringCount < Limit && Pos < SectSize;
+             Pos += Length + 1)
+        {
+            const auto StringPtr = SectData + Pos;
             Length = strnlen(StringPtr, SectSize);
 
             auto String = std::string(StringPtr, Length);
@@ -115,12 +120,14 @@ namespace Operations {
 
             const auto Info = CStringInfo {
                 .String = std::move(String),
-                .FileOffset = SectFileOff + I,
-                .Address = SectVmAddr + I
+                .FileOffset = SectFileOff + Pos,
+                .Address = SectVmAddr + Pos
             };
 
             LongestLength = Info.String.length();
             Result.emplace_back(std::move(Info));
+
+            StringCount++;
         }
 
         LongestCStringLength = LongestLength.value();
@@ -270,6 +277,7 @@ namespace Operations {
                                  SectionFileOff,
                                  SectionAddr,
                                  SectionSize,
+                                 Opt.Limit,
                                  LongestCStringLength);
 
         if (CStringInfoList.empty()) {
