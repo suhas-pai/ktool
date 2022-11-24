@@ -11,8 +11,6 @@
 #include "Utils/Misc.h"
 
 namespace ADT {
-    struct FlagsIteratorEndValue {};
-
     template <std::integral T>
     struct FlagsIterator {
     protected:
@@ -26,8 +24,9 @@ namespace ADT {
             return *this;
         }
 
+        struct EndValue {};
         [[nodiscard]] inline auto end() {
-            return FlagsIteratorEndValue();
+            return EndValue();
         }
 
         [[nodiscard]] constexpr auto
@@ -74,12 +73,12 @@ namespace ADT {
         }
 
         [[nodiscard]] constexpr
-        auto operator==(const FlagsIteratorEndValue &End) const noexcept {
+        auto operator==(const EndValue &End) const noexcept {
             return StartIndex == bit_sizeof(T) || (Value >> StartIndex == 0);
         }
 
         [[nodiscard]] constexpr
-        auto operator!=(const FlagsIteratorEndValue &End) const noexcept {
+        auto operator!=(const EndValue &End) const noexcept {
             return StartIndex != bit_sizeof(T) && (Value >> StartIndex != 0);
         }
     };

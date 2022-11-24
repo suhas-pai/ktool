@@ -7,11 +7,11 @@
 
 #include <algorithm>
 
-#include "Utils/Misc.h"
-#include "Utils/Print.h"
-
 #include "MachO/LoadCommandsMap.h"
 #include "Operations/PrintLibraries.h"
+
+#include "Utils/Misc.h"
+#include "Utils/Print.h"
 
 namespace Operations {
     PrintLibraries::PrintLibraries(FILE *const OutFile,

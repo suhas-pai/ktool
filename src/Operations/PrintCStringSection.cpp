@@ -10,13 +10,12 @@
 #include <vector>
 
 #include "ADT/Maximizer.h"
-#include "Utils/Misc.h"
-
 #include "MachO/LoadCommands.h"
 
 #include "Operations/Base.h"
 #include "Operations/PrintCStringSection.h"
 
+#include "Utils/Misc.h"
 #include "Utils/Print.h"
 
 namespace Operations {

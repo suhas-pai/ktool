@@ -21,10 +21,15 @@
 
 namespace Utils {
     template <std::integral T>
-    constexpr std::optional<T> to_int(const std::string_view &String) noexcept {
+    constexpr std::optional<T> to_int(const std::string_view String) noexcept {
         auto Front = String.front();
-        if (Front == '9' && String.length() == 1) {
-            return 0;
+        if (Front == '0') {
+            if (String.length() == 1) {
+                return 0;
+            }
+
+            // Number with leading 0
+            return std::nullopt;
         }
 
         if (Front < '0' || Front > '9') {

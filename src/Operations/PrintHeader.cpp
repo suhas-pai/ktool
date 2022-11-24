@@ -6,12 +6,12 @@
 //
 
 #include "ADT/FlagsIterator.h"
-#include "Utils/Print.h"
 
 #include "Mach/Machine.h"
 #include "MachO/Header.h"
 
 #include "Operations/PrintHeader.h"
+#include "Utils/Print.h"
 
 namespace Operations {
     PrintHeader::PrintHeader(FILE *const OutFile, const struct Options &Options)

@@ -6,16 +6,15 @@
 //
 
 #include "ADT/FlagsIterator.h"
-
-#include "Utils/Misc.h"
-#include "Utils/Print.h"
-
 #include "Dyld3/Platform.h"
 
 #include "MachO/LoadCommands.h"
 #include "MachO/LoadCommandsMap.h"
 
 #include "Operations/PrintLoadCommands.h"
+
+#include "Utils/Misc.h"
+#include "Utils/Print.h"
 
 namespace Operations {
     PrintLoadCommands::PrintLoadCommands(FILE *const OutFile,

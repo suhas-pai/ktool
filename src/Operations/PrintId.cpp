@@ -5,11 +5,11 @@
 //  Created by suhaspai on 11/21/22.
 //
 
-#include "Utils/Misc.h"
-#include "Utils/Print.h"
-
 #include "MachO/LoadCommandsMap.h"
 #include "Operations/PrintId.h"
+
+#include "Utils/Misc.h"
+#include "Utils/Print.h"
 
 namespace Operations {
     PrintId::PrintId(FILE *const OutFile, const struct Options &Options)

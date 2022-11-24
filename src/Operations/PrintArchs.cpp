@@ -5,8 +5,8 @@
 //  Created by suhaspai on 11/22/22.
 //
 
-#include "Utils/Print.h"
 #include "Operations/PrintArchs.h"
+#include "Utils/Print.h"
 
 namespace Operations {
     PrintArchs::PrintArchs(FILE *const OutFile, const struct Options &Options)
