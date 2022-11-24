@@ -6,7 +6,7 @@
 //
 
 #include "ADT/FlagsIterator.h"
-#include "ADT/PrintUtils.h"
+#include "Utils/Print.h"
 
 #include "Mach/Machine.h"
 #include "MachO/Header.h"

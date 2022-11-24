@@ -1,5 +1,5 @@
 //
-//  ADT/PrintUtils.cpp
+//  Utils/Print.cpp
 //  ktool
 //
 //  Created by suhaspai on 11/22/22.
@@ -9,11 +9,11 @@
 #include <assert.h>
 #include <sstream>
 
-#include "ADT/PrintUtils.h"
+#include "Utils/Print.h"
 
-namespace ADT {
+namespace Utils {
     template <typename T>
-    static inline
+    [[nodiscard]] static inline
     auto to_string_with_precision(const T Value, const int n = 3) noexcept {
         std::ostringstream out;
         out.precision(n);
@@ -40,7 +40,7 @@ namespace ADT {
         if (ResultAmount < Base) {
             auto Result = std::string();
 
-            Result.reserve(STR_LENGTH("1023 ") + STR_LENGTH("bytes"));
+            Result.reserve(STR_LENGTH("1023") + STR_LENGTH(" bytes"));
             Result.append(to_string_with_precision(ResultAmount));
             Result.append(" Bytes");
 

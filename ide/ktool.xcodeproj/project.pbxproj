@@ -73,13 +73,13 @@
 		F3B0E4DD292CB0CD009D3D61 /* PrintLibraries.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintLibraries.h; path = ../include/Operations/PrintLibraries.h; sourceTree = "<group>"; };
 		F3B0E4DE292CB0D5009D3D61 /* PrintLibraries.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintLibraries.cpp; path = ../src/Operations/PrintLibraries.cpp; sourceTree = "<group>"; };
 		F3B0E4E0292CBB89009D3D61 /* Maximizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Maximizer.h; path = ../include/ADT/Maximizer.h; sourceTree = "<group>"; };
-		F3B0E4E1292CBE4E009D3D61 /* PrintUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintUtils.cpp; path = ../src/ADT/PrintUtils.cpp; sourceTree = "<group>"; };
+		F3B0E4E1292CBE4E009D3D61 /* PrintUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintUtils.cpp; path = ../src/Utils/Print.cpp; sourceTree = "<group>"; };
 		F3B0E4E3292D4E38009D3D61 /* Misc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Misc.cpp; path = ../src/ADT/Misc.cpp; sourceTree = "<group>"; };
 		F3B0E4E5292D6AAC009D3D61 /* PrintArchs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintArchs.h; path = ../include/Operations/PrintArchs.h; sourceTree = "<group>"; };
 		F3B0E4E6292D6AFE009D3D61 /* PrintArchs.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintArchs.cpp; path = ../src/Operations/PrintArchs.cpp; sourceTree = "<group>"; };
 		F3B6EB34292C601C00098762 /* PrintLoadCommands.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintLoadCommands.h; path = ../include/Operations/PrintLoadCommands.h; sourceTree = "<group>"; };
 		F3B6EB35292C606100098762 /* PrintLoadCommands.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintLoadCommands.cpp; path = ../src/Operations/PrintLoadCommands.cpp; sourceTree = "<group>"; };
-		F3B6EB37292C632100098762 /* PrintUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintUtils.h; path = ../include/ADT/PrintUtils.h; sourceTree = "<group>"; };
+		F3B6EB37292C632100098762 /* PrintUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintUtils.h; path = ../include/Utils/Print.h; sourceTree = "<group>"; };
 		F3EFBBFF28ED3CAC006FB054 /* LoadCommands.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadCommands.h; path = ../include/MachO/LoadCommands.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 

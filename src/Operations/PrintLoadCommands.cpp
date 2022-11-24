@@ -7,7 +7,7 @@
 
 #include "ADT/FlagsIterator.h"
 #include "ADT/Misc.h"
-#include "ADT/PrintUtils.h"
+#include "Utils/Print.h"
 
 #include "Dyld3/Platform.h"
 
@@ -77,10 +77,10 @@ namespace Operations {
                         Prefix, STRING_VIEW_FMT_ARGS(Segment.segmentName()),
                         Prefix, VmAddr,
                         ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
-                        Prefix, VmSize, ADT::FormattedSize(VmSize).data(),
+                        Prefix, VmSize, Utils::FormattedSize(VmSize).data(),
                         Prefix, FileOffset,
                         ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
-                        Prefix, FileSize, ADT::FormattedSize(FileSize).data(),
+                        Prefix, FileSize, Utils::FormattedSize(FileSize).data(),
                         Prefix,
                         MACH_VMPROT_FMT_ARGS(Segment.maxProt(IsBigEndian)),
                         Prefix,
@@ -107,7 +107,7 @@ namespace Operations {
                     const auto Addr = Section.addr(IsBigEndian);
                     const auto Size = Section.size(IsBigEndian);
                     const auto FileOffset = Section.fileOffset(IsBigEndian);
-                    const auto FormattedSize = ADT::FormattedSize(Size);
+                    const auto FormattedSize = Utils::FormattedSize(Size);
 
                     fprintf(OutFile,
                             "%sSection %" PRIu32 ":\n"
@@ -166,10 +166,10 @@ namespace Operations {
                         Prefix, STRING_VIEW_FMT_ARGS(Segment.segmentName()),
                         Prefix, VmAddr,
                         ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
-                        Prefix, VmSize, ADT::FormattedSize(VmSize).data(),
+                        Prefix, VmSize, Utils::FormattedSize(VmSize).data(),
                         Prefix, FileOffset,
                         ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
-                        Prefix, FileSize, ADT::FormattedSize(FileSize).data(),
+                        Prefix, FileSize, Utils::FormattedSize(FileSize).data(),
                         Prefix,
                         MACH_VMPROT_FMT_ARGS(Segment.maxProt(IsBigEndian)),
                         Prefix,
@@ -209,7 +209,7 @@ namespace Operations {
                     const auto Addr = Section.addr(IsBigEndian);
                     const auto Size = Section.size(IsBigEndian);
                     const auto FileOffset = Section.fileOffset(IsBigEndian);
-                    const auto FormattedSize = ADT::FormattedSize(Size);
+                    const auto FormattedSize = Utils::FormattedSize(Size);
 
                     fprintf(OutFile,
                             "%sSection %" PRIu32 ":\n"
@@ -478,7 +478,7 @@ namespace Operations {
                         Prefix, SymCount,
                         Prefix, StrOff,
                         ADDR_RANGE_FMT_ARGS(StrOff, StrOff + StrSize),
-                        Prefix, StrSize, ADT::FormattedSize(StrSize).data());
+                        Prefix, StrSize, Utils::FormattedSize(StrSize).data());
 
                 break;
             }
@@ -648,7 +648,7 @@ namespace Operations {
                         "%sData Size:   %" PRIu32 " (%s)\n",
                         Prefix, DataOff,
                         ADDR_RANGE_FMT_ARGS(DataOff, DataOff + DataSize),
-                        Prefix, DataSize, ADT::FormattedSize(DataSize).data());
+                        Prefix, DataSize, Utils::FormattedSize(DataSize).data());
                 break;
             }
             case MachO::LoadCommandKind::FileSetEntry: {
@@ -687,7 +687,7 @@ namespace Operations {
                         "%sCrypt Id:     %" PRIu32 "\n",
                         Prefix, CryptOffset,
                         ADDR_RANGE_FMT_ARGS(CryptOffset, CryptSize),
-                        Prefix, CryptSize, ADT::FormattedSize(CryptSize).data(),
+                        Prefix, CryptSize, Utils::FormattedSize(CryptSize).data(),
                         Prefix, CryptId);
                 break;
             }
@@ -709,7 +709,7 @@ namespace Operations {
                         "%sPad:          %" PRIu32 "\n",
                         Prefix, CryptOffset,
                         ADDR_RANGE_FMT_ARGS(CryptOffset, CryptSize),
-                        Prefix, CryptSize, ADT::FormattedSize(CryptSize).data(),
+                        Prefix, CryptSize, Utils::FormattedSize(CryptSize).data(),
                         Prefix, CryptId,
                         Prefix, Pad);
                 break;
@@ -805,22 +805,22 @@ namespace Operations {
                         Prefix, RebaseOffset,
                         ADDR_RANGE_FMT_ARGS(RebaseOffset, RebaseSize),
                         Prefix, RebaseSize,
-                        ADT::FormattedSize(RebaseSize).data(),
+                        Utils::FormattedSize(RebaseSize).data(),
                         Prefix, BindOffset,
                         ADDR_RANGE_FMT_ARGS(BindOffset, BindSize),
-                        Prefix, BindSize, ADT::FormattedSize(BindSize).data(),
+                        Prefix, BindSize, Utils::FormattedSize(BindSize).data(),
                         Prefix, WeakBindOffset,
                         ADDR_RANGE_FMT_ARGS(WeakBindOffset, WeakBindSize),
                         Prefix, WeakBindSize,
-                        ADT::FormattedSize(WeakBindSize).data(),
+                        Utils::FormattedSize(WeakBindSize).data(),
                         Prefix, LazyBindOffset,
                         ADDR_RANGE_FMT_ARGS(LazyBindOffset, LazyBindSize),
                         Prefix, LazyBindSize,
-                        ADT::FormattedSize(LazyBindSize).data(),
+                        Utils::FormattedSize(LazyBindSize).data(),
                         Prefix, ExportTrieOffset,
                         ADDR_RANGE_FMT_ARGS(ExportTrieOffset, ExportTrieSize),
                         Prefix, ExportTrieSize,
-                        ADT::FormattedSize(ExportTrieSize).data());
+                        Utils::FormattedSize(ExportTrieSize).data());
                 break;
             }
             case MachO::LoadCommandKind::LinkerOption: {
@@ -845,7 +845,7 @@ namespace Operations {
                         "%sSize:   %" PRIu32 " (%s)\n",
                         Prefix, Offset,
                         ADDR_RANGE_FMT_ARGS(Offset, Size),
-                        Prefix, Size, ADT::FormattedSize(Size).data());
+                        Prefix, Size, Utils::FormattedSize(Size).data());
                 break;
             }
             case MachO::LoadCommandKind::FixedVMFile: {
@@ -878,7 +878,7 @@ namespace Operations {
                         "%sStack Size:   %" PRIu64 " (%s)\n",
                         Prefix, EntryOffset,
                         Prefix, StackSize,
-                        ADT::FormattedSize(StackSize).data());
+                        Utils::FormattedSize(StackSize).data());
                 break;
             }
             case MachO::LoadCommandKind::SourceVersion: {
@@ -910,7 +910,7 @@ namespace Operations {
                         Prefix, STRING_VIEW_FMT_ARGS(DataOwner),
                         Prefix, Offset,
                         ADDR_RANGE_FMT_ARGS(Offset, Size),
-                        Prefix, Size, ADT::FormattedSize(Size).data());
+                        Prefix, Size, Utils::FormattedSize(Size).data());
 
                 break;
             }

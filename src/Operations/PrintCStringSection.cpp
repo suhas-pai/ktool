@@ -11,12 +11,13 @@
 
 #include "ADT/Maximizer.h"
 #include "ADT/Misc.h"
-#include "ADT/PrintUtils.h"
 
 #include "MachO/LoadCommands.h"
 
 #include "Operations/Base.h"
 #include "Operations/PrintCStringSection.h"
+
+#include "Utils/Print.h"
 
 namespace Operations {
     PrintCStringSection::PrintCStringSection(
@@ -284,7 +285,7 @@ namespace Operations {
         }
 
         const auto CStringListSizeDigitCount =
-            ADT::GetIntegerDigitCount(CStringInfoList.size());
+            Utils::GetIntegerDigitCount(CStringInfoList.size());
 
         auto Counter = static_cast<uint64_t>(1);
         for (const auto &Info : CStringInfoList) {
@@ -293,14 +294,14 @@ namespace Operations {
                     CStringListSizeDigitCount,
                     Counter);
 
-            ADT::PrintAddress(OutFile, Info.Address, Is64Bit);
+            Utils::PrintAddress(OutFile, Info.Address, Is64Bit);
             const auto WrittenOutString =
                 fprintf(OutFile,
                         " \"" STRING_VIEW_FMT "\"",
                         STRING_VIEW_FMT_ARGS(Info.String));
 
             if (Opt.Verbose) {
-                ADT::RightPadSpaces(OutFile,
+                Utils::RightPadSpaces(OutFile,
                                     WrittenOutString,
                                     LongestCStringLength + STR_LENGTH(" \"\""));
 
@@ -309,7 +310,7 @@ namespace Operations {
                         CStringListSizeDigitCount,
                         Info.String.length());
 
-                ADT::PrintAddress(OutFile, Info.FileOffset, Is64Bit, "", ")");
+                Utils::PrintAddress(OutFile, Info.FileOffset, Is64Bit, "", ")");
             }
 
             fputc('\n', OutFile);

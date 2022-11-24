@@ -5,7 +5,7 @@
 //  Created by suhaspai on 11/22/22.
 //
 
-#include "ADT/PrintUtils.h"
+#include "Utils/Print.h"
 #include "Operations/PrintArchs.h"
 
 namespace Operations {
@@ -83,7 +83,7 @@ namespace Operations {
                         Offset,
                         ADDR_RANGE_FMT_ARGS(Offset, Size),
                         Size,
-                        ADT::FormattedSize(Size).data(),
+                        Utils::FormattedSize(Size).data(),
                         Align);
             }
         } else {
@@ -133,7 +133,7 @@ namespace Operations {
                         Offset,
                         ADDR_RANGE_FMT_ARGS(Offset, Size),
                         Size,
-                        ADT::FormattedSize(Size).data(),
+                        Utils::FormattedSize(Size).data(),
                         Align);
             }
         }

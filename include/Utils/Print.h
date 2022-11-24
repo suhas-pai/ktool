@@ -1,5 +1,5 @@
 //
-//  ADT/PrintUtils.h
+//  Utils/Print.h
 //  ktool
 //
 //  Created by suhaspai on 11/21/22.
@@ -13,7 +13,7 @@
 #include <inttypes.h>
 #include <string>
 
-namespace ADT {
+namespace Utils {
     template <std::integral T>
     [[nodiscard]] constexpr auto GetIntegerDigitCount(T Integer) noexcept {
         auto DigitLength = int();

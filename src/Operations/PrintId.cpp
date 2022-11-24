@@ -6,7 +6,7 @@
 //
 
 #include "ADT/Misc.h"
-#include "ADT/PrintUtils.h"
+#include "Utils/Print.h"
 
 #include "MachO/LoadCommandsMap.h"
 #include "Operations/PrintId.h"
