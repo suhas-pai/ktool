@@ -80,8 +80,39 @@ namespace ADT {
                    const int Total) -> int
     {
         assert(WrittenOut >= 0);
-        assert(WrittenOut < Total);
+        assert(WrittenOut <= Total);
 
         return PadSpaces(OutFile, Total - WrittenOut);
+    }
+
+    auto
+    PrintAddress(FILE *const OutFile,
+                 const uint64_t Address,
+                 const bool Is64Bit,
+                 const std::string_view Prefix,
+                 const std::string_view Suffix) noexcept -> int
+    {
+        auto Result = int();
+        if (Is64Bit) {
+            Result =
+                 fprintf(OutFile,
+                         STRING_VIEW_FMT
+                         ADDRESS_64_FMT
+                         STRING_VIEW_FMT,
+                         STRING_VIEW_FMT_ARGS(Prefix),
+                         Address,
+                         STRING_VIEW_FMT_ARGS(Suffix));
+        } else {
+            Result =
+                 fprintf(OutFile,
+                         STRING_VIEW_FMT
+                         ADDRESS_32_FMT
+                         STRING_VIEW_FMT,
+                         STRING_VIEW_FMT_ARGS(Prefix),
+                         static_cast<uint32_t>(Address),
+                         STRING_VIEW_FMT_ARGS(Suffix));
+        }
+
+        return Result;
     }
 }

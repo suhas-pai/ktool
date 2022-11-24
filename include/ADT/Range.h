@@ -36,9 +36,9 @@ namespace ADT {
             return Range(0, 0);
         }
 
-        [[nodiscard]] constexpr auto getBegin() const noexcept { return Begin; }
+        [[nodiscard]] constexpr auto begin() const noexcept { return Begin; }
         [[nodiscard]] constexpr auto size() const noexcept { return Size; }
-        [[nodiscard]] constexpr auto getEnd() const noexcept {
+        [[nodiscard]] constexpr auto end() const noexcept {
             return Begin + Size;
         }
 
@@ -90,13 +90,13 @@ namespace ADT {
             }
 
             return (containsLoc(Other.Begin) ||
-                    containsEnd(Other.getEnd()) ||
+                    containsEnd(Other.end()) ||
                     Other.contains(*this));
         }
 
         [[nodiscard]]
         constexpr auto containsAsIndex(const Range &Other) const noexcept {
-            return containsIndex(Other.Begin) && containsEnd(Other.getEnd());
+            return containsIndex(Other.Begin) && containsEnd(Other.end());
         }
 
         [[nodiscard]]

@@ -621,6 +621,11 @@ namespace MachO {
                 return FlagsStruct(ADT::SwitchEndianIf(Flags, IsBigEndian));
             }
 
+            [[nodiscard]]
+            constexpr auto kind(const bool IsBigEndian) const noexcept {
+                return flags(IsBigEndian).kind();
+            }
+
             uint32_t Reserved1;
             uint32_t Reserved2;
 
@@ -829,6 +834,11 @@ namespace MachO {
             [[nodiscard]]
             constexpr auto flags(const bool IsBigEndian) const noexcept {
                 return FlagsStruct(ADT::SwitchEndianIf(Flags, IsBigEndian));
+            }
+
+            [[nodiscard]]
+            constexpr auto kind(const bool IsBigEndian) const noexcept {
+                return flags(IsBigEndian).kind();
             }
 
             uint32_t Reserved1;

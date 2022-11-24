@@ -27,6 +27,13 @@ namespace ADT {
     auto PadSpaces(FILE *OutFile, int SpaceAmount) noexcept -> int;
     auto RightPadSpaces(FILE *OutFile, int WrittenOut, int RightPad) -> int;
     auto FormattedSize(uint64_t Size) -> std::string;
+
+    auto
+    PrintAddress(FILE *OutFile,
+                 uint64_t Address,
+                 bool Is64Bit,
+                 std::string_view Prefix = "",
+                 std::string_view Suffix = "") noexcept -> int;
 }
 
 #define STRING_VIEW_FMT "%.*s"

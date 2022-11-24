@@ -5,6 +5,7 @@
 //  Created by suhaspai on 10/2/22.
 //
 
+#include <cstdio>
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -19,6 +20,7 @@
 #include "Operations/PrintLoadCommands.h"
 #include "Operations/PrintLibraries.h"
 #include "Operations/PrintArchs.h"
+#include "Operations/PrintCStringSection.h"
 
 struct OperationInfo {
     std::string Path;
@@ -59,6 +61,8 @@ struct ArgOptions {
     }
 
     constexpr explicit ArgOptions() noexcept = default;
+    constexpr explicit ArgOptions(const ArgFlags Value) noexcept
+    : Value(static_cast<uint64_t>(Value)) {}
     constexpr explicit ArgOptions(const uint64_t Value) noexcept
     : Value(Value) {}
 };
@@ -261,8 +265,64 @@ auto main(const int argc, const char *const argv[]) -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintArchs>(
                 new Operations::PrintArchs(stdout, Options));
+    } else if (OperationString == "--cstrings") {
+        const auto ArgOptions =
+            ::ArgOptions(ArgFlags::Option | ArgFlags::EverythingElse);
+
+        auto Options = Operations::PrintCStringSection::Options();
+        auto SegmentSectionPair = std::string();
+
+        while (true) {
+            const auto NextArg =
+                GetNextArg("Section Name", OperationString.data(), ArgOptions);
+
+            if (NextArg == "-v" || NextArg == "--verbose") {
+                Options.Verbose = true;
+            } else if (NextArg == "--sort") {
+                Options.Sort = true;
+            } else {
+                SegmentSectionPair = std::move(NextArg.data());
+                I++;
+
+                break;
+            }
+        }
+
+        auto SegmentName = std::optional<std::string>(std::nullopt);
+        auto SectionName = std::string();
+
+        if (const auto CommaPos = SegmentSectionPair.find(',');
+            CommaPos != std::string::npos)
+        {
+            if (CommaPos == 0) {
+                fputs("Please provide section-name by itself if segment-name "
+                      "won't be provided\n",
+                      stderr);
+                return 1;
+            }
+
+            if (CommaPos == SegmentSectionPair.length() - 1) {
+                fputs("Please provide a section-name\n", stderr);
+                return 1;
+            }
+
+            SegmentName = SegmentSectionPair.substr(0, CommaPos);
+            SectionName = SegmentSectionPair.substr(CommaPos + 1);
+        } else {
+            SectionName = std::move(SegmentSectionPair);
+        }
+
+        Operation.Kind = Operations::Kind::PrintCStringSection;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintCStringSection>(
+                new Operations::PrintCStringSection(stdout,
+                                                    std::move(SegmentName),
+                                                    std::move(SectionName),
+                                                    Options));
     } else {
-        fprintf(stderr, "Unrecognized option: %s\n", OperationString.data());
+        fprintf(stderr,
+                "Unrecognized option: \"%s\"\n",
+                OperationString.data());
         return 1;
     }
 
@@ -295,8 +355,11 @@ auto main(const int argc, const char *const argv[]) -> int {
             }
 
             FileOptions.ArchIndex = ArchIndexOpt.value();
-        } else {
+        } else if (NextArg.empty()) {
             break;
+        } else {
+            fprintf(stderr, "Unrecognized option \"%s\"\n", NextArg.c_str());
+            return 1;
         }
     }
 
@@ -341,6 +404,27 @@ auto main(const int argc, const char *const argv[]) -> int {
                     break;
             }
         }
+        case Operations::Kind::PrintCStringSection: {
+            switch (Operations::PrintCStringSection::RunError(Result.Error)) {
+                using RunError = Operations::PrintCStringSection::RunError;
+                case RunError::None:
+                    break;
+                case RunError::EmptySectionName:
+                    assert(false && "Internal Error: Empty Section Name");
+                case RunError::SectionNotFound:
+                    fputs("Provided section was not found\n", stderr);
+                    return 1;
+                case RunError::NotCStringSection:
+                    fputs("Provided section is not a c-string section\n",
+                          stderr);
+                    return 1;
+                case RunError::HasNoStrings:
+                    fputs("Provided section has no (printable) c-strings\n",
+                          stderr);
+                    return 1;
+            }
+        }
+
     }
 
     return 0;

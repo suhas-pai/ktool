@@ -20,7 +20,7 @@ namespace ADT {
 
         explicit MemoryMap(const MemoryMap &Map, const Range &Range)
         : Base(reinterpret_cast<void *>(reinterpret_cast<uint64_t>(Map.Base) +
-               Range.getBegin())),
+               Range.begin())),
           Size(Range.size()) {}
 
         [[nodiscard]] inline auto range() const noexcept {
@@ -46,7 +46,10 @@ namespace ADT {
         template <typename T = void *>
         [[nodiscard]]
         inline auto end(const uint64_t Count = 1) const noexcept -> const T * {
-            return reinterpret_cast<const T *>(reinterpret_cast<uint64_t>(Base) + Size);
+            const auto Result =
+                reinterpret_cast<const T *>(
+                    reinterpret_cast<uint64_t>(Base) + Size);
+            return Result;
         }
 
         template <typename T = void *, bool Verify = true>
