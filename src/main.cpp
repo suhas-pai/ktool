@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "ADT/FileMap.h"
-#include "ADT/Misc.h"
+#include "Utils/Misc.h"
 
 #include "MachO/LoadCommands.h"
 
@@ -121,7 +121,7 @@ auto main(const int argc, const char *const argv[]) -> int {
         {
             if (Result.front() != '/') {
                 if (Result.front() != '-') {
-                    return ADT::getFullPath(Result);
+                    return Utils::getFullPath(Result);
                 }
             }
         }
@@ -284,7 +284,7 @@ auto main(const int argc, const char *const argv[]) -> int {
                                OperationString.data(),
                                ::ArgOptions(ArgFlags::EverythingElse));
 
-                const auto LimitArgOpt = ADT::to_int<uint32_t>(LimitArg);
+                const auto LimitArgOpt = Utils::to_int<uint32_t>(LimitArg);
                 if (!LimitArgOpt) {
                     fprintf(stderr,
                             "%s is not a valid limit-number\n",
@@ -355,7 +355,7 @@ auto main(const int argc, const char *const argv[]) -> int {
         return 1;
     }
 
-    Operation.Path = ADT::getFullPath(PathArg);
+    Operation.Path = Utils::getFullPath(PathArg);
     FileOptions.Path = Operation.Path;
 
     while (true) {
@@ -367,7 +367,7 @@ auto main(const int argc, const char *const argv[]) -> int {
             const auto IndexArg =
                 GetNextArg("an index to an arch", NextArg.data());
 
-            const auto ArchIndexOpt = ADT::to_int<uint32_t>(IndexArg);
+            const auto ArchIndexOpt = Utils::to_int<uint32_t>(IndexArg);
             if (!ArchIndexOpt) {
                 fprintf(stderr,
                         "%s is not a valid index-number\n",

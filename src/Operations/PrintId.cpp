@@ -5,7 +5,7 @@
 //  Created by suhaspai on 11/21/22.
 //
 
-#include "ADT/Misc.h"
+#include "Utils/Misc.h"
 #include "Utils/Print.h"
 
 #include "MachO/LoadCommandsMap.h"
@@ -65,7 +65,7 @@ namespace Operations {
 
                     const auto Timestamp = Dylib.timestamp(IsBigEndian);
                     const auto TimestampString =
-                        ADT::GetHumanReadableTimestamp(Timestamp);
+                        Utils::GetHumanReadableTimestamp(Timestamp);
 
                     fprintf(OutFile,
                             "\tCurrent Version: " DYLD3_PACKED_VERSION_FMT "\n"

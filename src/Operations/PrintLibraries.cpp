@@ -7,7 +7,7 @@
 
 #include <algorithm>
 
-#include "ADT/Misc.h"
+#include "Utils/Misc.h"
 #include "Utils/Print.h"
 
 #include "MachO/LoadCommandsMap.h"
@@ -162,7 +162,7 @@ namespace Operations {
         auto Counter = static_cast<uint32_t>(1);
         for (const auto &DylibInfo : DylibList) {
             const auto TimestampString =
-                ADT::GetHumanReadableTimestamp(DylibInfo.Timestamp);
+                Utils::GetHumanReadableTimestamp(DylibInfo.Timestamp);
 
             fprintf(OutFile,
                     "Library %" PRIu32 ": (LC %" PRIu32 ")\n"

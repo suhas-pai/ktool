@@ -6,7 +6,8 @@
 //
 
 #include "ADT/FlagsIterator.h"
-#include "ADT/Misc.h"
+
+#include "Utils/Misc.h"
 #include "Utils/Print.h"
 
 #include "Dyld3/Platform.h"
@@ -289,7 +290,7 @@ namespace Operations {
                 const auto CompatVersion = DylibCmd.compatVersion(IsBigEndian);
                 const auto Timestamp = DylibCmd.timestamp(IsBigEndian);
                 const auto TimestampString =
-                    ADT::GetHumanReadableTimestamp(Timestamp);
+                    Utils::GetHumanReadableTimestamp(Timestamp);
 
                 fprintf(OutFile,
                         "%sName:            \"" STRING_VIEW_FMT "\"\n"
@@ -648,17 +649,18 @@ namespace Operations {
                         "%sData Size:   %" PRIu32 " (%s)\n",
                         Prefix, DataOff,
                         ADDR_RANGE_FMT_ARGS(DataOff, DataOff + DataSize),
-                        Prefix, DataSize, Utils::FormattedSize(DataSize).data());
+                        Prefix, DataSize,
+                        Utils::FormattedSize(DataSize).data());
                 break;
             }
             case MachO::LoadCommandKind::FileSetEntry: {
-                const auto &FilesetEntryCmd =
+                const auto &FileSetEntryCmd =
                     MachO::cast<MachO::FileSetEntryCommand>(LC, IsBigEndian);
 
-                const auto VmAddress = FilesetEntryCmd.vmAddress(IsBigEndian);
-                const auto FileOffset = FilesetEntryCmd.fileOffset(IsBigEndian);
-                const auto EntryId = FilesetEntryCmd.entryId(IsBigEndian);
-                const auto Reserved = FilesetEntryCmd.reserved(IsBigEndian);
+                const auto VmAddress = FileSetEntryCmd.vmAddress(IsBigEndian);
+                const auto FileOffset = FileSetEntryCmd.fileOffset(IsBigEndian);
+                const auto EntryId = FileSetEntryCmd.entryId(IsBigEndian);
+                const auto Reserved = FileSetEntryCmd.reserved(IsBigEndian);
 
                 fprintf(OutFile,
                         "%sVm Address:  " ADDRESS_64_FMT "\n"
@@ -687,7 +689,8 @@ namespace Operations {
                         "%sCrypt Id:     %" PRIu32 "\n",
                         Prefix, CryptOffset,
                         ADDR_RANGE_FMT_ARGS(CryptOffset, CryptSize),
-                        Prefix, CryptSize, Utils::FormattedSize(CryptSize).data(),
+                        Prefix, CryptSize,
+                        Utils::FormattedSize(CryptSize).data(),
                         Prefix, CryptId);
                 break;
             }
@@ -709,7 +712,8 @@ namespace Operations {
                         "%sPad:          %" PRIu32 "\n",
                         Prefix, CryptOffset,
                         ADDR_RANGE_FMT_ARGS(CryptOffset, CryptSize),
-                        Prefix, CryptSize, Utils::FormattedSize(CryptSize).data(),
+                        Prefix, CryptSize,
+                        Utils::FormattedSize(CryptSize).data(),
                         Prefix, CryptId,
                         Prefix, Pad);
                 break;

@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "ADT/Maximizer.h"
-#include "ADT/Misc.h"
+#include "Utils/Misc.h"
 
 #include "MachO/LoadCommands.h"
 

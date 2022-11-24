@@ -1,13 +1,13 @@
 //
-//  Misc.cpp
+//  Utils/Misc.cpp
 //  ktool
 //
 //  Created by suhaspai on 11/22/22.
 //
 
-#include "ADT/Misc.h"
+#include "Utils/Misc.h"
 
-namespace ADT {
+namespace Utils {
     std::string GetHumanReadableTimestamp(const time_t Timestamp) noexcept {
         auto Buffer = std::array<char, 64>();
         strftime(Buffer.data(), Buffer.size(), "%c", localtime(&Timestamp));

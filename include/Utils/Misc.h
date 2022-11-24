@@ -1,5 +1,5 @@
 //
-//  ADT/Misc.h
+//  Utils/Misc.h
 //  ktool
 //
 //  Created by suhaspai on 11/20/22.
@@ -19,7 +19,7 @@
 
 #define bit_sizeof(T) (sizeof(T) * 8)
 
-namespace ADT {
+namespace Utils {
     template <std::integral T>
     constexpr std::optional<T> to_int(const std::string_view &String) noexcept {
         auto Front = String.front();
