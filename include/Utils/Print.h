@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <inttypes.h>
 #include <string>
+#include <string_view>
 
 namespace Utils {
     template <std::integral T>
@@ -34,6 +35,24 @@ namespace Utils {
                  bool Is64Bit,
                  std::string_view Prefix = "",
                  std::string_view Suffix = "") noexcept -> int;
+
+    auto
+    PrintSegmentSectionPair(FILE *OutFile,
+                            std::string_view Segment,
+                            std::string_view Section,
+                            bool PadSegments,
+                            bool PadSections,
+                            const char *Prefix = "",
+                            const char *Suffix = "") noexcept -> int;
+
+    auto
+    PrintDylibOrdinalInfo(FILE *OutFile,
+                          uint8_t DylibOrdinal,
+                          std::string_view DylibPath,
+                          bool PrintPath,
+                          bool IsOutOfBounds,
+                          const char *Prefix = "",
+                          const char *Suffix = "") noexcept -> int;
 }
 
 #define STRING_VIEW_FMT "%.*s"

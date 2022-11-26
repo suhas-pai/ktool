@@ -1,5 +1,5 @@
 //
-//  Operations/PrintCStringSection.h
+//  Operations/PrintSymbolPtrSection.h
 //  ktool
 //
 //  Created by suhaspai on 11/21/22.
@@ -9,16 +9,26 @@
 
 #include <limits>
 #include <optional>
+#include <vector>
 
 #include "Objects/MachO.h"
 #include "Base.h"
 
 namespace Operations {
-    struct PrintCStringSection : public Base {
+    struct PrintSymbolPtrSection : public Base {
     public:
         struct Options {
-            bool Sort : 1 = false;
             bool Verbose : 1 = false;
+            bool SkipInvalidIndices : 1 = true;
+
+            enum class SortKind {
+                ByDylibOrdinal,
+                ByDylibPath,
+                ByIndex,
+                ByString,
+            };
+
+            std::vector<SortKind> SortKindList;
             uint64_t Limit = std::numeric_limits<uint64_t>::max();
         };
     protected:
@@ -28,23 +38,30 @@ namespace Operations {
         std::optional<std::string> SegmentName;
         std::string SectionName;
     public:
-        static constexpr auto Kind = Operations::Kind::PrintCStringSection;
+        static constexpr auto Kind = Operations::Kind::PrintSymbolPtrSection;
 
         explicit
-        PrintCStringSection(FILE *OutFile,
+        PrintSymbolPtrSection(FILE *OutFile,
                             const std::optional<std::string> &SegmentName,
                             const std::string &SectionName,
                             const struct Options &Options) noexcept;
 
-        ~PrintCStringSection() noexcept override {}
+        ~PrintSymbolPtrSection() noexcept override {}
 
         enum class RunError : uint32_t {
             None,
             EmptySectionName,
             SectionNotFound,
             ProtectedSegment,
-            NotCStringSection,
-            HasNoStrings
+            NotSymbolPointerSection,
+            SymTabNotFound,
+            DynamicSymTabNotFound,
+            MultipleSymTabCommands,
+            MultipleDynamicSymTabCommands,
+            IndexListOutOfBounds,
+            SymbolTableOutOfBounds,
+            StringTableOutOfBounds,
+            IndexOutOfBounds,
         };
 
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;

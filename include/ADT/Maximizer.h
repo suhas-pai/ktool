@@ -27,9 +27,5 @@ namespace ADT {
         [[nodiscard]] constexpr auto value() const noexcept {
             return Value;
         }
-
-        [[nodiscard]] operator T() const noexcept {
-            return Value;
-        }
     };
 }

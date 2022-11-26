@@ -54,7 +54,7 @@ namespace MachO {
         Routines64,
         Uuid,
         Rpath = static_cast<uint32_t>(LoadCommandReqByDyld | 0x1c),
-        CodeSignature,
+        CodeSignature = 0x1d,
         SegmentSplitInfo,
         ReexportDylib = static_cast<uint32_t>(LoadCommandReqByDyld | 0x1f),
         LazyLoadDylib = 0x20,
@@ -427,26 +427,26 @@ namespace MachO {
 
             using ADT::FlagsBase<uint32_t>::FlagsBase;
 
-            [[nodiscard]] constexpr auto isHighVm() const noexcept -> bool {
+            [[nodiscard]] constexpr auto highVm() const noexcept -> bool {
                 return (Flags & static_cast<uint32_t>(Kind::HighVm));
             }
 
             [[nodiscard]]
-            constexpr auto isFixedVmLibrary() const noexcept -> bool {
+            constexpr auto fixedVmLibrary() const noexcept -> bool {
                 return (Flags & static_cast<uint32_t>(Kind::FixedVmLibrary));
             }
 
             [[nodiscard]]
-            constexpr auto hasNoRelocations() const noexcept -> bool {
+            constexpr auto noRelocations() const noexcept -> bool {
                 return (Flags & static_cast<uint32_t>(Kind::NoRelocations));
             }
 
             [[nodiscard]]
-            constexpr auto isProtectedVersion1() const noexcept -> bool {
+            constexpr auto protectedVersion1() const noexcept -> bool {
                 return (Flags & static_cast<uint32_t>(Kind::ProtectedVersion1));
             }
 
-            [[nodiscard]] constexpr auto isReadOnly() const noexcept -> bool {
+            [[nodiscard]] constexpr auto readOnly() const noexcept -> bool {
                 return (Flags & static_cast<uint32_t>(Kind::ReadOnly));
             }
 
@@ -484,6 +484,11 @@ namespace MachO {
         [[nodiscard]]
         constexpr auto flags(const bool IsBigEndian) const noexcept {
             return FlagsStruct(ADT::SwitchEndianIf(Flags, IsBigEndian));
+        }
+
+        [[nodiscard]]
+        constexpr auto isProtected(const bool IsBigEndian) const noexcept {
+            return flags(IsBigEndian).protectedVersion1();
         }
 
         struct Section {
@@ -892,6 +897,11 @@ namespace MachO {
         [[nodiscard]]
         constexpr auto flags(const bool IsBigEndian) const noexcept {
             return FlagsStruct(ADT::SwitchEndianIf(Flags, IsBigEndian));
+        }
+
+        [[nodiscard]]
+        constexpr auto isProtected(const bool IsBigEndian) const noexcept {
+            return flags(IsBigEndian).protectedVersion1();
         }
     };
 
@@ -1422,6 +1432,187 @@ namespace MachO {
         uint32_t StrOffset;
         uint32_t StrSize;
 
+        [[nodiscard]] constexpr
+        static uint16_t EntryDescGetDylibOrdinal(const uint16_t Desc) noexcept {
+            return ((Desc >> 8) & 0xff);
+        }
+
+        constexpr static uint16_t
+        EntryDescSetDylibOrdinal(uint16_t &Desc,
+                                 const uint16_t Ordinal) noexcept
+        {
+            Desc |= ((Ordinal << 8) & 0xff00);
+            return Desc;
+        }
+
+        struct Entry {
+            enum class Masks : uint8_t {
+                DebugSymbol = 0xe0,
+                PrivateExternal = 0x10,
+                Kind = 0x0e,
+                External = 0x1
+            };
+
+            enum class Kind : uint8_t {
+                Undefined,
+                Absolute = 0x2,
+                Section = 0xe,
+                PreboundUndefined = 0xc,
+                Indirect = 0xa
+            };
+
+            [[nodiscard]]
+            constexpr static auto KindIsValid(const Kind Kind) noexcept {
+                switch (Kind) {
+                    case Kind::Undefined:
+                    case Kind::Absolute:
+                    case Kind::Section:
+                    case Kind::PreboundUndefined:
+                    case Kind::Indirect:
+                        return true;
+                }
+
+                return false;
+            }
+
+            [[nodiscard]]
+            constexpr static auto KindGetString(const Kind Kind) noexcept
+                -> std::string_view
+            {
+                switch (Kind) {
+                    case Kind::Undefined:
+                        return "N_UNDF";
+                    case Kind::Absolute:
+                        return "N_ABS";
+                    case Kind::Section:
+                        return "N_SECT";
+                    case Kind::PreboundUndefined:
+                        return "N_PBUD";
+                    case Kind::Indirect:
+                        return "N_INDR";
+                }
+
+                assert(false && "KindGetString() called with unknown Kind");
+            }
+
+            [[nodiscard]] constexpr static
+            auto KindGetDesc(const Kind Kind) noexcept -> std::string_view {
+                switch (Kind) {
+                    case Kind::Undefined:
+                        return "Undefined";
+                    case Kind::Absolute:
+                        return "Absolute";
+                    case Kind::Section:
+                        return "Section";
+                    case Kind::PreboundUndefined:
+                        return "PreboundUndefined";
+                    case Kind::Indirect:
+                        return "Indirect";
+                }
+
+                assert(false && "KindGetDesc() called with unknown Kind");
+            }
+
+            uint32_t Index;
+            uint8_t Type;
+            uint8_t Section;
+            int16_t Description;
+            uint32_t Value;
+
+            [[nodiscard]]
+            constexpr auto index(const bool IsBigEndian) const noexcept {
+                return ADT::SwitchEndianIf(Index, IsBigEndian);
+            }
+
+            [[nodiscard]]
+            constexpr auto description(const bool IsBigEndian) const noexcept {
+                return ADT::SwitchEndianIf(Description, IsBigEndian);
+            }
+
+            [[nodiscard]]
+            constexpr auto value(const bool IsBigEndian) const noexcept {
+                return ADT::SwitchEndianIf(Value, IsBigEndian);
+            }
+
+            [[nodiscard]]
+            constexpr auto kind() const noexcept {
+                return Kind(Type & static_cast<uint8_t>(Masks::Kind));
+            }
+
+            [[nodiscard]] constexpr
+            auto debugSymbol() const noexcept -> bool {
+                return Type & static_cast<uint8_t>(Masks::DebugSymbol);
+            }
+
+            [[nodiscard]] constexpr auto
+            privateExternal() const noexcept -> bool {
+                const auto Mask = static_cast<uint8_t>(Masks::PrivateExternal);
+                return Type & Mask;
+            }
+
+            [[nodiscard]] constexpr
+            auto external() const noexcept -> bool {
+                return Type & static_cast<uint8_t>(Masks::External);
+            }
+
+            [[nodiscard]] constexpr
+            auto dylibOrdinal(const bool IsBigEndian) const noexcept -> bool {
+                return EntryDescGetDylibOrdinal(description(IsBigEndian));
+            }
+        };
+
+        struct Entry64 {
+            using Masks = Entry::Masks;
+            using Kind = Entry::Kind;
+
+            uint32_t Index;
+            uint8_t Type;
+            uint8_t Section;
+            int16_t Description;
+            uint64_t Value;
+
+            [[nodiscard]]
+            constexpr auto index(const bool IsBigEndian) const noexcept {
+                return ADT::SwitchEndianIf(Index, IsBigEndian);
+            }
+
+            [[nodiscard]]
+            constexpr auto description(const bool IsBigEndian) const noexcept {
+                return ADT::SwitchEndianIf(Description, IsBigEndian);
+            }
+
+            [[nodiscard]]
+            constexpr auto value(const bool IsBigEndian) const noexcept {
+                return ADT::SwitchEndianIf(Value, IsBigEndian);
+            }
+
+            [[nodiscard]]
+            constexpr auto kind() const noexcept {
+                return Kind(Type & static_cast<uint8_t>(Masks::Kind));
+            }
+
+            [[nodiscard]] constexpr
+            auto debugSymbol() const noexcept -> bool {
+                return Type & static_cast<uint8_t>(Masks::DebugSymbol);
+            }
+
+            [[nodiscard]] constexpr auto
+            privateExternal() const noexcept -> bool {
+                const auto Mask = static_cast<uint8_t>(Masks::PrivateExternal);
+                return Type & Mask;
+            }
+
+            [[nodiscard]] constexpr
+            auto external() const noexcept -> bool {
+                return Type & static_cast<uint8_t>(Masks::External);
+            }
+
+            [[nodiscard]] constexpr
+            auto dylibOrdinal(const bool IsBigEndian) const noexcept -> bool {
+                return (description(IsBigEndian) >> 8) & 0xff;
+            }
+        };
+
         [[nodiscard]]
         constexpr auto symOffset(const bool IsBigEndian) const noexcept {
             return ADT::SwitchEndianIf(SymOffset, IsBigEndian);
@@ -1430,6 +1621,14 @@ namespace MachO {
         [[nodiscard]]
         constexpr auto symCount(const bool IsBigEndian) const noexcept {
             return ADT::SwitchEndianIf(SymCount, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr auto
+        symRange(const bool IsBigEndian, const bool Is64Bit) const noexcept {
+            const auto SymbolSize = Is64Bit ? sizeof(Entry64) : sizeof(Entry);
+            const auto RangeSize = SymbolSize * symCount(IsBigEndian);
+
+            return ADT::Range::FromSize(symOffset(IsBigEndian), RangeSize);
         }
 
         [[nodiscard]]
@@ -1464,6 +1663,9 @@ namespace MachO {
             return hasValidCmdSize(cmdsize(IsBigEndian));
         }
     };
+
+    constexpr static inline auto IndirectSymbolLocal = 0x80000000;
+    constexpr static inline auto IndirectSymbolAbs = 0x40000000;
 
     struct DynamicSymTabCommand : public LoadCommand {
         [[nodiscard]]
@@ -2907,7 +3109,7 @@ namespace MachO {
 
     template <LoadCommandDerived T>
     [[nodiscard]] constexpr
-    auto &cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept {
+    auto cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept {
         assert(isa<T>(LC, IsBigEndian));
         return static_cast<const T *>(LC);
     }

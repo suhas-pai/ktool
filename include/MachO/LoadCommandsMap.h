@@ -22,7 +22,7 @@ namespace MachO {
                              bool IsBigEndian) noexcept;
 
         auto operator++() noexcept -> decltype(*this);
-        auto operator++(int) noexcept -> LoadCommandsIterator;
+        auto operator++(int) noexcept -> LoadCommandsIterator &;
         auto operator+=(int) noexcept -> decltype(*this);
 
         [[nodiscard]] constexpr auto &operator*() const noexcept {

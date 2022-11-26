@@ -121,6 +121,7 @@ namespace Operations {
                             "%s\tAlign:             %" PRIu32 "\n"
                             "%s\tReloc File Offset: " ADDRESS_32_FMT "\n"
                             "%s\tReloc Count:       %" PRIu32 "\n"
+                            "%s\tFlags:             0x%" PRIx32 "\n"
                             "%s\tReserved 1:        %" PRIu32 "\n"
                             "%s\tReserved 2:        %" PRIu32 "\n",
                             Prefix, I + 1,
@@ -134,6 +135,7 @@ namespace Operations {
                             Prefix, Section.align(IsBigEndian),
                             Prefix, Section.relocFileOffset(IsBigEndian),
                             Prefix, Section.relocsCount(IsBigEndian),
+                            Prefix, Section.flags(IsBigEndian).value(),
                             Prefix, Section.reserved1(IsBigEndian),
                             Prefix, Section.reserved2(IsBigEndian));
                 }
@@ -937,7 +939,7 @@ namespace Operations {
                         MachO::LoadCommandKindGetString(Kind).data());
             } else {
                 fprintf(OutFile,
-                        "LC %" PRIu32 ": <unknown> (%" PRIu32 ")\n",
+                        "LC %" PRIu32 ": <unknown> (Value: %" PRIu32 ")\n",
                         Counter,
                         static_cast<uint32_t>(Kind));
             }

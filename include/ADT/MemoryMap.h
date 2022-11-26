@@ -66,5 +66,20 @@ namespace ADT {
             const auto AdjBase = reinterpret_cast<uint64_t>(Base) + Offset;
             return reinterpret_cast<T *>(AdjBase);
         }
+
+        template <typename T = void *, bool Verify = true>
+        [[nodiscard]] inline
+        auto getFromIndexRange(const Range &Range) const noexcept -> T * {
+            if constexpr (Verify) {
+                if (!range().containsAsIndex(Range)) {
+                    return nullptr;
+                }
+            }
+
+            const auto AdjBase =
+                reinterpret_cast<uint64_t>(Base) + Range.begin();
+
+            return reinterpret_cast<T *>(AdjBase);
+        }
     };
 }

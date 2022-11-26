@@ -46,15 +46,15 @@ namespace Operations {
         uint32_t Index;
     };
 
-    static int
+    static auto
     CompareEntriesBySortKind(
         const DylibInfo &Lhs,
         const DylibInfo &Rhs,
-        const Operations::PrintLibraries::Options::SortKind SortKind) noexcept
+        const PrintLibraries::Options::SortKind SortKind) noexcept
+        -> int
     {
         switch (SortKind) {
-            using SortKind = Operations::PrintLibraries::Options::SortKind;
-            case SortKind::ByCurrentVersion:
+            case PrintLibraries::Options::SortKind::ByCurrentVersion:
                 if (Lhs.CurrentVersion == Rhs.CurrentVersion) {
                     return 0;
                 }
@@ -64,7 +64,7 @@ namespace Operations {
                 }
 
                 return 1;
-            case SortKind::ByCompatVersion: {
+            case PrintLibraries::Options::SortKind::ByCompatVersion: {
                 if (Lhs.CompatVersion == Rhs.CompatVersion) {
                     return 0;
                 } else if (Lhs.CompatVersion < Rhs.CompatVersion) {
@@ -73,7 +73,7 @@ namespace Operations {
 
                 return 1;
             }
-            case SortKind::ByIndex: {
+            case PrintLibraries::Options::SortKind::ByIndex: {
                 if (Lhs.Index == Rhs.Index) {
                     return 0;
                 } else if (Lhs.Index < Rhs.Index) {
@@ -82,7 +82,7 @@ namespace Operations {
 
                 return 1;
             }
-            case SortKind::ByTimeStamp: {
+            case PrintLibraries::Options::SortKind::ByTimeStamp: {
                 if (Lhs.Timestamp == Rhs.Timestamp) {
                     return 0;
                 } else if (Lhs.Timestamp < Rhs.Timestamp) {
@@ -91,7 +91,7 @@ namespace Operations {
 
                 return 1;
             }
-            case SortKind::ByName:
+            case PrintLibraries::Options::SortKind::ByName:
                 return Lhs.Name.compare(Rhs.Name);
         }
 

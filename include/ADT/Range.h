@@ -68,6 +68,11 @@ namespace ADT {
         }
 
         [[nodiscard]]
+        constexpr auto containsEndIndex(const uint64_t Idx) const noexcept {
+            return Idx != 0 && Idx <= Size;
+        }
+
+        [[nodiscard]]
         constexpr auto contains(const Range &Other) const noexcept {
             if (Other.empty()) {
                 return false;
@@ -96,7 +101,7 @@ namespace ADT {
 
         [[nodiscard]]
         constexpr auto containsAsIndex(const Range &Other) const noexcept {
-            return containsIndex(Other.Begin) && containsEnd(Other.end());
+            return containsIndex(Other.Begin) && containsEndIndex(Other.end());
         }
 
         [[nodiscard]]

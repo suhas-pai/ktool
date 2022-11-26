@@ -5,14 +5,9 @@
 //  Created by suhaspai on 10/2/22.
 //
 
-#include <cstdio>
 #include <memory>
-#include <string_view>
-#include <vector>
 
 #include "ADT/FileMap.h"
-#include "Utils/Misc.h"
-
 #include "MachO/LoadCommands.h"
 
 #include "Operations/PrintHeader.h"
@@ -21,6 +16,9 @@
 #include "Operations/PrintLibraries.h"
 #include "Operations/PrintArchs.h"
 #include "Operations/PrintCStringSection.h"
+
+#include "Operations/PrintSymbolPtrSection.h"
+#include "Utils/Misc.h"
 
 struct OperationInfo {
     std::string Path;
@@ -67,7 +65,36 @@ struct ArgOptions {
     : Value(Value) {}
 };
 
-auto main(const int argc, const char *const argv[]) -> int {
+auto
+ParseSegmentSectionPair(std::string &SegmentSectionPair,
+                        std::optional<std::string> &SegmentName,
+                        std::string &SectionName) noexcept
+{
+    if (const auto CommaPos = SegmentSectionPair.find(',');
+        CommaPos != std::string::npos)
+    {
+        if (CommaPos == 0) {
+            fputs("Please provide section-name by itself if segment-name "
+                  "won't be provided\n",
+                  stderr);
+            return 1;
+        }
+
+        if (CommaPos == SegmentSectionPair.length() - 1) {
+            fputs("Please provide a section-name\n", stderr);
+            return 1;
+        }
+
+        SegmentName = SegmentSectionPair.substr(0, CommaPos);
+        SectionName = SegmentSectionPair.substr(CommaPos + 1);
+    } else {
+        SectionName = std::move(SegmentSectionPair);
+    }
+
+    return 0;
+}
+
+auto main(const int argc, const char *const argv[]) noexcept -> int {
     if (argc < 2) {
         fprintf(stderr, "Help Menu:\n");
         return 0;
@@ -312,25 +339,13 @@ auto main(const int argc, const char *const argv[]) -> int {
         auto SegmentName = std::optional<std::string>(std::nullopt);
         auto SectionName = std::string();
 
-        if (const auto CommaPos = SegmentSectionPair.find(',');
-            CommaPos != std::string::npos)
-        {
-            if (CommaPos == 0) {
-                fputs("Please provide section-name by itself if segment-name "
-                      "won't be provided\n",
-                      stderr);
-                return 1;
-            }
+        const auto ParseSegSectPair =
+            ParseSegmentSectionPair(SegmentSectionPair,
+                                    SegmentName,
+                                    SectionName);
 
-            if (CommaPos == SegmentSectionPair.length() - 1) {
-                fputs("Please provide a section-name\n", stderr);
-                return 1;
-            }
-
-            SegmentName = SegmentSectionPair.substr(0, CommaPos);
-            SectionName = SegmentSectionPair.substr(CommaPos + 1);
-        } else {
-            SectionName = std::move(SegmentSectionPair);
+        if (ParseSegSectPair != 0) {
+            return ParseSegSectPair;
         }
 
         Operation.Kind = Operations::Kind::PrintCStringSection;
@@ -340,6 +355,71 @@ auto main(const int argc, const char *const argv[]) -> int {
                                                     std::move(SegmentName),
                                                     std::move(SectionName),
                                                     Options));
+    } else if (OperationString == "--symbol-ptrs") {
+        const auto ArgOptions =
+            ::ArgOptions(ArgFlags::Option | ArgFlags::EverythingElse);
+
+        auto Options = Operations::PrintSymbolPtrSection::Options();
+        auto SegmentSectionPair = std::string();
+
+        while (true) {
+            const auto NextArg =
+                GetNextArg("Section Name", OperationString.data(), ArgOptions);
+
+            using SortKind =
+                Operations::PrintSymbolPtrSection::Options::SortKind;
+
+            if (NextArg == "-v" || NextArg == "--verbose") {
+                Options.Verbose = true;
+            } else if (NextArg == "--limit") {
+                const auto LimitArg =
+                    GetNextArg("limit number",
+                               OperationString.data(),
+                               ::ArgOptions(ArgFlags::EverythingElse));
+
+                const auto LimitArgOpt = Utils::to_int<uint32_t>(LimitArg);
+                if (!LimitArgOpt) {
+                    fprintf(stderr,
+                            "%s is not a valid limit-number\n",
+                            argv[I]);
+                    return 1;
+                }
+
+                const auto Limit = LimitArgOpt.value();
+                if (Limit == 0) {
+                    fputs("A limit of 0 is invalid\n", stderr);
+                    return 1;
+                }
+
+                Options.Limit = Limit;
+            } else if (NextArg == "--sort-by-dylib-ordinal") {
+                Options.SortKindList.emplace_back(SortKind::ByDylibOrdinal);
+            } else if (NextArg == "--sort-by-dylib-path") {
+                Options.SortKindList.emplace_back(SortKind::ByDylibPath);
+            } else if (NextArg == "--sort-by-index") {
+                Options.SortKindList.emplace_back(SortKind::ByIndex);
+            } else if (NextArg == "--sort-by-string") {
+                Options.SortKindList.emplace_back(SortKind::ByString);
+            } else {
+                SegmentSectionPair = std::move(NextArg.data());
+                I++;
+
+                break;
+            }
+        }
+
+        auto SegmentName = std::optional<std::string>(std::nullopt);
+        auto SectionName = std::string();
+
+        ParseSegmentSectionPair(SegmentSectionPair, SegmentName, SectionName);
+
+        Operation.Kind = Operations::Kind::PrintSymbolPtrSection;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintSymbolPtrSection>(
+                new Operations::PrintSymbolPtrSection(stdout,
+                                                      std::move(SegmentName),
+                                                      std::move(SectionName),
+                                                      Options));
     } else {
         fprintf(stderr,
                 "Unrecognized option: \"%s\"\n",
@@ -433,7 +513,10 @@ auto main(const int argc, const char *const argv[]) -> int {
                 case RunError::EmptySectionName:
                     assert(false && "Internal Error: Empty Section Name");
                 case RunError::SectionNotFound:
-                    fputs("Provided section was not found\n", stderr);
+                    fputs("Provided section was not found\n"
+                          "This may be because found sections were in a "
+                          "protected segment\n",
+                          stderr);
                     return 1;
                 case RunError::NotCStringSection:
                     fputs("Provided section is not a c-string section\n",
@@ -443,9 +526,60 @@ auto main(const int argc, const char *const argv[]) -> int {
                     fputs("Provided section has no (printable) c-strings\n",
                           stderr);
                     return 1;
-            }
+                case RunError::ProtectedSegment:
+                    fputs("Provided section is in a protected segment\n",
+                          stderr);
+                    break;
+                }
         }
-
+        case Operations::Kind::PrintSymbolPtrSection: {
+            switch (Operations::PrintSymbolPtrSection::RunError(Result.Error)) {
+                using RunError = Operations::PrintSymbolPtrSection::RunError;
+                case RunError::None:
+                    break;
+                case RunError::EmptySectionName:
+                    assert(false && "Internal Error: Empty Section Name");
+                case RunError::SectionNotFound:
+                    fputs("Provided section was not found\n"
+                          "This may be because found sections were in a "
+                          "protected segment\n",
+                          stderr);
+                    return 1;
+                case RunError::NotSymbolPointerSection:
+                    fputs("Provided section is not a symbol pointer section\n",
+                          stderr);
+                    return 1;
+                case RunError::ProtectedSegment:
+                    fputs("Provided section is in a protected segment\n",
+                          stderr);
+                    return 1;
+                case RunError::SymTabNotFound:
+                    fputs("Couldn't find symtab_command\n", stderr);
+                    return 1;
+                case RunError::DynamicSymTabNotFound:
+                    fputs("Couldn't find dysymtab_command\n", stderr);
+                    return 1;
+                case RunError::MultipleSymTabCommands:
+                    fputs("Found multiple symtab_commands\n", stderr);
+                    return 1;
+                case RunError::MultipleDynamicSymTabCommands:
+                    fputs("Found multiple dysymtab_commands\n", stderr);
+                    return 1;
+                case RunError::IndexListOutOfBounds:
+                    fputs("Index-List is out-of-bounds of mach-o\n", stderr);
+                    return 1;
+                case RunError::IndexOutOfBounds:
+                    fputs("Index-List is out-of-bounds of mach-o\n", stderr);
+                    return 1;
+                case RunError::SymbolTableOutOfBounds:
+                    fputs("Symbol-Table is out-of-bounds of mach-o\n", stderr);
+                    return 1;
+                case RunError::StringTableOutOfBounds:
+                    fputs("String-Table is out-of-bounds of mach-o\n", stderr);
+                    return 1;
+                }
+            break;
+        }
     }
 
     return 0;

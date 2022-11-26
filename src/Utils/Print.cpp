@@ -7,6 +7,7 @@
 
 #include <array>
 #include <assert.h>
+#include <cstdio>
 #include <sstream>
 
 #include "Utils/Print.h"
@@ -114,5 +115,68 @@ namespace Utils {
         }
 
         return Result;
+    }
+
+    auto
+    PrintSegmentSectionPair(FILE *const OutFile,
+                            const std::string_view Segment,
+                            const std::string_view Section,
+                            const bool PadSegments,
+                            const bool PadSections,
+                            const char *const Prefix,
+                            const char *const Suffix) noexcept -> int
+    {
+        auto WrittenOut = fprintf(OutFile, "%s", Prefix);
+        if (PadSegments) {
+            if (Segment.length() < 16) {
+                WrittenOut += PadSpaces(OutFile, 16 - Segment.length());
+            }
+        }
+
+        WrittenOut +=
+            fprintf(OutFile,
+                    STRING_VIEW_FMT ",",
+                    STRING_VIEW_FMT_ARGS(Segment));
+
+        WrittenOut +=
+            fprintf(OutFile, STRING_VIEW_FMT, STRING_VIEW_FMT_ARGS(Section));
+
+        if (PadSections) {
+            if (Section.length() < 16) {
+                WrittenOut += PadSpaces(OutFile, 16 - Section.length());
+            }
+        }
+
+        return WrittenOut + fprintf(OutFile, "%s", Suffix);
+    }
+
+    auto
+    PrintDylibOrdinalInfo(FILE *const OutFile,
+                          const uint8_t DylibOrdinal,
+                          const std::string_view DylibPath,
+                          const bool PrintPath,
+                          const bool IsOutOfBounds,
+                          const char *const Prefix,
+                          const char *const Suffix) noexcept -> int
+    {
+        auto WrittenOut =
+            fprintf(OutFile,
+                    "%sDylib-Ordinal %02" PRId8 " ",
+                    Prefix,
+                    DylibOrdinal);
+
+        if (IsOutOfBounds) {
+            return WrittenOut + fprintf(OutFile, "(Out Of Bounds!)%s", Suffix);
+        }
+
+        if (PrintPath) {
+            WrittenOut +=
+                fprintf(OutFile,
+                        " - \"" STRING_VIEW_FMT "\"%s",
+                        STRING_VIEW_FMT_ARGS(DylibPath),
+                        Suffix);
+        }
+
+        return WrittenOut;
     }
 }

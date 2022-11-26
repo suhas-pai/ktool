@@ -13,8 +13,7 @@ namespace MachO {
                                                const bool IsBigEndian) noexcept
     : Ptr(Ptr), IsBigEndian(IsBigEndian) {}
 
-    auto
-    LoadCommandsIterator::operator++() noexcept -> decltype(*this) {
+    auto LoadCommandsIterator::operator++() noexcept -> decltype(*this) {
         Ptr =
             reinterpret_cast<MachO::LoadCommand *>(
                reinterpret_cast<uint8_t *>(Ptr) + Ptr->cmdsize(IsBigEndian));
@@ -23,7 +22,7 @@ namespace MachO {
     }
 
     auto
-    LoadCommandsIterator::operator++(int) noexcept -> LoadCommandsIterator {
+    LoadCommandsIterator::operator++(int) noexcept -> LoadCommandsIterator &{
         Ptr =
             reinterpret_cast<MachO::LoadCommand *>(
                reinterpret_cast<uint8_t *>(Ptr) + Ptr->cmdsize(IsBigEndian));

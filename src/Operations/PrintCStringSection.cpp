@@ -47,7 +47,8 @@ namespace Operations {
                "PrintCStringSection::supportsObjectKind");
     }
 
-    auto ShouldExcludeString(std::string &String) noexcept {
+    [[nodiscard]]
+    static auto ShouldExcludeString(std::string &String) noexcept {
         if (String.empty()) {
             return true;
         }
@@ -92,7 +93,7 @@ namespace Operations {
         uint64_t Address;
     };
 
-    auto
+    static auto
     HandleCStringSection(const char *const SectData,
                          const uint64_t SectFileOff,
                          const uint64_t SectVmAddr,
@@ -192,6 +193,10 @@ namespace Operations {
                         }
                     }
 
+                    if (Segment->isProtected(IsBigEndian)) {
+                        return Result.set(RunError::ProtectedSegment);
+                    }
+
                     auto Section =
                         static_cast<
                             const MachO::SegmentCommand64::Section *>(nullptr);
@@ -232,6 +237,10 @@ namespace Operations {
                         if (Segment->segmentName() != SegmentName) {
                             continue;
                         }
+                    }
+
+                    if (Segment->isProtected(IsBigEndian)) {
+                        return Result.set(RunError::ProtectedSegment);
                     }
 
                     auto Section =
@@ -308,9 +317,10 @@ namespace Operations {
                         STRING_VIEW_FMT_ARGS(Info.String));
 
             if (Opt.Verbose) {
-                Utils::RightPadSpaces(OutFile,
-                                    WrittenOutString,
-                                    LongestCStringLength + STR_LENGTH(" \"\""));
+                Utils::RightPadSpaces(
+                    OutFile,
+                    WrittenOutString,
+                    LongestCStringLength + STR_LENGTH(" \"\""));
 
                 fprintf(OutFile,
                         " (Length: %0*" PRIuPTR ", File Offset: ",
