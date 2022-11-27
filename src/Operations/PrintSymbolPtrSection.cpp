@@ -73,8 +73,10 @@ namespace Operations {
             }
 
             using Kind = typename T::Section::Kind;
-            if (Section.kind(IsBigEndian) != Kind::LazySymbolPointers &&
-                Section.kind(IsBigEndian) != Kind::NonLazySymbolPointers)
+
+            const auto SectionKind = Section.kind(IsBigEndian);
+            if (SectionKind != Kind::LazySymbolPointers &&
+                SectionKind != Kind::NonLazySymbolPointers)
             {
                 using RunError = PrintSymbolPtrSection::RunError;
                 Result.set(RunError::NotSymbolPointerSection);
@@ -445,8 +447,8 @@ namespace Operations {
                 }
                 case Kind::DynamicSymbolTable: {
                     if (DynamicSymTabCmd != nullptr) {
-                        return
-                            Result.set(RunError::MultipleDynamicSymTabCommands);
+                        Result.set(RunError::MultipleDynamicSymTabCommands);
+                        return Result;
                     }
 
                     DynamicSymTabCmd =
