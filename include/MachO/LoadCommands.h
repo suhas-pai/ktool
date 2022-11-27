@@ -589,6 +589,148 @@ namespace MachO {
                 InitFunctionOffsets
             };
 
+            [[nodiscard]]
+            constexpr static auto KindIsValid(const Kind Kind) noexcept {
+                switch (Kind) {
+                    case Kind::Regular:
+                    case Kind::ZeroFillOnDemand:
+                    case Kind::CStringLiterals:
+                    case Kind::FourByteLiterals:
+                    case Kind::EightByteLiterals:
+                    case Kind::LiteralPointers:
+                    case Kind::NonLazySymbolPointers:
+                    case Kind::LazySymbolPointers:
+                    case Kind::SymbolStubs:
+                    case Kind::ModInitFunctionPointers:
+                    case Kind::ModTermFunctionPointers:
+                    case Kind::Coalesced:
+                    case Kind::ZeroFill4GBPlus:
+                    case Kind::Interposing:
+                    case Kind::SixteenByteLiterals:
+                    case Kind::DtraceDof:
+                    case Kind::LazyDylibSymbolPointers:
+                    case Kind::ThreadLocalRegular:
+                    case Kind::ThreadLocalZeroFill:
+                    case Kind::ThreadLocalVariables:
+                    case Kind::ThreadLocalVariablePointers:
+                    case Kind::ThreadLocalInitFunctionPointers:
+                    case Kind::InitFunctionOffsets:
+                        return true;
+                }
+
+                return false;
+            }
+
+            [[nodiscard]] constexpr static
+            auto KindGetString(const Kind Kind) noexcept -> std::string_view {
+                switch (Kind) {
+                    case Kind::Regular:
+                        return "S_REGULAR";
+                    case Kind::ZeroFillOnDemand:
+                        return "S_ZEROFILL";
+                    case Kind::CStringLiterals:
+                        return "S_CSTRING_LITERALS";
+                    case Kind::FourByteLiterals:
+                        return "S_4BYTE_LITERALS";
+                    case Kind::EightByteLiterals:
+                        return "S_8BYTE_LITERALS";
+                    case Kind::LiteralPointers:
+                        return "S_LITERAL_POINTERS";
+                    case Kind::NonLazySymbolPointers:
+                        return "S_NON_LAZY_SYMBOL_POINTERS";
+                    case Kind::LazySymbolPointers:
+                        return "S_LAZY_SYMBOL_POINTERS";
+                    case Kind::SymbolStubs:
+                        return "S_SYMBOL_STUBS";
+                    case Kind::ModInitFunctionPointers:
+                        return "S_MOD_INIT_FUNC_POINTERS";
+                    case Kind::ModTermFunctionPointers:
+                        return "S_MOD_TERM_FUNC_POINTERS";
+                    case Kind::Coalesced:
+                        return "S_COALESCED";
+                    case Kind::ZeroFill4GBPlus:
+                        return "S_GB_ZEROFILL";
+                    case Kind::Interposing:
+                        return "S_INTERPOSING";
+                    case Kind::SixteenByteLiterals:
+                        return "S_16BYTE_LITERALS";
+                    case Kind::DtraceDof:
+                        return "S_DTRACE_DOF";
+                    case Kind::LazyDylibSymbolPointers:
+                        return "S_LAZY_DYLIB_SYMBOL_POINTERS";
+                    case Kind::ThreadLocalRegular:
+                        return "S_THREAD_LOCAL_REGULAR";
+                    case Kind::ThreadLocalZeroFill:
+                        return "S_THREAD_LOCAL_ZEROFILL";
+                    case Kind::ThreadLocalVariables:
+                        return "S_THREAD_LOCAL_VARIABLES";
+                    case Kind::ThreadLocalVariablePointers:
+                        return "S_THREAD_LOCAL_VARIABLE_POINTERS";
+                    case Kind::ThreadLocalInitFunctionPointers:
+                        return "S_THREAD_LOCAL_INIT_FUNCTION_POINTERS";
+                    case Kind::InitFunctionOffsets:
+                        return "S_INIT_FUNC_OFFSETS";
+                }
+
+                assert(false &&
+                       "Section::KindGetString() got an unrecognized kind");
+            }
+
+            [[nodiscard]] constexpr static
+            auto KindGetDesc(const Kind Kind) noexcept -> std::string_view {
+                switch (Kind) {
+                    case Kind::Regular:
+                        return "Regular";
+                    case Kind::ZeroFillOnDemand:
+                        return "Zerofill";
+                    case Kind::CStringLiterals:
+                        return "C-String Literals";
+                    case Kind::FourByteLiterals:
+                        return "4 Byte Literals";
+                    case Kind::EightByteLiterals:
+                        return "8 Byte Literals";
+                    case Kind::LiteralPointers:
+                        return "Literal Pointers";
+                    case Kind::NonLazySymbolPointers:
+                        return "Non-Lazy Symbol Pointers";
+                    case Kind::LazySymbolPointers:
+                        return "Lazy Symbol Pointers";
+                    case Kind::SymbolStubs:
+                        return "Symbol Stubs";
+                    case Kind::ModInitFunctionPointers:
+                        return "Mod Init Function Pointers";
+                    case Kind::ModTermFunctionPointers:
+                        return "Mod Term Function Pointers";
+                    case Kind::Coalesced:
+                        return "Coalesced";
+                    case Kind::ZeroFill4GBPlus:
+                        return "4GB ZeroFill";
+                    case Kind::Interposing:
+                        return "Interposing";
+                    case Kind::SixteenByteLiterals:
+                        return "16-Byte Literals";
+                    case Kind::DtraceDof:
+                        return "DTrace DOF";
+                    case Kind::LazyDylibSymbolPointers:
+                        return "Lazy Dylib Symbol Pointers";
+                    case Kind::ThreadLocalRegular:
+                        return "Thread-Local Regular";
+                    case Kind::ThreadLocalZeroFill:
+                        return "Thread-Local ZeroFill";
+                    case Kind::ThreadLocalVariables:
+                        return "Thread-Local Variables";
+                    case Kind::ThreadLocalVariablePointers:
+                        return "Thread-Local Variable Pointers";
+                    case Kind::ThreadLocalInitFunctionPointers:
+                        return "Thread-Local Init Function Pointers";
+                    case Kind::InitFunctionOffsets:
+                        return "Init Function Offsets";
+                }
+
+                assert(false &&
+                       "Section::KindGetDesc() got an unrecognized kind");
+            }
+
             enum class Attributes : uint32_t {
                 HasLocalReloc = 1 << 8,
                 HasExternalReloc = 1 << 9,
@@ -1510,7 +1652,9 @@ namespace MachO {
                         return "Indirect";
                 }
 
-                assert(false && "KindGetDesc() called with unknown Kind");
+                assert(false &&
+                       "SymTabCommand::Entry::KindGetDesc() called with "
+                       "unknown Kind");
             }
 
             uint32_t Index;

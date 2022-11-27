@@ -135,11 +135,13 @@ namespace Utils {
 
         WrittenOut +=
             fprintf(OutFile,
-                    STRING_VIEW_FMT ",",
+                    "\"" STRING_VIEW_FMT "\",",
                     STRING_VIEW_FMT_ARGS(Segment));
 
         WrittenOut +=
-            fprintf(OutFile, STRING_VIEW_FMT, STRING_VIEW_FMT_ARGS(Section));
+            fprintf(OutFile,
+                    "\"" STRING_VIEW_FMT "\"",
+                    STRING_VIEW_FMT_ARGS(Section));
 
         if (PadSections) {
             if (Section.length() < 16) {

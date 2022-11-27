@@ -44,6 +44,7 @@ namespace Operations {
     PrintLoadCommand(FILE *const OutFile,
                      const MachO::LoadCommand &LC,
                      const bool IsBigEndian,
+                     uint32_t &DylibIndex,
                      const bool Verbose,
                      const char *Prefix = "") noexcept
     {
@@ -63,30 +64,25 @@ namespace Operations {
                 const auto Flags = Segment.flags(IsBigEndian);
 
                 fprintf(OutFile,
-                        "%sSegname:       \"" STRING_VIEW_FMT "\"\n"
-                        "%sVm Addr:       " ADDRESS_32_FMT " ("
-                            ADDR_RANGE_32_FMT ")\n"
-                        "%sVm Size:       %" PRId32 " (%s)\n"
-                        "%sFile Offset:   " ADDRESS_32_FMT " ("
-                            ADDR_RANGE_32_FMT ")\n"
+                        "\t\"" STRING_VIEW_FMT "\""
+                        "\t" MACH_VMPROT_FMT "/" MACH_VMPROT_FMT "\n"
+                        "%sFile:          " ADDR_RANGE_32_FMT "\n"
+                        "%sMem:           " ADDR_RANGE_32_FMT "\n"
                         "%sFile Size:     %" PRId32 " (%s)\n"
-                        "%sMax Prot:      " MACH_VMPROT_FMT "\n"
-                        "%sInit Prot:     " MACH_VMPROT_FMT "\n"
-                        "%sSection Count: %" PRIu32 "\n"
-                        "%sFlags:         0x%" PRIx32 "\n",
-                        Prefix, STRING_VIEW_FMT_ARGS(Segment.segmentName()),
-                        Prefix, VmAddr,
-                        ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
-                        Prefix, VmSize, Utils::FormattedSize(VmSize).data(),
-                        Prefix, FileOffset,
-                        ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
-                        Prefix, FileSize, Utils::FormattedSize(FileSize).data(),
-                        Prefix,
+                        "%sMem Size:      %" PRId32 " (%s)\n"
+                        "%sFlags:         0x%" PRIx32 "\n"
+                        "%sSection Count: %" PRIu32 "\n",
+                        STRING_VIEW_FMT_ARGS(Segment.segmentName()),
+                        MACH_VMPROT_FMT_ARGS(Segment.initProt(IsBigEndian)),
                         MACH_VMPROT_FMT_ARGS(Segment.maxProt(IsBigEndian)),
                         Prefix,
-                        MACH_VMPROT_FMT_ARGS(Segment.initProt(IsBigEndian)),
-                        Prefix, SectionCount,
-                        Prefix, Flags.value());
+                        ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
+                        Prefix,
+                        ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
+                        Prefix, FileSize, Utils::FormattedSize(FileSize).data(),
+                        Prefix, VmSize, Utils::FormattedSize(VmSize).data(),
+                        Prefix, Flags.value(),
+                        Prefix, SectionCount);
 
                 if (!Flags.empty()) {
                     for (const auto &Flag : ADT::FlagsIterator(Flags.value())) {
@@ -99,7 +95,8 @@ namespace Operations {
                 }
 
                 const auto SectionList = Segment.sections();
-                fputc('\n', OutFile);
+                const auto SectionCountDigitCount =
+                    Utils::GetIntegerDigitCount(SectionCount);
 
                 for (auto I = uint32_t(); I != SectionCount; I++) {
                     const auto &Section = SectionList[I];
@@ -110,34 +107,51 @@ namespace Operations {
                     const auto FormattedSize = Utils::FormattedSize(Size);
 
                     fprintf(OutFile,
-                            "%sSection %" PRIu32 ":\n"
-                            "%s\tSection Name:      \"" STRING_VIEW_FMT "\"\n"
-                            "%s\tSegment Name:      \"" STRING_VIEW_FMT "\"\n"
-                            "%s\tAddress:           " ADDRESS_32_FMT " ("
-                                ADDR_RANGE_32_FMT ")\n"
-                            "%s\tSize:              %" PRIu32 " (%s)\n"
-                            "%s\tFile Offset:       " ADDRESS_32_FMT " ("
-                                ADDR_RANGE_32_FMT ")\n"
-                            "%s\tAlign:             %" PRIu32 "\n"
-                            "%s\tReloc File Offset: " ADDRESS_32_FMT "\n"
-                            "%s\tReloc Count:       %" PRIu32 "\n"
-                            "%s\tFlags:             0x%" PRIx32 "\n"
-                            "%s\tReserved 1:        %" PRIu32 "\n"
-                            "%s\tReserved 2:        %" PRIu32 "\n",
-                            Prefix, I + 1,
-                            Prefix, STRING_VIEW_FMT_ARGS(Section.sectionName()),
-                            Prefix, STRING_VIEW_FMT_ARGS(Section.segmentName()),
-                            Prefix, Addr,
-                            ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
-                            Prefix, Size, FormattedSize.data(),
-                            Prefix, FileOffset,
+                            "\t%s%*" PRIu32 ". "
+                            "File: " ADDR_RANGE_32_FMT
+                            "\tMem: " ADDR_RANGE_32_FMT,
+                            Prefix, SectionCountDigitCount, I + 1,
                             ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + Size),
-                            Prefix, Section.align(IsBigEndian),
-                            Prefix, Section.relocFileOffset(IsBigEndian),
-                            Prefix, Section.relocsCount(IsBigEndian),
-                            Prefix, Section.flags(IsBigEndian).value(),
-                            Prefix, Section.reserved1(IsBigEndian),
-                            Prefix, Section.reserved2(IsBigEndian));
+                            ADDR_RANGE_FMT_ARGS(Addr, Addr + Size));
+
+                    Utils::PrintSegmentSectionPair(OutFile,
+                                                   Section.segmentName(),
+                                                   Section.sectionName(),
+                                                   /*PadSegment=*/true,
+                                                   /*PadSection=*/true,
+                                                   " ");
+
+                    using SectionSpace = MachO::SegmentCommand::Section;
+
+                    const auto SectionKind = Section.kind(IsBigEndian);
+                    if (SectionKind != SectionSpace::Kind::Regular) {
+                        auto SectionKindDesc =
+                            SectionSpace::KindIsValid(SectionKind) ?
+                                SectionSpace::KindGetDesc(SectionKind) :
+                                std::string_view("<unknown>");
+
+                        fprintf(OutFile, " (%s)\n", SectionKindDesc.data());
+                    } else {
+                        fputc('\n', OutFile);
+                    }
+
+                    if (Verbose) {
+                        fprintf(OutFile,
+                                "%s\t\tSize:              %" PRIu32 " (%s)\n"
+                                "%s\t\tAlign:             %" PRIu32 "\n"
+                                "%s\t\tReloc File Offset: " ADDRESS_32_FMT "\n"
+                                "%s\t\tReloc Count:       %" PRIu32 "\n"
+                                "%s\t\tFlags:             0x%" PRIx32 "\n"
+                                "%s\t\tReserved 1:        %" PRIu32 "\n"
+                                "%s\t\tReserved 2:        %" PRIu32 "\n",
+                                Prefix, Size, FormattedSize.data(),
+                                Prefix, Section.align(IsBigEndian),
+                                Prefix, Section.relocFileOffset(IsBigEndian),
+                                Prefix, Section.relocsCount(IsBigEndian),
+                                Prefix, Section.flags(IsBigEndian).value(),
+                                Prefix, Section.reserved1(IsBigEndian),
+                                Prefix, Section.reserved2(IsBigEndian));
+                    }
                 }
 
                 break;
@@ -154,47 +168,29 @@ namespace Operations {
                 const auto Flags = Segment.flags(IsBigEndian);
 
                 fprintf(OutFile,
-                        "%sSegname:       \"" STRING_VIEW_FMT "\"\n"
-                        "%sVm Addr:       " ADDRESS_64_FMT " ("
-                            ADDR_RANGE_64_FMT ")\n"
-                        "%sVm Size:       %" PRId64 " (%s)\n"
-                        "%sFile Offset:   " ADDRESS_64_FMT " ("
-                            ADDR_RANGE_64_FMT ")\n"
+                        "\t\"" STRING_VIEW_FMT "\""
+                        "\t" MACH_VMPROT_FMT "/" MACH_VMPROT_FMT "\n"
+                        "%sFile:          " ADDR_RANGE_64_FMT "\n"
+                        "%sMem:           " ADDR_RANGE_64_FMT "\n"
                         "%sFile Size:     %" PRId64 " (%s)\n"
-                        "%sMax Prot:      " MACH_VMPROT_FMT "\n"
-                        "%sInit Prot:     " MACH_VMPROT_FMT "\n"
-                        "%sSection Count: %" PRIu32 "\n"
-                        "%sFlags:         0x%" PRIx32 "\n",
-                        Prefix, STRING_VIEW_FMT_ARGS(Segment.segmentName()),
-                        Prefix, VmAddr,
-                        ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
-                        Prefix, VmSize, Utils::FormattedSize(VmSize).data(),
-                        Prefix, FileOffset,
-                        ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
-                        Prefix, FileSize, Utils::FormattedSize(FileSize).data(),
-                        Prefix,
+                        "%sMem Size:      %" PRId64 " (%s)\n"
+                        "%sFlags:         0x%" PRIx32 "\n"
+                        "%sSection Count: %" PRIu32 "\n",
+                        STRING_VIEW_FMT_ARGS(Segment.segmentName()),
+                        MACH_VMPROT_FMT_ARGS(Segment.initProt(IsBigEndian)),
                         MACH_VMPROT_FMT_ARGS(Segment.maxProt(IsBigEndian)),
                         Prefix,
-                        MACH_VMPROT_FMT_ARGS(Segment.initProt(IsBigEndian)),
-                        Prefix, SectionCount,
-                        Prefix, Flags.value());
+                        ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
+                        Prefix,
+                        ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
+                        Prefix, FileSize, Utils::FormattedSize(FileSize).data(),
+                        Prefix, VmSize, Utils::FormattedSize(VmSize).data(),
+                        Prefix, Flags.value(),
+                        Prefix, SectionCount);
 
                 if (!Flags.empty()) {
-                    auto Counter = static_cast<uint8_t>(1);
-                    for (const auto &Bit : ADT::FlagsIterator(Flags.value())) {
-                        using Flags = MachO::SegmentCommand64::FlagsStruct;
-                        const auto Flag = static_cast<Flags::Kind>(1 << Bit);
-
-                        fprintf(OutFile,
-                                "%s\t%" PRIu8 ". Bit %" PRIu32 ": %s\n",
-                                Prefix,
-                                Counter,
-                                Bit,
-                                Flags::KindIsValid(Flag) ?
-                                    Flags::KindGetString(Flag).data() :
-                                    "<unknown>");
-
-                        Counter++;
+                    for (const auto &Flag : ADT::FlagsIterator(Flags.value())) {
+                        printf("Index: %" PRIu32, Flag);
                     }
                 }
 
@@ -203,7 +199,8 @@ namespace Operations {
                 }
 
                 const auto SectionList = Segment.sections();
-                fputc('\n', OutFile);
+                const auto SectionCountDigitCount =
+                    Utils::GetIntegerDigitCount(SectionCount);
 
                 for (auto I = uint32_t(); I != SectionCount; I++) {
                     const auto &Section = SectionList[I];
@@ -214,34 +211,51 @@ namespace Operations {
                     const auto FormattedSize = Utils::FormattedSize(Size);
 
                     fprintf(OutFile,
-                            "%sSection %" PRIu32 ":\n"
-                            "%s\tSection Name:      \"" STRING_VIEW_FMT "\"\n"
-                            "%s\tSegment Name:      \"" STRING_VIEW_FMT "\"\n"
-                            "%s\tAddress:           " ADDRESS_64_FMT " ("
-                                ADDR_RANGE_64_FMT ")\n"
-                            "%s\tSize:              %" PRIu64 " (%s)\n"
-                            "%s\tFile Offset:       " ADDRESS_32_FMT " ("
-                                ADDR_RANGE_32_64_FMT ")\n"
-                            "%s\tAlign:             %" PRIu32 "\n"
-                            "%s\tReloc File Offset: " ADDRESS_32_FMT "\n"
-                            "%s\tReloc Count:       %" PRIu32 "\n"
-                            "%s\tReserved 1:        %" PRIu32 "\n"
-                            "%s\tReserved 2:        %" PRIu32 "\n"
-                            "%s\tReserved 3:        %" PRIu32 "\n",
-                            Prefix, I + 1,
-                            Prefix, STRING_VIEW_FMT_ARGS(Section.sectionName()),
-                            Prefix, STRING_VIEW_FMT_ARGS(Section.segmentName()),
-                            Prefix, Addr,
-                            ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
-                            Prefix, Size, FormattedSize.data(),
-                            Prefix, FileOffset,
+                            "\t%s%*" PRIu32 ". "
+                            "File: " ADDR_RANGE_32_64_FMT
+                            "\tMem: " ADDR_RANGE_64_FMT,
+                            Prefix, SectionCountDigitCount, I + 1,
                             ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + Size),
-                            Prefix, Section.align(IsBigEndian),
-                            Prefix, Section.relocFileOffset(IsBigEndian),
-                            Prefix, Section.relocsCount(IsBigEndian),
-                            Prefix, Section.reserved1(IsBigEndian),
-                            Prefix, Section.reserved2(IsBigEndian),
-                            Prefix, Section.reserved3(IsBigEndian));
+                            ADDR_RANGE_FMT_ARGS(Addr, Addr + Size));
+
+                    Utils::PrintSegmentSectionPair(OutFile,
+                                                   Section.segmentName(),
+                                                   Section.sectionName(),
+                                                   /*PadSegment=*/true,
+                                                   /*PadSection=*/true,
+                                                   " ");
+
+                    using SectionSpace = MachO::SegmentCommand::Section;
+
+                    const auto SectionKind = Section.kind(IsBigEndian);
+                    if (SectionKind != SectionSpace::Kind::Regular) {
+                        auto SectionKindDesc =
+                            SectionSpace::KindIsValid(SectionKind) ?
+                                SectionSpace::KindGetDesc(SectionKind) :
+                                std::string_view("<unknown>");
+
+                        fprintf(OutFile, " (%s)\n", SectionKindDesc.data());
+                    } else {
+                        fputc('\n', OutFile);
+                    }
+
+                    if (Verbose) {
+                        fprintf(OutFile,
+                                "%s\t\tSize:              %" PRIu64 " (%s)\n"
+                                "%s\t\tAlign:             %" PRIu32 "\n"
+                                "%s\t\tReloc File Offset: " ADDRESS_32_FMT "\n"
+                                "%s\t\tReloc Count:       %" PRIu32 "\n"
+                                "%s\t\tFlags:             0x%" PRIx32 "\n"
+                                "%s\t\tReserved 1:        %" PRIu32 "\n"
+                                "%s\t\tReserved 2:        %" PRIu32 "\n",
+                                Prefix, Size, FormattedSize.data(),
+                                Prefix, Section.align(IsBigEndian),
+                                Prefix, Section.relocFileOffset(IsBigEndian),
+                                Prefix, Section.relocsCount(IsBigEndian),
+                                Prefix, Section.flags(IsBigEndian).value(),
+                                Prefix, Section.reserved1(IsBigEndian),
+                                Prefix, Section.reserved2(IsBigEndian));
+                    }
                 }
 
                 break;
@@ -261,6 +275,7 @@ namespace Operations {
                     FvmLib.Library.headerAddress(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sName:           \"" STRING_VIEW_FMT "\"\n"
                         "%sMinor Version:  " DYLD3_PACKED_VERSION_FMT "\n"
                         "%sHeader Address: " ADDRESS_32_FMT "\n",
@@ -294,13 +309,23 @@ namespace Operations {
                     Utils::GetHumanReadableTimestamp(Timestamp);
 
                 fprintf(OutFile,
-                        "%sName:            \"" STRING_VIEW_FMT "\"\n"
+                        "\t\"" STRING_VIEW_FMT "\"",
+                        STRING_VIEW_FMT_ARGS(
+                            NameOpt.has_value() ? NameOpt.value() : Malformed));
+
+                if (Kind != MachO::LoadCommandKind::IdDylib) {
+                    fprintf(OutFile,
+                            "\t\t(Dylib-Ordinal %" PRIu32 ")",
+                            DylibIndex + 1);
+
+                    DylibIndex++;
+                }
+
+                fprintf(OutFile,
+                        "\n"
                         "%sCurrent Version: " DYLD3_PACKED_VERSION_FMT "\n"
                         "%sCompat Version:  " DYLD3_PACKED_VERSION_FMT "\n"
                         "%sTimestamp:       %s (Value: %" PRIu32 ")\n",
-                        Prefix,
-                        STRING_VIEW_FMT_ARGS(
-                            NameOpt.has_value() ? NameOpt.value() : Malformed),
                         Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(CurrentVersion),
                         Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(CompatVersion),
                         Prefix, TimestampString.c_str(), Timestamp);
@@ -313,8 +338,7 @@ namespace Operations {
 
                 const auto UmbrellaOpt = SubFramework.umbrella(IsBigEndian);
                 fprintf(OutFile,
-                        "%sUmbrella: \"" STRING_VIEW_FMT "\"\n",
-                        Prefix,
+                        "\t\"" STRING_VIEW_FMT "\"\n",
                         STRING_VIEW_FMT_ARGS(
                             UmbrellaOpt.has_value() ?
                                 UmbrellaOpt.value() : Malformed));
@@ -327,8 +351,7 @@ namespace Operations {
 
                 const auto ClientOpt = SubClient.client(IsBigEndian);
                 fprintf(OutFile,
-                        "%sClient: \"" STRING_VIEW_FMT "\"\n",
-                        Prefix,
+                        "\t\"" STRING_VIEW_FMT "\"\n",
                         STRING_VIEW_FMT_ARGS(
                             ClientOpt.has_value() ?
                                 ClientOpt.value() : Malformed));
@@ -343,8 +366,7 @@ namespace Operations {
                     SubUmbrella.subUmbrella(IsBigEndian);
 
                 fprintf(OutFile,
-                        "%sClient: \"" STRING_VIEW_FMT "\"\n",
-                        Prefix,
+                        "\t\"" STRING_VIEW_FMT "\"\n",
                         STRING_VIEW_FMT_ARGS(
                             SubUmbrellaOpt.has_value() ?
                                 SubUmbrellaOpt.value() : Malformed));
@@ -357,8 +379,7 @@ namespace Operations {
 
                 const auto SubLibraryOpt = SubLibrary.subLibrary(IsBigEndian);
                 fprintf(OutFile,
-                        "%sClient: \"" STRING_VIEW_FMT "\"\n",
-                        Prefix,
+                        "\t\"" STRING_VIEW_FMT "\"\n",
                         STRING_VIEW_FMT_ARGS(
                             SubLibraryOpt.has_value() ?
                                 SubLibraryOpt.value() : Malformed));
@@ -371,8 +392,7 @@ namespace Operations {
 
                 const auto NameOpt = PreboundDylibCmd.name(IsBigEndian);
                 fprintf(OutFile,
-                        "%sName: \"" STRING_VIEW_FMT "\"\n",
-                        Prefix,
+                        "\t\"" STRING_VIEW_FMT "\"\n",
                         STRING_VIEW_FMT_ARGS(
                             NameOpt.has_value() ?
                                 NameOpt.value() : Malformed));
@@ -386,8 +406,7 @@ namespace Operations {
 
                 const auto NameOpt = DylinkerCmd.name(IsBigEndian);
                 fprintf(OutFile,
-                        "%sName: \"" STRING_VIEW_FMT "\"\n",
-                        Prefix,
+                        "\t\"" STRING_VIEW_FMT "\"\n",
                         STRING_VIEW_FMT_ARGS(
                             NameOpt.has_value() ?
                                 NameOpt.value() : Malformed));
@@ -409,6 +428,7 @@ namespace Operations {
                 const auto Reserved6 = RoutinesCmd.reserved6(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sInit Address: " ADDRESS_32_FMT "\n"
                         "%sInit Module:  %" PRIu32 "\n"
                         "%sReserved 1:   %" PRIu32 "\n"
@@ -442,6 +462,7 @@ namespace Operations {
                 const auto Reserved6 = RoutinesCmd.reserved6(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sInit Address: " ADDRESS_64_FMT "\n"
                         "%sInit Module:  %" PRIu64 "\n"
                         "%sReserved 1:   %" PRIu64 "\n"
@@ -471,8 +492,9 @@ namespace Operations {
                 const auto StrSize = SymTabCmd.strSize(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sSym Offset:          " ADDRESS_32_FMT "\n"
-                        "%sSymbol Count         %" PRIu32 "\n"
+                        "%sSymbol Count:        %" PRIu32 "\n"
                         "%sString Table Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
                         "%sString Table Size:   %" PRIu32 " (%s)\n",
@@ -486,7 +508,7 @@ namespace Operations {
             }
             case MachO::LoadCommandKind::DynamicSymbolTable: {
                 const auto &DySymTabCmd =
-                MachO::cast<MachO::DynamicSymTabCommand>(LC, IsBigEndian);
+                    MachO::cast<MachO::DynamicSymTabCommand>(LC, IsBigEndian);
 
                 const auto LocalSymbolsIndex =
                     DySymTabCmd.localSymbolsIndex(IsBigEndian);
@@ -526,6 +548,7 @@ namespace Operations {
                     DySymTabCmd.localRelCount(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sLocal Symbols Index:       %" PRIu32 "\n"
                         "%sLocal Symbols Count:       %" PRIu32 "\n"
                         "%sExtern Def Symbols Index:  %" PRIu32 "\n"
@@ -573,6 +596,7 @@ namespace Operations {
                     TwoLevelHintsCmd.hintsCount(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sOffset:      " ADDRESS_32_FMT
                         "%sHints Count: %" PRIu32 "\n",
                         Prefix, Offset,
@@ -584,9 +608,7 @@ namespace Operations {
                     MachO::cast<MachO::PrebindChecksumCommand>(LC, IsBigEndian);
 
                 const auto Checksum = PrebindChecksumCmd.checksum(IsBigEndian);
-                fprintf(OutFile,
-                        "%sChecksum: %" PRIu32 "\n",
-                        Prefix, Checksum);
+                fprintf(OutFile, "\t%" PRIu32 "\n", Checksum);
 
                 break;
             }
@@ -595,9 +617,8 @@ namespace Operations {
                     MachO::cast<MachO::UuidCommand>(LC, IsBigEndian);
 
                 fprintf(OutFile,
-                        "%sUuid: %.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-"
-                        "%.2X%.2x%.2x%.2x%.2X%.2X\n",
-                        Prefix,
+                        "\t\"%.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-"
+                        "%.2X%.2x%.2x%.2x%.2X%.2X\"\n",
                         UuidCmd.Uuid[0],
                         UuidCmd.Uuid[1],
                         UuidCmd.Uuid[2],
@@ -622,8 +643,7 @@ namespace Operations {
 
                 const auto PathOpt = RpathCmd.path(IsBigEndian);
                 fprintf(OutFile,
-                        "%sPath: \"" STRING_VIEW_FMT "\"\n",
-                        Prefix,
+                        "\t\"" STRING_VIEW_FMT "\"\n",
                         STRING_VIEW_FMT_ARGS(
                             PathOpt.has_value() ?
                                 PathOpt.value() : Malformed));
@@ -645,6 +665,7 @@ namespace Operations {
                 const auto DataSize = LinkeditDataCmd.dataSize(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sData Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
                         "%sData Size:   %" PRIu32 " (%s)\n",
@@ -664,6 +685,7 @@ namespace Operations {
                 const auto Reserved = FileSetEntryCmd.reserved(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sVm Address:  " ADDRESS_64_FMT "\n"
                         "%sFile Offset: %" PRIu64 "\n"
                         "%sEntry Id:    %" PRIu32 "\n"
@@ -684,6 +706,7 @@ namespace Operations {
                     EncryptionInfoCmd.cryptOffset(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sCrypt Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
                         "%sCrypt Size:   %" PRIu32 " (%s)\n"
@@ -697,7 +720,8 @@ namespace Operations {
             }
             case MachO::LoadCommandKind::EncryptionInfo64: {
                 const auto &EncryptionInfoCmd =
-                    MachO::cast<MachO::EncryptionInfo64Command>(LC, IsBigEndian);
+                    MachO::cast<MachO::EncryptionInfo64Command>(LC,
+                                                                IsBigEndian);
 
                 const auto CryptSize = EncryptionInfoCmd.cryptSize(IsBigEndian);
                 const auto CryptId = EncryptionInfoCmd.cryptId(IsBigEndian);
@@ -706,6 +730,7 @@ namespace Operations {
                     EncryptionInfoCmd.cryptOffset(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sCrypt Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
                         "%sCrypt Size:   %" PRIu32 " (%s)\n"
@@ -730,6 +755,7 @@ namespace Operations {
                 const auto Sdk = VersionMinCmd.sdk(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sVersion: " DYLD3_PACKED_VERSION_FMT "\n"
                         "%sSDK:     " DYLD3_PACKED_VERSION_FMT "\n",
                         Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(Version),
@@ -748,11 +774,13 @@ namespace Operations {
                             Dyld3::PlatformGetDesc(Platform);
 
                     fprintf(OutFile,
+                            "\n"
                             "%sPlatform:    %s\n",
                             Prefix,
                             PlatformString.data());
                 } else {
                     fprintf(OutFile,
+                            "\n"
                             "%sPlatform:    <Unknown> (Value: %" PRIu32 "\n",
                             Prefix,
                             static_cast<uint32_t>(Platform));
@@ -792,6 +820,7 @@ namespace Operations {
                     DyldInfoCmd.exportTrieSize(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sRebase Offset:      " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
                         "%sRebase Size:        %" PRIu32 " (%s)\n"
@@ -808,22 +837,26 @@ namespace Operations {
                             ADDR_RANGE_32_FMT ")\n"
                         "%sExport Trie Size:   %" PRIu32 " (%s)\n",
                         Prefix, RebaseOffset,
-                        ADDR_RANGE_FMT_ARGS(RebaseOffset, RebaseSize),
+                        ADDR_RANGE_FMT_ARGS(RebaseOffset,
+                                            RebaseOffset + RebaseSize),
                         Prefix, RebaseSize,
                         Utils::FormattedSize(RebaseSize).data(),
                         Prefix, BindOffset,
-                        ADDR_RANGE_FMT_ARGS(BindOffset, BindSize),
+                        ADDR_RANGE_FMT_ARGS(BindOffset, BindOffset + BindSize),
                         Prefix, BindSize, Utils::FormattedSize(BindSize).data(),
                         Prefix, WeakBindOffset,
-                        ADDR_RANGE_FMT_ARGS(WeakBindOffset, WeakBindSize),
+                        ADDR_RANGE_FMT_ARGS(WeakBindOffset,
+                                            WeakBindOffset + WeakBindSize),
                         Prefix, WeakBindSize,
                         Utils::FormattedSize(WeakBindSize).data(),
                         Prefix, LazyBindOffset,
-                        ADDR_RANGE_FMT_ARGS(LazyBindOffset, LazyBindSize),
+                        ADDR_RANGE_FMT_ARGS(LazyBindOffset,
+                                            LazyBindOffset + LazyBindSize),
                         Prefix, LazyBindSize,
                         Utils::FormattedSize(LazyBindSize).data(),
                         Prefix, ExportTrieOffset,
-                        ADDR_RANGE_FMT_ARGS(ExportTrieOffset, ExportTrieSize),
+                        ADDR_RANGE_FMT_ARGS(ExportTrieOffset,
+                                            ExportTrieOffset + ExportTrieSize),
                         Prefix, ExportTrieSize,
                         Utils::FormattedSize(ExportTrieSize).data());
                 break;
@@ -833,7 +866,7 @@ namespace Operations {
                     MachO::cast<MachO::LinkerOptionCommand>(LC, IsBigEndian);
 
                 const auto Count = LinkerOptionCmd.count(IsBigEndian);
-                fprintf(OutFile, "%sCount: %" PRIu32 "\n", Prefix, Count);
+                fprintf(OutFile, "\n%sCount: %" PRIu32 "\n", Prefix, Count);
 
                 break;
             }
@@ -845,6 +878,7 @@ namespace Operations {
                 const auto Size = SymbolSegmentCmd.size(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sOffset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
                         "%sSize:   %" PRIu32 " (%s)\n",
@@ -862,6 +896,7 @@ namespace Operations {
                     FvmFileCmd.headerAddress(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sName:           \"" STRING_VIEW_FMT "\"\n"
                         "%sHeader Address: " ADDRESS_32_FMT "\n",
                         Prefix,
@@ -879,6 +914,7 @@ namespace Operations {
                 const auto StackSize = EntryPointCmd.stackSize(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sEntry Offset: " ADDRESS_64_FMT "\n"
                         "%sStack Size:   %" PRIu64 " (%s)\n",
                         Prefix, EntryOffset,
@@ -892,8 +928,8 @@ namespace Operations {
 
                 const auto Version = SourceVersionCmd.version(IsBigEndian);
                 fprintf(OutFile,
-                        "%sVersion: " DYLD3_PACKED_VERSION_64_FMT "\n",
-                        Prefix, DYLD3_PACKED_VERSION_64_FMT_ARGS(Version));
+                        "\t" DYLD3_PACKED_VERSION_64_FMT "\n",
+                        DYLD3_PACKED_VERSION_64_FMT_ARGS(Version));
 
                 break;
             }
@@ -908,6 +944,7 @@ namespace Operations {
                 const auto Size = NoteCmd.size(IsBigEndian);
 
                 fprintf(OutFile,
+                        "\n"
                         "%sData Owner: \"" STRING_VIEW_FMT "\"\n"
                         "%sOffset: " ADDRESS_64_FMT " ("
                             ADDR_RANGE_64_FMT ")\n"
@@ -928,14 +965,20 @@ namespace Operations {
     {
         auto Result = RunResult(Objects::Kind::MachO);
         auto Counter = static_cast<uint32_t>(1);
+        auto DylibIndex = uint32_t();
 
         const auto IsBigEndian = MachO.isBigEndian();
+        const auto LongestLCKindLength =
+            MachO::LoadCommandKindGetString(
+                MachO::LoadCommandKind::LinkerOptimizationHint).length();
+
         for (const auto &LoadCommand : MachO.loadCommandsMap()) {
             const auto Kind = LoadCommand.kind(IsBigEndian);
             if (MachO::LoadCommandKindIsValid(Kind)) {
                 fprintf(OutFile,
-                        "LC %" PRIu32 ": %s\n",
+                        "LC %" PRIu32 ": %-*s",
                         Counter,
+                        (int)LongestLCKindLength,
                         MachO::LoadCommandKindGetString(Kind).data());
             } else {
                 fprintf(OutFile,
@@ -947,6 +990,7 @@ namespace Operations {
             PrintLoadCommand(OutFile,
                              LoadCommand,
                              IsBigEndian,
+                             DylibIndex,
                              Opt.Verbose,
                              "\t");
             Counter++;
