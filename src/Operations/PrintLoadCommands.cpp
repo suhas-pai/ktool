@@ -68,8 +68,8 @@ namespace Operations {
                         "\t" MACH_VMPROT_FMT "/" MACH_VMPROT_FMT "\n"
                         "%sFile:          " ADDR_RANGE_32_FMT "\n"
                         "%sMem:           " ADDR_RANGE_32_FMT "\n"
-                        "%sFile Size:     %" PRId32 " (%s)\n"
-                        "%sMem Size:      %" PRId32 " (%s)\n"
+                        "%sFile Size:     %s\n"
+                        "%sMem Size:      %s\n"
                         "%sFlags:         0x%" PRIx32 "\n"
                         "%sSection Count: %" PRIu32 "\n",
                         STRING_VIEW_FMT_ARGS(Segment.segmentName()),
@@ -79,8 +79,8 @@ namespace Operations {
                         ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
                         Prefix,
                         ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
-                        Prefix, FileSize, Utils::FormattedSize(FileSize).data(),
-                        Prefix, VmSize, Utils::FormattedSize(VmSize).data(),
+                        Prefix, Utils::FormattedSizeForOutput(FileSize).data(),
+                        Prefix, Utils::FormattedSizeForOutput(VmSize).data(),
                         Prefix, Flags.value(),
                         Prefix, SectionCount);
 
@@ -104,7 +104,6 @@ namespace Operations {
                     const auto Addr = Section.addr(IsBigEndian);
                     const auto Size = Section.size(IsBigEndian);
                     const auto FileOffset = Section.fileOffset(IsBigEndian);
-                    const auto FormattedSize = Utils::FormattedSize(Size);
 
                     fprintf(OutFile,
                             "\t%s%*" PRIu32 ". "
@@ -137,14 +136,15 @@ namespace Operations {
 
                     if (Verbose) {
                         fprintf(OutFile,
-                                "%s\t\tSize:              %" PRIu32 " (%s)\n"
+                                "%s\t\tSize:              %s\n"
                                 "%s\t\tAlign:             %" PRIu32 "\n"
                                 "%s\t\tReloc File Offset: " ADDRESS_32_FMT "\n"
                                 "%s\t\tReloc Count:       %" PRIu32 "\n"
                                 "%s\t\tFlags:             0x%" PRIx32 "\n"
                                 "%s\t\tReserved 1:        %" PRIu32 "\n"
                                 "%s\t\tReserved 2:        %" PRIu32 "\n",
-                                Prefix, Size, FormattedSize.data(),
+                                Prefix,
+                                Utils::FormattedSizeForOutput(Size).data(),
                                 Prefix, Section.align(IsBigEndian),
                                 Prefix, Section.relocFileOffset(IsBigEndian),
                                 Prefix, Section.relocsCount(IsBigEndian),
@@ -172,8 +172,8 @@ namespace Operations {
                         "\t" MACH_VMPROT_FMT "/" MACH_VMPROT_FMT "\n"
                         "%sFile:          " ADDR_RANGE_64_FMT "\n"
                         "%sMem:           " ADDR_RANGE_64_FMT "\n"
-                        "%sFile Size:     %" PRId64 " (%s)\n"
-                        "%sMem Size:      %" PRId64 " (%s)\n"
+                        "%sFile Size:     %s\n"
+                        "%sMem Size:      %s\n"
                         "%sFlags:         0x%" PRIx32 "\n"
                         "%sSection Count: %" PRIu32 "\n",
                         STRING_VIEW_FMT_ARGS(Segment.segmentName()),
@@ -183,8 +183,8 @@ namespace Operations {
                         ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
                         Prefix,
                         ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
-                        Prefix, FileSize, Utils::FormattedSize(FileSize).data(),
-                        Prefix, VmSize, Utils::FormattedSize(VmSize).data(),
+                        Prefix, Utils::FormattedSizeForOutput(FileSize).data(),
+                        Prefix, Utils::FormattedSizeForOutput(VmSize).data(),
                         Prefix, Flags.value(),
                         Prefix, SectionCount);
 
@@ -241,14 +241,15 @@ namespace Operations {
 
                     if (Verbose) {
                         fprintf(OutFile,
-                                "%s\t\tSize:              %" PRIu64 " (%s)\n"
+                                "%s\t\tSize:              %s\n"
                                 "%s\t\tAlign:             %" PRIu32 "\n"
                                 "%s\t\tReloc File Offset: " ADDRESS_32_FMT "\n"
                                 "%s\t\tReloc Count:       %" PRIu32 "\n"
                                 "%s\t\tFlags:             0x%" PRIx32 "\n"
                                 "%s\t\tReserved 1:        %" PRIu32 "\n"
                                 "%s\t\tReserved 2:        %" PRIu32 "\n",
-                                Prefix, Size, FormattedSize.data(),
+                                Prefix,
+                                Utils::FormattedSizeForOutput(Size).data(),
                                 Prefix, Section.align(IsBigEndian),
                                 Prefix, Section.relocFileOffset(IsBigEndian),
                                 Prefix, Section.relocsCount(IsBigEndian),
@@ -314,10 +315,13 @@ namespace Operations {
                             NameOpt.has_value() ? NameOpt.value() : Malformed));
 
                 if (Kind != MachO::LoadCommandKind::IdDylib) {
-                    fprintf(OutFile,
-                            "\t\t(Dylib-Ordinal %" PRIu32 ")",
-                            DylibIndex + 1);
-
+                    Utils::PrintDylibOrdinalInfo(OutFile,
+                                                 DylibIndex + 1,
+                                                 "",
+                                                 /*PrintPath=*/false,
+                                                 /*IsOutOfBounds=*/false,
+                                                 "\t(",
+                                                 ")");
                     DylibIndex++;
                 }
 
@@ -361,7 +365,6 @@ namespace Operations {
             case MachO::LoadCommandKind::SubUmbrella: {
                 const auto &SubUmbrella =
                     MachO::cast<MachO::SubUmbrellaCommand>(LC, IsBigEndian);
-
                 const auto SubUmbrellaOpt =
                     SubUmbrella.subUmbrella(IsBigEndian);
 
@@ -497,12 +500,12 @@ namespace Operations {
                         "%sSymbol Count:        %" PRIu32 "\n"
                         "%sString Table Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sString Table Size:   %" PRIu32 " (%s)\n",
+                        "%sString Table Size:   %s\n",
                         Prefix, SymOff,
                         Prefix, SymCount,
                         Prefix, StrOff,
                         ADDR_RANGE_FMT_ARGS(StrOff, StrOff + StrSize),
-                        Prefix, StrSize, Utils::FormattedSize(StrSize).data());
+                        Prefix, Utils::FormattedSizeForOutput(StrSize).data());
 
                 break;
             }
@@ -668,11 +671,10 @@ namespace Operations {
                         "\n"
                         "%sData Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sData Size:   %" PRIu32 " (%s)\n",
+                        "%sData Size:   %s\n",
                         Prefix, DataOff,
                         ADDR_RANGE_FMT_ARGS(DataOff, DataOff + DataSize),
-                        Prefix, DataSize,
-                        Utils::FormattedSize(DataSize).data());
+                        Prefix, Utils::FormattedSizeForOutput(DataSize).data());
                 break;
             }
             case MachO::LoadCommandKind::FileSetEntry: {
@@ -709,12 +711,11 @@ namespace Operations {
                         "\n"
                         "%sCrypt Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sCrypt Size:   %" PRIu32 " (%s)\n"
+                        "%sCrypt Size:   %s\n"
                         "%sCrypt Id:     %" PRIu32 "\n",
                         Prefix, CryptOffset,
                         ADDR_RANGE_FMT_ARGS(CryptOffset, CryptSize),
-                        Prefix, CryptSize,
-                        Utils::FormattedSize(CryptSize).data(),
+                        Prefix, Utils::FormattedSizeForOutput(CryptSize).data(),
                         Prefix, CryptId);
                 break;
             }
@@ -733,13 +734,12 @@ namespace Operations {
                         "\n"
                         "%sCrypt Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sCrypt Size:   %" PRIu32 " (%s)\n"
+                        "%sCrypt Size:   %s\n"
                         "%sCrypt Id:     %" PRIu32 "\n"
                         "%sPad:          %" PRIu32 "\n",
                         Prefix, CryptOffset,
                         ADDR_RANGE_FMT_ARGS(CryptOffset, CryptSize),
-                        Prefix, CryptSize,
-                        Utils::FormattedSize(CryptSize).data(),
+                        Prefix, Utils::FormattedSizeForOutput(CryptSize).data(),
                         Prefix, CryptId,
                         Prefix, Pad);
                 break;
@@ -823,42 +823,42 @@ namespace Operations {
                         "\n"
                         "%sRebase Offset:      " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sRebase Size:        %" PRIu32 " (%s)\n"
+                        "%sRebase Size:        %s\n"
                         "%sBind Offset:        " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sBind Size:          %" PRIu32 " (%s)\n"
+                        "%sBind Size:          %s\n"
                         "%sWeak Bind Offset:   " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sWeak Bind Size:     %" PRIu32 " (%s)\n"
+                        "%sWeak Bind Size:     %s\n"
                         "%sLazy Bind Offset:   " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sLazy Bind Size:     %" PRIu32 " (%s)\n"
+                        "%sLazy Bind Size:     %s\n"
                         "%sExport Trie Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sExport Trie Size:   %" PRIu32 " (%s)\n",
+                        "%sExport Trie Size:   %s\n",
                         Prefix, RebaseOffset,
                         ADDR_RANGE_FMT_ARGS(RebaseOffset,
                                             RebaseOffset + RebaseSize),
-                        Prefix, RebaseSize,
-                        Utils::FormattedSize(RebaseSize).data(),
+                        Prefix,
+                        Utils::FormattedSizeForOutput(RebaseSize).data(),
                         Prefix, BindOffset,
                         ADDR_RANGE_FMT_ARGS(BindOffset, BindOffset + BindSize),
-                        Prefix, BindSize, Utils::FormattedSize(BindSize).data(),
+                        Prefix, Utils::FormattedSizeForOutput(BindSize).data(),
                         Prefix, WeakBindOffset,
                         ADDR_RANGE_FMT_ARGS(WeakBindOffset,
                                             WeakBindOffset + WeakBindSize),
-                        Prefix, WeakBindSize,
-                        Utils::FormattedSize(WeakBindSize).data(),
+                        Prefix,
+                        Utils::FormattedSizeForOutput(WeakBindSize).data(),
                         Prefix, LazyBindOffset,
                         ADDR_RANGE_FMT_ARGS(LazyBindOffset,
                                             LazyBindOffset + LazyBindSize),
-                        Prefix, LazyBindSize,
-                        Utils::FormattedSize(LazyBindSize).data(),
+                        Prefix,
+                        Utils::FormattedSizeForOutput(LazyBindSize).data(),
                         Prefix, ExportTrieOffset,
                         ADDR_RANGE_FMT_ARGS(ExportTrieOffset,
                                             ExportTrieOffset + ExportTrieSize),
-                        Prefix, ExportTrieSize,
-                        Utils::FormattedSize(ExportTrieSize).data());
+                        Prefix,
+                        Utils::FormattedSizeForOutput(ExportTrieSize).data());
                 break;
             }
             case MachO::LoadCommandKind::LinkerOption: {
@@ -881,10 +881,10 @@ namespace Operations {
                         "\n"
                         "%sOffset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"
-                        "%sSize:   %" PRIu32 " (%s)\n",
+                        "%sSize:   %s\n",
                         Prefix, Offset,
                         ADDR_RANGE_FMT_ARGS(Offset, Size),
-                        Prefix, Size, Utils::FormattedSize(Size).data());
+                        Prefix, Utils::FormattedSizeForOutput(Size).data());
                 break;
             }
             case MachO::LoadCommandKind::FixedVMFile: {
@@ -916,10 +916,10 @@ namespace Operations {
                 fprintf(OutFile,
                         "\n"
                         "%sEntry Offset: " ADDRESS_64_FMT "\n"
-                        "%sStack Size:   %" PRIu64 " (%s)\n",
+                        "%sStack Size:   %s\n",
                         Prefix, EntryOffset,
-                        Prefix, StackSize,
-                        Utils::FormattedSize(StackSize).data());
+                        Prefix,
+                        Utils::FormattedSizeForOutput(StackSize).data());
                 break;
             }
             case MachO::LoadCommandKind::SourceVersion: {
@@ -948,11 +948,11 @@ namespace Operations {
                         "%sData Owner: \"" STRING_VIEW_FMT "\"\n"
                         "%sOffset: " ADDRESS_64_FMT " ("
                             ADDR_RANGE_64_FMT ")\n"
-                        "%sSize:   %" PRIu64 " (%s)\n",
+                        "%sSize:   %s\n",
                         Prefix, STRING_VIEW_FMT_ARGS(DataOwner),
                         Prefix, Offset,
                         ADDR_RANGE_FMT_ARGS(Offset, Size),
-                        Prefix, Size, Utils::FormattedSize(Size).data());
+                        Prefix, Utils::FormattedSizeForOutput(Size).data());
 
                 break;
             }

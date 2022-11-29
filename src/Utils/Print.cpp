@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <cstdio>
 #include <sstream>
+#include <string>
 
 #include "Utils/Print.h"
 
@@ -67,6 +68,23 @@ namespace Utils {
         Result.append(Name);
 
         return Result;
+    }
+
+    auto FormattedSizeForOutput(const uint64_t Size) -> std::string {
+        const auto SizeString = std::to_string(Size);
+        if (Size < 1024) {
+            return SizeString;
+        }
+
+        auto Formatted = FormattedSize(Size);
+        const auto ResultLength =
+            Formatted.length() + SizeString.length() + STR_LENGTH(" ()");
+
+        Formatted.reserve(ResultLength);
+        Formatted.insert(0, SizeString + " (");
+        Formatted.append(")");
+
+        return Formatted;
     }
 
     auto
@@ -163,12 +181,12 @@ namespace Utils {
     {
         auto WrittenOut =
             fprintf(OutFile,
-                    "%sDylib-Ordinal %02" PRId8 " ",
+                    "%sDylib-Ordinal %02" PRId8,
                     Prefix,
                     DylibOrdinal);
 
         if (IsOutOfBounds) {
-            return WrittenOut + fprintf(OutFile, "(Out Of Bounds!)%s", Suffix);
+            return WrittenOut + fprintf(OutFile, " (Out Of Bounds!)%s", Suffix);
         }
 
         if (PrintPath) {
@@ -177,6 +195,8 @@ namespace Utils {
                         " - \"" STRING_VIEW_FMT "\"%s",
                         STRING_VIEW_FMT_ARGS(DylibPath),
                         Suffix);
+        } else {
+            WrittenOut += fprintf(OutFile, "%s", Suffix);
         }
 
         return WrittenOut;

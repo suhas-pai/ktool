@@ -405,8 +405,8 @@ namespace MachO {
                 return false;
             }
 
-            [[nodiscard]] constexpr static
-            auto KindGetString(const FlagsStruct::Kind Kind) noexcept
+            [[nodiscard]] constexpr
+            static auto KindGetString(const FlagsStruct::Kind Kind) noexcept
                 -> std::string_view
             {
                 switch (Kind) {
