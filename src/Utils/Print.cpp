@@ -147,7 +147,8 @@ namespace Utils {
         auto WrittenOut = fprintf(OutFile, "%s", Prefix);
         if (PadSegments) {
             if (Segment.length() < 16) {
-                WrittenOut += PadSpaces(OutFile, 16 - Segment.length());
+                WrittenOut +=
+                    PadSpaces(OutFile, static_cast<int>(16 - Segment.length()));
             }
         }
 
@@ -163,7 +164,8 @@ namespace Utils {
 
         if (PadSections) {
             if (Section.length() < 16) {
-                WrittenOut += PadSpaces(OutFile, 16 - Section.length());
+                WrittenOut +=
+                    PadSpaces(OutFile, static_cast<int>(16 - Section.length()));
             }
         }
 

@@ -20,7 +20,7 @@ namespace ADT {
                           std::enable_if_t<std::is_enum_v<ErrorType>>>
     {
         static_assert(sizeof(ErrorType) < sizeof(void *),
-                      "ErrorType cannt be greater than 7 Bytes");
+                      "ErrorType cannot be greater than 7 Bytes");
     protected:
         union {
             PointerType *Ptr;

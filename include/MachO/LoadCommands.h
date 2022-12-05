@@ -308,8 +308,8 @@ namespace MachO {
             return std::string_view(SegmentName, Length);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SegmentCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -822,8 +822,8 @@ namespace MachO {
 
         char SegmentName[16];
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SegmentCommand64)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -1057,8 +1057,8 @@ namespace MachO {
             return IsOfKind;
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(ThreadCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -1137,10 +1137,12 @@ namespace MachO {
             return Kind == LoadCommandKind::Identity;
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(IdentCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(IdentCommand)) {
+                return CmdSizeInvalidKind::TooLarge;
             }
 
             return CmdSizeInvalidKind::None;
@@ -1190,8 +1192,8 @@ namespace MachO {
 
         MachO::Dylib Dylib;
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(DylibCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -1238,8 +1240,8 @@ namespace MachO {
             return Umbrella.string(this, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SubFrameworkCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -1280,8 +1282,8 @@ namespace MachO {
             return SubUmbrella.string(this, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SubUmbrellaCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -1308,8 +1310,8 @@ namespace MachO {
             return SubLibrary.string(this, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SubLibraryCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -1372,8 +1374,8 @@ namespace MachO {
             return Name.string(this, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(PreboundDylibCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -1402,8 +1404,8 @@ namespace MachO {
             return Name.string(this, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(DylinkerCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -1473,8 +1475,8 @@ namespace MachO {
             return ADT::SwitchEndianIf(Reserved6, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(RoutinesCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(RoutinesCommand)) {
@@ -1546,8 +1548,8 @@ namespace MachO {
             return ADT::SwitchEndianIf(Reserved6, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(RoutinesCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(RoutinesCommand)) {
@@ -1793,8 +1795,8 @@ namespace MachO {
             return ADT::Range::FromSize(StrOffset, StrSize);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(PreboundDylibCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -1934,8 +1936,8 @@ namespace MachO {
             return ADT::SwitchEndianIf(LocalRelCount, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(DynamicSymTabCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(DynamicSymTabCommand)) {
@@ -2091,8 +2093,8 @@ namespace MachO {
             return ADT::SwitchEndianIf(HintsCount, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(TwoLevelHintsCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(TwoLevelHintsCommand)) {
@@ -2121,8 +2123,8 @@ namespace MachO {
             return ADT::SwitchEndianIf(Checksum, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(PrebindChecksumCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(PrebindChecksumCommand)) {
@@ -2146,8 +2148,8 @@ namespace MachO {
 
         uint8_t Uuid[16];
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(UuidCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(UuidCommand)) {
@@ -2176,8 +2178,8 @@ namespace MachO {
             return Path.string(this, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(RpathCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -2227,8 +2229,8 @@ namespace MachO {
             return ADT::Range::FromSize(DataOff, DataSize);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(LinkeditDataCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(LinkeditDataCommand)) {
@@ -2276,8 +2278,8 @@ namespace MachO {
             return ADT::SwitchEndianIf(Reserved, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(FileSetEntryCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(FileSetEntryCommand)) {
@@ -2328,8 +2330,8 @@ namespace MachO {
             return ADT::Range::FromSize(CryptOffset, CryptSize);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(EncryptionInfoCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(EncryptionInfoCommand)) {
@@ -2386,8 +2388,8 @@ namespace MachO {
             return ADT::Range::FromSize(CryptOffset, CryptSize);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(EncryptionInfo64Command)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(EncryptionInfo64Command)) {
@@ -2426,8 +2428,8 @@ namespace MachO {
             return Dyld3::PackedVersion(ADT::SwitchEndianIf(Sdk, IsBigEndian));
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(VersionMinCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(VersionMinCommand)) {
@@ -2497,8 +2499,8 @@ namespace MachO {
             return ADT::SwitchEndianIf(ToolsCount, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(BuildVersionCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -2646,8 +2648,8 @@ namespace MachO {
             return ADT::Range::FromSize(ExportTrieOffset, ExportTrieSize);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(DyldInfoCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(DyldInfoCommand)) {
@@ -2676,8 +2678,8 @@ namespace MachO {
             return ADT::SwitchEndianIf(Count, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(LinkerOptionCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(LinkerOptionCommand)) {
@@ -2720,8 +2722,8 @@ namespace MachO {
             return ADT::Range::FromSize(Offset, Size);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SymbolSegmentCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(SymbolSegmentCommand)) {
@@ -2756,8 +2758,8 @@ namespace MachO {
             return ADT::SwitchEndianIf(HeaderAddress, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(FvmFileCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -2790,8 +2792,8 @@ namespace MachO {
             return StackSize;
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(EntryPointCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(EntryPointCommand)) {
@@ -2820,8 +2822,8 @@ namespace MachO {
             return Dyld3::PackedVersion64(ADT::SwitchEndianIf(Version, IsBE));
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(SourceVersionCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -2928,8 +2930,8 @@ namespace MachO {
             return ADT::Range::FromSize(Offset, Size);
         }
 
-        [[nodiscard]] constexpr static auto
-        hasValidCmdSize(const uint32_t CmdSize) noexcept {
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(NoteCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
             } else if (CmdSize > sizeof(NoteCommand)) {

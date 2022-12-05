@@ -31,8 +31,7 @@ namespace MachO {
     }
 
     auto
-    LoadCommandsIterator::operator+=(const int Amt) noexcept ->
-        decltype(*this)
+    LoadCommandsIterator::operator+=(const int Amt) noexcept -> decltype(*this)
     {
         for (auto I = int(); I != Amt; I++) {
             (*this)++;

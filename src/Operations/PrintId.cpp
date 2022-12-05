@@ -84,9 +84,7 @@ namespace Operations {
         return Result.set(RunError::IdNotFound);
     }
 
-    auto PrintId::run(const Objects::Base &Base) const noexcept ->
-        RunResult
-    {
+    auto PrintId::run(const Objects::Base &Base) const noexcept -> RunResult {
         switch (Base.kind()) {
             case Objects::Kind::None:
                 assert(false && "run() got Object with Kind::None");
