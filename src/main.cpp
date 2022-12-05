@@ -553,6 +553,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     fputs("Provided section is in a protected segment\n",
                           stderr);
                     return 1;
+                case RunError::InvalidSectionRange:
+                    fputs("Provided section has an invalid file-range\n",
+                          stderr);
+                    return 1;
                 case RunError::SymTabNotFound:
                     fputs("Couldn't find symtab_command\n", stderr);
                     return 1;

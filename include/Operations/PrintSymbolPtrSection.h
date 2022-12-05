@@ -54,6 +54,7 @@ namespace Operations {
             SectionNotFound,
             ProtectedSegment,
             NotSymbolPointerSection,
+            InvalidSectionRange,
             SymTabNotFound,
             DynamicSymTabNotFound,
             MultipleSymTabCommands,

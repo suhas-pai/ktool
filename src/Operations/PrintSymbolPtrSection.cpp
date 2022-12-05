@@ -385,6 +385,10 @@ namespace Operations {
                     SectionData =
                         MachO.map().get<const char>(SectionRange.begin());
 
+                    if (SectionData == nullptr) {
+                        return Result.set(RunError::InvalidSectionRange);
+                    }
+
                     SegmentList.emplace_back(std::move(SegmentInfo));
                     break;
                 }
@@ -433,6 +437,10 @@ namespace Operations {
                     SectionSize = SectionRange.size();
                     SectionData =
                         MachO.map().get<const char>(SectionRange.begin());
+
+                    if (SectionData == nullptr) {
+                        return Result.set(RunError::InvalidSectionRange);
+                    }
 
                     SegmentList.emplace_back(std::move(SegmentInfo));
                     break;
