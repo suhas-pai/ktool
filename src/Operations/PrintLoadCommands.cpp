@@ -70,8 +70,7 @@ namespace Operations {
                         "%sMem:           " ADDR_RANGE_32_FMT "\n"
                         "%sFile Size:     %s\n"
                         "%sMem Size:      %s\n"
-                        "%sFlags:         0x%" PRIx32 "\n"
-                        "%sSection Count: %" PRIu32 "\n",
+                        "%sFlags:         0x%" PRIx32 "\n",
                         STRING_VIEW_FMT_ARGS(Segment.segmentName()),
                         MACH_VMPROT_FMT_ARGS(Segment.initProt(IsBigEndian)),
                         MACH_VMPROT_FMT_ARGS(Segment.maxProt(IsBigEndian)),
@@ -81,14 +80,31 @@ namespace Operations {
                         ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
                         Prefix, Utils::FormattedSizeForOutput(FileSize).data(),
                         Prefix, Utils::FormattedSizeForOutput(VmSize).data(),
-                        Prefix, Flags.value(),
-                        Prefix, SectionCount);
+                        Prefix, Flags.value());
 
                 if (!Flags.empty()) {
-                    for (const auto &Flag : ADT::FlagsIterator(Flags.value())) {
-                        printf("Index: %" PRIu32, Flag);
+                    using FlagsStruct = MachO::SegmentCommand64::FlagsStruct;
+
+                    auto Counter = uint32_t();
+                    for (const auto &Bit : ADT::FlagsIterator(Flags.value())) {
+                        const auto Flag =
+                            static_cast<FlagsStruct::Kind>(1ull << Bit);
+
+                        fprintf(OutFile,
+                                "\t%s%" PRIu32 ". Bit %" PRIu32 ": %s\n",
+                                Prefix,
+                                Counter + 1,
+                                Bit,
+                                FlagsStruct::KindGetString(Flag).data());
+
+                        Counter++;
                     }
                 }
+
+                fprintf(OutFile,
+                        "%sSection Count: %" PRIu32 "\n",
+                        Prefix,
+                        SectionCount);
 
                 if (SectionCount == 0) {
                     break;
@@ -104,21 +120,28 @@ namespace Operations {
                     const auto Addr = Section.addr(IsBigEndian);
                     const auto Size = Section.size(IsBigEndian);
                     const auto FileOffset = Section.fileOffset(IsBigEndian);
+                    const auto FormattedSize = Utils::FormattedSize(Size);
 
-                    fprintf(OutFile,
-                            "\t%s%*" PRIu32 ". "
-                            "File: " ADDR_RANGE_32_FMT
-                            "\tMem: " ADDR_RANGE_32_FMT,
-                            Prefix, SectionCountDigitCount, I + 1,
-                            ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + Size),
-                            ADDR_RANGE_FMT_ARGS(Addr, Addr + Size));
+                    if (Verbose) {
+                        fprintf(OutFile,
+                                "\t%s%*" PRIu32 ". ",
+                                Prefix, SectionCountDigitCount, I + 1);
+                    } else {
+                        fprintf(OutFile,
+                                "\t%s%*" PRIu32 ". "
+                                "File: " ADDR_RANGE_32_FMT
+                                "\tMem: " ADDR_RANGE_32_FMT,
+                                Prefix, SectionCountDigitCount, I + 1,
+                                ADDR_RANGE_FMT_ARGS(FileOffset,
+                                                    FileOffset + Size),
+                                ADDR_RANGE_FMT_ARGS(Addr, Addr + Size));
+                    }
 
                     Utils::PrintSegmentSectionPair(OutFile,
                                                    Section.segmentName(),
                                                    Section.sectionName(),
-                                                   /*PadSegment=*/true,
-                                                   /*PadSection=*/true,
-                                                   " ");
+                                                   /*PadSegment=*/!Verbose,
+                                                   /*PadSection=*/!Verbose);
 
                     using SectionSpace = MachO::SegmentCommand::Section;
 
@@ -136,13 +159,22 @@ namespace Operations {
 
                     if (Verbose) {
                         fprintf(OutFile,
-                                "%s\t\tSize:              %s\n"
-                                "%s\t\tAlign:             %" PRIu32 "\n"
-                                "%s\t\tReloc File Offset: " ADDRESS_32_FMT "\n"
-                                "%s\t\tReloc Count:       %" PRIu32 "\n"
-                                "%s\t\tFlags:             0x%" PRIx32 "\n"
-                                "%s\t\tReserved 1:        %" PRIu32 "\n"
-                                "%s\t\tReserved 2:        %" PRIu32 "\n",
+                                "\t\t%sFile:              "
+                                    ADDR_RANGE_32_FMT "\n"
+                                "\t\t%sMem:               "
+                                    ADDR_RANGE_32_FMT "\n"
+                                "\t\t%sSize:              %s\n"
+                                "\t\t%sAlign:             %" PRIu32 "\n"
+                                "\t\t%sReloc File Offset: " ADDRESS_32_FMT "\n"
+                                "\t\t%sReloc Count:       %" PRIu32 "\n"
+                                "\t\t%sFlags:             0x%" PRIx32 "\n"
+                                "\t\t%sReserved 1:        %" PRIu32 "\n"
+                                "\t\t%sReserved 2:        %" PRIu32 "\n",
+                                Prefix,
+                                ADDR_RANGE_FMT_ARGS(FileOffset,
+                                                    FileOffset + Size),
+                                Prefix,
+                                ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
                                 Prefix,
                                 Utils::FormattedSizeForOutput(Size).data(),
                                 Prefix, Section.align(IsBigEndian),
@@ -174,8 +206,7 @@ namespace Operations {
                         "%sMem:           " ADDR_RANGE_64_FMT "\n"
                         "%sFile Size:     %s\n"
                         "%sMem Size:      %s\n"
-                        "%sFlags:         0x%" PRIx32 "\n"
-                        "%sSection Count: %" PRIu32 "\n",
+                        "%sFlags:         0x%" PRIx32 "\n",
                         STRING_VIEW_FMT_ARGS(Segment.segmentName()),
                         MACH_VMPROT_FMT_ARGS(Segment.initProt(IsBigEndian)),
                         MACH_VMPROT_FMT_ARGS(Segment.maxProt(IsBigEndian)),
@@ -185,14 +216,31 @@ namespace Operations {
                         ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
                         Prefix, Utils::FormattedSizeForOutput(FileSize).data(),
                         Prefix, Utils::FormattedSizeForOutput(VmSize).data(),
-                        Prefix, Flags.value(),
-                        Prefix, SectionCount);
+                        Prefix, Flags.value());
 
                 if (!Flags.empty()) {
-                    for (const auto &Flag : ADT::FlagsIterator(Flags.value())) {
-                        printf("Index: %" PRIu32, Flag);
+                    using FlagsStruct = MachO::SegmentCommand64::FlagsStruct;
+
+                    auto Counter = uint32_t();
+                    for (const auto &Bit : ADT::FlagsIterator(Flags.value())) {
+                        const auto Flag =
+                            static_cast<FlagsStruct::Kind>(1ull << Bit);
+
+                        fprintf(OutFile,
+                                "\t%s%" PRIu32 ". Bit %" PRIu32 ": %s\n",
+                                Prefix,
+                                Counter + 1,
+                                Bit,
+                                FlagsStruct::KindGetString(Flag).data());
+
+                        Counter++;
                     }
                 }
+
+                fprintf(OutFile,
+                        "%sSection Count: %" PRIu32 "\n",
+                        Prefix,
+                        SectionCount);
 
                 if (SectionCount == 0) {
                     break;
@@ -210,20 +258,26 @@ namespace Operations {
                     const auto FileOffset = Section.fileOffset(IsBigEndian);
                     const auto FormattedSize = Utils::FormattedSize(Size);
 
-                    fprintf(OutFile,
-                            "\t%s%*" PRIu32 ". "
-                            "File: " ADDR_RANGE_32_64_FMT
-                            "\tMem: " ADDR_RANGE_64_FMT,
-                            Prefix, SectionCountDigitCount, I + 1,
-                            ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + Size),
-                            ADDR_RANGE_FMT_ARGS(Addr, Addr + Size));
+                    if (Verbose) {
+                        fprintf(OutFile,
+                                "\t%s%*" PRIu32 ". ",
+                                Prefix, SectionCountDigitCount, I + 1);
+                    } else {
+                        fprintf(OutFile,
+                                "\t%s%*" PRIu32 ". "
+                                "File: " ADDR_RANGE_32_64_FMT
+                                "Mem: " ADDR_RANGE_64_FMT,
+                                Prefix, SectionCountDigitCount, I + 1,
+                                ADDR_RANGE_FMT_ARGS(FileOffset,
+                                                    FileOffset + Size),
+                                ADDR_RANGE_FMT_ARGS(Addr, Addr + Size));
+                    }
 
                     Utils::PrintSegmentSectionPair(OutFile,
                                                    Section.segmentName(),
                                                    Section.sectionName(),
-                                                   /*PadSegment=*/true,
-                                                   /*PadSection=*/true,
-                                                   " ");
+                                                   /*PadSegment=*/!Verbose,
+                                                   /*PadSection=*/!Verbose);
 
                     using SectionSpace = MachO::SegmentCommand::Section;
 
@@ -241,13 +295,22 @@ namespace Operations {
 
                     if (Verbose) {
                         fprintf(OutFile,
-                                "%s\t\tSize:              %s\n"
-                                "%s\t\tAlign:             %" PRIu32 "\n"
-                                "%s\t\tReloc File Offset: " ADDRESS_32_FMT "\n"
-                                "%s\t\tReloc Count:       %" PRIu32 "\n"
-                                "%s\t\tFlags:             0x%" PRIx32 "\n"
-                                "%s\t\tReserved 1:        %" PRIu32 "\n"
-                                "%s\t\tReserved 2:        %" PRIu32 "\n",
+                                "\t\t%sFile:              "
+                                    ADDR_RANGE_32_64_FMT "\n"
+                                "\t\t%sMem:               "
+                                    ADDR_RANGE_64_FMT "\n"
+                                "\t\t%sSize:              %s\n"
+                                "\t\t%sAlign:             %" PRIu32 "\n"
+                                "\t\t%sReloc File Offset: " ADDRESS_32_FMT "\n"
+                                "\t\t%sReloc Count:       %" PRIu32 "\n"
+                                "\t\t%sFlags:             0x%" PRIx32 "\n"
+                                "\t\t%sReserved 1:        %" PRIu32 "\n"
+                                "\t\t%sReserved 2:        %" PRIu32 "\n",
+                                Prefix,
+                                ADDR_RANGE_FMT_ARGS(FileOffset,
+                                                    FileOffset + Size),
+                                Prefix,
+                                ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
                                 Prefix,
                                 Utils::FormattedSizeForOutput(Size).data(),
                                 Prefix, Section.align(IsBigEndian),
