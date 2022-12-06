@@ -72,12 +72,16 @@ namespace Objects {
 
         [[nodiscard]] inline auto archs() const noexcept {
             assert(!is64Bit());
-            return map().get<::MachO::FatArch>(sizeof(header()), archCount());
+            return
+                map().get<::MachO::FatArch, false>(sizeof(header()),
+                                                   archCount());
         }
 
         [[nodiscard]] inline auto archs64() const noexcept {
             assert(is64Bit());
-            return map().get<::MachO::FatArch64>(sizeof(header()), archCount());
+            return
+                map().get<::MachO::FatArch64, false>(sizeof(header()),
+                                                     archCount());
         }
     };
 }
