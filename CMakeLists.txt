@@ -12,6 +12,10 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 add_executable(ktool ${SOURCES})
 set_property(TARGET ktool PROPERTY CXX_STANDARD 20)
+set(CMAKE_CXX_CLANG_TIDY
+    clang-tidy;
+    -header-filter=include;
+    -checks=*;)
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
