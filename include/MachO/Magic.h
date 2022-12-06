@@ -54,7 +54,7 @@ namespace MachO {
                 return false;
         }
 
-        return false;
+        assert(false && "MagicIsThin() got unrecognized magic");
     }
 
     constexpr auto MagicIsFat(const Magic Magic) noexcept {
@@ -71,7 +71,7 @@ namespace MachO {
                 return false;
         }
 
-        return false;
+        assert(false && "MagicIsFat() got unrecognized magic");
     }
 
     constexpr auto MagicIs64Bit(const Magic Magic) noexcept {
@@ -88,7 +88,7 @@ namespace MachO {
                 return false;
         }
 
-        return false;
+        assert(false && "MagicIs64Bit() got unrecognized magic");
     }
 
     constexpr auto MagicIsBigEndian(const Magic Magic) noexcept {
@@ -105,7 +105,7 @@ namespace MachO {
                 return false;
         }
 
-        return false;
+        assert(false && "MagicIsBigEndian() got unrecognized magic");
     }
 
     constexpr auto MagicGetString(const Magic Magic) noexcept
