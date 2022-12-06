@@ -78,6 +78,10 @@ namespace ADT {
                 return false;
             }
 
+            if (Other.Begin < Begin) {
+                return false;
+            }
+
             const auto MinSize = (Other.Size + (Other.Begin - Begin));
             return Begin <= Other.Begin && Size >= MinSize;
         }
