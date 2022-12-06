@@ -86,9 +86,18 @@ ParseSegmentSectionPair(std::string &SegmentSectionPair,
         }
 
         SegmentName = SegmentSectionPair.substr(0, CommaPos);
+        if (SegmentName->length() > 16) {
+            fputs("Segment Name exceeds max length allowed (16)\n", stderr);
+            return 1;
+        }
         SectionName = SegmentSectionPair.substr(CommaPos + 1);
     } else {
         SectionName = std::move(SegmentSectionPair);
+    }
+
+    if (SectionName.length() > 16) {
+        fputs("Section Name exceeds max length allowed (16)\n", stderr);
+        return 1;
     }
 
     return 0;
