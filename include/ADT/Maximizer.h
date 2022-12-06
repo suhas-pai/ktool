@@ -24,8 +24,6 @@ namespace ADT {
             return *this;
         }
 
-        [[nodiscard]] constexpr auto value() const noexcept {
-            return Value;
-        }
+        [[nodiscard]] constexpr auto value() const noexcept { return Value; }
     };
 }

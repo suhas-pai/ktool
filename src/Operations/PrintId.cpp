@@ -60,8 +60,7 @@ namespace Operations {
                     const auto &Dylib = ID->Dylib;
                     const auto CurrentVersion =
                         Dylib.currentVersion(IsBigEndian);
-                    const auto CompatVersion =
-                        Dylib.compatVersion(IsBigEndian);
+                    const auto CompatVersion = Dylib.compatVersion(IsBigEndian);
 
                     const auto Timestamp = Dylib.timestamp(IsBigEndian);
                     const auto TimestampString =

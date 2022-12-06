@@ -51,8 +51,7 @@ namespace Objects {
     }
 
     auto
-    OpenFrom(const ADT::MemoryMap &Map,
-             const Kind FromKind) noexcept
+    OpenFrom(const ADT::MemoryMap &Map, const Kind FromKind) noexcept
         -> OpenResult
     {
         const auto Kind = Kind::None;

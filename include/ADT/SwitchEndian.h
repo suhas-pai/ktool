@@ -1,5 +1,5 @@
 //
-//  SwitchEndian.h
+//  ADT/SwitchEndian.h
 //  ktool
 //
 //  Created by suhaspai on 11/20/22.

@@ -115,18 +115,14 @@ namespace Utils {
         if (Is64Bit) {
             Result =
                  fprintf(OutFile,
-                         STRING_VIEW_FMT
-                         ADDRESS_64_FMT
-                         STRING_VIEW_FMT,
+                         STRING_VIEW_FMT ADDRESS_64_FMT STRING_VIEW_FMT,
                          STRING_VIEW_FMT_ARGS(Prefix),
                          Address,
                          STRING_VIEW_FMT_ARGS(Suffix));
         } else {
             Result =
                  fprintf(OutFile,
-                         STRING_VIEW_FMT
-                         ADDRESS_32_FMT
-                         STRING_VIEW_FMT,
+                         STRING_VIEW_FMT ADDRESS_32_FMT STRING_VIEW_FMT,
                          STRING_VIEW_FMT_ARGS(Prefix),
                          static_cast<uint32_t>(Address),
                          STRING_VIEW_FMT_ARGS(Suffix));
