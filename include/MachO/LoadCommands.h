@@ -3112,12 +3112,12 @@ namespace MachO {
 
     template <>
     struct LoadCommandTypeFromKind<LoadCommandKind::DyldInfo> {
-        using type = EncryptionInfoCommand;
+        using type = DyldInfoCommand;
     };
 
     template <>
     struct LoadCommandTypeFromKind<LoadCommandKind::DyldInfoOnly> {
-        using type = EncryptionInfoCommand;
+        using type = DyldInfoCommand;
     };
 
     template <>
