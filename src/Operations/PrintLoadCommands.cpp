@@ -6,6 +6,8 @@
 //
 
 #include "ADT/FlagsIterator.h"
+#include "ADT/Maximizer.h"
+
 #include "Dyld3/Platform.h"
 
 #include "MachO/LoadCommands.h"
@@ -45,6 +47,7 @@ namespace Operations {
                      const MachO::LoadCommand &LC,
                      const bool IsBigEndian,
                      uint32_t &DylibIndex,
+                     uint32_t MaxDylibPathLength,
                      const bool Verbose,
                      const char *Prefix = "") noexcept
     {
@@ -86,7 +89,7 @@ namespace Operations {
                     using FlagsStruct = MachO::SegmentCommand64::FlagsStruct;
 
                     auto Counter = uint32_t();
-                    for (const auto &Bit : ADT::FlagsIterator(Flags.value())) {
+                    for (const auto Bit : ADT::FlagsIterator(Flags.value())) {
                         const auto Flag =
                             static_cast<FlagsStruct::Kind>(1ull << Bit);
 
@@ -222,7 +225,7 @@ namespace Operations {
                     using FlagsStruct = MachO::SegmentCommand64::FlagsStruct;
 
                     auto Counter = uint32_t();
-                    for (const auto &Bit : ADT::FlagsIterator(Flags.value())) {
+                    for (const auto Bit : ADT::FlagsIterator(Flags.value())) {
                         const auto Flag =
                             static_cast<FlagsStruct::Kind>(1ull << Bit);
 
@@ -377,13 +380,19 @@ namespace Operations {
                         STRING_VIEW_FMT_ARGS(
                             NameOpt.has_value() ? NameOpt.value() : Malformed));
 
+                const auto PadLength =
+                    MaxDylibPathLength -
+                        (NameOpt.has_value() ?
+                            NameOpt->length() : Malformed.length());
+
+                Utils::PadSpaces(OutFile, PadLength);
                 if (Kind != MachO::LoadCommandKind::IdDylib) {
                     Utils::PrintDylibOrdinalInfo(OutFile,
                                                  DylibIndex + 1,
                                                  "",
                                                  /*PrintPath=*/false,
                                                  /*IsOutOfBounds=*/false,
-                                                 "\t(",
+                                                 " (",
                                                  ")");
                     DylibIndex++;
                 }
@@ -1035,6 +1044,76 @@ namespace Operations {
             MachO::LoadCommandKindGetString(
                 MachO::LoadCommandKind::LinkerOptimizationHint).length();
 
+        auto MaxDylibPathLength = ADT::Maximizer<uint32_t>();
+        for (const auto &LC : MachO.loadCommandsMap()) {
+            switch (LC.kind(IsBigEndian)) {
+                case MachO::LoadCommandKind::LoadDylib:
+                case MachO::LoadCommandKind::IdDylib:
+                case MachO::LoadCommandKind::ReexportDylib:
+                case MachO::LoadCommandKind::LazyLoadDylib:
+                case MachO::LoadCommandKind::LoadUpwardDylib:
+                case MachO::LoadCommandKind::LoadWeakDylib: {
+                    const auto &DylibCmd =
+                        MachO::cast<MachO::DylibCommand>(LC, IsBigEndian);
+
+                    if (const auto NameOpt = DylibCmd.name(IsBigEndian)) {
+                        MaxDylibPathLength = NameOpt->length();
+                    }
+
+                    break;
+                }
+                case MachO::LoadCommandKind::Segment:
+                case MachO::LoadCommandKind::SymbolTable:
+                case MachO::LoadCommandKind::SymbolSegment:
+                case MachO::LoadCommandKind::Thread:
+                case MachO::LoadCommandKind::UnixThread:
+                case MachO::LoadCommandKind::LoadFixedVMSharedLib:
+                case MachO::LoadCommandKind::IdFixedVMSharedLib:
+                case MachO::LoadCommandKind::Identity:
+                case MachO::LoadCommandKind::FixedVMFile:
+                case MachO::LoadCommandKind::PrePage:
+                case MachO::LoadCommandKind::DynamicSymbolTable:
+                case MachO::LoadCommandKind::LoadDylinker:
+                case MachO::LoadCommandKind::IdDylinker:
+                case MachO::LoadCommandKind::PreBoundDylib:
+                case MachO::LoadCommandKind::Routines:
+                case MachO::LoadCommandKind::SubFramework:
+                case MachO::LoadCommandKind::SubUmbrella:
+                case MachO::LoadCommandKind::SubClient:
+                case MachO::LoadCommandKind::SubLibrary:
+                case MachO::LoadCommandKind::TwoLevelHints:
+                case MachO::LoadCommandKind::PreBindChecksum:
+                case MachO::LoadCommandKind::Segment64:
+                case MachO::LoadCommandKind::Routines64:
+                case MachO::LoadCommandKind::Uuid:
+                case MachO::LoadCommandKind::Rpath:
+                case MachO::LoadCommandKind::CodeSignature:
+                case MachO::LoadCommandKind::SegmentSplitInfo:
+                case MachO::LoadCommandKind::EncryptionInfo:
+                case MachO::LoadCommandKind::DyldInfo:
+                case MachO::LoadCommandKind::DyldInfoOnly:
+                case MachO::LoadCommandKind::VersionMinMacOS:
+                case MachO::LoadCommandKind::VersionMinIOS:
+                case MachO::LoadCommandKind::FunctionStarts:
+                case MachO::LoadCommandKind::DyldEnvironment:
+                case MachO::LoadCommandKind::Main:
+                case MachO::LoadCommandKind::DataInCode:
+                case MachO::LoadCommandKind::SourceVersion:
+                case MachO::LoadCommandKind::DylibCodeSignDRS:
+                case MachO::LoadCommandKind::EncryptionInfo64:
+                case MachO::LoadCommandKind::LinkerOption:
+                case MachO::LoadCommandKind::LinkerOptimizationHint:
+                case MachO::LoadCommandKind::VersionMinTVOS:
+                case MachO::LoadCommandKind::VersionMinWatchOS:
+                case MachO::LoadCommandKind::Note:
+                case MachO::LoadCommandKind::BuildVersion:
+                case MachO::LoadCommandKind::DyldExportsTrie:
+                case MachO::LoadCommandKind::DyldChainedFixups:
+                case MachO::LoadCommandKind::FileSetEntry:
+                    break;
+            }
+        }
+
         for (const auto &LoadCommand : MachO.loadCommandsMap()) {
             const auto Kind = LoadCommand.kind(IsBigEndian);
             if (MachO::LoadCommandKindIsValid(Kind)) {
@@ -1054,6 +1133,7 @@ namespace Operations {
                              LoadCommand,
                              IsBigEndian,
                              DylibIndex,
+                             MaxDylibPathLength.value(),
                              Opt.Verbose,
                              "\t");
             Counter++;
