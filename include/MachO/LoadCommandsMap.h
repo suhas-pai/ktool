@@ -29,9 +29,7 @@ namespace MachO {
             return *Ptr;
         }
 
-        [[nodiscard]] constexpr auto operator->() const noexcept {
-            return Ptr;
-        }
+        [[nodiscard]] constexpr auto operator->() const noexcept { return Ptr; }
 
         constexpr auto
         operator<=>(const LoadCommandsIterator &Other) const noexcept = default;

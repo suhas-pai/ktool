@@ -19,7 +19,8 @@ namespace Operations {
     : OutFile(OutFile), Opt(Options) {}
 
     bool
-    PrintLibraries::supportsObjectKind(const Objects::Kind Kind) const noexcept {
+    PrintLibraries::supportsObjectKind(const Objects::Kind Kind) const noexcept
+    {
         switch (Kind) {
             case Objects::Kind::None:
                 assert(false &&
