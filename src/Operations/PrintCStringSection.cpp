@@ -24,8 +24,8 @@ namespace Operations {
         const std::optional<std::string> &SegmentName,
         const std::string &SectionName,
         const struct Options &Options) noexcept
-    : OutFile(OutFile), SegmentName(SegmentName), SectionName(SectionName),
-      Opt(Options) {}
+    : OutFile(OutFile), Opt(Options), SegmentName(SegmentName),
+      SectionName(SectionName) {}
 
     bool
     PrintCStringSection::supportsObjectKind(
@@ -53,7 +53,6 @@ namespace Operations {
             return true;
         }
 
-        auto Pos = 0;
         for (auto Iter = String.begin(); Iter != String.end(); Iter++) {
             const auto Ch = *Iter;
             if (isprint(Ch) == 0) {
@@ -79,8 +78,6 @@ namespace Operations {
 
                 Iter++;
             }
-
-            Pos++;
         }
 
         return false;
@@ -185,7 +182,7 @@ namespace Operations {
             for (const auto &LC : MachO.loadCommandsMap()) {
                 using namespace MachO;
                 if (const auto Segment =
-                    dyn_cast<LoadCommandKind::Segment64>(&LC, IsBigEndian))
+                        dyn_cast<LoadCommandKind::Segment64>(&LC, IsBigEndian))
                 {
                     if (const auto SegName = SegmentName) {
                         if (Segment->segmentName() != SegmentName) {
@@ -231,7 +228,7 @@ namespace Operations {
             for (const auto &LC : MachO.loadCommandsMap()) {
                 using namespace MachO;
                 if (const auto Segment =
-                    dyn_cast<LoadCommandKind::Segment>(&LC, IsBigEndian))
+                        dyn_cast<LoadCommandKind::Segment>(&LC, IsBigEndian))
                 {
                     if (const auto SegName = SegmentName) {
                         if (Segment->segmentName() != SegmentName) {

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <assert.h>
 #include <string_view>
 
 namespace MachO {

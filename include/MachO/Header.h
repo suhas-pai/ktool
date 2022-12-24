@@ -163,8 +163,8 @@ namespace MachO {
         };
 
         [[nodiscard]]
-        constexpr static auto KindIsValid(const Kind Flag) noexcept {
-            switch (Flag) {
+        constexpr static auto KindIsValid(const Kind Kind) noexcept {
+            switch (Kind) {
                 case Kind::NoUndefineds:
                 case Kind::IncrementalLink:
                 case Kind::DynamicLinkerLink:
@@ -214,7 +214,7 @@ namespace MachO {
                 case Kind::PreBound:
                     return "MH_PREBOUND";
                 case Kind::SplitSegments:
-                    return "MH_SPLTTSEGS";
+                    return "MH_SPLITSEGS";
                 case Kind::LazyInit:
                     return "MH_LAZY_INIT";
                 case Kind::TwoLevelNamespaces:
@@ -232,7 +232,7 @@ namespace MachO {
                 case Kind::SubsectionsViaSymbols:
                     return "MH_SUBSECTIONS_VIA_SYMBOL";
                 case Kind::Canonical:
-                    return "MH_CANOICAL";
+                    return "MH_CANONICAL";
                 case Kind::WeakDefines:
                     return "MH_WEAK_DEFS";
                 case Kind::BindsToWeak:
@@ -354,7 +354,7 @@ namespace MachO {
             return has(Kind::NoReexportedDylibs);
         }
 
-        [[nodiscard]] constexpr auto posirtionIndependentExec() const noexcept {
+        [[nodiscard]] constexpr auto positionIndependentExec() const noexcept {
             return has(Kind::PositionIndependentExec);
         }
 

@@ -96,7 +96,7 @@ namespace Operations {
                 return Lhs.Name.compare(Rhs.Name);
         }
 
-        assert(false && "CompareEntriesBySortKind got unrecognized SortKind");
+        assert(false && "CompareEntriesBySortKind() got unrecognized SortKind");
     }
 
     auto
@@ -140,16 +140,15 @@ namespace Operations {
 
         if (!Opt.SortKindList.empty()) {
             const auto Lambda = [&](const auto &Lhs, const auto &Rhs) noexcept {
+                auto Compare = int();
                 for (const auto &Sort : Opt.SortKindList) {
-                    const auto Compare =
-                        CompareEntriesBySortKind(Lhs, Rhs, Sort);
-
+                    Compare = CompareEntriesBySortKind(Lhs, Rhs, Sort);
                     if (Compare != 0) {
-                        return (Compare < 0);
+                        break;
                     }
                 }
 
-                return false;
+                return (Compare < 0);
             };
 
             std::sort(DylibList.begin(), DylibList.end(), Lambda);

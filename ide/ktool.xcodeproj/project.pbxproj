@@ -14,6 +14,8 @@
 		F36BCD55292C092000C911E8 /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36BCD54292C092000C911E8 /* Base.cpp */; };
 		F36BCD59292C178500C911E8 /* LoadCommandsMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36BCD58292C178500C911E8 /* LoadCommandsMap.cpp */; };
 		F36BCD5C292C198C00C911E8 /* PrintId.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36BCD5B292C198C00C911E8 /* PrintId.cpp */; };
+		F38BB77F2952897A00F1EC85 /* PrintCStringSection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F38BB77D2952897A00F1EC85 /* PrintCStringSection.cpp */; };
+		F38BB7802952897A00F1EC85 /* PrintSymbolPtrSection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F38BB77E2952897A00F1EC85 /* PrintSymbolPtrSection.cpp */; };
 		F39FAE8D2929C5450057DC6F /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39FAE8C2929C5450057DC6F /* Base.cpp */; };
 		F39FAE902929C8370057DC6F /* MachO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39FAE8F2929C8370057DC6F /* MachO.cpp */; };
 		F3B0E4DF292CB0D5009D3D61 /* PrintLibraries.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B0E4DE292CB0D5009D3D61 /* PrintLibraries.cpp */; };
@@ -56,6 +58,8 @@
 		F36BCD58292C178500C911E8 /* LoadCommandsMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = LoadCommandsMap.cpp; path = ../src/MachO/LoadCommandsMap.cpp; sourceTree = "<group>"; };
 		F36BCD5A292C195C00C911E8 /* PrintId.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintId.h; path = ../include/Operations/PrintId.h; sourceTree = "<group>"; };
 		F36BCD5B292C198C00C911E8 /* PrintId.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintId.cpp; path = ../src/Operations/PrintId.cpp; sourceTree = "<group>"; };
+		F38BB77D2952897A00F1EC85 /* PrintCStringSection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintCStringSection.cpp; path = ../src/Operations/PrintCStringSection.cpp; sourceTree = "<group>"; };
+		F38BB77E2952897A00F1EC85 /* PrintSymbolPtrSection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintSymbolPtrSection.cpp; path = ../src/Operations/PrintSymbolPtrSection.cpp; sourceTree = "<group>"; };
 		F39FAE882929C0A50057DC6F /* MachO.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MachO.h; path = ../include/Objects/MachO.h; sourceTree = "<group>"; };
 		F39FAE892929C0BD0057DC6F /* Base.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Base.h; path = ../include/Objects/Base.h; sourceTree = "<group>"; };
 		F39FAE8A2929C1B50057DC6F /* MemoryMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MemoryMap.h; path = ../include/ADT/MemoryMap.h; sourceTree = "<group>"; };
@@ -127,6 +131,8 @@
 				F3B0E4DE292CB0D5009D3D61 /* PrintLibraries.cpp */,
 				F3B6EB35292C606100098762 /* PrintLoadCommands.cpp */,
 				F3B0E4E6292D6AFE009D3D61 /* PrintArchs.cpp */,
+				F38BB77D2952897A00F1EC85 /* PrintCStringSection.cpp */,
+				F38BB77E2952897A00F1EC85 /* PrintSymbolPtrSection.cpp */,
 			);
 			name = Operations;
 			sourceTree = "<group>";
@@ -312,7 +318,9 @@
 				F3B0E4E4292D4E38009D3D61 /* Misc.cpp in Sources */,
 				F308429D2921CD1500D989D8 /* FileMap.cpp in Sources */,
 				F33C25CB28EA146700289314 /* main.cpp in Sources */,
+				F38BB77F2952897A00F1EC85 /* PrintCStringSection.cpp in Sources */,
 				F3B0E4E2292CBE4E009D3D61 /* PrintUtils.cpp in Sources */,
+				F38BB7802952897A00F1EC85 /* PrintSymbolPtrSection.cpp in Sources */,
 				F3B6EB36292C606100098762 /* PrintLoadCommands.cpp in Sources */,
 				F36BCD59292C178500C911E8 /* LoadCommandsMap.cpp in Sources */,
 				F3B0E4E7292D6AFE009D3D61 /* PrintArchs.cpp in Sources */,

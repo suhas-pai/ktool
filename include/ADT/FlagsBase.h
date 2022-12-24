@@ -63,7 +63,8 @@ namespace ADT {
             return *this;
         }
 
-        [[nodiscard]] constexpr auto operator~() const noexcept {
+        [[nodiscard]]
+        constexpr auto operator~() const noexcept -> decltype(*this) {
             return ~Flags;
         }
 

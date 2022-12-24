@@ -331,11 +331,8 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto vmRange(const bool IsBigEndian) const noexcept {
-            const auto VmAddr = ADT::SwitchEndianIf(this->VmAddr, IsBigEndian);
-            const auto VmSize = ADT::SwitchEndianIf(this->VmSize, IsBigEndian);
-
-            return ADT::Range::FromSize(VmAddr, VmSize);
+        constexpr auto vmRange(const bool IsBE) const noexcept {
+            return ADT::Range::FromSize(vmAddr(IsBE), vmSize(IsBE));
         }
 
         uint32_t FileOffset;
@@ -352,13 +349,8 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto fileRange(const bool IsBigEndian) const noexcept {
-            const auto FileSize =
-                ADT::SwitchEndianIf(this->FileSize, IsBigEndian);
-            const auto FileOffset =
-                ADT::SwitchEndianIf(this->FileOffset, IsBigEndian);
-
-            return ADT::Range::FromSize(FileOffset, FileSize);
+        constexpr auto fileRange(const bool IsBE) const noexcept {
+            return ADT::Range::FromSize(fileOffset(IsBE), fileSize(IsBE));
         }
 
         uint32_t MaxProt;
@@ -519,11 +511,8 @@ namespace MachO {
             }
 
             [[nodiscard]]
-            constexpr auto virtualRange(const bool IsBigEndian) const noexcept {
-                const auto Addr = ADT::SwitchEndianIf(this->Addr, IsBigEndian);
-                const auto Size = ADT::SwitchEndianIf(this->Size, IsBigEndian);
-
-                return ADT::Range::FromSize(Addr, Size);
+            constexpr auto virtualRange(const bool IsBE) const noexcept {
+                return ADT::Range::FromSize(addr(IsBE), size(IsBE));
             }
 
             uint32_t FileOffset;
@@ -534,12 +523,8 @@ namespace MachO {
             }
 
             [[nodiscard]]
-            constexpr auto fileRange(const bool IsBigEndian) const noexcept {
-                const auto Size = ADT::SwitchEndianIf(this->Size, IsBigEndian);
-                const auto FileOffset =
-                    ADT::SwitchEndianIf(this->FileOffset, IsBigEndian);
-
-                return ADT::Range::FromSize(FileOffset, Size);
+            constexpr auto fileRange(const bool IsBE) const noexcept {
+                return ADT::Range::FromSize(fileOffset(IsBE), size(IsBE));
             }
 
             uint32_t Align;
@@ -682,7 +667,7 @@ namespace MachO {
                     case Kind::Regular:
                         return "Regular";
                     case Kind::ZeroFillOnDemand:
-                        return "Zerofill";
+                        return "Zero-Fill";
                     case Kind::CStringLiterals:
                         return "C-String Literals";
                     case Kind::FourByteLiterals:
@@ -849,12 +834,8 @@ namespace MachO {
             return ADT::SwitchEndianIf(VmSize, IsBigEndian);
         }
 
-        [[nodiscard]]
-        constexpr auto vmRange(const bool IsBigEndian) const noexcept {
-            const auto VmAddr = ADT::SwitchEndianIf(this->VmAddr, IsBigEndian);
-            const auto VmSize = ADT::SwitchEndianIf(this->VmSize, IsBigEndian);
-
-            return ADT::Range::FromSize(VmAddr, VmSize);
+        [[nodiscard]] constexpr auto vmRange(const bool IsBE) const noexcept {
+            return ADT::Range::FromSize(vmAddr(IsBE), vmSize(IsBE));
         }
 
         uint64_t FileOffset;
@@ -870,14 +851,8 @@ namespace MachO {
             return ADT::SwitchEndianIf(FileSize, IsBigEndian);
         }
 
-        [[nodiscard]]
-        constexpr auto fileRange(const bool IsBigEndian) const noexcept {
-            const auto FileSize =
-                ADT::SwitchEndianIf(this->FileSize, IsBigEndian);
-            const auto FileOffset =
-                ADT::SwitchEndianIf(this->FileOffset, IsBigEndian);
-
-            return ADT::Range::FromSize(FileOffset, FileSize);
+        [[nodiscard]] constexpr auto fileRange(const bool IsBE) const noexcept {
+            return ADT::Range::FromSize(fileOffset(IsBE), fileSize(IsBE));
         }
 
         uint32_t MaxProt;
@@ -892,7 +867,6 @@ namespace MachO {
         constexpr auto initProt(const bool IsBigEndian) const noexcept {
             return Mach::VmProt(ADT::SwitchEndianIf(InitProt, IsBigEndian));
         }
-
 
         uint32_t SectionCount;
 
@@ -929,12 +903,9 @@ namespace MachO {
                 return ADT::SwitchEndianIf(Size, IsBigEndian);
             }
 
-            [[nodiscard]] constexpr
-            auto virtualRange(const bool IsBigEndian) const noexcept {
-                const auto Addr = ADT::SwitchEndianIf(this->Addr, IsBigEndian);
-                const auto Size = ADT::SwitchEndianIf(this->Size, IsBigEndian);
-
-                return ADT::Range::FromSize(Addr, Size);
+            [[nodiscard]]
+            constexpr auto virtualRange(const bool IsBE) const noexcept {
+                return ADT::Range::FromSize(addr(IsBE), size(IsBE));
             }
 
             uint32_t FileOffset;
@@ -945,12 +916,8 @@ namespace MachO {
             }
 
             [[nodiscard]]
-            constexpr auto fileRange(const bool IsBigEndian) const noexcept {
-                const auto Size = ADT::SwitchEndianIf(this->Size, IsBigEndian);
-                const auto FileOffset =
-                    ADT::SwitchEndianIf(this->FileOffset, IsBigEndian);
-
-                return ADT::Range::FromSize(FileOffset, Size);
+            constexpr auto fileRange(const bool IsBE) const noexcept {
+                return ADT::Range::FromSize(fileOffset(IsBE), size(IsBE));
             }
 
             uint32_t Align;
@@ -1331,12 +1298,13 @@ namespace MachO {
         [[nodiscard]] constexpr auto
         GetBitset(const LoadCommand *const Cmd,
                   const bool IsBE) const noexcept
+            -> std::optional<std::bitset<64>>
         {
             const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBE);
             const auto CmdSize = ADT::SwitchEndianIf(Cmd->CmdSize, IsBE);
 
             if (Offset >= CmdSize) {
-                return std::optional<std::bitset<64>>();
+                return std::nullopt;
             }
 
             const auto Ptr =
@@ -1636,7 +1604,9 @@ namespace MachO {
                         return "N_INDR";
                 }
 
-                assert(false && "KindGetString() called with unknown Kind");
+                assert(false &&
+                       "SymTabCommand::Entry::KindGetString() called with "
+                       "unknown Kind");
             }
 
             [[nodiscard]] constexpr static
@@ -1680,24 +1650,21 @@ namespace MachO {
                 return ADT::SwitchEndianIf(Value, IsBigEndian);
             }
 
-            [[nodiscard]]
-            constexpr auto kind() const noexcept {
+            [[nodiscard]] constexpr auto kind() const noexcept {
                 return Kind(Type & static_cast<uint8_t>(Masks::Kind));
             }
 
-            [[nodiscard]] constexpr
-            auto debugSymbol() const noexcept -> bool {
+            [[nodiscard]] constexpr auto debugSymbol() const noexcept -> bool {
                 return Type & static_cast<uint8_t>(Masks::DebugSymbol);
             }
 
-            [[nodiscard]] constexpr auto
-            privateExternal() const noexcept -> bool {
+            [[nodiscard]]
+            constexpr auto privateExternal() const noexcept -> bool {
                 const auto Mask = static_cast<uint8_t>(Masks::PrivateExternal);
                 return Type & Mask;
             }
 
-            [[nodiscard]] constexpr
-            auto external() const noexcept -> bool {
+            [[nodiscard]] constexpr auto external() const noexcept -> bool {
                 return Type & static_cast<uint8_t>(Masks::External);
             }
 
@@ -1732,24 +1699,21 @@ namespace MachO {
                 return ADT::SwitchEndianIf(Value, IsBigEndian);
             }
 
-            [[nodiscard]]
-            constexpr auto kind() const noexcept {
+            [[nodiscard]] constexpr auto kind() const noexcept {
                 return Kind(Type & static_cast<uint8_t>(Masks::Kind));
             }
 
-            [[nodiscard]] constexpr
-            auto debugSymbol() const noexcept -> bool {
+            [[nodiscard]] constexpr auto debugSymbol() const noexcept -> bool {
                 return Type & static_cast<uint8_t>(Masks::DebugSymbol);
             }
 
-            [[nodiscard]] constexpr auto
-            privateExternal() const noexcept -> bool {
+            [[nodiscard]]
+            constexpr auto privateExternal() const noexcept -> bool {
                 const auto Mask = static_cast<uint8_t>(Masks::PrivateExternal);
                 return Type & Mask;
             }
 
-            [[nodiscard]] constexpr
-            auto external() const noexcept -> bool {
+            [[nodiscard]] constexpr auto external() const noexcept -> bool {
                 return Type & static_cast<uint8_t>(Masks::External);
             }
 
@@ -1789,10 +1753,7 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto strRange(const bool IsBE) const noexcept {
-            const auto StrOffset = ADT::SwitchEndianIf(this->StrOffset, IsBE);
-            const auto StrSize = ADT::SwitchEndianIf(this->StrSize, IsBE);
-
-            return ADT::Range::FromSize(StrOffset, StrSize);
+            return ADT::Range::FromSize(strOffset(IsBE), strSize(IsBE));
         }
 
         [[nodiscard]]
@@ -1913,13 +1874,13 @@ namespace MachO {
         uint32_t ExternRelOffset;
         uint32_t ExternRelCount;
 
-        [[nodiscard]] constexpr
-        auto externRelOffset(const bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr auto externRelOffset(const bool IsBigEndian) const noexcept {
             return ADT::SwitchEndianIf(ExternRelOffset, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        auto externRelCount(const bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr auto externRelCount(const bool IsBigEndian) const noexcept {
             return ADT::SwitchEndianIf(ExternRelCount, IsBigEndian);
         }
 
@@ -2223,10 +2184,7 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto dataRange(const bool IsBE) const noexcept {
-            const auto DataOff = ADT::SwitchEndianIf(this->DataOff, IsBE);
-            const auto DataSize = ADT::SwitchEndianIf(this->DataSize, IsBE);
-
-            return ADT::Range::FromSize(DataOff, DataSize);
+            return ADT::Range::FromSize(dataOff(IsBE), dataSize(IsBE));
         }
 
         [[nodiscard]]
@@ -2321,13 +2279,8 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto cryptRange(const bool IsBigEndian) const noexcept {
-            const auto CryptOffset =
-                ADT::SwitchEndianIf(this->CryptOffset, IsBigEndian);
-            const auto CryptSize =
-                ADT::SwitchEndianIf(this->CryptSize, IsBigEndian);
-
-            return ADT::Range::FromSize(CryptOffset, CryptSize);
+        constexpr auto cryptRange(const bool IsBE) const noexcept {
+            return ADT::Range::FromSize(cryptOffset(IsBE), cryptSize(IsBE));
         }
 
         [[nodiscard]]
@@ -2379,13 +2332,8 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto cryptRange(const bool IsBigEndian) const noexcept {
-            const auto CryptOffset =
-                ADT::SwitchEndianIf(this->CryptOffset, IsBigEndian);
-            const auto CryptSize =
-                ADT::SwitchEndianIf(this->CryptSize, IsBigEndian);
-
-            return ADT::Range::FromSize(CryptOffset, CryptSize);
+        constexpr auto cryptRange(const bool IsBE) const noexcept {
+            return ADT::Range::FromSize(cryptOffset(IsBE), cryptSize(IsBE));
         }
 
         [[nodiscard]]
@@ -2547,13 +2495,8 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto rebaseRange(const bool IsBigEndian) const noexcept {
-            const auto RebaseOffset =
-                ADT::SwitchEndianIf(this->RebaseOffset, IsBigEndian);
-            const auto RebaseSize =
-                ADT::SwitchEndianIf(this->RebaseSize, IsBigEndian);
-
-            return ADT::Range::FromSize(RebaseOffset, RebaseSize);
+        constexpr auto rebaseRange(const bool IsBE) const noexcept {
+            return ADT::Range::FromSize(rebaseOffset(IsBE), rebaseSize(IsBE));
         }
 
         uint32_t BindOffset;
@@ -2570,13 +2513,8 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto bindRange(const bool IsBigEndian) const noexcept {
-            const auto BindSize =
-                ADT::SwitchEndianIf(this->BindSize, IsBigEndian);
-            const auto BindOffset =
-                ADT::SwitchEndianIf(this->BindOffset, IsBigEndian);
-
-            return ADT::Range::FromSize(BindOffset, BindSize);
+        constexpr auto bindRange(const bool IsBE) const noexcept {
+            return ADT::Range::FromSize(bindOffset(IsBE), bindSize(IsBE));
         }
 
         uint32_t WeakBindOffset;
@@ -2593,13 +2531,9 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto weakBindRange(const bool IsBigEndian) const noexcept {
-            const auto WeakBindSize =
-                ADT::SwitchEndianIf(this->WeakBindSize, IsBigEndian);
-            const auto WeakBindOffset =
-                ADT::SwitchEndianIf(this->WeakBindOffset, IsBigEndian);
-
-            return ADT::Range::FromSize(WeakBindOffset, WeakBindSize);
+        constexpr auto weakBindRange(const bool IsBE) const noexcept {
+            return ADT::Range::FromSize(weakBindOffset(IsBE),
+                                        weakBindSize(IsBE));
         }
 
         uint32_t LazyBindOffset;
@@ -2616,13 +2550,9 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto lazyBindRange(const bool IsBigEndian) const noexcept {
-            const auto LazyBindSize =
-                ADT::SwitchEndianIf(this->LazyBindSize, IsBigEndian);
-            const auto LazyBindOffset =
-                ADT::SwitchEndianIf(this->LazyBindOffset, IsBigEndian);
-
-            return ADT::Range::FromSize(LazyBindOffset, LazyBindSize);
+        constexpr auto lazyBindRange(const bool IsBE) const noexcept {
+            return ADT::Range::FromSize(lazyBindOffset(IsBE),
+                                        lazyBindSize(IsBE));
         }
 
         uint32_t ExportTrieOffset;
@@ -2638,14 +2568,10 @@ namespace MachO {
             return ADT::SwitchEndianIf(ExportTrieSize, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        auto exportTrieRange(const bool IsBigEndian) const noexcept {
-            const auto ExportTrieOffset =
-                ADT::SwitchEndianIf(this->ExportTrieOffset, IsBigEndian);
-            const auto ExportTrieSize =
-                ADT::SwitchEndianIf(this->ExportTrieSize, IsBigEndian);
-
-            return ADT::Range::FromSize(ExportTrieOffset, ExportTrieSize);
+        [[nodiscard]]
+        constexpr auto exportTrieRange(const bool IsBE) const noexcept {
+            return ADT::Range::FromSize(exportTrieOffset(IsBE),
+                                        exportTrieSize(IsBE));
         }
 
         [[nodiscard]]
@@ -2716,10 +2642,7 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto range(const bool IsBigEndian) const noexcept {
-            const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBigEndian);
-            const auto Size = ADT::SwitchEndianIf(this->Size, IsBigEndian);
-
-            return ADT::Range::FromSize(Offset, Size);
+            return ADT::Range::FromSize(offset(IsBigEndian), size(IsBigEndian));
         }
 
         [[nodiscard]]
@@ -2784,12 +2707,12 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto entryOffset(const bool IsBigEndian) const noexcept {
-            return EntryOffset;
+            return ADT::SwitchEndianIf(EntryOffset, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto stackSize(const bool IsBigEndian) const noexcept {
-            return StackSize;
+            return ADT::SwitchEndianIf(StackSize, IsBigEndian);
         }
 
         [[nodiscard]]
@@ -2886,11 +2809,17 @@ namespace MachO {
         uint16_t Length;
 
         [[nodiscard]]
-        constexpr auto dataRange(const bool IsBigEndian) const noexcept {
-            const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBigEndian);
-            const auto Length = ADT::SwitchEndianIf(this->Length, IsBigEndian);
+        constexpr auto offset(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(Offset, IsBigEndian);
+        }
 
-            return ADT::Range::FromSize(Offset, Length);
+        [[nodiscard]]
+        constexpr auto length(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(Length, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr auto dataRange(const bool IsBE) const noexcept {
+            return ADT::Range::FromSize(offset(IsBE), length(IsBE));
         }
 
         DataInCodeEntryKind Kind;
@@ -2923,11 +2852,8 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto noteRange(const bool IsBigEndian) const noexcept {
-            const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBigEndian);
-            const auto Size = ADT::SwitchEndianIf(this->Size, IsBigEndian);
-
-            return ADT::Range::FromSize(Offset, Size);
+        constexpr auto noteRange(const bool IsBE) const noexcept {
+            return ADT::Range::FromSize(offset(IsBE), size(IsBE));
         }
 
         [[nodiscard]]
@@ -3403,5 +3329,4 @@ namespace MachO {
 
         return static_cast<const T *>(nullptr);
     }
-
 }

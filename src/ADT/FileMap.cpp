@@ -55,7 +55,12 @@ namespace ADT {
 
         const auto Flags = MAP_PRIVATE;
         void *const Map =
-            mmap(NULL, Sbuf.st_size, static_cast<int>(Prot), Flags, Fd, 0);
+            mmap(NULL,
+                 static_cast<size_t>(Sbuf.st_size),
+                 static_cast<int>(Prot),
+                 Flags,
+                 Fd,
+                 0);
 
         if (Map == MAP_FAILED) {
             fprintf(stderr,
@@ -67,7 +72,7 @@ namespace ADT {
         }
 
         this->Base = Map;
-        this->Size = Sbuf.st_size;
+        this->Size = static_cast<size_t>(Sbuf.st_size);
     }
 
     FileMap::~FileMap() noexcept {

@@ -15,10 +15,12 @@ namespace ADT {
     struct FlagsIterator {
     protected:
         T Value;
-        T StartIndex = 0;
+        uint8_t StartIndex = 0;
     public:
         constexpr FlagsIterator(const T Value) noexcept
-        : Value(Value), StartIndex(Value != 0 ? __builtin_ctz(Value) : 0) {}
+        : Value(Value),
+          StartIndex(
+            Value != 0 ? static_cast<uint8_t>(__builtin_ctz(Value)) : 0) {}
 
         [[nodiscard]] inline auto &begin() {
             return *this;
@@ -44,7 +46,10 @@ namespace ADT {
                 return *this;
             }
 
-            StartIndex += __builtin_ctz(Value >> (StartIndex + 1)) + 1;
+            StartIndex +=
+                static_cast<uint8_t>(__builtin_ctz(Value >> (StartIndex + 1))) +
+                1;
+
             return *this;
         }
 
@@ -60,7 +65,10 @@ namespace ADT {
                 return *this;
             }
 
-            StartIndex += __builtin_ctz(Value >> (StartIndex + 1)) + 1;
+            StartIndex +=
+                static_cast<uint8_t>(__builtin_ctz(Value >> (StartIndex + 1))) +
+                1;
+
             return *this;
         }
 
@@ -73,12 +81,12 @@ namespace ADT {
         }
 
         [[nodiscard]] constexpr
-        auto operator==(const EndValue &End) const noexcept {
+        auto operator==([[maybe_unused]] const EndValue &End) const noexcept {
             return StartIndex == bit_sizeof(T) || (Value >> StartIndex == 0);
         }
 
         [[nodiscard]] constexpr
-        auto operator!=(const EndValue &End) const noexcept {
+        auto operator!=([[maybe_unused]] const EndValue &End) const noexcept {
             return StartIndex != bit_sizeof(T) && (Value >> StartIndex != 0);
         }
     };

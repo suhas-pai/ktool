@@ -269,7 +269,7 @@ namespace Operations {
                         fprintf(OutFile,
                                 "\t%s%*" PRIu32 ". "
                                 "File: " ADDR_RANGE_32_64_FMT
-                                "Mem: " ADDR_RANGE_64_FMT,
+                                "\tMem: " ADDR_RANGE_64_FMT,
                                 Prefix, SectionCountDigitCount, I + 1,
                                 ADDR_RANGE_FMT_ARGS(FileOffset,
                                                     FileOffset + Size),
@@ -367,26 +367,18 @@ namespace Operations {
                     MachO::cast<MachO::DylibCommand>(LC, IsBigEndian);
 
                 const auto NameOpt = DylibCmd.name(IsBigEndian);
-                const auto CurrentVersion =
-                    DylibCmd.currentVersion(IsBigEndian);
-
-                const auto CompatVersion = DylibCmd.compatVersion(IsBigEndian);
-                const auto Timestamp = DylibCmd.timestamp(IsBigEndian);
-                const auto TimestampString =
-                    Utils::GetHumanReadableTimestamp(Timestamp);
-
                 fprintf(OutFile,
                         "\t\"" STRING_VIEW_FMT "\"",
                         STRING_VIEW_FMT_ARGS(
                             NameOpt.has_value() ? NameOpt.value() : Malformed));
 
-                const auto PadLength =
-                    MaxDylibPathLength -
-                        (NameOpt.has_value() ?
-                            NameOpt->length() : Malformed.length());
-
-                Utils::PadSpaces(OutFile, PadLength);
                 if (Kind != MachO::LoadCommandKind::IdDylib) {
+                    const auto PadLength =
+                        MaxDylibPathLength -
+                            (NameOpt.has_value() ?
+                                NameOpt->length() : Malformed.length());
+
+                    Utils::PadSpaces(OutFile, PadLength);
                     Utils::PrintDylibOrdinalInfo(OutFile,
                                                  DylibIndex + 1,
                                                  "",
@@ -396,6 +388,14 @@ namespace Operations {
                                                  ")");
                     DylibIndex++;
                 }
+
+                const auto CurrentVersion =
+                    DylibCmd.currentVersion(IsBigEndian);
+                const auto CompatVersion = DylibCmd.compatVersion(IsBigEndian);
+
+                const auto Timestamp = DylibCmd.timestamp(IsBigEndian);
+                const auto TimestampString =
+                    Utils::GetHumanReadableTimestamp(Timestamp);
 
                 fprintf(OutFile,
                         "\n"
@@ -1048,7 +1048,6 @@ namespace Operations {
         for (const auto &LC : MachO.loadCommandsMap()) {
             switch (LC.kind(IsBigEndian)) {
                 case MachO::LoadCommandKind::LoadDylib:
-                case MachO::LoadCommandKind::IdDylib:
                 case MachO::LoadCommandKind::ReexportDylib:
                 case MachO::LoadCommandKind::LazyLoadDylib:
                 case MachO::LoadCommandKind::LoadUpwardDylib:
@@ -1075,6 +1074,7 @@ namespace Operations {
                 case MachO::LoadCommandKind::DynamicSymbolTable:
                 case MachO::LoadCommandKind::LoadDylinker:
                 case MachO::LoadCommandKind::IdDylinker:
+                case MachO::LoadCommandKind::IdDylib:
                 case MachO::LoadCommandKind::PreBoundDylib:
                 case MachO::LoadCommandKind::Routines:
                 case MachO::LoadCommandKind::SubFramework:
@@ -1111,7 +1111,7 @@ namespace Operations {
                 case MachO::LoadCommandKind::DyldChainedFixups:
                 case MachO::LoadCommandKind::FileSetEntry:
                     break;
-            }
+                }
         }
 
         for (const auto &LoadCommand : MachO.loadCommandsMap()) {

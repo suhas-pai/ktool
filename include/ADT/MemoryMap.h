@@ -44,8 +44,7 @@ namespace ADT {
         }
 
         template <typename T = void *>
-        [[nodiscard]]
-        inline auto end(const uint64_t Count = 1) const noexcept -> const T * {
+        [[nodiscard]] inline auto end() const noexcept -> const T * {
             const auto Result =
                 reinterpret_cast<const T *>(
                     reinterpret_cast<uint64_t>(Base) + Size);

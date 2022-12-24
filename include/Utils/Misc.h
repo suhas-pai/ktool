@@ -68,7 +68,7 @@ namespace Utils {
         auto HasBackSlash = CdString[CdLength - 1] == '/';
 
         const auto ReserveLength =
-            CdLength + static_cast<int>(!HasBackSlash) + Path.length();
+            CdLength + static_cast<size_t>(!HasBackSlash) + Path.length();
 
         String.reserve(ReserveLength);
         String.append(CdString);

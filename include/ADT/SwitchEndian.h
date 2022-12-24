@@ -68,7 +68,8 @@ namespace ADT {
     struct EndianSwitcher<int16_t> {
         [[nodiscard]]
         constexpr static auto SwitchEndian(const int16_t Value) noexcept {
-            return int16_t(EndianSwitcherFuncs::SwitchEndian16(Value));
+            const auto Casted = static_cast<uint16_t>(Value);
+            return EndianSwitcherFuncs::SwitchEndian16(Casted);
         }
     };
 
@@ -76,8 +77,7 @@ namespace ADT {
     struct EndianSwitcher<uint16_t> {
         [[nodiscard]]
         constexpr static auto SwitchEndian(const uint16_t Value) noexcept {
-            const auto Casted = static_cast<int16_t>(Value);
-            return EndianSwitcherFuncs::SwitchEndian16(Casted);
+            return EndianSwitcherFuncs::SwitchEndian16(Value);
         }
     };
 
@@ -85,7 +85,8 @@ namespace ADT {
     struct EndianSwitcher<int32_t> {
         [[nodiscard]]
         constexpr static auto SwitchEndian(const int32_t Value) noexcept {
-            return int32_t(EndianSwitcherFuncs::SwitchEndian32(Value));
+            const auto Casted = static_cast<uint32_t>(Value);
+            return int32_t(EndianSwitcherFuncs::SwitchEndian32(Casted));
         }
     };
 
@@ -101,7 +102,8 @@ namespace ADT {
     struct EndianSwitcher<int64_t> {
         [[nodiscard]]
         constexpr static auto SwitchEndian(const int64_t Value) noexcept {
-            return int64_t(EndianSwitcherFuncs::SwitchEndian64(Value));
+            const auto Casted = static_cast<uint64_t>(Value);
+            return int64_t(EndianSwitcherFuncs::SwitchEndian64(Casted));
         }
     };
 

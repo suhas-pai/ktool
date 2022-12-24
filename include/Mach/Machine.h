@@ -268,11 +268,11 @@ namespace Mach {
 
     constexpr auto
     CpuKindAndSubKindIsValid(const CpuKind CpuKind,
-                             const uint32_t SubKind) noexcept
+                             const int32_t SubKind) noexcept
     {
         switch (CpuKind) {
             case CpuKind::Any:
-                return SubKind == static_cast<uint32_t>(-1);
+                return SubKind == -1;
             case CpuKind::Vax:
                 switch (Vax(SubKind)) {
                     case Vax::All:
@@ -433,12 +433,12 @@ namespace Mach {
 
     constexpr auto
     CpuKindAndSubKindGetString(const CpuKind CpuKind,
-                               const uint32_t SubKind) noexcept
+                               const int32_t SubKind) noexcept
         -> std::string_view
     {
         switch (CpuKind) {
             case CpuKind::Any:
-                if (SubKind == static_cast<uint32_t>(-1)) {
+                if (SubKind == -1) {
                     return "CPU_SUBTYPE_ANY";
                 }
 
@@ -696,12 +696,12 @@ namespace Mach {
 
     constexpr auto
     CpuKindAndSubKindGetDesc(const CpuKind CpuKind,
-                             const uint32_t SubKind) noexcept
+                             const int32_t SubKind) noexcept
         -> std::string_view
     {
         switch (CpuKind) {
             case CpuKind::Any:
-                if (SubKind == static_cast<uint32_t>(-1)) {
+                if (SubKind == -1) {
                     return "Any";
                 }
 

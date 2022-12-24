@@ -55,8 +55,11 @@ namespace Operations {
 
                 return run(Object);
             case Objects::Kind::FatMachO: {
+                const auto SupportsFatMachO =
+                    supportsObjectKind(Objects::Kind::FatMachO);
+
                 if (!supportsObjectKind(Objects::Kind::MachO)) {
-                    if (supportsObjectKind(Objects::Kind::FatMachO)) {
+                    if (SupportsFatMachO) {
                         if (Options.ArchIndex != -1) {
                             fputs("Operation doesn't support Mach-O Files, but "
                                   "does support Fat Mach-O Files.\nDrop "
@@ -71,7 +74,12 @@ namespace Operations {
                     PrintUnsupportedError(Options.Path);
                 }
 
+                const auto Fat = static_cast<const Objects::FatMachO &>(Object);
                 if (Options.ArchIndex == -1) {
+                    if (SupportsFatMachO) {
+                        return run(Fat);
+                    }
+
                     fputs("Operation doesn't support Fat Mach-O Files. Please "
                           "select an arch by its index using option "
                           "--arch-index\n",
@@ -79,7 +87,6 @@ namespace Operations {
                     exit(1);
                 }
 
-                const auto Fat = static_cast<const Objects::FatMachO &>(Object);
                 const auto ArchIndex = static_cast<uint32_t>(Options.ArchIndex);
                 const auto ArchCount = Fat.archCount();
 

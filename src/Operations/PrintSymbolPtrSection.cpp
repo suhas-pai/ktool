@@ -29,8 +29,8 @@ namespace Operations {
         const std::optional<std::string> &SegmentName,
         const std::string &SectionName,
         const struct Options &Options) noexcept
-    : OutFile(OutFile), SegmentName(SegmentName), SectionName(SectionName),
-      Opt(Options) {}
+    : OutFile(OutFile), Opt(Options), SegmentName(SegmentName),
+      SectionName(SectionName) {}
 
     bool
     PrintSymbolPtrSection::supportsObjectKind(
@@ -144,7 +144,6 @@ namespace Operations {
     IterateIndices(const MachO::SymTabCommand &SymTab,
                    const MachO::DynamicSymTabCommand &DynamicSymTab,
                    const ADT::MemoryMap &Map,
-                   const uint64_t SectionSize,
                    const uint32_t Reserved1,
                    Operations::RunResult &Result,
                    const bool SkipInvalidIndices,
@@ -319,9 +318,6 @@ namespace Operations {
         }
 
         auto SectionData = static_cast<const char *>(nullptr);
-        auto SectionFileOff = uint64_t();
-        auto SectionAddr = uint64_t();
-        auto SectionSize = uint64_t();
         auto SectionReserved1 = uint32_t();
 
         const auto IsBigEndian = MachO.isBigEndian();
@@ -378,10 +374,6 @@ namespace Operations {
                     }
 
                     const auto SectionRange = Section->fileRange(IsBigEndian);
-
-                    SectionFileOff = SectionRange.begin();
-                    SectionAddr = Section->addr(IsBigEndian);
-                    SectionSize = SectionRange.size();
                     SectionData =
                         MachO.map().get<const char>(SectionRange.begin());
 
@@ -431,10 +423,6 @@ namespace Operations {
                     }
 
                     const auto SectionRange = Section->fileRange(IsBigEndian);
-
-                    SectionFileOff = SectionRange.begin();
-                    SectionAddr = Section->addr(IsBigEndian);
-                    SectionSize = SectionRange.size();
                     SectionData =
                         MachO.map().get<const char>(SectionRange.begin());
 
@@ -558,7 +546,6 @@ namespace Operations {
                 IterateIndices<true>(*SymTabCmd,
                                      *DynamicSymTabCmd,
                                      MachO.map(),
-                                     SectionSize,
                                      SectionReserved1,
                                      Result,
                                      Opt.SkipInvalidIndices,
@@ -574,7 +561,6 @@ namespace Operations {
                 IterateIndices<false>(*SymTabCmd,
                                       *DynamicSymTabCmd,
                                       MachO.map(),
-                                      SectionSize,
                                       SectionReserved1,
                                       Result,
                                       Opt.SkipInvalidIndices,
