@@ -8,13 +8,8 @@
 #pragma once
 
 #include <bitset>
-#include <cassert>
-#include <cstring>
 #include <optional>
-#include <string_view>
-#include <type_traits>
 
-#include "ADT/FlagsBase.h"
 #include "ADT/Range.h"
 #include "ADT/SwitchEndian.h"
 
@@ -420,26 +415,26 @@ namespace MachO {
             using ADT::FlagsBase<uint32_t>::FlagsBase;
 
             [[nodiscard]] constexpr auto highVm() const noexcept -> bool {
-                return (Flags & static_cast<uint32_t>(Kind::HighVm));
+                return has(Kind::HighVm);
             }
 
             [[nodiscard]]
             constexpr auto fixedVmLibrary() const noexcept -> bool {
-                return (Flags & static_cast<uint32_t>(Kind::FixedVmLibrary));
+                return has(Kind::FixedVmLibrary);
             }
 
             [[nodiscard]]
             constexpr auto noRelocations() const noexcept -> bool {
-                return (Flags & static_cast<uint32_t>(Kind::NoRelocations));
+                return has(Kind::NoRelocations);
             }
 
             [[nodiscard]]
             constexpr auto protectedVersion1() const noexcept -> bool {
-                return (Flags & static_cast<uint32_t>(Kind::ProtectedVersion1));
+                return has(Kind::ProtectedVersion1);
             }
 
             [[nodiscard]] constexpr auto readOnly() const noexcept -> bool {
-                return (Flags & static_cast<uint32_t>(Kind::ReadOnly));
+                return has(Kind::ReadOnly);
             }
 
             constexpr auto setIsHighVm(const bool Value = true) noexcept {

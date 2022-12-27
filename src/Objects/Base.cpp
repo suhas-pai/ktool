@@ -28,6 +28,8 @@ namespace Objects {
                 if (Error != ErrorKind::WrongFormat) {
                     return OpenError(Kind::MachO, static_cast<uint32_t>(Error));
                 }
+
+                [[fallthrough]];
             }
             case Kind::FatMachO: {
                 const auto Object = Objects::FatMachO::Open(Map);
@@ -69,6 +71,8 @@ namespace Objects {
                 if (Error != ErrorKind::WrongFormat) {
                     return OpenError(Kind::MachO, static_cast<uint32_t>(Error));
                 }
+
+                [[fallthrough]];
             }
             case Kind::FatMachO: {
                 // Fat Mach-O Files can't have Fat Mach-O Architectures

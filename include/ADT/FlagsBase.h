@@ -9,6 +9,7 @@
 
 #include <compare>
 #include <concepts>
+#include <cstdint>
 #include <limits>
 #include <type_traits>
 
@@ -59,7 +60,7 @@ namespace ADT {
         }
 
         constexpr auto operator&=(const FlagsBase<T> Mask) const noexcept {
-            Flags |= Mask;
+            Flags &= Mask;
             return *this;
         }
 
@@ -72,12 +73,22 @@ namespace ADT {
             return Flags == 0;
         }
 
+        [[nodiscard]] constexpr auto Count() const noexcept {
+            if constexpr (sizeof(T) == sizeof(long long)) {
+                return __builtin_popcountll(Flags);
+            } else if constexpr (sizeof(T) == sizeof(long)) {
+                return __builtin_popcountl(Flags);
+            }
+
+            return __builtin_popcount(Flags);
+        }
+
         [[nodiscard]] constexpr auto value() const noexcept {
             return Flags;
         }
 
-        constexpr auto
-        operator<=>(const FlagsBase<T> &Rhs) const noexcept = default;
+        constexpr
+        auto operator<=>(const FlagsBase<T> &Rhs) const noexcept = default;
 
         constexpr auto operator<=>(const T Rhs) const noexcept {
             return (Flags <=> Rhs);

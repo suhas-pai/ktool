@@ -59,8 +59,8 @@ namespace Operations {
                 "\tCputype:    %s\n"
                 "\tCpuSubtype: %s\n"
                 "\tFiletype:   %s\n"
-                "\tNcmds:      %d\n"
-                "\tSizeOfCmds: %d\n"
+                "\tNcmds:      %" PRIu32 "\n"
+                "\tSizeOfCmds: %" PRIu32 "\n"
                 "\tFlags:      0x%" PRIx32 "\n",
                 MachO.is64Bit() ? "64-Bit" : "32-Bit",
                 Opt.Verbose ?
@@ -106,7 +106,7 @@ namespace Operations {
         fprintf(OutFile,
                 "Apple %s Fat Mach-O File\n"
                 "\tMagic:      %s\n"
-                "\tArch Count: %d\n",
+                "\tArch Count: %" PRIu32 "\n",
                 Fat.is64Bit() ? "64-Bit" : "32-Bit",
                 MachO::MagicGetString(Header.Magic).data(),
                 Header.archCount());

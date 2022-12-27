@@ -14,13 +14,14 @@
 namespace ADT {
     struct Range {
     protected:
-        uint64_t Begin;
-        uint64_t Size;
+        uint64_t Begin = 0;
+        uint64_t Size = 0;
 
         constexpr explicit
         Range(const uint64_t Begin, const uint64_t Size) noexcept
         : Begin(Begin), Size(Size) {}
     public:
+        [[nodiscard]] constexpr Range() noexcept = default;
         [[nodiscard]] constexpr static
         auto FromSize(const uint64_t Begin, const uint64_t Size) noexcept {
             return Range(Begin, Size);
@@ -32,10 +33,6 @@ namespace ADT {
             return Range(Begin, (End - Begin));
         }
 
-        [[nodiscard]] constexpr static auto FromEmpty() noexcept {
-            return Range(0, 0);
-        }
-
         [[nodiscard]] constexpr auto begin() const noexcept { return Begin; }
         [[nodiscard]] constexpr auto size() const noexcept { return Size; }
         [[nodiscard]] constexpr auto end() const noexcept {
@@ -43,9 +40,9 @@ namespace ADT {
         }
 
         template <std::integral T>
-        [[nodiscard]] constexpr auto canRepresentIn() {
+        [[nodiscard]] constexpr auto canRepresentIn() const noexcept {
             return (Begin <= std::numeric_limits<T>::max() &&
-                    (Begin + Size) <= std::numeric_limits<T>::max());
+                    Size <= (std::numeric_limits<T>::max() - Begin));
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {

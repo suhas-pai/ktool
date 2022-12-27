@@ -219,7 +219,7 @@ namespace Operations {
                     SectionAddr = Section->addr(IsBigEndian);
                     SectionSize = SectionRange.size();
                     SectionData =
-                        MachO.map().get<const char>(SectionRange.begin());
+                        MachO.map().getFromRange<const char>(SectionRange);
 
                     break;
                 }
@@ -265,7 +265,7 @@ namespace Operations {
                     SectionAddr = Section->addr(IsBigEndian);
                     SectionSize = SectionRange.size();
                     SectionData =
-                        MachO.map().get<const char>(SectionRange.begin());
+                        MachO.map().getFromRange<const char>(SectionRange);
 
                     break;
                 }

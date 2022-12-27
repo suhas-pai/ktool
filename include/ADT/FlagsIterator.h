@@ -14,13 +14,13 @@ namespace ADT {
     template <std::integral T>
     struct FlagsIterator {
     protected:
-        T Value;
+        T Value = bit_sizeof(T);
         uint8_t StartIndex = 0;
     public:
         constexpr FlagsIterator(const T Value) noexcept
         : Value(Value),
           StartIndex(
-            Value != 0 ? static_cast<uint8_t>(__builtin_ctz(Value)) : 0) {}
+            Value == 0 ?: static_cast<uint8_t>(__builtin_ctz(Value))) {}
 
         [[nodiscard]] inline auto &begin() {
             return *this;
@@ -54,22 +54,7 @@ namespace ADT {
         }
 
         constexpr auto &operator++(int) noexcept {
-            if (StartIndex + 1 == bit_sizeof(T)) {
-                StartIndex = bit_sizeof(T);
-                return *this;
-            }
-
-            const auto ShiftedValue = Value >> (StartIndex + 1);
-            if (ShiftedValue == 0) {
-                StartIndex = bit_sizeof(T);
-                return *this;
-            }
-
-            StartIndex +=
-                static_cast<uint8_t>(__builtin_ctz(Value >> (StartIndex + 1))) +
-                1;
-
-            return *this;
+            return operator++();
         }
 
         [[nodiscard]] constexpr auto operator*() const noexcept {
@@ -87,7 +72,7 @@ namespace ADT {
 
         [[nodiscard]] constexpr
         auto operator!=([[maybe_unused]] const EndValue &End) const noexcept {
-            return StartIndex != bit_sizeof(T) && (Value >> StartIndex != 0);
+            return !operator==(End);
         }
     };
 }

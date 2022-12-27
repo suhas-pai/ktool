@@ -8,6 +8,7 @@
 #include <array>
 #include <assert.h>
 #include <cstdio>
+#include <limits>
 #include <sstream>
 #include <string>
 
@@ -81,7 +82,8 @@ namespace Utils {
             Formatted.length() + SizeString.length() + STR_LENGTH(" ()");
 
         Formatted.reserve(ResultLength);
-        Formatted.insert(0, SizeString + " (");
+        Formatted.insert(0, SizeString);
+        Formatted.insert(SizeString.length(), " (");
         Formatted.append(")");
 
         return Formatted;
@@ -120,6 +122,7 @@ namespace Utils {
                          Address,
                          STRING_VIEW_FMT_ARGS(Suffix));
         } else {
+            assert(Address <= std::numeric_limits<uint32_t>::max());
             Result =
                  fprintf(OutFile,
                          STRING_VIEW_FMT ADDRESS_32_FMT STRING_VIEW_FMT,

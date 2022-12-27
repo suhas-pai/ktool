@@ -480,6 +480,8 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case Operations::PrintHeader::RunError::None:
                     break;
             }
+
+            break;
         }
         case Operations::Kind::PrintId: {
             switch (Operations::PrintId::RunError(Result.Error)) {
@@ -495,24 +497,32 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     fputs("Id String not found\n", stderr);
                     return 1;
             }
+
+            break;
         }
         case Operations::Kind::PrintLoadCommands: {
             switch (Operations::PrintLoadCommands::RunError(Result.Error)) {
                 case Operations::PrintLoadCommands::RunError::None:
                     break;
             }
+
+            break;
         }
         case Operations::Kind::PrintLibraries: {
             switch (Operations::PrintLibraries::RunError(Result.Error)) {
                 case Operations::PrintLibraries::RunError::None:
                     break;
             }
+
+            break;
         }
         case Operations::Kind::PrintArchs: {
             switch (Operations::PrintArchs::RunError(Result.Error)) {
                 case Operations::PrintArchs::RunError::None:
                     break;
             }
+
+            break;
         }
         case Operations::Kind::PrintCStringSection: {
             switch (Operations::PrintCStringSection::RunError(Result.Error)) {
@@ -540,6 +550,8 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                           stderr);
                     break;
                 }
+
+            break;
         }
         case Operations::Kind::PrintSymbolPtrSection: {
             switch (Operations::PrintSymbolPtrSection::RunError(Result.Error)) {
@@ -591,6 +603,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     fputs("String-Table is out-of-bounds of mach-o\n", stderr);
                     return 1;
                 }
+
             break;
         }
     }

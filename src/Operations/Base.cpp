@@ -6,6 +6,7 @@
 //
 
 #include <cstdio>
+#include <inttypes.h>
 
 #include "ADT/FileMap.h"
 #include "Operations/Base.h"
@@ -92,8 +93,9 @@ namespace Operations {
 
                 if (Options.ArchIndex >= ArchCount) {
                     fprintf(stderr,
-                            "An Arch-Index of %d is invalid. The provided Fat "
-                            "Mach-O file has %d architectures\n",
+                            "An Arch-Index of %" PRIu32 " is invalid. The "
+                            "provided Fat Mach-O file has %" PRIu32
+                            " architectures\n",
                             ArchIndex,
                             ArchCount);
                     exit(1);
@@ -105,7 +107,7 @@ namespace Operations {
                 if (!Error.isNone()) {
                     if (Error.isUnrecognizedFormat()) {
                         fprintf(stderr,
-                                "Architecture at index %d is of an "
+                                "Architecture at index %" PRIu32 " is of an "
                                 "unrecognized format\n",
                                 ArchIndex);
                         exit(1);
@@ -128,14 +130,14 @@ namespace Operations {
                                            "OpenError");
                                 case ErrorKind::SizeTooSmall:
                                     fprintf(stderr,
-                                            "Arch at index %d is too small to "
-                                            "be a valid mach-o\n",
+                                            "Arch at index %" PRIu32 " is too "
+                                            "small to be a valid mach-o\n",
                                             ArchIndex);
                                     exit(1);
                                 case ErrorKind::TooManyLoadCommands:
                                     fprintf(stderr,
-                                            "Arch at index %d has too many "
-                                            "load-commands for its size\n",
+                                            "Arch at index %" PRIu32 " has too "
+                                            "many load-commands for its size\n",
                                             ArchIndex);
                                     exit(1);
                             }

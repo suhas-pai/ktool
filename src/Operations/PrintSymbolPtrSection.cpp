@@ -112,16 +112,16 @@ namespace Operations {
         -> std::optional<std::string_view>
     {
         assert(Ordinal != 0);
-        auto I = Ordinal - 1;
+        auto Index = Ordinal - 1;
 
         for (const auto &Segment : SegmentList) {
-            if (I >= Segment.SectionNameList.size()) {
-                I -= Segment.SectionNameList.size();
+            if (Index >= Segment.SectionNameList.size()) {
+                Index -= Segment.SectionNameList.size();
                 continue;
             }
 
             SegmentName = Segment.Name;
-            return std::optional(Segment.SectionNameList.at(I));
+            return std::optional(Segment.SectionNameList.at(Index));
         }
 
         return std::nullopt;
@@ -183,7 +183,7 @@ namespace Operations {
 
         const auto SymbolCount = SymTab.symCount(IsBigEndian);
         const auto SymbolTable =
-            Map.getFromIndexRange<SymTabEntry>(
+            Map.getFromRange<SymTabEntry>(
                 SymTab.symRange(IsBigEndian, Is64Bit));
 
         if (SymbolTable == nullptr) {
@@ -196,7 +196,7 @@ namespace Operations {
         auto KindLengthMaximizer = ADT::Maximizer<uint8_t>();
 
         const auto StringTable =
-            Map.getFromIndexRange<const char>(SymTab.strRange(IsBigEndian));
+            Map.getFromRange<const char>(SymTab.strRange(IsBigEndian));
 
         if (StringTable == nullptr) {
             Result.set(RunError::StringTableOutOfBounds);
@@ -340,9 +340,7 @@ namespace Operations {
                         break;
                     }
 
-                    const auto Segment =
-                        cast<const SegmentCommand>(&LC, IsBigEndian);
-
+                    const auto Segment = cast<SegmentCommand>(&LC, IsBigEndian);
                     auto Section =
                         static_cast<const SegmentCommand::Section *>(nullptr);
 
@@ -375,7 +373,7 @@ namespace Operations {
 
                     const auto SectionRange = Section->fileRange(IsBigEndian);
                     SectionData =
-                        MachO.map().get<const char>(SectionRange.begin());
+                        MachO.map().getFromRange<const char>(SectionRange);
 
                     if (SectionData == nullptr) {
                         return Result.set(RunError::InvalidSectionRange);
@@ -390,10 +388,9 @@ namespace Operations {
                     }
 
                     const auto Segment =
-                        cast<const SegmentCommand>(&LC, IsBigEndian);
-
+                        cast<SegmentCommand64>(&LC, IsBigEndian);
                     auto Section =
-                        static_cast<const SegmentCommand::Section *>(nullptr);
+                        static_cast<const SegmentCommand64::Section *>(nullptr);
 
                     auto SegmentInfo = ::Operations::SegmentInfo();
                     const auto IterateResult =
@@ -424,7 +421,7 @@ namespace Operations {
 
                     const auto SectionRange = Section->fileRange(IsBigEndian);
                     SectionData =
-                        MachO.map().get<const char>(SectionRange.begin());
+                        MachO.map().getFromRange<const char>(SectionRange);
 
                     if (SectionData == nullptr) {
                         return Result.set(RunError::InvalidSectionRange);
@@ -578,16 +575,17 @@ namespace Operations {
 
         if (!Opt.SortKindList.empty()) {
             const auto Lambda = [&](const auto &Lhs, const auto &Rhs) noexcept {
+                auto Compare = int();
                 for (const auto &Sort : Opt.SortKindList) {
-                    const auto Compare =
+                    Compare =
                         CompareEntriesBySortKind(Lhs, Rhs, DylibList, Sort);
 
                     if (Compare != 0) {
-                        return (Compare < 0);
+                        break;
                     }
                 }
 
-                return false;
+                return (Compare < 0);
             };
 
             std::sort(SymbolInfoList.begin(), SymbolInfoList.end(), Lambda);
@@ -643,12 +641,16 @@ namespace Operations {
                 }
 
                 fputs(", Section: ", OutFile);
-                if (SymbolInfo.Kind == SymTabCommand::Entry::Kind::Section) {
-                    const auto Ordinal = SymbolInfo.Section;
 
+                const auto SectionOrdinal = SymbolInfo.Section;
+                if (SymbolInfo.Kind == SymTabCommand::Entry::Kind::Section &&
+                    SectionOrdinal != 0)
+                {
                     auto SegmentName = std::string_view();
                     const auto SectionOpt =
-                        GetSectionAtOrdinal(SegmentList, Ordinal, SegmentName);
+                        GetSectionAtOrdinal(SegmentList,
+                                            SectionOrdinal,
+                                            SegmentName);
 
                     if (const auto SectionName = SectionOpt) {
                         Utils::PrintSegmentSectionPair(OutFile,

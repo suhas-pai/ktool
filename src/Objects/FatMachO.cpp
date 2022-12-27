@@ -71,7 +71,7 @@ namespace Objects {
         const auto ArchCount = Header.archCount();
         if (Header.is64Bit()) {
             const auto ArchList =
-                Map.get<::MachO::FatArch64>(
+                Map.get<::MachO::FatArch64, false>(
                     sizeof(struct ::MachO::FatHeader), ArchCount);
 
             // Don't Swap CpuKind and CpuSubKind, because we're only comparing
@@ -102,7 +102,7 @@ namespace Objects {
             }
         } else {
             const auto ArchList =
-                Map.get<::MachO::FatArch>(
+                Map.get<::MachO::FatArch, false>(
                     sizeof(struct ::MachO::FatHeader), ArchCount);
 
             // Don't Swap CpuKind and CpuSubKind, because we're only comparing

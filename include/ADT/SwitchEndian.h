@@ -69,7 +69,7 @@ namespace ADT {
         [[nodiscard]]
         constexpr static auto SwitchEndian(const int16_t Value) noexcept {
             const auto Casted = static_cast<uint16_t>(Value);
-            return EndianSwitcherFuncs::SwitchEndian16(Casted);
+            return int16_t(EndianSwitcherFuncs::SwitchEndian16(Casted));
         }
     };
 

@@ -22,15 +22,15 @@ namespace Mach {
         using ADT::FlagsBase<uint32_t>::FlagsBase;
 
         [[nodiscard]] constexpr auto readable() const noexcept -> bool {
-            return (Flags & static_cast<uint32_t>(Masks::Readable));
+            return has(Masks::Readable);
         }
 
         [[nodiscard]] constexpr auto writable() const noexcept -> bool {
-            return (Flags & static_cast<uint32_t>(Masks::Writable));
+            return has(Masks::Writable);
         }
 
         [[nodiscard]] constexpr auto executable() const noexcept -> bool {
-            return (Flags & static_cast<uint32_t>(Masks::Executable));
+            return has(Masks::Executable);
         }
 
         constexpr auto &setReadable(const bool Value = true) noexcept {

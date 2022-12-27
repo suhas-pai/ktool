@@ -35,7 +35,7 @@ namespace ADT {
         [[nodiscard]]
         inline auto base(const uint64_t Count = 1) const noexcept -> T * {
             if constexpr (Verify) {
-                if (size() < (sizeof(T) * Count)) {
+                if (!range().canContain<T>(Count)) {
                     return nullptr;
                 }
             }
@@ -67,8 +67,8 @@ namespace ADT {
         }
 
         template <typename T = void *, bool Verify = true>
-        [[nodiscard]] inline
-        auto getFromIndexRange(const Range &Range) const noexcept -> T * {
+        [[nodiscard]]
+        inline auto getFromRange(const Range &Range) const noexcept -> T * {
             if constexpr (Verify) {
                 if (!range().containsAsIndex(Range)) {
                     return nullptr;
