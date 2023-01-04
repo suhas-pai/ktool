@@ -775,8 +775,8 @@ namespace MachO {
             return reinterpret_cast<Section *>(this + 1);
         }
 
-        [[nodiscard]] constexpr auto
-        hasValidCmdSize(const bool IsBigEndian) noexcept {
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
             if (const auto Result = hasValidCmdSize(cmdsize(IsBigEndian));
                 Result != CmdSizeInvalidKind::None)
             {
@@ -978,8 +978,8 @@ namespace MachO {
             return reinterpret_cast<Section *>(this + 1);
         }
 
-        [[nodiscard]] constexpr auto
-        hasValidCmdSize(const bool IsBigEndian) noexcept {
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
             if (const auto Result = hasValidCmdSize(cmdsize(IsBigEndian));
                 Result != CmdSizeInvalidKind::None)
             {
@@ -1110,8 +1110,8 @@ namespace MachO {
             return CmdSizeInvalidKind::None;
         }
 
-        [[nodiscard]] constexpr auto
-        hasValidCmdSize(const bool IsBigEndian) noexcept {
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
             return hasValidCmdSize(cmdsize(IsBigEndian));
         }
     };
@@ -1291,8 +1291,7 @@ namespace MachO {
         uint32_t Offset;
 
         [[nodiscard]] constexpr auto
-        GetBitset(const LoadCommand *const Cmd,
-                  const bool IsBE) const noexcept
+        GetBitset(const LoadCommand *const Cmd, const bool IsBE) const noexcept
             -> std::optional<std::bitset<64>>
         {
             const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBE);
@@ -1540,13 +1539,13 @@ namespace MachO {
         uint32_t StrSize;
 
         [[nodiscard]] constexpr
-        static uint16_t EntryDescGetDylibOrdinal(const uint16_t Desc) noexcept {
+        static auto EntryDescGetDylibOrdinal(const int16_t Desc) noexcept {
             return ((Desc >> 8) & 0xff);
         }
 
-        constexpr static uint16_t
-        EntryDescSetDylibOrdinal(uint16_t &Desc,
-                                 const uint16_t Ordinal) noexcept
+        constexpr static auto
+        EntryDescSetDylibOrdinal(int16_t &Desc, const int16_t Ordinal) noexcept
+            -> decltype(auto)
         {
             Desc |= ((Ordinal << 8) & 0xff00);
             return Desc;
