@@ -5,6 +5,7 @@
 //  Created by suhaspai on 10/2/22.
 //
 
+#include <cstdio>
 #include <memory>
 
 #include "ADT/FileMap.h"
@@ -474,6 +475,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
     }
 
     const auto Result = Operation.Op->runAndHandleFile(FileOptions);
+    assert(Result.isUnsupportedError() &&
+           "Internal Error: Operation is unsupported for object, but "
+           "marked as supported in supportsObjectKind()");
+
     switch (Operation.Kind) {
         case Operations::Kind::PrintHeader: {
             switch (Operations::PrintHeader::RunError(Result.Error)) {
