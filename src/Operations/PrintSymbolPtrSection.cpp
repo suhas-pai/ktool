@@ -614,8 +614,9 @@ namespace Operations {
 
                 const auto SymbolKind = SymbolInfo.Kind;
                 const auto SymbolKindDescription =
-                    SymTabCommand::Entry::KindGetDesc(SymbolKind).data() ?:
-                    "<unknown>";
+                    SymTabCommand::Entry::KindIsValid(SymbolKind) ?
+                        SymTabCommand::Entry::KindGetDesc(SymbolKind).data() :
+                        "<unknown>";
 
                 const auto KindRightPad =
                     static_cast<int>(LongestKindLength +
