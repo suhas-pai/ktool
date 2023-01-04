@@ -21,7 +21,7 @@ namespace Dyld3 {
             Major = 0xffff0000
         };
 
-        enum class Shifts : uint32_t {
+        enum class Shifts : uint8_t {
             Revision,
             Minor = 8,
             Major = 16
@@ -32,7 +32,7 @@ namespace Dyld3 {
         [[nodiscard]] constexpr auto
         getForMaskShift(const Masks Mask, const Shifts Shift) const noexcept {
             const auto Value = (Flags & static_cast<uint32_t>(Mask));
-            return (Value >> static_cast<uint32_t>(Shift));
+            return (Value >> static_cast<uint8_t>(Shift));
         }
 
         [[nodiscard]] constexpr auto
@@ -41,7 +41,7 @@ namespace Dyld3 {
                          const uint32_t Value) noexcept
         {
             const auto MaskedValue = Value & static_cast<uint32_t>(Mask);
-            Flags |= MaskedValue << static_cast<uint32_t>(Shift);
+            Flags |= MaskedValue << static_cast<uint8_t>(Shift);
 
             return *this;
         }
@@ -84,7 +84,7 @@ namespace Dyld3 {
             Major = 0xffffff0000000000
         };
 
-        enum class Shifts : uint64_t {
+        enum class Shifts : uint8_t {
             Revision3,
             Revision2 = 10,
             Revision1 = 20,
@@ -95,7 +95,7 @@ namespace Dyld3 {
         [[nodiscard]] constexpr auto
         getForMaskShift(const Masks Mask, const Shifts Shift) const noexcept {
             const auto Value = (Flags & static_cast<uint64_t>(Mask));
-            return (Value >> static_cast<uint64_t>(Shift));
+            return (Value >> static_cast<uint8_t>(Shift));
         }
 
         [[nodiscard]] constexpr auto
@@ -103,8 +103,8 @@ namespace Dyld3 {
                          const Shifts Shift,
                          const uint32_t Value) noexcept
         {
-            const auto MaskedValue = Value & static_cast<uint32_t>(Mask);
-            Flags |= MaskedValue << static_cast<uint32_t>(Shift);
+            const auto MaskedValue = Value & static_cast<uint64_t>(Mask);
+            Flags |= MaskedValue << static_cast<uint8_t>(Shift);
 
             return *this;
         }
