@@ -7,6 +7,7 @@
 
 #include <algorithm>
 
+#include "MachO/LoadCommands.h"
 #include "MachO/LoadCommandsMap.h"
 #include "Operations/PrintLibraries.h"
 
@@ -51,8 +52,7 @@ namespace Operations {
     CompareEntriesBySortKind(
         const DylibInfo &Lhs,
         const DylibInfo &Rhs,
-        const PrintLibraries::Options::SortKind SortKind) noexcept
-        -> int
+        const PrintLibraries::Options::SortKind SortKind) noexcept -> int
     {
         switch (SortKind) {
             case PrintLibraries::Options::SortKind::ByCurrentVersion:
@@ -159,20 +159,27 @@ namespace Operations {
                 "Provided file has %" PRIuPTR " Shared Libraries:\n",
                 DylibListSize);
 
+        const auto NcmdsDigitCount =
+            Utils::GetIntegerDigitCount(MachO.header().ncmds());
+        const auto LongestLCDylibKindLength =
+            MachO::LoadCommandKindGetString(
+                MachO::LoadCommandKind::LoadUpwardDylib).length();
+
         auto Counter = static_cast<uint32_t>(1);
         for (const auto &DylibInfo : DylibList) {
             const auto TimestampString =
                 Utils::GetHumanReadableTimestamp(DylibInfo.Timestamp);
 
             fprintf(OutFile,
-                    "Library %" PRIu32 ": (LC %" PRIu32 ")\n"
-                    "\tKind:            %s\n"
-                    "\tPath:            \"%s\"\t\n"
+                    "%" PRIu32 ". LC %" ZEROPAD_FMT PRIu32 ": "
+                        "%" RIGHTPAD_FMT "s \"%s\"\n"
                     "\tCurrent Version: " DYLD3_PACKED_VERSION_FMT "\n"
                     "\tCompat Version:  " DYLD3_PACKED_VERSION_FMT "\n"
                     "\tTimestamp:       %s (Value: %" PRIu32 ")\n",
                     Counter,
+                    ZEROPAD_FMT_ARGS(NcmdsDigitCount),
                     DylibInfo.Index,
+                    (int)LongestLCDylibKindLength,
                     MachO::LoadCommandKindGetString(DylibInfo.Kind).data(),
                     DylibInfo.Name.data(),
                     DYLD3_PACKED_VERSION_FMT_ARGS(DylibInfo.CurrentVersion),

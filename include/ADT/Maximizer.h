@@ -16,7 +16,7 @@ namespace ADT {
         constexpr Maximizer() noexcept = default;
         constexpr Maximizer(T Value) noexcept : Value(Value) {}
 
-        constexpr auto operator=(const T Value) noexcept -> decltype(*this) {
+        constexpr auto set(const T Value) noexcept -> decltype(*this) {
             if (this->Value < Value) {
                 this->Value = Value;
             }

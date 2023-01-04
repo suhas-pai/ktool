@@ -121,7 +121,7 @@ namespace Operations {
                 .Address = SectVmAddr + Pos
             };
 
-            LongestLength = Info.String.length();
+            LongestLength.set(Info.String.length());
             Result.emplace_back(std::move(Info));
 
             StringCount++;

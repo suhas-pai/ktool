@@ -33,8 +33,9 @@ namespace Operations {
                        "Got Object-Kind None in "
                        "PrintLoadCommands::supportsObjectKind");
             case Objects::Kind::MachO:
-            case Objects::Kind::FatMachO:
                 return true;
+            case Objects::Kind::FatMachO:
+                return false;
         }
 
         assert(false &&
@@ -89,7 +90,7 @@ namespace Operations {
                     using FlagsStruct = MachO::SegmentCommand64::FlagsStruct;
 
                     auto Counter = uint32_t();
-                    for (const auto Bit : ADT::FlagsIterator(Flags.value())) {
+                    for (const auto Bit : ADT::FlagsIterator(Flags)) {
                         const auto Flag =
                             static_cast<FlagsStruct::Kind>(1ull << Bit);
 
@@ -225,7 +226,7 @@ namespace Operations {
                     using FlagsStruct = MachO::SegmentCommand64::FlagsStruct;
 
                     auto Counter = uint32_t();
-                    for (const auto Bit : ADT::FlagsIterator(Flags.value())) {
+                    for (const auto Bit : ADT::FlagsIterator(Flags)) {
                         const auto Flag =
                             static_cast<FlagsStruct::Kind>(1ull << Bit);
 
@@ -1056,7 +1057,7 @@ namespace Operations {
                         MachO::cast<MachO::DylibCommand>(LC, IsBigEndian);
 
                     if (const auto NameOpt = DylibCmd.name(IsBigEndian)) {
-                        MaxDylibPathLength = NameOpt->length();
+                        MaxDylibPathLength.set(NameOpt->length());
                     }
 
                     break;
@@ -1114,17 +1115,23 @@ namespace Operations {
                 }
         }
 
+        const auto NcmdsDigitCount =
+            Utils::GetIntegerDigitCount(MachO.header().ncmds());
+
         for (const auto &LoadCommand : MachO.loadCommandsMap()) {
             const auto Kind = LoadCommand.kind(IsBigEndian);
             if (MachO::LoadCommandKindIsValid(Kind)) {
                 fprintf(OutFile,
-                        "LC %" PRIu32 ": %-*s",
+                        "LC %" ZEROPAD_FMT PRIu32 ": %-*s",
+                        ZEROPAD_FMT_ARGS(NcmdsDigitCount),
                         Counter,
                         (int)LongestLCKindLength,
                         MachO::LoadCommandKindGetString(Kind).data());
             } else {
                 fprintf(OutFile,
-                        "LC %" PRIu32 ": <unknown> (Value: %" PRIu32 ")\n",
+                        "LC %" ZEROPAD_FMT PRIu32 ": <unknown> (Value: "
+                        "%" PRIu32 ")\n",
+                        ZEROPAD_FMT_ARGS(NcmdsDigitCount),
                         Counter,
                         static_cast<uint32_t>(Kind));
             }

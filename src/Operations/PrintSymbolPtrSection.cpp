@@ -235,10 +235,10 @@ namespace Operations {
                 .DebugSymbol = Entry.debugSymbol()
             };
 
-            IndexMaximizer = Info.Index;
-            SymbolLengthMaximizer = Info.String.length();
-            KindLengthMaximizer =
-                MachO::SymTabCommand::Entry::KindGetDesc(Info.Kind).length();
+            IndexMaximizer.set(Info.Index);
+            SymbolLengthMaximizer.set(Info.String.length());
+            KindLengthMaximizer.set(
+                MachO::SymTabCommand::Entry::KindGetDesc(Info.Kind).length());
 
             SymbolInfoList.emplace_back(std::move(Info));
             SymbolsAdded++;
@@ -261,7 +261,7 @@ namespace Operations {
     {
         switch (SortKind) {
             using SortKind = PrintSymbolPtrSection::Options::SortKind;
-            case PrintSymbolPtrSection::Options::SortKind::ByDylibOrdinal:
+            case SortKind::ByDylibOrdinal:
                 if (Lhs.DylibOrdinal == Rhs.DylibOrdinal) {
                     return 0;
                 }
