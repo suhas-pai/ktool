@@ -22,19 +22,15 @@ namespace MachO {
     }
 
     auto
-    LoadCommandsIterator::operator++(int) noexcept -> LoadCommandsIterator &{
-        Ptr =
-            reinterpret_cast<MachO::LoadCommand *>(
-               reinterpret_cast<uint8_t *>(Ptr) + Ptr->cmdsize(IsBigEndian));
-
-        return *this;
+    LoadCommandsIterator::operator++(int) noexcept -> decltype(*this) {
+        return operator++();
     }
 
     auto
     LoadCommandsIterator::operator+=(const int Amt) noexcept -> decltype(*this)
     {
         for (auto I = int(); I != Amt; I++) {
-            (*this)++;
+            operator++();
         }
 
         return *this;
