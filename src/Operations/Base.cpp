@@ -141,6 +141,8 @@ namespace Operations {
                                             ArchIndex);
                                     exit(1);
                             }
+
+                            break;
                         case Objects::Kind::FatMachO:
                             assert(false &&
                                    "Arch-Object is somehow a Fat-MachO");
