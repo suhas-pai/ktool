@@ -475,7 +475,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
     }
 
     const auto Result = Operation.Op->runAndHandleFile(FileOptions);
-    assert(Result.isUnsupportedError() &&
+    assert(!Result.isUnsupportedError() &&
            "Internal Error: Operation is unsupported for object, but "
            "marked as supported in supportsObjectKind()");
 
