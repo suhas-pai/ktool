@@ -60,7 +60,7 @@ namespace Utils {
 #define STRING_VIEW_FMT "%.*s"
 #define STRING_VIEW_FMT_ARGS(SV) static_cast<int>((SV).length()), (SV).data()
 
-#define ZEROPAD_FMT "0.*"
+#define ZEROPAD_FMT "0*"
 #define ZEROPAD_FMT_ARGS(val) val
 #define RIGHTPAD_FMT "-*"
 #define RIGHTPAD_FMT_ARGS(val) val
