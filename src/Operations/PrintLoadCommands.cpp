@@ -114,13 +114,11 @@ namespace Operations {
                     break;
                 }
 
-                const auto SectionList = Segment.sections();
                 const auto SectionCountDigitCount =
                     Utils::GetIntegerDigitCount(SectionCount);
 
-                for (auto I = uint32_t(); I != SectionCount; I++) {
-                    const auto &Section = SectionList[I];
-
+                auto I = 0;
+                for (const auto &Section : Segment.sectionList(IsBigEndian)) {
                     const auto Addr = Section.addr(IsBigEndian);
                     const auto Size = Section.size(IsBigEndian);
                     const auto FileOffset = Section.fileOffset(IsBigEndian);
@@ -188,6 +186,8 @@ namespace Operations {
                                 Prefix, Section.reserved1(IsBigEndian),
                                 Prefix, Section.reserved2(IsBigEndian));
                     }
+
+                    I++;
                 }
 
                 break;
@@ -250,13 +250,11 @@ namespace Operations {
                     break;
                 }
 
-                const auto SectionList = Segment.sections();
                 const auto SectionCountDigitCount =
                     Utils::GetIntegerDigitCount(SectionCount);
 
-                for (auto I = uint32_t(); I != SectionCount; I++) {
-                    const auto &Section = SectionList[I];
-
+                auto I = 0;
+                for (const auto &Section : Segment.sectionList(IsBigEndian)) {
                     const auto Addr = Section.addr(IsBigEndian);
                     const auto Size = Section.size(IsBigEndian);
                     const auto FileOffset = Section.fileOffset(IsBigEndian);

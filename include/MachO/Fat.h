@@ -32,7 +32,7 @@ namespace MachO {
     };
 
     struct FatArch {
-        Mach::CpuKind CpuKind;
+        int32_t CpuKind;
         int32_t CpuSubKind;
         uint32_t Offset;
         uint32_t Size;

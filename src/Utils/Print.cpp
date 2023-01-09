@@ -92,7 +92,10 @@ namespace Utils {
     auto
     PadSpaces(FILE *const OutFile, const int SpaceAmount) noexcept -> int {
         assert(SpaceAmount >= 0);
-        return fprintf(OutFile, "%" RIGHTPAD_FMT "s", SpaceAmount, "");
+        return fprintf(OutFile,
+                       "%" RIGHTPAD_FMT "s",
+                       RIGHTPAD_FMT_ARGS(SpaceAmount),
+                       "");
     }
 
     auto

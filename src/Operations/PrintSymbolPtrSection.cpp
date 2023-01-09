@@ -61,13 +61,10 @@ namespace Operations {
                     std::vector<std::string_view> &SectionNameList,
                     const typename T::Section *&SectionOut) noexcept -> int
     {
-        const auto SectionList = Segment.sections();
         const auto SectionCount = Segment.sectionCount(IsBigEndian);
-
         SectionNameList.reserve(SectionCount);
 
-        for (auto I = uint32_t(); I != SectionCount; I++) {
-            const auto &Section = SectionList[I];
+        for (const auto &Section : Segment.sectionList(IsBigEndian)) {
             if (Section.sectionName() != SectionName) {
                 continue;
             }

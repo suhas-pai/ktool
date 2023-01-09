@@ -24,12 +24,12 @@ namespace ADT {
         constexpr FlagsIterator(const FlagsBase<T> Value) noexcept
         : Value(Value), StartIndex(Value.FirstSet()) {}
 
-        [[nodiscard]] inline auto &begin() {
+        [[nodiscard]] inline auto begin() noexcept -> decltype(*this) {
             return *this;
         }
 
         struct EndValue {};
-        [[nodiscard]] constexpr auto end() {
+        [[nodiscard]] constexpr auto end() noexcept {
             return EndValue();
         }
 

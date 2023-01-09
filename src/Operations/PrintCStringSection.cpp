@@ -139,11 +139,7 @@ namespace Operations {
                     RunResult &Result,
                     const typename T::Section *&SectionOut) noexcept -> int
     {
-        const auto SectionList = Segment.sections();
-        const auto SectionCount = Segment.sectionCount(IsBigEndian);
-
-        for (auto I = uint32_t(); I != SectionCount; I++) {
-            const auto &Section = SectionList[I];
+        for (const auto &Section : Segment.sectionList(IsBigEndian)) {
             if (Section.sectionName() != SectionName) {
                 continue;
             }

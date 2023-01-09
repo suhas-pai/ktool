@@ -52,6 +52,10 @@ namespace MachO {
     public:
         explicit LoadCommandsMap(ADT::MemoryMap Map, bool IsBigEndian) noexcept;
 
+        [[nodiscard]] constexpr auto isBigEndian() const noexcept {
+            return IsBigEndian;
+        }
+
         auto begin() const noexcept -> LoadCommandsIterator;
         auto end() const noexcept -> const LoadCommand *;
     };

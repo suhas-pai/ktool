@@ -8,6 +8,7 @@
 #pragma once
 
 #include <bitset>
+#include <list>
 #include <optional>
 
 #include "ADT/Range.h"
@@ -776,6 +777,14 @@ namespace MachO {
         }
 
         [[nodiscard]]
+        inline auto sectionList(const bool IsBigEndian) const noexcept {
+            const auto Sections = sections();
+            const auto SectionEnd = Sections + sectionCount(IsBigEndian);
+
+            return std::list<const Section>(Sections, SectionEnd);
+        }
+
+        [[nodiscard]]
         constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
             if (const auto Result = hasValidCmdSize(cmdsize(IsBigEndian));
                 Result != CmdSizeInvalidKind::None)
@@ -976,6 +985,14 @@ namespace MachO {
 
         [[nodiscard]] inline auto sections() noexcept {
             return reinterpret_cast<Section *>(this + 1);
+        }
+
+        [[nodiscard]]
+        inline auto sectionList(const bool IsBigEndian) const noexcept {
+            const auto Sections = sections();
+            const auto SectionEnd = Sections + sectionCount(IsBigEndian);
+
+            return std::list<const Section>(Sections, SectionEnd);
         }
 
         [[nodiscard]]

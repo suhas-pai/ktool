@@ -26,23 +26,39 @@ namespace ADT {
         template <typename E>
         constexpr auto addMask(const E Mask) noexcept {
             Flags |= static_cast<T>(Mask);
-            return *this;
         }
 
         template <typename E>
         constexpr auto removeMask(const E Mask) noexcept {
             Flags &= ~static_cast<T>(Mask);
-            return *this;
         }
 
         template <typename E>
         constexpr auto setForValue(const E Mask, const bool Value) noexcept {
-            return Value ? addMask(Mask) : removeMask(Mask);
+            if (Value) {
+                addMask(Mask);
+            } else {
+                removeMask(Mask);
+            }
+        }
+
+        template <typename E, typename S, typename V>
+        constexpr void setValueForMask(const E Mask,
+                                       const S Shift,
+                                       const V Value) noexcept
+        {
+            removeMask(Mask);
+            addMask(static_cast<T>(Value) << static_cast<T>(Shift));
+        }
+
+        template <typename E>
+        constexpr auto valueForMask(const E Mask) const noexcept {
+            return (Flags & static_cast<T>(Mask));
         }
 
         template <typename E>
         [[nodiscard]] constexpr auto has(const E Mask) const noexcept {
-            return (Flags & static_cast<T>(Mask));
+            return valueForMask(Mask) != 0;
         }
     public:
         constexpr FlagsBase() noexcept = default;
@@ -127,38 +143,65 @@ namespace ADT {
 }
 
 #define MAKE_ENUM_MASK_CLASS(ENUM) \
-    [[maybe_unused]] [[nodiscard]] static constexpr auto operator&(const std::underlying_type_t<ENUM> Num, const ENUM Mask) noexcept { \
+    [[maybe_unused]] [[nodiscard]] \
+    static constexpr auto operator&(const std::underlying_type_t<ENUM> Num, \
+                                    const ENUM Mask) noexcept\
+    { \
         return (Num & static_cast<std::underlying_type_t<ENUM>>(Mask)); \
     } \
 \
-    [[maybe_unused]] static constexpr auto operator&=(std::underlying_type_t<ENUM> &Num, const ENUM Mask) noexcept { \
+    [[maybe_unused]] \
+    static constexpr auto operator&=(std::underlying_type_t<ENUM> &Num, \
+                                     const ENUM Mask) noexcept\
+    { \
         Num &= static_cast<std::underlying_type_t<ENUM>>(Mask); \
     } \
 \
-    [[maybe_unused]] [[nodiscard]] static constexpr auto operator|(const std::underlying_type_t<ENUM> Num, const ENUM Mask) noexcept { \
+    [[maybe_unused]] [[nodiscard]] \
+    static constexpr auto operator|(const std::underlying_type_t<ENUM> Num, \
+                                    const ENUM Mask) noexcept\
+    { \
         return (Num | static_cast<std::underlying_type_t<ENUM>>(Mask)); \
     }\
 \
-    [[maybe_unused]] [[nodiscard]] static constexpr auto operator|(const ENUM Num, const ENUM Mask) noexcept { \
-        return (static_cast<std::underlying_type_t<ENUM>>(Num) | static_cast<std::underlying_type_t<ENUM>>(Mask)); \
+    [[maybe_unused]] [[nodiscard]] \
+    static constexpr auto operator|(const ENUM Num, const ENUM Mask) noexcept \
+    { \
+        return (static_cast<std::underlying_type_t<ENUM>>(Num) | \
+                static_cast<std::underlying_type_t<ENUM>>(Mask)); \
     }\
 \
-    [[maybe_unused]] static constexpr auto operator|=(std::underlying_type_t<ENUM> &Num, const ENUM Mask) noexcept { \
+    [[maybe_unused]] \
+    static constexpr auto operator|=(std::underlying_type_t<ENUM> &Num,\
+                                     const ENUM Mask) noexcept\
+    { \
         return (Num |= static_cast<std::underlying_type_t<ENUM>>(Mask)); \
     } \
 \
-    [[maybe_unused]] static constexpr auto operator==(std::underlying_type_t<ENUM> Num, const ENUM Mask) noexcept { \
+    [[maybe_unused]] \
+    static constexpr auto operator==(std::underlying_type_t<ENUM> Num,\
+                                     const ENUM Mask) noexcept\
+    { \
         return (Num == static_cast<std::underlying_type_t<ENUM>>(Mask)); \
     } \
 \
-    [[maybe_unused]] static constexpr auto operator==(const ENUM Mask, std::underlying_type_t<ENUM> Num) noexcept { \
+    [[maybe_unused]] \
+    static constexpr auto operator==(const ENUM Mask,\
+                                     std::underlying_type_t<ENUM> Num) noexcept\
+    { \
         return (Num == static_cast<std::underlying_type_t<ENUM>>(Mask)); \
     } \
 \
-    [[maybe_unused]] static constexpr auto operator!=(std::underlying_type_t<ENUM> Num, const ENUM Mask) noexcept { \
+    [[maybe_unused]] \
+    static constexpr auto operator!=(std::underlying_type_t<ENUM> Num,\
+                                     const ENUM Mask) noexcept\
+    { \
         return (Num == static_cast<std::underlying_type_t<ENUM>>(Mask)); \
     } \
 \
-    [[maybe_unused]] static constexpr auto operator!=(const ENUM Mask, std::underlying_type_t<ENUM> Num) noexcept { \
+    [[maybe_unused]] \
+    static constexpr auto operator!=(const ENUM Mask,\
+                                     std::underlying_type_t<ENUM> Num) noexcept\
+    { \
         return (Num == static_cast<std::underlying_type_t<ENUM>>(Mask)); \
     }

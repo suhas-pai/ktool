@@ -5,6 +5,7 @@
 //  Created by suhaspai on 11/21/22.
 //
 
+#include "MachO/LoadCommands.h"
 #include "MachO/LoadCommandsMap.h"
 #include "Operations/PrintId.h"
 
@@ -40,19 +41,16 @@ namespace Operations {
 
         const auto IsBigEndian = MachO.isBigEndian();
         for (const auto &LC : MachO.loadCommandsMap()) {
-            using namespace MachO;
-            using Kind = LoadCommandKind;
-
-            if (const auto ID = dyn_cast<Kind::IdDylib>(&LC, IsBigEndian)) {
-                const auto NameOpt = ID->name(IsBigEndian);
+            if (const auto ID =
+                    dyn_cast<MachO::LoadCommandKind::IdDylib>(&LC, IsBigEndian))
+            {
                 auto Name = std::string_view("<malformed>");
-
-                if (!NameOpt) {
+                if (const auto NameOpt = ID->name(IsBigEndian)) {
+                    Name = NameOpt.value();
+                } else {
                     if (!Opt.Verbose) {
                         return Result.set(RunError::BadIdString);
                     }
-                } else {
-                    Name = NameOpt.value();
                 }
 
                 fprintf(OutFile, "ID: %s\n", Name.data());
