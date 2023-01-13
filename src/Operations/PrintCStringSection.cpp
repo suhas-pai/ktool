@@ -178,16 +178,16 @@ namespace Operations {
             for (const auto &LC : MachO.loadCommandsMap()) {
                 using namespace MachO;
                 if (const auto Segment =
-                        dyn_cast<LoadCommandKind::Segment64>(&LC, IsBigEndian))
+                        dyn_cast<MachO::SegmentCommand64>(&LC, IsBigEndian))
                 {
                     if (const auto SegName = SegmentName) {
                         if (Segment->segmentName() != SegmentName) {
                             continue;
                         }
-                    }
 
-                    if (Segment->isProtected(IsBigEndian)) {
-                        return Result.set(RunError::ProtectedSegment);
+                        if (Segment->isProtected(IsBigEndian)) {
+                            return Result.set(RunError::ProtectedSegment);
+                        }
                     }
 
                     auto Section =
@@ -209,6 +209,10 @@ namespace Operations {
                         continue;
                     }
 
+                    if (Segment->isProtected(IsBigEndian)) {
+                        return Result.set(RunError::ProtectedSegment);
+                    }
+
                     const auto SectionRange = Section->fileRange(IsBigEndian);
 
                     SectionFileOff = SectionRange.begin();
@@ -224,16 +228,16 @@ namespace Operations {
             for (const auto &LC : MachO.loadCommandsMap()) {
                 using namespace MachO;
                 if (const auto Segment =
-                        dyn_cast<LoadCommandKind::Segment>(&LC, IsBigEndian))
+                        dyn_cast<MachO::SegmentCommand>(&LC, IsBigEndian))
                 {
                     if (const auto SegName = SegmentName) {
                         if (Segment->segmentName() != SegmentName) {
                             continue;
                         }
-                    }
 
-                    if (Segment->isProtected(IsBigEndian)) {
-                        return Result.set(RunError::ProtectedSegment);
+                        if (Segment->isProtected(IsBigEndian)) {
+                            return Result.set(RunError::ProtectedSegment);
+                        }
                     }
 
                     auto Section =
@@ -253,6 +257,10 @@ namespace Operations {
 
                     if (Section == nullptr) {
                         continue;
+                    }
+
+                    if (Segment->isProtected(IsBigEndian)) {
+                        return Result.set(RunError::ProtectedSegment);
                     }
 
                     const auto SectionRange = Section->fileRange(IsBigEndian);

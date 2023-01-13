@@ -141,13 +141,9 @@ namespace Objects {
                                   const int32_t SubKind) const noexcept
         -> Objects::OpenResult
     {
-        const auto ArchCount = archCount();
         const auto IsBigEndian = this->isBigEndian();
-
         if (is64Bit()) {
-            const auto ArchList = archs64();
-            for (auto I = uint32_t(); I != ArchCount; I++) {
-                const auto &Arch = ArchList[I];
+            for (const auto &Arch : arch64List()) {
                 if (Arch.cpuKind(IsBigEndian) == CpuKind &&
                     Arch.cpuSubKind(IsBigEndian) == SubKind)
                 {
@@ -158,9 +154,7 @@ namespace Objects {
                 }
             }
         } else {
-            const auto ArchList = archs();
-            for (auto I = uint32_t(); I != ArchCount; I++) {
-                const auto &Arch = ArchList[I];
+            for (const auto &Arch : archList()) {
                 if (Arch.cpuKind(IsBigEndian) == CpuKind &&
                     Arch.cpuSubKind(IsBigEndian) == SubKind)
                 {

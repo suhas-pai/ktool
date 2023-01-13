@@ -8,9 +8,9 @@
 #pragma once
 
 #include <bitset>
-#include <list>
 #include <optional>
 
+#include "ADT/List.h"
 #include "ADT/Range.h"
 #include "ADT/SwitchEndian.h"
 
@@ -263,29 +263,45 @@ namespace MachO {
                "LoadCommandKind");
     }
 
+    enum class CmdSizeInvalidKind {
+        None,
+        TooSmall,
+        TooLarge
+    };
+
     struct LoadCommand {
-        uint32_t Kind;
+        uint32_t Cmd;
         uint32_t CmdSize;
 
         [[nodiscard]]
         constexpr auto kind(const bool IsBigEndian) const noexcept {
-            return LoadCommandKind(ADT::SwitchEndianIf(Kind, IsBigEndian));
+            return LoadCommandKind(ADT::SwitchEndianIf(Cmd, IsBigEndian));
         }
 
         [[nodiscard]]
         constexpr auto cmdsize(const bool IsBigEndian) const noexcept {
             return ADT::SwitchEndianIf(CmdSize, IsBigEndian);
         }
+
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(LoadCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            } else if (CmdSize > sizeof(LoadCommand)) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
     };
 
     static_assert(sizeof(LoadCommand) == 8,
                   "struct LoadCommand doesn't have CmdSize 8");
-
-    enum class CmdSizeInvalidKind {
-        None,
-        TooSmall,
-        TooLarge
-    };
 
     [[nodiscard]] auto
     ValidateCmdsize(const LoadCommand *LC, bool IsBigEndian) noexcept
@@ -438,30 +454,40 @@ namespace MachO {
                 return has(Kind::ReadOnly);
             }
 
-            constexpr auto setIsHighVm(const bool Value = true) noexcept {
+            constexpr auto setIsHighVm(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
                 setForValue(Kind::HighVm, Value);
                 return *this;
             }
 
             constexpr
-            auto setIsFixedVmLibrary(const bool Value = true) noexcept {
+            auto setIsFixedVmLibrary(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
                 setForValue(Kind::FixedVmLibrary, Value);
                 return *this;
             }
 
             constexpr
-            auto setHasNoRelocations(const bool Value = true) noexcept {
+            auto setHasNoRelocations(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
                 setForValue(Kind::NoRelocations, Value);
                 return *this;
             }
 
             constexpr
-            auto setIsProtectedVersion1(const bool Value = true) noexcept {
+            auto setIsProtectedVersion1(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
                 setForValue(Kind::ProtectedVersion1, Value);
                 return *this;
             }
 
-            constexpr auto setIsReadOnly(const bool Value = true) noexcept {
+            constexpr auto setIsReadOnly(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
                 setForValue(Kind::ReadOnly, Value);
                 return *this;
             }
@@ -778,10 +804,11 @@ namespace MachO {
 
         [[nodiscard]]
         inline auto sectionList(const bool IsBigEndian) const noexcept {
-            const auto Sections = sections();
-            const auto SectionEnd = Sections + sectionCount(IsBigEndian);
+            return ADT::List(sections(), sectionCount(IsBigEndian));
+        }
 
-            return std::list<const Section>(Sections, SectionEnd);
+        [[nodiscard]] inline auto sectionList(const bool IsBigEndian) noexcept {
+            return ADT::List(sections(), sectionCount(IsBigEndian));
         }
 
         [[nodiscard]]
@@ -989,10 +1016,11 @@ namespace MachO {
 
         [[nodiscard]]
         inline auto sectionList(const bool IsBigEndian) const noexcept {
-            const auto Sections = sections();
-            const auto SectionEnd = Sections + sectionCount(IsBigEndian);
+            return ADT::List(sections(), sectionCount(IsBigEndian));
+        }
 
-            return std::list<const Section>(Sections, SectionEnd);
+        [[nodiscard]] inline auto sectionList(const bool IsBigEndian) noexcept {
+            return ADT::List(sections(), sectionCount(IsBigEndian));
         }
 
         [[nodiscard]]
@@ -1107,6 +1135,20 @@ namespace MachO {
         [[nodiscard]]
         constexpr auto name(const bool IsBigEndian) const noexcept {
             return Library.Name.string(this, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(FvmLibraryCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
         }
     };
 
@@ -1245,6 +1287,20 @@ namespace MachO {
         [[nodiscard]]
         constexpr auto client(const bool IsBigEndian) const noexcept {
             return Client.string(this, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
+            if (CmdSize < sizeof(SubClientCommand)) {
+                return CmdSizeInvalidKind::TooSmall;
+            }
+
+            return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]]
+        constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
+            return hasValidCmdSize(cmdsize(IsBigEndian));
         }
     };
 
@@ -2410,6 +2466,50 @@ namespace MachO {
         Ld
     };
 
+    [[nodiscard]]
+    constexpr auto BuildToolIsValid(const BuildTool Tool) noexcept {
+        switch (Tool) {
+            case BuildTool::Clang:
+            case BuildTool::Swift:
+            case BuildTool::Ld:
+                return true;
+        }
+
+        return false;
+    }
+
+    [[nodiscard]]
+    constexpr auto BuildToolGetString(const BuildTool Tool) noexcept
+        -> std::string_view
+    {
+        switch (Tool) {
+            case BuildTool::Clang:
+                return "TOOL_CLANG";
+            case BuildTool::Swift:
+                return "TOOL_SWIFT";
+            case BuildTool::Ld:
+                return "TOOL_LD";
+        }
+
+        assert(false && "BuildToolGetString() got unrecognized BuildTool");
+    }
+
+    [[nodiscard]]
+    constexpr auto BuildToolGetDesc(const BuildTool Tool) noexcept
+        -> std::string_view
+    {
+        switch (Tool) {
+            case BuildTool::Clang:
+                return "Clang";
+            case BuildTool::Swift:
+                return "Swift";
+            case BuildTool::Ld:
+                return "Ld";
+        }
+
+        assert(false && "BuildToolGetDesc() got unrecognized BuildTool");
+    }
+
     struct BuildToolVersion {
         uint32_t Tool;
         uint32_t Version;
@@ -2465,6 +2565,23 @@ namespace MachO {
             }
 
             return CmdSizeInvalidKind::None;
+        }
+
+        [[nodiscard]] inline auto tools() const noexcept {
+            return reinterpret_cast<const BuildToolVersion *>(this + 1);
+        }
+
+        [[nodiscard]] inline auto tools() noexcept {
+            return reinterpret_cast<BuildToolVersion *>(this + 1);
+        }
+
+        [[nodiscard]]
+        inline auto toolList(const bool IsBigEndian) const noexcept {
+            return ADT::List(tools(), toolsCount(IsBigEndian));
+        }
+
+        [[nodiscard]] inline auto toolList(const bool IsBigEndian) noexcept {
+            return ADT::List(tools(), toolsCount(IsBigEndian));
         }
 
         [[nodiscard]]
@@ -2815,6 +2932,28 @@ namespace MachO {
                "DataInCodeEntryKind");
     }
 
+    [[nodiscard]] constexpr auto
+    DataInCodeEntryKindGetDesc(const DataInCodeEntryKind Kind) noexcept
+        -> std::string_view
+    {
+        switch (Kind) {
+            case DataInCodeEntryKind::Data:
+                return "Data";
+            case DataInCodeEntryKind::JumpTables8:
+                return "Jump-Tables 8";
+            case DataInCodeEntryKind::JumpTables16:
+                return "Jump-Tables 16";
+            case DataInCodeEntryKind::JumpTables32:
+                return "Jump-Tables 32";
+            case DataInCodeEntryKind::AbsJumpTable32:
+                return "Absolute Jump-Tables 32";
+        }
+
+        assert(false &&
+               "MachO::DataInCodeEntryKindGetDesc() called with unknown "
+               "DataInCodeEntryKind");
+    }
+
     struct DataInCodeEntry {
         uint32_t Offset;
         uint16_t Length;
@@ -2900,6 +3039,11 @@ namespace MachO {
     template <>
     struct LoadCommandTypeFromKind<LoadCommandKind::SymbolSegment> {
         using type = SymbolSegmentCommand;
+    };
+
+    template <>
+    struct LoadCommandTypeFromKind<LoadCommandKind::Thread> {
+        using type = ThreadCommand;
     };
 
     template <>
@@ -3152,18 +3296,22 @@ namespace MachO {
         using type = FileSetEntryCommand;
     };
 
+    template <MachO::LoadCommandKind Kind>
+    using LoadCommandTypeFromKindType =
+        typename LoadCommandTypeFromKind<Kind>::type;
+
     template <typename T>
     concept LoadCommandDerived = std::is_base_of_v<LoadCommand, T>;
 
     template <LoadCommandDerived T>
-    [[nodiscard]]
-    constexpr auto isa(const LoadCommand *const LC, bool IsBigEndian) noexcept {
+    [[nodiscard]] constexpr
+    auto isa(const LoadCommand *const LC, const bool IsBigEndian) noexcept {
         return T::IsOfKind(LC->kind(IsBigEndian));
     }
 
     template <LoadCommandKind Kind>
-    [[nodiscard]]
-    constexpr auto isa(const LoadCommand *const LC, bool IsBigEndian) noexcept {
+    [[nodiscard]] constexpr
+    auto isa(const LoadCommand *const LC, const bool IsBigEndian) noexcept {
         return LC->kind(IsBigEndian) == Kind;
     }
 
@@ -3171,7 +3319,7 @@ namespace MachO {
               LoadCommandDerived Second,
               LoadCommandDerived... Rest>
     [[nodiscard]]
-    constexpr auto isa(const LoadCommand *const LC, bool IsBE) noexcept {
+    constexpr auto isa(const LoadCommand *const LC, const bool IsBE) noexcept {
         return isa<First>(LC, IsBE) || isa<Second, Rest...>(LC, IsBE);
     }
 
@@ -3179,13 +3327,15 @@ namespace MachO {
               LoadCommandKind Second,
               LoadCommandKind... Rest>
     [[nodiscard]]
-    constexpr auto isa(const LoadCommand *const LC, bool IsBE) noexcept {
+    constexpr auto isa(const LoadCommand *const LC, const bool IsBE) noexcept {
         return isa<First>(LC, IsBE) || isa<Second, Rest...>(LC, IsBE);
     }
 
     template <LoadCommandDerived T>
-    [[nodiscard]]
-    constexpr auto &cast(LoadCommand *const LC, bool IsBigEndian) noexcept {
+    [[nodiscard]] constexpr
+    auto cast(LoadCommand *const LC, const bool IsBigEndian) noexcept
+        -> decltype(auto)
+    {
         assert(isa<T>(LC, IsBigEndian));
         return static_cast<T *>(LC);
     }
@@ -3198,43 +3348,53 @@ namespace MachO {
     }
 
     template <LoadCommandKind Kind>
-    [[nodiscard]]
-    constexpr auto &cast(LoadCommand *const LC, bool IsBigEndian) noexcept {
+    [[nodiscard]] constexpr
+    auto cast(LoadCommand *const LC, const bool IsBigEndian) noexcept
+        -> decltype(auto)
+    {
         assert(isa<Kind>(LC, IsBigEndian));
 
-        using T = typename LoadCommandTypeFromKind<Kind>::type;
+        using T = LoadCommandTypeFromKindType<Kind>;
         return static_cast<T *>(LC);
     }
 
     template <LoadCommandKind Kind>
     [[nodiscard]] constexpr
-    auto &cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept {
+    auto cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept
+        -> decltype(auto)
+    {
         assert(isa<Kind>(LC, IsBigEndian));
 
-        using T = typename LoadCommandTypeFromKind<Kind>::type;
+        using T = LoadCommandTypeFromKindType<Kind>;
         return static_cast<const T *>(LC);
     }
 
     template <LoadCommandDerived T>
     [[nodiscard]]
-    constexpr auto &cast(LoadCommand &LC, bool IsBigEndian) noexcept {
+    constexpr auto cast(LoadCommand &LC, const bool IsBigEndian) noexcept
+        -> decltype(auto)
+    {
         assert(isa<T>(&LC, IsBigEndian));
         return static_cast<T &>(LC);
     }
 
     template <LoadCommandDerived T>
     [[nodiscard]] constexpr
-    auto &cast(const LoadCommand &LC, const bool IsBigEndian) noexcept {
+    auto cast(const LoadCommand &LC, const bool IsBigEndian) noexcept
+        -> decltype(auto)
+    {
         assert(isa<T>(&LC, IsBigEndian));
         return static_cast<const T &>(LC);
     }
 
     template <LoadCommandKind Kind>
     [[nodiscard]]
-    constexpr auto &cast(LoadCommand &LC, bool IsBigEndian) noexcept {
+    constexpr auto cast(LoadCommand &LC, const bool IsBigEndian) noexcept
+        -> decltype(auto)
+    {
         assert(isa<Kind>(&LC, IsBigEndian));
 
-        using T = typename LoadCommandTypeFromKind<Kind>::type;
+        using T = LoadCommandTypeFromKindType<Kind>;
         return static_cast<T &>(LC);
     }
 
@@ -3243,7 +3403,7 @@ namespace MachO {
     auto &cast(const LoadCommand &LC, const bool IsBigEndian) noexcept {
         assert(isa<Kind>(&LC, IsBigEndian));
 
-        using T = typename LoadCommandTypeFromKind<Kind>::type;
+        using T = LoadCommandTypeFromKindType<Kind>;
         return static_cast<const T &>(LC);
     }
 
@@ -3272,9 +3432,9 @@ namespace MachO {
     }
 
     template <LoadCommandKind Kind>
-    [[nodiscard]]
-    constexpr auto dyn_cast(LoadCommand *const LC, bool IsBigEndian) noexcept {
-        using T = typename LoadCommandTypeFromKind<Kind>::type;
+    [[nodiscard]] constexpr
+    auto dyn_cast(LoadCommand *const LC, const bool IsBigEndian) noexcept {
+        using T = LoadCommandTypeFromKindType<Kind>;
         if (isa<Kind>(LC, IsBigEndian)) {
             return static_cast<T *>(LC);
         }
@@ -3285,7 +3445,7 @@ namespace MachO {
     template <LoadCommandKind Kind>
     [[nodiscard]] constexpr auto
     dyn_cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept {
-        using T = typename LoadCommandTypeFromKind<Kind>::type;
+        using T = LoadCommandTypeFromKindType<Kind>;
         if (isa<Kind>(LC, IsBigEndian)) {
             return static_cast<const T *>(LC);
         }
@@ -3299,15 +3459,13 @@ namespace MachO {
 
     [[nodiscard]] constexpr
     auto dyn_cast(LoadCommand *const LC, const bool IsBigEndian) noexcept {
-        using T = typename LoadCommandTypeFromKind<First>::type;
-        using U = typename LoadCommandTypeFromKind<Second>::type;
+        using T = LoadCommandTypeFromKindType<First>;
+        using U = LoadCommandTypeFromKindType<Second>;
 
         static_assert(
             std::is_same_v<T, U> &&
             std::conjunction<
-                std::is_same<
-                    T,
-                    typename LoadCommandTypeFromKind<Rest>::type>...>::value,
+                std::is_same<T, LoadCommandTypeFromKindType<Rest>>...>::value,
             "Types of the several LoadCommandKinds don't match!");
 
         if (isa<First, Second, Rest...>(LC, IsBigEndian)) {
@@ -3323,15 +3481,13 @@ namespace MachO {
 
     [[nodiscard]] constexpr auto
     dyn_cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept {
-        using T = typename LoadCommandTypeFromKind<First>::type;
-        using U = typename LoadCommandTypeFromKind<Second>::type;
+        using T = LoadCommandTypeFromKindType<First>;
+        using U = LoadCommandTypeFromKindType<Second>;
 
         static_assert(
             std::is_same_v<T, U> &&
             std::conjunction<
-                std::is_same<
-                    T,
-                    typename LoadCommandTypeFromKind<Rest>::type>...>::value,
+                std::is_same<T, LoadCommandTypeFromKindType<Rest>>...>::value,
             "Types of the several LoadCommandKinds don't match!");
 
         if (isa<First, Second, Rest...>(LC, IsBigEndian)) {

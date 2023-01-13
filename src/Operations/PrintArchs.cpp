@@ -32,15 +32,11 @@ namespace Operations {
     auto
     PrintArchs::run(const Objects::FatMachO &Fat) const noexcept -> RunResult {
         auto Result = RunResult(Objects::Kind::FatMachO);
-
-        const auto ArchCount = Fat.archCount();
         const auto IsBigEndian = Fat.isBigEndian();
 
         if (Fat.is64Bit()) {
-            const auto ArchList = Fat.archs64();
-            for (auto I = uint32_t(); I != ArchCount; I++) {
-                const auto &Arch = ArchList[I];
-
+            auto I = 0;
+            for (const auto &Arch : Fat.arch64List()) {
                 const auto CpuKind = Arch.cpuKind(IsBigEndian);
                 const auto SubKind = Arch.cpuSubKind(IsBigEndian);
                 const auto Offset = Arch.offset(IsBigEndian);
@@ -54,24 +50,29 @@ namespace Operations {
                             Opt.Verbose ?
                                 Mach::CpuKindGetDesc(CpuKind).data() :
                                 Mach::CpuKindGetString(CpuKind).data());
+
+                    if (Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind)) {
+                        const auto CpuSubKindString =
+                            Opt.Verbose ?
+                                Mach::CpuKindAndSubKindGetDesc(CpuKind,
+                                                               SubKind) :
+                                Mach::CpuKindAndSubKindGetString(CpuKind,
+                                                                 SubKind);
+
+                        fprintf(OutFile,
+                                "\tCpusubtype: %s\n",
+                                CpuSubKindString.data());
+                    } else {
+                        fprintf(OutFile,
+                                "\tCpusubtype: <unknown> (Value: %" PRId32
+                                ")\n",
+                                SubKind);
+                    }
                 } else {
                     fprintf(OutFile,
-                            "\tCputype:    <unknown> (Value: %" PRId32 ")\n",
-                            static_cast<int32_t>(CpuKind));
-                }
-
-                if (Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind)) {
-                    const auto CpuSubKindString =
-                        Opt.Verbose ?
-                            Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind) :
-                            Mach::CpuKindAndSubKindGetString(CpuKind, SubKind);
-
-                    fprintf(OutFile,
-                            "\tCpusubtype: %s\n",
-                            CpuSubKindString.data());
-                } else {
-                    fprintf(OutFile,
+                            "\tCputype:    <unknown> (Value: %" PRId32 ")\n"
                             "\tCpusubtype: <unknown> (Value: %" PRId32 ")\n",
+                            static_cast<int32_t>(CpuKind),
                             SubKind);
                 }
 
@@ -85,12 +86,12 @@ namespace Operations {
                         Size,
                         Utils::FormattedSize(Size).data(),
                         Align);
+
+                I++;
             }
         } else {
-            const auto ArchList = Fat.archs();
-            for (auto I = uint32_t(); I != ArchCount; I++) {
-                const auto &Arch = ArchList[I];
-
+            auto I = 0;
+            for (const auto &Arch : Fat.archList()) {
                 const auto CpuKind = Arch.cpuKind(IsBigEndian);
                 const auto SubKind = Arch.cpuSubKind(IsBigEndian);
                 const auto Offset = Arch.offset(IsBigEndian);
@@ -104,24 +105,29 @@ namespace Operations {
                             Opt.Verbose ?
                                 Mach::CpuKindGetDesc(CpuKind).data() :
                                 Mach::CpuKindGetString(CpuKind).data());
+
+                    if (Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind)) {
+                        const auto CpuSubKindString =
+                            Opt.Verbose ?
+                                Mach::CpuKindAndSubKindGetDesc(CpuKind,
+                                                               SubKind) :
+                                Mach::CpuKindAndSubKindGetString(CpuKind,
+                                                               SubKind);
+
+                        fprintf(OutFile,
+                                "\tCpusubtype: %s\n",
+                                CpuSubKindString.data());
+                    } else {
+                        fprintf(OutFile,
+                                "\tCpusubtype: <unknown> (Value: %" PRId32
+                                ")\n",
+                                SubKind);
+                    }
                 } else {
                     fprintf(OutFile,
-                            "\tCputype:    <unknown> (Value: %" PRId32 ")\n",
-                            static_cast<int32_t>(CpuKind));
-                }
-
-                if (Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind)) {
-                    const auto CpuSubKindString =
-                        Opt.Verbose ?
-                            Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind) :
-                            Mach::CpuKindAndSubKindGetString(CpuKind, SubKind);
-
-                    fprintf(OutFile,
-                            "\tCpusubtype: %s\n",
-                            CpuSubKindString.data());
-                } else {
-                    fprintf(OutFile,
+                            "\tCputype:    <unknown> (Value: %" PRId32 ")\n"
                             "\tCpusubtype: <unknown> (Value: %" PRId32 ")\n",
+                            static_cast<int32_t>(CpuKind),
                             SubKind);
                 }
 
@@ -135,6 +141,8 @@ namespace Operations {
                         Size,
                         Utils::FormattedSize(Size).data(),
                         Align);
+
+                I++;
             }
         }
 

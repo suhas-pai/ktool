@@ -61,9 +61,7 @@ namespace Operations {
                     std::vector<std::string_view> &SectionNameList,
                     const typename T::Section *&SectionOut) noexcept -> int
     {
-        const auto SectionCount = Segment.sectionCount(IsBigEndian);
-        SectionNameList.reserve(SectionCount);
-
+        SectionNameList.reserve(Segment.sectionCount(IsBigEndian));
         for (const auto &Section : Segment.sectionList(IsBigEndian)) {
             if (Section.sectionName() != SectionName) {
                 continue;
@@ -234,8 +232,12 @@ namespace Operations {
 
             IndexMaximizer.set(Info.Index);
             SymbolLengthMaximizer.set(Info.String.length());
-            KindLengthMaximizer.set(
-                MachO::SymTabCommand::Entry::KindGetDesc(Info.Kind).length());
+            if (MachO::SymTabCommand::Entry::KindIsValid(Info.Kind)) {
+                const auto Desc =
+                    MachO::SymTabCommand::Entry::KindGetDesc(Info.Kind);
+
+                KindLengthMaximizer.set(Desc.length());
+            }
 
             SymbolInfoList.emplace_back(std::move(Info));
             SymbolsAdded++;
@@ -432,7 +434,7 @@ namespace Operations {
                         return Result.set(RunError::MultipleSymTabCommands);
                     }
 
-                    SymTabCmd = cast<const SymTabCommand>(&LC, IsBigEndian);
+                    SymTabCmd = cast<SymTabCommand>(&LC, IsBigEndian);
                     break;
                 }
                 case Kind::DynamicSymbolTable: {
@@ -442,7 +444,7 @@ namespace Operations {
                     }
 
                     DynamicSymTabCmd =
-                        cast<const DynamicSymTabCommand>(&LC, IsBigEndian);
+                        cast<DynamicSymTabCommand>(&LC, IsBigEndian);
                     break;
                 }
                 case Kind::SymbolSegment:

@@ -21,6 +21,10 @@ namespace MachO {
         LoadCommandsIterator(MachO::LoadCommand *Ptr,
                              bool IsBigEndian) noexcept;
 
+        [[nodiscard]] constexpr auto isBigEndian() const noexcept {
+            return IsBigEndian;
+        }
+
         auto operator++() noexcept -> decltype(*this);
         auto operator++(int) noexcept -> LoadCommandsIterator &;
         auto operator+=(int) noexcept -> decltype(*this);

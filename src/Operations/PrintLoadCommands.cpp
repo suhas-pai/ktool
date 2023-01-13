@@ -56,9 +56,9 @@ namespace Operations {
         constexpr auto Malformed = std::string_view("<malformed>");
 
         switch (Kind) {
-            case MachO::LoadCommandKind::Segment: {
-                const auto &Segment =
-                    MachO::cast<MachO::SegmentCommand>(LC, IsBigEndian);
+            using namespace  MachO;
+            case LoadCommandKind::Segment: {
+                const auto &Segment = cast<SegmentCommand>(LC, IsBigEndian);
 
                 const auto VmAddr = Segment.vmAddr(IsBigEndian);
                 const auto VmSize = Segment.vmSize(IsBigEndian);
@@ -87,7 +87,7 @@ namespace Operations {
                         Prefix, Flags.value());
 
                 if (!Flags.empty()) {
-                    using FlagsStruct = MachO::SegmentCommand64::FlagsStruct;
+                    using FlagsStruct = SegmentCommand64::FlagsStruct;
 
                     auto Counter = uint32_t();
                     for (const auto Bit : ADT::FlagsIterator(Flags)) {
@@ -99,7 +99,9 @@ namespace Operations {
                                 Prefix,
                                 Counter + 1,
                                 Bit,
-                                FlagsStruct::KindGetString(Flag).data());
+                                FlagsStruct::KindIsValid(Flag) ?
+                                    FlagsStruct::KindGetString(Flag).data() :
+                                    "<unknown>");
 
                         Counter++;
                     }
@@ -145,7 +147,7 @@ namespace Operations {
                                                    /*PadSegment=*/!Verbose,
                                                    /*PadSection=*/!Verbose);
 
-                    using SectionSpace = MachO::SegmentCommand::Section;
+                    using SectionSpace = SegmentCommand::Section;
 
                     const auto SectionKind = Section.kind(IsBigEndian);
                     if (SectionKind != SectionSpace::Kind::Regular) {
@@ -192,9 +194,8 @@ namespace Operations {
 
                 break;
             }
-            case MachO::LoadCommandKind::Segment64: {
-                const auto &Segment =
-                    MachO::cast<MachO::SegmentCommand64>(LC, IsBigEndian);
+            case LoadCommandKind::Segment64: {
+                const auto &Segment = cast<SegmentCommand64>(LC, IsBigEndian);
 
                 const auto VmAddr = Segment.vmAddr(IsBigEndian);
                 const auto VmSize = Segment.vmSize(IsBigEndian);
@@ -223,7 +224,7 @@ namespace Operations {
                         Prefix, Flags.value());
 
                 if (!Flags.empty()) {
-                    using FlagsStruct = MachO::SegmentCommand64::FlagsStruct;
+                    using FlagsStruct = SegmentCommand64::FlagsStruct;
 
                     auto Counter = uint32_t();
                     for (const auto Bit : ADT::FlagsIterator(Flags)) {
@@ -235,7 +236,9 @@ namespace Operations {
                                 Prefix,
                                 Counter + 1,
                                 Bit,
-                                FlagsStruct::KindGetString(Flag).data());
+                                FlagsStruct::KindIsValid(Flag) ?
+                                    FlagsStruct::KindGetString(Flag).data() :
+                                    "<unknown>");
 
                         Counter++;
                     }
@@ -281,7 +284,7 @@ namespace Operations {
                                                    /*PadSegment=*/!Verbose,
                                                    /*PadSection=*/!Verbose);
 
-                    using SectionSpace = MachO::SegmentCommand::Section;
+                    using SectionSpace = SegmentCommand::Section;
 
                     const auto SectionKind = Section.kind(IsBigEndian);
                     if (SectionKind != SectionSpace::Kind::Regular) {
@@ -322,17 +325,18 @@ namespace Operations {
                                 Prefix, Section.reserved1(IsBigEndian),
                                 Prefix, Section.reserved2(IsBigEndian));
                     }
+
+                    I++;
                 }
 
                 break;
             }
-            case MachO::LoadCommandKind::Thread:
-            case MachO::LoadCommandKind::UnixThread:
+            case LoadCommandKind::Thread:
+            case LoadCommandKind::UnixThread:
                 break;
-            case MachO::LoadCommandKind::LoadFixedVMSharedLib:
-            case MachO::LoadCommandKind::IdFixedVMSharedLib: {
-                const auto &FvmLib =
-                    MachO::cast<MachO::FvmLibraryCommand>(LC, IsBigEndian);
+            case LoadCommandKind::LoadFixedVMSharedLib:
+            case LoadCommandKind::IdFixedVMSharedLib: {
+                const auto &FvmLib = cast<FvmLibraryCommand>(LC, IsBigEndian);
 
                 const auto NameOpt = FvmLib.name(IsBigEndian);
                 const auto MinorVersion =
@@ -354,18 +358,17 @@ namespace Operations {
 
                 break;
             }
-            case MachO::LoadCommandKind::Identity:
+            case LoadCommandKind::Identity:
                 break;
-            case MachO::LoadCommandKind::LoadDylib:
-            case MachO::LoadCommandKind::IdDylib:
-            case MachO::LoadCommandKind::ReexportDylib:
-            case MachO::LoadCommandKind::LazyLoadDylib:
-            case MachO::LoadCommandKind::LoadUpwardDylib:
-            case MachO::LoadCommandKind::LoadWeakDylib: {
-                const auto &DylibCmd =
-                    MachO::cast<MachO::DylibCommand>(LC, IsBigEndian);
-
+            case LoadCommandKind::LoadDylib:
+            case LoadCommandKind::IdDylib:
+            case LoadCommandKind::ReexportDylib:
+            case LoadCommandKind::LazyLoadDylib:
+            case LoadCommandKind::LoadUpwardDylib:
+            case LoadCommandKind::LoadWeakDylib: {
+                const auto &DylibCmd = cast<DylibCommand>(LC, IsBigEndian);
                 const auto NameOpt = DylibCmd.name(IsBigEndian);
+
                 fprintf(OutFile,
                         "\t\"" STRING_VIEW_FMT "\"",
                         STRING_VIEW_FMT_ARGS(
@@ -407,9 +410,9 @@ namespace Operations {
 
                 break;
             }
-            case MachO::LoadCommandKind::SubFramework: {
+            case LoadCommandKind::SubFramework: {
                 const auto &SubFramework =
-                    MachO::cast<MachO::SubFrameworkCommand>(LC, IsBigEndian);
+                    cast<SubFrameworkCommand>(LC, IsBigEndian);
 
                 const auto UmbrellaOpt = SubFramework.umbrella(IsBigEndian);
                 fprintf(OutFile,
@@ -420,11 +423,10 @@ namespace Operations {
 
                 break;
             }
-            case MachO::LoadCommandKind::SubClient: {
-                const auto &SubClient =
-                    MachO::cast<MachO::SubClientCommand>(LC, IsBigEndian);
-
+            case LoadCommandKind::SubClient: {
+                const auto &SubClient = cast<SubClientCommand>(LC, IsBigEndian);
                 const auto ClientOpt = SubClient.client(IsBigEndian);
+
                 fprintf(OutFile,
                         "\t\"" STRING_VIEW_FMT "\"\n",
                         STRING_VIEW_FMT_ARGS(
@@ -433,9 +435,9 @@ namespace Operations {
 
                 break;
             }
-            case MachO::LoadCommandKind::SubUmbrella: {
+            case LoadCommandKind::SubUmbrella: {
                 const auto &SubUmbrella =
-                    MachO::cast<MachO::SubUmbrellaCommand>(LC, IsBigEndian);
+                    cast<SubUmbrellaCommand>(LC, IsBigEndian);
                 const auto SubUmbrellaOpt =
                     SubUmbrella.subUmbrella(IsBigEndian);
 
@@ -447,9 +449,9 @@ namespace Operations {
 
                 break;
             }
-            case MachO::LoadCommandKind::SubLibrary: {
+            case LoadCommandKind::SubLibrary: {
                 const auto &SubLibrary =
-                    MachO::cast<MachO::SubLibraryCommand>(LC, IsBigEndian);
+                    cast<SubLibraryCommand>(LC, IsBigEndian);
 
                 const auto SubLibraryOpt = SubLibrary.subLibrary(IsBigEndian);
                 fprintf(OutFile,
@@ -462,7 +464,7 @@ namespace Operations {
             }
             case MachO::LoadCommandKind::PreBoundDylib: {
                 const auto &PreboundDylibCmd =
-                    MachO::cast<MachO::PreboundDylibCommand>(LC, IsBigEndian);
+                    cast<PreboundDylibCommand>(LC, IsBigEndian);
 
                 const auto NameOpt = PreboundDylibCmd.name(IsBigEndian);
                 fprintf(OutFile,
@@ -473,10 +475,10 @@ namespace Operations {
 
                 break;
             }
-            case MachO::LoadCommandKind::IdDylinker:
-            case MachO::LoadCommandKind::LoadDylinker: {
+            case LoadCommandKind::IdDylinker:
+            case LoadCommandKind::LoadDylinker: {
                 const auto &DylinkerCmd =
-                    MachO::cast<MachO::DylinkerCommand>(LC, IsBigEndian);
+                    cast<DylinkerCommand>(LC, IsBigEndian);
 
                 const auto NameOpt = DylinkerCmd.name(IsBigEndian);
                 fprintf(OutFile,
@@ -487,9 +489,9 @@ namespace Operations {
 
                 break;
             }
-            case MachO::LoadCommandKind::Routines: {
+            case LoadCommandKind::Routines: {
                 const auto &RoutinesCmd =
-                    MachO::cast<MachO::RoutinesCommand>(LC, IsBigEndian);
+                    cast<RoutinesCommand>(LC, IsBigEndian);
 
                 const auto InitAddress = RoutinesCmd.initAddress(IsBigEndian);
                 const auto InitModule = RoutinesCmd.initModule(IsBigEndian);
@@ -521,9 +523,9 @@ namespace Operations {
                         Prefix, Reserved6);
                 break;
             }
-            case MachO::LoadCommandKind::Routines64: {
+            case LoadCommandKind::Routines64: {
                 const auto &RoutinesCmd =
-                    MachO::cast<MachO::RoutinesCommand64>(LC, IsBigEndian);
+                    cast<RoutinesCommand64>(LC, IsBigEndian);
 
                 const auto InitAddress = RoutinesCmd.initAddress(IsBigEndian);
                 const auto InitModule = RoutinesCmd.initModule(IsBigEndian);
@@ -555,9 +557,8 @@ namespace Operations {
                         Prefix, Reserved6);
                 break;
             }
-            case MachO::LoadCommandKind::SymbolTable: {
-                const auto &SymTabCmd =
-                    MachO::cast<MachO::SymTabCommand>(LC, IsBigEndian);
+            case LoadCommandKind::SymbolTable: {
+                const auto &SymTabCmd = cast<SymTabCommand>(LC, IsBigEndian);
 
                 const auto SymOff = SymTabCmd.symOffset(IsBigEndian);
                 const auto SymCount = SymTabCmd.symCount(IsBigEndian);
@@ -580,9 +581,9 @@ namespace Operations {
 
                 break;
             }
-            case MachO::LoadCommandKind::DynamicSymbolTable: {
+            case LoadCommandKind::DynamicSymbolTable: {
                 const auto &DySymTabCmd =
-                    MachO::cast<MachO::DynamicSymTabCommand>(LC, IsBigEndian);
+                    cast<DynamicSymTabCommand>(LC, IsBigEndian);
 
                 const auto LocalSymbolsIndex =
                     DySymTabCmd.localSymbolsIndex(IsBigEndian);
@@ -661,9 +662,9 @@ namespace Operations {
                         Prefix, LocalRelCount);
                 break;
             }
-            case MachO::LoadCommandKind::TwoLevelHints: {
+            case LoadCommandKind::TwoLevelHints: {
                 const auto &TwoLevelHintsCmd =
-                    MachO::cast<MachO::TwoLevelHintsCommand>(LC, IsBigEndian);
+                    cast<TwoLevelHintsCommand>(LC, IsBigEndian);
 
                 const auto Offset = TwoLevelHintsCmd.offset(IsBigEndian);
                 const auto HintsCount =
@@ -677,19 +678,17 @@ namespace Operations {
                         Prefix, HintsCount);
                 break;
             }
-            case MachO::LoadCommandKind::PreBindChecksum: {
+            case LoadCommandKind::PreBindChecksum: {
                 const auto PrebindChecksumCmd =
-                    MachO::cast<MachO::PrebindChecksumCommand>(LC, IsBigEndian);
+                    cast<PrebindChecksumCommand>(LC, IsBigEndian);
 
                 const auto Checksum = PrebindChecksumCmd.checksum(IsBigEndian);
                 fprintf(OutFile, "\t%" PRIu32 "\n", Checksum);
 
                 break;
             }
-            case MachO::LoadCommandKind::Uuid: {
-                const auto UuidCmd =
-                    MachO::cast<MachO::UuidCommand>(LC, IsBigEndian);
-
+            case LoadCommandKind::Uuid: {
+                const auto UuidCmd = cast<UuidCommand>(LC, IsBigEndian);
                 fprintf(OutFile,
                         "\t\"%.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-"
                         "%.2X%.2x%.2x%.2x%.2X%.2X\"\n",
@@ -711,11 +710,10 @@ namespace Operations {
                         UuidCmd.Uuid[15]);
                 break;
             }
-            case MachO::LoadCommandKind::Rpath: {
-                const auto &RpathCmd =
-                    MachO::cast<MachO::RpathCommand>(LC, IsBigEndian);
-
+            case LoadCommandKind::Rpath: {
+                const auto &RpathCmd = cast<RpathCommand>(LC, IsBigEndian);
                 const auto PathOpt = RpathCmd.path(IsBigEndian);
+
                 fprintf(OutFile,
                         "\t\"" STRING_VIEW_FMT "\"\n",
                         STRING_VIEW_FMT_ARGS(
@@ -723,17 +721,17 @@ namespace Operations {
                                 PathOpt.value() : Malformed));
                 break;
             }
-            case MachO::LoadCommandKind::CodeSignature:
-            case MachO::LoadCommandKind::SegmentSplitInfo:
-            case MachO::LoadCommandKind::FunctionStarts:
-            case MachO::LoadCommandKind::DyldEnvironment:
-            case MachO::LoadCommandKind::DataInCode:
-            case MachO::LoadCommandKind::DylibCodeSignDRS:
-            case MachO::LoadCommandKind::LinkerOptimizationHint:
-            case MachO::LoadCommandKind::DyldExportsTrie:
-            case MachO::LoadCommandKind::DyldChainedFixups: {
+            case LoadCommandKind::CodeSignature:
+            case LoadCommandKind::SegmentSplitInfo:
+            case LoadCommandKind::FunctionStarts:
+            case LoadCommandKind::DyldEnvironment:
+            case LoadCommandKind::DataInCode:
+            case LoadCommandKind::DylibCodeSignDRS:
+            case LoadCommandKind::LinkerOptimizationHint:
+            case LoadCommandKind::DyldExportsTrie:
+            case LoadCommandKind::DyldChainedFixups: {
                 const auto &LinkeditDataCmd =
-                    MachO::cast<MachO::LinkeditDataCommand>(LC, IsBigEndian);
+                    cast<LinkeditDataCommand>(LC, IsBigEndian);
 
                 const auto DataOff = LinkeditDataCmd.dataOff(IsBigEndian);
                 const auto DataSize = LinkeditDataCmd.dataSize(IsBigEndian);
@@ -748,9 +746,9 @@ namespace Operations {
                         Prefix, Utils::FormattedSizeForOutput(DataSize).data());
                 break;
             }
-            case MachO::LoadCommandKind::FileSetEntry: {
+            case LoadCommandKind::FileSetEntry: {
                 const auto &FileSetEntryCmd =
-                    MachO::cast<MachO::FileSetEntryCommand>(LC, IsBigEndian);
+                    cast<FileSetEntryCommand>(LC, IsBigEndian);
 
                 const auto VmAddress = FileSetEntryCmd.vmAddress(IsBigEndian);
                 const auto FileOffset = FileSetEntryCmd.fileOffset(IsBigEndian);
@@ -769,9 +767,9 @@ namespace Operations {
                         Prefix, Reserved);
                 break;
             }
-            case MachO::LoadCommandKind::EncryptionInfo: {
+            case LoadCommandKind::EncryptionInfo: {
                 const auto &EncryptionInfoCmd =
-                    MachO::cast<MachO::EncryptionInfoCommand>(LC, IsBigEndian);
+                    cast<EncryptionInfoCommand>(LC, IsBigEndian);
 
                 const auto CryptSize = EncryptionInfoCmd.cryptSize(IsBigEndian);
                 const auto CryptId = EncryptionInfoCmd.cryptId(IsBigEndian);
@@ -790,10 +788,9 @@ namespace Operations {
                         Prefix, CryptId);
                 break;
             }
-            case MachO::LoadCommandKind::EncryptionInfo64: {
+            case LoadCommandKind::EncryptionInfo64: {
                 const auto &EncryptionInfoCmd =
-                    MachO::cast<MachO::EncryptionInfo64Command>(LC,
-                                                                IsBigEndian);
+                    cast<EncryptionInfo64Command>(LC, IsBigEndian);
 
                 const auto CryptSize = EncryptionInfoCmd.cryptSize(IsBigEndian);
                 const auto CryptId = EncryptionInfoCmd.cryptId(IsBigEndian);
@@ -815,12 +812,12 @@ namespace Operations {
                         Prefix, Pad);
                 break;
             }
-            case MachO::LoadCommandKind::VersionMinMacOS:
-            case MachO::LoadCommandKind::VersionMinIOS:
-            case MachO::LoadCommandKind::VersionMinTVOS:
-            case MachO::LoadCommandKind::VersionMinWatchOS: {
+            case LoadCommandKind::VersionMinMacOS:
+            case LoadCommandKind::VersionMinIOS:
+            case LoadCommandKind::VersionMinTVOS:
+            case LoadCommandKind::VersionMinWatchOS: {
                 const auto &VersionMinCmd =
-                    MachO::cast<MachO::VersionMinCommand>(LC, IsBigEndian);
+                    cast<VersionMinCommand>(LC, IsBigEndian);
 
                 const auto Version = VersionMinCmd.version(IsBigEndian);
                 const auto Sdk = VersionMinCmd.sdk(IsBigEndian);
@@ -833,9 +830,9 @@ namespace Operations {
                         Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(Sdk));
                 break;
             }
-            case MachO::LoadCommandKind::BuildVersion: {
+            case LoadCommandKind::BuildVersion: {
                 const auto &BuildVersionCmd =
-                    MachO::cast<MachO::BuildVersionCommand>(LC, IsBigEndian);
+                    cast<BuildVersionCommand>(LC, IsBigEndian);
 
                 const auto Platform = BuildVersionCmd.platform(IsBigEndian);
                 if (Dyld3::PlatformIsValid(Platform)) {
@@ -868,12 +865,37 @@ namespace Operations {
                         Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(MinOS),
                         Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(Sdk),
                         Prefix, ToolsCount);
+
+                if (ToolsCount == 0) {
+                    break;
+                }
+
+                auto Counter = uint32_t();
+                for (const auto &Tool : BuildVersionCmd.toolList(IsBigEndian)) {
+                    const auto Version = Tool.version(IsBigEndian);
+                    const auto ToolValue = Tool.tool(IsBigEndian);
+                    const auto ToolValueString =
+                        BuildToolIsValid(ToolValue) ?
+                            Verbose ?
+                                BuildToolGetString(ToolValue) :
+                                BuildToolGetDesc(ToolValue) :
+                            "<unknown>";
+
+                    fprintf(OutFile,
+                            "%s\t%" PRIu32 ". Tool: %s "
+                            "Version: " DYLD3_PACKED_VERSION_FMT "\n",
+                            Prefix, Counter + 1, ToolValueString.data(),
+                            DYLD3_PACKED_VERSION_FMT_ARGS(Version));
+
+                    Counter++;
+                }
+
                 break;
             }
-            case MachO::LoadCommandKind::DyldInfo:
-            case MachO::LoadCommandKind::DyldInfoOnly: {
+            case LoadCommandKind::DyldInfo:
+            case LoadCommandKind::DyldInfoOnly: {
                 const auto &DyldInfoCmd =
-                    MachO::cast<MachO::DyldInfoCommand>(LC, IsBigEndian);
+                    cast<DyldInfoCommand>(LC, IsBigEndian);
 
                 const auto RebaseOffset = DyldInfoCmd.rebaseOffset(IsBigEndian);
                 const auto RebaseSize = DyldInfoCmd.rebaseSize(IsBigEndian);
@@ -932,18 +954,18 @@ namespace Operations {
                         Utils::FormattedSizeForOutput(ExportTrieSize).data());
                 break;
             }
-            case MachO::LoadCommandKind::LinkerOption: {
+            case LoadCommandKind::LinkerOption: {
                 const auto &LinkerOptionCmd =
-                    MachO::cast<MachO::LinkerOptionCommand>(LC, IsBigEndian);
+                    cast<LinkerOptionCommand>(LC, IsBigEndian);
 
                 const auto Count = LinkerOptionCmd.count(IsBigEndian);
                 fprintf(OutFile, "\n%sCount: %" PRIu32 "\n", Prefix, Count);
 
                 break;
             }
-            case MachO::LoadCommandKind::SymbolSegment: {
+            case LoadCommandKind::SymbolSegment: {
                 const auto &SymbolSegmentCmd =
-                    MachO::cast<MachO::SymbolSegmentCommand>(LC, IsBigEndian);
+                    cast<SymbolSegmentCommand>(LC, IsBigEndian);
 
                 const auto Offset = SymbolSegmentCmd.offset(IsBigEndian);
                 const auto Size = SymbolSegmentCmd.size(IsBigEndian);
@@ -958,9 +980,8 @@ namespace Operations {
                         Prefix, Utils::FormattedSizeForOutput(Size).data());
                 break;
             }
-            case MachO::LoadCommandKind::FixedVMFile: {
-                const auto &FvmFileCmd =
-                    MachO::cast<MachO::FvmFileCommand>(LC, IsBigEndian);
+            case LoadCommandKind::FixedVMFile: {
+                const auto &FvmFileCmd = cast<FvmFileCommand>(LC, IsBigEndian);
 
                 const auto NameOpt = FvmFileCmd.name(IsBigEndian);
                 const auto HeaderAddress =
@@ -977,9 +998,9 @@ namespace Operations {
                         Prefix, HeaderAddress);
                 break;
             }
-            case MachO::LoadCommandKind::Main: {
+            case LoadCommandKind::Main: {
                 const auto &EntryPointCmd =
-                    MachO::cast<MachO::EntryPointCommand>(LC, IsBigEndian);
+                    cast<EntryPointCommand>(LC, IsBigEndian);
 
                 const auto EntryOffset = EntryPointCmd.entryOffset(IsBigEndian);
                 const auto StackSize = EntryPointCmd.stackSize(IsBigEndian);
@@ -993,9 +1014,9 @@ namespace Operations {
                         Utils::FormattedSizeForOutput(StackSize).data());
                 break;
             }
-            case MachO::LoadCommandKind::SourceVersion: {
+            case LoadCommandKind::SourceVersion: {
                 const auto &SourceVersionCmd =
-                    MachO::cast<MachO::SourceVersionCommand>(LC, IsBigEndian);
+                    cast<SourceVersionCommand>(LC, IsBigEndian);
 
                 const auto Version = SourceVersionCmd.version(IsBigEndian);
                 fprintf(OutFile,
@@ -1004,12 +1025,10 @@ namespace Operations {
 
                 break;
             }
-            case MachO::LoadCommandKind::PrePage:
+            case LoadCommandKind::PrePage:
                 break;
-            case MachO::LoadCommandKind::Note: {
-                const auto &NoteCmd =
-                    MachO::cast<MachO::NoteCommand>(LC, IsBigEndian);
-
+            case LoadCommandKind::Note: {
+                const auto &NoteCmd = cast<NoteCommand>(LC, IsBigEndian);
                 const auto DataOwner = NoteCmd.dataOwner();
                 const auto Offset = NoteCmd.offset(IsBigEndian);
                 const auto Size = NoteCmd.size(IsBigEndian);

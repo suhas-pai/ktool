@@ -118,7 +118,7 @@ namespace MachO {
         assert(false && "Called FileKindGetDesc() with unknown FileKind");
     }
 
-    struct Flags : ADT::FlagsBase<uint32_t> {
+    struct Flags : public ADT::FlagsBase<uint32_t> {
     public:
         enum class Kind : uint32_t {
             NoUndefineds = 1 << 0,
@@ -387,148 +387,235 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto setNoUndefineds(const bool Value = true) noexcept {
-            return setForValue(Kind::NoUndefineds, Value);
+        constexpr auto setNoUndefineds(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::NoUndefineds, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setIncrementalLink(const bool Value = true) noexcept {
-            return setForValue(Kind::IncrementalLink, Value);
+        constexpr auto setIncrementalLink(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::IncrementalLink, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setDynamicLinkerLink(const bool Value = true) noexcept {
-            return setForValue(Kind::DynamicLinkerLink, Value);
+        constexpr auto setDynamicLinkerLink(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::DynamicLinkerLink, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setBindAtLoad(const bool Value = true) noexcept {
-            return setForValue(Kind::BindAtLoad, Value);
+        constexpr auto setBindAtLoad(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::BindAtLoad, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setPreBound(const bool Value = true) noexcept {
-            return setForValue(Kind::PreBound, Value);
+        constexpr auto setPreBound(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::PreBound, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setSplitSegments(const bool Value = true) noexcept {
-            return setForValue(Kind::SplitSegments, Value);
+        constexpr auto setSplitSegments(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::SplitSegments, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setLazyInit(const bool Value = true) noexcept {
-            return setForValue(Kind::LazyInit, Value);
+        constexpr auto setLazyInit(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::LazyInit, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setTwoLevelNamespaces(const bool Value = true) noexcept {
-            return setForValue(Kind::TwoLevelNamespaces, Value);
+        constexpr auto setTwoLevelNamespaces(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::TwoLevelNamespaces, Value);
+            return *this;
         }
 
         [[nodiscard]] constexpr
-        auto setForceFlatNamespaces(const bool Value = true) noexcept {
-            return setForValue(Kind::ForceFlatNamespaces, Value);
+        auto setForceFlatNamespaces(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::ForceFlatNamespaces, Value);
+            return *this;
         }
 
         [[nodiscard]] constexpr
-        auto setNoMultipleDefinitions(const bool Value = true) noexcept {
-            return setForValue(Kind::NoMultipleDefinitions, Value);
+        auto setNoMultipleDefinitions(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::NoMultipleDefinitions, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setNoFixPrebinding(const bool Value = true) noexcept {
-            return setForValue(Kind::NoFixPrebinding, Value);
+        constexpr auto setNoFixPrebinding(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::NoFixPrebinding, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setPrebindable(const bool Value = true) noexcept {
-            return setForValue(Kind::Prebindable, Value);
+        constexpr auto setPrebindable(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::Prebindable, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setAllModulesBound(const bool Value = true) noexcept {
-            return setForValue(Kind::AllModulesBound, Value);
+        constexpr auto setAllModulesBound(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::AllModulesBound, Value);
+            return *this;
         }
 
         [[nodiscard]] constexpr
-        auto setSubsectionsViaSymbols(const bool Value = true) noexcept {
-            return setForValue(Kind::SubsectionsViaSymbols, Value);
+        auto setSubsectionsViaSymbols(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::SubsectionsViaSymbols, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setCanonical(const bool Value = true) noexcept {
-            return setForValue(Kind::Canonical, Value);
+        constexpr auto setCanonical(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::Canonical, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setWeakDefines(const bool Value = true) noexcept {
-            return setForValue(Kind::WeakDefines, Value);
+        constexpr auto setWeakDefines(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::WeakDefines, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setBindsToWeak(const bool Value = true) noexcept {
-            return setForValue(Kind::BindsToWeak, Value);
+        constexpr auto setBindsToWeak(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::BindsToWeak, Value);
+            return *this;
         }
 
         [[nodiscard]] constexpr
-        auto setAllowStackExecution(const bool Value = true) noexcept {
-            return setForValue(Kind::AllowStackExecution, Value);
+        auto setAllowStackExecution(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::AllowStackExecution, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setRootSafe(const bool Value = true) noexcept {
-            return setForValue(Kind::RootSafe, Value);
+        constexpr auto setRootSafe(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::RootSafe, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setSetuidSafe(const bool Value = true) noexcept {
-            return setForValue(Kind::SetuidSafe, Value);
+        constexpr auto setSetuidSafe(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::SetuidSafe, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setNoReexportedDylibs(const bool Value = true) noexcept {
-            return setForValue(Kind::NoReexportedDylibs, Value);
+        constexpr auto setNoReexportedDylibs(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::NoReexportedDylibs, Value);
+            return *this;
         }
 
         [[nodiscard]] constexpr
-        auto setPositionIndependentExec(const bool Value = true) noexcept {
-            return setForValue(Kind::PositionIndependentExec, Value);
+        auto setPositionIndependentExec(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::PositionIndependentExec, Value);
+            return *this;
         }
 
         [[nodiscard]] constexpr
-        auto setDeadStrippableDylib(const bool Value = true) noexcept {
-            return setForValue(Kind::DeadStrippableDylib, Value);
+        auto setDeadStrippableDylib(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::DeadStrippableDylib, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setHasTlvDescriptors(const bool Value = true) noexcept {
-            return setForValue(Kind::HasTlvDescriptors, Value);
+        constexpr auto setHasTlvDescriptors(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::HasTlvDescriptors, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setNoHeapExecution(const bool Value = true) noexcept {
-            return setForValue(Kind::NoHeapExecution, Value);
+        constexpr auto setNoHeapExecution(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::NoHeapExecution, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setAppExtensionSafe(const bool Value = true) noexcept {
-            return setForValue(Kind::AppExtensionSafe, Value);
+        constexpr auto setAppExtensionSafe(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::AppExtensionSafe, Value);
+            return *this;
         }
 
         [[nodiscard]] constexpr
-        auto setNlistOutOfSyncDyldInfo(const bool Value = true) noexcept {
-            return setForValue(Kind::NlistOutOfSyncDyldInfo, Value);
+        auto setNlistOutOfSyncDyldInfo(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::NlistOutOfSyncDyldInfo, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setSimSupport(const bool Value = true) noexcept {
-            return setForValue(Kind::SimSupport, Value);
+        constexpr auto setSimSupport(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::SimSupport, Value);
+            return *this;
         }
 
         [[nodiscard]]
-        constexpr auto setDylibInCache(const bool Value = true) noexcept {
-            return setForValue(Kind::DylibInCache, Value);
+        constexpr auto setDylibInCache(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            setForValue(Kind::DylibInCache, Value);
+            return *this;
         }
     };
 

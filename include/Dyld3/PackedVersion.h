@@ -34,17 +34,6 @@ namespace Dyld3 {
             const auto Value = (Flags & static_cast<uint32_t>(Mask));
             return (Value >> static_cast<uint8_t>(Shift));
         }
-
-        [[nodiscard]] constexpr auto
-        setWithMaskShift(const Masks Mask,
-                         const Shifts Shift,
-                         const uint32_t Value) noexcept
-        {
-            const auto MaskedValue = Value & static_cast<uint32_t>(Mask);
-            Flags |= MaskedValue << static_cast<uint8_t>(Shift);
-
-            return *this;
-        }
     public:
         [[nodiscard]] constexpr auto revision() const noexcept {
             return getForMaskShift(Masks::Revision, Shifts::Revision);
@@ -58,16 +47,25 @@ namespace Dyld3 {
             return getForMaskShift(Masks::Major, Shifts::Major);
         }
 
-        constexpr auto setRevision(const uint8_t Value) noexcept {
-            return setWithMaskShift(Masks::Revision, Shifts::Revision, Value);
+        constexpr auto setRevision(const uint8_t Value) noexcept
+            -> decltype(*this)
+        {
+            setValueForMask(Masks::Revision, Shifts::Revision, Value);
+            return *this;
         }
 
-        constexpr auto setMinor(const uint8_t Value) noexcept {
-            return setWithMaskShift(Masks::Minor, Shifts::Minor, Value);
+        constexpr auto setMinor(const uint8_t Value) noexcept
+            -> decltype(*this)
+        {
+            setValueForMask(Masks::Minor, Shifts::Minor, Value);
+            return *this;
         }
 
-        constexpr auto setMajor(const uint16_t Value) noexcept {
-            return setWithMaskShift(Masks::Major, Shifts::Major, Value);
+        constexpr auto setMajor(const uint16_t Value) noexcept
+            -> decltype(*this)
+        {
+            setValueForMask(Masks::Major, Shifts::Major, Value);
+            return *this;
         }
 
         constexpr auto
@@ -131,24 +129,38 @@ namespace Dyld3 {
             return getForMaskShift(Masks::Major, Shifts::Major);
         }
 
-        constexpr auto setRevision3(const uint16_t Value) noexcept {
-            return setWithMaskShift(Masks::Revision3, Shifts::Revision3, Value);
+        constexpr auto setRevision3(const uint16_t Value) noexcept
+            -> decltype(*this)
+        {
+            setValueForMask(Masks::Revision3, Shifts::Revision3, Value);
+            return *this;
         }
 
-        constexpr auto setRevision2(const uint16_t Value) noexcept {
-            return setWithMaskShift(Masks::Revision2, Shifts::Revision2, Value);
+        constexpr auto setRevision2(const uint16_t Value) noexcept
+            -> decltype(*this)
+        {
+            setValueForMask(Masks::Revision2, Shifts::Revision2, Value);
+            return *this;
         }
 
-        constexpr auto setRevision1(const uint16_t Value) noexcept {
-            return setWithMaskShift(Masks::Revision1, Shifts::Revision1, Value);
+        constexpr auto setRevision1(const uint8_t Value) noexcept
+            -> decltype(*this)
+        {
+            setValueForMask(Masks::Revision1, Shifts::Revision1, Value);
+            return *this;
         }
 
-        constexpr auto setMinor(const uint8_t Value) noexcept {
-            return setWithMaskShift(Masks::Minor, Shifts::Minor, Value);
+        constexpr auto setMinor(const uint8_t Value) noexcept -> decltype(*this)
+        {
+            setValueForMask(Masks::Minor, Shifts::Minor, Value);
+            return *this;
         }
 
-        constexpr auto setMajor(const uint32_t Value) noexcept {
-            return setWithMaskShift(Masks::Major, Shifts::Major, Value);
+        constexpr auto setMajor(const uint16_t Value) noexcept
+            -> decltype(*this)
+        {
+            setValueForMask(Masks::Major, Shifts::Major, Value);
+            return *this;
         }
 
         constexpr auto

@@ -7,7 +7,9 @@
 
 #pragma once
 
+#include "ADT/List.h"
 #include "ADT/PointerOrError.h"
+
 #include "MachO/Fat.h"
 
 #include "Base.h"
@@ -77,11 +79,21 @@ namespace Objects {
                                                    archCount());
         }
 
+        [[nodiscard]] inline auto archList() const noexcept {
+            assert(!is64Bit());
+            return ADT::List(archs(), archCount());
+        }
+
         [[nodiscard]] inline auto archs64() const noexcept {
             assert(is64Bit());
             return
                 map().get<::MachO::FatArch64, false>(sizeof(header()),
                                                      archCount());
+        }
+
+        [[nodiscard]] inline auto arch64List() const noexcept {
+            assert(is64Bit());
+            return ADT::List(archs64(), archCount());
         }
     };
 }

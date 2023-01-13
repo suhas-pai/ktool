@@ -23,14 +23,14 @@ namespace Operations {
             case Objects::Kind::None:
                 assert(false &&
                        "Got Object-Kind None in "
-                       "PrintHeader::supportsObjectKind");
+                       "PrintHeader::supportsObjectKind()");
             case Objects::Kind::MachO:
             case Objects::Kind::FatMachO:
                 return true;
         }
 
         assert(false &&
-               "Got unknown Object-Kind in PrintHeader::supportsObjectKind");
+               "Got unknown Object-Kind in PrintHeader::supportsObjectKind()");
     }
 
     auto
