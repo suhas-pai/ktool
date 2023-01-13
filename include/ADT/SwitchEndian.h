@@ -125,15 +125,4 @@ namespace ADT {
     constexpr auto SwitchEndianIf(const T Value, const bool Cond) noexcept {
         return Cond ? SwitchEndian(Value) : Value;
     }
-
-    template <typename T,
-              typename U = std::underlying_type_t<T>,
-              typename = std::enable_if_t<std::is_integral_v<U>>>
-
-    [[nodiscard]]
-    constexpr auto SwitchEndianIf(const T Value, const bool Cond) noexcept {
-        return Cond ?
-            static_cast<T>(SwitchEndian(static_cast<U>(Value))) :
-            Value;
-    }
 }
