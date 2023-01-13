@@ -19,10 +19,10 @@ namespace ADT {
         uint8_t StartIndex = bit_sizeof(T);
     public:
         constexpr FlagsIterator(const T Value) noexcept
-        : Value(Value), StartIndex(this->Value.FirstSet()) {}
+        : Value(Value), StartIndex(this->Value.getFirstSet()) {}
 
         constexpr FlagsIterator(const FlagsBase<T> Value) noexcept
-        : Value(Value), StartIndex(Value.FirstSet()) {}
+        : Value(Value), StartIndex(Value.getFirstSet()) {}
 
         [[nodiscard]] inline auto begin() noexcept -> decltype(*this) {
             return *this;
@@ -37,7 +37,7 @@ namespace ADT {
         auto operator<=>(const FlagsIterator<T> &Rhs) const noexcept = default;
 
         constexpr auto operator++() noexcept -> decltype(*this) {
-            StartIndex = Value.FirstSet(StartIndex + 1);
+            StartIndex = Value.getFirstSet(StartIndex + 1);
             return *this;
         }
 

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <assert.h>
 #include <compare>
 #include <concepts>
 #include <cstdint>
@@ -53,7 +54,7 @@ namespace ADT {
 
         template <typename E>
         constexpr auto valueForMask(const E Mask) const noexcept {
-            return (Flags & static_cast<T>(Mask));
+            return Flags & static_cast<T>(Mask);
         }
 
         template <typename E>
@@ -74,12 +75,16 @@ namespace ADT {
             return (Flags & Mask);
         }
 
-        constexpr auto operator|=(const FlagsBase<T> Mask) const noexcept {
+        constexpr auto operator|=(const FlagsBase<T> Mask) const noexcept
+            -> decltype(*this)
+        {
             Flags |= Mask;
             return *this;
         }
 
-        constexpr auto operator&=(const FlagsBase<T> Mask) const noexcept {
+        constexpr auto operator&=(const FlagsBase<T> Mask) const noexcept
+            -> decltype(*this)
+        {
             Flags &= Mask;
             return *this;
         }
@@ -94,9 +99,11 @@ namespace ADT {
         }
 
         [[nodiscard]]
-        constexpr auto FirstSet(const uint8_t Index = 0) const noexcept
+        constexpr auto getFirstSet(const uint8_t Index = 0) const noexcept
             -> uint8_t
         {
+            assert(Index <= bit_sizeof(T));
+
             const uint64_t Flags = this->Flags >> Index;
             if (Flags == 0) {
                 return bit_sizeof(T);
@@ -111,7 +118,7 @@ namespace ADT {
             return __builtin_ctz(Flags) + Index;
         }
 
-        [[nodiscard]] constexpr auto Count() const noexcept -> uint8_t {
+        [[nodiscard]] constexpr auto getCount() const noexcept -> uint8_t {
             if constexpr (sizeof(T) == sizeof(long long)) {
                 return __builtin_popcountll(Flags);
             } else if constexpr (sizeof(T) == sizeof(long)) {
