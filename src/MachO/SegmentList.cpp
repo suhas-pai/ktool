@@ -27,6 +27,7 @@ namespace MachO {
                         .MaxProt = Segment->maxProt(IsBigEndian),
                         .InitProt = Segment->initProt(IsBigEndian),
                         .Flags = Segment->flags(IsBigEndian),
+                        .SectionList = {}
                     });
 
                     for (const auto &Section :
@@ -66,6 +67,7 @@ namespace MachO {
                         .MaxProt = Segment->maxProt(IsBigEndian),
                         .InitProt = Segment->initProt(IsBigEndian),
                         .Flags = Segment->flags(IsBigEndian),
+                        .SectionList = {}
                     });
 
                     for (const auto &Section :
