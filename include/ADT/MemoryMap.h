@@ -24,7 +24,7 @@ namespace ADT {
           Size(Range.size()) {}
 
         [[nodiscard]] inline auto range() const noexcept {
-            return Range::FromSize(reinterpret_cast<uint64_t>(Base), Size);
+            return Range::FromSize(0, Size);
         }
 
         [[nodiscard]] constexpr auto size() const noexcept {
@@ -70,7 +70,7 @@ namespace ADT {
         [[nodiscard]]
         inline auto getFromRange(const Range &Range) const noexcept -> T * {
             if constexpr (Verify) {
-                if (!range().containsAsIndex(Range)) {
+                if (!range().contains(Range)) {
                     return nullptr;
                 }
             }

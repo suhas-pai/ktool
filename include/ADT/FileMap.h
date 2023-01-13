@@ -50,8 +50,8 @@ namespace ADT {
             return static_cast<T *>(Base);
         }
 
-        [[nodiscard]] inline auto range() const noexcept {
-            return Range::FromSize(reinterpret_cast<uint64_t>(Base), Size);
+        [[nodiscard]] constexpr auto range() const noexcept {
+            return Range::FromSize(0, Size);
         }
 
         [[nodiscard]] constexpr auto map() const noexcept {
