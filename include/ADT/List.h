@@ -7,10 +7,12 @@
 
 #include <compare>
 #include <cstdint>
+#include <iterator>
+#include <ranges>
 
 namespace ADT {
     template <typename T>
-    struct List {
+    struct List : public std::ranges::view_base {
     protected:
         T *Begin = nullptr;
         T *End = nullptr;
@@ -22,8 +24,51 @@ namespace ADT {
         constexpr List(T *const Begin, const uint64_t Size) noexcept
         : Begin(Begin), End(Begin + Size) {}
 
+        constexpr List(std::ranges::contiguous_range auto&& Range) noexcept
+        : Begin(std::ranges::begin(Range)), End(std::ranges::end(Range)) {}
+
+        [[nodiscard]] constexpr auto data() const noexcept {
+            return Begin;
+        }
+
         [[nodiscard]] constexpr auto size() const noexcept {
             return (End - Begin);
+        }
+
+        [[nodiscard]] constexpr auto empty() const noexcept {
+            return size() == 0;
+        }
+
+        [[nodiscard]] constexpr auto front() noexcept -> decltype(auto) {
+            assert(!empty());
+            return *Begin;
+        }
+
+        [[nodiscard]] constexpr auto back() noexcept -> decltype(auto) {
+            assert(!empty());
+            return End[-1];
+        }
+
+        [[nodiscard]] constexpr auto front() const noexcept -> decltype(auto) {
+            assert(!empty());
+            return const_cast<const T&>(*Begin);
+        }
+
+        [[nodiscard]] constexpr auto back() const noexcept -> decltype(auto) {
+            assert(!empty());
+            return const_cast<const T&>(End[-1]);
+        }
+
+        [[nodiscard]]
+        constexpr auto at(const size_t Idx) noexcept -> decltype(auto) {
+            assert(Idx < size());
+            return Begin[Idx];
+        }
+
+        [[nodiscard]]
+        constexpr auto at(const size_t Idx) const noexcept -> decltype(auto) {
+            assert(Idx < size());
+            return const_cast<const T&>(Begin[Idx]);
         }
 
         struct Iterator {
@@ -33,12 +78,14 @@ namespace ADT {
             constexpr Iterator() noexcept = default;
             constexpr Iterator(T *const Data) noexcept : Data(Data) {}
 
+            using iterator_category = std::contiguous_iterator_tag;
             using value_type = T;
+            using element_type = T;
             using difference_type = ptrdiff_t;
             using pointer = T*;
             using reference = T&;
 
-            constexpr auto operator++() noexcept -> decltype (*this) {
+            constexpr auto operator++() noexcept -> decltype(*this) {
                 Data++;
                 return *this;
             }
@@ -47,7 +94,7 @@ namespace ADT {
                 return operator++();
             }
 
-            constexpr auto operator--() noexcept -> decltype (*this) {
+            constexpr auto operator--() noexcept -> decltype(*this) {
                 Data--;
                 return *this;
             }
@@ -61,6 +108,16 @@ namespace ADT {
                 return Iterator(Data + Amt);
             }
 
+            [[nodiscard]] constexpr friend auto
+            operator+(const difference_type Amt, const Iterator &It) noexcept {
+                return It + Amt;
+            }
+
+            [[nodiscard]] constexpr friend auto
+            operator-(const difference_type Amt, const Iterator &It) noexcept {
+                return It - Amt;
+            }
+
             [[nodiscard]] constexpr
             auto operator-(const difference_type Amt) const noexcept {
                 return Iterator(Data - Amt);
@@ -72,7 +129,7 @@ namespace ADT {
             }
 
             constexpr auto operator+=(const difference_type Amt) noexcept
-                -> decltype (*this)
+                -> decltype(*this)
             {
                 for (auto I = difference_type(); I != Amt; I++) {
                     operator++();
@@ -81,8 +138,18 @@ namespace ADT {
                 return *this;
             }
 
-            [[nodiscard]]
-            constexpr auto operator[](const difference_type Index) noexcept
+            constexpr auto operator-=(const difference_type Amt) noexcept
+                -> decltype(*this)
+            {
+                for (auto I = difference_type(); I != Amt; I++) {
+                    operator--();
+                }
+
+                return *this;
+            }
+
+            [[nodiscard]] constexpr
+            auto operator[](const difference_type Index) const noexcept
                 -> decltype(auto)
             {
                 return Data[Index];
@@ -105,6 +172,10 @@ namespace ADT {
             constexpr auto operator*() const noexcept -> decltype(auto) {
                 return *Data;
             }
+
+            [[nodiscard]] constexpr auto operator->() const noexcept {
+                return Data;
+            }
         };
 
         [[nodiscard]] constexpr auto begin() const noexcept {
@@ -114,5 +185,31 @@ namespace ADT {
         [[nodiscard]] constexpr auto end() const noexcept {
             return Iterator(End);
         }
+
+        [[nodiscard]] constexpr auto cbegin() const noexcept {
+            return Iterator(const_cast<const T *>(Begin));
+        }
+
+        [[nodiscard]] constexpr auto cend() const noexcept {
+            return Iterator(const_cast<const T *>(End));
+        }
+
+        [[nodiscard]] constexpr auto rbegin() const noexcept {
+            return std::reverse_iterator(begin());
+        }
+
+        [[nodiscard]] constexpr auto rend() const noexcept {
+            return std::reverse_iterator(end());
+        }
+
+        [[nodiscard]] constexpr auto rcbegin() const noexcept {
+            return std::reverse_iterator(cbegin());
+        }
+
+        [[nodiscard]] constexpr auto rcend() const noexcept {
+            return std::reverse_iterator(cend());
+        }
     };
 }
+
+static_assert(std::ranges::contiguous_range<ADT::List<int>>);
