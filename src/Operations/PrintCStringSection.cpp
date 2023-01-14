@@ -307,8 +307,8 @@ namespace Operations {
         auto Counter = static_cast<uint64_t>(1);
         for (const auto &Info : CStringInfoList) {
             fprintf(OutFile,
-                    "C-String %0*" PRIu64 ": ",
-                    CStringListSizeDigitCount,
+                    "C-String %" ZEROPAD_FMT PRIu64 ": ",
+                    ZEROPAD_FMT_ARGS(CStringListSizeDigitCount),
                     Counter);
 
             Utils::PrintAddress(OutFile, Info.Address, Is64Bit);

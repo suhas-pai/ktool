@@ -1141,10 +1141,10 @@ namespace Operations {
             const auto Kind = LoadCommand.kind(IsBigEndian);
             if (MachO::LoadCommandKindIsValid(Kind)) {
                 fprintf(OutFile,
-                        "LC %" ZEROPAD_FMT PRIu32 ": %-*s",
+                        "LC %" ZEROPAD_FMT PRIu32 ": %" RIGHTPAD_FMT "s",
                         ZEROPAD_FMT_ARGS(NcmdsDigitCount),
                         Counter,
-                        (int)LongestLCKindLength,
+                        RIGHTPAD_FMT_ARGS((int)LongestLCKindLength),
                         MachO::LoadCommandKindGetString(Kind).data());
             } else {
                 fprintf(OutFile,

@@ -598,8 +598,8 @@ namespace Operations {
         auto Counter = uint64_t();
         for (const auto &SymbolInfo : SymbolInfoList) {
             fprintf(OutFile,
-                    "Indirect-Symbol %0*" PRIu64 ": ",
-                    SymbolInfoListSizeDigitCount,
+                    "Indirect-Symbol %" ZEROPAD_FMT PRIu64 ": ",
+                    ZEROPAD_FMT_ARGS(SymbolInfoListSizeDigitCount),
                     Counter + 1);
 
             const auto PrintLength =
@@ -614,7 +614,7 @@ namespace Operations {
                 const auto SymbolKind = SymbolInfo.Kind;
                 const auto SymbolKindDescription =
                     SymTabCommand::Entry::KindIsValid(SymbolKind) ?
-                        SymTabCommand::Entry::KindGetDesc(SymbolKind).data() :
+                        SymTabCommand::Entry::KindGetDesc(SymbolKind) :
                         "<unknown>";
 
                 const auto KindRightPad =
@@ -624,12 +624,12 @@ namespace Operations {
                 Utils::RightPadSpaces(OutFile,
                                       fprintf(OutFile,
                                               " <Kind: %s, ",
-                                              SymbolKindDescription),
+                                              SymbolKindDescription.data()),
                                       KindRightPad);
 
                 fprintf(OutFile,
-                        "Index: %0*" PRIu64,
-                        MaxIndexDigitCount,
+                        "Index: %" ZEROPAD_FMT PRIu64,
+                        ZEROPAD_FMT_ARGS(MaxIndexDigitCount),
                         SymbolInfo.Index);
 
                 if (SymbolInfo.PrivateExternal) {
