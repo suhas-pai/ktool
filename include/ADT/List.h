@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <__ranges/concepts.h>
+#include <cassert>
 #include <compare>
 #include <cstdint>
 #include <iterator>
