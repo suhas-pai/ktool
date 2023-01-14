@@ -48,16 +48,16 @@ namespace Operations {
                     fprintf(OutFile,
                             "\tCputype:    %s\n",
                             Opt.Verbose ?
-                                Mach::CpuKindGetDesc(CpuKind).data() :
-                                Mach::CpuKindGetString(CpuKind).data());
+                                Mach::CpuKindGetString(CpuKind).data() :
+                                Mach::CpuKindGetDesc(CpuKind).data());
 
                     if (Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind)) {
                         const auto CpuSubKindString =
                             Opt.Verbose ?
-                                Mach::CpuKindAndSubKindGetDesc(CpuKind,
-                                                               SubKind) :
                                 Mach::CpuKindAndSubKindGetString(CpuKind,
-                                                                 SubKind);
+                                                                 SubKind) :
+                                Mach::CpuKindAndSubKindGetDesc(CpuKind,
+                                                               SubKind);
 
                         fprintf(OutFile,
                                 "\tCpusubtype: %s\n",
@@ -82,7 +82,7 @@ namespace Operations {
                         "\tSize:       %" PRIu64 " (%s)\n"
                         "\tAlign:      %" PRIu32 "\n",
                         Offset,
-                        ADDR_RANGE_FMT_ARGS(Offset, Size),
+                        ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
                         Size,
                         Utils::FormattedSize(Size).data(),
                         Align);
@@ -103,15 +103,15 @@ namespace Operations {
                     fprintf(OutFile,
                             "\tCputype:    %s\n",
                             Opt.Verbose ?
-                                Mach::CpuKindGetDesc(CpuKind).data() :
-                                Mach::CpuKindGetString(CpuKind).data());
+                                Mach::CpuKindGetString(CpuKind).data() :
+                                Mach::CpuKindGetDesc(CpuKind).data());
 
                     if (Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind)) {
                         const auto CpuSubKindString =
                             Opt.Verbose ?
-                                Mach::CpuKindAndSubKindGetDesc(CpuKind,
-                                                               SubKind) :
                                 Mach::CpuKindAndSubKindGetString(CpuKind,
+                                                                 SubKind) :
+                                Mach::CpuKindAndSubKindGetDesc(CpuKind,
                                                                SubKind);
 
                         fprintf(OutFile,
@@ -137,7 +137,7 @@ namespace Operations {
                         "\tSize:       %" PRIu32 " (%s)\n"
                         "\tAlign:      %" PRIu32 "\n",
                         Offset,
-                        ADDR_RANGE_FMT_ARGS(Offset, Size),
+                        ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
                         Size,
                         Utils::FormattedSize(Size).data(),
                         Align);

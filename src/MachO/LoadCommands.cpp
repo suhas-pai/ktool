@@ -10,7 +10,8 @@ namespace  MachO {
     using A = LoadCommandTypeFromKindType<Kind>;
 
     [[nodiscard]] auto
-    ValidateCmdsize(const LoadCommand *const LC, bool IsBigEndian) noexcept
+    ValidateCmdsize(const LoadCommand *const LC,
+                    const bool IsBigEndian) noexcept
         -> CmdSizeInvalidKind
     {
         const auto CmdSize = LC->cmdsize(IsBigEndian);

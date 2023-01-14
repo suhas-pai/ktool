@@ -783,7 +783,8 @@ namespace Operations {
                         "%sCrypt Size:   %s\n"
                         "%sCrypt Id:     %" PRIu32 "\n",
                         Prefix, CryptOffset,
-                        ADDR_RANGE_FMT_ARGS(CryptOffset, CryptSize),
+                        ADDR_RANGE_FMT_ARGS(CryptOffset,
+                                            CryptOffset + CryptSize),
                         Prefix, Utils::FormattedSizeForOutput(CryptSize).data(),
                         Prefix, CryptId);
                 break;
@@ -806,7 +807,8 @@ namespace Operations {
                         "%sCrypt Id:     %" PRIu32 "\n"
                         "%sPad:          %" PRIu32 "\n",
                         Prefix, CryptOffset,
-                        ADDR_RANGE_FMT_ARGS(CryptOffset, CryptSize),
+                        ADDR_RANGE_FMT_ARGS(CryptOffset,
+                                            CryptOffset + CryptSize),
                         Prefix, Utils::FormattedSizeForOutput(CryptSize).data(),
                         Prefix, CryptId,
                         Prefix, Pad);
@@ -976,7 +978,7 @@ namespace Operations {
                             ADDR_RANGE_32_FMT ")\n"
                         "%sSize:   %s\n",
                         Prefix, Offset,
-                        ADDR_RANGE_FMT_ARGS(Offset, Size),
+                        ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
                         Prefix, Utils::FormattedSizeForOutput(Size).data());
                 break;
             }
@@ -1041,7 +1043,7 @@ namespace Operations {
                         "%sSize:   %s\n",
                         Prefix, STRING_VIEW_FMT_ARGS(DataOwner),
                         Prefix, Offset,
-                        ADDR_RANGE_FMT_ARGS(Offset, Size),
+                        ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
                         Prefix, Utils::FormattedSizeForOutput(Size).data());
 
                 break;
