@@ -40,8 +40,7 @@ namespace Operations {
         }
 
         template <typename T>
-        inline auto &
-        set(const T Error, Objects::OpenError OpenError) noexcept {
+        inline auto &set(const T Error, Objects::OpenError OpenError) noexcept {
             this->Error = static_cast<std::underlying_type_t<T>>(Error);
             this->OpenError = OpenError;
 

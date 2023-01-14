@@ -11,6 +11,7 @@
 #include <optional>
 
 #include "ADT/List.h"
+#include "ADT/MemoryMap.h"
 #include "ADT/Range.h"
 #include "ADT/SwitchEndian.h"
 
@@ -1616,9 +1617,8 @@ namespace MachO {
             return ((Desc >> 8) & 0xff);
         }
 
-        constexpr static auto
+        constexpr static auto &
         EntryDescSetDylibOrdinal(int16_t &Desc, const int16_t Ordinal) noexcept
-            -> decltype(auto)
         {
             Desc |= ((Ordinal << 8) & 0xff00);
             return Desc;
@@ -1727,8 +1727,7 @@ namespace MachO {
 
             [[nodiscard]]
             constexpr auto privateExternal() const noexcept -> bool {
-                const auto Mask = static_cast<uint8_t>(Masks::PrivateExternal);
-                return Type & Mask;
+                return Type & static_cast<uint8_t>(Masks::PrivateExternal);
             }
 
             [[nodiscard]] constexpr auto external() const noexcept -> bool {
@@ -1821,6 +1820,46 @@ namespace MachO {
         [[nodiscard]]
         constexpr auto strRange(const bool IsBE) const noexcept {
             return ADT::Range::FromSize(strOffset(IsBE), strSize(IsBE));
+        }
+
+        [[nodiscard]] inline auto
+        symbolEntryList(const ADT::MemoryMap &Map,
+                        const bool IsBigEndian) const noexcept
+        {
+            const auto Entries =
+                Map.getFromRange<const Entry>(symRange(IsBigEndian, false));
+
+            return ADT::List(Entries, symCount(IsBigEndian));
+        }
+
+        [[nodiscard]] inline auto
+        symbolEntryList(const ADT::MemoryMap &Map,
+                        const bool IsBigEndian) noexcept
+        {
+            const auto Entries =
+                Map.getFromRange<Entry>(symRange(IsBigEndian, false));
+
+            return ADT::List(Entries, symCount(IsBigEndian));
+        }
+
+        [[nodiscard]] inline auto
+        symbolEntryList64(const ADT::MemoryMap &Map,
+                          const bool IsBigEndian) const noexcept
+        {
+            const auto Entries =
+                Map.getFromRange<const Entry64>(symRange(IsBigEndian, true));
+
+            return ADT::List(Entries, symCount(IsBigEndian));
+        }
+
+        [[nodiscard]] inline auto
+        symbolEntryList64(const ADT::MemoryMap &Map,
+                          const bool IsBigEndian) noexcept
+        {
+            const auto Entries =
+                Map.getFromRange<Entry64>(symRange(IsBigEndian, true));
+
+            return ADT::List(Entries, symCount(IsBigEndian));
         }
 
         [[nodiscard]]
@@ -3333,9 +3372,7 @@ namespace MachO {
 
     template <LoadCommandDerived T>
     [[nodiscard]] constexpr
-    auto cast(LoadCommand *const LC, const bool IsBigEndian) noexcept
-        -> decltype(auto)
-    {
+    auto &cast(LoadCommand *const LC, const bool IsBigEndian) noexcept {
         assert(isa<T>(LC, IsBigEndian));
         return static_cast<T *>(LC);
     }
@@ -3349,9 +3386,7 @@ namespace MachO {
 
     template <LoadCommandKind Kind>
     [[nodiscard]] constexpr
-    auto cast(LoadCommand *const LC, const bool IsBigEndian) noexcept
-        -> decltype(auto)
-    {
+    auto &cast(LoadCommand *const LC, const bool IsBigEndian) noexcept {
         assert(isa<Kind>(LC, IsBigEndian));
 
         using T = LoadCommandTypeFromKindType<Kind>;
@@ -3360,9 +3395,7 @@ namespace MachO {
 
     template <LoadCommandKind Kind>
     [[nodiscard]] constexpr
-    auto cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept
-        -> decltype(auto)
-    {
+    auto &cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept {
         assert(isa<Kind>(LC, IsBigEndian));
 
         using T = LoadCommandTypeFromKindType<Kind>;
@@ -3371,27 +3404,21 @@ namespace MachO {
 
     template <LoadCommandDerived T>
     [[nodiscard]]
-    constexpr auto cast(LoadCommand &LC, const bool IsBigEndian) noexcept
-        -> decltype(auto)
-    {
+    constexpr auto &cast(LoadCommand &LC, const bool IsBigEndian) noexcept {
         assert(isa<T>(&LC, IsBigEndian));
         return static_cast<T &>(LC);
     }
 
     template <LoadCommandDerived T>
     [[nodiscard]] constexpr
-    auto cast(const LoadCommand &LC, const bool IsBigEndian) noexcept
-        -> decltype(auto)
-    {
+    auto &cast(const LoadCommand &LC, const bool IsBigEndian) noexcept {
         assert(isa<T>(&LC, IsBigEndian));
         return static_cast<const T &>(LC);
     }
 
     template <LoadCommandKind Kind>
     [[nodiscard]]
-    constexpr auto cast(LoadCommand &LC, const bool IsBigEndian) noexcept
-        -> decltype(auto)
-    {
+    constexpr auto &cast(LoadCommand &LC, const bool IsBigEndian) noexcept {
         assert(isa<Kind>(&LC, IsBigEndian));
 
         using T = LoadCommandTypeFromKindType<Kind>;

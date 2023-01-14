@@ -44,10 +44,8 @@ namespace ADT {
         }
 
         template <typename E, typename S, typename V>
-        constexpr void setValueForMask(const E Mask,
-                                       const S Shift,
-                                       const V Value) noexcept
-        {
+        constexpr void
+        setValueForMask(const E Mask, const S Shift, const V Value) noexcept {
             removeMask(Mask);
             addMask(static_cast<T>(Value) << static_cast<T>(Shift));
         }

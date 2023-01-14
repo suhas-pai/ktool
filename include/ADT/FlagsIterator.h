@@ -41,7 +41,7 @@ namespace ADT {
             return *this;
         }
 
-        constexpr auto operator++(int) noexcept -> decltype(auto) {
+        constexpr auto operator++(int) noexcept {
             return operator++();
         }
 

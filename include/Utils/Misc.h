@@ -21,7 +21,9 @@
 
 namespace Utils {
     template <std::integral T>
-    constexpr std::optional<T> to_int(const std::string_view String) noexcept {
+    constexpr auto to_int(const std::string_view String) noexcept
+        -> std::optional<T>
+    {
         auto Front = String.front();
         if (Front == '0') {
             if (String.length() == 1) {

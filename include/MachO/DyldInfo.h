@@ -1,5 +1,5 @@
 /*
- * include/MachO/DyldInfo.h
+ * MachO/DyldInfo.h
  * © suhas pai
  */
 

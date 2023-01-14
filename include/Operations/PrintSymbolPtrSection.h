@@ -42,9 +42,9 @@ namespace Operations {
 
         explicit
         PrintSymbolPtrSection(FILE *OutFile,
-                            const std::optional<std::string> &SegmentName,
-                            const std::string &SectionName,
-                            const struct Options &Options) noexcept;
+                              const std::optional<std::string> &SegmentName,
+                              const std::string &SectionName,
+                              const struct Options &Options) noexcept;
 
         ~PrintSymbolPtrSection() noexcept override {}
 
@@ -70,6 +70,8 @@ namespace Operations {
         RunResult run(const Objects::Base &Base) const noexcept override;
         RunResult run(const Objects::MachO &MachO) const noexcept;
 
-        [[nodiscard]] constexpr auto &options() const noexcept { return Opt; }
+        [[nodiscard]] constexpr auto &options() const noexcept {
+            return Opt;
+        }
     };
 }
