@@ -12,55 +12,93 @@
 #include "LoadCommands.h"
 
 namespace MachO {
-    struct LoadCommandsIterator {
-    protected:
-        MachO::LoadCommand *Ptr = nullptr;
-        bool IsBigEndian : 1 = false;
-    public:
-        explicit
-        LoadCommandsIterator(MachO::LoadCommand *Ptr,
-                             bool IsBigEndian) noexcept;
-
-        [[nodiscard]] constexpr auto isBigEndian() const noexcept {
-            return IsBigEndian;
-        }
-
-        auto operator++() noexcept -> decltype(*this);
-        auto operator++(int) noexcept -> LoadCommandsIterator &;
-        auto operator+=(int) noexcept -> decltype(*this);
-
-        [[nodiscard]] constexpr auto &operator*() const noexcept {
-            return *Ptr;
-        }
-
-        [[nodiscard]] constexpr auto operator->() const noexcept { return Ptr; }
-
-        constexpr auto
-        operator<=>(const LoadCommandsIterator &Other) const noexcept = default;
-
-        [[nodiscard]] constexpr
-        auto operator==(const LoadCommand *const Other) const noexcept -> bool {
-            return Ptr == Other;
-        }
-
-        [[nodiscard]] constexpr
-        auto operator!=(const LoadCommand *const Other) const noexcept -> bool {
-            return Ptr != Other;
-        }
-    };
-
     struct LoadCommandsMap {
     protected:
-        bool IsBigEndian : 1 = false;
         ADT::MemoryMap Map;
+        bool IsBigEndian : 1 = false;
     public:
-        explicit LoadCommandsMap(ADT::MemoryMap Map, bool IsBigEndian) noexcept;
+        constexpr
+        LoadCommandsMap(const ADT::MemoryMap Map,
+                        const bool IsBigEndian) noexcept
+        : Map(Map), IsBigEndian(IsBigEndian) {}
 
         [[nodiscard]] constexpr auto isBigEndian() const noexcept {
             return IsBigEndian;
         }
 
-        auto begin() const noexcept -> LoadCommandsIterator;
-        auto end() const noexcept -> const LoadCommand *;
+        struct Iterator {
+        protected:
+            MachO::LoadCommand *Ptr = nullptr;
+            bool IsBigEndian : 1 = false;
+        public:
+            using value_type = LoadCommand;
+            using element_type = LoadCommand;
+            using difference_type = ptrdiff_t;
+            using pointer = LoadCommand *;
+            using reference = LoadCommand &;
+
+            constexpr
+            Iterator(MachO::LoadCommand *const Ptr,
+                     const bool IsBigEndian) noexcept
+            : Ptr(Ptr), IsBigEndian(IsBigEndian) {}
+
+            [[nodiscard]] constexpr auto isBigEndian() const noexcept {
+                return IsBigEndian;
+            }
+
+            inline auto operator++() noexcept -> decltype(*this) {
+                Ptr =
+                    reinterpret_cast<MachO::LoadCommand *>(
+                        reinterpret_cast<uint8_t *>(Ptr) +
+                        Ptr->cmdsize(IsBigEndian));
+
+                return *this;
+            }
+
+            auto operator++(int) noexcept {
+                return operator++();
+            }
+
+            auto
+            operator+=(const difference_type Amount) noexcept
+                -> decltype(*this)
+            {
+                for (auto I = difference_type(); I != Amount; I++) {
+                    operator++();
+                }
+
+                return *this;
+            }
+
+
+            [[nodiscard]] constexpr auto &operator*() const noexcept {
+                return *Ptr;
+            }
+
+            [[nodiscard]] constexpr auto operator->() const noexcept {
+                return Ptr;
+            }
+
+            constexpr auto
+            operator<=>(const Iterator &Other) const noexcept = default;
+
+            [[nodiscard]] constexpr
+            auto operator==(const LoadCommand *const Other) const noexcept {
+                return Ptr == Other;
+            }
+
+            [[nodiscard]] constexpr
+            auto operator!=(const LoadCommand *const Other) const noexcept {
+                return Ptr != Other;
+            }
+        };
+
+        [[nodiscard]] inline auto begin() const noexcept {
+            return Iterator(Map.base<LoadCommand>(), IsBigEndian);
+        }
+
+        [[nodiscard]] inline auto end() const noexcept {
+            return Map.end<const LoadCommand>();
+        }
     };
 }
