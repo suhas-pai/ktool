@@ -11,6 +11,8 @@
 #include <concepts>
 #include <limits>
 
+#include "Utils/Overflow.h"
+
 namespace ADT {
     struct Range {
     protected:
@@ -36,7 +38,7 @@ namespace ADT {
         [[nodiscard]] constexpr auto begin() const noexcept { return Begin; }
         [[nodiscard]] constexpr auto size() const noexcept { return Size; }
         [[nodiscard]] constexpr auto end() const noexcept {
-            return Begin + Size;
+            return Utils::AddAndCheckOverflow(Begin, Size);
         }
 
         template <std::integral T>
@@ -95,14 +97,19 @@ namespace ADT {
                 return false;
             }
 
-            return (containsLoc(Other.Begin) ||
-                    containsEnd(Other.end()) ||
-                    Other.contains(*this));
+            if (const auto OtherEnd = Other.end()) {
+                if (containsEnd(OtherEnd.value())) {
+                    return true;
+                }
+            }
+
+            return (containsLoc(Other.Begin) || Other.contains(*this));
         }
 
         [[nodiscard]]
         constexpr auto containsAsIndex(const Range &Other) const noexcept {
-            return containsIndex(Other.Begin) && containsEndIndex(Other.end());
+            const auto MinSize = (Other.Size + (Other.Begin - Begin));
+            return containsIndex(Other.Begin) && Size >= MinSize;
         }
 
         [[nodiscard]]
