@@ -17,10 +17,8 @@
 #include "Utils/Misc.h"
 
 namespace ADT {
-    template <std::integral T>
+    template <std::unsigned_integral T>
     struct FlagsBase {
-        static_assert(!std::is_signed_v<T>,
-                      "FlagsBase type is a signed integer-type");
     protected:
         T Flags = 0;
 
@@ -87,13 +85,16 @@ namespace ADT {
             return *this;
         }
 
-        [[nodiscard]]
-        constexpr auto operator~() const noexcept -> decltype(*this) {
-            return ~Flags;
+        [[nodiscard]] constexpr auto operator~() const noexcept {
+            return FlagsBase(~Flags);
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {
             return Flags == 0;
+        }
+
+        [[nodiscard]] constexpr auto value() const noexcept {
+            return Flags;
         }
 
         [[nodiscard]]
@@ -132,10 +133,6 @@ namespace ADT {
         {
             Flags >>= BitCount;
             return *this;
-        }
-
-        [[nodiscard]] constexpr auto value() const noexcept {
-            return Flags;
         }
 
         constexpr
