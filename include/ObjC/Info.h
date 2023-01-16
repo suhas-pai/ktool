@@ -63,7 +63,9 @@ namespace ObjC {
         }
 
         constexpr auto
-        setIsaAddress(const uint32_t Value, const bool IsBigEndian) noexcept {
+        setIsaAddress(const uint32_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->Isa = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
@@ -71,26 +73,32 @@ namespace ObjC {
         constexpr auto
         setSuperClassAddress(const uint32_t Value,
                              const bool IsBigEndian) noexcept
+            -> decltype(*this)
         {
             this->SuperClass = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr auto
-        setCacheAddress(const uint32_t Value, const bool IsBigEndian) noexcept {
+        setCacheAddress(const uint32_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->Cache = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr auto
         setVtableAddress(const uint32_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
         {
             this->Vtable = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr
-        auto setData(const uint32_t Value, const bool IsBigEndian) noexcept {
+        auto setData(const uint32_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->Data = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
@@ -102,13 +110,17 @@ namespace ObjC {
         }
 
         constexpr auto
-        setReserved2(const uint32_t Value, const bool IsBigEndian) noexcept {
+        setReserved2(const uint32_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->Reserved2 = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr auto
-        setReserved3(const uint32_t Value, const bool IsBigEndian) noexcept {
+        setReserved3(const uint32_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->Reserved3 = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
@@ -173,7 +185,9 @@ namespace ObjC {
         }
 
         constexpr auto
-        setIsaAddress(const uint64_t Value, const bool IsBigEndian) noexcept {
+        setIsaAddress(const uint64_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->Isa = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
@@ -181,13 +195,16 @@ namespace ObjC {
         constexpr auto
         setSuperClassAddress(const uint64_t Value,
                              const bool IsBigEndian) noexcept
+            -> decltype(*this)
         {
             this->SuperClass = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr auto
-        setCacheAddress(const uint64_t Value, const bool IsBigEndian) noexcept {
+        setCacheAddress(const uint64_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->Cache = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
@@ -195,31 +212,40 @@ namespace ObjC {
         constexpr auto
         setVtableAddress(const uint64_t Value,
                          const bool IsBigEndian) noexcept
+            -> decltype(*this)
         {
             this->Vtable = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr
-        auto setData(const uint64_t Value, const bool IsBigEndian) noexcept {
+        auto setData(const uint64_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->Data = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr auto
-        setReserved1(const uint64_t Value, const bool IsBigEndian) noexcept {
+        setReserved1(const uint64_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->Reserved1 = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr auto
-        setReserved2(const uint64_t Value, const bool IsBigEndian) noexcept {
+        setReserved2(const uint64_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->Reserved2 = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr auto
-        setReserved3(const uint64_t Value, const bool IsBigEndian) noexcept {
+        setReserved3(const uint64_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->Reserved3 = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
@@ -238,18 +264,18 @@ namespace ObjC {
         using ADT::FlagsBase<uint32_t>::FlagsBase;
 
         enum class Enum : uint32_t {
-            IsMeta                   = 1 << 0,
-            IsRoot                   = 1 << 1,
-            HasCxxStructors          = 1 << 2,
-            IsHidden                 = 1 << 4,
-            IsException              = 1 << 5,
-            HasSwiftInitializer      = 1 << 6,
-            IsARC                    = 1 << 7,
-            HasCxxDestructorOnly     = 1 << 8,
-            HasWeakWithoutARC        = 1 << 9,
-            ForbidsAssociatedObjects = 1 << 10,
-            IsFromBundle             = 1 << 29,
-            IsFuture                 = 1 << 30,
+            IsMeta                   = 1ull << 0,
+            IsRoot                   = 1ull << 1,
+            HasCxxStructors          = 1ull << 2,
+            IsHidden                 = 1ull << 4,
+            IsException              = 1ull << 5,
+            HasSwiftInitializer      = 1ull << 6,
+            IsARC                    = 1ull << 7,
+            HasCxxDestructorOnly     = 1ull << 8,
+            HasWeakWithoutARC        = 1ull << 9,
+            ForbidsAssociatedObjects = 1ull << 10,
+            IsFromBundle             = 1ull << 29,
+            IsFuture                 = 1ull << 30,
             IsRealized               = static_cast<uint32_t>(1ull << 31),
         };
 
@@ -453,13 +479,16 @@ namespace ObjC {
 
         constexpr auto
         setFlags(const ObjcClassRoFlags &Flags, const bool IsBigEndian) noexcept
+            -> decltype(*this)
         {
             this->Flags = ADT::SwitchEndianIf(Flags.value(), IsBigEndian);
             return *this;
         }
 
         constexpr auto
-        setInstanceStart(uint32_t Value, const bool IsBigEndian) noexcept {
+        setInstanceStart(const uint32_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->InstanceStart = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
@@ -471,19 +500,24 @@ namespace ObjC {
         }
 
         constexpr auto
-        setIvarLayout(const uint32_t Value, const bool IsBigEndian) noexcept {
+        setIvarLayout(const uint32_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->IvarLayout = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr auto
-        setNameAddress(const uint32_t Value, const bool IsBigEndian) noexcept {
+        setNameAddress(const uint32_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->Name = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr auto
         setMethodsAddress(const uint32_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
         {
             this->BaseMethods = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -492,19 +526,23 @@ namespace ObjC {
         constexpr auto
         setProtocolsAddress(const uint32_t Value,
                             const bool IsBigEndian) noexcept
+            -> decltype(*this)
         {
             this->BaseProtocols = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr auto
-        setIvarsAddress(const uint32_t Value, const bool IsBigEndian) noexcept {
+        setIvarsAddress(const uint32_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
+        {
             this->Ivars = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
         constexpr auto
         setWeakIvarLayout(const uint32_t Value, const bool IsBigEndian) noexcept
+            -> decltype(*this)
         {
             this->WeakIvarLayout = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -513,6 +551,7 @@ namespace ObjC {
         constexpr auto
         setPropertiesAddress(const uint32_t Value,
                              const bool IsBigEndian) noexcept
+            -> decltype(*this)
         {
             this->BaseProperties = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -589,7 +628,9 @@ namespace ObjC {
         }
 
         constexpr auto
-        setInstanceStart(uint32_t Value, const bool IsBigEndian) noexcept {
+        setInstanceStart(const uint32_t Value,
+                         const bool IsBigEndian) noexcept
+        {
             this->InstanceStart = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
