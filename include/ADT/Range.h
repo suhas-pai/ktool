@@ -111,10 +111,5 @@ namespace ADT {
             const auto MinSize = (Other.Size + (Other.Begin - Begin));
             return containsIndex(Other.Begin) && Size >= MinSize;
         }
-
-        [[nodiscard]]
-        constexpr auto offsetSubrange(const auto &Range) const noexcept {
-            return Range(Begin + Range.Offset, Range.Size);
-        }
     };
 }
