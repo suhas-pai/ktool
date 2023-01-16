@@ -32,15 +32,6 @@ namespace ADT {
             Flags &= ~static_cast<T>(Mask);
         }
 
-        template <typename E>
-        constexpr auto setForValue(const E Mask, const bool Value) noexcept {
-            if (Value) {
-                addMask(Mask);
-            } else {
-                removeMask(Mask);
-            }
-        }
-
         template <typename E, typename S, typename V>
         constexpr void
         setValueForMask(const E Mask, const S Shift, const V Value) noexcept {

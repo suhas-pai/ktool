@@ -36,21 +36,21 @@ namespace Mach {
         constexpr auto setReadable(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setForValue(Masks::Readable, Value);
+            setValueForMask(Masks::Readable, 0, Value);
             return *this;
         }
 
         constexpr auto setWritable(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setForValue(Masks::Writable, Value);
+            setValueForMask(Masks::Writable, 0, Value);
             return *this;
         }
 
         constexpr auto setExecutable(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setForValue(Masks::Executable, Value);
+            setValueForMask(Masks::Executable, 0, Value);
             return *this;
         }
     };

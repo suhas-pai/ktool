@@ -458,7 +458,7 @@ namespace MachO {
             constexpr auto setIsHighVm(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                setForValue(Kind::HighVm, Value);
+                setValueForMask(Kind::HighVm, 0, Value);
                 return *this;
             }
 
@@ -466,7 +466,7 @@ namespace MachO {
             auto setIsFixedVmLibrary(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                setForValue(Kind::FixedVmLibrary, Value);
+                setValueForMask(Kind::FixedVmLibrary, 0, Value);
                 return *this;
             }
 
@@ -474,7 +474,7 @@ namespace MachO {
             auto setHasNoRelocations(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                setForValue(Kind::NoRelocations, Value);
+                setValueForMask(Kind::NoRelocations, 0, Value);
                 return *this;
             }
 
@@ -482,14 +482,14 @@ namespace MachO {
             auto setIsProtectedVersion1(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                setForValue(Kind::ProtectedVersion1, Value);
+                setValueForMask(Kind::ProtectedVersion1, 0, Value);
                 return *this;
             }
 
             constexpr auto setIsReadOnly(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                setForValue(Kind::ReadOnly, Value);
+                setValueForMask(Kind::ReadOnly, 0, Value);
                 return *this;
             }
         };

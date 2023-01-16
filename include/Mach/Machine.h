@@ -11,8 +11,8 @@
 #include <string_view>
 
 namespace Mach {
-    static constexpr auto CpuABI64 = 0x01000000;
-    static constexpr auto CpuABI64_32 = 0x02000000;
+    constexpr static auto CpuABI64 = 0x01000000;
+    constexpr static auto CpuABI64_32 = 0x02000000;
 
     enum class CpuKind : int32_t {
         Any,

@@ -329,32 +329,32 @@ namespace ObjC {
 
         constexpr
         auto setMeta(const bool Value = true) noexcept -> decltype(*this) {
-            setForValue(Enum::IsMeta, Value);
+            setValueForMask(Enum::IsMeta, 0, Value);
             return *this;
         }
 
         constexpr
         auto setRoot(const bool Value = true) noexcept -> decltype(*this) {
-            setForValue(Enum::IsRoot, Value);
+            setValueForMask(Enum::IsRoot, 0, Value);
             return *this;
         }
 
         constexpr auto
         setHasCxxStructors(const bool Value = true) noexcept -> decltype(*this)
         {
-            setForValue(Enum::HasCxxStructors, Value);
+            setValueForMask(Enum::HasCxxStructors, 0, Value);
             return *this;
         }
 
         constexpr
         auto setHidden(const bool Value = true) noexcept -> decltype(*this) {
-            setForValue(Enum::IsHidden, Value);
+            setValueForMask(Enum::IsHidden, 0, Value);
             return *this;
         }
 
         constexpr
         auto setException(const bool Value = true) noexcept -> decltype(*this) {
-            setForValue(Enum::IsException, Value);
+            setValueForMask(Enum::IsException, 0, Value);
             return *this;
         }
 
@@ -362,13 +362,13 @@ namespace ObjC {
         setHasSwiftInitializer(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setForValue(Enum::HasSwiftInitializer, Value);
+            setValueForMask(Enum::HasSwiftInitializer, 0, Value);
             return *this;
         }
 
         constexpr
         auto setARC(const bool Value = true) noexcept -> decltype(*this) {
-            setForValue(Enum::IsARC, Value);
+            setValueForMask(Enum::IsARC, 0, Value);
             return *this;
         }
 
@@ -376,7 +376,7 @@ namespace ObjC {
         setHasCxxDestructorsOnly(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setForValue(Enum::HasCxxDestructorOnly, Value);
+            setValueForMask(Enum::HasCxxDestructorOnly, 0, Value);
             return *this;
         }
 
@@ -384,7 +384,7 @@ namespace ObjC {
         setHasWeakWithoutARC(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setForValue(Enum::HasWeakWithoutARC, Value);
+            setValueForMask(Enum::HasWeakWithoutARC, 0, Value);
             return *this;
         }
 
@@ -392,25 +392,25 @@ namespace ObjC {
         setForbidsAssociatedObjects(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setForValue(Enum::ForbidsAssociatedObjects, Value);
+            setValueForMask(Enum::ForbidsAssociatedObjects, 0, Value);
             return *this;
         }
 
         constexpr auto
         setFromBundle(const bool Value = true) noexcept -> decltype(*this) {
-            setForValue(Enum::IsFromBundle, Value);
+            setValueForMask(Enum::IsFromBundle, 0, Value);
             return *this;
         }
 
         constexpr
         auto setFuture(const bool Value = true) noexcept -> decltype(*this) {
-            setForValue(Enum::IsFuture, Value);
+            setValueForMask(Enum::IsFuture, 0, Value);
             return *this;
         }
 
         constexpr
         auto setRealized(const bool Value = true) noexcept -> decltype(*this) {
-            setForValue(Enum::IsRealized, Value);
+            setValueForMask(Enum::IsRealized, 0, Value);
             return *this;
         }
     };

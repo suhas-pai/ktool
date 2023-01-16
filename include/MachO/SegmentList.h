@@ -97,8 +97,8 @@ namespace MachO {
     protected:
         std::vector<SegmentInfo> List;
     public:
-        explicit SegmentList(const MachO::LoadCommandsMap &Map,
-                             bool Is64Bit) noexcept;
+        explicit
+        SegmentList(const MachO::LoadCommandsMap &Map, bool Is64Bit) noexcept;
 
         [[nodiscard]] constexpr auto
         GetSegmentWithName(const std::string_view Name) const noexcept

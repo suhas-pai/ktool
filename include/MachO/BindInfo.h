@@ -269,14 +269,14 @@ namespace MachO {
         constexpr auto setIsWeakImport(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setForValue(FlagsEnum::WeakImport, Value);
+            setValueForMask(FlagsEnum::WeakImport, 0, Value);
             return *this;
         }
 
         constexpr auto setHasNonWeakDefinition(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setForValue(FlagsEnum::NonWeakDefinition, Value);
+            setValueForMask(FlagsEnum::NonWeakDefinition, 0, Value);
             return *this;
         }
     };
