@@ -37,6 +37,7 @@ namespace MachO {
             using pointer = LoadCommand *;
             using reference = LoadCommand &;
 
+            constexpr Iterator() noexcept = default;
             constexpr
             Iterator(MachO::LoadCommand *const Ptr,
                      const bool IsBigEndian) noexcept
@@ -44,6 +45,41 @@ namespace MachO {
 
             [[nodiscard]] constexpr auto isBigEndian() const noexcept {
                 return IsBigEndian;
+            }
+
+            template <MachO::LoadCommandKind Kind>
+            [[nodiscard]] constexpr auto isa() const noexcept
+                -> decltype(auto)
+            {
+                return MachO::isa<Kind>(Ptr, IsBigEndian);
+            }
+
+            template <MachO::LoadCommandKind Kind>
+            [[nodiscard]] constexpr auto cast() const noexcept
+                -> decltype(auto)
+            {
+                return MachO::cast<Kind>(Ptr, IsBigEndian);
+            }
+
+            template <MachO::LoadCommandKind Kind>
+            [[nodiscard]] constexpr auto dyn_cast() const noexcept
+                -> decltype(auto)
+            {
+                return MachO::dyn_cast<Kind>(Ptr, IsBigEndian);
+            }
+
+            template <LoadCommandDerived T>
+            [[nodiscard]] constexpr auto cast() const noexcept
+                -> decltype(auto)
+            {
+                return MachO::cast<T>(Ptr, IsBigEndian);
+            }
+
+            template <LoadCommandDerived T>
+            [[nodiscard]] constexpr auto dyn_cast() const noexcept
+                -> decltype(auto)
+            {
+                return MachO::dyn_cast<T>(Ptr, IsBigEndian);
             }
 
             inline auto operator++() noexcept -> decltype(*this) {
@@ -70,7 +106,6 @@ namespace MachO {
                 return *this;
             }
 
-
             [[nodiscard]] constexpr auto &operator*() const noexcept {
                 return *Ptr;
             }
@@ -81,6 +116,16 @@ namespace MachO {
 
             constexpr auto
             operator<=>(const Iterator &Other) const noexcept = default;
+
+            [[nodiscard]] constexpr
+            auto operator==(const Iterator &Other) const noexcept {
+                return Ptr == Other.Ptr;
+            }
+
+            [[nodiscard]] constexpr
+            auto operator!=(const Iterator &Other) const noexcept {
+                return !operator==(Other);
+            }
 
             [[nodiscard]] constexpr
             auto operator==(const LoadCommand *const Other) const noexcept {
@@ -98,7 +143,12 @@ namespace MachO {
         }
 
         [[nodiscard]] inline auto end() const noexcept {
-            return Map.end<const LoadCommand>();
+            const auto End =
+                const_cast<MachO::LoadCommand *>(Map.end<LoadCommand>());
+
+            return Iterator(End, IsBigEndian);
         }
     };
+
+    static_assert(std::forward_iterator<LoadCommandsMap::Iterator>, "");
 }
