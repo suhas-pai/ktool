@@ -25,7 +25,7 @@ endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_target_properties(ktool PROPERTIES OUTPUT_NAME "ktool_debug")
-    target_link_options(ktool PRIVATE "-fsanitize=address" "-fsanitize=undefined")
+    target_link_options(ktool PRIVATE "-fsanitize=undefined")
 endif()
 
 install(TARGETS ktool DESTINATION ${CMAKE_INSTALL_PREFIX})
