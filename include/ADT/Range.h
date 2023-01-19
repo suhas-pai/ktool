@@ -103,7 +103,7 @@ namespace ADT {
                 }
             }
 
-            return (containsLoc(Other.Begin) || Other.contains(*this));
+            return containsLoc(Other.Begin) || Other.contains(*this);
         }
 
         [[nodiscard]]

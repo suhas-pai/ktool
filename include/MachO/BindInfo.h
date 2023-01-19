@@ -301,8 +301,7 @@ namespace MachO {
             return Opcode(valueForMask(Masks::Immediate));
         }
 
-        constexpr auto setOpcode(const Opcode Value) noexcept
-            -> decltype(*this)
+        constexpr auto setOpcode(const Opcode Value) noexcept -> decltype(*this)
         {
             setValueForMask(Masks::Opcode, 0, Value);
             return *this;

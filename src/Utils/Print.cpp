@@ -15,9 +15,8 @@
 #include "Utils/Print.h"
 
 namespace Utils {
-    template <typename T>
     [[nodiscard]] static inline
-    auto to_string_with_precision(const T Value, const int n = 3) noexcept {
+    auto ToStringWithPrecision(const auto &Value, const int n = 3) noexcept {
         std::ostringstream out;
         out.precision(n);
         out << std::fixed << Value;
@@ -44,7 +43,7 @@ namespace Utils {
             auto Result = std::string();
 
             Result.reserve(STR_LENGTH("1023") + STR_LENGTH(" bytes"));
-            Result.append(to_string_with_precision(ResultAmount));
+            Result.append(ToStringWithPrecision(ResultAmount));
             Result.append(" Bytes");
 
             return Result;
@@ -64,7 +63,7 @@ namespace Utils {
         auto Result = std::string();
 
         Result.reserve(STR_LENGTH("1023.999 ") + 1 + Name.length());
-        Result.append(to_string_with_precision(ResultAmount));
+        Result.append(ToStringWithPrecision(ResultAmount));
         Result.append(1, ' ');
         Result.append(Name);
 
