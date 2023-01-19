@@ -7,6 +7,7 @@
 
 #include "MachO/LoadCommands.h"
 #include "MachO/LoadCommandsMap.h"
+
 #include "Operations/PrintId.h"
 
 #include "Utils/Misc.h"
@@ -53,7 +54,7 @@ namespace Operations {
                     }
                 }
 
-                fprintf(OutFile, "ID: %s\n", Name.data());
+                fprintf(OutFile, "ID: \"%s\"\n", Name.data());
                 if (Opt.Verbose) {
                     const auto &Dylib = ID->Dylib;
                     const auto CurrentVersion =
