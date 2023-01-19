@@ -108,14 +108,19 @@ namespace ADT {
             return __builtin_ctz(Flags) + Index;
         }
 
-        [[nodiscard]] constexpr auto getCount() const noexcept -> uint8_t {
+        [[nodiscard]]
+        constexpr auto getCount(const uint8_t Index = 0) const noexcept
+            -> uint8_t
+        {
+            assert(Index <= bit_sizeof(T));
+
             if constexpr (sizeof(T) == sizeof(long long)) {
-                return __builtin_popcountll(Flags);
+                return __builtin_popcountll(Flags >> Index);
             } else if constexpr (sizeof(T) == sizeof(long)) {
-                return __builtin_popcountl(Flags);
+                return __builtin_popcountl(Flags >> Index);
             }
 
-            return __builtin_popcount(Flags);
+            return __builtin_popcount(Flags >> Index);
         }
 
         [[nodiscard]]
