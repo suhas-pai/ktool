@@ -907,6 +907,18 @@ namespace MachO {
             return ADT::SwitchEndianIf(SectionCount, IsBigEndian);
         }
 
+        uint32_t Flags;
+
+        [[nodiscard]]
+        constexpr auto flags(const bool IsBigEndian) const noexcept {
+            return FlagsStruct(ADT::SwitchEndianIf(Flags, IsBigEndian));
+        }
+
+        [[nodiscard]]
+        constexpr auto isProtected(const bool IsBigEndian) const noexcept {
+            return flags(IsBigEndian).protectedVersion1();
+        }
+
         using FlagsStruct = SegmentCommand::FlagsStruct;
         struct Section {
             char SectionName[16];
@@ -1041,18 +1053,6 @@ namespace MachO {
 
             return CmdSizeInvalidKind::None;
         }
-
-        uint32_t Flags;
-
-        [[nodiscard]]
-        constexpr auto flags(const bool IsBigEndian) const noexcept {
-            return FlagsStruct(ADT::SwitchEndianIf(Flags, IsBigEndian));
-        }
-
-        [[nodiscard]]
-        constexpr auto isProtected(const bool IsBigEndian) const noexcept {
-            return flags(IsBigEndian).protectedVersion1();
-        }
     };
 
     struct ThreadCommand : public LoadCommand {
@@ -1089,7 +1089,7 @@ namespace MachO {
             -> std::optional<std::string_view>
         {
             const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBigEndian);
-            const auto CmdSize = ADT::SwitchEndianIf(Cmd->CmdSize, IsBigEndian);
+            const auto CmdSize = Cmd->cmdsize(IsBigEndian);
 
             if (Offset >= CmdSize) {
                 return std::nullopt;
@@ -1408,6 +1408,11 @@ namespace MachO {
         [[nodiscard]]
         constexpr auto name(const bool IsBigEndian) const noexcept {
             return Name.string(this, IsBigEndian);
+        }
+
+        [[nodiscard]]
+        constexpr auto modulesCount(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ModulesCount, IsBigEndian);
         }
 
         [[nodiscard]]
@@ -1829,6 +1834,10 @@ namespace MachO {
             const auto Entries =
                 Map.getFromRange<const Entry>(symRange(IsBigEndian, false));
 
+            if (Entries == nullptr) {
+                return ADT::List<const Entry>();
+            }
+
             return ADT::List(Entries, symCount(IsBigEndian));
         }
 
@@ -1838,6 +1847,10 @@ namespace MachO {
         {
             const auto Entries =
                 Map.getFromRange<Entry>(symRange(IsBigEndian, false));
+
+            if (Entries == nullptr) {
+                return ADT::List<Entry>();
+            }
 
             return ADT::List(Entries, symCount(IsBigEndian));
         }
@@ -1849,6 +1862,10 @@ namespace MachO {
             const auto Entries =
                 Map.getFromRange<const Entry64>(symRange(IsBigEndian, true));
 
+            if (Entries == nullptr) {
+                return ADT::List<const Entry64>();
+            }
+
             return ADT::List(Entries, symCount(IsBigEndian));
         }
 
@@ -1858,6 +1875,10 @@ namespace MachO {
         {
             const auto Entries =
                 Map.getFromRange<Entry64>(symRange(IsBigEndian, true));
+
+            if (Entries == nullptr) {
+                return ADT::List<Entry64>();
+            }
 
             return ADT::List(Entries, symCount(IsBigEndian));
         }
@@ -1941,13 +1962,13 @@ namespace MachO {
         uint32_t ModulesTabOffset;
         uint32_t ModulesTabCount;
 
-        [[nodiscard]] constexpr
-        auto modulesTabOffset(const bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr auto modulesTabOffset(const bool IsBigEndian) const noexcept {
             return ADT::SwitchEndianIf(ModulesTabOffset, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        auto modulesTabCount(const bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr auto modulesTabCount(const bool IsBigEndian) const noexcept {
             return ADT::SwitchEndianIf(ModulesTabCount, IsBigEndian);
         }
 
@@ -1993,13 +2014,13 @@ namespace MachO {
         uint32_t LocalRelOffset;
         uint32_t LocalRelCount;
 
-        [[nodiscard]] constexpr
-        auto localRelOffset(const bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr auto localRelOffset(const bool IsBigEndian) const noexcept {
             return ADT::SwitchEndianIf(LocalRelOffset, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        auto localRelCount(const bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr auto localRelCount(const bool IsBigEndian) const noexcept {
             return ADT::SwitchEndianIf(LocalRelCount, IsBigEndian);
         }
 
@@ -2043,6 +2064,54 @@ namespace MachO {
         uint32_t InitTermIndices;
         uint32_t InitTermCounts;
 
+        uint32_t ObjcModuleInfoAddress;
+        uint32_t ObjcModuleInfoSize;
+
+        [[nodiscard]] constexpr
+        auto moduleNameStringTabIndex(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ModuleNameStringTabIndex, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto externDefSymbolsIndex(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ExternDefSymbolsIndex, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto externDefSymbolsCount(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ExternDefSymbolsCount, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto refSymbolsIndex(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ExternDefSymbolsIndex, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto refSymbolsCount(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ExternDefSymbolsCount, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto localSymbolIndex(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(LocalSymbolIndex, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto localSymbolCount(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(LocalSymbolCount, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto externRelIndex(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ExternRelIndex, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto externRelCount(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ExternRelCount, IsBigEndian);
+        }
+
         [[nodiscard]]
         constexpr auto initIndex(const bool IsBigEndian) const noexcept {
             const auto InitTermIndices =
@@ -2075,8 +2144,21 @@ namespace MachO {
             return uint16_t(InitTermCounts >> 16);
         }
 
-        uint32_t ObjcModuleInfoAddress;
-        uint32_t ObjcModuleInfoSize;
+        [[nodiscard]] constexpr
+        auto objcModuleInfoAddress(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ObjcModuleInfoAddress, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto objcModuleInfoSize(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ObjcModuleInfoSize, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto objcModuleInfoRange(const bool IsBigEndian) const noexcept {
+            return ADT::Range::FromSize(objcModuleInfoAddress(IsBigEndian),
+                                        objcModuleInfoSize(IsBigEndian));
+        }
     };
 
     struct DylibModule64 {
@@ -2097,6 +2179,54 @@ namespace MachO {
         uint32_t InitTermIndices;
         uint32_t InitTermCounts;
 
+        uint32_t ObjcModuleInfoSize;
+        uint64_t ObjcModuleInfoAddress;
+
+        [[nodiscard]] constexpr
+        auto moduleNameStringTabIndex(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ModuleNameStringTabIndex, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto externDefSymbolsIndex(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ExternDefSymbolsIndex, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto externDefSymbolsCount(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ExternDefSymbolsCount, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto refSymbolsIndex(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ExternDefSymbolsIndex, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto refSymbolsCount(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ExternDefSymbolsCount, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto localSymbolIndex(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(LocalSymbolIndex, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto localSymbolCount(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(LocalSymbolCount, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto externRelIndex(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ExternRelIndex, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto externRelCount(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ExternRelCount, IsBigEndian);
+        }
+
         [[nodiscard]]
         constexpr auto initIndex(const bool IsBigEndian) const noexcept {
             const auto InitTermIndices =
@@ -2129,8 +2259,21 @@ namespace MachO {
             return uint16_t(InitTermCounts >> 16);
         }
 
-        uint32_t ObjcModuleInfoSize;
-        uint64_t ObjcModuleInfoAddr;
+        [[nodiscard]] constexpr
+        auto objcModuleInfoSize(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ObjcModuleInfoSize, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto objcModuleInfoAddress(const bool IsBigEndian) const noexcept {
+            return ADT::SwitchEndianIf(ObjcModuleInfoAddress, IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr
+        auto objcModuleInfoRange(const bool IsBigEndian) const noexcept {
+            return ADT::Range::FromSize(objcModuleInfoAddress(IsBigEndian),
+                                        objcModuleInfoSize(IsBigEndian));
+        }
     };
 
     struct DylibReference {
@@ -2631,7 +2774,9 @@ namespace MachO {
                 return Result;
             }
 
-            const auto ToolListSize = sizeof(BuildTool) * ToolsCount;
+            const auto ToolListSize =
+                sizeof(BuildTool) * toolsCount(IsBigEndian);
+
             if (sizeof(*this) + ToolListSize < cmdsize(IsBigEndian)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -3357,6 +3502,7 @@ namespace MachO {
     template <LoadCommandDerived First,
               LoadCommandDerived Second,
               LoadCommandDerived... Rest>
+
     [[nodiscard]]
     constexpr auto isa(const LoadCommand *const LC, const bool IsBE) noexcept {
         return isa<First>(LC, IsBE) || isa<Second, Rest...>(LC, IsBE);
@@ -3436,8 +3582,7 @@ namespace MachO {
 
     template <LoadCommandDerived T>
     [[nodiscard]] constexpr
-    auto dyn_cast(LoadCommand *const LC, const bool IsBigEndian) noexcept
-        -> T *
+    auto dyn_cast(LoadCommand *const LC, const bool IsBigEndian) noexcept -> T *
     {
         if (isa<T>(LC, IsBigEndian)) {
             return static_cast<T *>(LC);
@@ -3514,8 +3659,8 @@ namespace MachO {
         static_assert(
             std::is_same_v<T, U> &&
             std::conjunction<
-                std::is_same<T, LoadCommandTypeFromKindType<Rest>>...>::value,
-            "Types of the several LoadCommandKinds don't match!");
+                std::is_same<U, LoadCommandTypeFromKindType<Rest>>...>::value,
+            "Associated types of the provided LoadCommandKinds don't match!");
 
         if (isa<First, Second, Rest...>(LC, IsBigEndian)) {
             return static_cast<const T *>(LC);
