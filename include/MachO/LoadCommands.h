@@ -739,7 +739,7 @@ namespace MachO {
                        "Section::KindGetDesc() got an unrecognized kind");
             }
 
-            enum class Attributes : uint32_t {
+            enum class Attribute : uint32_t {
                 HasLocalReloc = 1 << 8,
                 HasExternalReloc = 1 << 9,
                 HasSomeInstructions = 1 << 10,
@@ -753,60 +753,148 @@ namespace MachO {
                 PureInstructions = static_cast<uint32_t>(1 << 31)
             };
 
+            constexpr static inline auto UserSettableAttributeMask = 0xff000000;
+            constexpr
+            static inline auto SystemSettableAttributeMask = 0x00ffff00;
+
+            [[nodiscard]] constexpr
+            static auto AttributeIsValid(const Attribute Attr) noexcept {
+                switch (Attr) {
+                    case Attribute::HasLocalReloc:
+                    case Attribute::HasExternalReloc:
+                    case Attribute::HasSomeInstructions:
+                    case Attribute::DebugSection:
+                    case Attribute::SelfModifyingCode:
+                    case Attribute::HasLiveSupport:
+                    case Attribute::NoDeadStrip:
+                    case Attribute::StripStaticSymbols:
+                    case Attribute::NoTableOfContents:
+                    case Attribute::PureInstructions:
+                        return true;
+                }
+
+                return false;
+            }
+
+            [[nodiscard]] constexpr
+            static auto AttributeGetString(const Attribute Attr) noexcept
+                -> std::string_view
+            {
+                switch (Attr) {
+                    case Attribute::HasLocalReloc:
+                        return "S_ATTR_LOC_RELOC";
+                    case Attribute::HasExternalReloc:
+                        return "S_ATTR_EXT_RELOC";
+                    case Attribute::HasSomeInstructions:
+                        return "S_ATTR_SOME_INSTRUCTIONS";
+                    case Attribute::DebugSection:
+                        return "S_ATTR_DEBUG";
+                    case Attribute::SelfModifyingCode:
+                        return "S_ATTR_SELF_MODIFYING_CODE";
+                    case Attribute::HasLiveSupport:
+                        return "S_ATTR_LIVE_SUPPORT";
+                    case Attribute::NoDeadStrip:
+                        return "S_ATTR_NO_DEAD_STRIP";
+                    case Attribute::StripStaticSymbols:
+                        return "S_ATTR_STRIP_STATIC_SYMS";
+                    case Attribute::NoTableOfContents:
+                        return "S_ATTR_NO_TOC";
+                    case Attribute::PureInstructions:
+                        return "S_ATTR_PURE_INSTRUCTIONS";
+                }
+
+                assert(false &&
+                       "AttributeGetString() got unrecognized Attribute");
+            }
+
+            [[nodiscard]] constexpr
+            static auto AttributeGetDesc(const Attribute Attr) noexcept
+                -> std::string_view
+            {
+                switch (Attr) {
+                    case Attribute::HasLocalReloc:
+                        return "Local Relocations";
+                    case Attribute::HasExternalReloc:
+                        return "External Relocations";
+                    case Attribute::HasSomeInstructions:
+                        return "Has some instructions";
+                    case Attribute::DebugSection:
+                        return "Debug Section";
+                    case Attribute::SelfModifyingCode:
+                        return "Self-Modifying Code";
+                    case Attribute::HasLiveSupport:
+                        return "Has Live Support";
+                    case Attribute::NoDeadStrip:
+                        return "No Dead Strip";
+                    case Attribute::StripStaticSymbols:
+                        return "Strip Static Symbols";
+                    case Attribute::NoTableOfContents:
+                        return "No Table Of Contents";
+                    case Attribute::PureInstructions:
+                        return "Pure Instructions";
+                }
+
+                assert(false &&
+                       "AttributeGetDesc() got unrecognized Attribute");
+            }
+
             struct AttributesStruct : public ADT::FlagsBase<uint32_t> {
             public:
-                using ADT::FlagsBase<uint32_t>::FlagsBase;
+                constexpr AttributesStruct() noexcept = default;
+                constexpr AttributesStruct(const uint32_t Flags) noexcept
+                : ADT::FlagsBase<uint32_t>(
+                    Flags & static_cast<uint32_t>(~0xFF)) {}
 
                 [[nodiscard]] constexpr auto hasLocalReloc() const noexcept {
-                    return has(Attributes::HasLocalReloc);
+                    return has(Attribute::HasLocalReloc);
                 }
 
                 [[nodiscard]] constexpr auto hasExternalReloc() const noexcept {
-                    return has(Attributes::HasExternalReloc);
+                    return has(Attribute::HasExternalReloc);
                 }
 
                 [[nodiscard]]
                 constexpr auto hasSomeInstructions() const noexcept {
-                    return has(Attributes::HasSomeInstructions);
+                    return has(Attribute::HasSomeInstructions);
                 }
 
                 [[nodiscard]] constexpr auto isDebugSection() const noexcept {
-                    return has(Attributes::DebugSection);
+                    return has(Attribute::DebugSection);
                 }
 
                 [[nodiscard]]
                 constexpr auto selfModifyingCode() const noexcept {
-                    return has(Attributes::SelfModifyingCode);
+                    return has(Attribute::SelfModifyingCode);
                 }
 
                 [[nodiscard]] constexpr auto hasLiveSupport() const noexcept {
-                    return has(Attributes::HasLiveSupport);
+                    return has(Attribute::HasLiveSupport);
                 }
 
                 [[nodiscard]] constexpr auto noDeadStrip() const noexcept {
-                    return has(Attributes::NoDeadStrip);
+                    return has(Attribute::NoDeadStrip);
                 }
 
                 [[nodiscard]]
                 constexpr auto stripStaticSymbols() const noexcept {
-                    return has(Attributes::StripStaticSymbols);
+                    return has(Attribute::StripStaticSymbols);
                 }
 
                 [[nodiscard]]
                 constexpr auto noTableOfContents() const noexcept {
-                    return has(Attributes::NoTableOfContents);
+                    return has(Attribute::NoTableOfContents);
                 }
 
                 [[nodiscard]]
                 constexpr auto pureInstructions() const noexcept {
-                    return has(Attributes::PureInstructions);
+                    return has(Attribute::PureInstructions);
                 }
 
                 constexpr
                 auto setHasLocalReloc(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    setValueForMask(Attributes::HasLocalReloc, 0, Value);
+                    setValueForMask(Attribute::HasLocalReloc, 0, Value);
                     return *this;
                 }
 
@@ -814,7 +902,7 @@ namespace MachO {
                 auto setHasExternalReloc(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    setValueForMask(Attributes::HasExternalReloc, 0, Value);
+                    setValueForMask(Attribute::HasExternalReloc, 0, Value);
                     return *this;
                 }
 
@@ -822,7 +910,7 @@ namespace MachO {
                 auto setHasSomeInstructions(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    setValueForMask(Attributes::HasSomeInstructions, 0, Value);
+                    setValueForMask(Attribute::HasSomeInstructions, 0, Value);
                     return *this;
                 }
 
@@ -830,7 +918,7 @@ namespace MachO {
                 auto setIsDebugSection(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    setValueForMask(Attributes::DebugSection, 0, Value);
+                    setValueForMask(Attribute::DebugSection, 0, Value);
                     return *this;
                 }
 
@@ -838,7 +926,7 @@ namespace MachO {
                 auto setSelfModifyingCode(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    setValueForMask(Attributes::SelfModifyingCode, 0, Value);
+                    setValueForMask(Attribute::SelfModifyingCode, 0, Value);
                     return *this;
                 }
 
@@ -846,14 +934,14 @@ namespace MachO {
                 auto setHasLiveSupport(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    setValueForMask(Attributes::HasLiveSupport, 0, Value);
+                    setValueForMask(Attribute::HasLiveSupport, 0, Value);
                     return *this;
                 }
 
                 constexpr auto setNoDeadStrip(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    setValueForMask(Attributes::NoDeadStrip, 0, Value);
+                    setValueForMask(Attribute::NoDeadStrip, 0, Value);
                     return *this;
                 }
 
@@ -861,7 +949,7 @@ namespace MachO {
                 auto setStripStaticSymbols(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    setValueForMask(Attributes::StripStaticSymbols, 0, Value);
+                    setValueForMask(Attribute::StripStaticSymbols, 0, Value);
                     return *this;
                 }
 
@@ -869,7 +957,7 @@ namespace MachO {
                 auto setNoTableOfContents(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    setValueForMask(Attributes::NoTableOfContents, 0, Value);
+                    setValueForMask(Attribute::NoTableOfContents, 0, Value);
                     return *this;
                 }
             };
@@ -1123,9 +1211,44 @@ namespace MachO {
             }
 
             using FlagsStruct = SegmentCommand::Section::FlagsStruct;
-            using Attributes = SegmentCommand::Section::Attributes;
+            using Attribute = SegmentCommand::Section::Attribute;
             using AttributesStruct = SegmentCommand::Section::AttributesStruct;
             using Kind = SegmentCommand::Section::Kind;
+
+            constexpr static inline auto UserSettableAttributeMask =
+                SegmentCommand::Section::UserSettableAttributeMask;
+            constexpr static inline auto SystemSettableAttributeMask =
+                SegmentCommand::Section::SystemSettableAttributeMask;
+
+            [[nodiscard]]
+            constexpr static auto KindIsValid(const Kind Kind) noexcept {
+                return SegmentCommand::Section::KindIsValid(Kind);
+            }
+
+            [[nodiscard]]
+            constexpr static auto KindGetString(const Kind Kind) noexcept {
+                return SegmentCommand::Section::KindGetString(Kind);
+            }
+
+            [[nodiscard]]
+            constexpr static auto KindGetDesc(const Kind Kind) noexcept {
+                return SegmentCommand::Section::KindGetDesc(Kind);
+            }
+
+            [[nodiscard]]
+            constexpr static auto AttributeIsValid(const Attribute Attribute) noexcept {
+                return SegmentCommand::Section::AttributeIsValid(Attribute);
+            }
+
+            [[nodiscard]]
+            constexpr static auto AttributeGetString(const Attribute Attribute) noexcept {
+                return SegmentCommand::Section::AttributeGetString(Attribute);
+            }
+
+            [[nodiscard]]
+            constexpr static auto AttributeGetDesc(const Attribute Attribute) noexcept {
+                return SegmentCommand::Section::AttributeGetDesc(Attribute);
+            }
 
             uint32_t Flags;
 

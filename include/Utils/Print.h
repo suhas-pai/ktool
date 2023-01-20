@@ -62,6 +62,8 @@ namespace Utils {
 
 #define ZEROPAD_FMT "0*"
 #define ZEROPAD_FMT_ARGS(val) val
+#define LEFTPAD_FMT "*"
+#define LEFTPAD_FMT_ARGS(val) val
 #define RIGHTPAD_FMT "-*"
 #define RIGHTPAD_FMT_ARGS(val) val
 #define STR_LENGTH(s) (sizeof(s) - 1)

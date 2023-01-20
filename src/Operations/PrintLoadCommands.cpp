@@ -128,14 +128,18 @@ namespace Operations {
 
                     if (Verbose) {
                         fprintf(OutFile,
-                                "\t%s%*" PRIu32 ". ",
-                                Prefix, SectionCountDigitCount, I + 1);
+                                "\t%s%" LEFTPAD_FMT PRIu32 ". ",
+                                Prefix,
+                                LEFTPAD_FMT_ARGS(SectionCountDigitCount),
+                                I + 1);
                     } else {
                         fprintf(OutFile,
-                                "\t%s%*" PRIu32 ". "
+                                "\t%s%" LEFTPAD_FMT PRIu32 ". "
                                 "File: " ADDR_RANGE_32_FMT
                                 "\tMem: " ADDR_RANGE_32_FMT,
-                                Prefix, SectionCountDigitCount, I + 1,
+                                Prefix,
+                                LEFTPAD_FMT_ARGS(SectionCountDigitCount),
+                                I + 1,
                                 ADDR_RANGE_FMT_ARGS(FileOffset,
                                                     FileOffset + Size),
                                 ADDR_RANGE_FMT_ARGS(Addr, Addr + Size));
@@ -150,15 +154,20 @@ namespace Operations {
                     using SectionSpace = SegmentCommand::Section;
 
                     const auto SectionKind = Section.kind(IsBigEndian);
+                    const auto Flags = Section.flags(IsBigEndian);
+
                     if (SectionKind != SectionSpace::Kind::Regular) {
                         auto SectionKindDesc =
                             SectionSpace::KindIsValid(SectionKind) ?
                                 SectionSpace::KindGetDesc(SectionKind) :
-                                std::string_view("<unknown>");
+                                "<unknown>";
 
-                        fprintf(OutFile, " (%s)\n", SectionKindDesc.data());
-                    } else {
-                        fputc('\n', OutFile);
+                        fprintf(OutFile, " (%s", SectionKindDesc.data());
+                        if (!Flags.attributes().empty()) {
+                            fputs(");", OutFile);
+                        } else {
+                            fputc(')', OutFile);
+                        }
                     }
 
                     if (Verbose) {
@@ -171,9 +180,9 @@ namespace Operations {
                                 "\t\t%sAlign:             %" PRIu32 "\n"
                                 "\t\t%sReloc File Offset: " ADDRESS_32_FMT "\n"
                                 "\t\t%sReloc Count:       %" PRIu32 "\n"
-                                "\t\t%sFlags:             0x%" PRIx32 "\n"
                                 "\t\t%sReserved 1:        %" PRIu32 "\n"
-                                "\t\t%sReserved 2:        %" PRIu32 "\n",
+                                "\t\t%sReserved 2:        %" PRIu32 "\n"
+                                "\t\t%sFlags:             0x%" PRIx32 "\n",
                                 Prefix,
                                 ADDR_RANGE_FMT_ARGS(FileOffset,
                                                     FileOffset + Size),
@@ -184,9 +193,66 @@ namespace Operations {
                                 Prefix, Section.align(IsBigEndian),
                                 Prefix, Section.relocFileOffset(IsBigEndian),
                                 Prefix, Section.relocsCount(IsBigEndian),
-                                Prefix, Section.flags(IsBigEndian).value(),
                                 Prefix, Section.reserved1(IsBigEndian),
-                                Prefix, Section.reserved2(IsBigEndian));
+                                Prefix, Section.reserved2(IsBigEndian),
+                                Prefix, Flags.value());
+
+                            auto FlagNumber = uint32_t();
+                            for (const auto Bit :
+                                    ADT::FlagsIterator(Flags.attributes()))
+                            {
+                                const auto Attr =
+                                    SectionSpace::Attribute(1ull << Bit);
+                                const auto AttrString =
+                                    SectionSpace::AttributeIsValid(Attr) ?
+                                        SectionSpace::AttributeGetDesc(Attr) :
+                                        "<unknown>";
+
+                                fprintf(OutFile,
+                                        "\t\t\t%s%" PRIu32 ". Bit %" PRIu32
+                                        ": %s\n",
+                                        Prefix, FlagNumber + 1, Bit,
+                                        AttrString.data());
+
+                                FlagNumber++;
+                            }
+                    } else if (!Flags.attributes().empty()) {
+                        if (SectionKind == SectionSpace::Kind::Regular) {
+                            fputs(" (Regular;", OutFile);
+                        }
+
+                        auto FlagNumber = uint32_t();
+                        auto Iterator = ADT::FlagsIterator(Flags.attributes());
+
+                        for (auto Iter = Iterator.begin();;) {
+                            const auto Bit = *Iter;
+                            const auto Attr =
+                                SectionSpace::Attribute(1ull << Bit);
+
+                            if (SectionSpace::AttributeIsValid(Attr)) {
+                                const auto Desc =
+                                    SectionSpace::AttributeGetDesc(Attr);
+
+                                fprintf(OutFile, " %s", Desc.data());
+                            } else {
+                                fprintf(OutFile,
+                                        " <unknown: Bit %" PRIu32 ">",
+                                        Bit);
+                            }
+
+                            FlagNumber++;
+                            Iter++;
+
+                            if (Iter == Iterator.end()) {
+                                break;
+                            }
+
+                            fputc(',', OutFile);
+                        }
+
+                        fputs(")\n", OutFile);
+                    } else {
+                        fputc('\n', OutFile);
                     }
 
                     I++;
@@ -265,14 +331,18 @@ namespace Operations {
 
                     if (Verbose) {
                         fprintf(OutFile,
-                                "\t%s%*" PRIu32 ". ",
-                                Prefix, SectionCountDigitCount, I + 1);
+                                "\t%s%" LEFTPAD_FMT PRIu32 ". ",
+                                Prefix,
+                                LEFTPAD_FMT_ARGS(SectionCountDigitCount),
+                                I + 1);
                     } else {
                         fprintf(OutFile,
-                                "\t%s%*" PRIu32 ". "
+                                "\t%s%" LEFTPAD_FMT PRIu32 ". "
                                 "File: " ADDR_RANGE_32_64_FMT
                                 "\tMem: " ADDR_RANGE_64_FMT,
-                                Prefix, SectionCountDigitCount, I + 1,
+                                Prefix,
+                                LEFTPAD_FMT_ARGS(SectionCountDigitCount),
+                                I + 1,
                                 ADDR_RANGE_FMT_ARGS(FileOffset,
                                                     FileOffset + Size),
                                 ADDR_RANGE_FMT_ARGS(Addr, Addr + Size));
@@ -286,16 +356,22 @@ namespace Operations {
 
                     using SectionSpace = SegmentCommand::Section;
 
+
                     const auto SectionKind = Section.kind(IsBigEndian);
+                    const auto Flags = Section.flags(IsBigEndian);
+
                     if (SectionKind != SectionSpace::Kind::Regular) {
                         auto SectionKindDesc =
                             SectionSpace::KindIsValid(SectionKind) ?
                                 SectionSpace::KindGetDesc(SectionKind) :
-                                std::string_view("<unknown>");
+                                "<unknown>";
 
-                        fprintf(OutFile, " (%s)\n", SectionKindDesc.data());
-                    } else {
-                        fputc('\n', OutFile);
+                        fprintf(OutFile, " (%s", SectionKindDesc.data());
+                        if (!Flags.attributes().empty()) {
+                            fputc(';', OutFile);
+                        } else {
+                            fputc(')', OutFile);
+                        }
                     }
 
                     if (Verbose) {
@@ -308,9 +384,9 @@ namespace Operations {
                                 "\t\t%sAlign:             %" PRIu32 "\n"
                                 "\t\t%sReloc File Offset: " ADDRESS_32_FMT "\n"
                                 "\t\t%sReloc Count:       %" PRIu32 "\n"
-                                "\t\t%sFlags:             0x%" PRIx32 "\n"
                                 "\t\t%sReserved 1:        %" PRIu32 "\n"
-                                "\t\t%sReserved 2:        %" PRIu32 "\n",
+                                "\t\t%sReserved 2:        %" PRIu32 "\n"
+                                "\t\t%sFlags:             0x%" PRIx32 "\n",
                                 Prefix,
                                 ADDR_RANGE_FMT_ARGS(FileOffset,
                                                     FileOffset + Size),
@@ -321,9 +397,66 @@ namespace Operations {
                                 Prefix, Section.align(IsBigEndian),
                                 Prefix, Section.relocFileOffset(IsBigEndian),
                                 Prefix, Section.relocsCount(IsBigEndian),
-                                Prefix, Section.flags(IsBigEndian).value(),
                                 Prefix, Section.reserved1(IsBigEndian),
-                                Prefix, Section.reserved2(IsBigEndian));
+                                Prefix, Section.reserved2(IsBigEndian),
+                                Prefix, Flags.value());
+
+                            auto FlagNumber = uint32_t();
+                            for (const auto Bit :
+                                    ADT::FlagsIterator(Flags.attributes()))
+                            {
+                                const auto Attr =
+                                    SectionSpace::Attribute(1ull << Bit);
+                                const auto AttrString =
+                                    SectionSpace::AttributeIsValid(Attr) ?
+                                        SectionSpace::AttributeGetDesc(Attr) :
+                                        "<unknown>";
+
+                                fprintf(OutFile,
+                                        "\t\t\t%s%" PRIu32 ". Bit %" PRIu32
+                                        ": %s\n",
+                                        Prefix, FlagNumber + 1, Bit,
+                                        AttrString.data());
+
+                                FlagNumber++;
+                            }
+                    } else if (!Flags.attributes().empty()) {
+                        if (SectionKind == SectionSpace::Kind::Regular) {
+                            fputs(" (Regular;", OutFile);
+                        }
+
+                        auto FlagNumber = uint32_t();
+                        auto Iterator = ADT::FlagsIterator(Flags.attributes());
+
+                        for (auto Iter = Iterator.begin();;) {
+                            const auto Bit = *Iter;
+                            const auto Attr =
+                                SectionSpace::Attribute(1ull << Bit);
+
+                            if (SectionSpace::AttributeIsValid(Attr)) {
+                                const auto Desc =
+                                    SectionSpace::AttributeGetDesc(Attr);
+
+                                fprintf(OutFile, " %s", Desc.data());
+                            } else {
+                                fprintf(OutFile,
+                                        " <unknown: Bit %" PRIu32 ">",
+                                        Bit);
+                            }
+
+                            FlagNumber++;
+                            Iter++;
+
+                            if (Iter == Iterator.end()) {
+                                break;
+                            }
+
+                            fputc(',', OutFile);
+                        }
+
+                        fputs(")\n", OutFile);
+                    } else {
+                        fputc('\n', OutFile);
                     }
 
                     I++;
