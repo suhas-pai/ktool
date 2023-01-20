@@ -37,7 +37,13 @@ namespace ADT {
         auto operator<=>(const FlagsIterator<T> &Rhs) const noexcept = default;
 
         constexpr auto operator++() noexcept -> decltype(*this) {
-            StartIndex = Value.getFirstSet(StartIndex + 1);
+            StartIndex++;
+            if (StartIndex < bit_sizeof(T)) {
+                StartIndex = Value.getFirstSet(StartIndex);
+            } else {
+                StartIndex = bit_sizeof(T);
+            }
+
             return *this;
         }
 

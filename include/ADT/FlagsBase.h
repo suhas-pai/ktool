@@ -92,7 +92,7 @@ namespace ADT {
         constexpr auto getFirstSet(const uint8_t Index = 0) const noexcept
             -> uint8_t
         {
-            assert(Index <= bit_sizeof(T));
+            assert(Index < bit_sizeof(T));
 
             const uint64_t Flags = this->Flags >> Index;
             if (Flags == 0) {
