@@ -48,15 +48,13 @@ namespace MachO {
             }
 
             template <MachO::LoadCommandKind Kind>
-            [[nodiscard]] constexpr auto isa() const noexcept
-                -> decltype(auto)
+            [[nodiscard]] constexpr auto isa() const noexcept -> decltype(auto)
             {
                 return MachO::isa<Kind>(Ptr, IsBigEndian);
             }
 
             template <MachO::LoadCommandKind Kind>
-            [[nodiscard]] constexpr auto cast() const noexcept
-                -> decltype(auto)
+            [[nodiscard]] constexpr auto cast() const noexcept -> decltype(auto)
             {
                 return MachO::cast<Kind>(Ptr, IsBigEndian);
             }
@@ -69,8 +67,13 @@ namespace MachO {
             }
 
             template <LoadCommandDerived T>
-            [[nodiscard]] constexpr auto cast() const noexcept
-                -> decltype(auto)
+            [[nodiscard]] constexpr auto isa() const noexcept -> decltype(auto)
+            {
+                return MachO::isa<T>(Ptr, IsBigEndian);
+            }
+
+            template <LoadCommandDerived T>
+            [[nodiscard]] constexpr auto cast() const noexcept -> decltype(auto)
             {
                 return MachO::cast<T>(Ptr, IsBigEndian);
             }
@@ -96,8 +99,7 @@ namespace MachO {
             }
 
             auto
-            operator+=(const difference_type Amount) noexcept
-                -> decltype(*this)
+            operator+=(const difference_type Amount) noexcept -> decltype(*this)
             {
                 for (auto I = difference_type(); I != Amount; I++) {
                     operator++();
