@@ -49,12 +49,8 @@ namespace Operations {
         const auto SubKindString =
             Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind) ?
                 Verbose ?
-                    Mach::CpuKindAndSubKindGetString(
-                        CpuKind,
-                        SubKind).data() :
-                    Mach::CpuKindAndSubKindGetDesc(
-                        CpuKind,
-                        SubKind).data()
+                    Mach::CpuKindAndSubKindGetString(CpuKind, SubKind).data() :
+                    Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind).data()
                 : "Unrecognized";
 
         const auto Offset = Arch.offset(IsBigEndian);
@@ -102,12 +98,8 @@ namespace Operations {
         const auto SubKindString =
             Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind) ?
                 Verbose ?
-                    Mach::CpuKindAndSubKindGetString(
-                        CpuKind,
-                        SubKind).data() :
-                    Mach::CpuKindAndSubKindGetDesc(
-                        CpuKind,
-                        SubKind).data()
+                    Mach::CpuKindAndSubKindGetString(CpuKind, SubKind).data() :
+                    Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind).data()
                 : "Unrecognized";
 
         const auto Offset = Arch.offset(IsBigEndian);
@@ -137,10 +129,11 @@ namespace Operations {
 
     auto
     PrintArchs::run(const Objects::FatMachO &Fat) const noexcept -> RunResult {
-        auto Result = RunResult(Objects::Kind::FatMachO);
         const auto IsBigEndian = Fat.isBigEndian();
 
         auto I = uint32_t();
+        auto Result = RunResult(Objects::Kind::FatMachO);
+
         if (Fat.is64Bit()) {
             for (const auto &Arch : Fat.arch64List()) {
                 PrintArch64(OutFile,
