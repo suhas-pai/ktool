@@ -18,13 +18,16 @@ namespace ADT {
         constexpr explicit MemoryMap(void *Base, uint64_t Size)
         : Base(Base), Size(Size) {}
 
+        [[nodiscard]] inline auto range() const noexcept {
+            return Range::FromSize(0, Size);
+        }
+
         explicit MemoryMap(const MemoryMap &Map, const Range &Range)
         : Base(reinterpret_cast<void *>(reinterpret_cast<uint64_t>(Map.Base) +
                Range.begin())),
-          Size(Range.size()) {}
-
-        [[nodiscard]] inline auto range() const noexcept {
-            return Range::FromSize(0, Size);
+          Size(Range.size())
+        {
+            assert(Map.range().contains(Range));
         }
 
         [[nodiscard]] constexpr auto size() const noexcept {
