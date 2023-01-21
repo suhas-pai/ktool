@@ -10,7 +10,9 @@
 #include "Mach/Machine.h"
 #include "MachO/Header.h"
 
+#include "Operations/PrintArchs.h"
 #include "Operations/PrintHeader.h"
+
 #include "Utils/Print.h"
 
 namespace Operations {
@@ -48,8 +50,7 @@ namespace Operations {
         const auto SubKindString =
             Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind) ?
                 Opt.Verbose ?
-                    Mach::CpuKindAndSubKindGetString(CpuKind,
-                                                        SubKind).data() :
+                    Mach::CpuKindAndSubKindGetString(CpuKind, SubKind).data() :
                     Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind).data()
                 : "Unrecognized";
 
@@ -83,7 +84,7 @@ namespace Operations {
 
         auto Counter = static_cast<uint8_t>(1);
         for (const auto Bit : ADT::FlagsIterator(Flags)) {
-            const auto Flag = ::MachO::Flags::Kind(1 << Bit);
+            const auto Flag = MachO::Flags::Kind(1 << Bit);
             fprintf(OutFile,
                     "\t\t %" PRIu8 ". Bit %" PRIu32 ": %s\n",
                     Counter,
@@ -101,7 +102,9 @@ namespace Operations {
     auto
     PrintHeader::run(const Objects::FatMachO &Fat) const noexcept -> RunResult {
         auto Result = RunResult(Objects::Kind::FatMachO);
+
         const auto Header = Fat.header();
+        const auto ArchCount = Header.archCount();
 
         fprintf(OutFile,
                 "Apple %s Fat Mach-O File\n"
@@ -109,7 +112,39 @@ namespace Operations {
                 "\tArch Count: %" PRIu32 "\n",
                 Fat.is64Bit() ? "64-Bit" : "32-Bit",
                 MachO::MagicGetString(Header.Magic).data(),
-                Header.archCount());
+                ArchCount);
+
+        if (ArchCount < 6) {
+            auto I = uint32_t();
+            const auto IsBigEndian = Fat.isBigEndian();
+
+            if (Fat.is64Bit()) {
+                for (const auto &Arch : Fat.arch64List()) {
+                    Operations::PrintArchs::PrintArch64(
+                        OutFile,
+                        Arch,
+                        Fat.getArchObjectAtIndex(I).ptr(),
+                        I + 1,
+                        Opt.Verbose,
+                        IsBigEndian,
+                        "\t\t");
+
+                    I++;
+                }
+            } else {
+                for (const auto &Arch : Fat.archList()) {
+                    Operations::PrintArchs::PrintArch(
+                        OutFile,
+                        Arch,
+                        Fat.getArchObjectAtIndex(I).ptr(),
+                        I + 1,
+                        Opt.Verbose,
+                        IsBigEndian,
+                        "\t\t");
+                    I++;
+                }
+            }
+        }
 
         return Result.set(RunError::None);
     }

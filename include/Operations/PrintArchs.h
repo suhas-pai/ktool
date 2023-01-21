@@ -31,6 +31,24 @@ namespace Operations {
 
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
+        static void
+        PrintArch(FILE *OutFile,
+                  const MachO::FatArch &Arch,
+                  const Objects::Base *ArchObject,
+                  uint32_t Ordinal,
+                  bool Verbose,
+                  bool IsBigEndian,
+                  const char *Prefix = "") noexcept;
+
+        static void
+        PrintArch64(FILE *OutFile,
+                    const MachO::FatArch64 &Arch,
+                    const Objects::Base *ArchObject,
+                    uint32_t Ordinal,
+                    bool Verbose,
+                    bool IsBigEndian,
+                    const char *Prefix = "") noexcept;
+
         RunResult run(const Objects::Base &Base) const noexcept override;
         RunResult run(const Objects::FatMachO &MachO) const noexcept;
 
