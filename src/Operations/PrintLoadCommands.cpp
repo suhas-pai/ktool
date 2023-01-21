@@ -221,9 +221,7 @@ namespace Operations {
                             fputs(" (Regular;", OutFile);
                         }
 
-                        auto FlagNumber = uint32_t();
                         auto Iterator = ADT::FlagsIterator(Flags.attributes());
-
                         for (auto Iter = Iterator.begin();;) {
                             const auto Bit = *Iter;
                             const auto Attr =
@@ -240,9 +238,7 @@ namespace Operations {
                                         Bit);
                             }
 
-                            FlagNumber++;
                             Iter++;
-
                             if (Iter == Iterator.end()) {
                                 break;
                             }
@@ -425,9 +421,7 @@ namespace Operations {
                             fputs(" (Regular;", OutFile);
                         }
 
-                        auto FlagNumber = uint32_t();
                         auto Iterator = ADT::FlagsIterator(Flags.attributes());
-
                         for (auto Iter = Iterator.begin();;) {
                             const auto Bit = *Iter;
                             const auto Attr =
@@ -444,9 +438,7 @@ namespace Operations {
                                         Bit);
                             }
 
-                            FlagNumber++;
                             Iter++;
-
                             if (Iter == Iterator.end()) {
                                 break;
                             }
