@@ -62,8 +62,14 @@ namespace Utils {
         const auto &Name = FormatSizeNames[Index];
         auto Result = std::string();
 
-        Result.reserve(STR_LENGTH("1023.999 ") + 1 + Name.length());
-        Result.append(ToStringWithPrecision(ResultAmount));
+        if ((uint64_t)ResultAmount == ResultAmount) {
+            Result.reserve(STR_LENGTH("1023.999 ") + 1 + Name.length());
+            Result.append(std::to_string((uint64_t)ResultAmount));
+        } else {
+            Result.reserve(STR_LENGTH("1023 ") + 1 + Name.length());
+            Result.append(ToStringWithPrecision(ResultAmount));
+        }
+
         Result.append(1, ' ');
         Result.append(Name);
 
