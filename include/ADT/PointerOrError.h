@@ -50,6 +50,16 @@ namespace ADT {
         [[nodiscard]] constexpr auto ptr() const noexcept {
             return !hasError() ? Ptr : nullptr;
         }
+
+        [[nodiscard]] constexpr auto &operator*() const noexcept {
+            assert(!hasError());
+            return *Ptr;
+        }
+
+        [[nodiscard]] constexpr auto operator->() const noexcept {
+            assert(!hasError());
+            return Ptr;
+        }
     };
 
     template <typename PointerType, typename ErrorType>
@@ -78,6 +88,16 @@ namespace ADT {
 
         [[nodiscard]] constexpr auto ptr() const noexcept {
             return !hasError() ? Ptr : nullptr;
+        }
+
+        [[nodiscard]] constexpr auto &operator*() const noexcept {
+            assert(!hasError());
+            return *Ptr;
+        }
+
+        [[nodiscard]] constexpr auto operator->() const noexcept {
+            assert(!hasError());
+            return Ptr;
         }
     };
 }
