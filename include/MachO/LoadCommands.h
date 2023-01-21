@@ -3874,7 +3874,7 @@ namespace MachO {
             return static_cast<T *>(LC);
         }
 
-        return static_cast<T *>(nullptr);
+        return nullptr;
     }
 
     template <LoadCommandKind Kind>
@@ -3907,7 +3907,7 @@ namespace MachO {
             return static_cast<T *>(LC);
         }
 
-        return static_cast<T *>(nullptr);
+        return nullptr;
     }
 
     template <LoadCommandKind First,
@@ -3929,6 +3929,6 @@ namespace MachO {
             return static_cast<const T *>(LC);
         }
 
-        return static_cast<const T *>(nullptr);
+        return nullptr;
     }
 }
