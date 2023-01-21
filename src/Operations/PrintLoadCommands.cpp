@@ -164,20 +164,23 @@ namespace Operations {
 
                         fprintf(OutFile, " (%s", SectionKindDesc.data());
                         if (!Flags.attributes().empty()) {
-                            fputs(");", OutFile);
+                            fputc(';', OutFile);
                         } else {
                             fputc(')', OutFile);
                         }
                     }
 
                     if (Verbose) {
+                        const auto Align = Section.align(IsBigEndian);
+                        const auto AlignDesc =
+                            Utils::FormattedSizePowerOf2(1ull << Align);
                         fprintf(OutFile,
-                                "\t\t%sFile:              "
+                                "\n\t\t%sFile:              "
                                     ADDR_RANGE_32_FMT "\n"
                                 "\t\t%sMem:               "
                                     ADDR_RANGE_32_FMT "\n"
                                 "\t\t%sSize:              %s\n"
-                                "\t\t%sAlign:             %" PRIu32 "\n"
+                                "\t\t%sAlign:             %" PRIu32 " (%s)\n"
                                 "\t\t%sReloc File Offset: " ADDRESS_32_FMT "\n"
                                 "\t\t%sReloc Count:       %" PRIu32 "\n"
                                 "\t\t%sReserved 1:        %" PRIu32 "\n"
@@ -190,7 +193,7 @@ namespace Operations {
                                 ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
                                 Prefix,
                                 Utils::FormattedSizeForOutput(Size).data(),
-                                Prefix, Section.align(IsBigEndian),
+                                Prefix, Align, AlignDesc.data(),
                                 Prefix, Section.relocFileOffset(IsBigEndian),
                                 Prefix, Section.relocsCount(IsBigEndian),
                                 Prefix, Section.reserved1(IsBigEndian),
@@ -371,13 +374,17 @@ namespace Operations {
                     }
 
                     if (Verbose) {
+                        const auto Align = Section.align(IsBigEndian);
+                        const auto AlignDesc =
+                            Utils::FormattedSizePowerOf2(1ull << Align);
+
                         fprintf(OutFile,
                                 "\t\t%sFile:              "
                                     ADDR_RANGE_32_64_FMT "\n"
                                 "\t\t%sMem:               "
                                     ADDR_RANGE_64_FMT "\n"
                                 "\t\t%sSize:              %s\n"
-                                "\t\t%sAlign:             %" PRIu32 "\n"
+                                "\t\t%sAlign:             %" PRIu32 " (%s)\n"
                                 "\t\t%sReloc File Offset: " ADDRESS_32_FMT "\n"
                                 "\t\t%sReloc Count:       %" PRIu32 "\n"
                                 "\t\t%sReserved 1:        %" PRIu32 "\n"
@@ -389,8 +396,8 @@ namespace Operations {
                                 Prefix,
                                 ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
                                 Prefix,
-                                Utils::FormattedSizeForOutput(Size).data(),
-                                Prefix, Section.align(IsBigEndian),
+                                    Utils::FormattedSizeForOutput(Size).data(),
+                                Prefix, Align, AlignDesc.data(),
                                 Prefix, Section.relocFileOffset(IsBigEndian),
                                 Prefix, Section.relocsCount(IsBigEndian),
                                 Prefix, Section.reserved1(IsBigEndian),

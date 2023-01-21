@@ -154,10 +154,9 @@ namespace Operations {
             std::sort(DylibList.begin(), DylibList.end(), Lambda);
         }
 
-        const auto DylibListSize = DylibList.size();
         fprintf(OutFile,
                 "Provided file has %" PRIuPTR " Shared Libraries:\n",
-                DylibListSize);
+                DylibList.size());
 
         const auto NcmdsDigitCount =
             Utils::GetIntegerDigitCount(MachO.header().ncmds());

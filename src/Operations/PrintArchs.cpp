@@ -67,7 +67,7 @@ namespace Operations {
                 "%s\tCpuSubKind: %s\n"
                 "%s\tOffset:     " ADDRESS_32_FMT " ("
                     ADDR_RANGE_32_FMT ")\n"
-                "%s\tSize:       %" PRIu32 "\n"
+                "%s\tSize:       %s\n"
                 "%s\tAlign:      %" PRIu32 " (%s)\n",
                 Prefix, Ordinal, ObjectDesc.data(),
                 Prefix, Mach::CpuKindIsValid(CpuKind) ?
@@ -77,7 +77,7 @@ namespace Operations {
                     : "Unrecognized",
                 Prefix, SubKindString,
                 Prefix, Offset, ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
-                Prefix, Size,
+                Prefix, Utils::FormattedSizeForOutput(Size).data(),
                 Prefix, Align,
                     Utils::FormattedSizePowerOf2(1ull << Align).data());
     }
@@ -120,7 +120,7 @@ namespace Operations {
                 "%s\tCpuSubKind: %s\n"
                 "%s\tOffset:     " ADDRESS_64_FMT " ("
                     ADDR_RANGE_64_FMT ")\n"
-                "%s\tSize:       %" PRIu64 "\n"
+                "%s\tSize:       %s\n"
                 "%s\tAlign:      %" PRIu32 " (%s)\n",
                 Prefix, Ordinal, ObjectDesc.data(),
                 Prefix, Mach::CpuKindIsValid(CpuKind) ?
@@ -130,7 +130,7 @@ namespace Operations {
                     : "Unrecognized",
                 Prefix, SubKindString,
                 Prefix, Offset, ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
-                Prefix, Size,
+                Prefix, Utils::FormattedSizeForOutput(Size).data(),
                 Prefix, Align,
                     Utils::FormattedSizePowerOf2(1ull << Align).data());
     }

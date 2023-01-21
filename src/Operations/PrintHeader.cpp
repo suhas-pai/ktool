@@ -108,10 +108,12 @@ namespace Operations {
 
         fprintf(OutFile,
                 "Apple %s Fat Mach-O File\n"
-                "\tMagic:      %s\n"
+                "\tMagic: %s\n"
                 "\tArch Count: %" PRIu32 "\n",
                 Fat.is64Bit() ? "64-Bit" : "32-Bit",
-                MachO::MagicGetString(Header.Magic).data(),
+                Opt.Verbose ?
+                    MachO::MagicGetString(Header.Magic).data() :
+                    MachO::MagicGetDesc(Header.Magic).data(),
                 ArchCount);
 
         if (ArchCount < 6) {
