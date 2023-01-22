@@ -90,7 +90,6 @@ namespace MachO {
                     reinterpret_cast<MachO::LoadCommand *>(
                         reinterpret_cast<uint8_t *>(Ptr) +
                         Ptr->cmdsize(IsBigEndian));
-
                 return *this;
             }
 
@@ -152,5 +151,5 @@ namespace MachO {
         }
     };
 
-    static_assert(std::forward_iterator<LoadCommandsMap::Iterator>, "");
+    static_assert(std::forward_iterator<LoadCommandsMap::Iterator>);
 }
