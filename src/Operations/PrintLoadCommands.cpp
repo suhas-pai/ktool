@@ -885,18 +885,21 @@ namespace Operations {
 
                 const auto VmAddress = FileSetEntryCmd.vmAddress(IsBigEndian);
                 const auto FileOffset = FileSetEntryCmd.fileOffset(IsBigEndian);
-                const auto EntryId = FileSetEntryCmd.entryId(IsBigEndian);
+                const auto EntryIdOpt = FileSetEntryCmd.entryId(IsBigEndian);
                 const auto Reserved = FileSetEntryCmd.reserved(IsBigEndian);
 
                 fprintf(OutFile,
                         "\n"
                         "%sVm Address:  " ADDRESS_64_FMT "\n"
                         "%sFile Offset: %" PRIu64 "\n"
-                        "%sEntry Id:    %" PRIu32 "\n"
+                        "%sEntry Id:    " STRING_VIEW_FMT "\n"
                         "%sReserved:    %" PRIu32 "\n",
                         Prefix, VmAddress,
                         Prefix, FileOffset,
-                        Prefix, EntryId,
+                        Prefix,
+                            STRING_VIEW_FMT_ARGS(
+                                EntryIdOpt.has_value() ?
+                                    EntryIdOpt.value() : Malformed),
                         Prefix, Reserved);
                 break;
             }

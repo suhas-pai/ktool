@@ -885,8 +885,7 @@ namespace MachO {
                     return has(Attribute::NoTableOfContents);
                 }
 
-                [[nodiscard]]
-                constexpr auto pureInstructions() const noexcept {
+                [[nodiscard]] constexpr auto pureInstructions() const noexcept {
                     return has(Attribute::PureInstructions);
                 }
 
@@ -2724,7 +2723,7 @@ namespace MachO {
         uint64_t VmAddress;
         uint64_t FileOffset;
 
-        uint32_t EntryId;
+        LoadCommandString EntryId;
         uint32_t Reserved;
 
         [[nodiscard]]
@@ -2739,7 +2738,7 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto entryId(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(EntryId, IsBigEndian);
+            return EntryId.string(this, IsBigEndian);
         }
 
         [[nodiscard]]
@@ -2751,8 +2750,6 @@ namespace MachO {
         constexpr static auto hasValidCmdSize(const uint32_t CmdSize) noexcept {
             if (CmdSize < sizeof(FileSetEntryCommand)) {
                 return CmdSizeInvalidKind::TooSmall;
-            } else if (CmdSize > sizeof(FileSetEntryCommand)) {
-                return CmdSizeInvalidKind::TooLarge;
             }
 
             return CmdSizeInvalidKind::None;
