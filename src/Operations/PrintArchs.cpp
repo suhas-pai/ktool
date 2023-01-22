@@ -61,8 +61,7 @@ namespace Operations {
                 "%sArch #%" PRIu32 ": %s\n"
                 "%s\tCpuKind:    %s\n"
                 "%s\tCpuSubKind: %s\n"
-                "%s\tOffset:     " ADDRESS_32_FMT " ("
-                    ADDR_RANGE_32_FMT ")\n"
+                "%s\tOffset:     " ADDRESS_32_FMT " (" ADDR_RANGE_32_FMT ")\n"
                 "%s\tSize:       %s\n"
                 "%s\tAlign:      %" PRIu32 " (%s)\n",
                 Prefix, Ordinal, ObjectDesc.data(),
@@ -110,8 +109,7 @@ namespace Operations {
                 "%sArch #%" PRIu32 ": %s\n"
                 "%s\tCpuKind:    %s\n"
                 "%s\tCpuSubKind: %s\n"
-                "%s\tOffset:     " ADDRESS_64_FMT " ("
-                    ADDR_RANGE_64_FMT ")\n"
+                "%s\tOffset:     " ADDRESS_64_FMT " (" ADDR_RANGE_64_FMT ")\n"
                 "%s\tSize:       %s\n"
                 "%s\tAlign:      %" PRIu32 " (%s)\n",
                 Prefix, Ordinal, ObjectDesc.data(),

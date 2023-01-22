@@ -87,7 +87,7 @@ namespace Operations {
                         Prefix, Flags.value());
 
                 if (!Flags.empty()) {
-                    using FlagsStruct = SegmentCommand64::FlagsStruct;
+                    using FlagsStruct = SegmentCommand::FlagsStruct;
 
                     auto Counter = uint32_t();
                     for (const auto Bit : ADT::FlagsIterator(Flags)) {

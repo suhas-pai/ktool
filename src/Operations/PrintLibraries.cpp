@@ -7,11 +7,9 @@
 
 #include <algorithm>
 
-#include "MachO/LoadCommands.h"
 #include "MachO/LoadCommandsMap.h"
 #include "Operations/PrintLibraries.h"
 
-#include "Utils/Misc.h"
 #include "Utils/Print.h"
 
 namespace Operations {

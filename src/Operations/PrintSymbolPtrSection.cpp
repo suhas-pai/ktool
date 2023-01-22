@@ -232,6 +232,7 @@ namespace Operations {
 
             IndexMaximizer.set(Info.Index);
             SymbolLengthMaximizer.set(Info.String.length());
+
             if (MachO::SymTabCommand::Entry::KindIsValid(Info.Kind)) {
                 const auto Desc =
                     MachO::SymTabCommand::Entry::KindGetDesc(Info.Kind);
