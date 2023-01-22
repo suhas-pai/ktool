@@ -43,7 +43,7 @@ namespace Utils {
             auto Result = std::string();
 
             Result.reserve(STR_LENGTH("1023") + STR_LENGTH(" bytes"));
-            Result.append(ToStringWithPrecision(ResultAmount));
+            Result.append(std::to_string(static_cast<uint64_t>(ResultAmount)));
             Result.append(" Bytes");
 
             return Result;
@@ -62,49 +62,14 @@ namespace Utils {
         const auto &Name = FormatSizeNames[Index];
         auto Result = std::string();
 
-        if ((uint64_t)ResultAmount == ResultAmount) {
+        if (static_cast<uint64_t>(ResultAmount) == ResultAmount) {
             Result.reserve(STR_LENGTH("1023.999 ") + 1 + Name.length());
-            Result.append(std::to_string((uint64_t)ResultAmount));
+            Result.append(std::to_string(static_cast<uint64_t>(ResultAmount)));
         } else {
             Result.reserve(STR_LENGTH("1023 ") + 1 + Name.length());
             Result.append(ToStringWithPrecision(ResultAmount));
         }
 
-        Result.append(1, ' ');
-        Result.append(Name);
-
-        return Result;
-    }
-
-    auto FormattedSizePowerOf2(const uint64_t Size) -> std::string {
-        constexpr auto Base = 1024;
-        auto ResultAmount = uint64_t(Size);
-
-        if (ResultAmount < Base) {
-            auto Result = std::string();
-
-            Result.reserve(STR_LENGTH("1023") + STR_LENGTH(" bytes"));
-            Result.append(ToStringWithPrecision(ResultAmount));
-            Result.append(" Bytes");
-
-            return Result;
-        }
-
-        auto Index = uint32_t();
-
-        ResultAmount /= Base;
-        while (ResultAmount >= Base) {
-            ResultAmount /= Base;
-            Index++;
-        };
-
-        assert(Index < FormatSizeNames.size());
-
-        const auto &Name = FormatSizeNames[Index];
-        auto Result = std::string();
-
-        Result.reserve(STR_LENGTH("1023 ") + 1 + Name.length());
-        Result.append(std::to_string(ResultAmount));
         Result.append(1, ' ');
         Result.append(Name);
 

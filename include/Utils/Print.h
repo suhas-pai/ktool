@@ -29,7 +29,6 @@ namespace Utils {
     auto RightPadSpaces(FILE *OutFile, int WrittenOut, int RightPad) -> int;
 
     auto FormattedSize(uint64_t Size) -> std::string;
-    auto FormattedSizePowerOf2(uint64_t Size) -> std::string;
     auto FormattedSizeForOutput(uint64_t Size) -> std::string;
 
     auto

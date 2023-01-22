@@ -73,8 +73,7 @@ namespace Operations {
                 Prefix, SubKindString,
                 Prefix, Offset, ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
                 Prefix, Utils::FormattedSizeForOutput(Size).data(),
-                Prefix, Align,
-                    Utils::FormattedSizePowerOf2(1ull << Align).data());
+                Prefix, Align, Utils::FormattedSize(1ull << Align).data());
     }
 
     void
@@ -121,8 +120,7 @@ namespace Operations {
                 Prefix, SubKindString,
                 Prefix, Offset, ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
                 Prefix, Utils::FormattedSizeForOutput(Size).data(),
-                Prefix, Align,
-                    Utils::FormattedSizePowerOf2(1ull << Align).data());
+                Prefix, Align, Utils::FormattedSize(1ull << Align).data());
     }
 
     auto

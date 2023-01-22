@@ -157,7 +157,7 @@ namespace Operations {
                     const auto Flags = Section.flags(IsBigEndian);
 
                     if (SectionKind != SectionSpace::Kind::Regular) {
-                        auto SectionKindDesc =
+                        const auto SectionKindDesc =
                             SectionSpace::KindIsValid(SectionKind) ?
                                 SectionSpace::KindGetDesc(SectionKind) :
                                 "<unknown>";
@@ -173,7 +173,8 @@ namespace Operations {
                     if (Verbose) {
                         const auto Align = Section.align(IsBigEndian);
                         const auto AlignDesc =
-                            Utils::FormattedSizePowerOf2(1ull << Align);
+                            Utils::FormattedSize(1ull << Align);
+
                         fprintf(OutFile,
                                 "\n\t\t%sFile:              "
                                     ADDR_RANGE_32_FMT "\n"
@@ -360,7 +361,7 @@ namespace Operations {
                     const auto Flags = Section.flags(IsBigEndian);
 
                     if (SectionKind != SectionSpace::Kind::Regular) {
-                        auto SectionKindDesc =
+                        const auto SectionKindDesc =
                             SectionSpace::KindIsValid(SectionKind) ?
                                 SectionSpace::KindGetDesc(SectionKind) :
                                 "<unknown>";
@@ -376,10 +377,10 @@ namespace Operations {
                     if (Verbose) {
                         const auto Align = Section.align(IsBigEndian);
                         const auto AlignDesc =
-                            Utils::FormattedSizePowerOf2(1ull << Align);
+                            Utils::FormattedSize(1ull << Align);
 
                         fprintf(OutFile,
-                                "\t\t%sFile:              "
+                                "\n\t\t%sFile:              "
                                     ADDR_RANGE_32_64_FMT "\n"
                                 "\t\t%sMem:               "
                                     ADDR_RANGE_64_FMT "\n"
