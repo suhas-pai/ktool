@@ -112,7 +112,7 @@ namespace ADT {
         constexpr auto getCount(const uint8_t Index = 0) const noexcept
             -> uint8_t
         {
-            assert(Index <= bit_sizeof(T));
+            assert(Index < bit_sizeof(T));
 
             if constexpr (sizeof(T) == sizeof(long long)) {
                 return __builtin_popcountll(Flags >> Index);
