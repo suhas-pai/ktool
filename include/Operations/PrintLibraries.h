@@ -30,7 +30,7 @@ namespace Operations {
         FILE *OutFile;
         Options Opt;
     public:
-        static constexpr auto Kind = Operations::Kind::PrintLibraries;
+        constexpr static auto Kind = Operations::Kind::PrintLibraries;
         explicit PrintLibraries(FILE *OutFile, const struct Options &Options);
 
         ~PrintLibraries() noexcept override {}

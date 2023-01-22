@@ -38,7 +38,7 @@ namespace Operations {
         std::optional<std::string> SegmentName;
         std::string SectionName;
     public:
-        static constexpr auto Kind = Operations::Kind::PrintSymbolPtrSection;
+        constexpr static auto Kind = Operations::Kind::PrintSymbolPtrSection;
 
         explicit
         PrintSymbolPtrSection(FILE *OutFile,

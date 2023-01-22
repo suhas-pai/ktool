@@ -20,7 +20,7 @@ namespace Operations {
         FILE *OutFile;
         Options Opt;
     public:
-        static constexpr auto Kind = Operations::Kind::PrintLoadCommands;
+        constexpr static auto Kind = Operations::Kind::PrintLoadCommands;
 
         explicit
         PrintLoadCommands(FILE *OutFile,

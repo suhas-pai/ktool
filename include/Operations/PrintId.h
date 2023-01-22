@@ -20,7 +20,7 @@ namespace Operations {
         FILE *OutFile;
         Options Opt;
     public:
-        static constexpr auto Kind = Operations::Kind::PrintId;
+        constexpr static auto Kind = Operations::Kind::PrintId;
         explicit PrintId(FILE *OutFile, const struct Options &Options);
 
         ~PrintId() noexcept override {}

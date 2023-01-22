@@ -21,7 +21,7 @@
 #include "Mach/VmProt.h"
 
 namespace MachO {
-    static constexpr auto LoadCommandReqByDyld = 1 << 31;
+    constexpr static auto LoadCommandReqByDyld = 1 << 31;
     enum class LoadCommandKind : uint32_t {
         Segment = 1,
         SymbolTable,
@@ -432,26 +432,26 @@ namespace MachO {
 
             using ADT::FlagsBase<uint32_t>::FlagsBase;
 
-            [[nodiscard]] constexpr auto highVm() const noexcept -> bool {
+            [[nodiscard]] constexpr auto highVm() const noexcept {
                 return has(Kind::HighVm);
             }
 
             [[nodiscard]]
-            constexpr auto fixedVmLibrary() const noexcept -> bool {
+            constexpr auto fixedVmLibrary() const noexcept {
                 return has(Kind::FixedVmLibrary);
             }
 
             [[nodiscard]]
-            constexpr auto noRelocations() const noexcept -> bool {
+            constexpr auto noRelocations() const noexcept {
                 return has(Kind::NoRelocations);
             }
 
             [[nodiscard]]
-            constexpr auto protectedVersion1() const noexcept -> bool {
+            constexpr auto protectedVersion1() const noexcept {
                 return has(Kind::ProtectedVersion1);
             }
 
-            [[nodiscard]] constexpr auto readOnly() const noexcept -> bool {
+            [[nodiscard]] constexpr auto readOnly() const noexcept {
                 return has(Kind::ReadOnly);
             }
 
@@ -964,9 +964,9 @@ namespace MachO {
 
             struct FlagsStruct : public ADT::FlagsBase<uint32_t> {
             protected:
-                static constexpr auto KindMask = uint32_t(0xFF);
-                static constexpr auto AttributesMask = ~KindMask;
-                static constexpr auto AttributeShift = 8;
+                constexpr static auto KindMask = uint32_t(0xFF);
+                constexpr static auto AttributesMask = ~KindMask;
+                constexpr static auto AttributeShift = 8;
             public:
                 using ADT::FlagsBase<uint32_t>::FlagsBase;
 
@@ -2043,8 +2043,7 @@ namespace MachO {
 
             [[nodiscard]]
             constexpr auto privateExternal() const noexcept -> bool {
-                const auto Mask = static_cast<uint8_t>(Masks::PrivateExternal);
-                return Type & Mask;
+                return Type & static_cast<uint8_t>(Masks::PrivateExternal);
             }
 
             [[nodiscard]] constexpr auto external() const noexcept -> bool {
@@ -2053,7 +2052,7 @@ namespace MachO {
 
             [[nodiscard]] constexpr
             auto dylibOrdinal(const bool IsBigEndian) const noexcept -> bool {
-                return (description(IsBigEndian) >> 8) & 0xff;
+                return EntryDescGetDylibOrdinal(description(IsBigEndian));
             }
         };
 
@@ -3929,6 +3928,6 @@ namespace MachO {
             return static_cast<const T *>(LC);
         }
 
-        return nullptr;
+        return static_cast<const T *>(nullptr);
     }
 }

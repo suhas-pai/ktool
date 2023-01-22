@@ -20,7 +20,7 @@ namespace Operations {
         FILE *OutFile;
         Options Opt;
     public:
-        static constexpr auto Kind = Operations::Kind::PrintArchs;
+        constexpr static auto Kind = Operations::Kind::PrintArchs;
         explicit PrintArchs(FILE *OutFile, const struct Options &Options);
 
         ~PrintArchs() noexcept override {}

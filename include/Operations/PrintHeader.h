@@ -22,7 +22,7 @@ namespace Operations {
         FILE *OutFile;
         Options Opt;
     public:
-        static constexpr auto Kind = Operations::Kind::PrintHeader;
+        constexpr static auto Kind = Operations::Kind::PrintHeader;
         explicit PrintHeader(FILE *OutFile, const struct Options &Options);
 
         ~PrintHeader() noexcept override {}

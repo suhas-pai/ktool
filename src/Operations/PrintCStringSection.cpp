@@ -35,7 +35,7 @@ namespace Operations {
             case Objects::Kind::None:
                 assert(false &&
                        "Got Object-Kind None in "
-                       "PrintCStringSection::supportsObjectKind");
+                       "PrintCStringSection::supportsObjectKind()");
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
@@ -44,7 +44,7 @@ namespace Operations {
 
         assert(false &&
                "Got unknown Object-Kind in "
-               "PrintCStringSection::supportsObjectKind");
+               "PrintCStringSection::supportsObjectKind()");
     }
 
     [[nodiscard]]

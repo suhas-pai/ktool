@@ -28,7 +28,7 @@ namespace Operations {
         std::optional<std::string> SegmentName;
         std::string SectionName;
     public:
-        static constexpr auto Kind = Operations::Kind::PrintCStringSection;
+        constexpr static auto Kind = Operations::Kind::PrintCStringSection;
 
         explicit
         PrintCStringSection(FILE *OutFile,
