@@ -37,19 +37,18 @@ namespace Utils {
 
     auto FormattedSize(const uint64_t Size) -> std::string {
         constexpr auto Base = 1024;
-        auto ResultAmount = double(Size);
-
-        if (ResultAmount < Base) {
+        if (Size < Base) {
             auto Result = std::string();
 
             Result.reserve(STR_LENGTH("1023") + STR_LENGTH(" bytes"));
-            Result.append(std::to_string(static_cast<uint64_t>(ResultAmount)));
+            Result.append(std::to_string(Size));
             Result.append(" Bytes");
 
             return Result;
         }
 
         auto Index = uint32_t();
+        auto ResultAmount = double(Size);
 
         ResultAmount /= Base;
         while (ResultAmount >= Base) {

@@ -173,31 +173,31 @@ namespace ADT {
     constexpr static auto operator|=(std::underlying_type_t<ENUM> &Num,\
                                      const ENUM Mask) noexcept\
     { \
-        return (Num |= static_cast<std::underlying_type_t<ENUM>>(Mask)); \
+        Num |= static_cast<std::underlying_type_t<ENUM>>(Mask); \
     } \
 \
-    [[maybe_unused]] \
+    [[maybe_unused]] [[nodiscard]] \
     constexpr static auto operator==(std::underlying_type_t<ENUM> Num,\
                                      const ENUM Mask) noexcept\
     { \
         return (Num == static_cast<std::underlying_type_t<ENUM>>(Mask)); \
     } \
 \
-    [[maybe_unused]] \
+    [[maybe_unused]] [[nodiscard]] \
     constexpr static auto operator==(const ENUM Mask,\
                                      std::underlying_type_t<ENUM> Num) noexcept\
     { \
         return (Num == static_cast<std::underlying_type_t<ENUM>>(Mask)); \
     } \
 \
-    [[maybe_unused]] \
+    [[maybe_unused]] [[nodiscard]] \
     constexpr static auto operator!=(std::underlying_type_t<ENUM> Num,\
                                      const ENUM Mask) noexcept\
     { \
         return (Num == static_cast<std::underlying_type_t<ENUM>>(Mask)); \
     } \
 \
-    [[maybe_unused]] \
+    [[maybe_unused]] [[nodiscard]] \
     constexpr static auto operator!=(const ENUM Mask,\
                                      std::underlying_type_t<ENUM> Num) noexcept\
     { \

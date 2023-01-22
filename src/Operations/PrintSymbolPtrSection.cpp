@@ -40,7 +40,7 @@ namespace Operations {
             case Objects::Kind::None:
                 assert(false &&
                        "Got Object-Kind None in "
-                       "PrintSymbolPtrSection::supportsObjectKind");
+                       "PrintSymbolPtrSection::supportsObjectKind()");
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
@@ -49,7 +49,7 @@ namespace Operations {
 
         assert(false &&
                "Got unknown Object-Kind in "
-               "PrintSymbolPtrSection::supportsObjectKind");
+               "PrintSymbolPtrSection::supportsObjectKind()");
     }
 
     template <MachO::LoadCommandDerived T>
@@ -707,6 +707,6 @@ namespace Operations {
         }
 
         assert(false &&
-               "Got unrecognized Object-Kind in PrintSymbolPtrSection::run");
+               "Got unrecognized Object-Kind in PrintSymbolPtrSection::run()");
     }
 }

@@ -48,7 +48,7 @@ namespace Operations {
     {
         switch (Object.kind()) {
             case Objects::Kind::None:
-                assert(false && "Got Object-Kind None in runAndHandleFile");
+                assert(false && "Got Object-Kind None in runAndHandleFile()");
             case Objects::Kind::MachO:
                 if (!supportsObjectKind(Objects::Kind::MachO)) {
                     PrintUnsupportedError(Options.Path);
@@ -94,7 +94,7 @@ namespace Operations {
                 if (Options.ArchIndex >= ArchCount) {
                     fprintf(stderr,
                             "An Arch-Index of %" PRIu32 " is invalid. The "
-                            "provided Fat Mach-O file has %" PRIu32
+                            "provided Fat Mach-O file only has %" PRIu32
                             " architectures\n",
                             ArchIndex,
                             ArchCount);
@@ -153,6 +153,6 @@ namespace Operations {
             }
         }
 
-        assert(false && "Got unrecognized Object-Kind in runAndHandleFile");
+        assert(false && "Got unrecognized Object-Kind in runAndHandleFile()");
     }
 }

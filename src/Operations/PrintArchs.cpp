@@ -18,7 +18,7 @@ namespace Operations {
             case Objects::Kind::None:
                 assert(false &&
                        "Got Object-Kind None in "
-                       "PrintArchs::supportsObjectKind");
+                       "PrintArchs::supportsObjectKind()");
             case Objects::Kind::MachO:
                 return false;
             case Objects::Kind::FatMachO:
@@ -26,7 +26,7 @@ namespace Operations {
         }
 
         assert(false &&
-               "Got unknown Object-Kind in PrintArchs::supportsObjectKind");
+               "Got unknown Object-Kind in PrintArchs::supportsObjectKind()");
     }
 
     void
@@ -155,8 +155,7 @@ namespace Operations {
         return Result.set(RunError::None);
     }
 
-    auto PrintArchs::run(const Objects::Base &Base) const noexcept ->
-        RunResult
+    auto PrintArchs::run(const Objects::Base &Base) const noexcept -> RunResult
     {
         switch (Base.kind()) {
             case Objects::Kind::None:
@@ -167,7 +166,7 @@ namespace Operations {
                 return run(static_cast<const Objects::FatMachO &>(Base));
         }
 
-        assert(false && "Got unrecognized Object-Kind in PrintArchs::run");
+        assert(false && "Got unrecognized Object-Kind in PrintArchs::run()");
     }
 }
 

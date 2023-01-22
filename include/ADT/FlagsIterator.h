@@ -16,13 +16,13 @@ namespace ADT {
     struct FlagsIterator {
     protected:
         FlagsBase<T> Value;
-        uint8_t StartIndex = bit_sizeof(T);
+        uint8_t BitIndex = bit_sizeof(T);
     public:
         constexpr FlagsIterator(const T Value) noexcept
-        : Value(Value), StartIndex(this->Value.getFirstSet()) {}
+        : Value(Value), BitIndex(this->Value.getFirstSet()) {}
 
         constexpr FlagsIterator(const FlagsBase<T> Value) noexcept
-        : Value(Value), StartIndex(Value.getFirstSet()) {}
+        : Value(Value), BitIndex(Value.getFirstSet()) {}
 
         [[nodiscard]] inline auto begin() noexcept -> decltype(*this) {
             return *this;
@@ -37,11 +37,11 @@ namespace ADT {
         auto operator<=>(const FlagsIterator<T> &Rhs) const noexcept = default;
 
         constexpr auto operator++() noexcept -> decltype(*this) {
-            StartIndex++;
-            if (StartIndex < bit_sizeof(T)) {
-                StartIndex = Value.getFirstSet(StartIndex);
+            BitIndex++;
+            if (BitIndex < bit_sizeof(T)) {
+                BitIndex = Value.getFirstSet(BitIndex);
             } else {
-                StartIndex = bit_sizeof(T);
+                BitIndex = bit_sizeof(T);
             }
 
             return *this;
@@ -52,16 +52,16 @@ namespace ADT {
         }
 
         [[nodiscard]] constexpr auto operator*() const noexcept {
-            return StartIndex;
+            return BitIndex;
         }
 
         [[nodiscard]] constexpr auto mask() const noexcept {
-            return static_cast<T>(1) << StartIndex;
+            return T(1) << BitIndex;
         }
 
         [[nodiscard]] constexpr
         auto operator==([[maybe_unused]] const EndValue &End) const noexcept {
-            return StartIndex == bit_sizeof(T);
+            return BitIndex == bit_sizeof(T);
         }
 
         [[nodiscard]] constexpr

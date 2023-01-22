@@ -151,8 +151,7 @@ namespace Operations {
         return Result.set(RunError::None);
     }
 
-    auto PrintHeader::run(const Objects::Base &Base) const noexcept ->
-        RunResult
+    auto PrintHeader::run(const Objects::Base &Base) const noexcept -> RunResult
     {
         switch (Base.kind()) {
             case Objects::Kind::None:
@@ -163,6 +162,6 @@ namespace Operations {
                 return run(static_cast<const Objects::FatMachO &>(Base));
         }
 
-        assert(false && "Got unrecognized Object-Kind in PrintHeader::run");
+        assert(false && "Got unrecognized Object-Kind in PrintHeader::run()");
     }
 }

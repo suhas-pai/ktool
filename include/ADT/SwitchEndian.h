@@ -30,16 +30,16 @@ namespace ADT {
         [[nodiscard]]
         constexpr static auto SwitchEndian64(uint64_t Value) noexcept {
             Value =
-                (Value & 0x00000000ffffffffULL) << 32 |
-                (Value & 0xffffffff00000000ULL) >> 32;
+                (Value & 0x00000000ffffffffull) << 32 |
+                (Value & 0xffffffff00000000ull) >> 32;
 
             Value =
-                (Value & 0x0000ffff0000ffffULL) << 16 |
-                (Value & 0xffff0000ffff0000ULL) >> 16;
+                (Value & 0x0000ffff0000ffffull) << 16 |
+                (Value & 0xffff0000ffff0000ull) >> 16;
 
             Value =
-                (Value & 0x00ff00ff00ff00ffULL) << 8 |
-                (Value & 0xff00ff00ff00ff00ULL) >> 8;
+                (Value & 0x00ff00ff00ff00ffull) << 8 |
+                (Value & 0xff00ff00ff00ff00ull) >> 8;
 
             return Value;
         }

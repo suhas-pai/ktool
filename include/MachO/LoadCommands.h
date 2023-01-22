@@ -3770,6 +3770,7 @@ namespace MachO {
     template <LoadCommandKind First,
               LoadCommandKind Second,
               LoadCommandKind... Rest>
+
     [[nodiscard]]
     constexpr auto isa(const LoadCommand *const LC, const bool IsBE) noexcept {
         return isa<First>(LC, IsBE) || isa<Second, Rest...>(LC, IsBE);

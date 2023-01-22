@@ -22,7 +22,7 @@ namespace Operations {
         switch (Kind) {
             case Objects::Kind::None:
                 assert(false &&
-                       "Got Object-Kind None in PrintId::supportsObjectKind");
+                       "Got Object-Kind None in PrintId::supportsObjectKind()");
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
@@ -30,11 +30,10 @@ namespace Operations {
         }
 
         assert(false &&
-               "Got unknown Object-Kind in PrintId::supportsObjectKind");
+               "Got unknown Object-Kind in PrintId::supportsObjectKind()");
     }
 
-    auto
-    PrintId::run(const Objects::MachO &MachO) const noexcept -> RunResult {
+    auto PrintId::run(const Objects::MachO &MachO) const noexcept -> RunResult {
         auto Result = RunResult(Objects::Kind::MachO);
         if (MachO.fileKind() != MachO::FileKind::DynamicLibrary) {
             return Result.set(RunError::NotADylib);
@@ -92,6 +91,6 @@ namespace Operations {
                 return RunResultUnsupported;
         }
 
-        assert(false && "Got unrecognized Object-Kind in PrintId::run");
+        assert(false && "Got unrecognized Object-Kind in PrintId::run()");
     }
 }

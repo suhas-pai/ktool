@@ -41,10 +41,8 @@ namespace Objects {
                 }
 
                 if (Error!= ErrorKind::WrongFormat) {
-                    const auto Result =
-                        OpenError(Kind::FatMachO, static_cast<uint32_t>(Error));
-
-                    return Result;
+                    return OpenError(Kind::FatMachO,
+                                     static_cast<uint32_t>(Error));
                 }
             }
         }
@@ -89,10 +87,8 @@ namespace Objects {
                 }
 
                 if (Error != ErrorKind::WrongFormat) {
-                    const auto Result =
-                        OpenError(Kind::FatMachO, static_cast<uint32_t>(Error));
-
-                    return Result;
+                    return OpenError(Kind::FatMachO,
+                                     static_cast<uint32_t>(Error));
                 }
             }
         }

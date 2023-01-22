@@ -68,7 +68,7 @@ namespace Dyld3 {
             return *this;
         }
 
-        constexpr auto
+        [[nodiscard]] constexpr auto
         operator<=>(const Dyld3::PackedVersion &Rhs) const noexcept = default;
     };
 

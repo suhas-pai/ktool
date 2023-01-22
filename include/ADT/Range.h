@@ -19,8 +19,8 @@ namespace ADT {
         uint64_t Begin = 0;
         uint64_t Size = 0;
 
-        constexpr explicit
-        Range(const uint64_t Begin, const uint64_t Size) noexcept
+        constexpr
+        explicit Range(const uint64_t Begin, const uint64_t Size) noexcept
         : Begin(Begin), Size(Size) {}
     public:
         [[nodiscard]] constexpr Range() noexcept = default;

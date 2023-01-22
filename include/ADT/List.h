@@ -110,8 +110,8 @@ namespace ADT {
                 return operator--();
             }
 
-            [[nodiscard]] constexpr
-            auto operator+(const difference_type Amt) const noexcept {
+            [[nodiscard]]
+            constexpr auto operator+(const difference_type Amt) const noexcept {
                 return Iterator(Data + Amt);
             }
 
@@ -125,8 +125,8 @@ namespace ADT {
                 return It - Amt;
             }
 
-            [[nodiscard]] constexpr
-            auto operator-(const difference_type Amt) const noexcept {
+            [[nodiscard]]
+            constexpr auto operator-(const difference_type Amt) const noexcept {
                 return Iterator(Data - Amt);
             }
 

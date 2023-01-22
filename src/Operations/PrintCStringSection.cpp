@@ -352,6 +352,6 @@ namespace Operations {
         }
 
         assert(false &&
-               "Got unrecognized Object-Kind in PrintCStringSection::run");
+               "Got unrecognized Object-Kind in PrintCStringSection::run()");
     }
 }
