@@ -47,6 +47,10 @@ namespace MachO {
                 return IsBigEndian;
             }
 
+            [[nodiscard]] constexpr auto kind() const noexcept {
+                return Ptr->kind(IsBigEndian);
+            }
+
             template <MachO::LoadCommandKind Kind>
             [[nodiscard]] constexpr auto isa() const noexcept -> decltype(auto)
             {
