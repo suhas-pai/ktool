@@ -139,7 +139,7 @@ namespace MachO {
 
             [[nodiscard]] constexpr
             auto operator!=(const LoadCommand *const Other) const noexcept {
-                return Ptr != Other;
+                return !operator==(Other);
             }
         };
 
