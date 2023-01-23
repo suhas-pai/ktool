@@ -31,7 +31,7 @@ namespace Operations {
             case Objects::Kind::None:
                 assert(false &&
                        "Got Object-Kind None in "
-                       "PrintLoadCommands::supportsObjectKind");
+                       "PrintLoadCommands::supportsObjectKind()");
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
@@ -40,7 +40,7 @@ namespace Operations {
 
         assert(false &&
                "Got unknown Object-Kind in "
-               "PrintLoadCommands::supportsObjectKind");
+               "PrintLoadCommands::supportsObjectKind()");
     }
 
     static auto

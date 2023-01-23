@@ -8,8 +8,8 @@
 #include "Objects/MachO.h"
 
 namespace Objects {
-    auto MachO::Open(const ADT::MemoryMap &Map) noexcept ->
-        ADT::PointerOrError<MachO, OpenError>
+    auto MachO::Open(const ADT::MemoryMap &Map) noexcept
+        -> ADT::PointerOrError<MachO, OpenError>
     {
         const auto Header = Map.base<::MachO::Header>();
         if (Header == nullptr) {

@@ -24,7 +24,7 @@ namespace Operations {
             case Objects::Kind::None:
                 assert(false &&
                        "Got Object-Kind None in "
-                       "PrintLibraries::supportsObjectKind");
+                       "PrintLibraries::supportsObjectKind()");
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
@@ -32,7 +32,8 @@ namespace Operations {
         }
 
         assert(false &&
-               "Got unknown Object-Kind in PrintLibraries::supportsObjectKind");
+               "Got unknown Object-Kind in "
+               "PrintLibraries::supportsObjectKind()");
     }
 
     struct DylibInfo {

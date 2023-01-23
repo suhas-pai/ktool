@@ -65,11 +65,12 @@ namespace Operations {
                 "%s\tSize:       %s\n"
                 "%s\tAlign:      %" PRIu32 " (%s)\n",
                 Prefix, Ordinal, ObjectDesc.data(),
-                Prefix, Mach::CpuKindIsValid(CpuKind) ?
-                    Verbose ?
-                        Mach::CpuKindGetString(CpuKind).data() :
-                        Mach::CpuKindGetDesc(CpuKind).data()
-                    : "Unrecognized",
+                Prefix,
+                    Mach::CpuKindIsValid(CpuKind) ?
+                        Verbose ?
+                            Mach::CpuKindGetString(CpuKind).data() :
+                            Mach::CpuKindGetDesc(CpuKind).data()
+                        : "Unrecognized",
                 Prefix, SubKindString,
                 Prefix, Offset, ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
                 Prefix, Utils::FormattedSizeForOutput(Size).data(),
