@@ -1372,7 +1372,7 @@ namespace MachO {
                 return std::nullopt;
             }
 
-            return std::optional(std::string_view(Ptr + Offset, Length));
+            return std::string_view(Ptr + Offset, Length);
         }
     };
 
@@ -1662,7 +1662,7 @@ namespace MachO {
                 BitSet = *static_cast<const uint8_t *>(Ptr);
             }
 
-            return std::optional(std::bitset<64>(BitSet));
+            return std::bitset<64>(BitSet);
         }
     };
 
@@ -1888,7 +1888,9 @@ namespace MachO {
         uint32_t StrSize;
 
         [[nodiscard]] constexpr
-        static auto EntryDescGetDylibOrdinal(const int16_t Desc) noexcept {
+        static auto EntryDescGetDylibOrdinal(const int16_t Desc) noexcept
+            -> uint8_t
+        {
             return ((Desc >> 8) & 0xff);
         }
 
@@ -2010,7 +2012,7 @@ namespace MachO {
             }
 
             [[nodiscard]] constexpr
-            auto dylibOrdinal(const bool IsBigEndian) const noexcept -> bool {
+            auto dylibOrdinal(const bool IsBigEndian) const noexcept {
                 return EntryDescGetDylibOrdinal(description(IsBigEndian));
             }
         };
@@ -2058,7 +2060,7 @@ namespace MachO {
             }
 
             [[nodiscard]] constexpr
-            auto dylibOrdinal(const bool IsBigEndian) const noexcept -> bool {
+            auto dylibOrdinal(const bool IsBigEndian) const noexcept {
                 return EntryDescGetDylibOrdinal(description(IsBigEndian));
             }
         };
@@ -2099,12 +2101,13 @@ namespace MachO {
         [[nodiscard]] inline auto
         symbolEntryList(const ADT::MemoryMap &Map,
                         const bool IsBigEndian) const noexcept
+            -> std::optional<ADT::List<const Entry>>
         {
             const auto Entries =
                 Map.getFromRange<const Entry>(symRange(IsBigEndian, false));
 
             if (Entries == nullptr) {
-                return ADT::List<const Entry>();
+                return std::nullopt;
             }
 
             return ADT::List(Entries, symCount(IsBigEndian));
@@ -2113,12 +2116,13 @@ namespace MachO {
         [[nodiscard]] inline auto
         symbolEntryList(const ADT::MemoryMap &Map,
                         const bool IsBigEndian) noexcept
+            -> std::optional<ADT::List<Entry>>
         {
             const auto Entries =
                 Map.getFromRange<Entry>(symRange(IsBigEndian, false));
 
             if (Entries == nullptr) {
-                return ADT::List<Entry>();
+                return std::nullopt;
             }
 
             return ADT::List(Entries, symCount(IsBigEndian));
@@ -2127,12 +2131,13 @@ namespace MachO {
         [[nodiscard]] inline auto
         symbolEntryList64(const ADT::MemoryMap &Map,
                           const bool IsBigEndian) const noexcept
+            -> std::optional<ADT::List<const Entry64>>
         {
             const auto Entries =
                 Map.getFromRange<const Entry64>(symRange(IsBigEndian, true));
 
             if (Entries == nullptr) {
-                return ADT::List<const Entry64>();
+                return std::nullopt;
             }
 
             return ADT::List(Entries, symCount(IsBigEndian));
@@ -2141,12 +2146,13 @@ namespace MachO {
         [[nodiscard]] inline auto
         symbolEntryList64(const ADT::MemoryMap &Map,
                           const bool IsBigEndian) noexcept
+            -> std::optional<ADT::List<Entry64>>
         {
             const auto Entries =
                 Map.getFromRange<Entry64>(symRange(IsBigEndian, true));
 
             if (Entries == nullptr) {
-                return ADT::List<Entry64>();
+                return std::nullopt;
             }
 
             return ADT::List(Entries, symCount(IsBigEndian));
