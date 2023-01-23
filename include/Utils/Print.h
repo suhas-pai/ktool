@@ -28,6 +28,9 @@ namespace Utils {
     auto PadSpaces(FILE *OutFile, int SpaceAmount) noexcept -> int;
     auto RightPadSpaces(FILE *OutFile, int WrittenOut, int RightPad) -> int;
 
+    auto
+    PrintMultTimes(FILE *OutFile, const char *String, uint64_t Times) -> int;
+
     auto FormattedSize(uint64_t Size) -> std::string;
     auto FormattedSizeForOutput(uint64_t Size) -> std::string;
 

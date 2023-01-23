@@ -114,6 +114,24 @@ namespace Utils {
     }
 
     auto
+    PrintMultTimes(FILE *const OutFile,
+                   const char *const String,
+                   const uint64_t Times) -> int
+    {
+        auto Result = int();
+        for (auto I = uint64_t(); I != Times; I++) {
+            if (const auto Tmp = fputs(String, OutFile); Tmp != EOF) {
+                Result += Tmp;
+                continue;
+            }
+
+            return EOF;
+        }
+
+        return Result;
+    }
+
+    auto
     PrintAddress(FILE *const OutFile,
                  const uint64_t Address,
                  const bool Is64Bit,
