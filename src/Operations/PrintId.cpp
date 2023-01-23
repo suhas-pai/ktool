@@ -40,10 +40,14 @@ namespace Operations {
         }
 
         const auto IsBigEndian = MachO.isBigEndian();
-        for (const auto &LC : MachO.loadCommandsMap()) {
-            if (const auto ID =
-                    dyn_cast<MachO::LoadCommandKind::IdDylib>(&LC, IsBigEndian))
-            {
+        const auto LoadCommandsMap = MachO.loadCommandsMap();
+
+        for (auto Iter = LoadCommandsMap.begin();
+             Iter != LoadCommandsMap.end();
+             Iter++)
+        {
+            using Kind = MachO::LoadCommandKind;
+            if (const auto ID = Iter.dyn_cast<Kind::IdDylib>()) {
                 auto Name = std::string_view("<malformed>");
                 if (const auto NameOpt = ID->name(IsBigEndian)) {
                     Name = NameOpt.value();
@@ -84,7 +88,7 @@ namespace Operations {
     auto PrintId::run(const Objects::Base &Base) const noexcept -> RunResult {
         switch (Base.kind()) {
             case Objects::Kind::None:
-                assert(false && "run() got Object with Kind::None");
+                assert(false && "PrintId::run() got Object with Kind::None");
             case Objects::Kind::MachO:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:

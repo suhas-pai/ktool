@@ -196,7 +196,8 @@ namespace Operations {
     {
         switch (Base.kind()) {
             case Objects::Kind::None:
-                assert(false && "run() got Object with Kind::None");
+                assert(false &&
+                       "PrintLibraries::run() got Object with Kind::None");
             case Objects::Kind::MachO:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:

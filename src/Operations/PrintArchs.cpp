@@ -160,7 +160,7 @@ namespace Operations {
     {
         switch (Base.kind()) {
             case Objects::Kind::None:
-                assert(false && "run() got Object with Kind::None");
+                assert(false && "PrintArchs::run() got Object with Kind::None");
             case Objects::Kind::MachO:
                 return RunResultUnsupported;
             case Objects::Kind::FatMachO:

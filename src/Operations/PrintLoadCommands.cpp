@@ -163,7 +163,7 @@ namespace Operations {
                                 "<unknown>";
 
                         fprintf(OutFile, " (%s", SectionKindDesc.data());
-                        if (Verbose && !Flags.attributes().empty()) {
+                        if (!Flags.attributes().empty()) {
                             fputc(';', OutFile);
                         } else {
                             fputc(')', OutFile);
@@ -365,7 +365,7 @@ namespace Operations {
                                 "<unknown>";
 
                         fprintf(OutFile, " (%s", SectionKindDesc.data());
-                        if (Verbose && !Flags.attributes().empty()) {
+                        if (!Flags.attributes().empty()) {
                             fputc(';', OutFile);
                         } else {
                             fputc(')', OutFile);
@@ -1306,7 +1306,8 @@ namespace Operations {
     {
         switch (Base.kind()) {
             case Objects::Kind::None:
-                assert(false && "run() got Object with Kind::None");
+                assert(false &&
+                       "PrintLoadCommands::run() got Object with Kind::None");
             case Objects::Kind::MachO:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
