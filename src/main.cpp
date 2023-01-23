@@ -599,7 +599,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     fputs("Index-List is out-of-bounds of mach-o\n", stderr);
                     return 1;
                 case RunError::IndexOutOfBounds:
-                    fputs("Index-List is out-of-bounds of mach-o\n", stderr);
+                    fputs("Index is out-of-bounds of mach-o\n", stderr);
                     return 1;
                 case RunError::SymbolTableOutOfBounds:
                     fputs("Symbol-Table is out-of-bounds of mach-o\n", stderr);
