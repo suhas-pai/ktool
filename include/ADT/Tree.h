@@ -60,7 +60,7 @@ namespace ADT {
             return (TabLength * (depthLevel() - 1));
         }
 
-        [[nodiscard]] const auto isAtEnd() const noexcept {
+        [[nodiscard]] auto isAtEnd() const noexcept {
             return (Current == End);
         }
 
@@ -412,7 +412,7 @@ namespace ADT {
             return LastSibling;
         }
 
-        constexpr auto AddChild(TreeNode &Node) noexcept -> decltype(*this) {
+        constexpr auto addChild(TreeNode &Node) noexcept -> decltype(*this) {
             if (const auto LastChild = lastChild()) {
                 LastChild->NextSibling = &Node;
             } else {
@@ -438,7 +438,7 @@ namespace ADT {
             return *this;
         }
 
-        constexpr auto AddSibling(TreeNode &Node) noexcept -> decltype(*this) {
+        constexpr auto addSibling(TreeNode &Node) noexcept -> decltype(*this) {
             if (const auto Parent = parent()) {
                 if (const auto LastChild = Parent->lastChild()) {
                     LastChild->NextSibling = &Node;
@@ -552,7 +552,12 @@ namespace ADT {
             return *this;
         }
 
-        template <typename NodePrinter, typename Iterator>
+        [[nodiscard]]
+        inline virtual auto getLength() const noexcept -> uint64_t {
+            return 0;
+        }
+
+        template <typename Iterator, typename NodePrinter>
         const TreeNode &
         PrintHorizontal(FILE *const OutFile,
                         const int TabLength,
@@ -595,7 +600,9 @@ namespace ADT {
                 const auto DashCount = (TabLength - 2);
                 WrittenOut += DashCount;
 
-                Utils::PrintMultTimes(OutFile, "─", DashCount);
+                Utils::PrintMultTimes(OutFile,
+                                      "─",
+                                      static_cast<uint64_t>(DashCount));
                 fputc(' ', OutFile);
 
                 WrittenOut += 1;
@@ -913,6 +920,19 @@ namespace ADT {
             });
 
             return *this;
+        }
+
+        template <typename Iterator, typename NodePrinter>
+        const TreeNode &
+        PrintHorizontal(FILE *const OutFile,
+                        const int TabLength,
+                        const NodePrinter &NodePrinterFunc) const noexcept
+        {
+            if (const auto Root = root()) {
+                Root->PrintHorizontal<Iterator, NodePrinter>(OutFile,
+                                                             TabLength,
+                                                             NodePrinterFunc);
+            }
         }
     };
 }
