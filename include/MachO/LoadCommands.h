@@ -681,7 +681,7 @@ namespace MachO {
                 }
 
                 assert(false &&
-                       "Section::KindGetString() got an unrecognized kind");
+                       "Section::KindGetString() got an unrecognized Kind");
             }
 
             [[nodiscard]] constexpr static
@@ -736,7 +736,7 @@ namespace MachO {
                 }
 
                 assert(false &&
-                       "Section::KindGetDesc() got an unrecognized kind");
+                       "Section::KindGetDesc() got an unrecognized Kind");
             }
 
             enum class Attribute : uint32_t {
@@ -1234,18 +1234,18 @@ namespace MachO {
                 return SegmentCommand::Section::KindGetDesc(Kind);
             }
 
-            [[nodiscard]]
-            constexpr static auto AttributeIsValid(const Attribute Attribute) noexcept {
+            [[nodiscard]] constexpr
+            static auto AttributeIsValid(const Attribute Attribute) noexcept {
                 return SegmentCommand::Section::AttributeIsValid(Attribute);
             }
 
-            [[nodiscard]]
-            constexpr static auto AttributeGetString(const Attribute Attribute) noexcept {
+            [[nodiscard]] constexpr
+            static auto AttributeGetString(const Attribute Attribute) noexcept {
                 return SegmentCommand::Section::AttributeGetString(Attribute);
             }
 
-            [[nodiscard]]
-            constexpr static auto AttributeGetDesc(const Attribute Attribute) noexcept {
+            [[nodiscard]] constexpr
+            static auto AttributeGetDesc(const Attribute Attribute) noexcept {
                 return SegmentCommand::Section::AttributeGetDesc(Attribute);
             }
 
@@ -1346,6 +1346,14 @@ namespace MachO {
         uint32_t Offset;
 
         [[nodiscard]] constexpr auto
+        isInvalid(const LoadCommand *const Cmd,
+                  const bool IsBigEndian) const noexcept
+        {
+            const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBigEndian);
+            return Offset < Cmd->cmdsize(IsBigEndian);
+        }
+
+        [[nodiscard]] constexpr auto
         string(const LoadCommand *const Cmd,
                const bool IsBigEndian) const noexcept
             -> std::optional<std::string_view>
@@ -1358,7 +1366,7 @@ namespace MachO {
             }
 
             const auto Ptr = reinterpret_cast<const char *>(Cmd);
-            const auto Length = strnlen(Ptr + Offset, Cmd->CmdSize - Offset);
+            const auto Length = strnlen(Ptr + Offset, CmdSize - Offset);
 
             if (Length == 0) {
                 return std::nullopt;
