@@ -151,19 +151,19 @@ namespace Operations {
                                                    /*PadSegment=*/!Verbose,
                                                    /*PadSection=*/!Verbose);
 
-                    using SectionSpace = SegmentCommand::Section;
+                    using SectionT = SegmentCommand::Section;
 
                     const auto SectionKind = Section.kind(IsBigEndian);
                     const auto Flags = Section.flags(IsBigEndian);
 
-                    if (SectionKind != SectionSpace::Kind::Regular) {
+                    if (SectionKind != SectionT::Kind::Regular) {
                         const auto SectionKindDesc =
-                            SectionSpace::KindIsValid(SectionKind) ?
-                                SectionSpace::KindGetDesc(SectionKind) :
+                            SectionT::KindIsValid(SectionKind) ?
+                                SectionT::KindGetDesc(SectionKind) :
                                 "<unknown>";
 
                         fprintf(OutFile, " (%s", SectionKindDesc.data());
-                        if (!Flags.attributes().empty()) {
+                        if (Verbose && !Flags.attributes().empty()) {
                             fputc(';', OutFile);
                         } else {
                             fputc(')', OutFile);
@@ -206,10 +206,10 @@ namespace Operations {
                                     ADT::FlagsIterator(Flags.attributes()))
                             {
                                 const auto Attr =
-                                    SectionSpace::Attribute(1ull << Bit);
+                                    SectionT::Attribute(1ull << Bit);
                                 const auto AttrString =
-                                    SectionSpace::AttributeIsValid(Attr) ?
-                                        SectionSpace::AttributeGetDesc(Attr) :
+                                    SectionT::AttributeIsValid(Attr) ?
+                                        SectionT::AttributeGetString(Attr) :
                                         "<unknown>";
 
                                 fprintf(OutFile,
@@ -221,21 +221,20 @@ namespace Operations {
                                 FlagNumber++;
                             }
                     } else if (!Flags.attributes().empty()) {
-                        if (SectionKind == SectionSpace::Kind::Regular) {
+                        if (SectionKind == SectionT::Kind::Regular) {
                             fputs(" (Regular;", OutFile);
                         }
 
                         auto Iterator = ADT::FlagsIterator(Flags.attributes());
                         for (auto Iter = Iterator.begin();;) {
                             const auto Bit = *Iter;
-                            const auto Attr =
-                                SectionSpace::Attribute(1ull << Bit);
+                            const auto Attr = SectionT::Attribute(1ull << Bit);
 
-                            if (SectionSpace::AttributeIsValid(Attr)) {
-                                const auto Desc =
-                                    SectionSpace::AttributeGetDesc(Attr);
+                            if (SectionT::AttributeIsValid(Attr)) {
+                                const auto AttrDesc =
+                                    SectionT::AttributeGetDesc(Attr);
 
-                                fprintf(OutFile, " %s", Desc.data());
+                                fprintf(OutFile, " %s", AttrDesc.data());
                             } else {
                                 fprintf(OutFile,
                                         " <unknown: Bit %" PRIu32 ">",
@@ -354,20 +353,19 @@ namespace Operations {
                                                    /*PadSegment=*/!Verbose,
                                                    /*PadSection=*/!Verbose);
 
-                    using SectionSpace = SegmentCommand::Section;
-
+                    using SectionT = SegmentCommand::Section;
 
                     const auto SectionKind = Section.kind(IsBigEndian);
                     const auto Flags = Section.flags(IsBigEndian);
 
-                    if (SectionKind != SectionSpace::Kind::Regular) {
+                    if (SectionKind != SectionT::Kind::Regular) {
                         const auto SectionKindDesc =
-                            SectionSpace::KindIsValid(SectionKind) ?
-                                SectionSpace::KindGetDesc(SectionKind) :
+                            SectionT::KindIsValid(SectionKind) ?
+                                SectionT::KindGetDesc(SectionKind) :
                                 "<unknown>";
 
                         fprintf(OutFile, " (%s", SectionKindDesc.data());
-                        if (!Flags.attributes().empty()) {
+                        if (Verbose && !Flags.attributes().empty()) {
                             fputc(';', OutFile);
                         } else {
                             fputc(')', OutFile);
@@ -410,10 +408,10 @@ namespace Operations {
                                     ADT::FlagsIterator(Flags.attributes()))
                             {
                                 const auto Attr =
-                                    SectionSpace::Attribute(1ull << Bit);
+                                    SectionT::Attribute(1ull << Bit);
                                 const auto AttrString =
-                                    SectionSpace::AttributeIsValid(Attr) ?
-                                        SectionSpace::AttributeGetDesc(Attr) :
+                                    SectionT::AttributeIsValid(Attr) ?
+                                        SectionT::AttributeGetString(Attr) :
                                         "<unknown>";
 
                                 fprintf(OutFile,
@@ -425,21 +423,20 @@ namespace Operations {
                                 FlagNumber++;
                             }
                     } else if (!Flags.attributes().empty()) {
-                        if (SectionKind == SectionSpace::Kind::Regular) {
+                        if (SectionKind == SectionT::Kind::Regular) {
                             fputs(" (Regular;", OutFile);
                         }
 
                         auto Iterator = ADT::FlagsIterator(Flags.attributes());
                         for (auto Iter = Iterator.begin();;) {
                             const auto Bit = *Iter;
-                            const auto Attr =
-                                SectionSpace::Attribute(1ull << Bit);
+                            const auto Attr = SectionT::Attribute(1ull << Bit);
 
-                            if (SectionSpace::AttributeIsValid(Attr)) {
-                                const auto Desc =
-                                    SectionSpace::AttributeGetDesc(Attr);
+                            if (SectionT::AttributeIsValid(Attr)) {
+                                const auto AttrDesc =
+                                    SectionT::AttributeGetDesc(Attr);
 
-                                fprintf(OutFile, " %s", Desc.data());
+                                fprintf(OutFile, " %s", AttrDesc.data());
                             } else {
                                 fprintf(OutFile,
                                         " <unknown: Bit %" PRIu32 ">",
