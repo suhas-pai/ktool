@@ -58,6 +58,15 @@ namespace Utils {
                           bool IsOutOfBounds,
                           const char *Prefix = "",
                           const char *Suffix = "") noexcept -> int;
+
+    // 32 for Segment+Section Name Max Length, 4 for apostrophes, 1 for comma
+    constexpr static inline auto SegmentSectionPairMaxLen = 32 + 4 + 1;
+
+    // 2 for '0x', 8 for digits
+    constexpr static inline auto Address32Length = 2 + 8;
+
+    // 2 for '0x', 16 for digits
+    constexpr static inline auto Address64Length = 2 + 16;
 }
 
 #define STRING_VIEW_FMT "%.*s"
@@ -71,6 +80,9 @@ namespace Utils {
 #define RIGHTPAD_FMT_ARGS(val) val
 #define STR_LENGTH(s) (sizeof(s) - 1)
 
+#define ADDRESS_32_LEN 10 // 2 + 8
+#define ADDRESS_64_LEN 18 // 2 + 16
+
 #define ADDRESS_32_FMT "0x%08" PRIX32
 #define ADDRESS_64_FMT "0x%016" PRIX64
 
@@ -80,4 +92,3 @@ namespace Utils {
 
 #define ADDR_RANGE_FMT_ARGS(BEGIN, END) \
     BEGIN, END, ((END) < (BEGIN)) ? " (Overflows)" : ""
-
