@@ -88,6 +88,11 @@ namespace ADT {
             return Flags;
         }
 
+        constexpr auto clear() noexcept -> decltype(*this) {
+            Flags = 0;
+            return *this;
+        }
+
         [[nodiscard]]
         constexpr auto getFirstSet(const uint8_t Index = 0) const noexcept
             -> uint8_t
