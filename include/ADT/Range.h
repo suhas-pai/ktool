@@ -116,5 +116,15 @@ namespace ADT {
             const auto MinSize = (Other.Size + (Other.Begin - Begin));
             return containsIndex(Other.Begin) && Size >= MinSize;
         }
+
+        [[nodiscard]]
+        constexpr auto operator==(const Range &Range) const noexcept {
+            return Begin == Range.Begin && Size == Range.Size;
+        }
+
+        [[nodiscard]]
+        constexpr auto operator!=(const Range &Range) const noexcept {
+            return !operator==(Range);
+        }
     };
 }
