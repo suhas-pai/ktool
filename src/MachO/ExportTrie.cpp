@@ -6,12 +6,14 @@
 #include <algorithm>
 
 #include "MachO/ExportTrie.h"
+#include "MachO/SegmentList.h"
+
 #include "Utils/Leb128.h"
 #include "Utils/Overflow.h"
 
 namespace  MachO {
-    ExportTrieIterator::ExportTrieIterator(const uint8_t *Begin,
-                                           const uint8_t *End,
+    ExportTrieIterator::ExportTrieIterator(const uint8_t *const Begin,
+                                           const uint8_t *const End,
                                            const ParseOptions &Options) noexcept
     : Begin(Begin), End(End)
     {
@@ -67,7 +69,7 @@ namespace  MachO {
 
     auto
     ExportTrieIterator::ParseNode(const uint8_t *Ptr,
-                                  NodeInfo *InfoOut) noexcept
+                                  NodeInfo *const InfoOut) noexcept
         -> ExportTrieIterator::Error
     {
         auto NodeSize = uint32_t();
@@ -378,5 +380,154 @@ namespace  MachO {
                 break;
             }
         } while (true);
+    }
+
+    const SegmentInfo *
+    ExportTrieEntryCollection::LookupInfoForAddress(
+        const MachO::SegmentList &SegList,
+        const uint64_t Address,
+        const SectionInfo **const SectionOut) const noexcept
+    {
+        const auto Segment = SegList.findSegmentWithVmAddr(Address);
+        if (Segment != nullptr) {
+            *SectionOut = Segment->findSectionWithVmAddr(Address);
+        }
+
+        return Segment;
+    }
+
+    ExportTrieEntryCollection::ChildNode *
+    ExportTrieEntryCollection::MakeNodeForEntryInfo(
+        const ExportTrieIterateInfo &Info,
+        const MachO::SegmentList *const SegList) noexcept
+    {
+        auto Node = static_cast<ChildNode *>(nullptr);
+        if (Info.isExport()) {
+            Node = new ExportChildNode();
+        } else {
+            Node = new ChildNode();
+        }
+
+        Node->setKind(Info.kind());
+        Node->setString(std::string(Info.string()));
+
+        if (Info.isExport()) {
+            auto ExportNode = Node->getAsExportNode();
+            const auto &ExportInfo = Info.exportInfo();
+
+            if (!ExportInfo.reexport()) {
+                if (SegList != nullptr) {
+                    auto Section = static_cast<const SectionInfo *>(nullptr);
+
+                    const auto Addr = ExportInfo.imageOffset();
+                    const auto Segment =
+                        LookupInfoForAddress(*SegList, Addr, &Section);
+
+                    ExportNode->setSegment(Segment);
+                    ExportNode->setSection(Section);
+                }
+            }
+
+            ExportNode->setInfo(ExportInfo);
+        }
+
+        return Node;
+    }
+
+    void
+    ExportTrieEntryCollection::ParseFromTrie(
+        const ExportTrieMap &Trie,
+        const MachO::SegmentList *const SegList,
+        Error *const Error) noexcept
+    {
+        auto Iter = Trie.begin();
+        const auto End = Trie.end();
+
+        if (Iter == End) {
+            return;
+        }
+
+        setRoot(MakeNodeForEntryInfo(*Iter, SegList));
+
+        auto Parent = root();
+        auto PrevDepthLevel = uint64_t(1);
+
+        const auto MoveUpParentHierarchy = [&](const uint64_t Amt) noexcept {
+            for (auto I = uint64_t(); I != Amt; I++) {
+                Parent = Parent->parent();
+            }
+        };
+
+        for (Iter++; Iter != End; Iter++) {
+            if (Iter.hasError()) {
+                if (Error != nullptr) {
+                    *Error = Iter.getError();
+                }
+
+                return;
+            }
+
+            const auto DepthLevel = Iter->depthLevel();
+            if (PrevDepthLevel > DepthLevel) {
+                MoveUpParentHierarchy(
+                    static_cast<uint64_t>(PrevDepthLevel) - DepthLevel);
+            }
+
+            const auto Current = MakeNodeForEntryInfo(*Iter, SegList);
+
+            Parent->addChild(*Current);
+            if (Iter->node().childCount() != 0) {
+                Parent = Current;
+            }
+
+            PrevDepthLevel = DepthLevel;
+        }
+    }
+
+    ExportTrieEntryCollection
+    ExportTrieEntryCollection::Open(const ExportTrieMap &Trie,
+                                    const MachO::SegmentList *const SegList,
+                                    Error *const Error)
+    {
+        auto Result = ExportTrieEntryCollection();
+        Result.ParseFromTrie(Trie, SegList, Error);
+
+        return Result;
+    }
+
+    ExportTrieExportCollection
+    ExportTrieExportCollection::Open(const ExportTrieMap::ExportMap &Trie,
+                                     const MachO::SegmentList *const SegList,
+                                     Error *const ErrorOut) noexcept
+    {
+        auto Result = ExportTrieExportCollection();
+        for (auto Iter = Trie.begin(); Iter != Trie.end(); Iter++) {
+            if (Iter.hasError()) {
+                *ErrorOut = Iter.getError();
+                return Result;
+            }
+
+            auto Entry = EntryInfo();
+            const auto &ExportInfo = Iter->exportInfo();
+
+            if (!ExportInfo.reexport()) {
+                if (SegList != nullptr) {
+                    const auto Addr = ExportInfo.imageOffset();
+                    const auto Segment = SegList->findSegmentWithVmAddr(Addr);
+
+                    auto Section = static_cast<const SectionInfo *>(nullptr);
+                    if (Segment != nullptr) {
+                        Section = Segment->findSectionWithVmAddr(Addr);
+                    }
+
+                    Entry.setSegment(Segment);
+                    Entry.setSection(Section);
+                }
+            }
+
+            Result.EntryList.emplace_back(std::make_unique<EntryInfo>(Entry));
+        }
+
+        return Result;
     }
 }
