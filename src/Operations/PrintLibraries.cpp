@@ -177,7 +177,8 @@ namespace Operations {
                     Counter,
                     ZEROPAD_FMT_ARGS(NcmdsDigitCount),
                     DylibInfo.Index,
-                    RIGHTPAD_FMT_ARGS((int)LongestLCDylibKindLength),
+                    RIGHTPAD_FMT_ARGS(
+                        static_cast<int>(LongestLCDylibKindLength)),
                     MachO::LoadCommandKindGetString(DylibInfo.Kind).data(),
                     DylibInfo.Name.data(),
                     DYLD3_PACKED_VERSION_FMT_ARGS(DylibInfo.CurrentVersion),

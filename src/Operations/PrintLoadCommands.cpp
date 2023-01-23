@@ -1277,7 +1277,8 @@ namespace Operations {
                         "LC %" ZEROPAD_FMT PRIu32 ": %" RIGHTPAD_FMT "s",
                         ZEROPAD_FMT_ARGS(NcmdsDigitCount),
                         Counter,
-                        RIGHTPAD_FMT_ARGS((int)LongestLCKindLength),
+                        RIGHTPAD_FMT_ARGS(
+                            static_cast<int>(LongestLCKindLength)),
                         MachO::LoadCommandKindGetString(Kind).data());
             } else {
                 fprintf(OutFile,
