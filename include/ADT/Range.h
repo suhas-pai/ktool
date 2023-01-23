@@ -93,7 +93,7 @@ namespace ADT {
 
         [[nodiscard]]
         constexpr auto canContainSize(const uint64_t Size) const noexcept {
-            return Size >= size();
+            return Size < size();
         }
 
         [[nodiscard]]
