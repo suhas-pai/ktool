@@ -92,6 +92,11 @@ namespace ADT {
         }
 
         [[nodiscard]]
+        constexpr auto canContainSize(const uint64_t Size) const noexcept {
+            return Size >= size();
+        }
+
+        [[nodiscard]]
         constexpr auto overlaps(const Range &Other) const noexcept {
             if (empty() || Other.empty()) {
                 return false;

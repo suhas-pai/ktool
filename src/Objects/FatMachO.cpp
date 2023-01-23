@@ -9,7 +9,7 @@
 #include "MachO/Fat.h"
 
 namespace Objects {
-    static auto ValidateHeader(const ADT::MemoryMap &Map) {
+    static auto ValidateHeader(const ADT::MemoryMap &Map) noexcept {
         const auto Header = Map.base<::MachO::FatHeader>();
         if (Header == nullptr) {
             const auto Magic = Map.base<::MachO::Magic>();
@@ -35,7 +35,7 @@ namespace Objects {
                 sizeof(::MachO::FatArch64) : sizeof(::MachO::FatArch);
 
         const auto TotalArchListSize = ArchSize * ArchCount;
-        if (sizeof(*Header) + TotalArchListSize > Map.size()) {
+        if (!Map.range().canContainSize(TotalArchListSize)) {
             if (ArchCount == 1) {
                 return FatMachO::OpenError::SizeTooSmall;
             }
@@ -46,8 +46,8 @@ namespace Objects {
         return FatMachO::OpenError::None;
     }
 
-    auto FatMachO::Open(const ADT::MemoryMap &Map) noexcept ->
-        ADT::PointerOrError<FatMachO, OpenError>
+    auto FatMachO::Open(const ADT::MemoryMap &Map) noexcept
+        -> ADT::PointerOrError<FatMachO, OpenError>
     {
         if (const auto Error = ValidateHeader(Map); Error != OpenError::None) {
             return Error;
@@ -56,8 +56,8 @@ namespace Objects {
         return new FatMachO(Map);
     }
 
-    auto FatMachO::OpenAndValidateArchs(const ADT::MemoryMap &Map) noexcept ->
-        ADT::PointerOrError<FatMachO, OpenError>
+    auto FatMachO::OpenAndValidateArchs(const ADT::MemoryMap &Map) noexcept
+        -> ADT::PointerOrError<FatMachO, OpenError>
     {
         if (const auto Error = ValidateHeader(Map); Error != OpenError::None) {
             return Error;
@@ -170,8 +170,8 @@ namespace Objects {
     }
 
     [[nodiscard]]
-    auto FatMachO::getArchObjectAtIndex(const uint32_t Index) const noexcept ->
-        Objects::OpenResult
+    auto FatMachO::getArchObjectAtIndex(const uint32_t Index) const noexcept
+        -> Objects::OpenResult
     {
         const auto ArchCount = archCount();
         assert(Index < ArchCount);
