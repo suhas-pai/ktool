@@ -510,13 +510,15 @@ namespace Operations {
             {
                 const auto PathOpt = DylibCmd->name(IsBigEndian);
                 const auto Info = DylibInfo {
-                    .Path = PathOpt.has_value() ? PathOpt.value() : Malformed,
+                    .Path =
+                        std::string(PathOpt.has_value() ?
+                            PathOpt.value() : Malformed),
                     .CurrentVersion = DylibCmd->currentVersion(IsBigEndian),
                     .CompatVersion = DylibCmd->compatVersion(IsBigEndian),
                     .Timestamp = DylibCmd->timestamp(IsBigEndian)
                 };
 
-                DylibList.emplace_back(std::move(Info));
+                DylibList.push_back(Info);
             }
         }
 
