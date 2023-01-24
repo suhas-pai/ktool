@@ -13,7 +13,7 @@ namespace MachO {
         if (Is64Bit) {
             for (const auto &LC : Map) {
                 if (const auto Segment =
-                        dyn_cast<MachO::SegmentCommand64>(&LC, IsBigEndian))
+                        dyn_cast<SegmentCommand64>(&LC, IsBigEndian))
                 {
                     addSegment(*Segment, IsBigEndian);
                 }
@@ -21,7 +21,7 @@ namespace MachO {
         } else {
             for (const auto &LC : Map) {
                 if (const auto Segment =
-                        dyn_cast<MachO::SegmentCommand>(&LC, IsBigEndian))
+                        dyn_cast<SegmentCommand>(&LC, IsBigEndian))
                 {
                     addSegment(*Segment, IsBigEndian);
                 }

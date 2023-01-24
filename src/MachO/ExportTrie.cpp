@@ -384,7 +384,7 @@ namespace  MachO {
 
     const SegmentInfo *
     ExportTrieEntryCollection::LookupInfoForAddress(
-        const MachO::SegmentList &SegList,
+        const SegmentList &SegList,
         const uint64_t Address,
         const SectionInfo **const SectionOut) const noexcept
     {
@@ -399,7 +399,7 @@ namespace  MachO {
     ExportTrieEntryCollection::ChildNode *
     ExportTrieEntryCollection::MakeNodeForEntryInfo(
         const ExportTrieIterateInfo &Info,
-        const MachO::SegmentList *const SegList) noexcept
+        const SegmentList *const SegList) noexcept
     {
         auto Node = static_cast<ChildNode *>(nullptr);
         if (Info.isExport()) {
@@ -435,10 +435,9 @@ namespace  MachO {
     }
 
     void
-    ExportTrieEntryCollection::ParseFromTrie(
-        const ExportTrieMap &Trie,
-        const MachO::SegmentList *const SegList,
-        Error *const Error) noexcept
+    ExportTrieEntryCollection::ParseFromTrie(const ExportTrieMap &Trie,
+                                             const SegmentList *const SegList,
+                                             Error *const Error) noexcept
     {
         auto Iter = Trie.begin();
         const auto End = Trie.end();
@@ -486,7 +485,7 @@ namespace  MachO {
 
     ExportTrieEntryCollection
     ExportTrieEntryCollection::Open(const ExportTrieMap &Trie,
-                                    const MachO::SegmentList *const SegList,
+                                    const SegmentList *const SegList,
                                     Error *const Error)
     {
         auto Result = ExportTrieEntryCollection();
@@ -497,7 +496,7 @@ namespace  MachO {
 
     ExportTrieExportCollection
     ExportTrieExportCollection::Open(const ExportTrieMap::ExportMap &Trie,
-                                     const MachO::SegmentList *const SegList,
+                                     const SegmentList *const SegList,
                                      Error *const ErrorOut) noexcept
     {
         auto Result = ExportTrieExportCollection();

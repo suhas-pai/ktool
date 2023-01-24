@@ -2482,18 +2482,18 @@ namespace MachO {
             return ADT::SwitchEndianIf(ExternDefSymbolsCount, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        auto localSymbolIndex(const bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr auto localSymbolIndex(const bool IsBigEndian) const noexcept {
             return ADT::SwitchEndianIf(LocalSymbolIndex, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        auto localSymbolCount(const bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr auto localSymbolCount(const bool IsBigEndian) const noexcept {
             return ADT::SwitchEndianIf(LocalSymbolCount, IsBigEndian);
         }
 
-        [[nodiscard]] constexpr
-        auto externRelIndex(const bool IsBigEndian) const noexcept {
+        [[nodiscard]]
+        constexpr auto externRelIndex(const bool IsBigEndian) const noexcept {
             return ADT::SwitchEndianIf(ExternRelIndex, IsBigEndian);
         }
 

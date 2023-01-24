@@ -24,6 +24,7 @@
 struct OperationInfo {
     std::string Path;
     Operations::Kind Kind;
+
     std::unique_ptr<Operations::Base> Op;
 };
 

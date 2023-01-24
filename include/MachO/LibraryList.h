@@ -4,9 +4,10 @@
  */
 
 #pragma once
-#include <string>
 
+#include <string>
 #include "Dyld3/PackedVersion.h"
+
 #include "MachO/LoadCommands.h"
 #include "MachO/LoadCommandsMap.h"
 
@@ -27,12 +28,11 @@ namespace MachO {
         std::vector<LibraryInfo> List;
     public:
         LibraryList() noexcept = default;
-        LibraryList(const MachO::LoadCommandsMap &Map,
-                    bool IsBigEndian) noexcept;
+        LibraryList(const LoadCommandsMap &Map, bool IsBigEndian) noexcept;
 
         constexpr auto
-        addLibrary(const MachO::DylibCommand &Dylib,
-                   const bool IsBigEndian) noexcept -> decltype(*this)
+        addLibrary(const DylibCommand &Dylib, const bool IsBigEndian) noexcept
+            -> decltype(*this)
         {
             const auto PathOpt = Dylib.name(IsBigEndian);
             List.emplace_back(LibraryInfo {

@@ -12,12 +12,12 @@ namespace MachO {
     {
         for (const auto &LC : Map) {
             switch (LC.kind(IsBigEndian)) {
-                case MachO::LoadCommandKind::LoadDylib:
-                case MachO::LoadCommandKind::LoadWeakDylib:
-                case MachO::LoadCommandKind::ReexportDylib:
-                case MachO::LoadCommandKind::LazyLoadDylib:
-                case MachO::LoadCommandKind::LoadUpwardDylib:
-                    addLibrary(cast<MachO::DylibCommand>(LC, IsBigEndian),
+                case LoadCommandKind::LoadDylib:
+                case LoadCommandKind::LoadWeakDylib:
+                case LoadCommandKind::ReexportDylib:
+                case LoadCommandKind::LazyLoadDylib:
+                case LoadCommandKind::LoadUpwardDylib:
+                    addLibrary(cast<DylibCommand>(LC, IsBigEndian),
                                IsBigEndian);
                     break;
                 case LoadCommandKind::Segment:
