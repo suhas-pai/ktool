@@ -471,7 +471,7 @@ namespace Operations {
                 auto SegmentName = std::string_view();
                 auto SectionName = std::string_view();
 
-                if (!Info.isReexport()) {
+                if (!Info.reexport()) {
                     const auto Addr = Info.exportInfo().imageOffset();
                     if (const auto Segment =
                             SegmentList.findSegmentWithVmAddr(Addr))

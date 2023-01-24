@@ -235,7 +235,7 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto threadLocal() const noexcept {
-            return flags().regular();
+            return flags().threadLocal();
         }
 
         [[nodiscard]] constexpr auto weak() const noexcept {
@@ -363,12 +363,12 @@ namespace MachO {
             return Size;
         }
 
-        [[nodiscard]] constexpr uint16_t childCount() const noexcept {
+        [[nodiscard]] constexpr auto childCount() const noexcept {
             return ChildCount;
         }
 
         [[nodiscard]]
-        constexpr std::string_view prefix() const noexcept {
+        constexpr auto prefix() const noexcept -> std::string_view {
             return Prefix;
         }
 
@@ -400,7 +400,7 @@ namespace MachO {
             return *this;
         }
 
-        [[nodiscard]] constexpr bool isExport() const noexcept {
+        [[nodiscard]] constexpr auto isExport() const noexcept {
             return Size != 0;
         }
     };
@@ -465,7 +465,7 @@ namespace MachO {
         ExportTrieExportKind Kind;
         ExportTrieExportInfo Export;
     public:
-        [[nodiscard]] constexpr auto getMaxDepth() const noexcept {
+        [[nodiscard]] constexpr auto maxDepth() const noexcept {
             return MaxDepth;
         }
 
@@ -542,27 +542,27 @@ namespace MachO {
             return (kind() != ExportTrieExportKind::None);
         }
 
-        [[nodiscard]] constexpr bool isAbsolute() const noexcept {
+        [[nodiscard]] constexpr bool absolute() const noexcept {
             return (kind() == ExportTrieExportKind::Absolute);
         }
 
-        [[nodiscard]] constexpr bool isReexport() const noexcept {
+        [[nodiscard]] constexpr bool reexport() const noexcept {
             return (kind() == ExportTrieExportKind::Reexport);
         }
 
-        [[nodiscard]] constexpr bool isRegular() const noexcept {
+        [[nodiscard]] constexpr bool regular() const noexcept {
             return (kind() == ExportTrieExportKind::Regular);
         }
 
-        [[nodiscard]] constexpr bool isStubAndResolver() const noexcept {
+        [[nodiscard]] constexpr bool stubAndResolver() const noexcept {
             return (kind() == ExportTrieExportKind::StubAndResolver);
         }
 
-        [[nodiscard]] constexpr bool isWeak() const noexcept {
+        [[nodiscard]] constexpr bool weak() const noexcept {
             return (kind() == ExportTrieExportKind::WeakDefinition);
         }
 
-        [[nodiscard]] constexpr bool isThreadLocal() const noexcept {
+        [[nodiscard]] constexpr bool threadLocal() const noexcept {
             return (kind() == ExportTrieExportKind::ThreadLocal);
         }
 

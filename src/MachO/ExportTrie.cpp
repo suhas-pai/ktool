@@ -147,7 +147,7 @@ namespace  MachO {
 
     auto ExportTrieIterator::Advance() noexcept -> ExportTrieIterator::Error {
         auto &StackList = Info->stackListRef();
-        const auto MaxDepth = Info->getMaxDepth();
+        const auto MaxDepth = Info->maxDepth();
 
         if (!StackList.empty()) {
             if (StackList.size() == MaxDepth) {
