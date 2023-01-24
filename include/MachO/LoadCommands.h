@@ -12,7 +12,6 @@
 
 #include "ADT/List.h"
 #include "ADT/MemoryMap.h"
-#include "ADT/Range.h"
 #include "ADT/SwitchEndian.h"
 
 #include "Dyld3/PackedVersion.h"
@@ -264,6 +263,13 @@ namespace MachO {
                "LoadCommandKind");
     }
 
+    [[nodiscard]] constexpr static
+    auto LoadCommandKindIsRequiredByDyld(const LoadCommandKind Kind) noexcept
+        -> bool
+    {
+        return static_cast<uint32_t>(Kind) & LoadCommandReqByDyld;
+    }
+
     enum class CmdSizeInvalidKind {
         None,
         TooSmall,
@@ -298,6 +304,16 @@ namespace MachO {
         [[nodiscard]]
         constexpr auto hasValidCmdSize(const bool IsBigEndian) noexcept {
             return hasValidCmdSize(cmdsize(IsBigEndian));
+        }
+
+        [[nodiscard]]
+        constexpr auto isRecognized(const bool IsBigEndian) const noexcept {
+            return LoadCommandKindIsValid(kind(IsBigEndian));
+        }
+
+        [[nodiscard]]
+        constexpr auto isRequiredByDyld(const bool IsBigEndian) const noexcept {
+            return LoadCommandKindIsRequiredByDyld(kind(IsBigEndian));
         }
     };
 
@@ -462,16 +478,14 @@ namespace MachO {
                 return *this;
             }
 
-            constexpr
-            auto setIsFixedVmLibrary(const bool Value = true) noexcept
+            constexpr auto setIsFixedVmLibrary(const bool Value = true) noexcept
                 -> decltype(*this)
             {
                 setValueForMask(Kind::FixedVmLibrary, 0, Value);
                 return *this;
             }
 
-            constexpr
-            auto setHasNoRelocations(const bool Value = true) noexcept
+            constexpr auto setHasNoRelocations(const bool Value = true) noexcept
                 -> decltype(*this)
             {
                 setValueForMask(Kind::NoRelocations, 0, Value);
@@ -753,9 +767,8 @@ namespace MachO {
                 PureInstructions = static_cast<uint32_t>(1 << 31)
             };
 
-            constexpr static inline auto UserSettableAttributeMask = 0xff000000;
-            constexpr
-            static inline auto SystemSettableAttributeMask = 0x00ffff00;
+            constexpr static auto UserSettableAttributeMask = 0xff000000;
+            constexpr static auto SystemSettableAttributeMask = 0x00ffff00;
 
             [[nodiscard]] constexpr
             static auto AttributeIsValid(const Attribute Attr) noexcept {
@@ -774,6 +787,18 @@ namespace MachO {
                 }
 
                 return false;
+            }
+
+            [[nodiscard]] constexpr
+            static auto AttributeIsUserSettable(const Attribute Attr) noexcept {
+                return static_cast<std::underlying_type_t<Attribute>>(Attr) &
+                       UserSettableAttributeMask;
+            }
+
+            [[nodiscard]] constexpr static
+            auto AttributeIsSystemSettable(const Attribute Attr) noexcept {
+                return static_cast<std::underlying_type_t<Attribute>>(Attr) &
+                       SystemSettableAttributeMask;
             }
 
             [[nodiscard]] constexpr
@@ -1214,9 +1239,9 @@ namespace MachO {
             using AttributesStruct = SegmentCommand::Section::AttributesStruct;
             using Kind = SegmentCommand::Section::Kind;
 
-            constexpr static inline auto UserSettableAttributeMask =
+            constexpr static auto UserSettableAttributeMask =
                 SegmentCommand::Section::UserSettableAttributeMask;
-            constexpr static inline auto SystemSettableAttributeMask =
+            constexpr static auto SystemSettableAttributeMask =
                 SegmentCommand::Section::SystemSettableAttributeMask;
 
             [[nodiscard]]
@@ -1235,13 +1260,23 @@ namespace MachO {
             }
 
             [[nodiscard]] constexpr
-            static auto AttributeIsValid(const Attribute Attribute) noexcept {
-                return SegmentCommand::Section::AttributeIsValid(Attribute);
+            static auto AttributeIsValid(const Attribute Attr) noexcept {
+                return SegmentCommand::Section::AttributeIsValid(Attr);
+            }
+
+            [[nodiscard]] constexpr static
+            auto AttributeIsUserSettable(const Attribute Attr) noexcept {
+                return SegmentCommand::Section::AttributeIsUserSettable(Attr);
+            }
+
+            [[nodiscard]] constexpr static
+            auto AttributeIsSytemSettable(const Attribute Attr) noexcept {
+                return SegmentCommand::Section::AttributeIsSystemSettable(Attr);
             }
 
             [[nodiscard]] constexpr
-            static auto AttributeGetString(const Attribute Attribute) noexcept {
-                return SegmentCommand::Section::AttributeGetString(Attribute);
+            static auto AttributeGetString(const Attribute Attr) noexcept {
+                return SegmentCommand::Section::AttributeGetString(Attr);
             }
 
             [[nodiscard]] constexpr
@@ -2173,8 +2208,8 @@ namespace MachO {
         }
     };
 
-    constexpr static inline auto IndirectSymbolLocal = 0x80000000;
-    constexpr static inline auto IndirectSymbolAbs = 0x40000000;
+    constexpr static auto IndirectSymbolLocal = 0x80000000;
+    constexpr static auto IndirectSymbolAbs = 0x40000000;
 
     struct DynamicSymTabCommand : public LoadCommand {
         [[nodiscard]]
