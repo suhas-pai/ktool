@@ -333,7 +333,7 @@ namespace MachO {
     };
 
     static_assert(sizeof(BindByte) == sizeof(uint8_t),
-                  "BindByte has an invalid size");
+                  "MachO::BindByte is not 1 byte large");
 
     enum class BindOpcodeParseError {
         None,
@@ -908,11 +908,11 @@ namespace MachO {
 
             if (Is64Bit) {
                 ContainsPtr =
-                    Segment.VmRange.template containsLoc<uint64_t>(
+                    Segment.VmRange.template containsIndex<uint64_t>(
                         Info.AddrInSeg);
             } else {
                 ContainsPtr =
-                    Segment.VmRange.template containsLoc<uint32_t>(
+                    Segment.VmRange.template containsIndex<uint32_t>(
                         Info.AddrInSeg);
             }
 
@@ -1371,7 +1371,7 @@ namespace MachO {
             std::vector<BindActionInfo> &SymbolListOut) const noexcept
         {
             for (const auto &Iter : *this) {
-                const auto Error = Iter.getError();
+                const auto Error = Iter.error();
                 if (!Iter.canIgnoreError(Error)) {
                     return Error;
                 }

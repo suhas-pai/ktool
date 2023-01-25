@@ -1,5 +1,5 @@
 /*
- * Operations/PrintBindActionList.cpp
+ * Operations/PrintBindSymbolList.cpp
  * © suhas pai
  */
 
@@ -8,27 +8,29 @@
 
 #include "MachO/BindInfo.h"
 #include "MachO/LibraryList.h"
+#include "MachO/LoadCommands.h"
+#include "MachO/SegmentList.h"
 
 #include "Operations/Common.h"
-#include "Operations/PrintBindActionList.h"
+#include "Operations/PrintBindSymbolList.h"
 
 #include "Utils/Print.h"
 
 namespace Operations {
-    PrintBindActionList::PrintBindActionList(
+    PrintBindSymbolList::PrintBindSymbolList(
         FILE *const OutFile,
         const struct Options &Options) noexcept
     : OutFile(OutFile), Opt(Options) {}
 
     bool
-    PrintBindActionList::supportsObjectKind(
+    PrintBindSymbolList::supportsObjectKind(
         const Objects::Kind Kind) const noexcept
     {
         switch (Kind) {
             case Objects::Kind::None:
                 assert(false &&
                        "Got Object-Kind None in "
-                       "PrintBindActionList::supportsObjectKind()");
+                       "PrintBindSymbolList::supportsObjectKind()");
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
@@ -37,43 +39,47 @@ namespace Operations {
 
         assert(false &&
                "Got unknown Object-Kind in "
-               "PrintBindActionList::supportsObjectKind()");
+               "PrintBindSymbolList::supportsObjectKind()");
     }
 
     static int
     CompareActionsBySortKind(
         const MachO::BindActionInfo &Lhs,
         const MachO::BindActionInfo &Rhs,
-        const PrintBindActionList::Options::SortKind SortKind) noexcept
+        const PrintBindSymbolList::Options::SortKind SortKind) noexcept
     {
         switch (SortKind) {
-            case PrintBindActionList::Options::SortKind::None:
-                assert(0 && "Unrecognized Sort-Kind");
-            case PrintBindActionList::Options::SortKind::ByName:
+            case PrintBindSymbolList::Options::SortKind::None:
+                assert(false &&
+                       "Got SortKind-None in "
+                       "Operations::PrintBindSymbolList::"
+                       "CompareActionsBySortKind()");
+            case PrintBindSymbolList::Options::SortKind::ByName:
                 return Lhs.SymbolName.compare(Rhs.SymbolName);
-            case PrintBindActionList::Options::SortKind::ByDylibOrdinal:
-                if (Lhs.DylibOrdinal < Rhs.DylibOrdinal) {
-                    return -1;
-                } else if (Lhs.DylibOrdinal == Rhs.DylibOrdinal) {
+            case PrintBindSymbolList::Options::SortKind::ByDylibOrdinal:
+                if (Lhs.DylibOrdinal == Rhs.DylibOrdinal) {
                     return 0;
+                } else if (Lhs.DylibOrdinal < Rhs.DylibOrdinal) {
+                    return -1;
                 }
 
                 return 1;
-            case PrintBindActionList::Options::SortKind::ByKind: {
+            case PrintBindSymbolList::Options::SortKind::ByKind:
                 const auto LhsKind = static_cast<uint8_t>(Lhs.WriteKind);
                 const auto RhsKind = static_cast<uint8_t>(Rhs.WriteKind);
 
-                if (LhsKind < RhsKind) {
-                    return -1;
-                } else if (LhsKind == RhsKind) {
+                if (LhsKind == RhsKind) {
                     return 0;
+                } else if (LhsKind < RhsKind) {
+                    return -1;
                 }
 
                 return 1;
-            }
         }
 
-        return false;
+        assert(false &&
+               "Unrecognized (and invalid) Sort-Kind in "
+                "Operations::PrintBindSymbolList::CompareActionsBySortKind()");
     }
 
     template <MachO::BindInfoKind BindKind>
@@ -88,15 +94,15 @@ namespace Operations {
         const MachO::LibraryList &LibraryList,
         const MachO::SegmentList &SegmentList,
         const bool Is64Bit,
-        const struct PrintBindActionList::Options &Options) noexcept
+        const struct PrintBindSymbolList::Options &Options) noexcept
     {
         fprintf(OutFile,
-                "%s Action %0*" PRIu64 ": ",
+                "%s Symbol %0*" PRIu64 ": ",
                 Name,
                 SizeDigitLength,
                 Counter);
 
-        if (const auto *const Segment =
+        if (const auto *Segment =
                 SegmentList.atOrNull(
                     static_cast<uint64_t>(Action.SegmentIndex)))
         {
@@ -112,7 +118,7 @@ namespace Operations {
                                            /*PadSection=*/true);
 
             Utils::PrintAddress(OutFile, FullAddr, Is64Bit, " ");
-            if (Action.Addend != 0) {
+            if (Action.Addend) {
                 Utils::PrintAddress(OutFile,
                                     static_cast<uint64_t>(Action.Addend),
                                     Is64Bit,
@@ -120,7 +126,7 @@ namespace Operations {
             }
         } else {
             Utils::RightPadSpaces(OutFile,
-                                  fputs("<out-of-bounds>", OutFile),
+                                  fputs("<unknown>", OutFile),
                                   Utils::SegmentSectionPairMaxLen);
         }
 
@@ -159,12 +165,12 @@ namespace Operations {
     static void
     PrintBindActionInfoList(
         FILE *const OutFile,
-        const char *const Name,
+        const char *Name,
         const std::vector<MachO::BindActionInfo> &List,
         const MachO::SegmentList &SegmentList,
         const MachO::LibraryList &LibraryList,
-        const bool Is64Bit,
-        const struct PrintBindActionList::Options &Options) noexcept
+        bool Is64Bit,
+        const struct PrintBindSymbolList::Options &Options) noexcept
     {
         if (List.empty()) {
             fprintf(OutFile, "No %s Info\n", Name);
@@ -178,14 +184,13 @@ namespace Operations {
 
         switch (List.size()) {
             case 0:
-                assert(0 &&
-                       "Bind-Action List shouldn't be empty at this point");
+                assert(0 && "Bind-Symbol List shouldn't be empty at this point");
             case 1:
-                fprintf(OutFile, "1 %s Action:\n", Name);
+                fprintf(OutFile, "1 %s Symbol:\n", Name);
                 break;
             default:
                 fprintf(OutFile,
-                        "%" PRIuPTR " %s Actions:\n",
+                        "%" PRIuPTR " %s Symbols:\n",
                         List.size(),
                         Name);
                 break;
@@ -194,12 +199,12 @@ namespace Operations {
         auto Counter = 1ull;
         const auto SizeDigitLength = Utils::GetIntegerDigitCount(List.size());
 
-        for (const auto &Action : List) {
+        for (const auto &Symbol : List) {
             PrintBindAction<BindKind>(OutFile,
                                       Name,
                                       Counter,
                                       SizeDigitLength,
-                                      Action,
+                                      Symbol,
                                       LongestBindSymbolLength.value(),
                                       LibraryList,
                                       SegmentList,
@@ -210,7 +215,7 @@ namespace Operations {
     }
 
     auto
-    PrintBindActionList::run(const Objects::MachO &MachO) const noexcept
+    PrintBindSymbolList::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
         auto Result = RunResult(Objects::Kind::MachO);
@@ -267,7 +272,7 @@ namespace Operations {
 
         if (BindRange.empty() && LazyBindRange.empty() && WeakBindRange.empty())
         {
-            return Result.set(RunError::NoActions);
+            return Result.set(RunError::NoSymbols);
         }
 
         auto BindActionInfoList = std::vector<MachO::BindActionInfo>();
@@ -282,35 +287,35 @@ namespace Operations {
                                           SegmentList,
                                           Is64Bit);
 
-                BindList.getAsList(BindActionInfoList);
+                BindList.getListOfSymbols(BindActionInfoList);
             }
         }
 
         if (Opt.PrintLazy) {
             if (MachO.map().range().contains(BindRange)) {
-                const auto BindList =
+                const auto LazyBindList =
                     MachO::BindActionList(MachO.map(),
-                                          BindRange,
+                                          LazyBindRange,
                                           SegmentList,
                                           Is64Bit);
 
-                BindList.getAsList(LazyBindActionInfoList);
+                LazyBindList.getListOfSymbols(LazyBindActionInfoList);
             }
         }
 
         if (Opt.PrintWeak) {
-            if (MachO.map().range().contains(BindRange)) {
+            if (MachO.map().range().contains(WeakBindRange)) {
                 if (Opt.PrintNormal || Opt.PrintLazy) {
                     fputc('\n', OutFile);
                 }
 
-                const auto BindList =
+                const auto WeakBindList =
                     MachO::BindActionList(MachO.map(),
-                                          BindRange,
+                                          WeakBindRange,
                                           SegmentList,
                                           Is64Bit);
 
-                BindList.getAsList(WeakBindActionInfoList);
+                WeakBindList.getListOfSymbols(WeakBindActionInfoList);
             }
         }
 
@@ -400,13 +405,13 @@ namespace Operations {
         return Result.set(RunError::None);
     }
 
-    auto PrintBindActionList::run(const Objects::Base &Base) const noexcept
+    auto PrintBindSymbolList::run(const Objects::Base &Base) const noexcept
         -> RunResult
     {
         switch (Base.kind()) {
             case Objects::Kind::None:
                 assert(false &&
-                       "PrintBindActionList::run() got Object with Kind::None");
+                       "PrintBindSymbolList::run() got Object with Kind::None");
             case Objects::Kind::MachO:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
@@ -414,6 +419,6 @@ namespace Operations {
         }
 
         assert(false &&
-               "Got unrecognized Object-Kind in PrintBindActionList::run()");
+               "Got unrecognized Object-Kind in PrintBindSymbolList::run()");
     }
 }

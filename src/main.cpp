@@ -11,6 +11,7 @@
 #include "ADT/FileMap.h"
 #include "MachO/LoadCommands.h"
 
+#include "Operations/PrintBindSymbolList.h"
 #include "Operations/PrintHeader.h"
 #include "Operations/PrintId.h"
 #include "Operations/PrintLoadCommands.h"
@@ -511,6 +512,63 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintBindActionList>(
                 new Operations::PrintBindActionList(stdout, Options));
+    } else if (OperationString == "--bind-symbols") {
+        auto Options = Operations::PrintBindSymbolList::Options();
+        auto Path = std::string();
+        auto HasResetKinds = false;
+
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            using SortKind =
+                Operations::PrintBindSymbolList::Options::SortKind;
+
+            if (Arg == "-v" || Arg == "--verbose") {
+                Options.Verbose = true;
+            } else if (Arg == "--only-normal") {
+                if (!HasResetKinds) {
+                    Options.PrintNormal = false;
+                    Options.PrintLazy = false;
+                    Options.PrintWeak = false;
+
+                    HasResetKinds = true;
+                }
+
+                Options.PrintNormal = true;
+            } else if (Arg == "--only-lazy") {
+                if (!HasResetKinds) {
+                    Options.PrintNormal = false;
+                    Options.PrintLazy = false;
+                    Options.PrintWeak = false;
+
+                    HasResetKinds = true;
+                }
+
+                Options.PrintLazy = true;
+            } else if (Arg == "--only-weak") {
+                if (!HasResetKinds) {
+                    Options.PrintNormal = false;
+                    Options.PrintLazy = false;
+                    Options.PrintWeak = false;
+
+                    HasResetKinds = true;
+                }
+
+                Options.PrintWeak = true;
+            } else if (Arg == "--sort-by-name") {
+                Options.SortKindList.emplace_back(SortKind::ByName);
+            } else if (Arg == "--sort-by-dylib-ordinal") {
+                Options.SortKindList.emplace_back(SortKind::ByDylibOrdinal);
+            } else if (Arg == "--sort-by-kind") {
+                Options.SortKindList.emplace_back(SortKind::ByKind);
+            } else {
+                break;
+            }
+        }
+
+        Operation.Kind = Operations::Kind::PrintBindSymbolList;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintBindSymbolList>(
+                new Operations::PrintBindSymbolList(stdout, Options));
     } else if (OperationString.front() == '-') {
         fprintf(stderr,
                 "Unrecognized operation: \"%s\"\n",
@@ -746,6 +804,21 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     fputs("No bind-actions found within table\n", stderr);
                     return 1;
             }
+
+            break;
+        case Operations::Kind::PrintBindSymbolList:
+            switch (Operations::PrintBindSymbolList::RunError(Result.Error)) {
+                case Operations::PrintBindSymbolList::RunError::None:
+                    break;
+                case Operations::PrintBindSymbolList::RunError::NoDyldInfo:
+                    fputs("No dyld-info load command was found\n", stderr);
+                    return 1;
+                case Operations::PrintBindSymbolList::RunError::NoSymbols:
+                    fputs("No bind-symbols found within table\n", stderr);
+                    return 1;
+            }
+
+            break;
     }
 
     return 0;
