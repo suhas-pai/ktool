@@ -41,7 +41,8 @@ namespace Operations {
         Options Opt;
     public:
         constexpr static auto Kind = Operations::Kind::PrintExportTrie;
-        explicit PrintExportTrie(FILE *OutFile, const struct Options &Options);
+        explicit
+        PrintExportTrie(FILE *OutFile, const struct Options &Options) noexcept;
 
         ~PrintExportTrie() noexcept override {}
 

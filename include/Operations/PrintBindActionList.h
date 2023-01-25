@@ -1,44 +1,46 @@
-//
-//  Operations/PrintLibraries.h
-//  ktool
-//
-//  Created by suhaspai on 11/22/22.
-//
+/*
+ * Operations/PrintBindActionList.h
+ * © suhas pai
+ */
 
 #pragma once
-#include <vector>
 
-#include "Objects/MachO.h"
-#include "Base.h"
+#include <vector>
+#include "Operations/Base.h"
 
 namespace Operations {
-    struct PrintLibraries : public Base {
+    struct PrintBindActionList : public Base {
     public:
         struct Options {
+            bool PrintNormal : 1 = true;
+            bool PrintLazy : 1 = true;
+            bool PrintWeak : 1 = true;
+            bool Verbose : 1 = false;
+
             enum class SortKind {
-                ByCurrentVersion,
-                ByCompatVersion,
-                ByIndex,
+                None,
                 ByName,
-                ByTimeStamp
+                ByDylibOrdinal,
+                ByKind
             };
 
             std::vector<SortKind> SortKindList;
-            bool Verbose : 1 = false;
         };
     protected:
         FILE *OutFile;
         Options Opt;
     public:
-        constexpr static auto Kind = Operations::Kind::PrintLibraries;
-
+        constexpr static auto Kind = Operations::Kind::PrintBindActionList;
         explicit
-        PrintLibraries(FILE *OutFile, const struct Options &Options) noexcept;
+        PrintBindActionList(FILE *OutFile,
+                            const struct Options &Options) noexcept;
 
-        ~PrintLibraries() noexcept override {}
+        ~PrintBindActionList() noexcept override {}
 
         enum class RunError : uint32_t {
             None,
+            NoDyldInfo,
+            NoActions
         };
 
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;

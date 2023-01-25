@@ -21,7 +21,8 @@ namespace Operations {
         Options Opt;
     public:
         constexpr static auto Kind = Operations::Kind::PrintArchs;
-        explicit PrintArchs(FILE *OutFile, const struct Options &Options);
+        explicit
+        PrintArchs(FILE *OutFile, const struct Options &Options) noexcept;
 
         ~PrintArchs() noexcept override {}
 

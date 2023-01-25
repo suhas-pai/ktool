@@ -21,7 +21,7 @@ namespace Operations {
         Options Opt;
     public:
         constexpr static auto Kind = Operations::Kind::PrintId;
-        explicit PrintId(FILE *OutFile, const struct Options &Options);
+        explicit PrintId(FILE *OutFile, const struct Options &Options) noexcept;
 
         ~PrintId() noexcept override {}
 

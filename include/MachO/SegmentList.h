@@ -94,11 +94,19 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto
-        findSectionWithVmAddrIndex(const uint64_t AddrIndex) const noexcept
+        findSectionWithVmAddrIndex(
+            const uint64_t AddrIndex,
+            uint64_t *const AddrOut = nullptr) const noexcept
             -> const SectionInfo *
         {
             assert(VmRange.containsIndex(AddrIndex));
-            return findSectionWithVmAddr(VmRange.locForIndex(AddrIndex));
+
+            const auto FullAddr = VmRange.locForIndex(AddrIndex);
+            if (AddrOut != nullptr) {
+                *AddrOut = FullAddr;
+            }
+
+            return findSectionWithVmAddr(FullAddr);
         }
     };
 

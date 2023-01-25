@@ -9,6 +9,28 @@
 #include <optional>
 
 namespace Utils {
+    template <std::integral T = uint64_t, std::integral U, std::integral V>
+    [[nodiscard]]
+    constexpr auto WillAddOverflow(const U Lhs, const V Rhs) noexcept {
+        auto Result = T();
+        return __builtin_add_overflow(Lhs, Rhs, &Result);
+    }
+
+    template <std::integral T = uint64_t,
+              std::integral U,
+              std::integral V,
+              std::integral... Rest>
+
+    [[nodiscard]] constexpr
+    auto WillAddOverflow(const U Lhs, const V Rhs, Rest... rest) noexcept {
+        auto Result = T();
+        if (__builtin_add_overflow(Lhs, Rhs, &Result)) {
+            return true;
+        }
+
+        return WillAddOverflow(Result, rest...);
+    }
+
     template <std::integral T = uint64_t,
               std::integral U,
               std::integral V>

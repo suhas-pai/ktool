@@ -9,7 +9,8 @@
 #include "Utils/Print.h"
 
 namespace Operations {
-    PrintArchs::PrintArchs(FILE *const OutFile, const struct Options &Options)
+    PrintArchs::PrintArchs(FILE *const OutFile,
+                           const struct Options &Options) noexcept
     : OutFile(OutFile), Opt(Options) {}
 
     bool

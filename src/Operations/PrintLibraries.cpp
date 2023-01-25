@@ -14,7 +14,7 @@
 
 namespace Operations {
     PrintLibraries::PrintLibraries(FILE *const OutFile,
-                                   const struct Options &Options)
+                                   const struct Options &Options) noexcept
     : OutFile(OutFile), Opt(Options) {}
 
     bool

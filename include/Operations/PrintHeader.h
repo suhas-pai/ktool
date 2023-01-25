@@ -23,7 +23,9 @@ namespace Operations {
         Options Opt;
     public:
         constexpr static auto Kind = Operations::Kind::PrintHeader;
-        explicit PrintHeader(FILE *OutFile, const struct Options &Options);
+
+        explicit
+        PrintHeader(FILE *OutFile, const struct Options &Options) noexcept;
 
         ~PrintHeader() noexcept override {}
 

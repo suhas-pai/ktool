@@ -16,7 +16,8 @@
 #include "Utils/Print.h"
 
 namespace Operations {
-    PrintHeader::PrintHeader(FILE *const OutFile, const struct Options &Options)
+    PrintHeader::PrintHeader(FILE *const OutFile,
+                             const struct Options &Options) noexcept
     : OutFile(OutFile), Opt(Options) {}
 
     bool

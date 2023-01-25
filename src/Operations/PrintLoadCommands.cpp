@@ -511,13 +511,6 @@ namespace Operations {
                                 NameOpt->length() : Malformed.length());
 
                     Utils::PadSpaces(OutFile, PadLength);
-                    Utils::PrintDylibOrdinalInfo(OutFile,
-                                                 DylibIndex + 1,
-                                                 "",
-                                                 /*PrintPath=*/false,
-                                                 /*IsOutOfBounds=*/false,
-                                                 " (",
-                                                 ")");
                     DylibIndex++;
                 }
 

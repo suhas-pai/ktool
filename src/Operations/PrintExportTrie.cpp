@@ -9,12 +9,14 @@
 #include "MachO/ExportTrie.h"
 #include "MachO/LibraryList.h"
 
+#include "Operations/Common.h"
 #include "Operations/PrintExportTrie.h"
+
 #include "Utils/Print.h"
 
 namespace Operations {
     PrintExportTrie::PrintExportTrie(FILE *const OutFile,
-                                     const struct Options &Options)
+                                     const struct Options &Options) noexcept
     : OutFile(OutFile), Opt(Options) {}
 
     bool
@@ -94,33 +96,6 @@ namespace Operations {
         std::string String;
     };
 
-    static void
-    PrintDylibOrdinalInfo(FILE *const OutFile,
-                          const uint32_t DylibOrdinal,
-                          const MachO::LibraryList &LibraryList) noexcept
-    {
-        auto LibraryPath = std::string_view("<Invalid>");
-        auto IsOutOfBounds = true;
-
-        if (DylibOrdinal != 0 && DylibOrdinal <= LibraryList.size()) {
-            const auto &PathOpt = LibraryList.at(DylibOrdinal - 1).Path;
-            if (PathOpt.has_value()) {
-                LibraryPath = PathOpt.value();
-            } else {
-                LibraryPath = "<Malformed>";
-            }
-
-            IsOutOfBounds = false;
-        }
-
-        Utils::PrintDylibOrdinalInfo(OutFile,
-                                     DylibOrdinal,
-                                     LibraryPath,
-                                     /*PrintPath=*/true,
-                                     IsOutOfBounds);
-        fputc(')', OutFile);
-    }
-
     constexpr static inline auto TabLength = 8;
 
     [[nodiscard]] static auto
@@ -196,7 +171,12 @@ namespace Operations {
                 }
 
                 const auto DylibOrdinal = Export.info().reexportDylibOrdinal();
-                PrintDylibOrdinalInfo(OutFile, DylibOrdinal, LibraryList);
+                PrintDylibOrdinalInfo(OutFile,
+                                      DylibOrdinal,
+                                      LibraryList,
+                                      Options.Verbose,
+                                      "",
+                                      ")");
             }
         } else {
             fprintf(OutFile, "%s", KindDesc.data());
@@ -626,8 +606,12 @@ namespace Operations {
                         fputs(" (Re-exported from ", OutFile);
                     }
 
-                    PrintDylibOrdinalInfo(OutFile, DylibOrdinal, LibraryList);
-                    fputc(')', OutFile);
+                    Operations::PrintDylibOrdinalInfo(OutFile,
+                                                      DylibOrdinal,
+                                                      LibraryList,
+                                                      Opt.Verbose,
+                                                      "",
+                                                      ")");
                 }
 
                 fputc('\n', OutFile);

@@ -1,0 +1,77 @@
+/*
+ * Operations/Common.cpp
+ * © suhas pai
+ */
+
+#include "Operations/Common.h"
+#include "Utils/Print.h"
+
+namespace Operations {
+    auto
+    PrintDylibOrdinalPath(FILE *const OutFile,
+                          const uint8_t DylibOrdinal,
+                          const MachO::LibraryList &List,
+                          const bool PrintPath,
+                          const std::string_view Prefix,
+                          const std::string_view Suffix) noexcept -> int
+    {
+        auto LibraryPath = std::string_view("<Invalid>");
+        auto IsOutOfBounds = true;
+
+        if (DylibOrdinal != 0 && DylibOrdinal <= List.size()) {
+            const auto &PathOpt = List.at(DylibOrdinal - 1).Path;
+            if (PathOpt.has_value()) {
+                LibraryPath = PathOpt.value();
+            } else {
+                LibraryPath = "<Malformed>";
+            }
+
+            IsOutOfBounds = false;
+        }
+
+        const auto WrittenOut =
+            Utils::PrintDylibOrdinalPath(OutFile,
+                                        DylibOrdinal,
+                                        LibraryPath,
+                                        PrintPath,
+                                        IsOutOfBounds,
+                                        Prefix,
+                                        Suffix);
+
+        return WrittenOut + fputc(')', OutFile);
+    }
+
+    auto
+    PrintDylibOrdinalInfo(FILE *const OutFile,
+                          const uint8_t DylibOrdinal,
+                          const MachO::LibraryList &List,
+                          const bool PrintPath,
+                          const std::string_view Prefix,
+                          const std::string_view Suffix) noexcept -> int
+    {
+        auto LibraryPath = std::string_view("<Invalid>");
+        auto IsOutOfBounds = true;
+
+        if (DylibOrdinal != 0 && DylibOrdinal <= List.size()) {
+            const auto &PathOpt = List.at(DylibOrdinal - 1).Path;
+            if (PathOpt.has_value()) {
+                LibraryPath = PathOpt.value();
+            } else {
+                LibraryPath = "<Malformed>";
+            }
+
+            IsOutOfBounds = false;
+        }
+
+        const auto WrittenOut =
+            Utils::PrintDylibOrdinalInfo(OutFile,
+                                         DylibOrdinal,
+                                         LibraryPath,
+                                         PrintPath,
+                                         IsOutOfBounds,
+                                         Prefix,
+                                         Suffix);
+
+        return WrittenOut + fputc(')', OutFile);
+    }
+}

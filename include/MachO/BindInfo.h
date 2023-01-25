@@ -14,6 +14,8 @@
 #include "MachO/OpcodeList.h"
 #include "MachO/SegmentList.h"
 
+#include "Utils/Overflow.h"
+
 namespace MachO {
     enum class BindByteOpcode : uint8_t {
         Done,
@@ -180,8 +182,8 @@ namespace MachO {
                "BindWriteKindGetName() got unrecognized BindWriteKind");
     }
 
-    [[nodiscard]] constexpr
-    auto BindWriteKindGetDescription(const BindWriteKind Kind) noexcept
+    [[nodiscard]]
+    constexpr auto BindWriteKindGetDesc(const BindWriteKind Kind) noexcept
         -> std::string_view
     {
         switch (Kind) {
@@ -471,8 +473,7 @@ namespace MachO {
             return *this;
         }
 
-        [[nodiscard]]
-        constexpr auto operator->() const noexcept -> decltype(*this) {
+        [[nodiscard]] constexpr auto operator->() const noexcept {
             return this;
         }
 
@@ -771,7 +772,8 @@ namespace MachO {
 
         int64_t DylibOrdinal;
         int64_t Addend;
-        uint8_t Flags;
+
+        BindSymbolFlags Flags;
     };
 
     struct BindActionIterateInfo : public BindOpcodeIterateInfo {
@@ -789,7 +791,7 @@ namespace MachO {
                 .SegOffset = this->SegOffset,
                 .AddrInSeg = this->AddrInSeg,
                 .NewSymbolName = this->NewSymbolName,
-                .Flags = {}
+                .Flags = this->Flags
             };
 
             return Result;
@@ -802,7 +804,7 @@ namespace MachO {
         uint64_t ThreadDataTableMaxSize = 0;
 
         [[nodiscard]]
-        constexpr auto canIgnoreError(const ErrorEnum Error) noexcept {
+        constexpr static auto canIgnoreError(const ErrorEnum Error) noexcept {
             switch (Error) {
                 case ErrorEnum::None:
                 case ErrorEnum::EmptySymbol:
@@ -859,7 +861,7 @@ namespace MachO {
           Is64Bit(Is64Bit)
         {
             LastByte.setOpcode(BindByte::Opcode::SetDylibOrdinalImm);
-            ++(*this);
+            operator++();
         }
 
         [[nodiscard]] inline auto &info() noexcept {
@@ -967,15 +969,17 @@ namespace MachO {
                 [&](const int64_t Add) noexcept
             {
                 const auto SegAddAddressOpt =
-                    Utils::AddAndCheckOverflow(SegAddAddress,
-                                               Add,
-                                               Info.AddrInSeg);
+                    Utils::AddAndCheckOverflow<int64_t>(SegAddAddress, Add);
 
                 if (!SegAddAddressOpt.has_value()) {
                     return false;
                 }
 
                 SegAddAddress = SegAddAddressOpt.value();
+                if (Utils::WillAddOverflow(SegAddAddress, Info.AddrInSeg)) {
+                    return false;
+                }
+
                 return true;
             };
 
@@ -985,14 +989,20 @@ namespace MachO {
             Info.NewSymbolName = false;
 
             const auto FinalizeChangesForSegmentAddress = [&]() noexcept {
-                Info.AddrInSeg += SegAddAddress;
+                if (SegAddAddress > 0) {
+                    Info.AddrInSeg += static_cast<uint64_t>(SegAddAddress);
+                } else {
+                    Info.AddrInSeg -= static_cast<uint64_t>(-SegAddAddress);
+                }
+
                 SegAddAddress = 0;
             };
 
             const auto DoThreadedBind = [&]() noexcept {
-                const auto &SegInfo = SegList.at(Info.SegmentIndex);
-                const auto SegVmAddr =
-                    SegInfo.getMemoryRange().getBegin() + Info.AddrInSeg;
+                const auto &SegInfo =
+                    SegList.at(static_cast<uint64_t>(Info.SegmentIndex));
+
+                const auto SegVmAddr = SegInfo.VmRange.begin() + Info.AddrInSeg;
 
                 const auto PtrSize = Utils::PointerSize(Is64Bit);
                 const auto FileOffsetOpt =
@@ -1093,7 +1103,12 @@ namespace MachO {
                     return false;
                 }
 
-                SegAddAddress = NewSegAddAddressOpt.value();
+                if (Utils::WillAddOverflow(NewSegAddAddressOpt.value(),
+                                           Info.AddrInSeg))
+                {
+                    return false;
+                }
+
                 return true;
             };
 
@@ -1115,13 +1130,13 @@ namespace MachO {
 
             for (; !Iter.isAtEnd(); Iter++) {
                 if (Iter->hasError()) {
-                    return Iter->getError();
+                    return Iter->error();
                 }
 
-                const auto &Byte = Iter.getByte();
-                const auto &IterInfo = Iter.getInfo();
+                const auto &Byte = Iter.byte();
+                const auto &IterInfo = Iter.info();
 
-                switch (Byte.getOpcode()) {
+                switch (Byte.opcode()) {
                     case BindByte::Opcode::Done:
                         if constexpr (BindKind != BindInfoKind::Lazy) {
                             return ErrorEnum::None;
@@ -1146,7 +1161,7 @@ namespace MachO {
                             Utils::AddAndCheckOverflow(Info.AddrInSeg,
                                                        IterInfo.AddAddr);
 
-                        if (AddrInSegOpt.has_value()) {
+                        if (!AddrInSegOpt.has_value()) {
                             return ErrorEnum::OutOfBoundsSegmentAddr;
                         }
 
@@ -1201,9 +1216,9 @@ namespace MachO {
                     case BindByte::Opcode::DoBindAddAddrImmScaled: {
                         const auto PtrSize = Utils::PointerSize(Is64Bit);
                         const auto AddOpt =
-                            Utils::MulAddAndCheckOverflow<uint64_t>(PtrSize,
-                                                                    Info.Scale,
-                                                                    PtrSize);
+                            Utils::MulAddAndCheckOverflow<int64_t>(PtrSize,
+                                                                   Info.Scale,
+                                                                   PtrSize);
 
                         if (!AddOpt.has_value()) {
                             return ErrorEnum::OutOfBoundsSegmentAddr;
@@ -1230,7 +1245,8 @@ namespace MachO {
                         const auto SingleStep = SingleStepOpt.value();
                         const auto Count = Info.Count;
                         const auto TotalOpt =
-                            Utils::MulAndCheckOverflow(SingleStep, Count);
+                            Utils::MulAndCheckOverflow<int64_t>(SingleStep,
+                                                                Count);
 
                         if (!TotalOpt.has_value()) {
                             return ErrorEnum::OutOfBoundsSegmentAddr;
@@ -1255,7 +1271,9 @@ namespace MachO {
                                     Info.ThreadedCount);
                                 break;
                             case Enum::ThreadedApply: {
-                                if (!Info.ThreadedDataTable.isFull()) {
+                                if (Info.ThreadedDataTable.size() ==
+                                    Info.ThreadDataTableMaxSize)
+                                {
                                     return ErrorEnum::NotEnoughThreadedBinds;
                                 }
 
@@ -1334,10 +1352,10 @@ namespace MachO {
             return BindActionIteratorEnd();
         }
 
-        inline auto
-        getAsList(std::vector<BindActionInfo> &ListOut) const noexcept {
+        inline
+        auto getAsList(std::vector<BindActionInfo> &ListOut) const noexcept {
             for (const auto &Iter : *this) {
-                const auto Error = Iter.getError();
+                const auto Error = Iter.error();
                 if (!Iter.canIgnoreError(Error)) {
                     return Error;
                 }

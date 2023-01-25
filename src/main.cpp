@@ -20,6 +20,7 @@
 #include "Operations/PrintSymbolPtrSection.h"
 #include "Operations/PrintExportTrie.h"
 #include "Operations/PrintBindOpcodeList.h"
+#include "Operations/PrintBindActionList.h"
 
 struct OperationInfo {
     std::string Path;
@@ -408,11 +409,42 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
     } else if (OperationString == "--bind-opcodes") {
         auto Options = Operations::PrintBindOpcodeList::Options();
         auto Path = std::string();
+        auto HasResetKinds = false;
 
         for (; I != argc; I++) {
             const auto Arg = std::string_view(argv[I]);
             if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
+            } else if (Arg == "--only-normal") {
+                if (!HasResetKinds) {
+                    Options.PrintNormal = false;
+                    Options.PrintLazy = false;
+                    Options.PrintWeak = false;
+
+                    HasResetKinds = true;
+                }
+
+                Options.PrintNormal = true;
+            } else if (Arg == "--only-lazy") {
+                if (!HasResetKinds) {
+                    Options.PrintNormal = false;
+                    Options.PrintLazy = false;
+                    Options.PrintWeak = false;
+
+                    HasResetKinds = true;
+                }
+
+                Options.PrintLazy = true;
+            } else if (Arg == "--only-weak") {
+                if (!HasResetKinds) {
+                    Options.PrintNormal = false;
+                    Options.PrintLazy = false;
+                    Options.PrintWeak = false;
+
+                    HasResetKinds = true;
+                }
+
+                Options.PrintWeak = true;
             } else {
                 break;
             }
@@ -422,6 +454,63 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintBindOpcodeList>(
                 new Operations::PrintBindOpcodeList(stdout, Options));
+    } else if (OperationString == "--bind-actions") {
+        auto Options = Operations::PrintBindActionList::Options();
+        auto Path = std::string();
+        auto HasResetKinds = false;
+
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            using SortKind =
+                Operations::PrintBindActionList::Options::SortKind;
+
+            if (Arg == "-v" || Arg == "--verbose") {
+                Options.Verbose = true;
+            } else if (Arg == "--only-normal") {
+                if (!HasResetKinds) {
+                    Options.PrintNormal = false;
+                    Options.PrintLazy = false;
+                    Options.PrintWeak = false;
+
+                    HasResetKinds = true;
+                }
+
+                Options.PrintNormal = true;
+            } else if (Arg == "--only-lazy") {
+                if (!HasResetKinds) {
+                    Options.PrintNormal = false;
+                    Options.PrintLazy = false;
+                    Options.PrintWeak = false;
+
+                    HasResetKinds = true;
+                }
+
+                Options.PrintLazy = true;
+            } else if (Arg == "--only-weak") {
+                if (!HasResetKinds) {
+                    Options.PrintNormal = false;
+                    Options.PrintLazy = false;
+                    Options.PrintWeak = false;
+
+                    HasResetKinds = true;
+                }
+
+                Options.PrintWeak = true;
+            } else if (Arg == "--sort-by-name") {
+                Options.SortKindList.emplace_back(SortKind::ByName);
+            } else if (Arg == "--sort-by-dylib-ordinal") {
+                Options.SortKindList.emplace_back(SortKind::ByDylibOrdinal);
+            } else if (Arg == "--sort-by-kind") {
+                Options.SortKindList.emplace_back(SortKind::ByKind);
+            } else {
+                break;
+            }
+        }
+
+        Operation.Kind = Operations::Kind::PrintBindActionList;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintBindActionList>(
+                new Operations::PrintBindActionList(stdout, Options));
     } else if (OperationString.front() == '-') {
         fprintf(stderr,
                 "Unrecognized operation: \"%s\"\n",
@@ -646,6 +735,17 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             }
 
             break;
+        case Operations::Kind::PrintBindActionList:
+            switch (Operations::PrintBindActionList::RunError(Result.Error)) {
+                case Operations::PrintBindActionList::RunError::None:
+                    break;
+                case Operations::PrintBindActionList::RunError::NoDyldInfo:
+                    fputs("No dyld-info load command was found\n", stderr);
+                    return 1;
+                case Operations::PrintBindActionList::RunError::NoActions:
+                    fputs("No bind-actions found within table\n", stderr);
+                    return 1;
+            }
     }
 
     return 0;

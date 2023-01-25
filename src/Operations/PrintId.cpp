@@ -14,7 +14,8 @@
 #include "Utils/Print.h"
 
 namespace Operations {
-    PrintId::PrintId(FILE *const OutFile, const struct Options &Options)
+    PrintId::PrintId(FILE *const OutFile,
+                     const struct Options &Options) noexcept
     : OutFile(OutFile), Opt(Options) {}
 
     bool
