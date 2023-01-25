@@ -17,7 +17,7 @@
 namespace Utils {
     template <std::integral T>
     [[nodiscard]] constexpr auto GetIntegerDigitCount(T Integer) noexcept {
-        auto DigitLength = int();
+        auto DigitLength = unsigned();
         do {
             DigitLength++;
         } while (Integer /= 10);

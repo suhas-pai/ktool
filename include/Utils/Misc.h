@@ -18,6 +18,18 @@
 #include <time.h>
 
 #define bit_sizeof(T) (sizeof(T) * 8)
+#define STR_TO_ENUM_SWITCH_CASE(Enum, String, ToStringFunc) \
+    case Enum: \
+        if (String == ToStringFunc(Enum)) { \
+            return Enum; \
+        }\
+        [[fallthrough]]
+
+#define STR_TO_ENUM_LAST_SWITCH_CASE(Enum, String, ToStringFunc) \
+    case Enum: \
+        if (String == ToStringFunc(Enum)) { \
+            return Enum; \
+        }\
 
 namespace Utils {
     template <std::integral T>

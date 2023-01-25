@@ -413,14 +413,7 @@ namespace ADT {
         }
 
         constexpr auto addChild(TreeNode &Node) noexcept -> decltype(*this) {
-            if (const auto LastChild = lastChild()) {
-                LastChild->NextSibling = &Node;
-            } else {
-                this->FirstChild = &Node;
-            }
-
-            Node.Parent = this;
-            return *this;
+            return addChildren(Node);
         }
 
         constexpr auto
@@ -434,23 +427,14 @@ namespace ADT {
                 this->FirstChild = &Node;
             }
 
+            this->LastChild = &Node;
             Node.Parent = this;
+
             return *this;
         }
 
         constexpr auto addSibling(TreeNode &Node) noexcept -> decltype(*this) {
-            if (const auto Parent = parent()) {
-                if (const auto LastChild = Parent->lastChild()) {
-                    LastChild->NextSibling = &Node;
-                } else {
-                    Parent->FirstChild = &Node;
-                }
-
-                Parent->LastChild = &Node;
-                Node.Parent = Parent;
-            }
-
-            return *this;
+            return addSiblings(Node);
         }
 
         constexpr auto
@@ -557,18 +541,18 @@ namespace ADT {
             return 0;
         }
 
-        template <typename Iterator, typename NodePrinter>
+        template <typename NodePrinter>
         const TreeNode &
         PrintHorizontal(FILE *const OutFile,
                         const int TabLength,
-                        const NodePrinter &NodePrinterFunc) const noexcept
+                        const NodePrinter &NodePrinterFunc) noexcept
         {
-            const auto RootDepthLevel = 1;
+            const auto RootDepthLevel = uint64_t(1);
             if (NodePrinterFunc(OutFile, 0, RootDepthLevel, *this)) {
                 fputc('\n', OutFile);
             }
 
-            auto Iter = Iterator(this);
+            auto Iter = TreeDFSIterator<const TreeNode>(this);
             for (Iter++; !Iter.isAtEnd(); Iter++) {
                 auto WrittenOut = int();
 
@@ -607,7 +591,7 @@ namespace ADT {
 
                 WrittenOut += 1;
 
-                NodePrinterFunc(OutFile, WrittenOut, DepthLevel, *Info);
+                NodePrinterFunc(OutFile, WrittenOut, DepthLevel, Info);
                 fputc('\n', OutFile);
             }
 
@@ -922,17 +906,20 @@ namespace ADT {
             return *this;
         }
 
-        template <typename Iterator, typename NodePrinter>
-        const TreeNode &
+        template <typename NodePrinter>
+        auto
         PrintHorizontal(FILE *const OutFile,
                         const int TabLength,
                         const NodePrinter &NodePrinterFunc) const noexcept
+            -> decltype(*this)
         {
             if (const auto Root = root()) {
-                Root->PrintHorizontal<Iterator, NodePrinter>(OutFile,
-                                                             TabLength,
-                                                             NodePrinterFunc);
+                Root->PrintHorizontal<NodePrinter>(OutFile,
+                                                   TabLength,
+                                                   NodePrinterFunc);
             }
+
+            return *this;
         }
     };
 }

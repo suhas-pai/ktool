@@ -13,6 +13,7 @@ namespace Operations {
         PrintLibraries,
         PrintArchs,
         PrintCStringSection,
-        PrintSymbolPtrSection
+        PrintSymbolPtrSection,
+        PrintExportTrie
     };
 }

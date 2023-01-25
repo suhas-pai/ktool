@@ -72,8 +72,8 @@ namespace  MachO {
                                   NodeInfo *const InfoOut) noexcept
         -> ExportTrieIterator::Error
     {
-        auto NodeSize = uint32_t();
-        if ((Ptr = Utils::ReadUleb128(Ptr, End, &NodeSize)) == nullptr) {
+        auto NodeSize = Utils::ReadUleb128<uint32_t>(Ptr, End, &Ptr);
+        if (Ptr == nullptr) {
             return Error::InvalidUleb128;
         }
 
@@ -128,8 +128,8 @@ namespace  MachO {
 
         Ptr += (StringLength + 1);
 
-        auto Next = uint64_t();
-        if ((Ptr = Utils::ReadUleb128(Ptr, End, &Next)) == nullptr) {
+        const auto Next = Utils::ReadUleb128(Ptr, End, &Ptr);
+        if (Ptr == nullptr) {
             return Error::InvalidUleb128;
         }
 
@@ -169,12 +169,30 @@ namespace  MachO {
 
                 PrevStack.setChildOrdinal(1);
             } else {
-                PrevStack.childOrdinalRef() += 1;
-                SetupInfoForNewStack();
+                switch (Direction) {
+                    case Direction::Normal:
+                        PrevStack.childOrdinalRef() += 1;
+                        SetupInfoForNewStack();
+
+                        break;
+                    case Direction::MoveUptoParentNode:
+                        if (MoveUptoParentNode()) {}
+                        break;
+                }
+            }
+
+            switch (Direction) {
+                case Direction::Normal:
+                    break;
+                case Direction::MoveUptoParentNode:
+                    if (MoveUptoParentNode()) {}
+                    return Error::None;
             }
         } else {
             SetupInfoForNewStack();
         }
+
+        this->Direction = Direction::Normal;
 
         do {
             auto &Stack = StackList.back();
@@ -194,9 +212,7 @@ namespace  MachO {
                         return Error::EmptyExport;
                     }
 
-                    auto Flags = uint64_t();
-                    Ptr = Utils::ReadUleb128(Ptr, End, &Flags);
-
+                    const auto Flags = Utils::ReadUleb128(Ptr, End, &Ptr);
                     if (Ptr == nullptr) {
                         return Error::InvalidUleb128;
                     }
@@ -208,9 +224,9 @@ namespace  MachO {
                     Export.setFlags(Flags);
                     UpdateOffset();
 
-                    if (Export.reexport()) {
-                        auto DylibOrdinal = uint32_t();
-                        Ptr = Utils::ReadUleb128(Ptr, End, &DylibOrdinal);
+                    if (Export.isReexport()) {
+                        const auto DylibOrdinal =
+                            Utils::ReadUleb128<uint32_t>(Ptr, End, &Ptr);
 
                         if (Ptr == nullptr) {
                             return Error::InvalidUleb128;
@@ -246,8 +262,8 @@ namespace  MachO {
                             Node.offsetRef() += 1;
                         }
                     } else {
-                        auto ImageOffset = uint64_t();
-                        Ptr = Utils::ReadUleb128(Ptr, End, &ImageOffset);
+                        const auto ImageOffset =
+                            Utils::ReadUleb128(Ptr, End, &Ptr);
 
                         if (Ptr == nullptr) {
                             return Error::InvalidUleb128;
@@ -259,11 +275,8 @@ namespace  MachO {
                                 return Error::InvalidFormat;
                             }
 
-                            auto ResolverStubAddress = uint64_t();
-                            Ptr =
-                                Utils::ReadUleb128(Ptr,
-                                                   End,
-                                                   &ResolverStubAddress);
+                            const auto ResolverStubAddress =
+                                Utils::ReadUleb128(Ptr, End, &Ptr);
 
                             if (Ptr == nullptr) {
                                 return Error::InvalidUleb128;
@@ -283,7 +296,7 @@ namespace  MachO {
                         case ExportTrieFlags::Kind::Regular:
                             if (Export.stubAndResolver()) {
                                 Info->setIsStubAndResolver();
-                            } else if (Export.reexport()) {
+                            } else if (Export.isReexport()) {
                                 Info->setIsReexport();
                             } else {
                                 Info->setIsRegular();
@@ -415,7 +428,7 @@ namespace  MachO {
             auto ExportNode = Node->getAsExportNode();
             const auto &ExportInfo = Info.exportInfo();
 
-            if (!ExportInfo.reexport()) {
+            if (!ExportInfo.isReexport()) {
                 if (SegList != nullptr) {
                     auto Section = static_cast<const SectionInfo *>(nullptr);
 
@@ -509,18 +522,16 @@ namespace  MachO {
             auto Entry = EntryInfo();
             const auto &ExportInfo = Iter->exportInfo();
 
-            if (!ExportInfo.reexport()) {
+            if (!ExportInfo.isReexport()) {
                 if (SegList != nullptr) {
                     const auto Addr = ExportInfo.imageOffset();
-                    const auto Segment = SegList->findSegmentWithVmAddr(Addr);
-
-                    auto Section = static_cast<const SectionInfo *>(nullptr);
-                    if (Segment != nullptr) {
-                        Section = Segment->findSectionWithVmAddr(Addr);
+                    if (const auto Segment =
+                            SegList->findSegmentWithVmAddr(Addr);
+                        Segment != nullptr)
+                    {
+                        Entry.setSegment(Segment);
+                        Entry.setSection(Segment->findSectionWithVmAddr(Addr));
                     }
-
-                    Entry.setSegment(Segment);
-                    Entry.setSection(Section);
                 }
             }
 

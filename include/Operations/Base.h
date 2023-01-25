@@ -9,6 +9,7 @@
 
 #include "Objects/Base.h"
 #include "Objects/FatMachO.h"
+
 #include "Kind.h"
 
 namespace Operations {
@@ -50,8 +51,7 @@ namespace Operations {
         }
     };
 
-    constexpr static auto RunResultUnsupported =
-        RunResult(Objects::Kind::None, 1);
+    constexpr auto RunResultUnsupported = RunResult(Objects::Kind::None, 1);
 
     struct Base {
     protected:

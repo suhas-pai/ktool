@@ -14,6 +14,7 @@
 #include "ADT/Tree.h"
 
 #include "MachO/SegmentList.h"
+#include "Utils/Misc.h"
 
 namespace MachO {
     struct ExportTrieFlags : ADT::FlagsBase<uint8_t> {
@@ -74,6 +75,34 @@ namespace MachO {
                    "Kind");
         }
 
+        [[nodiscard]] constexpr
+        static auto KindGetFromString(const std::string_view S) noexcept
+            -> std::optional<Kind>
+        {
+            const Kind Kind = Kind::Regular;
+            switch (Kind) {
+                STR_TO_ENUM_SWITCH_CASE(Kind::Regular, S, KindGetString);
+                STR_TO_ENUM_SWITCH_CASE(Kind::ThreadLocal, S, KindGetString);
+                STR_TO_ENUM_LAST_SWITCH_CASE(Kind::Absolute, S, KindGetString);
+            }
+
+            return std::nullopt;
+        }
+
+        [[nodiscard]] constexpr
+        static auto KindGetFromDesc(const std::string_view D) noexcept
+            -> std::optional<Kind>
+        {
+            const Kind Kind = Kind::Regular;
+            switch (Kind) {
+                STR_TO_ENUM_SWITCH_CASE(Kind::Regular, D, KindGetDesc);
+                STR_TO_ENUM_SWITCH_CASE(Kind::ThreadLocal, D, KindGetDesc);
+                STR_TO_ENUM_LAST_SWITCH_CASE(Kind::Absolute, D, KindGetDesc);
+            }
+
+            return std::nullopt;
+        }
+
         enum class Masks : uint8_t {
             Kind            = 0b11,
             WeakDefinition  = 0b100,
@@ -101,7 +130,7 @@ namespace MachO {
             return has(Masks::WeakDefinition);
         }
 
-        [[nodiscard]] constexpr auto reexport() const noexcept {
+        [[nodiscard]] constexpr auto isReexport() const noexcept {
             return has(Masks::Reexport);
         }
 
@@ -145,6 +174,22 @@ namespace MachO {
         StubAndResolver,
         ThreadLocal
     };
+
+    [[nodiscard]] constexpr
+    auto ExportTrieExportKindIsValid(const ExportTrieExportKind Kind) noexcept {
+        switch (Kind) {
+            case ExportTrieExportKind::None:
+            case ExportTrieExportKind::Regular:
+            case ExportTrieExportKind::Absolute:
+            case ExportTrieExportKind::Reexport:
+            case ExportTrieExportKind::WeakDefinition:
+            case ExportTrieExportKind::StubAndResolver:
+            case ExportTrieExportKind::ThreadLocal:
+                return true;
+        }
+
+        return false;
+    }
 
     [[nodiscard]] constexpr
     auto ExportTrieExportKindGetString(const ExportTrieExportKind Kind) noexcept
@@ -200,6 +245,72 @@ namespace MachO {
                "ExportTrieExportKind");
     }
 
+    [[nodiscard]] constexpr
+    auto ExportTrieExportKindGetFromString(const std::string_view S) noexcept
+        -> std::optional<ExportTrieExportKind>
+    {
+        using ExportKind = ExportTrieExportKind;
+        const ExportKind Kind = ExportKind::Regular;
+
+        switch (Kind) {
+            case ExportTrieExportKind::None:
+                [[fallthrough]];
+            STR_TO_ENUM_SWITCH_CASE(ExportKind::Regular,
+                                    S,
+                                    ExportTrieExportKindGetString);
+            STR_TO_ENUM_SWITCH_CASE(ExportKind::Absolute,
+                                    S,
+                                    ExportTrieExportKindGetString);
+            STR_TO_ENUM_SWITCH_CASE(ExportKind::Reexport,
+                                    S,
+                                    ExportTrieExportKindGetString);
+            STR_TO_ENUM_SWITCH_CASE(ExportKind::WeakDefinition,
+                                    S,
+                                    ExportTrieExportKindGetString);
+            STR_TO_ENUM_SWITCH_CASE(ExportKind::StubAndResolver,
+                                    S,
+                                    ExportTrieExportKindGetString);
+            STR_TO_ENUM_LAST_SWITCH_CASE(ExportKind::ThreadLocal,
+                                         S,
+                                         ExportTrieExportKindGetString);
+        }
+
+        return std::nullopt;
+    }
+
+    [[nodiscard]] constexpr
+    auto ExportTrieExportKindGetFromDesc(const std::string_view D) noexcept
+        -> std::optional<ExportTrieExportKind>
+    {
+        using ExportKind = ExportTrieExportKind;
+        const ExportKind Kind = ExportKind::Regular;
+
+        switch (Kind) {
+            case ExportTrieExportKind::None:
+                [[fallthrough]];
+            STR_TO_ENUM_SWITCH_CASE(ExportKind::Regular,
+                                    D,
+                                    ExportTrieExportKindGetDesc);
+            STR_TO_ENUM_SWITCH_CASE(ExportKind::Absolute,
+                                    D,
+                                    ExportTrieExportKindGetDesc);
+            STR_TO_ENUM_SWITCH_CASE(ExportKind::Reexport,
+                                    D,
+                                    ExportTrieExportKindGetDesc);
+            STR_TO_ENUM_SWITCH_CASE(ExportKind::WeakDefinition,
+                                    D,
+                                    ExportTrieExportKindGetDesc);
+            STR_TO_ENUM_SWITCH_CASE(ExportKind::StubAndResolver,
+                                    D,
+                                    ExportTrieExportKindGetDesc);
+            STR_TO_ENUM_LAST_SWITCH_CASE(ExportKind::ThreadLocal,
+                                         D,
+                                         ExportTrieExportKindGetDesc);
+        }
+
+        return std::nullopt;
+    }
+
     struct ExportTrieExportInfo {
     public:
         using Kind = ExportTrieExportKind;
@@ -242,8 +353,8 @@ namespace MachO {
             return flags().weak();
         }
 
-        [[nodiscard]] constexpr auto reexport() const noexcept {
-            return flags().reexport();
+        [[nodiscard]] constexpr auto isReexport() const noexcept {
+            return flags().isReexport();
         }
 
         [[nodiscard]] constexpr auto stubAndResolver() const noexcept {
@@ -257,12 +368,12 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto reexportImportName() const noexcept -> std::string_view {
-            assert(reexport());
+            assert(isReexport());
             return String;
         }
 
         [[nodiscard]] constexpr auto reexportDylibOrdinal() const noexcept {
-            assert(reexport());
+            assert(isReexport());
             return Info.ReexportDylibOrdinal;
         }
 
@@ -272,7 +383,7 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto imageOffset() const noexcept {
-            assert(!reexport());
+            assert(!isReexport());
             return Info.Loc.ImageOffset;
         }
 
@@ -326,7 +437,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr auto setImageOffset(const uint32_t Value) noexcept
+        constexpr auto setImageOffset(const uint64_t Value) noexcept
             -> decltype(*this)
         {
             this->Info.Loc.ImageOffset = Value;
@@ -379,8 +490,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr auto setSize(const uint64_t Value) noexcept
-            -> decltype(*this)
+        constexpr auto setSize(const uint64_t Value) noexcept -> decltype(*this)
         {
             this->Size = Value;
             return *this;
@@ -525,7 +635,7 @@ namespace MachO {
             return stackListRef().back();
         }
 
-        [[nodiscard]] inline const StackInfo &stack() const noexcept {
+        [[nodiscard]] inline auto &stack() const noexcept {
             assert(!stackList().empty());
             return stackList().back();
         }
@@ -538,31 +648,31 @@ namespace MachO {
             return stack().node();
         }
 
-        [[nodiscard]] constexpr bool isExport() const noexcept {
+        [[nodiscard]] constexpr auto isExport() const noexcept {
             return (kind() != ExportTrieExportKind::None);
         }
 
-        [[nodiscard]] constexpr bool absolute() const noexcept {
+        [[nodiscard]] constexpr auto absolute() const noexcept {
             return (kind() == ExportTrieExportKind::Absolute);
         }
 
-        [[nodiscard]] constexpr bool reexport() const noexcept {
+        [[nodiscard]] constexpr auto isReexport() const noexcept {
             return (kind() == ExportTrieExportKind::Reexport);
         }
 
-        [[nodiscard]] constexpr bool regular() const noexcept {
+        [[nodiscard]] constexpr auto regular() const noexcept {
             return (kind() == ExportTrieExportKind::Regular);
         }
 
-        [[nodiscard]] constexpr bool stubAndResolver() const noexcept {
+        [[nodiscard]] constexpr auto stubAndResolver() const noexcept {
             return (kind() == ExportTrieExportKind::StubAndResolver);
         }
 
-        [[nodiscard]] constexpr bool weak() const noexcept {
+        [[nodiscard]] constexpr auto weak() const noexcept {
             return (kind() == ExportTrieExportKind::WeakDefinition);
         }
 
-        [[nodiscard]] constexpr bool threadLocal() const noexcept {
+        [[nodiscard]] constexpr auto threadLocal() const noexcept {
             return (kind() == ExportTrieExportKind::ThreadLocal);
         }
 
@@ -628,6 +738,11 @@ namespace MachO {
         using IterateInfo = ExportTrieIterateInfo;
 
         using ParseOptions = ExportTrieParseOptions;
+
+        enum class Direction {
+            Normal,
+            MoveUptoParentNode
+        };
     protected:
         Error ParseError;
 
@@ -636,6 +751,8 @@ namespace MachO {
 
         std::unique_ptr<ExportTrieIterateInfo> Info;
         std::unique_ptr<StackInfo> NextStack;
+
+        Direction Direction;
 
         void SetupInfoForNewStack() noexcept;
         [[nodiscard]] bool MoveUptoParentNode() noexcept;
@@ -658,16 +775,23 @@ namespace MachO {
             return *Info;
         }
 
-        [[nodiscard]] inline bool isAtEnd() const noexcept {
+        [[nodiscard]] inline auto isAtEnd() const noexcept {
             return info().stackListRef().empty();
         }
 
         [[nodiscard]] constexpr auto hasError() const noexcept {
-            return true;
+            return ParseError != Error::None;
         }
 
         [[nodiscard]] inline auto getError() const noexcept {
             return Error::None;
+        }
+
+        constexpr auto setDirection(const enum Direction Direction) noexcept
+            -> decltype(*this)
+        {
+            this->Direction = Direction;
+            return *this;
         }
 
         inline auto operator++() noexcept -> decltype(*this) {
@@ -693,7 +817,7 @@ namespace MachO {
             return *Info;
         }
 
-        [[nodiscard]] inline auto&operator*() const noexcept {
+        [[nodiscard]] inline auto &operator*() const noexcept {
             return *Info;
         }
 
@@ -705,13 +829,13 @@ namespace MachO {
             return Info.get();
         }
 
-        [[nodiscard]] inline
-        auto operator==([[maybe_unused]] const ExportTrieIteratorEnd &End) {
+        [[nodiscard]] inline auto
+        operator==([[maybe_unused]] const ExportTrieIteratorEnd &End) noexcept {
             return isAtEnd();
         }
 
-        [[nodiscard]] inline
-        auto operator!=([[maybe_unused]] const ExportTrieIteratorEnd &End) {
+        [[nodiscard]] inline auto
+        operator!=([[maybe_unused]] const ExportTrieIteratorEnd &End) noexcept {
             return !operator==(End);
         }
     };
@@ -739,24 +863,23 @@ namespace MachO {
             Advance();
         }
 
-        [[nodiscard]] inline ExportTrieIterateInfo &getInfo() noexcept {
+        [[nodiscard]] inline auto &getInfo() noexcept {
             return Iterator.info();
         }
 
-        [[nodiscard]]
-        inline const auto &info() const noexcept {
+        [[nodiscard]] inline auto &info() const noexcept {
             return Iterator.info();
         }
 
-        [[nodiscard]] inline bool isAtEnd() const noexcept {
+        [[nodiscard]] inline auto isAtEnd() const noexcept {
             return Iterator.isAtEnd();
         }
 
-        [[nodiscard]] inline bool hasError() const noexcept {
+        [[nodiscard]] inline auto hasError() const noexcept {
             return Iterator.hasError();
         }
 
-        [[nodiscard]] inline Error getError() const noexcept {
+        [[nodiscard]] inline auto getError() const noexcept {
             return Iterator.getError();
         }
 
@@ -781,8 +904,7 @@ namespace MachO {
             return Iterator.info();
         }
 
-        [[nodiscard]]
-        inline const auto &operator*() const noexcept {
+        [[nodiscard]] inline const auto &operator*() const noexcept {
             return Iterator.info();
         }
 
@@ -794,13 +916,13 @@ namespace MachO {
             return &Iterator.info();
         }
 
-        [[nodiscard]] inline
-        auto operator==([[maybe_unused]] const ExportTrieIteratorEnd &End) {
+        [[nodiscard]] inline auto
+        operator==([[maybe_unused]] const ExportTrieIteratorEnd &End) noexcept {
             return (Iterator == End);
         }
 
-        [[nodiscard]] inline
-        auto operator!=([[maybe_unused]] const ExportTrieIteratorEnd &End) {
+        [[nodiscard]] inline auto
+        operator!=([[maybe_unused]] const ExportTrieIteratorEnd &End) noexcept {
             return !operator==(End);
         }
     };
@@ -812,12 +934,12 @@ namespace MachO {
         const uint8_t *Begin;
         const uint8_t *End;
     public:
-        constexpr
+        constexpr explicit
         ExportTrieMap(const uint8_t *const Begin,
                       const uint8_t *const End) noexcept
         : Begin(Begin), End(End) {}
 
-        constexpr ExportTrieMap(const ADT::MemoryMap &Map) noexcept
+        explicit ExportTrieMap(const ADT::MemoryMap &Map) noexcept
         : Begin(Map.base<uint8_t>()), End(Map.end<uint8_t>()) {}
 
         using Iterator = ExportTrieIterator;
@@ -853,12 +975,12 @@ namespace MachO {
             const uint8_t *Begin;
             const uint8_t *End;
         public:
-            constexpr
+            constexpr explicit
             ExportMap(const uint8_t *const Begin,
                       const uint8_t *const End) noexcept
             : Begin(Begin), End(End) {}
 
-            constexpr ExportMap(const ADT::MemoryMap &Map) noexcept
+            explicit ExportMap(const ADT::MemoryMap &Map) noexcept
             : Begin(Map.base<uint8_t>()), End(Map.end<uint8_t>()) {}
 
             using Iterator = ExportTrieExportIterator;
@@ -952,7 +1074,9 @@ namespace MachO {
             return Kind;
         }
 
-        [[nodiscard]] constexpr auto string() const noexcept {
+        [[nodiscard]] constexpr auto string() const noexcept
+            -> std::string_view
+        {
             return String;
         }
 
@@ -974,7 +1098,7 @@ namespace MachO {
             return (kind() != ExportTrieExportKind::None);
         }
 
-        [[nodiscard]] constexpr auto reexport() const noexcept {
+        [[nodiscard]] constexpr auto isReexport() const noexcept {
             return (kind() == ExportTrieExportKind::Reexport);
         }
 
@@ -998,7 +1122,7 @@ namespace MachO {
             return reinterpret_cast<const ExportTrieExportChildNode *>(this);
         }
 
-        [[nodiscard]] auto getAsExportNode() noexcept {
+        [[nodiscard]] inline auto getAsExportNode() noexcept {
             assert(this->isExport());
             return reinterpret_cast<ExportTrieExportChildNode *>(this);
         }
@@ -1039,19 +1163,19 @@ namespace MachO {
         }
 
         [[nodiscard]] inline auto segment() const noexcept {
-            assert(!this->reexport());
+            assert(!this->isReexport());
             return Segment;
         }
 
         [[nodiscard]] inline auto section() const noexcept {
-            assert(!this->reexport());
+            assert(!this->isReexport());
             return Section;
         }
 
         constexpr auto setSegment(const SegmentInfo *const Value) noexcept
             -> decltype(*this)
         {
-            assert(!this->reexport());
+            assert(!this->isReexport());
 
             this->Segment = Value;
             return *this;
@@ -1060,7 +1184,7 @@ namespace MachO {
         constexpr auto setSection(const SectionInfo *const Value) noexcept
             -> decltype(*this)
         {
-            assert(!this->reexport());
+            assert(!this->isReexport());
 
             this->Section = Value;
             return *this;
@@ -1111,20 +1235,20 @@ namespace MachO {
         using Iterator = ADT::TreeDFSIterator<ChildNode>;
         using ConstIterator = ADT::TreeDFSIterator<const ChildNode>;
 
-        [[nodiscard]] constexpr auto begin() const noexcept {
+        [[nodiscard]] inline auto begin() const noexcept {
             return Iterator(root());
         }
 
         [[nodiscard]] constexpr auto end() const noexcept {
-            return Iterator(nullptr);
+            return Iterator(nullptr, nullptr);
         }
 
-        [[nodiscard]] constexpr auto cbegin() const noexcept {
+        [[nodiscard]] inline auto cbegin() const noexcept {
             return ConstIterator(root());
         }
 
         [[nodiscard]] constexpr auto cend() const noexcept {
-            return ConstIterator(nullptr);
+            return ConstIterator(nullptr, nullptr);
         }
 
         template <typename T>
@@ -1134,8 +1258,7 @@ namespace MachO {
         }
 
         template <typename T>
-        inline auto forEach(const T &Callback) const noexcept
-            -> decltype(*this)
+        inline auto forEach(const T &Callback) const noexcept -> decltype(*this)
         {
             forEachNode(Callback);
             return *this;
@@ -1165,14 +1288,16 @@ namespace MachO {
             return Section;
         }
 
-        constexpr
-        auto setSegment(const SegmentInfo *Value) noexcept -> decltype(*this) {
+        constexpr auto setSegment(const SegmentInfo *const Value) noexcept
+            -> decltype(*this)
+        {
             this->Segment = Value;
             return *this;
         }
 
-        constexpr
-        auto setSection(const SectionInfo *Value) noexcept -> decltype(*this) {
+        constexpr auto setSection(const SectionInfo *const Value) noexcept
+            -> decltype(*this)
+        {
             this->Section = Value;
             return *this;
         }
@@ -1196,19 +1321,19 @@ namespace MachO {
         using Iterator = EntryListType::iterator;
         using ConstIterator = EntryListType::const_iterator;
 
-        [[nodiscard]] inline Iterator begin() noexcept {
+        [[nodiscard]] inline auto begin() noexcept {
             return EntryList.begin();
         }
 
-        [[nodiscard]] inline Iterator end() noexcept {
+        [[nodiscard]] inline auto end() noexcept {
             return EntryList.end();
         }
 
-        [[nodiscard]] inline ConstIterator begin() const noexcept {
+        [[nodiscard]] inline auto begin() const noexcept {
             return EntryList.cbegin();
         }
 
-        [[nodiscard]] inline ConstIterator end() const noexcept {
+        [[nodiscard]] inline auto end() const noexcept {
             return EntryList.cend();
         }
     };

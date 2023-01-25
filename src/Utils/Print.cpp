@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 
+#include "MachO/LoadCommands.h"
 #include "Utils/Print.h"
 
 namespace Utils {
@@ -170,9 +171,12 @@ namespace Utils {
     {
         auto WrittenOut = fprintf(OutFile, "%s", Prefix);
         if (PadSegments) {
-            if (Segment.length() < 16) {
+            if (Segment.length() < MachO::SegmentMaxNameLength) {
                 WrittenOut +=
-                    PadSpaces(OutFile, static_cast<int>(16 - Segment.length()));
+                    PadSpaces(
+                        OutFile,
+                        static_cast<int>(
+                            MachO::SegmentMaxNameLength - Segment.length()));
             }
         }
 
@@ -187,9 +191,13 @@ namespace Utils {
                     STRING_VIEW_FMT_ARGS(Section));
 
         if (PadSections) {
-            if (Section.length() < 16) {
+            if (Section.length() < MachO::SegmentSectionMaxNameLength) {
                 WrittenOut +=
-                    PadSpaces(OutFile, static_cast<int>(16 - Section.length()));
+                    PadSpaces(
+                        OutFile,
+                        static_cast<int>(
+                            MachO::SegmentSectionMaxNameLength -
+                            Section.length()));
             }
         }
 

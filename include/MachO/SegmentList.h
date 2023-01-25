@@ -102,84 +102,15 @@ namespace MachO {
         explicit
         SegmentList(const MachO::LoadCommandsMap &Map, bool Is64Bit) noexcept;
 
-        constexpr auto
+        auto
         addSegment(const MachO::SegmentCommand &Segment,
                    const bool IsBigEndian) noexcept
-            -> decltype(*this)
-        {
-            auto &Info = List.emplace_back(SegmentInfo {
-                .Name = std::string(Segment.segmentName()),
-                .VmRange =
-                    ADT::Range::FromSize(Segment.vmAddr(IsBigEndian),
-                                         Segment.vmSize(IsBigEndian)),
-                .FileRange =
-                    ADT::Range::FromSize(Segment.fileOffset(IsBigEndian),
-                                         Segment.fileSize(IsBigEndian)),
-                .MaxProt = Segment.maxProt(IsBigEndian),
-                .InitProt = Segment.initProt(IsBigEndian),
-                .Flags = Segment.flags(IsBigEndian),
-                .SectionList = {}
-            });
+            -> decltype(*this);
 
-            for (const auto &Section :
-                    Segment.sectionList(IsBigEndian))
-            {
-                Info.SectionList.emplace_back(SectionInfo {
-                    .Name = std::string(Section.sectionName()),
-                    .Addr = Section.addr(IsBigEndian),
-                    .Size = Section.size(IsBigEndian),
-                    .FileOffset = Section.fileOffset(IsBigEndian),
-                    .Align = Section.align(IsBigEndian),
-                    .RelocFileOffset = Section.relocFileOffset(IsBigEndian),
-                    .RelocsCount = Section.relocsCount(IsBigEndian),
-                    .Flags = Section.flags(IsBigEndian),
-                    .Reserved1 = Section.reserved1(IsBigEndian),
-                    .Reserved2 = Section.reserved2(IsBigEndian),
-                });
-            }
-
-            return *this;
-        }
-
-        constexpr auto
+        auto
         addSegment(const MachO::SegmentCommand64 &Segment,
                    const bool IsBigEndian) noexcept
-            -> decltype(*this)
-        {
-            auto &Info = List.emplace_back(SegmentInfo {
-                .Name = std::string(Segment.segmentName()),
-                .VmRange =
-                    ADT::Range::FromSize(Segment.vmAddr(IsBigEndian),
-                                         Segment.vmSize(IsBigEndian)),
-                .FileRange =
-                    ADT::Range::FromSize(Segment.fileOffset(IsBigEndian),
-                                         Segment.fileSize(IsBigEndian)),
-                .MaxProt = Segment.maxProt(IsBigEndian),
-                .InitProt = Segment.initProt(IsBigEndian),
-                .Flags = Segment.flags(IsBigEndian),
-                .SectionList = {}
-            });
-
-            for (const auto &Section :
-                    Segment.sectionList(IsBigEndian))
-            {
-                Info.SectionList.emplace_back(SectionInfo {
-                    .Name = std::string(Section.sectionName()),
-                    .Addr = Section.addr(IsBigEndian),
-                    .Size = Section.size(IsBigEndian),
-                    .FileOffset = Section.fileOffset(IsBigEndian),
-                    .Align = Section.align(IsBigEndian),
-                    .RelocFileOffset = Section.relocFileOffset(IsBigEndian),
-                    .RelocsCount = Section.relocsCount(IsBigEndian),
-                    .Flags = Section.flags(IsBigEndian),
-                    .Reserved1 = Section.reserved1(IsBigEndian),
-                    .Reserved2 = Section.reserved2(IsBigEndian),
-                    .Reserved3 = Section.reserved3(IsBigEndian)
-                });
-            }
-
-            return *this;
-        }
+            -> decltype(*this);
 
         [[nodiscard]] virtual auto
         findSegmentWithName(const std::string_view Name) const noexcept

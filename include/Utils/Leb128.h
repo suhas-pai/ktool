@@ -4,7 +4,9 @@
  */
 
 #pragma once
+
 #include <concepts>
+#include <cstdint>
 
 namespace Utils {
     [[nodiscard]]
@@ -52,8 +54,8 @@ namespace Utils {
 
     template <std::integral T, typename U, bool Signed>
     [[nodiscard]] constexpr static auto
-    ReadLeb128Base(U *const Begin, U *const End, T *const ValueOut) noexcept
-        -> U *
+    ReadLeb128Base(U *const Begin, U *const End, U **const PtrOut) noexcept
+        -> T
     {
         static_assert(Signed ^ std::unsigned_integral<T>,
                       "T must be an unsigned integer is Signed=False");
@@ -63,12 +65,13 @@ namespace Utils {
 
         Iter++;
         if (Leb128ByteIsDone(Byte)) {
-            *ValueOut = Byte;
-            return Iter;
+            *PtrOut = Iter;
+            return Byte;
         }
 
         if (Begin == End) {
-            return nullptr;
+            *PtrOut = nullptr;
+            return Byte;
         }
 
         constexpr auto MaxShift = Leb128GetIntegerMaxShift<T>();
@@ -87,49 +90,54 @@ namespace Utils {
                     Leb128SignExtendIfNecessary(Value, Byte, Shift + 7);
                 }
 
-                *ValueOut = Value;
-                return Iter;
+                *PtrOut = Iter;
+                return Value;
             }
 
             if (Iter == End) {
-                return nullptr;
+                *PtrOut = nullptr;
+                return Value;
             }
         }
 
         if (constexpr auto ValueMax = Leb128GetLastByteValueMax<T>()) {
             Byte = *Iter;
             if (Byte > ValueMax) {
-                return nullptr;
+                *PtrOut = nullptr;
+                return Value;
             }
 
             Iter++;
             Value |= T(Leb128ByteGetBits(Byte)) << MaxShift;
 
             if (Leb128ByteIsDone(Byte)) {
-                *ValueOut = Value;
-                return Iter;
+                *PtrOut = Iter;
+                return Value;
             }
         }
 
-        return nullptr;
+        *PtrOut = nullptr;
+        return Value;
     }
 
-    template <std::unsigned_integral T, typename U>
+    template <std::unsigned_integral T = uint64_t, typename U>
     [[nodiscard]] constexpr static
-    auto ReadUleb128(U *const Begin, U *const End, T *const ValueOut) noexcept {
-        return ReadLeb128Base<T, U, false>(Begin, End, ValueOut);
+    auto ReadUleb128(U *const Begin, U *const End, U **const PtrOut) noexcept {
+        return ReadLeb128Base<T, U, false>(Begin, End, PtrOut);
     }
 
-    template <std::integral T = uint64_t>
+    template <std::integral T = uint64_t, typename U>
     [[nodiscard]]
-    auto SkipLeb128(const void *const Begin, const void *const End) noexcept {
-        auto Value = T();
-        return ReadLeb128Base<T, std::is_signed_v<T>>(Begin, End, &Value);
+    auto SkipLeb128(U *const Begin, U *const End) noexcept {
+        auto Ptr = U(nullptr);
+        ReadLeb128Base<T, U, std::is_signed_v<T>>(Begin, End, &Ptr);
+
+        return Ptr;
     }
 
     template <std::signed_integral T, typename U>
     [[nodiscard]] constexpr static auto
-    ReadSleb128(U *const Begin, U *const End, T *const ValueOut) noexcept {
-        return ReadLeb128Base<T, U, true>(Begin, End, ValueOut);
+    ReadSleb128(U *const Begin, U *const End, U *const PtrOut) noexcept {
+        return ReadLeb128Base<T, U, true>(Begin, End, PtrOut);
     }
 }

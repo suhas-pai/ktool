@@ -17,6 +17,7 @@
 #include "Operations/PrintLibraries.h"
 #include "Operations/PrintArchs.h"
 #include "Operations/PrintCStringSection.h"
+#include "Operations/PrintExportTrie.h"
 
 #include "Operations/PrintSymbolPtrSection.h"
 #include "Utils/Misc.h"
@@ -28,47 +29,8 @@ struct OperationInfo {
     std::unique_ptr<Operations::Base> Op;
 };
 
-enum class ArgFlags : uint64_t {
-    Option = 1 << 0,
-    Path = 1 << 1,
-    EverythingElse = 1 << 2,
-
-    NotNeeded = 1 << 3
-};
-
-MAKE_ENUM_MASK_CLASS(ArgFlags);
-
-struct ArgOptions {
-    uint64_t Value = std::numeric_limits<uint64_t>::max();
-    [[nodiscard]] constexpr auto option() const noexcept {
-        return (Value & ArgFlags::Option);
-    }
-
-    [[nodiscard]] constexpr auto path() const noexcept {
-        return (Value & ArgFlags::Path);
-    }
-
-    [[nodiscard]] constexpr auto everythingElse() const noexcept {
-        return (Value & ArgFlags::EverythingElse);
-    }
-
-    [[nodiscard]] constexpr auto notNeeded() const noexcept {
-        return (Value & ArgFlags::NotNeeded);
-    }
-
-    [[nodiscard]] constexpr auto only(const ArgFlags Flag) {
-        return (Value == Flag);
-    }
-
-    constexpr explicit ArgOptions() noexcept = default;
-    constexpr explicit ArgOptions(const ArgFlags Value) noexcept
-    : Value(static_cast<uint64_t>(Value)) {}
-    constexpr explicit ArgOptions(const uint64_t Value) noexcept
-    : Value(Value) {}
-};
-
 auto
-ParseSegmentSectionPair(std::string &SegmentSectionPair,
+ParseSegmentSectionPair(std::string_view SegmentSectionPair,
                         std::optional<std::string> &SegmentName,
                         std::string &SectionName) noexcept
 {
@@ -88,8 +50,10 @@ ParseSegmentSectionPair(std::string &SegmentSectionPair,
         }
 
         SegmentName = SegmentSectionPair.substr(0, CommaPos);
-        if (SegmentName->length() > 16) {
-            fputs("Segment Name exceeds max length allowed (16)\n", stderr);
+        if (SegmentName->length() > MachO::SegmentSectionMaxNameLength) {
+            fprintf(stderr,
+                    "Segment Name exceeds max length allowed (%" PRIu32 ")\n",
+                    MachO::SegmentSectionMaxNameLength);
             return 1;
         }
         SectionName = SegmentSectionPair.substr(CommaPos + 1);
@@ -97,8 +61,10 @@ ParseSegmentSectionPair(std::string &SegmentSectionPair,
         SectionName = std::move(SegmentSectionPair);
     }
 
-    if (SectionName.length() > 16) {
-        fputs("Section Name exceeds max length allowed (16)\n", stderr);
+    if (SectionName.length() > MachO::SegmentSectionMaxNameLength) {
+        fprintf(stderr,
+                "Section Name exceeds max length allowed (%" PRIu32 ")\n",
+                MachO::SegmentSectionMaxNameLength);
         return 1;
     }
 
@@ -112,74 +78,9 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
     }
 
     auto I = 1;
-    const auto GetNextArg =
-        [&](const char *const Need,
-            const char *const Option,
-            const ArgOptions ArgOptions = ::ArgOptions()) noexcept
-    {
-        if (I + 1 == argc) {
-            if (ArgOptions.notNeeded()) {
-                return std::string();
-            }
-
-            fprintf(stderr, "Option %s needs %s\n", Option, Need);
-            exit(1);
-        }
-
-        I++;
-
-        const auto Result = std::string_view(argv[I]);
-        if (ArgOptions.notNeeded()) {
-            return std::string(Result);
-        }
-
-        if (!ArgOptions.option()) {
-            if (Result.front() == '-') {
-                fprintf(stderr,
-                        "Option %s needs %s. Found option instead\n",
-                        Option,
-                        Need);
-                exit(1);
-            }
-        }
-
-        if (!ArgOptions.path()) {
-            if (Result.front() == '/') {
-                fprintf(stderr,
-                        "Option %s needs %s. Found path instead\n",
-                        Option,
-                        Need);
-                exit(1);
-            }
-        }
-
-        if (ArgOptions.option() &&
-            ArgOptions.path() &&
-            !ArgOptions.everythingElse())
-        {
-            if (Result.front() != '/') {
-                if (Result.front() != '-') {
-                    return Utils::getFullPath(Result);
-                }
-            }
-        }
-
-        if (ArgOptions.option() &&
-            !ArgOptions.path() &&
-            !ArgOptions.everythingElse())
-        {
-            if (Result.front() != '-') {
-                fprintf(stderr,
-                        "Expected option, found %s instead\n",
-                        Result.data());
-                exit(1);
-            }
-        }
-
-        return std::string(Result);
-    };
-
     const auto OperationString = std::string_view(argv[1]);
+
+    I++;
     if (OperationString.front() != '-') {
         fprintf(stderr,
                 "Expected option, found %s instead\n",
@@ -191,15 +92,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
     auto FileOptions = Operations::Base::HandleFileOptions();
 
     if (OperationString == "-h" || OperationString == "--print-header") {
-        const auto ArgOptions =
-            ::ArgOptions(ArgFlags::Option | ArgFlags::NotNeeded);
-
         auto Options = Operations::PrintHeader::Options();
-        while (true) {
-            const auto NextArg =
-                GetNextArg("", OperationString.data(), ArgOptions);
-
-            if (NextArg == "-v" || NextArg == "--verbose") {
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
             } else {
                 break;
@@ -211,17 +107,12 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             std::unique_ptr<Operations::PrintHeader>(
                 new Operations::PrintHeader(stdout, Options));
     } else if (OperationString == "--id") {
-        const auto ArgOptions =
-            ::ArgOptions(ArgFlags::Option | ArgFlags::NotNeeded);
-
         auto Options = Operations::PrintId::Options();
         auto Path = std::string();
 
-        while (true) {
-            const auto NextArg =
-                GetNextArg("", OperationString.data(), ArgOptions);
-
-            if (NextArg == "-v" || NextArg == "--verbose") {
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
             } else {
                 break;
@@ -233,15 +124,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             std::unique_ptr<Operations::PrintId>(
                 new Operations::PrintId(stdout, Options));
     } else if (OperationString == "-l" || OperationString == "--lc") {
-        const auto ArgOptions =
-            ::ArgOptions(ArgFlags::Option | ArgFlags::NotNeeded);
-
         auto Options = Operations::PrintLoadCommands::Options();
-        while (true) {
-            const auto NextArg =
-                GetNextArg("", OperationString.data(), ArgOptions);
-
-            if (NextArg == "-v" || NextArg == "--verbose") {
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
             } else {
                 break;
@@ -253,26 +139,22 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             std::unique_ptr<Operations::PrintLoadCommands>(
                 new Operations::PrintLoadCommands(stdout, Options));
     } else if (OperationString == "-L" || OperationString == "--libraries") {
-        const auto ArgOptions =
-            ::ArgOptions(ArgFlags::Option | ArgFlags::NotNeeded);
-
         auto Options = Operations::PrintLibraries::Options();
-        while (true) {
-            const auto NextArg =
-                GetNextArg("", OperationString.data(), ArgOptions);
-
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
             using SortKind = Operations::PrintLibraries::Options::SortKind;
-            if (NextArg == "-v" || NextArg == "--verbose") {
+
+            if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
-            } else if (NextArg == "--sort-by-current-version") {
+            } else if (Arg == "--sort-by-current-version") {
                 Options.SortKindList.emplace_back(SortKind::ByCurrentVersion);
-            } else if (NextArg == "--sort-by-compat-version") {
+            } else if (Arg == "--sort-by-compat-version") {
                 Options.SortKindList.emplace_back(SortKind::ByCurrentVersion);
-            } else if (NextArg == "--sort-by-index") {
+            } else if (Arg == "--sort-by-index") {
                 Options.SortKindList.emplace_back(SortKind::ByIndex);
-            } else if (NextArg == "--sort-by-name") {
+            } else if (Arg == "--sort-by-name") {
                 Options.SortKindList.emplace_back(SortKind::ByName);
-            } else if (NextArg == "--sort-by-timestamp") {
+            } else if (Arg == "--sort-by-timestamp") {
                 Options.SortKindList.emplace_back(SortKind::ByTimeStamp);
             } else {
                 break;
@@ -284,15 +166,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             std::unique_ptr<Operations::PrintLibraries>(
                 new Operations::PrintLibraries(stdout, Options));
     } else if (OperationString == "--archs") {
-        const auto ArgOptions =
-            ::ArgOptions(ArgFlags::Option | ArgFlags::NotNeeded);
-
         auto Options = Operations::PrintArchs::Options();
-        while (true) {
-            const auto NextArg =
-                GetNextArg("", OperationString.data(), ArgOptions);
-
-            if (NextArg == "-v" || NextArg == "--verbose") {
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
             } else {
                 break;
@@ -304,25 +181,23 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             std::unique_ptr<Operations::PrintArchs>(
                 new Operations::PrintArchs(stdout, Options));
     } else if (OperationString == "--cstrings") {
-        const auto ArgOptions =
-            ::ArgOptions(ArgFlags::Option | ArgFlags::EverythingElse);
-
         auto Options = Operations::PrintCStringSection::Options();
         auto SegmentSectionPair = std::string();
 
-        while (true) {
-            const auto NextArg =
-                GetNextArg("Section Name", OperationString.data(), ArgOptions);
-
-            if (NextArg == "-v" || NextArg == "--verbose") {
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
-            } else if (NextArg == "--limit") {
-                const auto LimitArg =
-                    GetNextArg("limit number",
-                               OperationString.data(),
-                               ::ArgOptions(ArgFlags::EverythingElse));
+            } else if (Arg == "--limit") {
+                I++;
+                if (I == argc) {
+                    fputs("Option --limit expects a limit-number to be "
+                          "provided\n",
+                          stderr);
+                    return 1;
+                }
 
-                const auto LimitArgOpt = Utils::to_int<uint32_t>(LimitArg);
+                const auto LimitArgOpt = Utils::to_int<uint32_t>(argv[I]);
                 if (!LimitArgOpt) {
                     fprintf(stderr,
                             "%s is not a valid limit-number\n",
@@ -337,10 +212,17 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 }
 
                 Options.Limit = Limit;
-            } else if (NextArg == "--sort") {
+            } else if (Arg == "--sort") {
                 Options.Sort = true;
             } else {
-                SegmentSectionPair = std::move(NextArg.data());
+                if (Arg.front() == '-') {
+                    fprintf(stderr,
+                            "Got unrecognized argument (%s) for option %s",
+                            Arg.data(),
+                            OperationString.data());
+                }
+
+                SegmentSectionPair = std::move(Arg.data());
                 I++;
 
                 break;
@@ -367,28 +249,26 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                                                     std::move(SectionName),
                                                     Options));
     } else if (OperationString == "--symbol-ptrs") {
-        const auto ArgOptions =
-            ::ArgOptions(ArgFlags::Option | ArgFlags::EverythingElse);
-
         auto Options = Operations::PrintSymbolPtrSection::Options();
         auto SegmentSectionPair = std::string();
 
-        while (true) {
-            const auto NextArg =
-                GetNextArg("Section Name", OperationString.data(), ArgOptions);
-
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
             using SortKind =
                 Operations::PrintSymbolPtrSection::Options::SortKind;
 
-            if (NextArg == "-v" || NextArg == "--verbose") {
+            if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
-            } else if (NextArg == "--limit") {
-                const auto LimitArg =
-                    GetNextArg("limit number",
-                               OperationString.data(),
-                               ::ArgOptions(ArgFlags::EverythingElse));
+            } else if (Arg == "--limit") {
+                I++;
+                if (I == argc) {
+                    fputs("Option --limit expects a limit-number to be "
+                          "provided\n",
+                          stderr);
+                    return 1;
+                }
 
-                const auto LimitArgOpt = Utils::to_int<uint32_t>(LimitArg);
+                const auto LimitArgOpt = Utils::to_int<uint32_t>(argv[I]);
                 if (!LimitArgOpt) {
                     fprintf(stderr,
                             "%s is not a valid limit-number\n",
@@ -403,16 +283,23 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 }
 
                 Options.Limit = Limit;
-            } else if (NextArg == "--sort-by-dylib-ordinal") {
+            } else if (Arg == "--sort-by-dylib-ordinal") {
                 Options.SortKindList.emplace_back(SortKind::ByDylibOrdinal);
-            } else if (NextArg == "--sort-by-dylib-path") {
+            } else if (Arg == "--sort-by-dylib-path") {
                 Options.SortKindList.emplace_back(SortKind::ByDylibPath);
-            } else if (NextArg == "--sort-by-index") {
+            } else if (Arg == "--sort-by-index") {
                 Options.SortKindList.emplace_back(SortKind::ByIndex);
-            } else if (NextArg == "--sort-by-string") {
+            } else if (Arg == "--sort-by-string") {
                 Options.SortKindList.emplace_back(SortKind::ByString);
             } else {
-                SegmentSectionPair = std::move(NextArg.data());
+                if (Arg.front() == '-') {
+                    fprintf(stderr,
+                            "Got unrecognized argument (%s) for option %s",
+                            Arg.data(),
+                            OperationString.data());
+                }
+
+                SegmentSectionPair = std::move(Arg.data());
                 I++;
 
                 break;
@@ -431,7 +318,95 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                                                       std::move(SegmentName),
                                                       std::move(SectionName),
                                                       Options));
-    } else {
+    } else if (OperationString == "--export-trie") {
+        auto Options = Operations::PrintExportTrie::Options();
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            if (Arg == "-v" || Arg == "--verbose") {
+                Options.Verbose = true;
+            } else if (Arg == "--tree") {
+                Options.PrintTree = true;
+            } else if (Arg == "--only-count") {
+                Options.OnlyCount = true;
+            } else if (Arg == "--sort") {
+                Options.Sort = true;
+            } else if (Arg == "--require-kind") {
+                I++;
+                if (I == argc) {
+                    fprintf(stderr,
+                            "Option %s needs to be provided an export-kind\n",
+                            Arg.data());
+                    return 1;
+                }
+
+                const auto KindArg = std::string_view(argv[I]);
+                const auto KindOpt =
+                    MachO::ExportTrieExportKindGetFromString(argv[I]);
+
+                if (!KindOpt) {
+                    fprintf(stderr,
+                            "%s is not a valid export-kind\n",
+                            KindArg.data());
+                    return 1;
+                }
+
+                Options.KindRequirements.emplace(KindOpt.value());
+            } else if (Arg == "--require-section") {
+                I++;
+                if (I == argc) {
+                    fprintf(stderr,
+                            "Option %s needs to be provided a section\n",
+                            Arg.data());
+                    return 1;
+                }
+
+                auto SegmentSectionPair = std::string_view(argv[I]);
+                auto SegmentName = std::optional<std::string>(std::nullopt);
+                auto SectionName = std::string();
+
+                ParseSegmentSectionPair(SegmentSectionPair,
+                                        SegmentName,
+                                        SectionName);
+
+                Options.SectionRequirements.emplace_back(
+                    Operations::PrintExportTrie::Options::SegmentSectionPair {
+                        .SegmentName = SegmentName,
+                        .SectionName = SectionName
+                    }
+                );
+            } else if (Arg == "--require-segment") {
+                I++;
+                if (I == argc) {
+                    fprintf(stderr,
+                            "Option %s needs to be provided a section\n",
+                            Arg.data());
+                    return 1;
+                }
+
+                const auto SegmentArg = std::string_view(argv[I]);
+                if (SegmentArg.length() > MachO::SegmentMaxNameLength) {
+                    fprintf(stderr,
+                            "Segment-Name of \"%s\" is too long to be valid\n",
+                            SegmentArg.data());
+                    return 1;
+                }
+
+                Options.SectionRequirements.emplace_back(
+                    Operations::PrintExportTrie::Options::SegmentSectionPair {
+                        .SegmentName = std::string(SegmentArg),
+                        .SectionName = ""
+                    }
+                );
+            } else {
+                break;
+            }
+        }
+
+        Operation.Kind = Operations::Kind::PrintExportTrie;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintExportTrie>(
+                new Operations::PrintExportTrie(stdout, Options));
+    } else if (OperationString.front() == '-') {
         fprintf(stderr,
                 "Unrecognized option: \"%s\"\n",
                 OperationString.data());
@@ -449,16 +424,22 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
     Operation.Path = Utils::getFullPath(PathArg);
     FileOptions.Path = Operation.Path;
 
-    while (true) {
-        const auto ArgOptions =
-            ::ArgOptions(ArgFlags::Option | ArgFlags::NotNeeded);
+    for (I++; I != argc; I++) {
+        const auto Arg = std::string_view(argv[I]);
+        if (Arg == "--arch-index") {
+            I++;
+            if (I == argc) {
+                fprintf(stderr,
+                        "Option %s expects an index to an architecture.\n"
+                        "Use option --archs to see a list of available "
+                        "architectures\n",
+                        Arg.data());
+                return 1;
+            }
 
-        const auto NextArg = GetNextArg("", "", ArgOptions);
-        if (NextArg == "--arch-index") {
-            const auto IndexArg =
-                GetNextArg("an index to an arch", NextArg.data());
-
+            const auto IndexArg = std::string_view(argv[I]);
             const auto ArchIndexOpt = Utils::to_int<uint32_t>(IndexArg);
+
             if (!ArchIndexOpt) {
                 fprintf(stderr,
                         "%s is not a valid index-number\n",
@@ -467,10 +448,8 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             }
 
             FileOptions.ArchIndex = ArchIndexOpt.value();
-        } else if (NextArg.empty()) {
-            break;
         } else {
-            fprintf(stderr, "Unrecognized option \"%s\"\n", NextArg.c_str());
+            fprintf(stderr, "Unrecognized option: \"%s\"\n", Arg.data());
             return 1;
         }
     }
@@ -612,6 +591,25 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
 
             break;
         }
+        case Operations::Kind::PrintExportTrie:
+            switch (Operations::PrintExportTrie::RunError(Result.Error)) {
+                using RunError = Operations::PrintExportTrie::RunError;
+
+                case RunError::None:
+                    break;
+                case RunError::MultipleExportTries:
+                    fputs("Multiple different export-tries found\n", stderr);
+                    return 1;
+                case RunError::NoExportTrieFound:
+                    fputs("Failed to find export-trie\n", stderr);
+                    return 1;
+                case RunError::ExportTrieOutOfBounds:
+                    fputs("Export-trie is out-of-bounds\n", stderr);
+                    return 1;
+                case RunError::NoExports:
+                    fputs("Export-trie has no exported symbols\n", stderr);
+                    return 1;
+            }
     }
 
     return 0;

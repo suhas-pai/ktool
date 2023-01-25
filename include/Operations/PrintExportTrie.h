@@ -4,6 +4,7 @@
  */
 
 #pragma once
+
 #include <set>
 
 #include "MachO/ExportTrie.h"
@@ -19,8 +20,8 @@ namespace Operations {
             bool Verbose : 1 = false;
 
             struct SegmentSectionPair {
-                std::string_view SegmentName;
-                std::string_view SectionName;
+                std::optional<std::string> SegmentName;
+                std::optional<std::string> SectionName;
 
                 [[nodiscard]] constexpr
                 auto operator==(const SegmentSectionPair &Rhs) const noexcept {
@@ -39,7 +40,7 @@ namespace Operations {
         FILE *OutFile;
         Options Opt;
     public:
-        constexpr static auto Kind = Operations::Kind::PrintArchs;
+        constexpr static auto Kind = Operations::Kind::PrintExportTrie;
         explicit PrintExportTrie(FILE *OutFile, const struct Options &Options);
 
         ~PrintExportTrie() noexcept override {}

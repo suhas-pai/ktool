@@ -6,6 +6,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
+
 #include "Dyld3/PackedVersion.h"
 
 #include "MachO/LoadCommands.h"
@@ -34,6 +36,8 @@ namespace MachO {
         addLibrary(const DylibCommand &Dylib, const bool IsBigEndian) noexcept
             -> decltype(*this)
         {
+            assert(Dylib.isSharedLibrary(IsBigEndian));
+
             const auto PathOpt = Dylib.name(IsBigEndian);
             List.emplace_back(LibraryInfo {
                 .Kind = Dylib.kind(IsBigEndian),
