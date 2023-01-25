@@ -277,7 +277,7 @@ namespace Operations {
                 const auto &Right =
                     reinterpret_cast<const MachO::ExportTrieChildNode &>(Rhs);
 
-                return (Left.string() <= Right.string());
+                return Left.string() <= Right.string();
             });
         }
 
@@ -308,18 +308,16 @@ namespace Operations {
         return 0;
     }
 
-    auto PrintExportTrie::run(const Objects::MachO &MachO) const noexcept
-        -> RunResult
+    static auto
+    CollectLoadCommands(const Objects::MachO &MachO,
+                        MachO::LibraryList &LibraryList,
+                        MachO::SegmentList &SegmentList,
+                        std::optional<ADT::Range> &ExportTrieRangeOpt,
+                        RunResult &Result,
+                        const bool Is64Bit,
+                        const bool IsBigEndian) noexcept
     {
-        const auto IsBigEndian = MachO.isBigEndian();
-        const auto Is64Bit = MachO.is64Bit();
-
-        auto Result = RunResult(Objects::Kind::MachO);
-        auto ExportTrieRangeOpt = std::optional<ADT::Range>(std::nullopt);
-
-        auto LibraryList = MachO::LibraryList();
-        auto SegmentList = MachO::SegmentList();
-
+        using RunError = PrintExportTrie::RunError;
         for (const auto &LC : MachO.loadCommandsMap()) {
             using Kind = MachO::LoadCommandKind;
             switch (LC.kind(IsBigEndian)) {
@@ -430,6 +428,33 @@ namespace Operations {
             }
         }
 
+        return Result.set(RunError::None);
+    }
+
+    auto PrintExportTrie::run(const Objects::MachO &MachO) const noexcept
+        -> RunResult
+    {
+        const auto IsBigEndian = MachO.isBigEndian();
+        const auto Is64Bit = MachO.is64Bit();
+
+        auto Result = RunResult(Objects::Kind::MachO);
+        auto ExportTrieRangeOpt = std::optional<ADT::Range>(std::nullopt);
+
+        auto LibraryList = MachO::LibraryList();
+        auto SegmentList = MachO::SegmentList();
+
+        CollectLoadCommands(MachO,
+                            LibraryList,
+                            SegmentList,
+                            ExportTrieRangeOpt,
+                            Result,
+                            Is64Bit,
+                            IsBigEndian);
+
+        if (Result.get<RunError>() != RunError::None) {
+            return Result;
+        }
+
         if (!ExportTrieRangeOpt.has_value()) {
             return Result.set(RunError::NoExportTrieFound);
         }
@@ -519,7 +544,6 @@ namespace Operations {
                 fprintf(OutFile,
                         "Provided file's export-trie has %" PRIu64 " nodes\n",
                         Count);
-
                 return Result.set(RunError::None);
             }
 
@@ -527,7 +551,7 @@ namespace Operations {
                 const auto Comparator =
                     [](const ExportInfo &Lhs, const ExportInfo &Rhs) noexcept
                 {
-                    return (Lhs.String < Rhs.String);
+                    return Lhs.String < Rhs.String;
                 };
 
                 std::sort(ExportList.begin(), ExportList.end(), Comparator);

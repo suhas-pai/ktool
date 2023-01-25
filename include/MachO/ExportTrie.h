@@ -626,6 +626,8 @@ namespace MachO {
         constexpr auto setKind(const ExportTrieExportKind Value) noexcept
             -> decltype(*this)
         {
+            assert(Value != ExportTrieExportKind::None);
+
             this->Kind = Value;
             return *this;
         }
@@ -1074,8 +1076,7 @@ namespace MachO {
             return Kind;
         }
 
-        [[nodiscard]] constexpr auto string() const noexcept
-            -> std::string_view
+        [[nodiscard]] constexpr auto string() const noexcept -> std::string_view
         {
             return String;
         }

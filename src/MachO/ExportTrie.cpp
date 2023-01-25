@@ -4,9 +4,7 @@
  */
 
 #include <algorithm>
-
 #include "MachO/ExportTrie.h"
-#include "MachO/SegmentList.h"
 
 #include "Utils/Leb128.h"
 #include "Utils/Overflow.h"
