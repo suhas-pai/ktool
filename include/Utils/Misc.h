@@ -32,8 +32,13 @@
         }\
 
 namespace Utils {
-    template <std::integral T>
-    constexpr auto to_int(const std::string_view String) noexcept
+    [[nodiscard]]
+    constexpr auto PointerSize(const bool Is64Bit) noexcept -> uint8_t {
+        return Is64Bit ? 8 : 4;
+    }
+
+    template <std::unsigned_integral T>
+    constexpr auto to_uint(const std::string_view String) noexcept
         -> std::optional<T>
     {
         auto Front = String.front();

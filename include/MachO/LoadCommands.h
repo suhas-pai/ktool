@@ -3237,12 +3237,12 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto lazyBindOffset(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(WeakBindOffset, IsBigEndian);
+            return ADT::SwitchEndianIf(LazyBindOffset, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto lazyBindSize(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(WeakBindSize, IsBigEndian);
+            return ADT::SwitchEndianIf(LazyBindSize, IsBigEndian);
         }
 
         [[nodiscard]]

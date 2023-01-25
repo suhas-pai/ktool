@@ -39,21 +39,8 @@ namespace Utils {
         return (1ull << Mod) - 1;
     }
 
-    [[nodiscard]] constexpr auto
-    Leb128SignExtendIfNecessary(const uint64_t Value,
-                                const uint8_t Byte,
-                                const uint64_t Shift) noexcept
-    {
-        if (!(Byte & 0x40)) {
-            return Value;
-        }
-
-        const auto Mask = (~0ull << Shift);
-        return Value | Mask;
-    }
-
     template <std::integral T, typename U, bool Signed>
-    [[nodiscard]] constexpr static auto
+    constexpr static auto
     ReadLeb128Base(U *const Begin, U *const End, U **const PtrOut) noexcept
         -> T
     {
@@ -86,10 +73,6 @@ namespace Utils {
             Iter++;
 
             if (Leb128ByteIsDone(Byte)) {
-                if constexpr (Signed) {
-                    Leb128SignExtendIfNecessary(Value, Byte, Shift + 7);
-                }
-
                 *PtrOut = Iter;
                 return Value;
             }
@@ -135,9 +118,9 @@ namespace Utils {
         return Ptr;
     }
 
-    template <std::signed_integral T, typename U>
+    template <std::signed_integral T = int64_t, typename U>
     [[nodiscard]] constexpr static auto
-    ReadSleb128(U *const Begin, U *const End, U *const PtrOut) noexcept {
+    ReadSleb128(U *const Begin, U *const End, U **const PtrOut) noexcept {
         return ReadLeb128Base<T, U, true>(Begin, End, PtrOut);
     }
 }

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cassert>
 #include <optional>
 #include <string>
 #include <vector>
@@ -80,16 +81,24 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto
-        findSectionWithVmAddr(const uint64_t Offset) const noexcept
+        findSectionWithVmAddr(const uint64_t VmAddr) const noexcept
             -> const SectionInfo *
         {
             for (const auto &Section : SectionList) {
-                if (Section.vmRange().containsLoc(Offset)) {
+                if (Section.vmRange().containsLoc(VmAddr)) {
                     return &Section;
                 }
             }
 
             return nullptr;
+        }
+
+        [[nodiscard]] constexpr auto
+        findSectionWithVmAddrIndex(const uint64_t AddrIndex) const noexcept
+            -> const SectionInfo *
+        {
+            assert(VmRange.containsIndex(AddrIndex));
+            return findSectionWithVmAddr(VmRange.locForIndex(AddrIndex));
         }
     };
 
@@ -102,6 +111,29 @@ namespace MachO {
         explicit
         SegmentList(const MachO::LoadCommandsMap &Map, bool Is64Bit) noexcept;
 
+        [[nodiscard]] constexpr auto size() const noexcept {
+            return List.size();
+        }
+
+        [[nodiscard]] constexpr auto empty() const noexcept {
+            return List.empty();
+        }
+
+        [[nodiscard]] inline auto &at(const size_t Index) const noexcept {
+            return List.at(Index);
+        }
+
+        [[nodiscard]]
+        inline auto atOrNull(const size_t Index) const noexcept
+            -> const SegmentInfo *
+        {
+            if (Index >= size()) {
+                return nullptr;
+            }
+
+            return &List.at(Index);
+        }
+
         auto
         addSegment(const MachO::SegmentCommand &Segment,
                    const bool IsBigEndian) noexcept
@@ -111,6 +143,11 @@ namespace MachO {
         addSegment(const MachO::SegmentCommand64 &Segment,
                    const bool IsBigEndian) noexcept
             -> decltype(*this);
+
+        [[nodiscard]] virtual auto
+        getFileOffsetForVmAddr(const uint64_t VmAddr,
+                               const uint64_t Size = 1) const noexcept
+            -> std::optional<uint64_t>;
 
         [[nodiscard]] virtual auto
         findSegmentWithName(const std::string_view Name) const noexcept

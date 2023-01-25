@@ -47,8 +47,17 @@ namespace Utils {
                             std::string_view Section,
                             bool PadSegments,
                             bool PadSections,
-                            const char *Prefix = "",
-                            const char *Suffix = "") noexcept -> int;
+                            std::string_view Prefix = "",
+                            std::string_view Suffix = "") noexcept -> int;
+
+    auto
+    PrintDylibOrdinalPath(FILE *OutFile,
+                          uint8_t DylibOrdinal,
+                          std::string_view DylibPath,
+                          bool PrintPath,
+                          bool IsOutOfBounds,
+                          std::string_view Prefix = "",
+                          std::string_view Suffix = "") noexcept -> int;
 
     auto
     PrintDylibOrdinalInfo(FILE *OutFile,
@@ -56,8 +65,8 @@ namespace Utils {
                           std::string_view DylibPath,
                           bool PrintPath,
                           bool IsOutOfBounds,
-                          const char *Prefix = "",
-                          const char *Suffix = "") noexcept -> int;
+                          std::string_view Prefix = "",
+                          std::string_view Suffix = "") noexcept -> int;
 
     // 32 for Segment+Section Name Max Length, 4 for apostrophes, 1 for comma
     constexpr static inline auto SegmentSectionPairMaxLen = 32 + 4 + 1;
@@ -79,9 +88,6 @@ namespace Utils {
 #define RIGHTPAD_FMT "-*"
 #define RIGHTPAD_FMT_ARGS(val) val
 #define STR_LENGTH(s) (sizeof(s) - 1)
-
-#define ADDRESS_32_LEN 10 // 2 + 8
-#define ADDRESS_64_LEN 18 // 2 + 16
 
 #define ADDRESS_32_FMT "0x%08" PRIX32
 #define ADDRESS_64_FMT "0x%016" PRIX64

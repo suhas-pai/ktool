@@ -105,4 +105,27 @@ namespace MachO {
 
         return *this;
     }
+
+    [[nodiscard]] auto
+    SegmentList::getFileOffsetForVmAddr(const uint64_t VmAddr,
+                                        const uint64_t Size) const noexcept
+        -> std::optional<uint64_t>
+    {
+        for (const auto &SegInfo : List) {
+            if (SegInfo.VmRange.containsLoc(VmAddr)) {
+                const uint64_t VmIndex = SegInfo.VmRange.indexForLoc(VmAddr);
+                if (!SegInfo.FileRange.containsIndex(VmIndex)) {
+                    return std::nullopt;
+                }
+
+                if (!SegInfo.FileRange.containsIndex(VmIndex + Size)) {
+                    return std::nullopt;
+                }
+
+                return SegInfo.FileRange.locForIndex(VmIndex);
+            }
+        }
+
+        return std::nullopt;
+    }
 }

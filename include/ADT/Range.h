@@ -56,6 +56,14 @@ namespace ADT {
             return Loc >= Begin && (Loc - Begin) < Size;
         }
 
+        template <typename T>
+        [[nodiscard]] constexpr auto
+        containsLoc(const uint64_t Loc,
+                    const uint64_t Count = 1) const noexcept
+        {
+            return Loc >= Begin && (Loc + (sizeof(T) * Count) - Begin) < Size;
+        }
+
         [[nodiscard]]
         constexpr auto containsEnd(const uint64_t Loc) const noexcept {
             return Loc > Begin && (Loc - Begin) <= Size;
@@ -66,9 +74,29 @@ namespace ADT {
             return Idx < Size;
         }
 
+        template <typename T>
+        [[nodiscard]] constexpr auto
+        containsIndex(const uint64_t Idx,
+                      const uint64_t Count = 1) const noexcept
+        {
+            return containsIndex(Idx + (sizeof(T) * Count));
+        }
+
         [[nodiscard]]
         constexpr auto containsEndIndex(const uint64_t Idx) const noexcept {
             return Idx != 0 && Idx <= Size;
+        }
+
+        [[nodiscard]]
+        constexpr auto indexForLoc(const uint64_t Loc) const noexcept {
+            assert(containsLoc(Loc));
+            return Loc - Begin;
+        }
+
+        [[nodiscard]]
+        constexpr auto locForIndex(const uint64_t Index) const noexcept {
+            assert(containsIndex(Index));
+            return Begin + Index;
         }
 
         [[nodiscard]]

@@ -17,10 +17,9 @@
 #include "Operations/PrintLibraries.h"
 #include "Operations/PrintArchs.h"
 #include "Operations/PrintCStringSection.h"
-#include "Operations/PrintExportTrie.h"
-
 #include "Operations/PrintSymbolPtrSection.h"
-#include "Utils/Misc.h"
+#include "Operations/PrintExportTrie.h"
+#include "Operations/PrintBindOpcodeList.h"
 
 struct OperationInfo {
     std::string Path;
@@ -197,7 +196,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     return 1;
                 }
 
-                const auto LimitArgOpt = Utils::to_int<uint32_t>(argv[I]);
+                const auto LimitArgOpt = Utils::to_uint<uint32_t>(argv[I]);
                 if (!LimitArgOpt) {
                     fprintf(stderr,
                             "%s is not a valid limit-number\n",
@@ -268,7 +267,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     return 1;
                 }
 
-                const auto LimitArgOpt = Utils::to_int<uint32_t>(argv[I]);
+                const auto LimitArgOpt = Utils::to_uint<uint32_t>(argv[I]);
                 if (!LimitArgOpt) {
                     fprintf(stderr,
                             "%s is not a valid limit-number\n",
@@ -406,9 +405,31 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintExportTrie>(
                 new Operations::PrintExportTrie(stdout, Options));
+    } else if (OperationString == "--bind-opcodes") {
+        auto Options = Operations::PrintBindOpcodeList::Options();
+        auto Path = std::string();
+
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            if (Arg == "-v" || Arg == "--verbose") {
+                Options.Verbose = true;
+            } else {
+                break;
+            }
+        }
+
+        Operation.Kind = Operations::Kind::PrintBindOpcodeList;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintBindOpcodeList>(
+                new Operations::PrintBindOpcodeList(stdout, Options));
     } else if (OperationString.front() == '-') {
         fprintf(stderr,
-                "Unrecognized option: \"%s\"\n",
+                "Unrecognized operation: \"%s\"\n",
+                OperationString.data());
+        return 1;
+    } else {
+        fprintf(stderr,
+                "Expected operation, got \"%s\" instead\n",
                 OperationString.data());
         return 1;
     }
@@ -438,7 +459,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             }
 
             const auto IndexArg = std::string_view(argv[I]);
-            const auto ArchIndexOpt = Utils::to_int<uint32_t>(IndexArg);
+            const auto ArchIndexOpt = Utils::to_uint<uint32_t>(IndexArg);
 
             if (!ArchIndexOpt) {
                 fprintf(stderr,
@@ -610,6 +631,21 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     fputs("Export-trie has no exported symbols\n", stderr);
                     return 1;
             }
+
+            break;
+        case Operations::Kind::PrintBindOpcodeList:
+            switch (Operations::PrintBindOpcodeList::RunError(Result.Error)) {
+                case Operations::PrintBindOpcodeList::RunError::None:
+                    break;
+                case Operations::PrintBindOpcodeList::RunError::NoDyldInfo:
+                    fputs("No dyld-info load command was found\n", stderr);
+                    return 1;
+                case Operations::PrintBindOpcodeList::RunError::NoOpcodes:
+                    fputs("No bind-opcodes found within table\n", stderr);
+                    return 1;
+            }
+
+            break;
     }
 
     return 0;

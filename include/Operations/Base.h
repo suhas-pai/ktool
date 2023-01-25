@@ -35,6 +35,11 @@ namespace Operations {
         }
 
         template <typename T>
+        [[nodiscard]] constexpr auto get() noexcept -> T {
+            return static_cast<T>(Error);
+        }
+
+        template <typename T>
         constexpr auto set(const T Error) noexcept -> decltype(*this) {
             this->Error = static_cast<std::underlying_type_t<T>>(Error);
             return *this;

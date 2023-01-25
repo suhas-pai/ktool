@@ -166,10 +166,10 @@ namespace Utils {
                             const std::string_view Section,
                             const bool PadSegments,
                             const bool PadSections,
-                            const char *const Prefix,
-                            const char *const Suffix) noexcept -> int
+                            const std::string_view Prefix,
+                            const std::string_view Suffix) noexcept -> int
     {
-        auto WrittenOut = fprintf(OutFile, "%s", Prefix);
+        auto WrittenOut = fprintf(OutFile, "%s", Prefix.data());
         if (PadSegments) {
             if (Segment.length() < MachO::SegmentMaxNameLength) {
                 WrittenOut +=
@@ -201,7 +201,43 @@ namespace Utils {
             }
         }
 
-        return WrittenOut + fprintf(OutFile, "%s", Suffix);
+        return WrittenOut + fprintf(OutFile, "%s", Suffix.data());
+    }
+
+    auto
+    PrintDylibOrdinalPath(FILE *const OutFile,
+                          const uint8_t DylibOrdinal,
+                          const std::string_view DylibPath,
+                          const bool PrintPath,
+                          const bool IsOutOfBounds,
+                          const std::string_view Prefix,
+                          const std::string_view Suffix) noexcept -> int
+    {
+        if (DylibOrdinal == 0) {
+            return
+                fprintf(stderr, "%s<invalid>%s", Prefix.data(), Suffix.data());
+        }
+
+        if (IsOutOfBounds) {
+            return
+                fprintf(OutFile,
+                        "%s<out-of-bounds!>%s",
+                        Prefix.data(),
+                        Suffix.data());
+        }
+
+        auto WrittenOut = int();
+        if (PrintPath) {
+            WrittenOut +=
+                fprintf(OutFile,
+                        "\"" STRING_VIEW_FMT "\"%s",
+                        STRING_VIEW_FMT_ARGS(DylibPath),
+                        Suffix.data());
+        } else {
+            WrittenOut += fprintf(OutFile, "%s", Suffix.data());
+        }
+
+        return WrittenOut;
     }
 
     auto
@@ -210,17 +246,19 @@ namespace Utils {
                           const std::string_view DylibPath,
                           const bool PrintPath,
                           const bool IsOutOfBounds,
-                          const char *const Prefix,
-                          const char *const Suffix) noexcept -> int
+                          const std::string_view Prefix,
+                          const std::string_view Suffix) noexcept -> int
     {
         auto WrittenOut =
             fprintf(OutFile,
                     "%sDylib-Ordinal %02" PRId8,
-                    Prefix,
+                    Prefix.data(),
                     DylibOrdinal);
 
         if (IsOutOfBounds) {
-            return WrittenOut + fprintf(OutFile, " (Out Of Bounds!)%s", Suffix);
+            return
+                WrittenOut +
+                fprintf(OutFile, " (Out Of Bounds!)%s", Suffix.data());
         }
 
         if (PrintPath) {
@@ -228,9 +266,9 @@ namespace Utils {
                 fprintf(OutFile,
                         " - \"" STRING_VIEW_FMT "\"%s",
                         STRING_VIEW_FMT_ARGS(DylibPath),
-                        Suffix);
+                        Suffix.data());
         } else {
-            WrittenOut += fprintf(OutFile, "%s", Suffix);
+            WrittenOut += fprintf(OutFile, "%s", Suffix.data());
         }
 
         return WrittenOut;

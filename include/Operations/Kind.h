@@ -14,6 +14,7 @@ namespace Operations {
         PrintArchs,
         PrintCStringSection,
         PrintSymbolPtrSection,
-        PrintExportTrie
+        PrintExportTrie,
+        PrintBindOpcodeList
     };
 }

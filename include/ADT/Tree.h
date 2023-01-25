@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <iterator>
+#include <set>
 
 #include "Utils/Print.h"
 
@@ -355,15 +356,16 @@ namespace ADT {
 
         template <typename T>
         constexpr auto forEachSibling(const T &lambda) noexcept {
-            TREE_NODE_ITERATE_SIBLINGS(*this, Sibling) {
+            TREE_NODE_ITERATE_SIBLINGS(*nextSibling(), Sibling) {
                 lambda(*Sibling);
             }
         }
 
         template <typename T>
         constexpr auto forSelfAndEachSibling(const T &lambda) noexcept {
-            lambda(*this);
-            forEachSibling(lambda);
+            TREE_NODE_ITERATE_SIBLINGS(*this, Sibling) {
+                lambda(*Sibling);
+            }
         }
 
         template <typename T>
@@ -412,17 +414,19 @@ namespace ADT {
             return LastSibling;
         }
 
-        constexpr auto addChild(TreeNode &Node) noexcept -> decltype(*this) {
+        inline auto addChild(TreeNode &Node) noexcept -> decltype(*this) {
             return addChildren(Node);
         }
 
-        constexpr auto
+        inline auto
         addChildren(TreeNode &Node, TreeNode *const End = nullptr) noexcept
             -> decltype(*this)
         {
             setParentOfSiblings(this, Node, End);
+
             if (const auto LastChild = lastChild()) {
                 LastChild->NextSibling = &Node;
+                Node.PrevSibling = LastChild;
             } else {
                 this->FirstChild = &Node;
             }
@@ -445,6 +449,7 @@ namespace ADT {
                 auto LastSibling = setParentOfSiblings(Parent, Node, End);
                 if (const auto LastChild = Parent->lastChild()) {
                     LastChild->NextSibling = &Node;
+                    Node.PrevSibling = LastChild;
                 } else {
                     Parent->FirstChild = &Node;
                 }
@@ -509,7 +514,7 @@ namespace ADT {
             return findNextSiblingForDFSIterator(End, Out);
         }
 
-        constexpr auto validateChildren() const noexcept -> decltype(*this) {
+        inline auto validateChildren() const noexcept -> decltype(*this) {
             if (leaf()) {
                 return *this;
             }
@@ -522,14 +527,17 @@ namespace ADT {
                 return *this;
             }
 
-            assert(SecondChild->parent() == this);
-
             auto Prev = FirstChild;
-            SecondChild->forEachSibling([&](TreeNode &Sibling) {
+            auto Visited = std::set<TreeNode *>();
+
+            Visited.insert(FirstChild);
+            SecondChild->forSelfAndEachSibling([&](TreeNode &Sibling) {
+                assert(!Visited.contains(&Sibling));
                 assert(Sibling.parent() == this);
                 assert(Sibling.prevSibling() == Prev);
 
                 Prev = &Sibling;
+                Visited.insert(&Sibling);
             });
 
             assert(Prev == lastChild());
@@ -650,7 +658,7 @@ namespace ADT {
             }
 
             [[nodiscard]] constexpr auto end() const noexcept {
-                return Iterator(nullptr);
+                return Iterator(nullptr, nullptr);
             }
 
             template <typename T>
