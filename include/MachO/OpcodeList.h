@@ -132,14 +132,14 @@ namespace MachO {
             }
 
             inline auto operator++(int) noexcept -> decltype(*this) {
-                return ++(*this);
+                return operator++();
             }
 
             inline auto operator+=(const uint64_t Amt) noexcept
                 -> decltype(*this)
             {
                 for (auto I = uint64_t(); I != Amt; I++) {
-                    (*this)++;
+                    operator++();
                 }
 
                 return *this;

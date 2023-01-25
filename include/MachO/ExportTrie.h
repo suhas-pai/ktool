@@ -831,13 +831,13 @@ namespace MachO {
             return Info.get();
         }
 
-        [[nodiscard]] inline auto
-        operator==([[maybe_unused]] const ExportTrieIteratorEnd &End) noexcept {
+        [[nodiscard]]
+        inline auto operator==(const ExportTrieIteratorEnd &) const noexcept {
             return isAtEnd();
         }
 
-        [[nodiscard]] inline auto
-        operator!=([[maybe_unused]] const ExportTrieIteratorEnd &End) noexcept {
+        [[nodiscard]] inline
+        auto operator!=(const ExportTrieIteratorEnd &End) const noexcept {
             return !operator==(End);
         }
     };
@@ -918,13 +918,13 @@ namespace MachO {
             return &Iterator.info();
         }
 
-        [[nodiscard]] inline auto
-        operator==([[maybe_unused]] const ExportTrieIteratorEnd &End) noexcept {
-            return (Iterator == End);
+        [[nodiscard]] inline
+        auto operator==(const ExportTrieIteratorEnd &End) const noexcept {
+            return Iterator == End;
         }
 
-        [[nodiscard]] inline auto
-        operator!=([[maybe_unused]] const ExportTrieIteratorEnd &End) noexcept {
+        [[nodiscard]] inline
+        auto operator!=(const ExportTrieIteratorEnd &End) const noexcept {
             return !operator==(End);
         }
     };

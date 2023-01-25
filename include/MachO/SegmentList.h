@@ -67,8 +67,8 @@ namespace MachO {
             return nullptr;
         }
 
-        [[nodiscard]] constexpr auto
-        findSectionWithFileOffset(const uint64_t Offset) const noexcept
+        [[nodiscard]] constexpr
+        auto findSectionWithFileOffset(const uint64_t Offset) const noexcept
             -> const SectionInfo *
         {
             for (const auto &Section : SectionList) {
@@ -80,8 +80,8 @@ namespace MachO {
             return nullptr;
         }
 
-        [[nodiscard]] constexpr auto
-        findSectionWithVmAddr(const uint64_t VmAddr) const noexcept
+        [[nodiscard]] constexpr
+        auto findSectionWithVmAddr(const uint64_t VmAddr) const noexcept
             -> const SectionInfo *
         {
             for (const auto &Section : SectionList) {
@@ -154,7 +154,7 @@ namespace MachO {
 
         [[nodiscard]] virtual auto
         getFileOffsetForVmAddr(const uint64_t VmAddr,
-                               const uint64_t Size = 1) const noexcept
+                               const uint64_t Size = 0) const noexcept
             -> std::optional<uint64_t>;
 
         [[nodiscard]] virtual auto

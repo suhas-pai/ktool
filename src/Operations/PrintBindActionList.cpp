@@ -127,11 +127,7 @@ namespace Operations {
                                            /*PadSegment=*/true,
                                            /*PadSection=*/true);
 
-            Utils::PrintAddress(OutFile,
-                                FullAddr,
-                                Is64Bit,
-                                " ");
-
+            Utils::PrintAddress(OutFile, FullAddr, Is64Bit, " ");
             if (Action.Addend != 0) {
                 Utils::PrintAddress(OutFile,
                                     static_cast<uint64_t>(Action.Addend),
@@ -198,7 +194,8 @@ namespace Operations {
 
         switch (List.size()) {
             case 0:
-                assert(0 && "Bind-Action List shouldn't be empty at this point");
+                assert(0 &&
+                       "Bind-Action List shouldn't be empty at this point");
             case 1:
                 fprintf(OutFile, "1 %s Action:\n", Name);
                 break;

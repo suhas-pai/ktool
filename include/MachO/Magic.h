@@ -55,7 +55,7 @@ namespace MachO {
                 return false;
         }
 
-        assert(false && "MagicIsThin() got unrecognized magic");
+        assert(false && "MachO::MagicIsThin() got unrecognized magic");
     }
 
     constexpr auto MagicIsFat(const Magic Magic) noexcept {
@@ -72,7 +72,7 @@ namespace MachO {
                 return false;
         }
 
-        assert(false && "MagicIsFat() got unrecognized magic");
+        assert(false && "MachO::MagicIsFat() got unrecognized magic");
     }
 
     constexpr auto MagicIs64Bit(const Magic Magic) noexcept {
@@ -89,7 +89,7 @@ namespace MachO {
                 return false;
         }
 
-        assert(false && "MagicIs64Bit() got unrecognized magic");
+        assert(false && "MachO::MagicIs64Bit() got unrecognized magic");
     }
 
     constexpr auto MagicIsBigEndian(const Magic Magic) noexcept {
@@ -106,7 +106,7 @@ namespace MachO {
                 return false;
         }
 
-        assert(false && "MagicIsBigEndian() got unrecognized magic");
+        assert(false && "MachO::MagicIsBigEndian() got unrecognized magic");
     }
 
     constexpr auto MagicGetString(const Magic Magic) noexcept
@@ -131,7 +131,7 @@ namespace MachO {
                 return "FAT_CIGAM_64";
         }
 
-        assert(false && "Called MagicGetString() with unknown Magic");
+        assert(false && "Called MachO::MagicGetString() with unknown Magic");
     }
 
     constexpr auto MagicGetDesc(const Magic Magic) noexcept -> std::string_view
@@ -155,6 +155,6 @@ namespace MachO {
                 return "Fat (64-bit, Swapped)";
         }
 
-        assert(false && "Called MagicGetDesc() with unknown Magic");
+        assert(false && "Called MachO::MagicGetDesc() with unknown Magic");
     }
 }
