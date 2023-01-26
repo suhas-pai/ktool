@@ -39,13 +39,12 @@ namespace Operations {
     }
 
     static void
-    PrintRebaseAction(
-        FILE *const OutFile,
-        const uint64_t Counter,
-        const int SizeDigitLength,
-        const MachO::RebaseActionInfo &Action,
-        const MachO::SegmentList &SegmentList,
-        const bool Is64Bit) noexcept
+    PrintRebaseAction(FILE *const OutFile,
+                      const uint64_t Counter,
+                      const int SizeDigitLength,
+                      const MachO::RebaseActionInfo &Action,
+                      const MachO::SegmentList &SegmentList,
+                      const bool Is64Bit) noexcept
     {
         fprintf(OutFile,
                 "Rebase Action %0*" PRIu64 ": ",

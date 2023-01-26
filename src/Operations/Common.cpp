@@ -31,12 +31,12 @@ namespace Operations {
 
         const auto WrittenOut =
             Utils::PrintDylibOrdinalPath(OutFile,
-                                        DylibOrdinal,
-                                        LibraryPath,
-                                        PrintPath,
-                                        IsOutOfBounds,
-                                        Prefix,
-                                        Suffix);
+                                         DylibOrdinal,
+                                         LibraryPath,
+                                         PrintPath,
+                                         IsOutOfBounds,
+                                         Prefix,
+                                         Suffix);
 
         return WrittenOut + fputc(')', OutFile);
     }

@@ -173,10 +173,9 @@ namespace Operations {
 
                     const auto PtrSize = Utils::PointerSize(Is64Bit);
                     const auto AddOpt =
-                        Utils::AddMulAndCheckOverflow<int64_t>(
-                            IterInfo.Skip,
-                            PtrSize,
-                            IterInfo.Count);
+                        Utils::AddMulAndCheckOverflow<int64_t>(IterInfo.Skip,
+                                                               PtrSize,
+                                                               IterInfo.Count);
 
                     if (!AddOpt.has_value()) {
                         break;
@@ -238,7 +237,7 @@ namespace Operations {
                                   fprintf(OutFile, "%s ", OpcodeName.data()),
                                   LongestOpcodeNameLength + 1);
 
-            const auto PrintAddressInfo = [&](uint64_t Add = 0) noexcept {
+            const auto PrintAddressInfo = [&](const uint64_t Add = 0) noexcept {
                 if ((&Iter) != (&Collection.back() + 1)) {
                     if ((&Iter)[1].AddrInSegOverflows) {
                         fputs(" (Overflows)", OutFile);
@@ -253,7 +252,7 @@ namespace Operations {
                                     ", ");
 
                 const auto FullAddr =
-                    Iter.Segment->VmRange.begin() + Iter.AddrInSeg + Add;
+                    Iter.Segment->VmRange.locForIndex(Iter.AddrInSeg + Add);
 
                 Utils::PrintAddress(OutFile,
                                     FullAddr,

@@ -188,27 +188,34 @@ namespace Utils {
         const auto SectionName =
             !Section.empty() ? Section : "<null>";
 
-        WrittenOut +=
-            fprintf(OutFile,
-                    "\"" STRING_VIEW_FMT "\",",
-                    STRING_VIEW_FMT_ARGS(SegmentName));
+        if (Segment.empty()) {
+            WrittenOut += fputs("<null>,", OutFile);
+        } else {
+            WrittenOut +=
+                fprintf(OutFile,
+                        "\"" STRING_VIEW_FMT "\",",
+                        STRING_VIEW_FMT_ARGS(SegmentName));
+        }
 
-        WrittenOut +=
-            fprintf(OutFile,
-                    "\"" STRING_VIEW_FMT "\"",
-                    STRING_VIEW_FMT_ARGS(SectionName));
+        if (Section.empty()) {
+            WrittenOut += fputs("<null>", OutFile);
+        } else {
+            WrittenOut +=
+                fprintf(OutFile,
+                        "\"" STRING_VIEW_FMT "\"",
+                        STRING_VIEW_FMT_ARGS(SectionName));
+        }
 
         if (PadSections) {
             const auto SectionLength =
                 !Section.empty() ? Section.length() : STR_LENGTH("<null>");
 
             if (SectionLength < MachO::SegmentSectionMaxNameLength) {
-                WrittenOut +=
-                    PadSpaces(
-                        OutFile,
-                        static_cast<int>(
-                            MachO::SegmentSectionMaxNameLength -
-                            SectionLength));
+                const auto PadLength =
+                    static_cast<int>(
+                        MachO::SegmentSectionMaxNameLength -SectionLength);
+
+                WrittenOut += PadSpaces(OutFile, PadLength);
             }
         }
 

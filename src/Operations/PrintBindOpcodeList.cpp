@@ -506,33 +506,31 @@ namespace Operations {
         auto WeakBindRange = ADT::Range();
         auto FoundDyldInfo = false;
 
-        for (const auto &LC : MachO.loadCommandsMap()) {
-            if (LC.isSharedLibrary(IsBigEndian)) {
-                LibraryList.addLibrary(
-                    cast<MachO::DylibCommand>(LC, IsBigEndian), IsBigEndian);
+        const auto LoadCommandsMap = MachO.loadCommandsMap();
+        for (auto Iter = LoadCommandsMap.begin();
+             Iter != LoadCommandsMap.end();
+             Iter++)
+        {
+            if (Iter->isSharedLibrary(IsBigEndian)) {
+                LibraryList.addLibrary(Iter.cast<MachO::DylibCommand>(),
+                                       IsBigEndian);
                 continue;
             }
 
             using Kind = MachO::LoadCommandKind;
             if (Is64Bit) {
-                if (const auto Segment =
-                        MachO::dyn_cast<Kind::Segment64>(&LC, IsBigEndian))
-                {
+                if (const auto Segment = Iter.dyn_cast<Kind::Segment64>()) {
                     SegmentList.addSegment(*Segment, IsBigEndian);
                     continue;
                 }
             } else {
-                if (const auto Segment =
-                        MachO::dyn_cast<Kind::Segment>(&LC, IsBigEndian))
-                {
+                if (const auto Segment = Iter.dyn_cast<Kind::Segment>()) {
                     SegmentList.addSegment(*Segment, IsBigEndian);
                     continue;
                 }
             }
 
-            if (const auto DyldInfo =
-                    MachO::dyn_cast<MachO::DyldInfoCommand>(&LC, IsBigEndian))
-            {
+            if (const auto DyldInfo = Iter.dyn_cast<MachO::DyldInfoCommand>()) {
                 BindRange = DyldInfo->bindRange(IsBigEndian);
                 LazyBindRange = DyldInfo->lazyBindRange(IsBigEndian);
                 WeakBindRange = DyldInfo->weakBindRange(IsBigEndian);

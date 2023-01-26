@@ -78,17 +78,16 @@ namespace Operations {
 
     template <MachO::BindInfoKind BindKind>
     static void
-    PrintBindAction(
-        FILE *const OutFile,
-        const char *const Name,
-        const uint64_t Counter,
-        const unsigned SizeDigitLength,
-        const MachO::BindActionInfo &Action,
-        const uint64_t LongestBindSymbolLength,
-        const MachO::LibraryList &LibraryList,
-        const MachO::SegmentList &SegmentList,
-        const bool Is64Bit,
-        const struct PrintBindActionList::Options &Options) noexcept
+    PrintBindAction(FILE *const OutFile,
+                    const char *const Name,
+                    const uint64_t Counter,
+                    const unsigned SizeDigitLength,
+                    const MachO::BindActionInfo &Action,
+                    const uint64_t LongestBindSymbolLength,
+                    const MachO::LibraryList &LibraryList,
+                    const MachO::SegmentList &SegmentList,
+                    const bool Is64Bit,
+                    const struct PrintBindActionList::Options &Options) noexcept
     {
         fprintf(OutFile,
                 "%s Action %0*" PRIu64 ": ",

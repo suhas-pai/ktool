@@ -121,14 +121,13 @@ namespace Operations {
     }
 
     static void
-    PrintTreeExportInfo(
-        FILE *const OutFile,
-        const MachO::ExportTrieExportChildNode &Export,
-        const MachO::LibraryList &LibraryList,
-        const int WrittenOut,
-        const uint64_t LongestLength,
-        const bool Is64Bit,
-        const struct PrintExportTrie::Options &Options) noexcept
+    PrintTreeExportInfo(FILE *const OutFile,
+                        const MachO::ExportTrieExportChildNode &Export,
+                        const MachO::LibraryList &LibraryList,
+                        const int WrittenOut,
+                        const uint64_t LongestLength,
+                        const bool Is64Bit,
+                        const struct PrintExportTrie::Options &Options) noexcept
     {
         const auto RightPad =
             static_cast<int>(LongestLength + STR_LENGTH("\"\" -"));

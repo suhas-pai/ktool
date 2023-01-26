@@ -79,7 +79,7 @@ namespace MachO {
             template <LoadCommandDerived T>
             [[nodiscard]] constexpr auto cast() const noexcept -> decltype(auto)
             {
-                return MachO::cast<T>(Ptr, IsBigEndian);
+                return MachO::cast<T>(*Ptr, IsBigEndian);
             }
 
             template <LoadCommandDerived T>

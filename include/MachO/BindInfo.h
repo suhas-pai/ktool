@@ -1001,8 +1001,8 @@ namespace MachO {
             const auto DoThreadedBind = [&]() noexcept {
                 const auto &SegInfo =
                     SegList.at(static_cast<uint64_t>(Info.SegmentIndex));
-
-                const auto SegVmAddr = SegInfo.VmRange.begin() + Info.AddrInSeg;
+                const auto SegVmAddr =
+                    SegInfo.VmRange.locForIndex(Info.AddrInSeg);
 
                 const auto PtrSize = Utils::PointerSize(Is64Bit);
                 const auto FileOffsetOpt =
@@ -1081,14 +1081,14 @@ namespace MachO {
                 case BindByte::Opcode::SetSegmentAndOffsetUleb:
                 case BindByte::Opcode::AddAddrUleb:
                     break;
-                case BindByte::Opcode::Threaded: {
-                    const auto Error = DoThreadedBind();
-                    if (Error != ErrorEnum::None) {
+                case BindByte::Opcode::Threaded:
+                    if (const auto Error = DoThreadedBind();
+                        Error != ErrorEnum::None)
+                    {
                         return Error;
                     }
 
                     break;
-                }
             }
 
             const auto CheckChangeToSegmentAddress =
@@ -1169,8 +1169,10 @@ namespace MachO {
                         continue;
                     }
                     case BindByte::Opcode::DoBind: {
-                        const auto Error = CheckIfCanBind();
-                        if (Error != ErrorEnum::None) {
+                        ;
+                        if (const auto Error = CheckIfCanBind();
+                            Error != ErrorEnum::None)
+                        {
                             return Error;
                         }
 
@@ -1277,8 +1279,9 @@ namespace MachO {
                                     return ErrorEnum::NotEnoughThreadedBinds;
                                 }
 
-                                const auto Error = DoThreadedBind();
-                                if (Error != ErrorEnum::None) {
+                                if (const auto Error = DoThreadedBind();
+                                    Error != ErrorEnum::None)
+                                {
                                     return Error;
                                 }
 
