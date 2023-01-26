@@ -90,7 +90,6 @@ namespace Operations {
                                          OpcodeInfo.AddrInSeg,
                                          &OpcodeInfo.Segment,
                                          &OpcodeInfo.Section);
-
                     break;
                 }
                 case MachO::RebaseByte::Opcode::AddAddrImmScaled:

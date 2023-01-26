@@ -170,8 +170,8 @@ namespace MachO {
             return nullptr;
         }
 
-        [[nodiscard]] virtual auto
-        findSegmentWithFileOffset(const uint64_t Offset) const noexcept
+        [[nodiscard]] virtual
+        auto findSegmentWithFileOffset(const uint64_t Offset) const noexcept
             -> const SegmentInfo *
         {
             for (const auto &Info : List) {

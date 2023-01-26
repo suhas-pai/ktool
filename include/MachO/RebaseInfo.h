@@ -688,6 +688,8 @@ namespace MachO {
                         Iter++;
                         break;
                     }
+
+                    [[fallthrough]];
                 case RebaseByte::Opcode::DoRebaseAddAddrUleb:
                     // Clear the Last-Opcode.
                     LastByte.SetOpcode(RebaseByte::Opcode::SetKindImm);
@@ -887,6 +889,11 @@ namespace MachO {
                          const RebaseByte *const End,
                          const bool Is64Bit) noexcept
         : Begin(Begin), End(End), Is64Bit(Is64Bit) {}
+
+        explicit
+        RebaseActionList(const ADT::MemoryMap &Map, const bool Is64Bit) noexcept
+        : Begin(Map.base<const RebaseByte>()), End(Map.end<const RebaseByte>()),
+          Is64Bit(Is64Bit) {}
 
         [[nodiscard]] inline auto begin() const noexcept {
             return Iterator(Begin, End, Is64Bit);

@@ -23,6 +23,7 @@
 #include "Operations/PrintBindActionList.h"
 #include "Operations/PrintBindSymbolList.h"
 #include "Operations/PrintRebaseOpcodeList.h"
+#include "Operations/PrintRebaseActionList.h"
 
 struct OperationInfo {
     std::string Path;
@@ -93,7 +94,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
     auto Operation = OperationInfo();
     auto FileOptions = Operations::Base::HandleFileOptions();
 
-    if (OperationString == "-h" || OperationString == "--print-header") {
+    if (OperationString == "-h" || OperationString == "--header") {
         auto Options = Operations::PrintHeader::Options();
         for (; I != argc; I++) {
             const auto Arg = std::string_view(argv[I]);
@@ -587,7 +588,25 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintRebaseOpcodeList>(
                 new Operations::PrintRebaseOpcodeList(stdout, Options));
-    } else if (OperationString == "-l" || OperationString == "--lc") {
+    } else if (OperationString == "--rebase-actions") {
+        auto Options = Operations::PrintRebaseActionList::Options();
+        auto Path = std::string();
+
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            if (Arg == "-v" || Arg == "--verbose") {
+                Options.Verbose = true;
+            } else if (Arg == "--sort") {
+                Options.Sort = true;
+            } else {
+                break;
+            }
+        }
+
+        Operation.Kind = Operations::Kind::PrintRebaseActionList;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintRebaseActionList>(
+                new Operations::PrintRebaseActionList(stdout, Options));
     } else if (OperationString.front() == '-') {
         fprintf(stderr,
                 "Unrecognized operation: \"%s\"\n",
@@ -851,6 +870,17 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             }
 
             break;
+        case Operations::Kind::PrintRebaseActionList:
+            switch (Operations::PrintRebaseActionList::RunError(Result.Error)) {
+                case Operations::PrintRebaseActionList::RunError::None:
+                    break;
+                case Operations::PrintRebaseActionList::RunError::NoDyldInfo:
+                    fputs("No dyld-info load command was found\n", stderr);
+                    return 1;
+                case Operations::PrintRebaseActionList::RunError::NoActions:
+                    fputs("No rebase-actions found within table\n", stderr);
+                    return 1;
+            }
     }
 
     return 0;
