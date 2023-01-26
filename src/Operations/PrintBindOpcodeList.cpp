@@ -406,8 +406,8 @@ namespace Operations {
                     if (Options.Verbose) {
                         Utils::PrintSegmentSectionPair(
                             OutFile,
-                            Iter.Segment ? Iter.Segment->Name : "(null)",
-                            Iter.Section ? Iter.Section->Name : "(null)",
+                            Iter.Segment ? Iter.Segment->Name : "",
+                            Iter.Section ? Iter.Section->Name : "",
                             false,
                             false,
                             " - <",

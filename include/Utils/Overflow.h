@@ -141,9 +141,12 @@ namespace Utils {
         return AddAndCheckOverflow(FirstOpt.value(), Th);
     }
 
-    template <std::integral T>
+    template <std::integral T = uint64_t,
+              std::integral U,
+              std::integral V,
+              std::integral W>
     constexpr auto
-    AddMulAndCheckOverflow(const T F, const T S, const T Th) noexcept
+    AddMulAndCheckOverflow(const U F, const V S, const W Th) noexcept
         -> std::optional<T>
     {
         const auto FirstOpt = AddAndCheckOverflow(F, S);

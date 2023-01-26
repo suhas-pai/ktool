@@ -153,12 +153,13 @@ namespace Operations {
                     KindDesc.data());
 
             if (!Export.isReexport()) {
-                Utils::PrintSegmentSectionPair(OutFile,
-                                               Export.segment()->Name,
-                                               Export.section()->Name,
-                                               true,
-                                               " - ",
-                                               " - ");
+                Utils::PrintSegmentSectionPair(
+                    OutFile,
+                    Export.segment() ? Export.segment()->Name : "",
+                    Export.section() ? Export.section()->Name : "",
+                    true,
+                    " - ",
+                    " - ");
 
                 const auto ImageOffset = Export.info().imageOffset();
                 Utils::PrintAddress(OutFile, ImageOffset, Is64Bit);

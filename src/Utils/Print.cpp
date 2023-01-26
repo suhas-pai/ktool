@@ -171,33 +171,44 @@ namespace Utils {
     {
         auto WrittenOut = fprintf(OutFile, "%s", Prefix.data());
         if (PadSegments) {
-            if (Segment.length() < MachO::SegmentMaxNameLength) {
+            const auto SegmentLength =
+                Segment.empty() ? Segment.length() : STR_LENGTH("<null>");
+
+            if (SegmentLength < MachO::SegmentMaxNameLength) {
                 WrittenOut +=
                     PadSpaces(
                         OutFile,
                         static_cast<int>(
-                            MachO::SegmentMaxNameLength - Segment.length()));
+                            MachO::SegmentMaxNameLength - SegmentLength));
             }
         }
+
+        const auto SegmentName =
+            !Segment.empty() ? Segment : "<null>";
+        const auto SectionName =
+            !Section.empty() ? Section : "<null>";
 
         WrittenOut +=
             fprintf(OutFile,
                     "\"" STRING_VIEW_FMT "\",",
-                    STRING_VIEW_FMT_ARGS(Segment));
+                    STRING_VIEW_FMT_ARGS(SegmentName));
 
         WrittenOut +=
             fprintf(OutFile,
                     "\"" STRING_VIEW_FMT "\"",
-                    STRING_VIEW_FMT_ARGS(Section));
+                    STRING_VIEW_FMT_ARGS(SectionName));
 
         if (PadSections) {
-            if (Section.length() < MachO::SegmentSectionMaxNameLength) {
+            const auto SectionLength =
+                !Section.empty() ? Section.length() : STR_LENGTH("<null>");
+
+            if (SectionLength < MachO::SegmentSectionMaxNameLength) {
                 WrittenOut +=
                     PadSpaces(
                         OutFile,
                         static_cast<int>(
                             MachO::SegmentSectionMaxNameLength -
-                            Section.length()));
+                            SectionLength));
             }
         }
 

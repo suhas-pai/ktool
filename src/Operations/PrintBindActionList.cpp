@@ -106,8 +106,8 @@ namespace Operations {
                                                     &FullAddr);
 
             Utils::PrintSegmentSectionPair(OutFile,
-                                           Segment ? Segment->Name : "<null>",
-                                           Section ? Section->Name : "<null>",
+                                           Segment ? Segment->Name : "",
+                                           Section ? Section->Name : "",
                                            /*PadSegment=*/true,
                                            /*PadSection=*/true);
 

@@ -17,6 +17,7 @@ namespace Operations {
         PrintExportTrie,
         PrintBindOpcodeList,
         PrintBindActionList,
-        PrintBindSymbolList
+        PrintBindSymbolList,
+        PrintRebaseOpcodeList
     };
 }

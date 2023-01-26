@@ -11,7 +11,6 @@
 #include "ADT/FileMap.h"
 #include "MachO/LoadCommands.h"
 
-#include "Operations/PrintBindSymbolList.h"
 #include "Operations/PrintHeader.h"
 #include "Operations/PrintId.h"
 #include "Operations/PrintLoadCommands.h"
@@ -22,6 +21,8 @@
 #include "Operations/PrintExportTrie.h"
 #include "Operations/PrintBindOpcodeList.h"
 #include "Operations/PrintBindActionList.h"
+#include "Operations/PrintBindSymbolList.h"
+#include "Operations/PrintRebaseOpcodeList.h"
 
 struct OperationInfo {
     std::string Path;
@@ -569,6 +570,24 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintBindSymbolList>(
                 new Operations::PrintBindSymbolList(stdout, Options));
+    } else if (OperationString == "--rebase-opcodes") {
+        auto Options = Operations::PrintRebaseOpcodeList::Options();
+        auto Path = std::string();
+
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            if (Arg == "-v" || Arg == "--verbose") {
+                Options.Verbose = true;
+            } else {
+                break;
+            }
+        }
+
+        Operation.Kind = Operations::Kind::PrintRebaseOpcodeList;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintRebaseOpcodeList>(
+                new Operations::PrintRebaseOpcodeList(stdout, Options));
+    } else if (OperationString == "-l" || OperationString == "--lc") {
     } else if (OperationString.front() == '-') {
         fprintf(stderr,
                 "Unrecognized operation: \"%s\"\n",
@@ -815,6 +834,19 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     return 1;
                 case Operations::PrintBindSymbolList::RunError::NoSymbols:
                     fputs("No bind-symbols found within table\n", stderr);
+                    return 1;
+            }
+
+            break;
+        case Operations::Kind::PrintRebaseOpcodeList:
+            switch (Operations::PrintRebaseOpcodeList::RunError(Result.Error)) {
+                case Operations::PrintRebaseOpcodeList::RunError::None:
+                    break;
+                case Operations::PrintRebaseOpcodeList::RunError::NoDyldInfo:
+                    fputs("No dyld-info load command was found\n", stderr);
+                    return 1;
+                case Operations::PrintRebaseOpcodeList::RunError::NoOpcodes:
+                    fputs("No rebase-opcodes found within table\n", stderr);
                     return 1;
             }
 

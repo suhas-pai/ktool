@@ -11,6 +11,7 @@
 #include <concepts>
 #include <cstdio>
 #include <inttypes.h>
+#include <optional>
 #include <string>
 #include <string_view>
 
