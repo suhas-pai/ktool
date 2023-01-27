@@ -140,7 +140,11 @@ namespace  MachO {
         }
 
         InfoOut->setPrefix(std::string_view(StringPtr, StringLength));
-        return ParseNode(Begin + Next, InfoOut);
+
+        const auto NewBegin =
+            Utils::AddPtrAndCheckOverflow(Begin, Next).value();
+
+        return ParseNode(NewBegin, InfoOut);
     }
 
     auto ExportTrieIterator::Advance() noexcept -> ExportTrieIterator::Error {
@@ -196,7 +200,10 @@ namespace  MachO {
             auto &Stack = StackList.back();
             auto &Node = Stack.node();
             auto &Export = Info->exportInfoRef();
-            auto Ptr = this->Begin + Node.offset();
+
+            auto Ptr =
+                Utils::AddPtrAndCheckOverflow(this->Begin, Node.offset())
+                    .value();
 
             const auto ExpectedEnd = Ptr + Node.size();
             const auto UpdateOffset = [&]() noexcept {

@@ -5,8 +5,11 @@
 
 #pragma once
 
+#include <limits>
+#include <map>
 #include <memory>
 #include <string_view>
+#include <unordered_map>
 
 #include "ADT/MemoryMap.h"
 
@@ -395,7 +398,7 @@ namespace MachO {
         BindWriteKind WriteKind;
 
         [[nodiscard]] constexpr bool hasError() const noexcept {
-            return (Error != BindOpcodeParseError::None);
+            return Error != BindOpcodeParseError::None;
         }
 
         [[nodiscard]] constexpr auto error() const noexcept {
@@ -764,6 +767,35 @@ namespace MachO {
         [[nodiscard]] constexpr auto hasDylibOrdinal() const noexcept {
             return DylibOrdinal != -1;
         }
+
+        [[nodiscard]]
+        constexpr auto getFullAddress(const SegmentList &List) const noexcept
+            -> std::optional<uint64_t>
+        {
+            if (SegmentIndex < 0) {
+                return std::numeric_limits<uint64_t>::max();
+            }
+
+            const auto SegIndex = static_cast<uint64_t>(SegmentIndex);
+            if (const auto Segment = List.atOrNull(SegIndex)) {
+                const auto FullAddr = Segment->VmRange.locForIndex(AddrInSeg);
+                if (const auto Section =
+                        Segment->findSectionWithVmAddr(FullAddr))
+                {
+                    const auto VmIndex =
+                        Section->vmRange().indexForLoc(FullAddr);
+
+                    const auto FileRange = Section->fileRange();
+                    if (!FileRange.containsIndex(VmIndex)) {
+                        return std::nullopt;
+                    }
+
+                    return FileRange.locForIndex(VmIndex);
+                }
+            }
+
+            return std::nullopt;
+        }
     };
 
     struct BindOpcodeThreadedData {
@@ -1025,7 +1057,7 @@ namespace MachO {
 
                 const auto IsBind = Value & (1ull << 62);
                 if (IsBind) {
-                    const auto ThreadOrdinal = (Value & 0xFFFF);
+                    const auto ThreadOrdinal = Value & 0xFFFF;
                     if (ThreadOrdinal >= Info.ThreadDataTableMaxSize) {
                         return ErrorEnum::InvalidThreadOrdinal;
                     }
@@ -1308,6 +1340,7 @@ namespace MachO {
 
     template <BindInfoKind BindKind>
     struct BindActionListBase {
+        using Info = BindActionInfo;
         using Iterator = BindActionIteratorBase<BindKind>;
     protected:
         const uint8_t *Map;
@@ -1355,8 +1388,10 @@ namespace MachO {
             return BindActionIteratorEnd();
         }
 
-        inline
-        auto getAsList(std::vector<BindActionInfo> &ListOut) const noexcept {
+        using UnorderedMap = std::unordered_map<uint64_t, BindActionInfo>;
+        using Vector = std::vector<BindActionInfo>;
+
+        [[nodiscard]] inline auto getAsList(Vector &ListOut) const noexcept {
             for (const auto &Iter : *this) {
                 const auto Error = Iter.error();
                 if (!Iter.canIgnoreError(Error)) {
@@ -1369,10 +1404,31 @@ namespace MachO {
             return BindOpcodeParseError::None;
         }
 
-        inline auto
-        getListOfSymbols(
-            std::vector<BindActionInfo> &SymbolListOut) const noexcept
+        [[nodiscard]] inline auto
+        getAsUnorderedMap(SegmentList &SegmentList,
+                          UnorderedMap &MapOut) const noexcept
         {
+            for (const auto &Iter : *this) {
+                const auto Error = Iter.error();
+                if (!Iter.canIgnoreError(Error)) {
+                    return Error;
+                }
+
+                const auto Action = Iter.getAction();
+                const auto FullAddr = Action.getFullAddress(SegmentList);
+
+                MapOut.insert({
+                    FullAddr.has_value() ?
+                        FullAddr.value() : std::numeric_limits<uint64_t>::max(),
+                    Action
+                });
+            }
+
+            return BindOpcodeParseError::None;
+        }
+
+        [[nodiscard]]
+        inline auto getListOfSymbols(Vector &SymbolListOut) const noexcept {
             for (const auto &Iter : *this) {
                 const auto Error = Iter.error();
                 if (!Iter.canIgnoreError(Error)) {

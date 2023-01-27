@@ -14,147 +14,6 @@
 #include "Utils/Print.h"
 
 namespace ADT {
-    template <typename T>
-    struct TreeDFSIterator {
-    protected:
-        T *Current = nullptr;
-        T *End = nullptr;
-
-        uint64_t DepthLevel = 1;
-    public:
-        using iterator_category = std::bidirectional_iterator_tag;
-        using value_type = T;
-        using element_type = T;
-        using difference_type = ptrdiff_t;
-        using pointer = T*;
-        using reference = T&;
-
-        constexpr TreeDFSIterator() noexcept = default;
-        constexpr TreeDFSIterator(T *const Current) noexcept
-        : TreeDFSIterator(Current, Current->parent()) {}
-
-        constexpr TreeDFSIterator(T *const Current, T *const End) noexcept
-        : Current(Current), End(End) {}
-
-        [[nodiscard]] constexpr auto &operator*() const noexcept {
-            return *Current;
-        }
-
-        [[nodiscard]] constexpr auto &operator*() noexcept {
-            return *Current;
-        }
-
-        [[nodiscard]] constexpr auto operator->() const noexcept {
-            return Current;
-        }
-
-        [[nodiscard]] constexpr auto node() const noexcept {
-            return Current;
-        }
-
-        [[nodiscard]] constexpr auto depthLevel() const noexcept {
-            return DepthLevel;
-        }
-
-        [[nodiscard]]
-        constexpr auto printLineLength(const uint64_t TabLength) noexcept {
-            return (TabLength * (depthLevel() - 1));
-        }
-
-        [[nodiscard]] auto isAtEnd() const noexcept {
-            return (Current == End);
-        }
-
-        [[nodiscard]] constexpr
-        auto getParentAtIndex(const uint64_t DepthIndex) const noexcept {
-            auto Parent = Current;
-
-            const auto ThisDepthIndex = DepthLevel - 1;
-            const auto MoveCount = ThisDepthIndex - DepthIndex;
-
-            for (auto I = uint64_t(); I != MoveCount; I++) {
-                Parent = T::get(Parent->parent());
-            }
-
-            return Parent;
-        }
-
-        constexpr auto operator--() noexcept -> decltype(*this) {
-            auto Node = Current;
-            Current = nullptr;
-
-            for (; DepthLevel != 0; DepthLevel--, Node = Node->parent()) {
-                if (const auto PrevSibling = Node->prevSibling()) {
-                    Current = PrevSibling->get(PrevSibling);
-                    break;
-                }
-            }
-
-            return *this;
-        }
-
-        constexpr auto operator--(int) noexcept {
-            return operator--();
-        }
-
-        constexpr auto operator++() noexcept -> decltype(*this) {
-            if (const auto FirstChild = Current->firstChild()) {
-                Current = reinterpret_cast<T *>(FirstChild);
-                DepthLevel += 1;
-
-                return *this;
-            }
-
-            for (; Current != End; DepthLevel--, Current = Current->parent()) {
-                if (const auto NextSibling = Current->nextSibling()) {
-                    Current = T::get(NextSibling);
-                    break;
-                }
-            }
-
-            return *this;
-        }
-
-        constexpr auto operator++(int) noexcept {
-            return operator++();
-        }
-
-        constexpr auto operator+=(const size_t Amount) noexcept
-            -> decltype(*this)
-        {
-            for (auto I = 0; I != Amount; I++) {
-                operator++();
-            }
-
-            return *this;
-        }
-
-        constexpr auto operator-=(const size_t Amount) noexcept
-            -> decltype(*this)
-        {
-            for (auto I = 0; I != Amount; I++) {
-                operator--();
-            }
-
-            return *this;
-        }
-
-        constexpr auto operator=(T *const Node) noexcept -> decltype(*this) {
-            this->Current = Node;
-            return *this;
-        }
-
-        [[nodiscard]]
-        constexpr bool operator==(const TreeDFSIterator &Iter) const noexcept {
-            return (Current == Iter.Current);
-        }
-
-        [[nodiscard]]
-        constexpr bool operator!=(const TreeDFSIterator &Iter) const noexcept {
-            return !operator==(Iter);
-        }
-    };
-
 #define TREE_NODE_ITERATE_CHILDREN(Node, Iter)                                 \
     for (auto Iter = (Node).get((Node).firstChild());                          \
          Iter != nullptr;                                                      \
@@ -553,76 +412,221 @@ namespace ADT {
         const TreeNode &
         PrintHorizontal(FILE *const OutFile,
                         const int TabLength,
-                        const NodePrinter &NodePrinterFunc) noexcept
-        {
-            const auto RootDepthLevel = uint64_t(1);
-            if (NodePrinterFunc(OutFile, 0, RootDepthLevel, *this)) {
-                fputc('\n', OutFile);
+                        const NodePrinter &NodePrinterFunc) noexcept;
+    };
+
+    template <typename T>
+    concept TreeNodeDerived = std::is_base_of_v<TreeNode, T>;
+
+    template <TreeNodeDerived T>
+    struct TreeDFSIterator {
+    protected:
+        T *Current = nullptr;
+        T *End = nullptr;
+
+        uint64_t DepthLevel = 1;
+    public:
+        using iterator_category = std::bidirectional_iterator_tag;
+        using value_type = T;
+        using element_type = T;
+        using difference_type = ptrdiff_t;
+        using pointer = T*;
+        using reference = T&;
+
+        constexpr TreeDFSIterator() noexcept = default;
+        constexpr TreeDFSIterator(T *const Current) noexcept
+        : TreeDFSIterator(Current, Current->parent()) {}
+
+        constexpr TreeDFSIterator(T *const Current, T *const End) noexcept
+        : Current(Current), End(End) {}
+
+        [[nodiscard]] constexpr auto &operator*() const noexcept {
+            return *Current;
+        }
+
+        [[nodiscard]] constexpr auto &operator*() noexcept {
+            return *Current;
+        }
+
+        [[nodiscard]] constexpr auto operator->() const noexcept {
+            return Current;
+        }
+
+        [[nodiscard]] constexpr auto node() const noexcept {
+            return Current;
+        }
+
+        [[nodiscard]] constexpr auto depthLevel() const noexcept {
+            return DepthLevel;
+        }
+
+        [[nodiscard]] constexpr
+        auto printLineLength(const uint64_t TabLength) const noexcept {
+            return (TabLength * (depthLevel() - 1));
+        }
+
+        [[nodiscard]] auto isAtEnd() const noexcept {
+            return (Current == End);
+        }
+
+        [[nodiscard]] constexpr
+        auto getParentAtIndex(const uint64_t DepthIndex) const noexcept {
+            auto Parent = Current;
+
+            const auto ThisDepthIndex = DepthLevel - 1;
+            const auto MoveCount = ThisDepthIndex - DepthIndex;
+
+            for (auto I = uint64_t(); I != MoveCount; I++) {
+                Parent = T::get(Parent->parent());
             }
 
-            auto Iter = TreeDFSIterator<const TreeNode>(this);
-            for (Iter++; !Iter.isAtEnd(); Iter++) {
-                auto WrittenOut = int();
+            return Parent;
+        }
 
-                const auto &Info = *Iter;
-                const auto DepthLevel = Iter.depthLevel();
-                const auto End = DepthLevel - RootDepthLevel;
+        constexpr auto operator--() noexcept -> decltype(*this) {
+            auto Node = Current;
+            Current = nullptr;
 
-                for (auto I = RootDepthLevel; I != End; I++) {
-                    if (Iter.getParentAtIndex(I)->nextSibling() != nullptr) {
-                        fputs("│", OutFile);
-
-                        WrittenOut += 1;
-                        WrittenOut += Utils::PadSpaces(OutFile, TabLength - 1);
-                    } else {
-                        WrittenOut += Utils::PadSpaces(OutFile, TabLength);
-                    }
+            for (; DepthLevel != 0; DepthLevel--, Node = Node->parent()) {
+                if (const auto PrevSibling = Node->prevSibling()) {
+                    Current = PrevSibling->get(PrevSibling);
+                    break;
                 }
-
-                WrittenOut += 1;
-                if (Iter->nextSibling() != nullptr) {
-                    fputs("├", OutFile);
-                } else {
-                    fputs("└", OutFile);
-                }
-
-                // Subtract 1 for the ├ or └ character, and 1 for the space in
-                // between the "----" and the node-printer's string.
-
-                const auto DashCount = (TabLength - 2);
-                WrittenOut += DashCount;
-
-                Utils::PrintMultTimes(OutFile,
-                                      "─",
-                                      static_cast<uint64_t>(DashCount));
-                fputc(' ', OutFile);
-
-                WrittenOut += 1;
-
-                NodePrinterFunc(OutFile, WrittenOut, DepthLevel, Info);
-                fputc('\n', OutFile);
             }
 
             return *this;
+        }
+
+        constexpr auto operator--(int) noexcept {
+            return operator--();
+        }
+
+        constexpr auto operator++() noexcept -> decltype(*this) {
+            if (const auto FirstChild = Current->firstChild()) {
+                Current = reinterpret_cast<T *>(FirstChild);
+                DepthLevel += 1;
+
+                return *this;
+            }
+
+            for (; Current != End; DepthLevel--, Current = Current->parent()) {
+                if (const auto NextSibling = Current->nextSibling()) {
+                    Current = T::get(NextSibling);
+                    break;
+                }
+            }
+
+            return *this;
+        }
+
+        constexpr auto operator++(int) noexcept {
+            return operator++();
+        }
+
+        constexpr auto operator+=(const size_t Amount) noexcept
+            -> decltype(*this)
+        {
+            for (auto I = 0; I != Amount; I++) {
+                operator++();
+            }
+
+            return *this;
+        }
+
+        constexpr auto operator-=(const size_t Amount) noexcept
+            -> decltype(*this)
+        {
+            for (auto I = 0; I != Amount; I++) {
+                operator--();
+            }
+
+            return *this;
+        }
+
+        constexpr auto operator=(T *const Node) noexcept -> decltype(*this) {
+            this->Current = Node;
+            return *this;
+        }
+
+        [[nodiscard]]
+        constexpr bool operator==(const TreeDFSIterator &Iter) const noexcept {
+            return (Current == Iter.Current);
+        }
+
+        [[nodiscard]]
+        constexpr bool operator!=(const TreeDFSIterator &Iter) const noexcept {
+            return !operator==(Iter);
         }
     };
 
     static_assert(std::bidirectional_iterator<TreeDFSIterator<TreeNode>>);
 
-    struct Tree {
-    protected:
-        TreeNode *Root = nullptr;
-    public:
-        constexpr Tree() noexcept = default;
-        constexpr Tree(TreeNode *const Root) noexcept : Root(Root) {}
-
-        [[nodiscard]] constexpr auto root() const noexcept {
-            return Root;
+    template <typename NodePrinter>
+    const TreeNode &
+    TreeNode::PrintHorizontal(FILE *const OutFile,
+                              const int TabLength,
+                              const NodePrinter &NodePrinterFunc) noexcept
+    {
+        const auto RootDepthLevel = uint64_t(1);
+        if (NodePrinterFunc(OutFile, 0, RootDepthLevel, *this)) {
+            fputc('\n', OutFile);
         }
 
-        constexpr
-        auto setRoot(TreeNode *const Root) noexcept -> decltype(*this) {
-            this->Root = Root;
+        auto Iter = TreeDFSIterator<const TreeNode>(this);
+        for (Iter++; !Iter.isAtEnd(); Iter++) {
+            auto WrittenOut = int();
+
+            const auto &Info = *Iter;
+            const auto DepthLevel = Iter.depthLevel();
+            const auto End = DepthLevel - RootDepthLevel;
+
+            for (auto I = RootDepthLevel; I != End; I++) {
+                if (Iter.getParentAtIndex(I)->nextSibling() != nullptr) {
+                    fputs("│", OutFile);
+
+                    WrittenOut += 1;
+                    WrittenOut += Utils::PadSpaces(OutFile, TabLength - 1);
+                } else {
+                    WrittenOut += Utils::PadSpaces(OutFile, TabLength);
+                }
+            }
+
+            WrittenOut += 1;
+            if (Iter->nextSibling() != nullptr) {
+                fputs("├", OutFile);
+            } else {
+                fputs("└", OutFile);
+            }
+
+            // Subtract 1 for the ├ or └ character, and 1 for the space in
+            // between the "----" and the node-printer's string.
+
+            const auto DashCount = (TabLength - 2);
+            WrittenOut += DashCount;
+
+            Utils::PrintMultTimes(OutFile,
+                                    "─",
+                                    static_cast<uint64_t>(DashCount));
+            fputc(' ', OutFile);
+
+            WrittenOut += 1;
+
+            NodePrinterFunc(OutFile, WrittenOut, DepthLevel, Info);
+            fputc('\n', OutFile);
+        }
+
+        return *this;
+    }
+
+    struct Tree {
+    public:
+        constexpr Tree() noexcept = default;
+
+        [[nodiscard]] virtual auto root() const noexcept -> TreeNode * {
+            return nullptr;
+        }
+
+        virtual auto setRoot(TreeNode *) noexcept -> decltype(*this) {
             return *this;
         }
 
@@ -630,19 +634,20 @@ namespace ADT {
             return root() == nullptr;
         }
 
+        template <TreeNodeDerived T = TreeNode>
         struct DFS {
         protected:
-            TreeNode *Root = nullptr;
+            T *Root = nullptr;
         public:
             constexpr DFS() noexcept = default;
-            constexpr DFS(TreeNode *const Root) noexcept : Root(Root) {}
+            constexpr DFS(T *const Root) noexcept : Root(Root) {}
 
             [[nodiscard]] constexpr auto root() const noexcept {
                 return Root;
             }
 
             constexpr
-            auto setRoot(TreeNode *const Root) noexcept -> decltype(*this) {
+            auto setRoot(T *const Root) noexcept -> decltype(*this) {
                 this->Root = Root;
                 return *this;
             }
@@ -651,7 +656,7 @@ namespace ADT {
                 return root() == nullptr;
             }
 
-            using Iterator = TreeDFSIterator<TreeNode>;
+            using Iterator = TreeDFSIterator<T>;
 
             [[nodiscard]] constexpr auto begin() const noexcept {
                 return Iterator(Root);
@@ -661,8 +666,8 @@ namespace ADT {
                 return Iterator(nullptr, nullptr);
             }
 
-            template <typename T>
-            constexpr auto forEach(const T &Lambda) const noexcept
+            template <typename U>
+            constexpr auto forEach(const U &Lambda) const noexcept
                 -> decltype(*this)
             {
                 for (const auto &Info : *this) {
@@ -673,8 +678,9 @@ namespace ADT {
             }
         };
 
+        template <TreeNodeDerived T = TreeNode>
         [[nodiscard]] constexpr auto dfs() const noexcept {
-            return DFS(Root);
+            return DFS(static_cast<T *>(root()));
         }
 
         template <typename Comparator>
@@ -865,7 +871,7 @@ namespace ADT {
                 return RemovedRoot;
             };
 
-            if (&Node == Root) {
+            if (&Node == root()) {
                 if (Node.leaf()) {
                     setRoot(nullptr);
 
@@ -897,7 +903,7 @@ namespace ADT {
                 const_cast<TreeNode *>(Node.findNextNodeForDFSIterator());
 
             if (IsolateNodeAndRemoveFromParent(Node,
-                                               *Root,
+                                               *root(),
                                                RemoveParentLeafs))
             {
                 setRoot(nullptr);

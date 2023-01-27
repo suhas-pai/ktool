@@ -19,6 +19,7 @@ namespace Operations {
         PrintBindActionList,
         PrintBindSymbolList,
         PrintRebaseOpcodeList,
-        PrintRebaseActionList
+        PrintRebaseActionList,
+        PrintObjcClassList
     };
 }

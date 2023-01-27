@@ -208,6 +208,80 @@ namespace Operations {
         }
     }
 
+    static void
+    PrintBindParseError(const MachO::BindOpcodeParseError ParseError) noexcept {
+        switch (ParseError) {
+            case MachO::BindOpcodeParseError::None:
+                break;
+            case MachO::BindOpcodeParseError::InvalidLeb128:
+                fputs("Encountered invalid uleb128 when parsing bind-opcodes\n",
+                      stderr);
+                break;
+            case MachO::BindOpcodeParseError::InvalidSegmentIndex:
+                fputs("Bind-Opcodes set segment-index to an invalid number\n",
+                      stderr);
+                break;
+            case MachO::BindOpcodeParseError::InvalidString:
+                fputs("Encountered invalid string in bind-opcodes\n",
+                      stderr);
+                break;
+            case MachO::BindOpcodeParseError::NotEnoughThreadedBinds:
+                fputs("Not enough threaded-binds in bind-opcodes\n", stderr);
+                break;
+            case MachO::BindOpcodeParseError::TooManyThreadedBinds:
+                fputs("Too many threaded-binds in bind-opcodes\n", stderr);
+                break;
+            case MachO::BindOpcodeParseError::InvalidThreadOrdinal:
+                fputs("Encountered invalid thread-ordinal in "
+                      "bind-opcodes\n",
+                      stderr);
+                break;
+            case MachO::BindOpcodeParseError::EmptySymbol:
+                fputs("Encountered invalid thread-ordinal in "
+                      "bind-opcodes\n",
+                      stderr);
+                break;
+            case MachO::BindOpcodeParseError::IllegalBindOpcode:
+                fputs("Encountered invalid bind-opcode when parsing\n",
+                      stderr);
+                break;
+            case MachO::BindOpcodeParseError::OutOfBoundsSegmentAddr:
+                fputs("Got out-of-bounds segment-address in bind-opcodes\n",
+                      stderr);
+                break;
+            case MachO::BindOpcodeParseError::UnrecognizedBindWriteKind:
+                fputs("Encountered unknown write-kind in bind-opcodes\n",
+                      stderr);
+                break;
+            case MachO::BindOpcodeParseError::UnrecognizedBindOpcode:
+                fputs("Encountered unknown bind-opcode when parsing\n",
+                      stderr);
+                break;
+            case MachO::BindOpcodeParseError::UnrecognizedBindSubOpcode:
+                fputs("Encountered unknown bind sub-opcode when parsing\n",
+                      stderr);
+                break;
+            case MachO::BindOpcodeParseError::
+                UnrecognizedSpecialDylibOrdinal:
+                fputs("Encountered unknown specialty dylib-ordinal in "
+                      "bind-opcodes\n",
+                      stderr);
+                break;
+            case MachO::BindOpcodeParseError::NoDylibOrdinal:
+                fputs("No dylib-ordinal found when parsing bind-opcodes\n",
+                      stderr);
+                break;
+            case MachO::BindOpcodeParseError::NoSegmentIndex:
+                fputs("No segment-index found when parsing bind-opcodes\n",
+                      stderr);
+                break;
+            case MachO::BindOpcodeParseError::NoWriteKind:
+                fputs("No write-type found when parsing bind-opcodes\n",
+                      stderr);
+                break;
+        }
+    }
+
     auto
     PrintBindActionList::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
@@ -272,6 +346,7 @@ namespace Operations {
         auto BindActionInfoList = std::vector<MachO::BindActionInfo>();
         auto LazyBindActionInfoList = std::vector<MachO::BindActionInfo>();
         auto WeakBindActionInfoList = std::vector<MachO::BindActionInfo>();
+        auto ParseError = MachO::BindOpcodeParseError::None;
 
         if (Opt.PrintNormal) {
             if (MachO.map().range().contains(BindRange)) {
@@ -281,57 +356,60 @@ namespace Operations {
                                           SegmentList,
                                           Is64Bit);
 
-                BindList.getAsList(BindActionInfoList);
+                ParseError = BindList.getAsList(BindActionInfoList);
+                PrintBindParseError(ParseError);
             }
         }
 
         if (Opt.PrintLazy) {
-            if (MachO.map().range().contains(BindRange)) {
-                const auto BindList =
-                    MachO::BindActionList(MachO.map(),
-                                          BindRange,
-                                          SegmentList,
-                                          Is64Bit);
+            if (MachO.map().range().contains(LazyBindRange)) {
+                const auto LazyBindList =
+                    MachO::LazyBindActionList(MachO.map(),
+                                              LazyBindRange,
+                                              SegmentList,
+                                              Is64Bit);
 
-                BindList.getAsList(LazyBindActionInfoList);
+                ParseError = LazyBindList.getAsList(LazyBindActionInfoList);
+                PrintBindParseError(ParseError);
             }
         }
 
         if (Opt.PrintWeak) {
-            if (MachO.map().range().contains(BindRange)) {
+            if (MachO.map().range().contains(WeakBindRange)) {
                 if (Opt.PrintNormal || Opt.PrintLazy) {
                     fputc('\n', OutFile);
                 }
 
-                const auto BindList =
-                    MachO::BindActionList(MachO.map(),
-                                          BindRange,
-                                          SegmentList,
-                                          Is64Bit);
+                const auto WeakBindList =
+                    MachO::WeakBindActionList(MachO.map(),
+                                              WeakBindRange,
+                                              SegmentList,
+                                              Is64Bit);
 
-                BindList.getAsList(WeakBindActionInfoList);
+                ParseError = WeakBindList.getAsList(WeakBindActionInfoList);
+                PrintBindParseError(ParseError);
             }
         }
 
-        const auto Comparator =
-            [&](const MachO::BindActionInfo &Lhs,
-                const MachO::BindActionInfo &Rhs) noexcept
-        {
-            for (const auto &SortKind : Opt.SortKindList) {
-                const auto CmpResult =
-                    CompareActionsBySortKind(Lhs, Rhs, SortKind);
+        if (!Opt.SortKindList.empty()) {
+            const auto Comparator =
+                [&](const MachO::BindActionInfo &Lhs,
+                    const MachO::BindActionInfo &Rhs) noexcept
+            {
+                for (const auto &SortKind : Opt.SortKindList) {
+                    const auto CmpResult =
+                        CompareActionsBySortKind(Lhs, Rhs, SortKind);
 
-                if (CmpResult != 0) {
-                    return CmpResult < 0;
+                    if (CmpResult != 0) {
+                        return CmpResult < 0;
+                    }
+
+                    continue;
                 }
 
-                continue;
-            }
+                return false;
+            };
 
-            return false;
-        };
-
-        if (!Opt.SortKindList.empty()) {
             std::sort(BindActionInfoList.begin(),
                       BindActionInfoList.end(),
                       Comparator);

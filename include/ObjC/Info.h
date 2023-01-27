@@ -259,7 +259,7 @@ namespace ObjC {
         }
     };
 
-    struct ObjcClassRoFlags : public ADT::FlagsBase<uint32_t> {
+    struct ClassRoFlags : public ADT::FlagsBase<uint32_t> {
     public:
         using ADT::FlagsBase<uint32_t>::FlagsBase;
 
@@ -299,11 +299,15 @@ namespace ObjC {
             return has(Enum::IsException);
         }
 
+        [[nodiscard]] constexpr auto hasSwiftInitializer() const noexcept {
+            return has(Enum::HasSwiftInitializer);
+        }
+
         [[nodiscard]] constexpr auto arc() const noexcept {
             return has(Enum::IsARC);
         }
 
-        [[nodiscard]] constexpr auto hasCxxDestructorsOnly() const noexcept {
+        [[nodiscard]] constexpr auto hasCxxDestructorOnly() const noexcept {
             return has(Enum::HasCxxDestructorOnly);
         }
 
@@ -415,7 +419,7 @@ namespace ObjC {
         }
     };
 
-    struct ObjcClassRo {
+    struct ClassRo {
         uint32_t Flags;
         uint32_t InstanceStart;
         uint32_t InstanceSize;
@@ -429,7 +433,7 @@ namespace ObjC {
 
         [[nodiscard]]
         constexpr auto flags(const bool IsBigEndian) const noexcept {
-            return ObjcClassRoFlags(ADT::SwitchEndianIf(Flags, IsBigEndian));
+            return ClassRoFlags(ADT::SwitchEndianIf(Flags, IsBigEndian));
         }
 
         [[nodiscard]]
@@ -478,7 +482,7 @@ namespace ObjC {
         }
 
         constexpr auto
-        setFlags(const ObjcClassRoFlags &Flags, const bool IsBigEndian) noexcept
+        setFlags(const ClassRoFlags &Flags, const bool IsBigEndian) noexcept
             -> decltype(*this)
         {
             this->Flags = ADT::SwitchEndianIf(Flags.value(), IsBigEndian);
@@ -558,7 +562,7 @@ namespace ObjC {
         }
     };
 
-    struct ObjcClassRo64 {
+    struct ClassRo64 {
         uint32_t Flags;
         uint32_t InstanceStart;
         uint32_t InstanceSize;
@@ -572,7 +576,7 @@ namespace ObjC {
 
         [[nodiscard]]
         constexpr auto flags(const bool IsBigEndian) const noexcept {
-            return ObjcClassRoFlags(ADT::SwitchEndianIf(Flags, IsBigEndian));
+            return ClassRoFlags(ADT::SwitchEndianIf(Flags, IsBigEndian));
         }
 
         [[nodiscard]]
@@ -621,7 +625,7 @@ namespace ObjC {
         }
 
         constexpr auto
-        setFlags(const ObjcClassRoFlags &Flags, const bool IsBigEndian) noexcept
+        setFlags(const ClassRoFlags &Flags, const bool IsBigEndian) noexcept
         {
             this->Flags = ADT::SwitchEndianIf(Flags.value(), IsBigEndian);
             return *this;
@@ -690,7 +694,7 @@ namespace ObjC {
         }
     };
 
-    struct ObjcClassCategory {
+    struct ClassCategory {
         uint32_t Name;
         uint32_t Class;
         uint32_t InstanceMethods;
@@ -795,7 +799,7 @@ namespace ObjC {
         }
     };
 
-    struct ObjcClassCategory64 {
+    struct ClassCategory64 {
         uint64_t Name;
         uint64_t Class;
         uint64_t InstanceMethods;

@@ -24,6 +24,7 @@
 #include "Operations/PrintBindSymbolList.h"
 #include "Operations/PrintRebaseOpcodeList.h"
 #include "Operations/PrintRebaseActionList.h"
+#include "Operations/PrintObjcClassList.h"
 
 struct OperationInfo {
     std::string Path;
@@ -100,6 +101,12 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             const auto Arg = std::string_view(argv[I]);
             if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
+            } else if (Arg.front() == '-') {
+                fprintf(stderr,
+                        "Got unrecognized argument \"%s\" for option %s\n",
+                        Arg.data(),
+                        OperationString.data());
+                return 1;
             } else {
                 break;
             }
@@ -117,6 +124,12 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             const auto Arg = std::string_view(argv[I]);
             if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
+            } else if (Arg.front() == '-') {
+                fprintf(stderr,
+                        "Got unrecognized argument \"%s\" for option %s\n",
+                        Arg.data(),
+                        OperationString.data());
+                return 1;
             } else {
                 break;
             }
@@ -159,6 +172,12 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.SortKindList.emplace_back(SortKind::ByName);
             } else if (Arg == "--sort-by-timestamp") {
                 Options.SortKindList.emplace_back(SortKind::ByTimeStamp);
+            } else if (Arg.front() == '-') {
+                fprintf(stderr,
+                        "Got unrecognized argument \"%s\" for option %s\n",
+                        Arg.data(),
+                        OperationString.data());
+                return 1;
             } else {
                 break;
             }
@@ -217,14 +236,13 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.Limit = Limit;
             } else if (Arg == "--sort") {
                 Options.Sort = true;
+            } else if (Arg.front() == '-') {
+                fprintf(stderr,
+                        "Got unrecognized argument \"%s\" for option %s\n",
+                        Arg.data(),
+                        OperationString.data());
+                return 1;
             } else {
-                if (Arg.front() == '-') {
-                    fprintf(stderr,
-                            "Got unrecognized argument (%s) for option %s",
-                            Arg.data(),
-                            OperationString.data());
-                }
-
                 SegmentSectionPair = std::move(Arg.data());
                 I++;
 
@@ -294,14 +312,13 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.SortKindList.emplace_back(SortKind::ByIndex);
             } else if (Arg == "--sort-by-string") {
                 Options.SortKindList.emplace_back(SortKind::ByString);
+            } else if (Arg.front() == '-') {
+                fprintf(stderr,
+                        "Got unrecognized argument \"%s\" for option %s\n",
+                        Arg.data(),
+                        OperationString.data());
+                return 1;
             } else {
-                if (Arg.front() == '-') {
-                    fprintf(stderr,
-                            "Got unrecognized argument (%s) for option %s",
-                            Arg.data(),
-                            OperationString.data());
-                }
-
                 SegmentSectionPair = std::move(Arg.data());
                 I++;
 
@@ -400,6 +417,12 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                         .SectionName = ""
                     }
                 );
+            } else if (Arg.front() == '-') {
+                fprintf(stderr,
+                        "Got unrecognized argument \"%s\" for option %s\n",
+                        Arg.data(),
+                        OperationString.data());
+                return 1;
             } else {
                 break;
             }
@@ -448,6 +471,12 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 }
 
                 Options.PrintWeak = true;
+            } else if (Arg.front() == '-') {
+                fprintf(stderr,
+                        "Got unrecognized argument \"%s\" for option %s\n",
+                        Arg.data(),
+                        OperationString.data());
+                return 1;
             } else {
                 break;
             }
@@ -505,6 +534,12 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.SortKindList.emplace_back(SortKind::ByDylibOrdinal);
             } else if (Arg == "--sort-by-kind") {
                 Options.SortKindList.emplace_back(SortKind::ByKind);
+            } else if (Arg.front() == '-') {
+                fprintf(stderr,
+                        "Got unrecognized argument \"%s\" for option %s\n",
+                        Arg.data(),
+                        OperationString.data());
+                return 1;
             } else {
                 break;
             }
@@ -562,6 +597,12 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.SortKindList.emplace_back(SortKind::ByDylibOrdinal);
             } else if (Arg == "--sort-by-kind") {
                 Options.SortKindList.emplace_back(SortKind::ByKind);
+            } else if (Arg.front() == '-') {
+                fprintf(stderr,
+                        "Got unrecognized argument \"%s\" for option %s\n",
+                        Arg.data(),
+                        OperationString.data());
+                return 1;
             } else {
                 break;
             }
@@ -598,6 +639,12 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.Verbose = true;
             } else if (Arg == "--sort") {
                 Options.Sort = true;
+            } else if (Arg.front() == '-') {
+                fprintf(stderr,
+                        "Got unrecognized argument \"%s\" for option %s\n",
+                        Arg.data(),
+                        OperationString.data());
+                return 1;
             } else {
                 break;
             }
@@ -607,6 +654,40 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintRebaseActionList>(
                 new Operations::PrintRebaseActionList(stdout, Options));
+    } else if (OperationString == "--objc-classes") {
+        auto Options = Operations::PrintObjcClassList::Options();
+        auto Path = std::string();
+
+        using SortKind = Operations::PrintObjcClassList::Options::SortKind;
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            if (Arg == "-v" || Arg == "--verbose") {
+                Options.Verbose = true;
+            } else if (Arg == "--tree") {
+                Options.PrintTree = true;
+            } else if (Arg == "--include-categories") {
+                Options.PrintCategories = true;
+            } else if (Arg == "--sort-by-name") {
+                Options.SortKindList.emplace_back(SortKind::ByName);
+            } else if (Arg == "--sort-by-dylib-ordinal") {
+                Options.SortKindList.emplace_back(SortKind::ByDylibOrdinal);
+            } else if (Arg == "--sort-by-kind") {
+                Options.SortKindList.emplace_back(SortKind::ByKind);
+            } else if (Arg.front() == '-') {
+                fprintf(stderr,
+                        "Got unrecognized argument \"%s\" for option %s\n",
+                        Arg.data(),
+                        OperationString.data());
+                return 1;
+            } else {
+                break;
+            }
+        }
+
+        Operation.Kind = Operations::Kind::PrintObjcClassList;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintObjcClassList>(
+                new Operations::PrintObjcClassList(stdout, Options));
     } else if (OperationString.front() == '-') {
         fprintf(stderr,
                 "Unrecognized operation: \"%s\"\n",
@@ -881,6 +962,24 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     fputs("No rebase-actions found within table\n", stderr);
                     return 1;
             }
+
+            break;
+        case Operations::Kind::PrintObjcClassList:
+            switch (Operations::PrintObjcClassList::RunError(Result.Error)) {
+                case Operations::PrintObjcClassList::RunError::None:
+                    break;
+                case Operations::PrintObjcClassList::RunError::NoDyldInfo:
+                    fputs("No dyld-info load command was found\n", stderr);
+                    return 1;
+                case Operations::PrintObjcClassList::RunError::NoObjcData:
+                    fputs("No objc class-list data was found\n", stderr);
+                    return 1;
+                case Operations::PrintObjcClassList::RunError::UnalignedSection:
+                    fputs("Objc class-list section is mis-aligned\n", stderr);
+                    return 1;
+            }
+
+            break;
     }
 
     return 0;

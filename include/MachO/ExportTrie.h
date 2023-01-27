@@ -1213,14 +1213,21 @@ namespace MachO {
         ParseFromTrie(const MachO::ExportTrieMap &Trie,
                       const MachO::SegmentList *SegList,
                       Error *Error) noexcept;
+
+        ExportTrieChildNode *Root;
     public:
         static ExportTrieEntryCollection
         Open(const MachO::ExportTrieMap &Trie,
              const MachO::SegmentList *SegList,
              Error *ErrorOut = nullptr);
 
-        [[nodiscard]] inline auto root() const noexcept {
-            return reinterpret_cast<ChildNode *>(Root);
+        [[nodiscard]] inline ADT::TreeNode *root() const noexcept override {
+            return Root;
+        }
+
+        inline ADT::Tree &setRoot(ADT::TreeNode *const Root) noexcept override {
+            this->Root = static_cast<ExportTrieChildNode *>(Root);
+            return *this;
         }
 
         inline
@@ -1235,7 +1242,7 @@ namespace MachO {
         using ConstIterator = ADT::TreeDFSIterator<const ChildNode>;
 
         [[nodiscard]] inline auto begin() const noexcept {
-            return Iterator(root());
+            return Iterator(Root);
         }
 
         [[nodiscard]] constexpr auto end() const noexcept {
@@ -1243,7 +1250,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline auto cbegin() const noexcept {
-            return ConstIterator(root());
+            return ConstIterator(Root);
         }
 
         [[nodiscard]] constexpr auto cend() const noexcept {
@@ -1302,7 +1309,7 @@ namespace MachO {
         }
     };
 
-    struct ExportTrieExportCollection : public ADT::Tree {
+    struct ExportTrieExportCollection {
     public:
         using EntryInfo = ExportTrieExportCollectionEntryInfo;
         using Error = ExportTrieParseError;
