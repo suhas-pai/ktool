@@ -7,8 +7,10 @@
 #include "MachO/OpcodeList.h"
 
 namespace MachO {
-    std::optional<std::string_view>
-    OpcodeList::IteratorInfo::ParseString() noexcept {
+    auto
+    OpcodeList::IteratorInfo::ParseString() noexcept
+        -> std::optional<std::string_view>
+    {
         const auto Ptr = reinterpret_cast<const char *>(Iter);
         const auto Length = strnlen(Ptr, static_cast<uint64_t>(End - Iter));
 
