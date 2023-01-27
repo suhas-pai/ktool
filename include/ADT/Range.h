@@ -146,6 +146,18 @@ namespace ADT {
         }
 
         [[nodiscard]]
+        constexpr auto indexForLocRange(const Range &Range) const noexcept {
+            assert(contains(Range));
+            return ADT::Range::FromSize(Range.begin() - Begin, Range.size());
+        }
+
+        [[nodiscard]]
+        constexpr auto locForIndexRange(const Range &Range) const noexcept {
+            assert(containsAsIndex(Range));
+            return ADT::Range::FromSize(Begin + Range.begin(), Range.size());
+        }
+
+        [[nodiscard]]
         constexpr auto operator==(const Range &Range) const noexcept {
             return Begin == Range.Begin && Size == Range.Size;
         }
