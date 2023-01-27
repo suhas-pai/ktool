@@ -291,4 +291,30 @@ namespace Utils {
 
         return WrittenOut;
     }
+
+    auto
+    PrintOnlyOnce(FILE *const OutFile,
+                  const char *const String,
+                  bool &DidPrint) noexcept -> int
+    {
+        if (DidPrint) {
+            return 0;
+        }
+
+        DidPrint = true;
+        return fprintf(OutFile, "%s", String);
+    }
+
+    auto
+    PrintOnlyAfterFirst(FILE *const OutFile,
+                        const char *const String,
+                        bool &DidPassFirst) noexcept -> int
+    {
+        if (DidPassFirst) {
+            return fprintf(OutFile, "%s", String);
+        }
+
+        DidPassFirst = true;
+        return 0;
+    }
 }

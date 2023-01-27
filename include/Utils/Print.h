@@ -69,6 +69,16 @@ namespace Utils {
                           std::string_view Prefix = "",
                           std::string_view Suffix = "") noexcept -> int;
 
+    auto
+    PrintOnlyOnce(FILE *OutFile,
+                  const char *String,
+                  bool &DidPrint) noexcept -> int;
+
+    auto
+    PrintOnlyAfterFirst(FILE *OutFile,
+                        const char *String,
+                        bool &DidPassFirst) noexcept -> int;
+
     // 32 for Segment+Section Name Max Length, 4 for apostrophes, 1 for comma
     constexpr static inline auto SegmentSectionPairMaxLen = 32 + 4 + 1;
 
