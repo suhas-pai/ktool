@@ -70,8 +70,10 @@ namespace ADT {
         }
 
         template <typename T = void *, bool Verify = true>
-        [[nodiscard]]
-        inline auto getFromRange(const Range &Range) const noexcept -> T * {
+        [[nodiscard]] inline auto
+        getFromRange(const Range &Range,
+                     T **const EndOut = nullptr) const noexcept -> T *
+        {
             if constexpr (Verify) {
                 if (!range().contains(Range)) {
                     return nullptr;
@@ -80,6 +82,10 @@ namespace ADT {
 
             const auto AdjBase =
                 reinterpret_cast<uint64_t>(Base) + Range.begin();
+
+            if (EndOut != nullptr) {
+                *EndOut = reinterpret_cast<T *>(AdjBase + Range.size());
+            }
 
             return reinterpret_cast<T *>(AdjBase);
         }
