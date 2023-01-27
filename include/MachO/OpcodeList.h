@@ -9,6 +9,7 @@
 #include <string_view>
 
 #include "Utils/Leb128.h"
+#include "Utils/Overflow.h"
 
 namespace MachO {
     struct OpcodeList {
@@ -22,9 +23,9 @@ namespace MachO {
         : Begin(Begin), End(End) {}
 
         explicit
-        OpcodeList(const uint8_t *const Begin,
-                   const uint32_t Size) noexcept
-        : Begin(Begin), End(this->Begin + Size) {}
+        OpcodeList(const uint8_t *const Begin, const uint64_t Size) noexcept
+        : Begin(Begin),
+          End(Utils::AddPtrAndCheckOverflow(this->Begin, Size).value()) {}
 
         struct EndIterator {};
 

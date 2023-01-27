@@ -11,6 +11,8 @@
 #include <iterator>
 #include <ranges>
 
+#include "Utils/Overflow.h"
+
 namespace ADT {
     template <typename T>
     struct List : public std::ranges::view_base {
@@ -27,7 +29,9 @@ namespace ADT {
         }
 
         constexpr List(T *const Begin, const uint64_t Size) noexcept
-        : Begin(Begin), End(Begin + Size) {
+        : Begin(Begin),
+          End(Utils::AddPtrAndCheckOverflow(Begin, Size).value())
+        {
             if (Size != 0) {
                 assert(Begin != nullptr);
             }
