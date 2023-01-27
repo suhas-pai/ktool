@@ -118,7 +118,7 @@ namespace MachO {
                     return std::nullopt;
                 }
 
-                if (!SegInfo.FileRange.containsIndex(VmIndex + Size)) {
+                if (!SegInfo.FileRange.containsEndIndex(VmIndex + Size)) {
                     return std::nullopt;
                 }
 

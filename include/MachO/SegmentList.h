@@ -6,11 +6,11 @@
 #pragma once
 
 #include <cassert>
+#include <initializer_list>
 #include <optional>
 #include <string>
 #include <vector>
 
-#include "Mach/VmProt.h"
 #include "MachO/LoadCommands.h"
 #include "MachO/LoadCommandsMap.h"
 
@@ -108,6 +108,19 @@ namespace MachO {
 
             return findSectionWithVmAddr(FullAddr);
         }
+
+        [[nodiscard]] constexpr auto
+        findSectionContainingVmRange(const ADT::Range &VmRange) const noexcept
+            -> const SectionInfo *
+        {
+            for (const auto &Section : SectionList) {
+                if (Section.vmRange().contains(VmRange)) {
+                    return &Section;
+                }
+            }
+
+            return nullptr;
+        }
     };
 
     struct SegmentList {
@@ -154,7 +167,7 @@ namespace MachO {
 
         [[nodiscard]] virtual auto
         getFileOffsetForVmAddr(const uint64_t VmAddr,
-                               const uint64_t Size = 0) const noexcept
+                               const uint64_t Size = 1) const noexcept
             -> std::optional<uint64_t>;
 
         [[nodiscard]] virtual auto
@@ -190,6 +203,46 @@ namespace MachO {
             for (const auto &Info : List) {
                 if (Info.VmRange.containsLoc(Addr)) {
                     return &Info;
+                }
+            }
+
+            return nullptr;
+        }
+
+        [[nodiscard]] virtual auto
+        findSegmentContainingVmRange(const ADT::Range &Range) const noexcept
+            -> const SegmentInfo *
+        {
+            for (const auto &Info : List) {
+                if (Info.VmRange.contains(Range)) {
+                    return &Info;
+                }
+            }
+
+            return nullptr;
+        }
+
+        struct SegmentSectionNameListPair {
+            std::string_view SegmentName;
+            std::initializer_list<std::string_view> SectionNameList;
+        };
+
+        [[nodiscard]] constexpr auto
+        findSectionWithName(
+            const std::initializer_list<SegmentSectionNameListPair> &L)
+                const noexcept -> const SectionInfo *
+        {
+            for (const auto &Pair : L) {
+                if (const auto Segment =
+                        findSegmentWithName(Pair.SegmentName))
+                {
+                    for (const auto &SectName : Pair.SectionNameList) {
+                        if (const auto Section =
+                                Segment->findSectionWithName(SectName))
+                        {
+                            return Section;
+                        }
+                    }
                 }
             }
 
