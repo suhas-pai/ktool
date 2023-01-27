@@ -6,6 +6,7 @@
 //
 
 #pragma once
+#include <type_traits>
 #include <unistd.h>
 
 #include <concepts>
@@ -35,6 +36,30 @@ namespace Utils {
     [[nodiscard]]
     constexpr auto PointerSize(const bool Is64Bit) noexcept -> uint8_t {
         return Is64Bit ? 8 : 4;
+    }
+
+    [[nodiscard]]
+    constexpr auto PointerLogSize(const bool Is64Bit) noexcept -> uint8_t {
+        return Is64Bit ? 3 : 2;
+    }
+
+    template <bool Is64Bit>
+    [[nodiscard]] constexpr auto PointerSize() noexcept -> uint8_t {
+        return PointerSize(Is64Bit);
+    }
+
+    template <bool Is64Bit>
+    [[nodiscard]] constexpr auto PointerLogSize() noexcept -> uint8_t {
+        return PointerLogSize(Is64Bit);
+    }
+
+    template <bool Is64Bit>
+    using PointerAddrConstType =
+        std::conditional_t<Is64Bit, const uint64_t, const uint32_t>;
+
+    template <bool Is64Bit, std::unsigned_integral T>
+    constexpr auto IntegerIsPointerAligned(const T Value) noexcept {
+        return (Value & (1 << (PointerLogSize<Is64Bit>() - 1))) == 0;
     }
 
     template <std::unsigned_integral T>
