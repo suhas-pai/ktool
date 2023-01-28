@@ -45,7 +45,7 @@ namespace ADT {
         }
 
         [[nodiscard]] constexpr auto size() const noexcept {
-            return (End - Begin);
+            return End - Begin;
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {
@@ -136,7 +136,7 @@ namespace ADT {
 
             [[nodiscard]]
             constexpr auto operator-(const Iterator &Rhs) const noexcept {
-                return (Data - Rhs.Data);
+                return Data - Rhs.Data;
             }
 
             constexpr auto operator+=(const difference_type Amt) noexcept
@@ -169,7 +169,7 @@ namespace ADT {
 
             [[nodiscard]]
             constexpr auto operator==(const Iterator &Rhs) const noexcept {
-                return (Rhs.Data == Data);
+                return Rhs.Data == Data;
             }
 
             [[nodiscard]]

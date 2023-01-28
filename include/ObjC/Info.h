@@ -130,7 +130,7 @@ namespace ObjC {
             const auto Mask =
                 (IsSwiftObjcClassPreStableMask | IsSwiftObjcClassStableMask);
 
-            return (data(IsBigEndian) & Mask);
+            return data(IsBigEndian) & Mask;
         }
     };
 

@@ -700,6 +700,12 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         return 1;
     }
 
+    assert(I <= argc);
+    if (I == argc) {
+        fputs("Provided operation needs a path to a file\n", stderr);
+        return 1;
+    }
+
     const auto PathArg = std::string_view(argv[I]);
     if (PathArg.front() == '-') {
         fprintf(stderr,

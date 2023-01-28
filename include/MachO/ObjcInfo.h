@@ -376,7 +376,7 @@ namespace MachO {
                     return false;
                 }
 
-                return (Lhs->name() == ActionSymbol);
+                return Lhs->name() == ActionSymbol;
             };
 
             const auto Begin = ExternalAndRootClassList.cbegin();

@@ -16,7 +16,7 @@ namespace Utils {
 
     [[nodiscard]]
     constexpr static auto Leb128ByteGetBits(const uint8_t &Byte) noexcept {
-        return (Byte & 0x7f);
+        return Byte & 0x7f;
     }
 
     template <std::integral T>

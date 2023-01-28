@@ -408,10 +408,10 @@ namespace Operations {
                             OutFile,
                             Iter.Segment ? Iter.Segment->Name : "",
                             Iter.Section ? Iter.Section->Name : "",
-                            false,
-                            false,
-                            " - <",
-                            ">");
+                            /*PadSegment=*/false,
+                            /*PadSection=*/false,
+                            /*Prefix=*/" - <",
+                            /*Suffix=*/">");
                     }
 
                     Utils::PrintAddress(OutFile, Iter.AddrInSeg, Is64Bit, ", ");

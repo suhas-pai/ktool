@@ -69,8 +69,8 @@ namespace Operations {
             Utils::PrintSegmentSectionPair(OutFile,
                                            Segment ? Segment->Name : "",
                                            Section ? Section->Name : "",
-                                           true,
-                                           true);
+                                           /*PadSegment=*/true,
+                                           /*PadSection=*/true);
 
             Utils::PrintAddress(OutFile, FullAddr, Is64Bit);
         } else {

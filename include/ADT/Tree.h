@@ -462,11 +462,11 @@ namespace ADT {
 
         [[nodiscard]] constexpr
         auto printLineLength(const uint64_t TabLength) const noexcept {
-            return (TabLength * (depthLevel() - 1));
+            return TabLength * (depthLevel() - 1);
         }
 
         [[nodiscard]] auto isAtEnd() const noexcept {
-            return (Current == End);
+            return Current == End;
         }
 
         [[nodiscard]] constexpr
@@ -550,7 +550,7 @@ namespace ADT {
 
         [[nodiscard]]
         constexpr bool operator==(const TreeDFSIterator &Iter) const noexcept {
-            return (Current == Iter.Current);
+            return Current == Iter.Current;
         }
 
         [[nodiscard]]

@@ -7,7 +7,6 @@
 
 #include "ADT/MemoryMap.h"
 #include "MachO/SegmentList.h"
-#include <optional>
 
 namespace MachO {
     struct DeVirtualizer {
@@ -41,13 +40,15 @@ namespace MachO {
         template <typename T>
         [[nodiscard]] inline auto
         getDataAtAddress(const uint64_t Address,
-                         const bool IgnoreSectionBounds,
+                         const bool IgnoreSectionBounds = false,
                          T **const EndOut = nullptr) const noexcept
         {
             return static_cast<T *>(
-                getPtrForAddress(Address,
-                                 IgnoreSectionBounds,
-                                 reinterpret_cast<void **>(EndOut)));
+                getPtrForAddress(
+                    Address,
+                    IgnoreSectionBounds,
+                    reinterpret_cast<void **>(
+                        const_cast<std::remove_const_t<T> **>(EndOut))));
         }
 
         template <typename T>
@@ -57,20 +58,24 @@ namespace MachO {
                          T **const EndOut = nullptr) const noexcept
         {
             return static_cast<T *>(
-                getPtrForRange(Range,
-                               IgnoreSectionBounds,
-                               reinterpret_cast<void **>(EndOut)));
+                getPtrForRange(
+                    Range,
+                    IgnoreSectionBounds,
+                    reinterpret_cast<void **>(
+                        const_cast<std::remove_const_t<T> **>(EndOut))));
         }
 
         [[nodiscard]] inline auto
-        getStringAtAddress(const uint64_t Address) const noexcept
+        getStringAtAddress(
+            const uint64_t Address,
+            const bool IgnoreSectionBounds = false) const noexcept
             -> std::optional<std::string_view>
         {
-            auto End = static_cast<char *>(nullptr);
+            auto End = static_cast<const char *>(nullptr);
             const auto Ptr =
-                getDataAtAddress<char>(Address,
-                                       /*IgnoreSectionBounds=*/false,
-                                       &End);
+                getDataAtAddress<const char>(Address,
+                                             IgnoreSectionBounds,
+                                             &End);
 
             if (Ptr == nullptr) {
                 return std::nullopt;

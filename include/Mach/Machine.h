@@ -397,7 +397,7 @@ namespace Mach {
 
                 return false;
             case CpuKind::Sparc:
-                return (SubKind == 0);
+                return SubKind == 0;
             case CpuKind::IntelI860:
                 switch (IntelI860(SubKind)) {
                     case IntelI860::All:

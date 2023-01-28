@@ -156,9 +156,10 @@ namespace Operations {
                     OutFile,
                     Export.segment() ? Export.segment()->Name : "",
                     Export.section() ? Export.section()->Name : "",
-                    true,
-                    " - ",
-                    " - ");
+                    /*PadSegment=*/true,
+                    /*PadSection=*/true,
+                    /*Prefix=*/" - ",
+                    /*Suffix=*/" - ");
 
                 const auto ImageOffset = Export.info().imageOffset();
                 Utils::PrintAddress(OutFile, ImageOffset, Is64Bit);
@@ -560,8 +561,10 @@ namespace Operations {
                     Utils::PrintSegmentSectionPair(OutFile,
                                                    Export.SegmentName.data(),
                                                    Export.SectionName.data(),
-                                                   true,
-                                                   false);
+                                                   /*PadSegment=*/true,
+                                                   /*PadSection=*/true,
+                                                   /*Prefix=*/"",
+                                                   /*Suffix=*/" ");
 
                     const auto ImageOffset = Export.Info.imageOffset();
                     Utils::PrintAddress(OutFile, Is64Bit, ImageOffset);

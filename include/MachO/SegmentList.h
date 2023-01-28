@@ -157,13 +157,11 @@ namespace MachO {
 
         auto
         addSegment(const MachO::SegmentCommand &Segment,
-                   const bool IsBigEndian) noexcept
-            -> decltype(*this);
+                   const bool IsBigEndian) noexcept -> decltype(*this);
 
         auto
         addSegment(const MachO::SegmentCommand64 &Segment,
-                   const bool IsBigEndian) noexcept
-            -> decltype(*this);
+                   const bool IsBigEndian) noexcept -> decltype(*this);
 
         [[nodiscard]] virtual auto
         getFileOffsetForVmAddr(const uint64_t VmAddr,
@@ -233,8 +231,7 @@ namespace MachO {
                 const noexcept -> const SectionInfo *
         {
             for (const auto &Pair : L) {
-                if (const auto Segment =
-                        findSegmentWithName(Pair.SegmentName))
+                if (const auto Segment = findSegmentWithName(Pair.SegmentName))
                 {
                     for (const auto &SectName : Pair.SectionNameList) {
                         if (const auto Section =

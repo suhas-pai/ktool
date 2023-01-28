@@ -587,7 +587,7 @@ namespace Operations {
                     }
                 }
 
-                return (Compare < 0);
+                return Compare < 0;
             };
 
             std::sort(SymbolInfoList.begin(), SymbolInfoList.end(), Lambda);
@@ -661,8 +661,8 @@ namespace Operations {
                                                        *SectionName,
                                                        /*PadSegments=*/true,
                                                        /*PadSections=*/true,
-                                                       "",
-                                                       ", ");
+                                                       /*Prefix=*/"",
+                                                       /*Suffix=*/", ");
                     }
                 } else {
                     fputs("No-Section, ", OutFile);

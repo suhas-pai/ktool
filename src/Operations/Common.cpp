@@ -38,7 +38,7 @@ namespace Operations {
                                          Prefix,
                                          Suffix);
 
-        return WrittenOut + fputc(')', OutFile);
+        return WrittenOut;
     }
 
     auto
@@ -72,6 +72,6 @@ namespace Operations {
                                          Prefix,
                                          Suffix);
 
-        return WrittenOut + fputc(')', OutFile);
+        return WrittenOut;
     }
 }

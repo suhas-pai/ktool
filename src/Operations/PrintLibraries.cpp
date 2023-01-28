@@ -147,7 +147,7 @@ namespace Operations {
                     }
                 }
 
-                return (Compare < 0);
+                return Compare < 0;
             };
 
             std::sort(DylibList.begin(), DylibList.end(), Lambda);

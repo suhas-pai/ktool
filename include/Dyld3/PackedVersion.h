@@ -32,7 +32,7 @@ namespace Dyld3 {
         [[nodiscard]] constexpr auto
         getForMaskShift(const Masks Mask, const Shifts Shift) const noexcept {
             const auto Value = (Flags & static_cast<uint32_t>(Mask));
-            return (Value >> static_cast<uint8_t>(Shift));
+            return Value >> static_cast<uint8_t>(Shift);
         }
     public:
         [[nodiscard]] constexpr auto revision() const noexcept {
@@ -93,7 +93,7 @@ namespace Dyld3 {
         [[nodiscard]] constexpr auto
         getForMaskShift(const Masks Mask, const Shifts Shift) const noexcept {
             const auto Value = (Flags & static_cast<uint64_t>(Mask));
-            return (Value >> static_cast<uint8_t>(Shift));
+            return Value >> static_cast<uint8_t>(Shift);
         }
 
         [[nodiscard]] constexpr auto

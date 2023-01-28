@@ -222,8 +222,7 @@ namespace Operations {
                       stderr);
                 break;
             case MachO::BindOpcodeParseError::InvalidString:
-                fputs("Encountered invalid string in bind-opcodes\n",
-                      stderr);
+                fputs("Encountered invalid string in bind-opcodes\n", stderr);
                 break;
             case MachO::BindOpcodeParseError::NotEnoughThreadedBinds:
                 fputs("Not enough threaded-binds in bind-opcodes\n", stderr);
@@ -242,8 +241,7 @@ namespace Operations {
                       stderr);
                 break;
             case MachO::BindOpcodeParseError::IllegalBindOpcode:
-                fputs("Encountered invalid bind-opcode when parsing\n",
-                      stderr);
+                fputs("Encountered invalid bind-opcode when parsing\n", stderr);
                 break;
             case MachO::BindOpcodeParseError::OutOfBoundsSegmentAddr:
                 fputs("Got out-of-bounds segment-address in bind-opcodes\n",
@@ -254,8 +252,7 @@ namespace Operations {
                       stderr);
                 break;
             case MachO::BindOpcodeParseError::UnrecognizedBindOpcode:
-                fputs("Encountered unknown bind-opcode when parsing\n",
-                      stderr);
+                fputs("Encountered unknown bind-opcode when parsing\n", stderr);
                 break;
             case MachO::BindOpcodeParseError::UnrecognizedBindSubOpcode:
                 fputs("Encountered unknown bind sub-opcode when parsing\n",

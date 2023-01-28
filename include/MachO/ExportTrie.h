@@ -649,31 +649,31 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto isExport() const noexcept {
-            return (kind() != ExportTrieExportKind::None);
+            return kind() != ExportTrieExportKind::None;
         }
 
         [[nodiscard]] constexpr auto absolute() const noexcept {
-            return (kind() == ExportTrieExportKind::Absolute);
+            return kind() == ExportTrieExportKind::Absolute;
         }
 
         [[nodiscard]] constexpr auto isReexport() const noexcept {
-            return (kind() == ExportTrieExportKind::Reexport);
+            return kind() == ExportTrieExportKind::Reexport;
         }
 
         [[nodiscard]] constexpr auto regular() const noexcept {
-            return (kind() == ExportTrieExportKind::Regular);
+            return kind() == ExportTrieExportKind::Regular;
         }
 
         [[nodiscard]] constexpr auto stubAndResolver() const noexcept {
-            return (kind() == ExportTrieExportKind::StubAndResolver);
+            return kind() == ExportTrieExportKind::StubAndResolver;
         }
 
         [[nodiscard]] constexpr auto weak() const noexcept {
-            return (kind() == ExportTrieExportKind::WeakDefinition);
+            return kind() == ExportTrieExportKind::WeakDefinition;
         }
 
         [[nodiscard]] constexpr auto threadLocal() const noexcept {
-            return (kind() == ExportTrieExportKind::ThreadLocal);
+            return kind() == ExportTrieExportKind::ThreadLocal;
         }
 
         constexpr auto setIsAbsolute() noexcept -> decltype(*this) {
@@ -1094,11 +1094,11 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto isExport() const noexcept {
-            return (kind() != ExportTrieExportKind::None);
+            return kind() != ExportTrieExportKind::None;
         }
 
         [[nodiscard]] constexpr auto isReexport() const noexcept {
-            return (kind() == ExportTrieExportKind::Reexport);
+            return kind() == ExportTrieExportKind::Reexport;
         }
 
         [[nodiscard]]

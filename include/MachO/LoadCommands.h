@@ -2002,7 +2002,7 @@ namespace MachO {
         static auto EntryDescGetDylibOrdinal(const int16_t Desc) noexcept
             -> uint8_t
         {
-            return ((Desc >> 8) & 0xff);
+            return (Desc >> 8) & 0xff;
         }
 
         constexpr static auto &

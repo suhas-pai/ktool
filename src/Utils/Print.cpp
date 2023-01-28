@@ -183,27 +183,22 @@ namespace Utils {
             }
         }
 
-        const auto SegmentName =
-            !Segment.empty() ? Segment : "<null>";
-        const auto SectionName =
-            !Section.empty() ? Section : "<null>";
-
-        if (Segment.empty()) {
-            WrittenOut += fputs("<null>,", OutFile);
-        } else {
+        if (!Segment.empty()) {
             WrittenOut +=
                 fprintf(OutFile,
                         "\"" STRING_VIEW_FMT "\",",
-                        STRING_VIEW_FMT_ARGS(SegmentName));
+                        STRING_VIEW_FMT_ARGS(Segment));
+        } else {
+            WrittenOut += fputs("<null>,", OutFile);
         }
 
-        if (Section.empty()) {
-            WrittenOut += fputs("<null>", OutFile);
-        } else {
+        if (!Section.empty()) {
             WrittenOut +=
                 fprintf(OutFile,
                         "\"" STRING_VIEW_FMT "\"",
-                        STRING_VIEW_FMT_ARGS(SectionName));
+                        STRING_VIEW_FMT_ARGS(Section));
+        } else {
+            WrittenOut += fputs("<null>", OutFile);
         }
 
         if (PadSections) {

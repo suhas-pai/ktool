@@ -35,7 +35,7 @@ namespace ADT {
             = delete;
 
         [[nodiscard]] constexpr auto hasError() const noexcept {
-            return (Data & 1);
+            return Data & 1;
         }
 
         [[nodiscard]] constexpr auto error() const noexcept {
@@ -79,7 +79,7 @@ namespace ADT {
             = delete;
 
         [[nodiscard]] constexpr auto hasError() const noexcept {
-            return (reinterpret_cast<uint64_t>(Ptr) & 1);
+            return reinterpret_cast<uint64_t>(Ptr) & 1;
         }
 
         [[nodiscard]] constexpr auto error() const noexcept {

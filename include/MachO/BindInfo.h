@@ -917,7 +917,7 @@ namespace MachO {
             const auto Base = reinterpret_cast<const uint8_t *>(Ptr);
 
             assert(Base <= Iter->getPtr());
-            return (Iter->getPtr() - Base);
+            return Iter->getPtr() - Base;
         }
 
         [[nodiscard]] constexpr auto
