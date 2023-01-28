@@ -514,7 +514,7 @@ namespace MachO {
             const auto Ptr =
                 ClassCollectionTypeAddClass(List,
                                             std::move(SuperInfo),
-                                           SuperAddr);
+                                            SuperAddr);
 
             SetSuperClassForClassInfo(Ptr, Info);
             FixSuperForClassInfo<Is64Bit>(Ptr,
@@ -737,8 +737,8 @@ namespace MachO {
             };
     }
 
-    struct ObjcClassInfoCollection : public ADT::Tree {
-        friend struct ObjcClassCategoryCollection;
+    struct ObjcClassInfoList : public ADT::Tree {
+        friend struct ObjcClassCategoryInfoList;
     public:
         using Info = ObjcClassInfo;
     protected:
@@ -747,7 +747,7 @@ namespace MachO {
 
         Info *Root;
     public:
-        ObjcClassInfoCollection() noexcept = default;
+        ObjcClassInfoList() noexcept = default;
 
         auto
         Parse(const MachO::DeVirtualizer &DeVirtualizer,
@@ -790,18 +790,18 @@ namespace MachO {
         }
     };
 
-    struct ObjcClassCategoryCollection {
+    struct ObjcClassCategoryInfoList {
     public:
         using Info = ObjcClassCategoryInfo;
     protected:
         std::vector<std::unique_ptr<Info>> List;
     public:
-        ObjcClassCategoryCollection() noexcept = default;
+        ObjcClassCategoryInfoList() noexcept = default;
 
         ObjcParse::Error
         CollectFrom(const DeVirtualizer &DeVirtualizer,
                     const BindActionList::UnorderedMap &BindCollection,
-                    ObjcClassInfoCollection *ClassInfoTree,
+                    ObjcClassInfoList *ClassInfoTree,
                     bool IsBigEndian,
                     bool Is64Bit) noexcept;
     };

@@ -96,7 +96,7 @@ namespace Operations {
         std::string String;
     };
 
-    constexpr static inline auto TabLength = 8;
+    constexpr static inline auto TabLength = uint32_t(8);
 
     [[nodiscard]] static auto
     GetSymbolLengthForLongestPrintedLineAndCount(

@@ -411,7 +411,7 @@ namespace ADT {
         template <typename NodePrinter>
         const TreeNode &
         PrintHorizontal(FILE *const OutFile,
-                        const int TabLength,
+                        const uint32_t TabLength,
                         const NodePrinter &NodePrinterFunc) noexcept;
     };
 
@@ -564,7 +564,7 @@ namespace ADT {
     template <typename NodePrinter>
     const TreeNode &
     TreeNode::PrintHorizontal(FILE *const OutFile,
-                              const int TabLength,
+                              const uint32_t TabLength,
                               const NodePrinter &NodePrinterFunc) noexcept
     {
         const auto RootDepthLevel = uint64_t(1);
@@ -601,7 +601,7 @@ namespace ADT {
             // Subtract 1 for the ├ or └ character, and 1 for the space in
             // between the "----" and the node-printer's string.
 
-            const auto DashCount = (TabLength - 2);
+            const auto DashCount = TabLength - 2;
             WrittenOut += DashCount;
 
             Utils::PrintMultTimes(OutFile,
@@ -923,7 +923,7 @@ namespace ADT {
         template <typename NodePrinter>
         auto
         PrintHorizontal(FILE *const OutFile,
-                        const int TabLength,
+                        const uint32_t TabLength,
                         const NodePrinter &NodePrinterFunc) const noexcept
             -> decltype(*this)
         {

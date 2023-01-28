@@ -8,7 +8,7 @@
 
 namespace MachO {
     void
-    ObjcClassInfoCollection::AdjustExternalAndRootClassList(
+    ObjcClassInfoList::AdjustExternalAndRootClassList(
         std::vector<Info *> &List) noexcept
     {
         if (List.empty()) {
@@ -29,10 +29,10 @@ namespace MachO {
     }
 
     auto
-    ObjcClassInfoCollection::Parse(const DeVirtualizer &DeVirtualizer,
-                                   const BindActionList::UnorderedMap &BindList,
-                                   const bool IsBigEndian,
-                                   const bool Is64Bit) noexcept
+    ObjcClassInfoList::Parse(const DeVirtualizer &DeVirtualizer,
+                             const BindActionList::UnorderedMap &BindList,
+                             const bool IsBigEndian,
+                             const bool Is64Bit) noexcept
         -> ObjcParse::Error
     {
         auto ExternalAndRootClassList = std::vector<Info *>();
@@ -109,7 +109,7 @@ namespace MachO {
     }
 
     auto
-    ObjcClassInfoCollection::getAsList() const noexcept -> std::vector<Info *> {
+    ObjcClassInfoList::getAsList() const noexcept -> std::vector<Info *> {
         auto Vector = std::vector<Info *>();
         Vector.reserve(List.size());
 
@@ -121,7 +121,7 @@ namespace MachO {
     }
 
     auto
-    ObjcClassInfoCollection::addNullClass(const uint64_t BindAddress) noexcept
+    ObjcClassInfoList::addNullClass(const uint64_t BindAddress) noexcept
         -> ObjcClassInfo *
     {
         auto NewInfo = Info();
@@ -135,7 +135,7 @@ namespace MachO {
     }
 
     auto
-    ObjcClassInfoCollection::addExternalClass(
+    ObjcClassInfoList::addExternalClass(
         const std::string_view Name,
         const uint64_t DylibOrdinal,
         const uint64_t BindAddress) noexcept -> ObjcClassInfo *
@@ -150,8 +150,8 @@ namespace MachO {
 
     [[nodiscard]]
     auto
-    ObjcClassInfoCollection::getInfoForAddress(
-        const uint64_t Address) const noexcept -> ObjcClassInfo *
+    ObjcClassInfoList::getInfoForAddress(const uint64_t Address) const noexcept
+        -> ObjcClassInfo *
     {
         if (const auto It = List.find(Address); It != List.end()) {
             return It->second.get();
@@ -161,7 +161,7 @@ namespace MachO {
     }
 
     [[nodiscard]] auto
-    ObjcClassInfoCollection::getInfoForClassName(
+    ObjcClassInfoList::getInfoForClassName(
         const std::string_view Name) const noexcept -> ObjcClassInfo *
     {
         for (const auto &Info : List) {
@@ -178,7 +178,7 @@ namespace MachO {
         const SectionInfo &SectInfo,
         const DeVirtualizer &DeVirt,
         const BindActionList::UnorderedMap &BindList,
-        ObjcClassInfoCollection *ClassInfoTree,
+        ObjcClassInfoList *ClassInfoTree,
         std::vector<std::unique_ptr<ObjcClassCategoryInfo>> &CategoryList,
         const bool IsBigEndian) noexcept
     {
@@ -194,6 +194,7 @@ namespace MachO {
         auto ListAddr = SectInfo.vmRange().begin();
 
         if (ClassInfoTree != nullptr) {
+            const auto BindEnd = BindList.end();
             for (const auto &Addr : List) {
                 auto Info = std::make_unique<ObjcClassCategoryInfo>();
 
@@ -225,9 +226,7 @@ namespace MachO {
                     SwitchedAddr +
                     offsetof(ObjcParse::ObjcClassCategoryType<Is64Bit>, Class);
 
-                if (const auto It = BindList.find(ClassAddr);
-                    It != BindList.end())
-                {
+                if (const auto It = BindList.find(ClassAddr); It != BindEnd) {
                     const auto Info = It->second;
                     const auto Name =
                         ObjcParse::GetNameFromBindActionSymbol(Info.SymbolName);
@@ -291,10 +290,10 @@ namespace MachO {
     }
 
     auto
-    ObjcClassCategoryCollection::CollectFrom(
+    ObjcClassCategoryInfoList::CollectFrom(
         const DeVirtualizer &DeVirtualizer,
         const BindActionList::UnorderedMap &BindCollection,
-        ObjcClassInfoCollection *const ClassInfoTree,
+        ObjcClassInfoList *const ClassInfoTree,
         const bool IsBigEndian,
         const bool Is64Bit) noexcept -> ObjcParse::Error
     {

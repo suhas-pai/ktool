@@ -20,6 +20,7 @@ namespace Operations {
                 assert(false &&
                        "Got Object-Kind None in "
                        "PrintArchs::supportsObjectKind()");
+            case Objects::Kind::DyldSharedCache:
             case Objects::Kind::MachO:
                 return false;
             case Objects::Kind::FatMachO:
@@ -134,9 +135,13 @@ namespace Operations {
 
         if (Fat.is64Bit()) {
             for (const auto &Arch : Fat.arch64List()) {
+                const auto Object =
+                    std::unique_ptr<Objects::Base>(
+                        Fat.getArchObjectAtIndex(I).ptr());
+
                 PrintArch64(OutFile,
                             Arch,
-                            Fat.getArchObjectAtIndex(I).ptr(),
+                            Object.get(),
                             I + 1,
                             Opt.Verbose,
                             IsBigEndian);
@@ -144,12 +149,17 @@ namespace Operations {
             }
         } else {
             for (const auto &Arch : Fat.archList()) {
+                const auto Object =
+                    std::unique_ptr<Objects::Base>(
+                        Fat.getArchObjectAtIndex(I).ptr());
+
                 PrintArch(OutFile,
                           Arch,
-                          Fat.getArchObjectAtIndex(I).ptr(),
+                          Object.get(),
                           I + 1,
                           Opt.Verbose,
                           IsBigEndian);
+
                 I++;
             }
         }
@@ -162,6 +172,7 @@ namespace Operations {
         switch (Base.kind()) {
             case Objects::Kind::None:
                 assert(false && "PrintArchs::run() got Object with Kind::None");
+            case Objects::Kind::DyldSharedCache:
             case Objects::Kind::MachO:
                 return RunResultUnsupported;
             case Objects::Kind::FatMachO:

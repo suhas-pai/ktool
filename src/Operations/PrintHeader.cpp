@@ -123,27 +123,32 @@ namespace Operations {
 
             if (Fat.is64Bit()) {
                 for (const auto &Arch : Fat.arch64List()) {
-                    Operations::PrintArchs::PrintArch64(
-                        OutFile,
-                        Arch,
-                        Fat.getArchObjectAtIndex(I).ptr(),
-                        I + 1,
-                        Opt.Verbose,
-                        IsBigEndian,
-                        "\t\t");
+                    const auto Object =
+                        std::unique_ptr<Objects::Base>(
+                            Fat.getArchObjectAtIndex(I).ptr());
 
+                    Operations::PrintArchs::PrintArch64(OutFile,
+                                                        Arch,
+                                                        Object.get(),
+                                                        I + 1,
+                                                        Opt.Verbose,
+                                                        IsBigEndian,
+                                                        "\t\t");
                     I++;
                 }
             } else {
                 for (const auto &Arch : Fat.archList()) {
-                    Operations::PrintArchs::PrintArch(
-                        OutFile,
-                        Arch,
-                        Fat.getArchObjectAtIndex(I).ptr(),
-                        I + 1,
-                        Opt.Verbose,
-                        IsBigEndian,
-                        "\t\t");
+                    const auto Object =
+                        std::unique_ptr<Objects::Base>(
+                            Fat.getArchObjectAtIndex(I).ptr());
+
+                    Operations::PrintArchs::PrintArch(OutFile,
+                                                      Arch,
+                                                      Object.get(),
+                                                      I + 1,
+                                                      Opt.Verbose,
+                                                      IsBigEndian,
+                                                      "\t\t");
                     I++;
                 }
             }

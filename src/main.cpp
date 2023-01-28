@@ -60,6 +60,7 @@ ParseSegmentSectionPair(std::string_view SegmentSectionPair,
                     MachO::SegmentSectionMaxNameLength);
             return 1;
         }
+
         SectionName = SegmentSectionPair.substr(CommaPos + 1);
     } else {
         SectionName = std::move(SegmentSectionPair);

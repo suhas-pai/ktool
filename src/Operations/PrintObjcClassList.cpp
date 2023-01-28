@@ -251,13 +251,13 @@ namespace Operations {
         }
     }
 
-    constexpr static auto TabLength = 8;
+    constexpr static auto TabLength = uint32_t(8);
 
     static void
     PrintObjcClassInfoList(
         FILE *const OutFile,
         const MachO::LibraryList &LibraryList,
-        MachO::ObjcClassInfoCollection &ObjcClassCollection,
+        MachO::ObjcClassInfoList &ObjcClassCollection,
         const bool Is64Bit,
         const struct PrintObjcClassList::Options &Options) noexcept
     {
@@ -525,9 +525,9 @@ namespace Operations {
         if (MachO.map().range().contains(BindRange)) {
             const auto BindList =
                 MachO::BindActionList(MachO.map(),
-                                        BindRange,
-                                        SegmentList,
-                                        Is64Bit);
+                                      BindRange,
+                                      SegmentList,
+                                      Is64Bit);
 
             ParseError =
                 BindList.getAsUnorderedMap(SegmentList, BindActionInfoList);
@@ -564,12 +564,12 @@ namespace Operations {
         const auto DeVirtualizer =
             MachO::DeVirtualizer(MachO.map(), SegmentList);
 
-        auto ObjcClassInfoCollection = MachO::ObjcClassInfoCollection();
+        auto ObjcClassInfoList = MachO::ObjcClassInfoList();
         auto Error =
-            ObjcClassInfoCollection.Parse(DeVirtualizer,
-                                          BindActionInfoList,
-                                          IsBigEndian,
-                                          Is64Bit);
+            ObjcClassInfoList.Parse(DeVirtualizer,
+                                    BindActionInfoList,
+                                    IsBigEndian,
+                                    Is64Bit);
 
         switch (Error) {
             case MachO::ObjcParse::Error::None:
@@ -580,14 +580,14 @@ namespace Operations {
                 return Result.set(RunError::UnalignedSection);
         }
 
-        auto CategoryCollection = MachO::ObjcClassCategoryCollection();
+        auto CategoryInfoList = MachO::ObjcClassCategoryInfoList();
         if (Opt.PrintCategories) {
             Error =
-                CategoryCollection.CollectFrom(DeVirtualizer,
-                                               BindActionInfoList,
-                                               &ObjcClassInfoCollection,
-                                               IsBigEndian,
-                                               Is64Bit);
+                CategoryInfoList.CollectFrom(DeVirtualizer,
+                                             BindActionInfoList,
+                                             &ObjcClassInfoList,
+                                             IsBigEndian,
+                                             Is64Bit);
 
             switch (Error) {
                 case MachO::ObjcParse::Error::None:
@@ -599,7 +599,7 @@ namespace Operations {
 
         PrintObjcClassInfoList(OutFile,
                                LibraryList,
-                               ObjcClassInfoCollection,
+                               ObjcClassInfoList,
                                Is64Bit,
                                Opt);
 
