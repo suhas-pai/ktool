@@ -602,7 +602,7 @@ namespace ADT {
             // between the "----" and the node-printer's string.
 
             const auto DashCount = TabLength - 2;
-            WrittenOut += DashCount;
+            WrittenOut += static_cast<int>(DashCount);
 
             Utils::PrintMultTimes(OutFile,
                                     "─",

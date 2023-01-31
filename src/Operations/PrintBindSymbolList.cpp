@@ -31,6 +31,7 @@ namespace Operations {
                 assert(false &&
                        "Got Object-Kind None in "
                        "PrintBindSymbolList::supportsObjectKind()");
+            case Objects::Kind::DyldSharedCache:
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
@@ -493,6 +494,7 @@ namespace Operations {
             case Objects::Kind::None:
                 assert(false &&
                        "PrintBindSymbolList::run() got Object with Kind::None");
+            case Objects::Kind::DyldSharedCache:
             case Objects::Kind::MachO:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:

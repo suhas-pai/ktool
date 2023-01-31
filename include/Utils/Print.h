@@ -15,6 +15,8 @@
 #include <string>
 #include <string_view>
 
+#include "ADT/Range.h"
+
 namespace Utils {
     template <std::integral T>
     [[nodiscard]] constexpr auto GetIntegerDigitCount(T Integer) noexcept {
@@ -26,7 +28,24 @@ namespace Utils {
         return DigitLength;
     }
 
-    auto PadSpaces(FILE *OutFile, int SpaceAmount) noexcept -> int;
+    template <std::unsigned_integral T>
+    inline auto GetFormattedNumber(const T Number) noexcept {
+        char buffer[20] = {};
+        std::to_chars(buffer, buffer + sizeof(buffer), Number);
+
+        auto String = std::string(buffer);
+        if (String.length() < 4) {
+            return String;
+        }
+
+        for (auto I = int64_t(String.length() - 3); I > 0; I -= 3) {
+            String.insert(static_cast<uint64_t>(I), 1, ',');
+        }
+
+        return String;
+    }
+
+    auto PadSpaces(FILE *OutFile, uint32_t SpaceAmount) noexcept -> int;
     auto RightPadSpaces(FILE *OutFile, int WrittenOut, int RightPad) -> int;
 
     auto
@@ -41,6 +60,25 @@ namespace Utils {
                  bool Is64Bit,
                  std::string_view Prefix = "",
                  std::string_view Suffix = "") noexcept -> int;
+
+    auto
+    PrintOffsetSizeRange(FILE *OutFile,
+                         const ADT::Range &Range,
+                         bool Is64Bit,
+                         bool IsSize64Bit,
+                         std::string_view Prefix = "",
+                         std::string_view Suffix = "") noexcept -> int;
+
+    auto
+    PrintOffsetSizeInfo(FILE *OutFile,
+                        const ADT::Range &Range,
+                        bool Is64Bit,
+                        bool IsSize64Bit,
+                        bool IsOutOfBounds,
+                        std::string_view OffsetKey,
+                        std::string_view SizeKey,
+                        std::string_view Prefix = "",
+                        std::string_view Suffix = "") noexcept -> int;
 
     auto
     PrintSegmentSectionPair(FILE *OutFile,
@@ -79,15 +117,24 @@ namespace Utils {
                         const char *String,
                         bool &DidPassFirst) noexcept -> int;
 
+    auto
+    PrintUuid(FILE *const OutFile,
+              const uint8_t Uuid[16],
+              std::string_view Prefix = "",
+              std::string_view Suffix = "") noexcept -> int;
+
     // 32 for Segment+Section Name Max Length, 4 for apostrophes, 1 for comma
-    constexpr static inline auto SegmentSectionPairMaxLen = 32 + 4 + 1;
+    constexpr static inline auto SegmentSectionPairMaxLen =
+        uint32_t(32 + 4 + 1);
 
     // 2 for '0x', 8 for digits
-    constexpr static inline auto Address32Length = 2 + 8;
+    constexpr static inline auto Address32Length = uint32_t(2 + 8);
 
     // 2 for '0x', 16 for digits
-    constexpr static inline auto Address64Length = 2 + 16;
+    constexpr static inline auto Address64Length = uint32_t(2 + 16);
 }
+
+#define CHAR_ARR_FMT(Size) "%." TO_STRING(Size) "s"
 
 #define STRING_VIEW_FMT "%.*s"
 #define STRING_VIEW_FMT_ARGS(SV) static_cast<int>((SV).length()), (SV).data()

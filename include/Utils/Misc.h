@@ -32,6 +32,15 @@
             return Enum; \
         }\
 
+#define __VAR_CONCAT_IMPL(a, b) a ## b
+#define VAR_CONCAT(a, b) __VAR_CONCAT_IMPL(a, b)
+
+#define __VAR_CONCAT_3_IMPL(a, b, c) a##b##c
+#define VAR_CONCAT_3(a, b, c) __VAR_CONCAT_3_IMPL(a, b, c)
+
+#define TO_STRING_IMPL(Tok) #Tok
+#define TO_STRING(Tok) TO_STRING_IMPL(Tok)
+
 namespace Utils {
     [[nodiscard]]
     constexpr auto PointerSize(const bool Is64Bit) noexcept -> uint8_t {
@@ -60,6 +69,16 @@ namespace Utils {
     template <bool Is64Bit, std::unsigned_integral T>
     constexpr auto IntegerIsPointerAligned(const T Value) noexcept {
         return (Value & (1 << (PointerLogSize<Is64Bit>() - 1))) == 0;
+    }
+
+    template <std::unsigned_integral T, std::unsigned_integral U>
+    constexpr auto IndexOutOfBounds(const T Index, const U Bound) noexcept {
+        return Index < Bound;
+    }
+
+    template <std::unsigned_integral T, std::unsigned_integral U>
+    constexpr auto OrdinalOutOfBounds(const T Ordinal, const U Bound) noexcept {
+        return Ordinal != 0 && Ordinal <= Bound;
     }
 
     template <std::unsigned_integral T>

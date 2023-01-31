@@ -146,12 +146,23 @@ namespace Operations {
                         case Objects::Kind::FatMachO:
                             assert(false &&
                                    "Arch-Object is somehow a Fat-MachO");
-                    }
+                        case Objects::Kind::DyldSharedCache:
+                            assert(false &&
+                                   "Arch-Object is somehow a Dyld "
+                                   "Shared-Cache");
+                            break;
+                        }
                 }
 
                 return run(*ArchObject.ptr());
             }
-        }
+            case Objects::Kind::DyldSharedCache:
+                if (!supportsObjectKind(Objects::Kind::DyldSharedCache)) {
+                    PrintUnsupportedError(Options.Path);
+                }
+
+                return run(Object);
+            }
 
         assert(false && "Got unrecognized Object-Kind in runAndHandleFile()");
     }

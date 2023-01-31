@@ -12,7 +12,8 @@ namespace Objects {
     enum class Kind : uint8_t {
         None,
         MachO,
-        FatMachO
+        FatMachO,
+        DyldSharedCache
     };
 
     [[nodiscard]] constexpr auto KindIsValid(const Kind Kind) noexcept {
@@ -20,6 +21,7 @@ namespace Objects {
             case Kind::None:
             case Kind::MachO:
             case Kind::FatMachO:
+            case Kind::DyldSharedCache:
                 return true;
         }
 
@@ -36,6 +38,8 @@ namespace Objects {
                 return "Mach-O";
             case Kind::FatMachO:
                 return "Fat Mach-O";
+            case Kind::DyldSharedCache:
+                return "Dyld Shared Cache";
         }
 
         assert(false && "Got unrecognized Object-Kind in KindGetString()");

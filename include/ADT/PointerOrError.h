@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <type_traits>
 
@@ -29,7 +30,9 @@ namespace ADT {
     public:
         constexpr PointerOrError(PointerType *const Ptr) noexcept : Ptr(Ptr) {}
         constexpr PointerOrError(const ErrorType E) noexcept
-        : Data(static_cast<uint64_t>(E) << 1 | 1) {}
+        : Data(static_cast<uint64_t>(E) << 1 | 1) {
+            assert(E != static_cast<ErrorType>(0));
+        }
 
         constexpr PointerOrError(const std::nullptr_t &Nullptr) noexcept
             = delete;

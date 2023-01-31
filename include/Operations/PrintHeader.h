@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "Objects/DyldSharedCache.h"
 #include "Objects/FatMachO.h"
 #include "Objects/MachO.h"
 
@@ -36,6 +37,7 @@ namespace Operations {
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
         RunResult run(const Objects::Base &Base) const noexcept override;
+        RunResult run(const Objects::DyldSharedCache &Dsc) const noexcept;
         RunResult run(const Objects::MachO &MachO) const noexcept;
         RunResult run(const Objects::FatMachO &MachO) const noexcept;
 

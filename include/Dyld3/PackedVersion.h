@@ -167,7 +167,7 @@ namespace Dyld3 {
         operator<=>(const Dyld3::PackedVersion64 &Rhs) const noexcept = default;
     };
 
-#define DYLD3_PACKED_VERSION_FMT "%u.%u.%u"
+#define DYLD3_PACKED_VERSION_FMT "%" PRIu32 ".%" PRIu32 ".%" PRIu32
 #define DYLD3_PACKED_VERSION_FMT_ARGS(VERSION) \
     (VERSION).major(), \
     (VERSION).minor(), \

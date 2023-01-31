@@ -61,3 +61,7 @@ namespace Mach {
     (VMPROT).writable() ? 'W' : '-', \
     (VMPROT).executable() ? 'X' : '-'
 }
+
+#define MACH_VMPROT_INIT_MAX_FMT MACH_VMPROT_FMT "/" MACH_VMPROT_FMT
+#define MACH_VMPROT_INIT_MAX_FMT_ARGS(INIT, MAX)                               \
+    MACH_VMPROT_FMT_ARGS(INIT), MACH_VMPROT_FMT_ARGS(MAX)

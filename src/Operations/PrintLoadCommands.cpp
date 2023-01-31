@@ -35,6 +35,7 @@ namespace Operations {
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
+            case Objects::Kind::DyldSharedCache:
                 return false;
         }
 
@@ -69,21 +70,22 @@ namespace Operations {
 
                 fprintf(OutFile,
                         "\t\"" STRING_VIEW_FMT "\""
-                        "\t" MACH_VMPROT_FMT "/" MACH_VMPROT_FMT "\n"
+                        "\t" MACH_VMPROT_INIT_MAX_FMT "\n"
                         "%sFile:          " ADDR_RANGE_32_FMT "\n"
                         "%sMem:           " ADDR_RANGE_32_FMT "\n"
                         "%sFile Size:     %s\n"
                         "%sMem Size:      %s\n"
                         "%sFlags:         0x%" PRIx32 "\n",
                         STRING_VIEW_FMT_ARGS(Segment.segmentName()),
-                        MACH_VMPROT_FMT_ARGS(Segment.initProt(IsBigEndian)),
-                        MACH_VMPROT_FMT_ARGS(Segment.maxProt(IsBigEndian)),
+                        MACH_VMPROT_INIT_MAX_FMT_ARGS(
+                            Segment.initProt(IsBigEndian),
+                            Segment.maxProt(IsBigEndian)),
                         Prefix,
                         ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
                         Prefix,
                         ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
-                        Prefix, Utils::FormattedSizeForOutput(FileSize).data(),
-                        Prefix, Utils::FormattedSizeForOutput(VmSize).data(),
+                        Prefix, Utils::FormattedSizeForOutput(FileSize).c_str(),
+                        Prefix, Utils::FormattedSizeForOutput(VmSize).c_str(),
                         Prefix, Flags.value());
 
                 if (!Flags.empty()) {
@@ -193,7 +195,7 @@ namespace Operations {
                                 Prefix,
                                 ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
                                 Prefix,
-                                Utils::FormattedSizeForOutput(Size).data(),
+                                Utils::FormattedSizeForOutput(Size).c_str(),
                                 Prefix, Align, AlignDesc.data(),
                                 Prefix, Section.relocFileOffset(IsBigEndian),
                                 Prefix, Section.relocsCount(IsBigEndian),
@@ -271,21 +273,22 @@ namespace Operations {
 
                 fprintf(OutFile,
                         "\t\"" STRING_VIEW_FMT "\""
-                        "\t" MACH_VMPROT_FMT "/" MACH_VMPROT_FMT "\n"
+                        "\t" MACH_VMPROT_INIT_MAX_FMT "\n"
                         "%sFile:          " ADDR_RANGE_64_FMT "\n"
                         "%sMem:           " ADDR_RANGE_64_FMT "\n"
                         "%sFile Size:     %s\n"
                         "%sMem Size:      %s\n"
                         "%sFlags:         0x%" PRIx32 "\n",
                         STRING_VIEW_FMT_ARGS(Segment.segmentName()),
-                        MACH_VMPROT_FMT_ARGS(Segment.initProt(IsBigEndian)),
-                        MACH_VMPROT_FMT_ARGS(Segment.maxProt(IsBigEndian)),
+                        MACH_VMPROT_INIT_MAX_FMT_ARGS(
+                            Segment.initProt(IsBigEndian),
+                            Segment.maxProt(IsBigEndian)),
                         Prefix,
                         ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
                         Prefix,
                         ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
-                        Prefix, Utils::FormattedSizeForOutput(FileSize).data(),
-                        Prefix, Utils::FormattedSizeForOutput(VmSize).data(),
+                        Prefix, Utils::FormattedSizeForOutput(FileSize).c_str(),
+                        Prefix, Utils::FormattedSizeForOutput(VmSize).c_str(),
                         Prefix, Flags.value());
 
                 if (!Flags.empty()) {
@@ -395,7 +398,7 @@ namespace Operations {
                                 Prefix,
                                 ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
                                 Prefix,
-                                    Utils::FormattedSizeForOutput(Size).data(),
+                                    Utils::FormattedSizeForOutput(Size).c_str(),
                                 Prefix, Align, AlignDesc.data(),
                                 Prefix, Section.relocFileOffset(IsBigEndian),
                                 Prefix, Section.relocsCount(IsBigEndian),
@@ -700,7 +703,7 @@ namespace Operations {
                         Prefix, SymCount,
                         Prefix, StrOff,
                         ADDR_RANGE_FMT_ARGS(StrOff, StrOff + StrSize),
-                        Prefix, Utils::FormattedSizeForOutput(StrSize).data());
+                        Prefix, Utils::FormattedSizeForOutput(StrSize).c_str());
 
                 break;
             }
@@ -866,7 +869,8 @@ namespace Operations {
                         "%sData Size:   %s\n",
                         Prefix, DataOff,
                         ADDR_RANGE_FMT_ARGS(DataOff, DataOff + DataSize),
-                        Prefix, Utils::FormattedSizeForOutput(DataSize).data());
+                        Prefix,
+                            Utils::FormattedSizeForOutput(DataSize).c_str());
                 break;
             }
             case LoadCommandKind::FileSetEntry: {
@@ -911,7 +915,8 @@ namespace Operations {
                         Prefix, CryptOffset,
                         ADDR_RANGE_FMT_ARGS(CryptOffset,
                                             CryptOffset + CryptSize),
-                        Prefix, Utils::FormattedSizeForOutput(CryptSize).data(),
+                        Prefix,
+                            Utils::FormattedSizeForOutput(CryptSize).c_str(),
                         Prefix, CryptId);
                 break;
             }
@@ -935,7 +940,8 @@ namespace Operations {
                         Prefix, CryptOffset,
                         ADDR_RANGE_FMT_ARGS(CryptOffset,
                                             CryptOffset + CryptSize),
-                        Prefix, Utils::FormattedSizeForOutput(CryptSize).data(),
+                        Prefix,
+                            Utils::FormattedSizeForOutput(CryptSize).c_str(),
                         Prefix, CryptId,
                         Prefix, Pad);
                 break;
@@ -1061,25 +1067,27 @@ namespace Operations {
                         ADDR_RANGE_FMT_ARGS(RebaseOffset,
                                             RebaseOffset + RebaseSize),
                         Prefix,
-                        Utils::FormattedSizeForOutput(RebaseSize).data(),
+                            Utils::FormattedSizeForOutput(RebaseSize).c_str(),
                         Prefix, BindOffset,
                         ADDR_RANGE_FMT_ARGS(BindOffset, BindOffset + BindSize),
-                        Prefix, Utils::FormattedSizeForOutput(BindSize).data(),
+                        Prefix,
+                            Utils::FormattedSizeForOutput(BindSize).c_str(),
                         Prefix, WeakBindOffset,
                         ADDR_RANGE_FMT_ARGS(WeakBindOffset,
                                             WeakBindOffset + WeakBindSize),
                         Prefix,
-                        Utils::FormattedSizeForOutput(WeakBindSize).data(),
+                            Utils::FormattedSizeForOutput(WeakBindSize).c_str(),
                         Prefix, LazyBindOffset,
                         ADDR_RANGE_FMT_ARGS(LazyBindOffset,
                                             LazyBindOffset + LazyBindSize),
                         Prefix,
-                        Utils::FormattedSizeForOutput(LazyBindSize).data(),
+                            Utils::FormattedSizeForOutput(LazyBindSize).c_str(),
                         Prefix, ExportTrieOffset,
                         ADDR_RANGE_FMT_ARGS(ExportTrieOffset,
                                             ExportTrieOffset + ExportTrieSize),
                         Prefix,
-                        Utils::FormattedSizeForOutput(ExportTrieSize).data());
+                            Utils::FormattedSizeForOutput(
+                                ExportTrieSize).c_str());
                 break;
             }
             case LoadCommandKind::LinkerOption: {
@@ -1100,12 +1108,11 @@ namespace Operations {
 
                 fprintf(OutFile,
                         "\n"
-                        "%sOffset: " ADDRESS_32_FMT " ("
-                            ADDR_RANGE_32_FMT ")\n"
+                        "%sOffset: " ADDRESS_32_FMT " (" ADDR_RANGE_32_FMT ")\n"
                         "%sSize:   %s\n",
                         Prefix, Offset,
                         ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
-                        Prefix, Utils::FormattedSizeForOutput(Size).data());
+                        Prefix, Utils::FormattedSizeForOutput(Size).c_str());
                 break;
             }
             case LoadCommandKind::FixedVMFile: {
@@ -1139,7 +1146,7 @@ namespace Operations {
                         "%sStack Size:   %s\n",
                         Prefix, EntryOffset,
                         Prefix,
-                        Utils::FormattedSizeForOutput(StackSize).data());
+                        Utils::FormattedSizeForOutput(StackSize).c_str());
                 break;
             }
             case LoadCommandKind::SourceVersion: {
@@ -1170,7 +1177,7 @@ namespace Operations {
                         Prefix, STRING_VIEW_FMT_ARGS(DataOwner),
                         Prefix, Offset,
                         ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
-                        Prefix, Utils::FormattedSizeForOutput(Size).data());
+                        Prefix, Utils::FormattedSizeForOutput(Size).c_str());
 
                 break;
             }
@@ -1305,6 +1312,7 @@ namespace Operations {
             case Objects::Kind::MachO:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
+            case Objects::Kind::DyldSharedCache:
                 return RunResultUnsupported;
         }
 

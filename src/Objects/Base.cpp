@@ -7,6 +7,7 @@
 
 #include "Objects/Base.h"
 #include "Objects/MachO.h"
+#include "Objects/DyldSharedCache.h"
 #include "Objects/FatMachO.h"
 
 namespace Objects {
@@ -16,6 +17,22 @@ namespace Objects {
         const auto Kind = Kind::None;
         switch (Kind) {
             case Kind::None:
+            case Kind::DyldSharedCache: {
+                const auto Object = Objects::DyldSharedCache::Open(Map);
+                using ErrorKind = Objects::DyldSharedCache::OpenError;
+
+                const auto Error = Object.error();
+                if (Error == ErrorKind::None) {
+                    return Object.ptr();
+                }
+
+                if (Error != ErrorKind::WrongFormat) {
+                    return OpenError(Kind::DyldSharedCache,
+                                     static_cast<uint32_t>(Error));
+                }
+
+                [[fallthrough]];
+            }
             case Kind::MachO: {
                 const auto Object = Objects::MachO::Open(Map);
                 using ErrorKind = Objects::MachO::OpenError;
@@ -88,6 +105,22 @@ namespace Objects {
 
                 if (Error != ErrorKind::WrongFormat) {
                     return OpenError(Kind::FatMachO,
+                                     static_cast<uint32_t>(Error));
+                }
+
+                [[fallthrough]];
+            }
+            case Kind::DyldSharedCache: {
+                const auto Object = Objects::DyldSharedCache::Open(Map);
+                using ErrorKind = Objects::DyldSharedCache::OpenError;
+
+                const auto Error = Object.error();
+                if (Error == ErrorKind::None) {
+                    return Object.ptr();
+                }
+
+                if (Error != ErrorKind::WrongFormat) {
+                    return OpenError(Kind::DyldSharedCache,
                                      static_cast<uint32_t>(Error));
                 }
             }

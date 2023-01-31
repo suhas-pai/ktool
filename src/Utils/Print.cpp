@@ -95,11 +95,10 @@ namespace Utils {
     }
 
     auto
-    PadSpaces(FILE *const OutFile, const int SpaceAmount) noexcept -> int {
-        assert(SpaceAmount >= 0);
+    PadSpaces(FILE *const OutFile, const uint32_t SpaceAmount) noexcept -> int {
         return fprintf(OutFile,
                        "%" RIGHTPAD_FMT "s",
-                       RIGHTPAD_FMT_ARGS(SpaceAmount),
+                       RIGHTPAD_FMT_ARGS(static_cast<int>(SpaceAmount)),
                        "");
     }
 
@@ -111,7 +110,7 @@ namespace Utils {
         assert(WrittenOut >= 0);
         assert(WrittenOut <= Total);
 
-        return PadSpaces(OutFile, Total - WrittenOut);
+        return PadSpaces(OutFile, static_cast<uint32_t>(Total - WrittenOut));
     }
 
     auto
@@ -161,6 +160,55 @@ namespace Utils {
     }
 
     auto
+    PrintOffsetSizeRange(FILE *const OutFile,
+                         const ADT::Range &Range,
+                         const bool Is64Bit,
+                         const bool SizeIs64Bit,
+                         const std::string_view Prefix,
+                         const std::string_view Suffix) noexcept -> int
+    {
+        const auto Begin = Range.begin();
+        const auto End = Range.end().value();
+
+        auto WrittenOut = int();
+        if (Begin != 0) {
+            if (Is64Bit) {
+                WrittenOut +=
+                    fprintf(OutFile,
+                            STRING_VIEW_FMT ADDRESS_64_FMT "-",
+                            STRING_VIEW_FMT_ARGS(Prefix),
+                            Begin);
+            } else {
+                assert(Begin <= std::numeric_limits<uint32_t>::max());
+                WrittenOut +=
+                    fprintf(OutFile,
+                            STRING_VIEW_FMT ADDRESS_32_FMT "-",
+                            STRING_VIEW_FMT_ARGS(Prefix),
+                            static_cast<uint32_t>(Begin));
+            }
+        } else {
+            WrittenOut += fputs("0x0-", OutFile);
+        }
+
+        if (Is64Bit || SizeIs64Bit){
+            WrittenOut +=
+                fprintf(OutFile,
+                        ADDRESS_64_FMT STRING_VIEW_FMT,
+                        End,
+                        STRING_VIEW_FMT_ARGS(Suffix));
+        } else {
+            assert(End <= std::numeric_limits<uint32_t>::max());
+            WrittenOut +=
+                fprintf(OutFile,
+                        ADDRESS_32_FMT STRING_VIEW_FMT,
+                        static_cast<uint32_t>(End),
+                        STRING_VIEW_FMT_ARGS(Suffix));
+        }
+
+        return WrittenOut;
+    }
+
+    auto
     PrintSegmentSectionPair(FILE *const OutFile,
                             const std::string_view Segment,
                             const std::string_view Section,
@@ -176,10 +224,8 @@ namespace Utils {
 
             if (SegmentLength < MachO::SegmentMaxNameLength) {
                 WrittenOut +=
-                    PadSpaces(
-                        OutFile,
-                        static_cast<int>(
-                            MachO::SegmentMaxNameLength - SegmentLength));
+                    PadSpaces(OutFile,
+                              MachO::SegmentMaxNameLength - SegmentLength);
             }
         }
 
@@ -207,8 +253,7 @@ namespace Utils {
 
             if (SectionLength < MachO::SegmentSectionMaxNameLength) {
                 const auto PadLength =
-                    static_cast<int>(
-                        MachO::SegmentSectionMaxNameLength -SectionLength);
+                    MachO::SegmentSectionMaxNameLength - SectionLength;
 
                 WrittenOut += PadSpaces(OutFile, PadLength);
             }
@@ -311,5 +356,37 @@ namespace Utils {
 
         DidPassFirst = true;
         return 0;
+    }
+
+    auto
+    PrintUuid(FILE *OutFile,
+              const uint8_t Uuid[16],
+              const std::string_view Prefix,
+              const std::string_view Suffix) noexcept -> int
+    {
+        const auto Result =
+            fprintf(OutFile,
+                    "%s%.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2x%.2x"
+                    "%.2x%.2X%.2X%s",
+                    Prefix.data(),
+                    Uuid[0],
+                    Uuid[1],
+                    Uuid[2],
+                    Uuid[3],
+                    Uuid[4],
+                    Uuid[5],
+                    Uuid[6],
+                    Uuid[7],
+                    Uuid[8],
+                    Uuid[9],
+                    Uuid[10],
+                    Uuid[11],
+                    Uuid[12],
+                    Uuid[13],
+                    Uuid[14],
+                    Uuid[15],
+                    Suffix.data());
+
+        return Result;
     }
 }

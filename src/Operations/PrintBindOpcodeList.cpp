@@ -26,6 +26,7 @@ namespace Operations {
                        "PrintBindOpcodeList::supportsObjectKind()");
             case Objects::Kind::MachO:
                 return true;
+            case Objects::Kind::DyldSharedCache:
             case Objects::Kind::FatMachO:
                 return false;
         }
@@ -653,6 +654,7 @@ namespace Operations {
                        "PrintBindOpcodeList::run() got Object with Kind::None");
             case Objects::Kind::MachO:
                 return run(static_cast<const Objects::MachO &>(Base));
+            case Objects::Kind::DyldSharedCache:
             case Objects::Kind::FatMachO:
                 return RunResultUnsupported;
         }

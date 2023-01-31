@@ -5,6 +5,8 @@
 //  Created by suhaspai on 11/22/22.
 //
 
+#include <memory>
+
 #include "Operations/PrintArchs.h"
 #include "Utils/Print.h"
 

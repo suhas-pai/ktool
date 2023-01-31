@@ -33,6 +33,7 @@ namespace Operations {
                        "PrintObjcClassList::supportsObjectKind()");
             case Objects::Kind::MachO:
                 return true;
+            case Objects::Kind::DyldSharedCache:
             case Objects::Kind::FatMachO:
                 return false;
         }
@@ -580,8 +581,8 @@ namespace Operations {
                 return Result.set(RunError::UnalignedSection);
         }
 
-        auto CategoryInfoList = MachO::ObjcClassCategoryInfoList();
         if (Opt.PrintCategories) {
+            auto CategoryInfoList = MachO::ObjcClassCategoryInfoList();
             Error =
                 CategoryInfoList.CollectFrom(DeVirtualizer,
                                              BindActionInfoList,
@@ -617,6 +618,7 @@ namespace Operations {
             case Objects::Kind::MachO:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
+            case Objects::Kind::DyldSharedCache:
                 return RunResultUnsupported;
         }
 

@@ -44,6 +44,7 @@ namespace Operations {
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
+            case Objects::Kind::DyldSharedCache:
                 return false;
         }
 
@@ -707,6 +708,7 @@ namespace Operations {
             case Objects::Kind::MachO:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
+            case Objects::Kind::DyldSharedCache:
                 return RunResultUnsupported;
         }
 

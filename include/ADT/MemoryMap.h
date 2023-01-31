@@ -7,6 +7,7 @@
 
 #pragma once
 #include "Range.h"
+#include "Utils/Overflow.h"
 
 namespace ADT {
     struct MemoryMap {
@@ -34,11 +35,16 @@ namespace ADT {
             return Size;
         }
 
-        template <typename T = void *, bool Verify = true>
+        template <typename T = uint8_t,
+                  bool Verify = true,
+                  uint64_t Size = sizeof(T)>
         [[nodiscard]]
         inline auto base(const uint64_t Count = 1) const noexcept -> T * {
             if constexpr (Verify) {
-                if (!range().canContain<T>(Count)) {
+                const auto TotalSize =
+                    Utils::MulAndCheckOverflow(Size, Count).value();
+
+                if (!range().canContainSize(TotalSize)) {
                     return nullptr;
                 }
             }

@@ -87,10 +87,18 @@ namespace ADT {
             return Idx != 0 && Idx <= Size;
         }
 
-        [[nodiscard]]
-        constexpr auto indexForLoc(const uint64_t Loc) const noexcept {
+        [[nodiscard]] constexpr auto
+        indexForLoc(const uint64_t Loc,
+                    uint64_t *const MaxSizeOut = nullptr) const noexcept
+        {
             assert(containsLoc(Loc));
-            return Loc - Begin;
+
+            const auto Index = Loc - Begin;
+            if (MaxSizeOut != nullptr) {
+                *MaxSizeOut = end().value() - Index;
+            }
+
+            return Index;
         }
 
         [[nodiscard]]
@@ -102,7 +110,7 @@ namespace ADT {
         [[nodiscard]]
         constexpr auto contains(const Range &Other) const noexcept {
             if (Other.empty()) {
-                return false;
+                return true;
             }
 
             if (Other.Begin < Begin) {

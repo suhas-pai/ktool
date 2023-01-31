@@ -39,8 +39,7 @@ namespace Objects {
         static auto Open(const ADT::MemoryMap &Map) noexcept ->
             ADT::PointerOrError<FatMachO, OpenError>;
 
-        static auto
-        OpenAndValidateArchs(const ADT::MemoryMap &Map) noexcept ->
+        static auto OpenAndValidateArchs(const ADT::MemoryMap &Map) noexcept ->
             ADT::PointerOrError<FatMachO, OpenError>;
 
         [[nodiscard]] auto
