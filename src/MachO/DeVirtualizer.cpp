@@ -79,10 +79,7 @@ namespace MachO {
                 *EndOut = Map.get(FileRange.end().value());
             }
 
-            const auto FileLocRange =
-                Segment->FileRange.locForIndexRange(VmRange);
-
-            return Map.getFromRange(FileLocRange);
+            return Map.getFromRange(FileRange.locForIndexRange(VmRange));
         }
 
         return nullptr;
