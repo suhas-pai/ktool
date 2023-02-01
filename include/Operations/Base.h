@@ -8,8 +8,6 @@
 #pragma once
 
 #include "Objects/Base.h"
-#include "Objects/FatMachO.h"
-
 #include "Kind.h"
 
 namespace Operations {
@@ -69,6 +67,7 @@ namespace Operations {
 
         struct HandleFileOptions {
             int64_t ArchIndex = -1;
+            int64_t ImageIndex = -1;
             std::string_view Path;
         };
 

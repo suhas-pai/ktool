@@ -6,7 +6,10 @@
 //
 
 #pragma once
+
 #include "Range.h"
+
+#include "Utils/Misc.h"
 #include "Utils/Overflow.h"
 
 namespace ADT {
@@ -94,6 +97,21 @@ namespace ADT {
             }
 
             return reinterpret_cast<T *>(AdjBase);
+        }
+
+        [[nodiscard]]
+        inline auto indexForPtr(const void *const Ptr) const noexcept
+            -> std::optional<uint64_t>
+        {
+            const auto Result =
+                static_cast<uint64_t>(
+                    reinterpret_cast<const uint8_t *>(Ptr) - base<uint8_t>());
+
+            if (Utils::IndexOutOfBounds(Result, range().size())) {
+                return std::nullopt;
+            }
+
+            return Result;
         }
     };
 }

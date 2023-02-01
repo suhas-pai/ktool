@@ -9,8 +9,8 @@
 #include <optional>
 #include <vector>
 
-#include "ADT/Maximizer.h"
 #include "MachO/LoadCommands.h"
+#include "Objects/DscImage.h"
 
 #include "Operations/Base.h"
 #include "Operations/PrintCStringSection.h"
@@ -36,9 +36,10 @@ namespace Operations {
                 assert(false &&
                        "Got Object-Kind None in "
                        "PrintCStringSection::supportsObjectKind()");
-            case Objects::Kind::DyldSharedCache:
+            case Objects::Kind::DscImage:
             case Objects::Kind::MachO:
                 return true;
+            case Objects::Kind::DyldSharedCache:
             case Objects::Kind::FatMachO:
                 return false;
         }
@@ -159,10 +160,12 @@ namespace Operations {
     }
 
     auto
-    PrintCStringSection::run(const Objects::MachO &MachO) const noexcept
-        -> RunResult
+    PrintCStringSection::CollectAndPrintCStringList(
+        RunResult &Result,
+        const ADT::MemoryMap &Map,
+        const Objects::MachO &MachO) const noexcept
+        -> RunResult &
     {
-        auto Result = RunResult(Objects::Kind::MachO);
         if (SectionName.empty()) {
             return Result.set(RunError::EmptySectionName);
         }
@@ -219,8 +222,7 @@ namespace Operations {
                     SectionFileOff = SectionRange.begin();
                     SectionAddr = Section->addr(IsBigEndian);
                     SectionSize = SectionRange.size();
-                    SectionData =
-                        MachO.map().getFromRange<const char>(SectionRange);
+                    SectionData = Map.getFromRange<const char>(SectionRange);
 
                     break;
                 }
@@ -269,8 +271,7 @@ namespace Operations {
                     SectionFileOff = SectionRange.begin();
                     SectionAddr = Section->addr(IsBigEndian);
                     SectionSize = SectionRange.size();
-                    SectionData =
-                        MachO.map().getFromRange<const char>(SectionRange);
+                    SectionData = Map.getFromRange<const char>(SectionRange);
 
                     break;
                 }
@@ -340,6 +341,22 @@ namespace Operations {
     }
 
     auto
+    PrintCStringSection::run(const Objects::MachO &MachO) const noexcept
+        -> RunResult
+    {
+        auto Result = RunResult(Objects::Kind::MachO);
+        return CollectAndPrintCStringList(Result, MachO.map(), MachO);
+    }
+
+    auto
+    PrintCStringSection::run(const Objects::DscImage &DscImage) const noexcept
+        -> RunResult
+    {
+        auto Result = RunResult(Objects::Kind::DscImage);
+        return CollectAndPrintCStringList(Result, DscImage.dscMap(), DscImage);
+    }
+
+    auto
     PrintCStringSection::run(const Objects::Base &Base) const noexcept
         -> RunResult
     {
@@ -347,10 +364,12 @@ namespace Operations {
             case Objects::Kind::None:
                 assert(false &&
                        "PrintCStringSection::run() got Object with Kind::None");
-            case Objects::Kind::DyldSharedCache:
             case Objects::Kind::MachO:
+                return run(static_cast<const Objects::DscImage &>(Base));
+            case Objects::Kind::DscImage:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
+            case Objects::Kind::DyldSharedCache:
                 return RunResultUnsupported;
         }
 

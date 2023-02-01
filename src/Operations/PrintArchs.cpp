@@ -24,6 +24,7 @@ namespace Operations {
                        "PrintArchs::supportsObjectKind()");
             case Objects::Kind::DyldSharedCache:
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return false;
             case Objects::Kind::FatMachO:
                 return true;
@@ -176,6 +177,7 @@ namespace Operations {
                 assert(false && "PrintArchs::run() got Object with Kind::None");
             case Objects::Kind::DyldSharedCache:
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return RunResultUnsupported;
             case Objects::Kind::FatMachO:
                 return run(static_cast<const Objects::FatMachO &>(Base));

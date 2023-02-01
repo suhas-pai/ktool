@@ -9,6 +9,11 @@
 #include <inttypes.h>
 
 #include "ADT/FileMap.h"
+
+#include "Objects/DscImage.h"
+#include "Objects/DyldSharedCache.h"
+#include "Objects/FatMachO.h"
+
 #include "Operations/Base.h"
 
 namespace Operations {
@@ -54,33 +59,30 @@ namespace Operations {
                     PrintUnsupportedError(Options.Path);
                 }
 
-                return run(Object);
+                return run(static_cast<const Objects::MachO &>(Object));
             case Objects::Kind::FatMachO: {
                 const auto SupportsFatMachO =
                     supportsObjectKind(Objects::Kind::FatMachO);
 
-                if (!supportsObjectKind(Objects::Kind::MachO)) {
-                    if (SupportsFatMachO) {
-                        if (Options.ArchIndex != -1) {
-                            fputs("Operation doesn't support Mach-O Files, but "
-                                  "does support Fat Mach-O Files.\nDrop "
-                                  "--arch-index option to run on Fat Mach-O\n",
-                                  stderr);
-                            exit(1);
-                        }
-
-                        return run(Object);
-                    }
-
-                    PrintUnsupportedError(Options.Path);
-                }
-
                 const auto Fat = static_cast<const Objects::FatMachO &>(Object);
-                if (Options.ArchIndex == -1) {
-                    if (SupportsFatMachO) {
+                if (SupportsFatMachO) {
+                    if (Options.ArchIndex == -1) {
                         return run(Fat);
                     }
 
+                    if (!supportsObjectKind(Objects::Kind::MachO)) {
+                        fputs("Operation doesn't support Mach-O Files, but "
+                              "does support Fat Mach-O Files.\nDrop the "
+                              "--arch-index option to run on the Fat Mach-O "
+                              "file\n",
+                              stderr);
+                        exit(1);
+                    }
+                } else if (!supportsObjectKind(Objects::Kind::MachO)) {
+                    PrintUnsupportedError(Options.Path);
+                }
+
+                if (Options.ArchIndex == -1) {
                     fputs("Operation doesn't support Fat Mach-O Files. Please "
                           "select an arch by its index using option "
                           "--arch-index\n",
@@ -102,9 +104,7 @@ namespace Operations {
                 }
 
                 const auto ArchObject = Fat.getArchObjectAtIndex(ArchIndex);
-                const auto Error = ArchObject.error();
-
-                if (!Error.isNone()) {
+                if (const auto Error = ArchObject.error(); !Error.isNone()) {
                     if (Error.isUnrecognizedFormat()) {
                         fprintf(stderr,
                                 "Architecture at index %" PRIu32 " is of an "
@@ -151,18 +151,130 @@ namespace Operations {
                                    "Arch-Object is somehow a Dyld "
                                    "Shared-Cache");
                             break;
+                        case Objects::Kind::DscImage:
+                            assert(false &&
+                                   "Arch-Object is somehow a Dsc-Image");
                         }
                 }
 
                 return run(*ArchObject.ptr());
             }
-            case Objects::Kind::DyldSharedCache:
-                if (!supportsObjectKind(Objects::Kind::DyldSharedCache)) {
+            case Objects::Kind::DyldSharedCache: {
+                const auto Dsc =
+                    static_cast<const Objects::DyldSharedCache &>(Object);
+
+                if (supportsObjectKind(Objects::Kind::DyldSharedCache)) {
+                    if (Options.ImageIndex == -1) {
+                        return run(Dsc);
+                    }
+
+                    if (!supportsObjectKind(Objects::Kind::DscImage)) {
+                        fputs("Operation doesn't support Dyld Shared-Cache "
+                              "Images, but does support Dyld Shared-Cache "
+                              "Images.\nDrop the arch-index option to run on "
+                              "the Dyld Shared-Cache file\n",
+                              stderr);
+                        exit(1);
+                    }
+                } else if (Options.ImageIndex == -1) {
                     PrintUnsupportedError(Options.Path);
                 }
 
-                return run(Object);
+                const auto ImageCount = Dsc.imageCount();
+                const auto ImageIndex =
+                    static_cast<uint32_t>(Options.ImageIndex);
+
+                if (ImageIndex >= ImageCount) {
+                    fprintf(stderr,
+                            "An Image-Index of %" PRIu32 " is invalid. The "
+                            "provided Dyld Shared-Cache file only has %" PRIu32
+                            " images\n",
+                            ImageIndex,
+                            ImageCount);
+                    exit(1);
+                }
+
+                const auto ImageObject = Dsc.getImageObjectAtIndex(ImageIndex);
+                if (const auto Error = ImageObject.error(); !Error.isNone()) {
+                    if (Error.isUnrecognizedFormat()) {
+                        fprintf(stderr,
+                                "Image at index %" PRIu32 " is of an "
+                                "unrecognized format\n",
+                                ImageIndex);
+                        exit(1);
+                    }
+
+                    switch (Error.Kind) {
+                        case Objects::Kind::None:
+                            assert(false &&
+                                   "Got Object-Kind None for OpenError\n");
+                        case Objects::Kind::MachO:
+
+                            break;
+                        case Objects::Kind::FatMachO:
+                            assert(false &&
+                                   "Image-Object is somehow a Fat-MachO");
+                        case Objects::Kind::DyldSharedCache:
+                            assert(false &&
+                                   "Image-Object is somehow a Dyld "
+                                   "Shared-Cache");
+                            break;
+                        case Objects::Kind::DscImage:
+                            using ErrorKind = Objects::DscImage::OpenError;
+                            switch (ErrorKind(Error.Error)) {
+                                case ErrorKind::None:
+                                    assert(false &&
+                                           "Got Error None for MachO "
+                                           "OpenError");
+                                case ErrorKind::InvalidAddress:
+                                    fputs("Image Address is invalid\n", stderr);
+                                    exit(1);
+                                case ErrorKind::WrongFormat:
+                                    assert(false &&
+                                           "Got Error WrongFormat for MachO "
+                                           "OpenError");
+                                case ErrorKind::SizeTooSmall:
+                                    fprintf(stderr,
+                                            "Image at index %" PRIu32 " is too "
+                                            "small to be a valid mach-o\n",
+                                            ImageIndex);
+                                    exit(1);
+                                case ErrorKind::WrongCpuInfo:
+                                    fputs("Image has different cpu-info than "
+                                          "the shared-cache\n",
+                                          stderr);
+                                    exit(1);
+                                case ErrorKind::NotMarkedAsImage:
+                                    fputs("Image's mach_header is not marked "
+                                          "as a shared-cache image\n",
+                                          stderr);
+                                    exit(1);
+                                case ErrorKind::NotADylib:
+                                    fputs("Image is not a dynamic-library\n",
+                                          stderr);
+                                    exit(1);
+                                case ErrorKind::SizeTooLarge:
+                                    fputs("Image extends beyond of file\n",
+                                          stderr);
+                                    exit(1);
+                                case ErrorKind::TooManyLoadCommands:
+                                    fprintf(stderr,
+                                            "Image at index %" PRIu32 " has "
+                                            "too many load-commands for its "
+                                            "size\n",
+                                            ImageIndex);
+                                    exit(1);
+                                }
+                        }
+                }
+
+                return run(
+                    static_cast<Objects::DscImage &>(*ImageObject.ptr()));
             }
+            case Objects::Kind::DscImage:
+                assert(false && "File is somehow a Dsc-image");
+
+        }
 
         assert(false && "Got unrecognized Object-Kind in runAndHandleFile()");
     }

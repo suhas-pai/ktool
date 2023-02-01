@@ -5,12 +5,7 @@
 //  Created by suhaspai on 11/21/22.
 //
 
-#include "MachO/LoadCommands.h"
-#include "MachO/LoadCommandsMap.h"
-
 #include "Operations/PrintId.h"
-
-#include "Utils/Misc.h"
 #include "Utils/Print.h"
 
 namespace Operations {
@@ -25,6 +20,7 @@ namespace Operations {
                 assert(false &&
                        "Got Object-Kind None in PrintId::supportsObjectKind()");
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return true;
             case Objects::Kind::DyldSharedCache:
             case Objects::Kind::FatMachO:
@@ -87,11 +83,25 @@ namespace Operations {
         return Result.set(RunError::IdNotFound);
     }
 
+    RunResult PrintId::run(const Objects::DscImage &Image) const noexcept {
+        if (Opt.Verbose) {
+            return run(static_cast<const Objects::MachO &>(Image));
+        }
+
+        auto Result = RunResult(Objects::Kind::DscImage);
+        fprintf(OutFile,
+                "\"" STRING_VIEW_FMT "\"",
+                STRING_VIEW_FMT_ARGS(Image.path()));
+
+        return Result.set(RunError::None);
+    }
+
     auto PrintId::run(const Objects::Base &Base) const noexcept -> RunResult {
         switch (Base.kind()) {
             case Objects::Kind::None:
                 assert(false && "PrintId::run() got Object with Kind::None");
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::DyldSharedCache:
             case Objects::Kind::FatMachO:

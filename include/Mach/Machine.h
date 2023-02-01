@@ -85,7 +85,7 @@ namespace Mach {
 
     enum class Intelx86_64 : int32_t {
         All = 3,
-        Haswell
+        Haswell = 8
     };
 
     enum class Motorola98000 : int32_t {

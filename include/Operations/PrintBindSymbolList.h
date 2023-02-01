@@ -6,7 +6,9 @@
 #pragma once
 
 #include <vector>
+
 #include "Operations/Base.h"
+#include "Objects/MachO.h"
 
 namespace Operations {
     struct PrintBindSymbolList : public Base {

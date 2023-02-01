@@ -6,8 +6,11 @@
 #include "DyldSharedCache/Headers.h"
 #include "Mach/Machine.h"
 
+#include "MachO/Magic.h"
+#include "Objects/DscImage.h"
 #include "Objects/DyldSharedCache.h"
 #include "Objects/Base.h"
+#include "Utils/Misc.h"
 
 namespace Objects {
     constexpr auto GetCpuKind(const std::string_view MagicCpuKindStr) noexcept {
@@ -150,5 +153,22 @@ namespace Objects {
         }
 
         return new DyldSharedCache(Map, CpuKind);
+    }
+
+    auto
+    DyldSharedCache::getImageObjectAtIndex(const uint32_t Index) const noexcept
+        -> Objects::OpenResult
+    {
+        assert(!Utils::IndexOutOfBounds(Index, imageCount()));
+
+        const auto &ImageInfo = imageInfoList()[Index];
+        const auto ObjectOrErr = DscImage::Open(*this, ImageInfo);
+
+        if (const auto Ptr = ObjectOrErr.ptr()) {
+            return Ptr;
+        }
+
+        return Objects::OpenError(Kind::DscImage,
+                                  static_cast<uint32_t>(ObjectOrErr.error()));
     }
 }

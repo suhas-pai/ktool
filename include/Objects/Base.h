@@ -35,7 +35,9 @@ namespace Objects {
 
         constexpr OpenError() noexcept = default;
         constexpr OpenError(const enum Kind Kind, const uint32_t Error) noexcept
-        : Kind(Kind), Error(Error) {}
+        : Kind(Kind), Error(Error) {
+            assert(Error != 0);
+        }
 
         [[nodiscard]] constexpr auto isNone() const noexcept {
             return Error == 0;

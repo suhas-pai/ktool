@@ -32,6 +32,7 @@ namespace Operations {
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
+            case Objects::Kind::DscImage:
                 return false;
         }
 
@@ -132,6 +133,7 @@ namespace Operations {
     {
         const auto RightPad =
             static_cast<int>(LongestLength + STR_LENGTH("\"\" -"));
+
         const auto KindDesc =
             ExportTrieExportKindIsValid(Export.kind()) ?
                 ExportTrieExportKindGetDesc(Export.kind()) :
@@ -633,9 +635,10 @@ namespace Operations {
             case Objects::Kind::None:
                 assert(false &&
                        "PrintExportTrie::run() got Object with Kind::None");
-            case Objects::Kind::DyldSharedCache:
             case Objects::Kind::MachO:
                 return run(static_cast<const Objects::MachO &>(Base));
+            case Objects::Kind::DyldSharedCache:
+            case Objects::Kind::DscImage:
             case Objects::Kind::FatMachO:
                 return RunResultUnsupported;
         }

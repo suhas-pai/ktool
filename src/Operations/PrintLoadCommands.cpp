@@ -33,6 +33,7 @@ namespace Operations {
                        "Got Object-Kind None in "
                        "PrintLoadCommands::supportsObjectKind()");
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return true;
             case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:
@@ -1310,6 +1311,7 @@ namespace Operations {
                 assert(false &&
                        "PrintLoadCommands::run() got Object with Kind::None");
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:

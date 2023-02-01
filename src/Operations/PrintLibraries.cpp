@@ -7,6 +7,7 @@
 
 #include <algorithm>
 
+#include "MachO/LoadCommands.h"
 #include "MachO/LoadCommandsMap.h"
 #include "Operations/PrintLibraries.h"
 
@@ -26,6 +27,7 @@ namespace Operations {
                        "Got Object-Kind None in "
                        "PrintLibraries::supportsObjectKind()");
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return true;
             case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:
@@ -113,22 +115,17 @@ namespace Operations {
 
         for (const auto &LoadCommand : MachO.loadCommandsMap()) {
             using namespace MachO;
-            using Kind = LoadCommandKind;
+            if (LoadCommand.isSharedLibrary(IsBigEndian)) {
+                const auto &DylibCmd =
+                    cast<DylibCommand>(LoadCommand, IsBigEndian);
 
-            if (const auto DylibCmd =
-                    dyn_cast<Kind::LoadDylib,
-                             Kind::LoadWeakDylib,
-                             Kind::ReexportDylib,
-                             Kind::LazyLoadDylib,
-                             Kind::LoadUpwardDylib>(&LoadCommand, IsBigEndian))
-            {
-                const auto NameOpt = DylibCmd->name(IsBigEndian);
+                const auto NameOpt = DylibCmd.name(IsBigEndian);
                 const auto Info = DylibInfo {
                     .Name = NameOpt.has_value() ? NameOpt.value() : Malformed,
-                    .Kind = DylibCmd->kind(IsBigEndian),
-                    .CurrentVersion = DylibCmd->currentVersion(IsBigEndian),
-                    .CompatVersion = DylibCmd->compatVersion(IsBigEndian),
-                    .Timestamp = DylibCmd->timestamp(IsBigEndian),
+                    .Kind = DylibCmd.kind(IsBigEndian),
+                    .CurrentVersion = DylibCmd.currentVersion(IsBigEndian),
+                    .CompatVersion = DylibCmd.compatVersion(IsBigEndian),
+                    .Timestamp = DylibCmd.timestamp(IsBigEndian),
                     .Index = LoadCommandIndex
                 };
 
@@ -201,6 +198,7 @@ namespace Operations {
                 assert(false &&
                        "PrintLibraries::run() got Object with Kind::None");
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:

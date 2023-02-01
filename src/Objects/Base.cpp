@@ -62,6 +62,8 @@ namespace Objects {
                                      static_cast<uint32_t>(Error));
                 }
             }
+            case Kind::DscImage:
+                break;
         }
 
         return OpenErrorUnrecognized;
@@ -124,6 +126,8 @@ namespace Objects {
                                      static_cast<uint32_t>(Error));
                 }
             }
+            case Kind::DscImage:
+                break;
         }
 
         return OpenErrorUnrecognized;

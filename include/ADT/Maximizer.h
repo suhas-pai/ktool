@@ -5,6 +5,7 @@
 //  Created by suhaspai on 11/22/22.
 //
 
+#pragma once
 #include <concepts>
 
 namespace ADT {

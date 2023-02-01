@@ -31,6 +31,7 @@ namespace Operations {
                        "Got Object-Kind None in "
                        "PrintHeader::supportsObjectKind()");
             case Objects::Kind::DyldSharedCache:
+            case Objects::Kind::DscImage:
             case Objects::Kind::MachO:
             case Objects::Kind::FatMachO:
                 return true;
@@ -91,7 +92,7 @@ namespace Operations {
         for (const auto Bit : ADT::FlagsIterator(Flags)) {
             const auto Flag = MachO::Flags::Kind(1 << Bit);
             fprintf(OutFile,
-                    "\t\t %" PRIu8 ". Bit %" PRIu32 ": %s\n",
+                    "\t\t %" ZEROPAD_FMT_C(2) PRIu8 ". Bit %" PRIu32 ": %s\n",
                     Counter,
                     Bit,
                     MachO::Flags::KindIsValid(Flag) ?
@@ -1537,6 +1538,7 @@ namespace Operations {
             case Objects::Kind::DyldSharedCache:
                 return run(static_cast<const Objects::DyldSharedCache &>(Base));
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
                 return run(static_cast<const Objects::FatMachO &>(Base));

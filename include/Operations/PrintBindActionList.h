@@ -6,6 +6,8 @@
 #pragma once
 
 #include <vector>
+
+#include "Objects/MachO.h"
 #include "Operations/Base.h"
 
 namespace Operations {

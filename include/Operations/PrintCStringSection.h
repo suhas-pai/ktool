@@ -10,6 +10,8 @@
 #include <limits>
 #include <optional>
 
+#include "ADT/MemoryMap.h"
+#include "Objects/DscImage.h"
 #include "Objects/MachO.h"
 #include "Base.h"
 
@@ -27,6 +29,12 @@ namespace Operations {
 
         std::optional<std::string> SegmentName;
         std::string SectionName;
+
+        auto
+        CollectAndPrintCStringList(RunResult &Result,
+                                   const ADT::MemoryMap &Map,
+                                   const Objects::MachO &MachO) const noexcept
+            -> RunResult &;
     public:
         constexpr static auto Kind = Operations::Kind::PrintCStringSection;
 
@@ -51,6 +59,7 @@ namespace Operations {
 
         RunResult run(const Objects::Base &Base) const noexcept override;
         RunResult run(const Objects::MachO &MachO) const noexcept;
+        RunResult run(const Objects::DscImage &DscImage) const noexcept;
 
         [[nodiscard]] constexpr auto &options() const noexcept {
             return Opt;

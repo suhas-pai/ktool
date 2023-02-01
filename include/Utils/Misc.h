@@ -73,12 +73,12 @@ namespace Utils {
 
     template <std::unsigned_integral T, std::unsigned_integral U>
     constexpr auto IndexOutOfBounds(const T Index, const U Bound) noexcept {
-        return Index < Bound;
+        return Index >= Bound;
     }
 
     template <std::unsigned_integral T, std::unsigned_integral U>
     constexpr auto OrdinalOutOfBounds(const T Ordinal, const U Bound) noexcept {
-        return Ordinal != 0 && Ordinal <= Bound;
+        return Ordinal == 0 || Ordinal > Bound;
     }
 
     template <std::unsigned_integral T>

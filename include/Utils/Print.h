@@ -139,6 +139,11 @@ namespace Utils {
 #define STRING_VIEW_FMT "%.*s"
 #define STRING_VIEW_FMT_ARGS(SV) static_cast<int>((SV).length()), (SV).data()
 
+#define ZEROPAD_FMT_C(C) "0" TO_STRING(C)
+#define LEFTPAD_FMT_C(C) TO_STRING(C)
+#define RIGHTPAD_FMT_C(C) "-" TO_STRING(C)
+#define STRING_VIEW_FMT_C(C) "%." TO_STRING(C) "s"
+
 #define ZEROPAD_FMT "0*"
 #define ZEROPAD_FMT_ARGS(val) val
 #define LEFTPAD_FMT "*"

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "Objects/DscImage.h"
 #include "Objects/MachO.h"
 #include "Base.h"
 
@@ -36,6 +37,7 @@ namespace Operations {
 
         RunResult run(const Objects::Base &Base) const noexcept override;
         RunResult run(const Objects::MachO &MachO) const noexcept;
+        RunResult run(const Objects::DscImage &Image) const noexcept;
 
         [[nodiscard]] constexpr auto &options() const noexcept {
             return Opt;

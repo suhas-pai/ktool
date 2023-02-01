@@ -6,21 +6,11 @@
 //
 
 #include <algorithm>
-#include <cstddef>
-#include <optional>
-#include <string_view>
 #include <type_traits>
-#include <vector>
 
 #include "ADT/Maximizer.h"
-#include "ADT/MemoryMap.h"
 
-#include "MachO/LoadCommands.h"
-
-#include "Operations/Base.h"
 #include "Operations/PrintSymbolPtrSection.h"
-
-#include "Utils/Misc.h"
 #include "Utils/Print.h"
 
 namespace Operations {
@@ -45,6 +35,7 @@ namespace Operations {
                 return true;
             case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:
+            case Objects::Kind::DscImage:
                 return false;
         }
 
@@ -709,6 +700,7 @@ namespace Operations {
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:
+            case Objects::Kind::DscImage:
                 return RunResultUnsupported;
         }
 

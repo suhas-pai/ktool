@@ -742,6 +742,28 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             }
 
             FileOptions.ArchIndex = ArchIndexOpt.value();
+        } else if (Arg == "--image-index") {
+            I++;
+            if (I == argc) {
+                fprintf(stderr,
+                        "Option %s expects an index to an image.\n"
+                        "Use option --images to see a list of available "
+                        "architectures\n",
+                        Arg.data());
+                return 1;
+            }
+
+            const auto IndexArg = std::string_view(argv[I]);
+            const auto ImageIndexOpt = Utils::to_uint<uint32_t>(IndexArg);
+
+            if (!ImageIndexOpt) {
+                fprintf(stderr,
+                        "%s is not a valid index-number\n",
+                        argv[I]);
+                return 1;
+            }
+
+            FileOptions.ImageIndex = ImageIndexOpt.value();
         } else {
             fprintf(stderr, "Unrecognized option: \"%s\"\n", Arg.data());
             return 1;

@@ -45,7 +45,7 @@ namespace ADT {
         }
 
         [[nodiscard]] constexpr auto size() const noexcept {
-            return End - Begin;
+            return static_cast<size_t>(End - Begin);
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {
@@ -80,6 +80,15 @@ namespace ADT {
         [[nodiscard]] constexpr auto &at(const size_t Idx) const noexcept {
             assert(Idx < size());
             return const_cast<const T&>(Begin[Idx]);
+        }
+
+        [[nodiscard]] constexpr auto &operator[](const size_t Index) noexcept {
+            return at(Index);
+        }
+
+        [[nodiscard]]
+        constexpr auto &operator[](const size_t Index) const noexcept {
+            return at(Index);
         }
 
         struct Iterator {

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "ADT/MemoryMap.h"
 #include "ADT/PointerOrError.h"
 
 #include "MachO/Header.h"
@@ -16,11 +17,6 @@
 
 namespace Objects {
     struct MachO : public Base {
-    protected:
-        ADT::MemoryMap Map;
-
-        explicit MachO(const ADT::MemoryMap &Map) noexcept
-        : Base(Kind::MachO), Map(Map) {}
     public:
         enum class OpenError {
             None,
@@ -29,6 +25,16 @@ namespace Objects {
             SizeTooSmall,
             TooManyLoadCommands
         };
+    protected:
+        ADT::MemoryMap Map;
+
+        static auto VerifyMap(const ADT::MemoryMap &Map) noexcept -> OpenError;
+        static auto
+        VerifyLoadCommands(const ADT::MemoryMap &Map) noexcept -> OpenError;
+
+        explicit MachO(const ADT::MemoryMap &Map) noexcept
+        : Base(Kind::MachO), Map(Map) {}
+    public:
 
         ~MachO() noexcept override {}
 

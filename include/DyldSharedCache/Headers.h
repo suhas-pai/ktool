@@ -356,49 +356,14 @@ namespace DyldSharedCache {
             }
 
             for (const auto &Mapping : mappingInfoList()) {
-                const auto Offset =
-                    Mapping.getFileOffsetFromAddr(Addr, MaxSizeOut);
-
-                if (Offset.has_value()) {
+                if (const auto Offset =
+                        Mapping.getFileOffsetFromAddr(Addr, MaxSizeOut))
+                {
                     return Offset.value();
                 }
             }
 
             return std::nullopt;
-        }
-
-        template <typename T = uint8_t>
-        [[nodiscard]]
-        inline auto getPtrForAddress(const uint64_t Address) noexcept -> T * {
-            auto Size = uint64_t();
-            if (const auto Offset = getFileOffsetForAddress(Address, &Size)) {
-                if (Size < sizeof(T)) {
-                    return nullptr;
-                }
-
-                const auto Map = reinterpret_cast<uint8_t *>(this);
-                return reinterpret_cast<T *>(Map + Offset.value());
-            }
-
-            return nullptr;
-        }
-
-        template <typename T = uint8_t>
-        [[nodiscard]] inline
-        auto getPtrForAddress(const uint64_t Address) const noexcept
-            -> const T *
-        {
-            auto Size = uint64_t();
-            if (const auto Offset = getFileOffsetForAddress(Address, &Size)) {
-                if (Size < sizeof(T)) {
-                    return nullptr;
-                }
-
-                const auto Map = reinterpret_cast<const uint8_t *>(this);
-                return reinterpret_cast<const T *>(Map + Offset.value());
-            }
-
-            return nullptr;
         }
 
         [[nodiscard]] inline ADT::Range getMappingsRange() const noexcept {
@@ -419,7 +384,7 @@ namespace DyldSharedCache {
         const auto MappingList = Header.mappingInfoList();
         const auto FirstMappingFileOff = MappingList.front().FileOffset;
 
-        return (PathFileOffset < FirstMappingFileOff);
+        return PathFileOffset < FirstMappingFileOff;
     }
 
     // From dyld v195.5

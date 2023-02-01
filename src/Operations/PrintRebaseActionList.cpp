@@ -8,6 +8,8 @@
 #include "MachO/RebaseInfo.h"
 #include "MachO/SegmentList.h"
 
+#include "Objects/MachO.h"
+
 #include "Operations/PrintRebaseActionList.h"
 #include "Utils/Print.h"
 
@@ -29,6 +31,7 @@ namespace Operations {
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
+            case Objects::Kind::DscImage:
             case Objects::Kind::DyldSharedCache:
                 return false;
         }
@@ -171,6 +174,7 @@ namespace Operations {
             case Objects::Kind::MachO:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
+            case Objects::Kind::DscImage:
             case Objects::Kind::DyldSharedCache:
                 return RunResultUnsupported;
         }

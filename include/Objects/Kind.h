@@ -6,6 +6,8 @@
 //
 
 #pragma once
+
+#include <cassert>
 #include <string_view>
 
 namespace Objects {
@@ -13,7 +15,8 @@ namespace Objects {
         None,
         MachO,
         FatMachO,
-        DyldSharedCache
+        DyldSharedCache,
+        DscImage
     };
 
     [[nodiscard]] constexpr auto KindIsValid(const Kind Kind) noexcept {
@@ -22,6 +25,7 @@ namespace Objects {
             case Kind::MachO:
             case Kind::FatMachO:
             case Kind::DyldSharedCache:
+            case Kind::DscImage:
                 return true;
         }
 
@@ -40,6 +44,8 @@ namespace Objects {
                 return "Fat Mach-O";
             case Kind::DyldSharedCache:
                 return "Dyld Shared Cache";
+            case Kind::DscImage:
+                return "Dsc-Image";
         }
 
         assert(false && "Got unrecognized Object-Kind in KindGetString()");
