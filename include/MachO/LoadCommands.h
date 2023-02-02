@@ -1346,7 +1346,7 @@ namespace MachO {
             }
 
             [[nodiscard]] constexpr static
-            auto AttributeIsSytemSettable(const Attribute Attr) noexcept {
+            auto AttributeIsSystemSettable(const Attribute Attr) noexcept {
                 return SegmentCommand::Section::AttributeIsSystemSettable(Attr);
             }
 

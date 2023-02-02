@@ -32,10 +32,10 @@ namespace Operations {
                        "Got Object-Kind None in "
                        "PrintSymbolPtrSection::supportsObjectKind()");
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return true;
             case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:
-            case Objects::Kind::DscImage:
                 return false;
         }
 
@@ -79,7 +79,7 @@ namespace Operations {
     }
 
     struct DylibInfo {
-        std::string_view Path;
+        std::string Path;
 
         Dyld3::PackedVersion CurrentVersion;
         Dyld3::PackedVersion CompatVersion;
@@ -142,15 +142,13 @@ namespace Operations {
                    uint8_t &LongestKindLength) noexcept
     {
         using RunError = PrintSymbolPtrSection::RunError;
-        using T = std::conditional_t<Is64Bit, uint64_t, uint32_t>;
-
         const auto IndirectSymbolOffset =
             DynamicSymTab.indirectSymbolsOffset(IsBigEndian);
         const auto IndirectSymbolCount =
             DynamicSymTab.indirectSymbolsCount(IsBigEndian);
 
         const auto IndexList =
-            Map.get<T>(IndirectSymbolOffset, IndirectSymbolCount);
+            Map.get<uint32_t>(IndirectSymbolOffset, IndirectSymbolCount);
 
         if (IndexList == nullptr) {
             Result.set(RunError::IndexListOutOfBounds);
@@ -314,12 +312,13 @@ namespace Operations {
 
         const auto IsBigEndian = MachO.isBigEndian();
         const auto Is64Bit = MachO.is64Bit();
+        const auto Map = MachO.getMapForFileOffsets();
+
+        constexpr auto Malformed = std::string_view("<malformed>");
 
         auto SymTabCmd = static_cast<const SymTabCommand *>(nullptr);
         auto DynamicSymTabCmd =
             static_cast<const DynamicSymTabCommand *>(nullptr);
-
-        constexpr auto Malformed = std::string_view("<malformed>");
 
         auto DylibList = std::vector<DylibInfo>();
         auto SegmentList = std::vector<SegmentInfo>();
@@ -364,8 +363,9 @@ namespace Operations {
                     }
 
                     const auto SectionRange = Section->fileRange(IsBigEndian);
-                    SectionData =
-                        MachO.map().getFromRange<const char>(SectionRange);
+
+                    SectionData = Map.getFromRange<const char>(SectionRange);
+                    SectionReserved1 = Section->reserved1(IsBigEndian);
 
                     if (SectionData == nullptr) {
                         return Result.set(RunError::InvalidSectionRange);
@@ -375,7 +375,7 @@ namespace Operations {
                     break;
                 }
                 case Kind::Segment64: {
-                    if (Is64Bit) {
+                    if (!Is64Bit) {
                         break;
                     }
 
@@ -412,8 +412,9 @@ namespace Operations {
                     }
 
                     const auto SectionRange = Section->fileRange(IsBigEndian);
-                    SectionData =
-                        MachO.map().getFromRange<const char>(SectionRange);
+
+                    SectionData = Map.getFromRange<const char>(SectionRange);
+                    SectionReserved1 = Section->reserved1(IsBigEndian);
 
                     if (SectionData == nullptr) {
                         return Result.set(RunError::InvalidSectionRange);
@@ -536,7 +537,7 @@ namespace Operations {
             IterateResult =
                 IterateIndices<true>(*SymTabCmd,
                                      *DynamicSymTabCmd,
-                                     MachO.map(),
+                                     Map,
                                      SectionReserved1,
                                      Result,
                                      Opt.SkipInvalidIndices,
@@ -551,7 +552,7 @@ namespace Operations {
             IterateResult =
                 IterateIndices<false>(*SymTabCmd,
                                       *DynamicSymTabCmd,
-                                      MachO.map(),
+                                      Map,
                                       SectionReserved1,
                                       Result,
                                       Opt.SkipInvalidIndices,
@@ -697,10 +698,10 @@ namespace Operations {
                        "PrintSymbolPtrSection::run() got Object with "
                        "Kind::None");
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:
-            case Objects::Kind::DscImage:
                 return RunResultUnsupported;
         }
 

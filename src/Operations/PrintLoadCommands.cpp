@@ -129,6 +129,12 @@ namespace Operations {
                     const auto FileOffset = Section.fileOffset(IsBigEndian);
                     const auto FormattedSize = Utils::FormattedSize(Size);
 
+                    const auto Align = Section.align(IsBigEndian);
+                    const auto AlignDesc = Utils::FormattedSize(1ull << Align);
+
+                    constexpr auto LongestAlignDescLength =
+                        std::string_view("512 Bytes").length();
+
                     if (Verbose) {
                         fprintf(OutFile,
                                 "\t%s%" LEFTPAD_FMT PRIu32 ". ",
@@ -139,13 +145,19 @@ namespace Operations {
                         fprintf(OutFile,
                                 "\t%s%" LEFTPAD_FMT PRIu32 ". "
                                 "File: " ADDR_RANGE_32_FMT
-                                "\tMem: " ADDR_RANGE_32_FMT,
+                                "\tMem: " ADDR_RANGE_32_FMT
+                                "\tAlign: ",
                                 Prefix,
                                 LEFTPAD_FMT_ARGS(SectionCountDigitCount),
                                 I + 1,
                                 ADDR_RANGE_FMT_ARGS(FileOffset,
                                                     FileOffset + Size),
                                 ADDR_RANGE_FMT_ARGS(Addr, Addr + Size));
+
+                        Utils::RightPadSpaces(
+                            OutFile,
+                            fprintf(OutFile, "%s", AlignDesc.c_str()),
+                            LongestAlignDescLength);
                     }
 
                     Utils::PrintSegmentSectionPair(OutFile,
@@ -174,10 +186,6 @@ namespace Operations {
                     }
 
                     if (Verbose) {
-                        const auto Align = Section.align(IsBigEndian);
-                        const auto AlignDesc =
-                            Utils::FormattedSize(1ull << Align);
-
                         fprintf(OutFile,
                                 "\n\t\t%sFile:              "
                                     ADDR_RANGE_32_FMT "\n"
@@ -332,6 +340,12 @@ namespace Operations {
                     const auto FileOffset = Section.fileOffset(IsBigEndian);
                     const auto FormattedSize = Utils::FormattedSize(Size);
 
+                    const auto Align = Section.align(IsBigEndian);
+                    const auto AlignDesc = Utils::FormattedSize(1ull << Align);
+
+                    constexpr auto LongestAlignDescLength =
+                        std::string_view("512 Bytes").length();
+
                     if (Verbose) {
                         fprintf(OutFile,
                                 "\t%s%" LEFTPAD_FMT PRIu32 ". ",
@@ -342,13 +356,19 @@ namespace Operations {
                         fprintf(OutFile,
                                 "\t%s%" LEFTPAD_FMT PRIu32 ". "
                                 "File: " ADDR_RANGE_32_64_FMT
-                                "\tMem: " ADDR_RANGE_64_FMT,
+                                "\tMem: " ADDR_RANGE_64_FMT
+                                "\tAlign: ",
                                 Prefix,
                                 LEFTPAD_FMT_ARGS(SectionCountDigitCount),
                                 I + 1,
                                 ADDR_RANGE_FMT_ARGS(FileOffset,
                                                     FileOffset + Size),
                                 ADDR_RANGE_FMT_ARGS(Addr, Addr + Size));
+
+                        Utils::RightPadSpaces(
+                            OutFile,
+                            fprintf(OutFile, "%s", AlignDesc.c_str()),
+                            LongestAlignDescLength);
                     }
 
                     Utils::PrintSegmentSectionPair(OutFile,
@@ -695,7 +715,7 @@ namespace Operations {
 
                 fprintf(OutFile,
                         "\n"
-                        "%sSym Offset:          " ADDRESS_32_FMT "\n"
+                        "%sSymbol Table Offset: " ADDRESS_32_FMT "\n"
                         "%sSymbol Count:        %" PRIu32 "\n"
                         "%sString Table Offset: " ADDRESS_32_FMT " ("
                             ADDR_RANGE_32_FMT ")\n"

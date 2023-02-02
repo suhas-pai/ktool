@@ -124,4 +124,9 @@ namespace Objects {
 
         return new DscImage(Dsc.map(), ImageInfo, ImageMap);
     }
+
+    [[nodiscard]]
+    auto DscImage::getMapForFileOffsets() const noexcept -> ADT::MemoryMap {
+        return dscMap();
+    }
 }

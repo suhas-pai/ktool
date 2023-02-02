@@ -75,4 +75,9 @@ namespace Objects {
 
         return new MachO(Map);
     }
+
+    [[nodiscard]]
+    auto MachO::getMapForFileOffsets() const noexcept -> ADT::MemoryMap {
+        return map();
+    }
 }

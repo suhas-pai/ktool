@@ -160,12 +160,10 @@ namespace Operations {
     }
 
     auto
-    PrintCStringSection::CollectAndPrintCStringList(
-        RunResult &Result,
-        const ADT::MemoryMap &Map,
-        const Objects::MachO &MachO) const noexcept
-        -> RunResult &
+    PrintCStringSection::run(const Objects::MachO &MachO) const noexcept
+        -> RunResult
     {
+        auto Result = RunResult(Objects::Kind::MachO);
         if (SectionName.empty()) {
             return Result.set(RunError::EmptySectionName);
         }
@@ -177,6 +175,7 @@ namespace Operations {
 
         const auto IsBigEndian = MachO.isBigEndian();
         const auto Is64Bit = MachO.is64Bit();
+        const auto Map = MachO.getMapForFileOffsets();
 
         if (Is64Bit) {
             for (const auto &LC : MachO.loadCommandsMap()) {
@@ -341,22 +340,6 @@ namespace Operations {
     }
 
     auto
-    PrintCStringSection::run(const Objects::MachO &MachO) const noexcept
-        -> RunResult
-    {
-        auto Result = RunResult(Objects::Kind::MachO);
-        return CollectAndPrintCStringList(Result, MachO.map(), MachO);
-    }
-
-    auto
-    PrintCStringSection::run(const Objects::DscImage &DscImage) const noexcept
-        -> RunResult
-    {
-        auto Result = RunResult(Objects::Kind::DscImage);
-        return CollectAndPrintCStringList(Result, DscImage.dscMap(), DscImage);
-    }
-
-    auto
     PrintCStringSection::run(const Objects::Base &Base) const noexcept
         -> RunResult
     {
@@ -365,7 +348,6 @@ namespace Operations {
                 assert(false &&
                        "PrintCStringSection::run() got Object with Kind::None");
             case Objects::Kind::MachO:
-                return run(static_cast<const Objects::DscImage &>(Base));
             case Objects::Kind::DscImage:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:

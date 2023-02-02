@@ -95,7 +95,7 @@ namespace ADT {
 
             const auto Index = Loc - Begin;
             if (MaxSizeOut != nullptr) {
-                *MaxSizeOut = end().value() - Index;
+                *MaxSizeOut = Size - Index;
             }
 
             return Index;

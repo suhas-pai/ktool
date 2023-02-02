@@ -68,5 +68,8 @@ namespace Objects {
 
             return ::MachO::LoadCommandsMap(LoadCommandsMemoryMap, IsBigEndian);
         }
+
+        [[nodiscard]]
+        virtual auto getMapForFileOffsets() const noexcept -> ADT::MemoryMap;
     };
 }

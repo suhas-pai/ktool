@@ -74,7 +74,7 @@ namespace ADT {
                 }
             }
 
-            const auto AdjBase = reinterpret_cast<uint64_t>(Base) + Offset;
+            const auto AdjBase = reinterpret_cast<uint8_t *>(Base) + Offset;
             return reinterpret_cast<T *>(AdjBase);
         }
 

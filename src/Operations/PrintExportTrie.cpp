@@ -136,8 +136,7 @@ namespace Operations {
 
         const auto KindDesc =
             ExportTrieExportKindIsValid(Export.kind()) ?
-                ExportTrieExportKindGetDesc(Export.kind()) :
-                "<unrecognized>";
+                ExportTrieExportKindGetDesc(Export.kind()) : "<unrecognized>";
 
         fputc(' ', OutFile);
 
