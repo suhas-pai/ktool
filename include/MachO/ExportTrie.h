@@ -4,17 +4,12 @@
  */
 
 #pragma once
-
-#include <cassert>
-#include <memory>
-#include <string>
 #include <vector>
 
-#include "ADT/FlagsBase.h"
 #include "ADT/Tree.h"
+#include "ADT/Trie.h"
 
 #include "MachO/SegmentList.h"
-#include "Utils/Misc.h"
 
 namespace MachO {
     struct ExportTrieFlags : ADT::FlagsBase<uint8_t> {
@@ -89,8 +84,8 @@ namespace MachO {
             return std::nullopt;
         }
 
-        [[nodiscard]] constexpr
-        static auto KindGetFromDesc(const std::string_view D) noexcept
+        [[nodiscard]]
+        constexpr static auto KindGetFromDesc(const std::string_view D) noexcept
             -> std::optional<Kind>
         {
             const Kind Kind = Kind::Regular;
@@ -190,6 +185,33 @@ namespace MachO {
 
         return false;
     }
+
+    [[nodiscard]] constexpr
+    auto ExportTrieExportKindFromFlags(const ExportTrieFlags &Flags) noexcept {
+        switch (Flags.kind()) {
+            case ExportTrieFlags::Kind::Regular:
+                return ExportTrieExportKind::Regular;
+            case ExportTrieFlags::Kind::ThreadLocal:
+                return ExportTrieExportKind::ThreadLocal;
+            case ExportTrieFlags::Kind::Absolute:
+                return ExportTrieExportKind::Absolute;
+        }
+
+        if (Flags.isReexport()) {
+            return ExportTrieExportKind::Reexport;
+        }
+
+        if (Flags.isReexport()) {
+            return ExportTrieExportKind::Reexport;
+        }
+
+        if (Flags.stubAndResolver()) {
+            return ExportTrieExportKind::StubAndResolver;
+        }
+
+        return ExportTrieExportKind::None;
+    }
+
 
     [[nodiscard]] constexpr
     auto ExportTrieExportKindGetString(const ExportTrieExportKind Kind) noexcept
@@ -315,7 +337,6 @@ namespace MachO {
     public:
         using Kind = ExportTrieExportKind;
     protected:
-        std::string String;
         std::string ReexportImportName;
 
         union L {
@@ -362,14 +383,9 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto string() const noexcept -> std::string_view {
-            return String;
-        }
-
-        [[nodiscard]]
         constexpr auto reexportImportName() const noexcept -> std::string_view {
             assert(isReexport());
-            return String;
+            return ReexportImportName;
         }
 
         [[nodiscard]] constexpr auto reexportDylibOrdinal() const noexcept {
@@ -385,20 +401,6 @@ namespace MachO {
         [[nodiscard]] constexpr auto imageOffset() const noexcept {
             assert(!isReexport());
             return Info.Loc.ImageOffset;
-        }
-
-        constexpr auto setString(const std::string_view Value) noexcept
-            -> decltype(*this)
-        {
-            this->String = Value;
-            return *this;
-        }
-
-        constexpr auto setString(std::string &&Value) noexcept
-            -> decltype(*this)
-        {
-            this->String = Value;
-            return *this;
         }
 
         constexpr
@@ -444,6 +446,15 @@ namespace MachO {
             return *this;
         }
 
+        auto
+        ParseExportData(uint8_t *& Ptr,
+                        uint8_t *NodeEnd,
+                        uint8_t *TrieEnd,
+                        std::string_view String,
+                        std::vector<ADT::Range> &RangeList,
+                        std::vector<ADT::TrieStackInfo> &StackInfo) noexcept
+            -> ADT::TrieParseError;
+
         constexpr auto clearExclusiveInfo() noexcept -> decltype(*this) {
             Info.Loc.ImageOffset = 0;
             Info.ReexportDylibOrdinal = 0;
@@ -454,566 +465,23 @@ namespace MachO {
         }
     };
 
-    struct ExportTrieNodeInfo {
+    struct ExportTrieMap : public ADT::Trie<ExportTrieExportInfo> {
     protected:
-        uint64_t Offset = 0;
-        uint64_t Size = 0;
-        uint8_t ChildCount = 0;
-
-        std::string_view Prefix;
+        ExportTrieExportInfo ExportInfo;
     public:
-        [[nodiscard]] constexpr auto offset() const noexcept {
-            return Offset;
-        }
+        explicit
+        ExportTrieMap(uint8_t *const Begin,
+                      uint8_t *const End,
+                      ADT::TrieParser &TrieParser) noexcept
+        : ADT::Trie<ExportTrieExportInfo>(Begin, End, TrieParser, ExportInfo) {}
 
-        [[nodiscard]] constexpr auto &offsetRef() noexcept {
-            return Offset;
-        }
-
-        [[nodiscard]] constexpr auto size() const noexcept {
-            return Size;
-        }
-
-        [[nodiscard]] constexpr auto childCount() const noexcept {
-            return ChildCount;
-        }
-
-        [[nodiscard]]
-        constexpr auto prefix() const noexcept -> std::string_view {
-            return Prefix;
-        }
-
-        constexpr auto setOffset(const uint64_t Value) noexcept
-            -> decltype(*this)
-        {
-            this->Offset = Value;
-            return *this;
-        }
-
-        constexpr auto setSize(const uint64_t Value) noexcept -> decltype(*this)
-        {
-            this->Size = Value;
-            return *this;
-        }
-
-        constexpr auto setChildCount(const uint16_t Value) noexcept
-            -> decltype(*this)
-        {
-            this->ChildCount = Value;
-            return *this;
-        }
-
-        constexpr auto setPrefix(const std::string_view Value) noexcept
-            -> decltype(*this)
-        {
-            this->Prefix = Value;
-            return *this;
-        }
-
-        [[nodiscard]] constexpr auto isExport() const noexcept {
-            return Size != 0;
-        }
-    };
-
-    struct ExportTrieStackInfo {
-    public:
-        using NodeInfo = ExportTrieNodeInfo;
-    protected:
-        NodeInfo Node;
-        uint16_t ChildOrdinal = 0;
-        std::vector<ADT::Range>::size_type RangeListSize = 0;
-    public:
-        ExportTrieStackInfo() noexcept = default;
-        ExportTrieStackInfo(const NodeInfo &Node) noexcept : Node(Node) {}
-
-        [[nodiscard]] constexpr const auto &node() const noexcept {
-            return Node;
-        }
-
-        [[nodiscard]] constexpr auto &node() noexcept {
-            return Node;
-        }
-
-        [[nodiscard]] constexpr auto childOrdinal() const noexcept {
-            return ChildOrdinal;
-        }
-
-        [[nodiscard]] constexpr auto &childOrdinalRef() noexcept {
-            return ChildOrdinal;
-        }
-
-        [[nodiscard]] constexpr auto rangeListSize() const noexcept {
-            return RangeListSize;
-        }
-
-        constexpr auto setChildOrdinal(const uint16_t Value) noexcept
-            -> decltype(*this)
-        {
-            this->ChildOrdinal = Value;
-            return *this;
-        }
-
-        constexpr
-        auto setRangeListSize(const decltype(RangeListSize) Value) noexcept
-            -> decltype(*this)
-        {
-            this->RangeListSize = Value;
-            return *this;
-        }
-    };
-
-    struct ExportTrieIterateInfo {
-        using NodeInfo = ExportTrieNodeInfo;
-        using StackInfo = ExportTrieStackInfo;
-    protected:
-        uint64_t MaxDepth;
-        std::string String;
-
-        std::vector<ADT::Range> RangeList;
-        std::vector<StackInfo> StackList;
-
-        ExportTrieExportKind Kind;
-        ExportTrieExportInfo Export;
-    public:
-        [[nodiscard]] constexpr auto maxDepth() const noexcept {
-            return MaxDepth;
-        }
-
-        [[nodiscard]]
-        constexpr auto string() const noexcept -> std::string_view {
-            return String;
-        }
-
-        [[nodiscard]] constexpr auto &stringRef() noexcept {
-            return String;
-        }
-
-        [[nodiscard]] constexpr auto &rangeList() const noexcept {
-            return RangeList;
-        }
-
-        [[nodiscard]] constexpr auto &rangeListRef() noexcept {
-            return RangeList;
-        }
-
-        [[nodiscard]] constexpr auto &stackList() const noexcept {
-            return StackList;
-        }
-
-        [[nodiscard]] constexpr auto &stackListRef() noexcept {
-            return StackList;
-        }
-
-        [[nodiscard]] constexpr auto kind() const noexcept {
-            return Kind;
-        }
+        explicit
+        ExportTrieMap(const ADT::MemoryMap &Map,
+                      ADT::TrieParser &TrieParser) noexcept
+        : ADT::Trie<ExportTrieExportInfo>(Map, TrieParser, ExportInfo) {}
 
         [[nodiscard]] constexpr auto &exportInfo() const noexcept {
-            return Export;
-        }
-
-        [[nodiscard]] constexpr auto &exportInfoRef() noexcept {
-            return Export;
-        }
-
-        constexpr auto setMaxDepth(const uint64_t Value) noexcept
-            -> decltype(*this)
-        {
-            this->MaxDepth = Value;
-            return *this;
-        }
-
-        constexpr auto setKind(const ExportTrieExportKind Value) noexcept
-            -> decltype(*this)
-        {
-            this->Kind = Value;
-            return *this;
-        }
-
-        [[nodiscard]] inline auto &stack() noexcept {
-            assert(!stackListRef().empty());
-            return stackListRef().back();
-        }
-
-        [[nodiscard]] inline auto &stack() const noexcept {
-            assert(!stackList().empty());
-            return stackList().back();
-        }
-
-        [[nodiscard]] inline auto &node() noexcept {
-            return stack().node();
-        }
-
-        [[nodiscard]] inline auto &node() const noexcept {
-            return stack().node();
-        }
-
-        [[nodiscard]] constexpr auto isExport() const noexcept {
-            return kind() != ExportTrieExportKind::None;
-        }
-
-        [[nodiscard]] constexpr auto absolute() const noexcept {
-            return kind() == ExportTrieExportKind::Absolute;
-        }
-
-        [[nodiscard]] constexpr auto isReexport() const noexcept {
-            return kind() == ExportTrieExportKind::Reexport;
-        }
-
-        [[nodiscard]] constexpr auto regular() const noexcept {
-            return kind() == ExportTrieExportKind::Regular;
-        }
-
-        [[nodiscard]] constexpr auto stubAndResolver() const noexcept {
-            return kind() == ExportTrieExportKind::StubAndResolver;
-        }
-
-        [[nodiscard]] constexpr auto weak() const noexcept {
-            return kind() == ExportTrieExportKind::WeakDefinition;
-        }
-
-        [[nodiscard]] constexpr auto threadLocal() const noexcept {
-            return kind() == ExportTrieExportKind::ThreadLocal;
-        }
-
-        constexpr auto setIsAbsolute() noexcept -> decltype(*this) {
-            setKind(ExportTrieExportKind::Absolute);
-            return *this;
-        }
-
-        constexpr auto setIsReexport() noexcept -> decltype(*this) {
-            setKind(ExportTrieExportKind::Reexport);
-            return *this;
-        }
-
-        constexpr auto setIsRegular() noexcept -> decltype(*this) {
-            setKind(ExportTrieExportKind::Regular);
-            return *this;
-        }
-
-        constexpr auto setIsStubAndResolver() noexcept -> decltype(*this) {
-            setKind(ExportTrieExportKind::StubAndResolver);
-            return *this;
-        }
-
-        constexpr auto setIsWeak() noexcept -> decltype(*this) {
-            setKind(ExportTrieExportKind::WeakDefinition);
-            return *this;
-        }
-
-        constexpr auto setIsThreadLocal() noexcept -> decltype(*this) {
-            setKind(ExportTrieExportKind::ThreadLocal);
-            return *this;
-        }
-
-        [[nodiscard]] inline auto depthLevel() const noexcept {
-            assert(!stackList().empty());
-            return stackList().size();
-        }
-    };
-
-    enum class ExportTrieParseError {
-        None,
-        InvalidUleb128,
-        InvalidFormat,
-        OverlappingRanges,
-        TooDeep,
-        EmptyExport
-    };
-
-    struct ExportTrieParseOptions {
-        uint64_t RangeListReserveSize = 128;
-        uint64_t StackListReserveSize = 16;
-        uint64_t StringReserveSize = 128;
-        uint64_t MaxDepth = 128;
-    };
-
-    struct ExportTrieIteratorEnd {};
-    struct ExportTrieIterator {
-    public:
-        using Error = ExportTrieParseError;
-
-        using NodeInfo = ExportTrieNodeInfo;
-        using StackInfo = ExportTrieStackInfo;
-        using IterateInfo = ExportTrieIterateInfo;
-
-        using ParseOptions = ExportTrieParseOptions;
-
-        enum class Direction {
-            Normal,
-            MoveUptoParentNode
-        };
-    protected:
-        Error ParseError;
-
-        const uint8_t *Begin;
-        const uint8_t *End;
-
-        std::unique_ptr<ExportTrieIterateInfo> Info;
-        std::unique_ptr<StackInfo> NextStack;
-
-        Direction Direction;
-
-        void SetupInfoForNewStack() noexcept;
-        [[nodiscard]] bool MoveUptoParentNode() noexcept;
-
-        Error ParseNode(const uint8_t *Begin, NodeInfo *InfoOut) noexcept;
-        Error ParseNextNode(const uint8_t *& Ptr, NodeInfo *InfoOut) noexcept;
-        Error Advance() noexcept;
-    public:
-        explicit
-        ExportTrieIterator(
-            const uint8_t *Begin,
-            const uint8_t *End,
-            const ParseOptions &Options = ParseOptions()) noexcept;
-
-        [[nodiscard]] inline auto &info() noexcept {
-            return *Info;
-        }
-
-        [[nodiscard]] inline auto &info() const noexcept {
-            return *Info;
-        }
-
-        [[nodiscard]] inline auto isAtEnd() const noexcept {
-            return info().stackListRef().empty();
-        }
-
-        [[nodiscard]] constexpr auto hasError() const noexcept {
-            return ParseError != Error::None;
-        }
-
-        [[nodiscard]] inline auto getError() const noexcept {
-            return Error::None;
-        }
-
-        constexpr auto setDirection(const enum Direction Direction) noexcept
-            -> decltype(*this)
-        {
-            this->Direction = Direction;
-            return *this;
-        }
-
-        inline auto operator++() noexcept -> decltype(*this) {
-            assert(!hasError());
-            ParseError = Advance();
-
-            return *this;
-        }
-
-        inline auto operator++(int) noexcept -> decltype(*this) {
-            return operator++();
-        }
-
-        inline auto operator+=(const uint64_t Amt) noexcept -> decltype(*this) {
-            for (auto I = uint64_t(); I != Amt; I++) {
-                operator++();
-            }
-
-            return *this;
-        }
-
-        [[nodiscard]] inline auto &operator*() noexcept {
-            return *Info;
-        }
-
-        [[nodiscard]] inline auto &operator*() const noexcept {
-            return *Info;
-        }
-
-        [[nodiscard]] inline auto *operator->() noexcept {
-            return Info.get();
-        }
-
-        [[nodiscard]] inline const auto *operator->() const noexcept {
-            return Info.get();
-        }
-
-        [[nodiscard]]
-        inline auto operator==(const ExportTrieIteratorEnd &) const noexcept {
-            return isAtEnd();
-        }
-
-        [[nodiscard]] inline
-        auto operator!=(const ExportTrieIteratorEnd &End) const noexcept {
-            return !operator==(End);
-        }
-    };
-
-    struct ExportTrieExportIterator {
-    public:
-        using Error = ExportTrieParseError;
-        using ParseOptions = ExportTrieParseOptions;
-    protected:
-        ExportTrieIterator Iterator;
-        void Advance() noexcept;
-    public:
-        explicit
-        ExportTrieExportIterator(const uint8_t *Begin,
-                                 const uint8_t *End) noexcept
-        : Iterator(Begin, End) {
-            Advance();
-        }
-
-        explicit
-        ExportTrieExportIterator(const uint8_t *Begin,
-                                 const uint8_t *End,
-                                 const ParseOptions &Options) noexcept
-        : Iterator(Begin, End, Options) {
-            Advance();
-        }
-
-        [[nodiscard]] inline auto &getInfo() noexcept {
-            return Iterator.info();
-        }
-
-        [[nodiscard]] inline auto &info() const noexcept {
-            return Iterator.info();
-        }
-
-        [[nodiscard]] inline auto isAtEnd() const noexcept {
-            return Iterator.isAtEnd();
-        }
-
-        [[nodiscard]] inline auto hasError() const noexcept {
-            return Iterator.hasError();
-        }
-
-        [[nodiscard]] inline auto getError() const noexcept {
-            return Iterator.getError();
-        }
-
-        inline auto operator++() noexcept -> decltype(*this) {
-            Advance();
-            return *this;
-        }
-
-        inline auto operator++(int) noexcept -> decltype(*this) {
-            return operator++();
-        }
-
-        inline auto operator+=(const uint64_t Amt) noexcept -> decltype(*this) {
-            for (auto I = uint64_t(); I != Amt; I++) {
-                operator++();
-            }
-
-            return *this;
-        }
-
-        [[nodiscard]] inline auto &operator*() noexcept {
-            return Iterator.info();
-        }
-
-        [[nodiscard]] inline const auto &operator*() const noexcept {
-            return Iterator.info();
-        }
-
-        [[nodiscard]] inline auto operator->() noexcept {
-            return &Iterator.info();
-        }
-
-        [[nodiscard]] inline auto operator->() const noexcept {
-            return &Iterator.info();
-        }
-
-        [[nodiscard]] inline
-        auto operator==(const ExportTrieIteratorEnd &End) const noexcept {
-            return Iterator == End;
-        }
-
-        [[nodiscard]] inline
-        auto operator!=(const ExportTrieIteratorEnd &End) const noexcept {
-            return !operator==(End);
-        }
-    };
-
-    struct ExportTrieMap {
-    public:
-        using ParseOptions = ExportTrieParseOptions;
-    protected:
-        const uint8_t *Begin;
-        const uint8_t *End;
-    public:
-        constexpr explicit
-        ExportTrieMap(const uint8_t *const Begin,
-                      const uint8_t *const End) noexcept
-        : Begin(Begin), End(End) {}
-
-        explicit ExportTrieMap(const ADT::MemoryMap &Map) noexcept
-        : Begin(Map.base<uint8_t>()), End(Map.end<uint8_t>()) {}
-
-        using Iterator = ExportTrieIterator;
-
-        [[nodiscard]] inline auto begin() const noexcept {
-            return Iterator(Begin, End);
-        }
-
-        [[nodiscard]] inline auto cbegin() const noexcept {
-            return Iterator(Begin, End);
-        }
-
-        [[nodiscard]]
-        inline auto begin(const ParseOptions &Options) const noexcept {
-            return Iterator(Begin, End, Options);
-        }
-
-        [[nodiscard]]
-        inline auto cbegin(const ParseOptions &Options) const noexcept {
-            return Iterator(Begin, End, Options);
-        }
-
-        [[nodiscard]] inline auto end() const noexcept {
-            return ExportTrieIteratorEnd();
-        }
-
-        [[nodiscard]] inline auto cend() const noexcept {
-            return ExportTrieIteratorEnd();
-        }
-
-        struct ExportMap {
-        protected:
-            const uint8_t *Begin;
-            const uint8_t *End;
-        public:
-            constexpr explicit
-            ExportMap(const uint8_t *const Begin,
-                      const uint8_t *const End) noexcept
-            : Begin(Begin), End(End) {}
-
-            explicit ExportMap(const ADT::MemoryMap &Map) noexcept
-            : Begin(Map.base<uint8_t>()), End(Map.end<uint8_t>()) {}
-
-            using Iterator = ExportTrieExportIterator;
-
-            [[nodiscard]] inline auto begin() const noexcept {
-                return Iterator(Begin, End);
-            }
-
-            [[nodiscard]] inline auto cbegin() const noexcept {
-                return Iterator(Begin, End);
-            }
-
-            [[nodiscard]]
-            inline auto begin(const ParseOptions &Options) const noexcept {
-                return Iterator(Begin, End, Options);
-            }
-
-            [[nodiscard]]
-            inline auto cbegin(const ParseOptions &Options) const noexcept {
-                return Iterator(Begin, End, Options);
-            }
-
-            [[nodiscard]] inline auto end() const noexcept {
-                return ExportTrieIteratorEnd();
-            }
-
-            [[nodiscard]] inline auto cend() const noexcept {
-                return ExportTrieIteratorEnd();
-            }
-        };
-
-        [[nodiscard]] constexpr auto exportMap() const noexcept {
-            return ExportMap(Begin, End);
+            return ExportInfo;
         }
     };
 
@@ -1074,8 +542,8 @@ namespace MachO {
             return Kind;
         }
 
-        [[nodiscard]] constexpr auto string() const noexcept -> std::string_view
-        {
+        [[nodiscard]]
+        constexpr auto string() const noexcept -> std::string_view {
             return String;
         }
 
@@ -1194,7 +662,7 @@ namespace MachO {
     public:
         using ChildNode = ExportTrieChildNode;
         using ExportChildNode = ExportTrieExportChildNode;
-        using Error = ExportTrieParseError;
+        using Error = ADT::TrieParseError;
     protected:
         explicit ExportTrieEntryCollection() noexcept = default;
 
@@ -1206,7 +674,7 @@ namespace MachO {
             -> const SegmentInfo *;
 
         [[nodiscard]] auto
-        MakeNodeForEntryInfo(const ExportTrieIterateInfo &Info,
+        MakeNodeForEntryInfo(const ExportTrieMap::IterateInfo &Info,
                              const MachO::SegmentList *SegList) noexcept
             -> ChildNode *;
 
@@ -1313,7 +781,7 @@ namespace MachO {
     struct ExportTrieExportCollection {
     public:
         using EntryInfo = ExportTrieExportCollectionEntryInfo;
-        using Error = ExportTrieParseError;
+        using Error = ADT::TrieParseError;
         using EntryListType = std::vector<std::unique_ptr<EntryInfo>>;
     protected:
         EntryListType EntryList;

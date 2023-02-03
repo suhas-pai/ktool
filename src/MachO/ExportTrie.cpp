@@ -3,401 +3,90 @@
  * © suhas pai
  */
 
-#include <algorithm>
 #include "MachO/ExportTrie.h"
-
 #include "Utils/Leb128.h"
-#include "Utils/Overflow.h"
 
-namespace  MachO {
-    ExportTrieIterator::ExportTrieIterator(const uint8_t *const Begin,
-                                           const uint8_t *const End,
-                                           const ParseOptions &Options) noexcept
-    : Begin(Begin), End(End)
-    {
-        Info = std::make_unique<ExportTrieIterateInfo>();
-        Info->setMaxDepth(Options.MaxDepth);
-
-        Info->rangeListRef().reserve(Options.RangeListReserveSize);
-        Info->stackListRef().reserve(Options.StackListReserveSize);
-        Info->stringRef().reserve(Options.StringReserveSize);
-
-        auto Node = NodeInfo();
-        this->ParseError = ParseNode(Begin, &Node);
-
-        if (ParseError != Error::None) {
-            return;
-        }
-
-        NextStack = std::make_unique<StackInfo>(Node);
-        this->ParseError = Advance();
-    }
-
-    auto ExportTrieIterator::SetupInfoForNewStack() noexcept -> void {
-        Info->stringRef().append(NextStack->node().prefix());
-        Info->stackListRef().emplace_back(std::move(*NextStack));
-    }
-
-    auto ExportTrieIterator::MoveUptoParentNode() noexcept -> bool {
-        auto &StackList = Info->stackListRef();
-        if (StackList.size() == 1) {
-            StackList.clear();
-            return false;
-        }
-
-        auto &String = Info->stringRef();
-        auto &Top = StackList.back();
-
-        const auto EraseSuffixLength =
-            String.length() - Top.node().prefix().length();
-
-        String.erase(EraseSuffixLength);
-        if (Top.rangeListSize() != 0) {
-            auto &RangeList = Info->rangeListRef();
-            RangeList.erase(RangeList.cbegin() +
-                                static_cast<long>(Top.rangeListSize()),
-                            RangeList.cend());
-        }
-
-        StackList.pop_back();
-        StackList.back().childOrdinalRef() += 1;
-
-        return true;
-    }
-
+namespace MachO {
     auto
-    ExportTrieIterator::ParseNode(const uint8_t *Ptr,
-                                  NodeInfo *const InfoOut) noexcept
-        -> ExportTrieIterator::Error
+    ExportTrieExportInfo::ParseExportData(
+        uint8_t *& Ptr,
+        uint8_t *const NodeEnd,
+        [[maybe_unused]] uint8_t *const TrieEnd,
+        [[maybe_unused]] std::string_view String,
+        [[maybe_unused]] std::vector<ADT::Range> &RangeList,
+        [[maybe_unused]] std::vector<ADT::TrieStackInfo> &StackInfo) noexcept
+            -> ADT::TrieParseError
     {
-        auto NodeSize = Utils::ReadUleb128<uint32_t>(Ptr, End, &Ptr);
+        using Error = ADT::TrieParseError;
+
+        const auto Flags = Utils::ReadUleb128(Ptr, NodeEnd, &Ptr);
         if (Ptr == nullptr) {
             return Error::InvalidUleb128;
         }
 
-        if (Ptr == End) {
+        if (Ptr == NodeEnd) {
             return Error::InvalidFormat;
         }
 
-        const auto Offset = static_cast<uint32_t>(Ptr - Begin);
-        const auto OffsetEndOpt = Utils::AddAndCheckOverflow(Offset, NodeSize);
+        setFlags(Flags);
+        if (isReexport()) {
+            const auto DylibOrdinal =
+                Utils::ReadUleb128<uint32_t>(Ptr, NodeEnd, &Ptr);
 
-        if (!OffsetEndOpt.has_value()) {
-            return Error::InvalidFormat;
-        }
-
-        const auto ExpectedEnd = Ptr + NodeSize;
-        if (ExpectedEnd >= End) {
-            return Error::InvalidFormat;
-        }
-
-        auto &RangeList = Info->rangeListRef();
-
-        const auto Range = ADT::Range::FromEnd(Offset, OffsetEndOpt.value());
-        const auto Predicate = [&Range](const ADT::Range &RhsRange) noexcept {
-            return Range.overlaps(RhsRange);
-        };
-
-        const auto RangeListEnd = RangeList.cend();
-        if (std::find_if(RangeList.cbegin(), RangeListEnd, Predicate) !=
-            RangeListEnd)
-        {
-            return Error::OverlappingRanges;
-        }
-
-        const auto ChildCount = *ExpectedEnd;
-        Info->rangeListRef().emplace_back(Range);
-
-        InfoOut->setOffset(static_cast<uint64_t>(Ptr - Begin));
-        InfoOut->setSize(NodeSize);
-        InfoOut->setChildCount(ChildCount);
-
-        return Error::None;
-    }
-
-    auto
-    ExportTrieIterator::ParseNextNode(const uint8_t *& Ptr,
-                                      NodeInfo *const InfoOut) noexcept
-        -> ExportTrieIterator::Error
-    {
-        const auto StringPtr = reinterpret_cast<const char *>(Ptr);
-        const auto StringLength =
-            strnlen(StringPtr, static_cast<uint64_t>(End - Ptr));
-
-        Ptr += (StringLength + 1);
-
-        const auto Next = Utils::ReadUleb128(Ptr, End, &Ptr);
-        if (Ptr == nullptr) {
-            return Error::InvalidUleb128;
-        }
-
-        if (Ptr == End) {
-            return Error::InvalidFormat;
-        }
-
-        if (Next >= static_cast<uint64_t>(End - Begin)) {
-            return Error::InvalidFormat;
-        }
-
-        InfoOut->setPrefix(std::string_view(StringPtr, StringLength));
-
-        const auto NewBegin =
-            Utils::AddPtrAndCheckOverflow(Begin, Next).value();
-
-        return ParseNode(NewBegin, InfoOut);
-    }
-
-    auto ExportTrieIterator::Advance() noexcept -> ExportTrieIterator::Error {
-        auto &StackList = Info->stackListRef();
-        const auto MaxDepth = Info->maxDepth();
-
-        if (!StackList.empty()) {
-            if (StackList.size() == MaxDepth) {
-                return Error::TooDeep;
+            if (Ptr == nullptr) {
+                return Error::InvalidUleb128;
             }
 
-            auto &PrevStack = StackList.back();
-            const auto &PrevNode = PrevStack.node();
+            if (Ptr == NodeEnd) {
+                return Error::InvalidFormat;
+            }
 
-            if (PrevNode.isExport()) {
-                Info->exportInfoRef().clearExclusiveInfo();
-                Info->setKind(ExportTrieExportKind::None);
+            setReexportDylibOrdinal(DylibOrdinal);
+            if (*Ptr != '\0') {
+                const auto String = reinterpret_cast<const char *>(Ptr);
+                const auto MaxLength = static_cast<uint64_t>(NodeEnd - Ptr);
+                const auto Length = strnlen(String, MaxLength);
 
-                if (PrevNode.childCount() == 0) {
-                    if (!MoveUptoParentNode()) {
-                        return Error::None;
-                    }
+                if (Length == MaxLength) {
+                    return Error::InvalidFormat;
                 }
 
-                PrevStack.setChildOrdinal(1);
+                auto ImportName = std::string(String, Length);
+                setReexportImportName(std::move(ImportName));
+
+                const auto StringSize = Length + 1;
+                Ptr += StringSize;
             } else {
-                switch (Direction) {
-                    case Direction::Normal:
-                        PrevStack.childOrdinalRef() += 1;
-                        SetupInfoForNewStack();
-
-                        break;
-                    case Direction::MoveUptoParentNode:
-                        if (MoveUptoParentNode()) {}
-                        break;
-                }
-            }
-
-            switch (Direction) {
-                case Direction::Normal:
-                    break;
-                case Direction::MoveUptoParentNode:
-                    if (MoveUptoParentNode()) {}
-                    return Error::None;
+                Ptr += 1;
             }
         } else {
-            SetupInfoForNewStack();
+            const auto ImageOffset = Utils::ReadUleb128(Ptr, NodeEnd, &Ptr);
+            if (Ptr == nullptr) {
+                return Error::InvalidUleb128;
+            }
+
+            setImageOffset(ImageOffset);
+            if (stubAndResolver()) {
+                if (Ptr == NodeEnd) {
+                    return Error::InvalidFormat;
+                }
+
+                const auto ResolverStubAddress =
+                    Utils::ReadUleb128(Ptr, NodeEnd, &Ptr);
+
+                if (Ptr == nullptr) {
+                    return Error::InvalidUleb128;
+                }
+
+                setResolverStubAddress(ResolverStubAddress);
+            }
         }
 
-        this->Direction = Direction::Normal;
-
-        do {
-            auto &Stack = StackList.back();
-            auto &Node = Stack.node();
-            auto &Export = Info->exportInfoRef();
-
-            auto Ptr =
-                Utils::AddPtrAndCheckOverflow(this->Begin, Node.offset())
-                    .value();
-
-            const auto ExpectedEnd = Ptr + Node.size();
-            const auto UpdateOffset = [&]() noexcept {
-                Node.setOffset(static_cast<uint64_t>(Ptr - this->Begin));
-            };
-
-            if (Stack.childOrdinal() == 0) {
-                const auto IsExportInfo = Node.isExport();
-                if (IsExportInfo) {
-                    if (Info->string().empty()) {
-                        return Error::EmptyExport;
-                    }
-
-                    const auto Flags = Utils::ReadUleb128(Ptr, End, &Ptr);
-                    if (Ptr == nullptr) {
-                        return Error::InvalidUleb128;
-                    }
-
-                    if (Ptr == End) {
-                        return Error::InvalidFormat;
-                    }
-
-                    Export.setFlags(Flags);
-                    UpdateOffset();
-
-                    if (Export.isReexport()) {
-                        const auto DylibOrdinal =
-                            Utils::ReadUleb128<uint32_t>(Ptr, End, &Ptr);
-
-                        if (Ptr == nullptr) {
-                            return Error::InvalidUleb128;
-                        }
-
-                        if (Ptr == End) {
-                            return Error::InvalidFormat;
-                        }
-
-                        Export.setReexportDylibOrdinal(DylibOrdinal);
-                        UpdateOffset();
-
-                        if (*Ptr != '\0') {
-                            const auto String =
-                                reinterpret_cast<const char *>(Ptr);
-                            const auto MaxLength =
-                                static_cast<uint64_t>(End - Ptr);
-
-                            const auto Length = strnlen(String, MaxLength);
-                            if (Length == MaxLength) {
-                                return Error::InvalidFormat;
-                            }
-
-                            auto ImportName = std::string(String, Length);
-                            Export.setReexportImportName(std::move(ImportName));
-
-                            const auto StringSize = Length + 1;
-
-                            Ptr += StringSize;
-                            Node.offsetRef() += StringSize;
-                        } else {
-                            Ptr += 1;
-                            Node.offsetRef() += 1;
-                        }
-                    } else {
-                        const auto ImageOffset =
-                            Utils::ReadUleb128(Ptr, End, &Ptr);
-
-                        if (Ptr == nullptr) {
-                            return Error::InvalidUleb128;
-                        }
-
-                        Export.setImageOffset(ImageOffset);
-                        if (Export.stubAndResolver()) {
-                            if (Ptr == End) {
-                                return Error::InvalidFormat;
-                            }
-
-                            const auto ResolverStubAddress =
-                                Utils::ReadUleb128(Ptr, End, &Ptr);
-
-                            if (Ptr == nullptr) {
-                                return Error::InvalidUleb128;
-                            }
-
-                            Export.setResolverStubAddress(ResolverStubAddress);
-                        }
-
-                        UpdateOffset();
-                    }
-
-                    if (Ptr != ExpectedEnd) {
-                        return Error::InvalidUleb128;
-                    }
-
-                    switch (Export.kind()) {
-                        case ExportTrieFlags::Kind::Regular:
-                            if (Export.stubAndResolver()) {
-                                Info->setIsStubAndResolver();
-                            } else if (Export.isReexport()) {
-                                Info->setIsReexport();
-                            } else {
-                                Info->setIsRegular();
-                            }
-
-                            break;
-                        case ExportTrieFlags::Kind::ThreadLocal:
-                            Info->setIsThreadLocal();
-                            break;
-                        case ExportTrieFlags::Kind::Absolute:
-                            Info->setIsAbsolute();
-                            break;
-                    }
-
-                    // Return later, after checking the child-count, so we can
-                    // update the stack-list if necessary.
-                }
-
-                // We're done with this entire stack if this node has no
-                // children. To finish, we move to the parent-stack. If we don't
-                // have a parent-stack, we've reached the end of the
-                // export-trie.
-
-                if (Node.childCount() == 0) {
-                    if (IsExportInfo) {
-                        break;
-                    }
-
-                    if (MoveUptoParentNode()) {
-                        continue;
-                    }
-
-                    break;
-                }
-
-                // Skip the byte storing the child-count.
-                Ptr++;
-                Node.offsetRef() += 1;
-
-                if (IsExportInfo) {
-                    break;
-                }
-            } else if (Stack.childOrdinal() == (Node.childCount() + 1)) {
-                // We've finished with this node if ChildOrdinal is past
-                // ChildCount.
-
-                if (MoveUptoParentNode()) {
-                    continue;
-                }
-
-                break;
-            }
-
-            // Prepare the next-stack before returning.
-
-            const auto Error = ParseNextNode(Ptr, &NextStack->node());
-            UpdateOffset();
-
-            if (Error != Error::None) {
-                return Error;
-            }
-
-            NextStack->setRangeListSize(Info->rangeList().size());
-
-            // We've already returned this node once if our Child-Ordinal is not
-            // zero.
-
-            if (Stack.childOrdinal() == 0) {
-                break;
-            }
-
-            if (StackList.size() == MaxDepth) {
-                return Error::TooDeep;
-            }
-
-            SetupInfoForNewStack();
-        } while (true);
+        if (Ptr != NodeEnd) {
+            return Error::InvalidUleb128;
+        }
 
         return Error::None;
-    }
-
-    void ExportTrieExportIterator::Advance() noexcept {
-        do {
-            Iterator++;
-            if (Iterator.hasError()) {
-                break;
-            }
-
-            if (Iterator.isAtEnd()) {
-                break;
-            }
-
-            if (Iterator.info().node().isExport()) {
-                break;
-            }
-        } while (true);
     }
 
     const SegmentInfo *
@@ -417,19 +106,20 @@ namespace  MachO {
 
     ExportTrieEntryCollection::ChildNode *
     ExportTrieEntryCollection::MakeNodeForEntryInfo(
-        const ExportTrieIterateInfo &Info,
+        const ExportTrieMap::IterateInfo &Info,
         const SegmentList *const SegList) noexcept
     {
         auto Node = static_cast<ChildNode *>(nullptr);
         if (Info.isExport()) {
             Node = new ExportChildNode();
+            Node->setKind(
+                MachO::ExportTrieExportKindFromFlags(
+                    Info.exportInfo().flags()));
         } else {
             Node = new ChildNode();
         }
 
-        Node->setKind(Info.kind());
         Node->setString(std::string(Info.string()));
-
         if (Info.isExport()) {
             auto ExportNode = Node->getAsExportNode();
             const auto &ExportInfo = Info.exportInfo();

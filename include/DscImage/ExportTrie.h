@@ -15,7 +15,7 @@ namespace DscImage {
     public:
         using ChildNode = MachO::ExportTrieChildNode;
         using ExportChildNode = MachO::ExportTrieExportChildNode;
-        using Error = MachO::ExportTrieParseError;
+        using Error = ADT::TrieParseError;
 
         static ExportTrieEntryCollection
         Open(const MachO::ExportTrieMap &Trie,
@@ -40,7 +40,7 @@ namespace DscImage {
     public:
         using ChildNode = MachO::ExportTrieChildNode;
         using ExportChildNode = MachO::ExportTrieExportChildNode;
-        using Error = MachO::ExportTrieParseError;
+        using Error = ADT::TrieParseError;
 
         static ExportTrieExportCollection
         Open(const MachO::ExportTrieMap::ExportMap &Trie,

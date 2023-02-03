@@ -8,7 +8,6 @@
 #include "ADT/Maximizer.h"
 #include "DscImage/ExportTrie.h"
 
-#include "MachO/ExportTrie.h"
 #include "MachO/LibraryList.h"
 
 #include "Operations/Base.h"
@@ -451,10 +450,10 @@ namespace Operations {
                 auto SegmentName = std::string_view();
                 auto SectionName = std::string_view();
 
-                if (!Info.isReexport()) {
+                if (!Info.exportInfo().isReexport()) {
                     const auto ImageOffset = Info.exportInfo().imageOffset();
                     const auto Addr =
-                        Info.absolute() && ImageOffset != 0 ?
+                        Info.exportInfo().absolute() && ImageOffset != 0 ?
                             ImageOffset :
                             Utils::AddAndCheckOverflow(BaseAddress,
                                                        ImageOffset).value();
@@ -472,7 +471,10 @@ namespace Operations {
                     }
                 }
 
-                const auto &Kind = Info.kind();
+                const auto Kind =
+                    MachO::ExportTrieExportKindFromFlags(
+                        Info.exportInfo().flags());
+
                 if (!ExportMeetsRequirements(Kind,
                                              SegmentName,
                                              SectionName,
@@ -638,11 +640,13 @@ namespace Operations {
             return Result.set(RunError::ExportTrieOutOfBounds);
         }
 
+        auto TrieParser = ADT::TrieParser();
         const auto ExportTrieMap =
-            MachO::ExportTrieMap(ADT::MemoryMap(Map, ExportTrieRange));
+            MachO::ExportTrieMap(ADT::MemoryMap(Map, ExportTrieRange),
+                                 TrieParser);
 
         if (Opt.PrintTree) {
-            auto Error = MachO::ExportTrieParseError::None;
+            auto Error = MachO::ExportTrieMap::ParseError::None;
             auto EntryCollection =
                 MachO::ExportTrieEntryCollection::Open(ExportTrieMap,
                                                        &SegmentList,
@@ -700,11 +704,13 @@ namespace Operations {
             return Result.set(RunError::ExportTrieOutOfBounds);
         }
 
+        auto TrieParser = ADT::TrieParser();
         const auto ExportTrieMap =
-            MachO::ExportTrieMap(ADT::MemoryMap(Map, ExportTrieRange));
+            MachO::ExportTrieMap(ADT::MemoryMap(Map, ExportTrieRange),
+                                 TrieParser);
 
         if (Opt.PrintTree) {
-            auto Error = MachO::ExportTrieParseError::None;
+            auto Error = MachO::ExportTrieMap::ParseError::None;
             auto EntryCollection =
                 DscImage::ExportTrieEntryCollection::Open(ExportTrieMap,
                                                           &SegmentList,
