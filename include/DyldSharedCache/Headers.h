@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "ADT/FlagsBase.h"
 #include "ADT/List.h"
 #include "ADT/Maximizer.h"
 #include "ADT/Range.h"
@@ -14,12 +13,7 @@
 #include "Dyld3/Platform.h"
 
 #include "Mach/VmProt.h"
-#include "Utils/Overflow.h"
-#include <optional>
-
-#define DscHeaderHasField(Header, Field) \
-    (Header.MappingOffset >= (offsetof(DyldSharedCache::HeaderV8, Field) + \
-     SizeOfField(DyldSharedCache::HeaderV8, Field)))
+#include "Utils/Misc.h"
 
 namespace DyldSharedCache {
     enum class HeaderVersion {

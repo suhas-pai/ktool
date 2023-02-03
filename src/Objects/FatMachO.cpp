@@ -6,7 +6,6 @@
 //
 
 #include "Objects/FatMachO.h"
-#include "MachO/Fat.h"
 
 namespace Objects {
     static auto ValidateHeader(const ADT::MemoryMap &Map) noexcept {

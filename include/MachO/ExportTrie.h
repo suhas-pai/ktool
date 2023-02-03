@@ -658,37 +658,62 @@ namespace MachO {
         }
     };
 
-    struct ExportTrieEntryCollection : public ADT::Tree {
+    struct ExportTrieEntryCollectionNodeCreator {
+    protected:
+        const MachO::SegmentList *SegList = nullptr;
     public:
         using ChildNode = ExportTrieChildNode;
         using ExportChildNode = ExportTrieExportChildNode;
         using Error = ADT::TrieParseError;
-    protected:
-        explicit ExportTrieEntryCollection() noexcept = default;
+
+        explicit
+        ExportTrieEntryCollectionNodeCreator(
+            const MachO::SegmentList *const SegList) noexcept
+        : SegList(SegList) {}
 
         [[nodiscard]] virtual auto
-        LookupInfoForAddress(const MachO::SegmentList &SegList,
-                             ExportTrieFlags::Kind Kind,
+        LookupInfoForAddress(ExportTrieFlags::Kind Kind,
                              uint64_t Address,
                              const SectionInfo **SectionOut) const noexcept
             -> const SegmentInfo *;
 
-        [[nodiscard]] auto
-        MakeNodeForEntryInfo(const ExportTrieMap::IterateInfo &Info,
-                             const MachO::SegmentList *SegList) noexcept
+        virtual auto
+        createChildNode(ExportTrieMap::IterateInfo &Info) const noexcept
             -> ChildNode *;
+    };
 
-        void
-        ParseFromTrie(const MachO::ExportTrieMap &Trie,
-                      const MachO::SegmentList *SegList,
-                      Error *Error) noexcept;
-
+    struct ExportTrieEntryCollection :
+        public ADT::TrieNodeCollection<ExportTrieExportInfo,
+                                       ExportTrieEntryCollectionNodeCreator>
+    {
+    public:
+        using NodeCreator = ExportTrieEntryCollectionNodeCreator;
+        using Base = ADT::TrieNodeCollection<ExportTrieExportInfo, NodeCreator>;
+        using ChildNode = ExportTrieChildNode;
+        using ExportChildNode = ExportTrieExportChildNode;
+        using Error = ADT::TrieParseError;
+    protected:
         ExportTrieChildNode *Root;
     public:
-        static ExportTrieEntryCollection
-        Open(const MachO::ExportTrieMap &Trie,
+        explicit ExportTrieEntryCollection() noexcept = default;
+
+        static auto
+        Open(ExportTrieMap &Trie,
              const MachO::SegmentList *SegList,
-             Error *ErrorOut = nullptr);
+             const ParseOptions &Options = ParseOptions(),
+             Error *ErrorOut = nullptr) noexcept -> ExportTrieEntryCollection;
+
+        static auto
+        Open(ExportTrieMap &Trie,
+             ExportTrieEntryCollectionNodeCreator &Creator,
+             const ParseOptions &Options = ParseOptions(),
+             Error *ErrorOut = nullptr) noexcept -> ExportTrieEntryCollection;
+
+        virtual void
+        ParseFromTrie(ExportTrieMap &Trie,
+                      const MachO::SegmentList *SegList,
+                      const ParseOptions &Options = ParseOptions(),
+                      Error *ErrorOut = nullptr) noexcept;
 
         [[nodiscard]] inline ADT::TreeNode *root() const noexcept override {
             return Root;
@@ -781,29 +806,31 @@ namespace MachO {
     struct ExportTrieExportCollection {
     public:
         using EntryInfo = ExportTrieExportCollectionEntryInfo;
+        using NodeCreator = ExportTrieEntryCollectionNodeCreator;
         using Error = ADT::TrieParseError;
+        using ParseOptions = ADT::TrieParseOptions;
         using EntryListType = std::vector<std::unique_ptr<EntryInfo>>;
     protected:
         EntryListType EntryList;
-
         explicit ExportTrieExportCollection() noexcept = default;
 
         void
         Parse(const ExportTrieMap::ExportMap &Trie,
-              const SegmentList *SegList,
+              NodeCreator &Creator,
+              const ParseOptions &Options,
               Error *const ErrorOut) noexcept;
     public:
-        static ExportTrieExportCollection
+        static auto
         Open(const ExportTrieMap::ExportMap &Trie,
              const SegmentList *SegList,
-             Error *Error) noexcept;
+             const ParseOptions &Options = ParseOptions(),
+             Error *ErrorOut = nullptr) noexcept -> ExportTrieExportCollection;
 
-        [[nodiscard]] virtual auto
-        LookupInfoForAddress(const SegmentList &SegList,
-                             ExportTrieFlags::Kind Kind,
-                             uint64_t Address,
-                             const SectionInfo **SectionOut) const noexcept
-            -> const SegmentInfo *;
+        static auto
+        Open(const ExportTrieMap::ExportMap &Trie,
+             const NodeCreator &Creator,
+             const ParseOptions &Options = ParseOptions(),
+             Error *ErrorOut = nullptr) noexcept -> ExportTrieExportCollection;
 
         using Iterator = EntryListType::iterator;
         using ConstIterator = EntryListType::const_iterator;

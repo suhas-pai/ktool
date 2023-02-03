@@ -4,6 +4,8 @@
  */
 
 #include "Operations/Common.h"
+
+#include "Utils/Misc.h"
 #include "Utils/Print.h"
 
 namespace Operations {
@@ -18,7 +20,7 @@ namespace Operations {
         auto LibraryPath = std::string_view("<Invalid>");
         auto IsOutOfBounds = true;
 
-        if (DylibOrdinal != 0 && DylibOrdinal <= List.size()) {
+        if (!Utils::OrdinalOutOfBounds(DylibOrdinal, List.size())) {
             const auto &PathOpt = List.at(DylibOrdinal - 1).Path;
             if (PathOpt.has_value()) {
                 LibraryPath = PathOpt.value();
@@ -52,7 +54,7 @@ namespace Operations {
         auto LibraryPath = std::string_view("<Invalid>");
         auto IsOutOfBounds = true;
 
-        if (DylibOrdinal != 0 && DylibOrdinal <= List.size()) {
+        if (!Utils::OrdinalOutOfBounds(DylibOrdinal, List.size())) {
             const auto &PathOpt = List.at(DylibOrdinal - 1).Path;
             if (PathOpt.has_value()) {
                 LibraryPath = PathOpt.value();

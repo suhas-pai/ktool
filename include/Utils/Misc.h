@@ -19,6 +19,8 @@
 #include <time.h>
 
 #define bit_sizeof(T) (sizeof(T) * 8)
+#define SizeOfField(Type, Field) (sizeof(((Type *)0)->Field))
+
 #define STR_TO_ENUM_SWITCH_CASE(Enum, String, ToStringFunc) \
     case Enum: \
         if (String == ToStringFunc(Enum)) { \

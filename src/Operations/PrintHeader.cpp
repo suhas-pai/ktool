@@ -11,6 +11,7 @@
 #include <unordered_map>
 
 #include "ADT/FlagsIterator.h"
+#include "DyldSharedCache/Headers.h"
 #include "Objects/DyldSharedCache.h"
 
 #include "Operations/Base.h"
@@ -847,33 +848,40 @@ namespace Operations {
                             "\n");
 
         PrintDscKey(OutFile, "Mapping Count");
-        if (Options.Verbose) {
-            fprintf(OutFile,
-                    "%s\n",
-                    Utils::GetFormattedNumber(Header.MappingCount).c_str());
-        } else {
-            fprintf(OutFile, "%" PRIu32 "\n", Header.MappingCount);
-        }
+        fprintf(OutFile,
+                "%s\n",
+                Utils::GetFormattedNumber(Header.MappingCount).c_str());
 
         if (Dsc.mappingCount() <= 10) {
             fputs("Mappings:\n", OutFile);
             PrintMappingInfoList(OutFile, Options, Dsc);
         }
 
-        PrintDscKey(OutFile, "Images Offset (Old)");
-        Utils::PrintAddress(OutFile,
-                            Header.ImagesOffsetOld,
-                            false,
-                            "",
-                            "\n");
+        if (Header.isV8()) {
+            PrintDscKey(OutFile, "Images Offset (Old)");
+            Utils::PrintAddress(OutFile,
+                                Header.ImagesOffsetOld,
+                                false,
+                                "",
+                                "\n");
 
-        PrintDscKey(OutFile, "Images Count (Old)");
-        if (Options.Verbose) {
-           fprintf(OutFile,
-                   "%s\n",
-                   Utils::GetFormattedNumber(Header.ImagesCountOld).c_str());
+            PrintDscKey(OutFile, "Images Count (Old)");
+            fprintf(OutFile,
+                    "%s\n",
+                    Utils::GetFormattedNumber(Header.ImagesCountOld).c_str());
         } else {
-            fprintf(OutFile, "%" PRIu32 "\n", Header.ImagesCountOld);
+            PrintDscKey(OutFile, "Images Offset");
+            Utils::PrintAddress(OutFile,
+                                Header.ImagesOffsetOld,
+                                false,
+                                "",
+                                "\n");
+
+            PrintDscKey(OutFile, "Images Count");
+            fprintf(OutFile,
+                    "%s\n",
+                    Utils::GetFormattedNumber(Header.ImagesCountOld).c_str());
+
         }
 
         PrintDscKey(OutFile, "Dyld Base-Address");
@@ -924,7 +932,6 @@ namespace Operations {
                                             Options,
                                             List,
                                             DscRangeKind::SlideInfo);
-        fputc('\n', OutFile);
     }
 
     static void
@@ -953,7 +960,9 @@ namespace Operations {
                                             DscRangeKind::LocalSymbolInfo);
 
         PrintDscKey(OutFile, "Uuid");
-        Utils::PrintUuid(OutFile, Header.Uuid, "", "\n\n");
+        fprintf(OutFile,
+                "\"" UUID_FMT "\"\n",
+                UUID_FMT_ARGS(Header.Uuid));
     }
 
     template <std::unsigned_integral OffsetType,
@@ -1076,9 +1085,7 @@ namespace Operations {
                        const Dyld3::Platform Platform)
     {
         PrintDscKey(OutFile, Key);
-        fprintf(OutFile,
-                "%s\n",
-                Dyld3::PlatformGetDesc(Platform).data());
+        fprintf(OutFile, "%s\n", Dyld3::PlatformGetDesc(Platform).data());
     }
 
     static void
@@ -1467,7 +1474,9 @@ namespace Operations {
         }
 
         PrintDscKey(OutFile, "Symbol File UUID");
-        Utils::PrintUuid(OutFile, Header.SymbolFileUUID, "", "\n");
+        fprintf(OutFile,
+                "\"" UUID_FMT "\"\n",
+                UUID_FMT_ARGS(Header.SymbolFileUUID));
 
         PrintDscSizeRange(OutFile,
                           Dsc.range(),

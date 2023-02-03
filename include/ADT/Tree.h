@@ -416,7 +416,8 @@ namespace ADT {
     };
 
     template <typename T>
-    concept TreeNodeDerived = std::is_base_of_v<TreeNode, T>;
+    concept TreeNodeDerived =
+        std::is_base_of_v<TreeNode, std::remove_pointer_t<T>>;
 
     template <TreeNodeDerived T>
     struct TreeDFSIterator {
@@ -936,4 +937,7 @@ namespace ADT {
             return *this;
         }
     };
+
+    template <typename T>
+    concept TreeDerived = std::is_base_of_v<Tree, std::remove_pointer_t<T>>;
 }

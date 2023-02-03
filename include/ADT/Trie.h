@@ -5,13 +5,16 @@
 
 #pragma once
 
+#include <__concepts/derived_from.h>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 #include "ADT/MemoryMap.h"
 #include "ADT/Range.h"
+#include "ADT/Tree.h"
 
 namespace ADT {
     struct TrieNodeInfo {
@@ -305,6 +308,7 @@ namespace ADT {
             std::unique_ptr<StackInfo> NextStack;
 
             Direction Direction;
+            TrieParser &Parser;
 
             void SetupInfoForNewStack() noexcept {
                 Info->stringRef().append(NextStack->node().prefix());
@@ -338,7 +342,6 @@ namespace ADT {
                 return true;
             }
 
-            TrieParser &Parser;
             auto Advance() noexcept -> Error {
                 auto &StackList = Info->stackListRef();
                 const auto MaxDepth = Info->maxDepth();
@@ -419,6 +422,7 @@ namespace ADT {
                                     Info->rangeListRef(),
                                     StackList);
 
+                            UpdateOffset();
                             if (Error != TrieParseError::None) {
                                 return Error;
                             }
@@ -448,7 +452,6 @@ namespace ADT {
                         Ptr++;
                         Node.offsetRef() += 1;
 
-                        UpdateOffset();
                         if (IsExportInfo) {
                             break;
                         }
@@ -464,7 +467,6 @@ namespace ADT {
                     }
 
                     // Prepare the next-stack before returning.
-
                     const auto Error =
                         Parser.ParseNextNode(Begin,
                                              Ptr,
@@ -639,7 +641,7 @@ namespace ADT {
                 Advance();
             }
 
-            [[nodiscard]] inline auto &getInfo() noexcept {
+            [[nodiscard]] inline auto &info() noexcept {
                 return Iterator.info();
             }
 
@@ -808,6 +810,75 @@ namespace ADT {
 
         [[nodiscard]] inline auto exportMap() const noexcept {
             return ExportMap(Begin, End, Parser, ExportInfoParser);
+        }
+    };
+
+    template<typename T, typename U>
+    concept TrieNodeCollectionNodeCreator =
+        requires(T a, typename Trie<U>::IterateInfo &b) {
+            { a.createChildNode(b) } noexcept -> TreeNodeDerived;
+        };
+
+    template <TrieExportInfoParser T,
+              TrieNodeCollectionNodeCreator<T> NodeCreatorType>
+
+    struct TrieNodeCollection : public ADT::Tree {
+    public:
+        using ParseOptions = TrieParseOptions;
+        using Error = TrieParseError;
+    public:
+        explicit TrieNodeCollection() noexcept = default;
+
+        virtual void
+        ParseFromTrie(Trie<T> &Trie,
+                      NodeCreatorType &NodeCreator,
+                      const ParseOptions &Options = ParseOptions(),
+                      Error *const ErrorOut = nullptr) noexcept
+        {
+            auto Iter = Trie.begin(Options);
+            const auto End = Trie.end();
+
+            if (Iter == End) {
+                return;
+            }
+
+            setRoot(NodeCreator.createChildNode(*Iter));
+
+            auto Parent = root();
+            auto PrevDepthLevel = uint64_t(1);
+
+            const auto MoveUpParentHierarchy =
+                [&](const uint64_t Amt) noexcept
+            {
+                for (auto I = uint64_t(); I != Amt; I++) {
+                    Parent = Parent->parent();
+                }
+            };
+
+            for (Iter++; Iter != End; Iter++) {
+                if (Iter.hasError()) {
+                    if (ErrorOut != nullptr) {
+                        *ErrorOut = Iter.getError();
+                    }
+
+                    return;
+                }
+
+                const auto DepthLevel = Iter->depthLevel();
+                if (PrevDepthLevel > DepthLevel) {
+                    MoveUpParentHierarchy(
+                        static_cast<uint64_t>(PrevDepthLevel) - DepthLevel);
+                }
+
+                const auto Current = NodeCreator.createChildNode(*Iter);
+
+                Parent->addChild(*Current);
+                if (Iter->node().childCount() != 0) {
+                    Parent = Current;
+                }
+
+                PrevDepthLevel = DepthLevel;
+            }
         }
     };
 }

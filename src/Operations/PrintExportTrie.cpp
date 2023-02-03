@@ -8,6 +8,7 @@
 #include "ADT/Maximizer.h"
 #include "DscImage/ExportTrie.h"
 
+#include "MachO/ExportTrie.h"
 #include "MachO/LibraryList.h"
 
 #include "Operations/Base.h"
@@ -641,15 +642,17 @@ namespace Operations {
         }
 
         auto TrieParser = ADT::TrieParser();
-        const auto ExportTrieMap =
+        auto ExportTrieMap =
             MachO::ExportTrieMap(ADT::MemoryMap(Map, ExportTrieRange),
                                  TrieParser);
 
         if (Opt.PrintTree) {
-            auto Error = MachO::ExportTrieMap::ParseError::None;
+            auto Error = MachO::ExportTrieEntryCollection::Error::None;
+            auto Options = MachO::ExportTrieEntryCollection::ParseOptions();
             auto EntryCollection =
                 MachO::ExportTrieEntryCollection::Open(ExportTrieMap,
                                                        &SegmentList,
+                                                       Options,
                                                        &Error);
             return HandleTreeOption(Result,
                                     OutFile,
@@ -705,16 +708,18 @@ namespace Operations {
         }
 
         auto TrieParser = ADT::TrieParser();
-        const auto ExportTrieMap =
+        auto ExportTrieMap =
             MachO::ExportTrieMap(ADT::MemoryMap(Map, ExportTrieRange),
                                  TrieParser);
 
         if (Opt.PrintTree) {
             auto Error = MachO::ExportTrieMap::ParseError::None;
+            auto Options = MachO::ExportTrieEntryCollection::ParseOptions();
             auto EntryCollection =
                 DscImage::ExportTrieEntryCollection::Open(ExportTrieMap,
                                                           &SegmentList,
                                                           Image.address(),
+                                                          Options,
                                                           &Error);
             return HandleTreeOption(Result,
                                     OutFile,

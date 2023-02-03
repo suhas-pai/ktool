@@ -17,7 +17,7 @@ namespace Objects {
     {
         auto MaxPossibleSize = uint64_t();
 
-        const auto FirstMapping = Dsc.mappingInfoList().front();
+        const auto &FirstMapping = Dsc.mappingInfoList().front();
         const auto HeaderFileOffsetOpt =
             FirstMapping.getFileOffsetFromAddr(ImageInfo.Address,
                                                &MaxPossibleSize);

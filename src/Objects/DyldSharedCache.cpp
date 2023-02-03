@@ -104,6 +104,7 @@ namespace Objects {
 
         return std::pair(CpuKind, true);
     }
+
     auto DyldSharedCache::Open(const ADT::MemoryMap &Map) noexcept ->
         ADT::PointerOrError<DyldSharedCache, OpenError>
     {

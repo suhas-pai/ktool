@@ -6,8 +6,6 @@
 //
 
 #include "Objects/MachO.h"
-#include "ADT/MemoryMap.h"
-#include "MachO/LoadCommands.h"
 
 namespace Objects {
     auto MachO::VerifyMap(const ADT::MemoryMap &Map) noexcept -> OpenError {
