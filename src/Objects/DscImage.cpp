@@ -16,7 +16,6 @@ namespace Objects {
         -> ADT::PointerOrError<DscImage, OpenError>
     {
         auto MaxPossibleSize = uint64_t();
-        auto FileOffset = uint64_t();
 
         const auto FirstMapping = Dsc.mappingInfoList().front();
         const auto HeaderFileOffsetOpt =
@@ -38,8 +37,8 @@ namespace Objects {
             return OpenError::WrongFormat;
         }
 
-        const auto Header =
-            Dsc.map().get<::MachO::Header>(HeaderFileOffsetOpt.value());
+        const auto FileOffset = HeaderFileOffsetOpt.value();
+        const auto Header = Dsc.map().get<::MachO::Header>(FileOffset);
 
         if (!::MachO::MagicIsThin(Header->Magic)) {
             return OpenError::WrongFormat;
@@ -148,7 +147,6 @@ namespace Objects {
         return new DscImage(Dsc.map(), ImageInfo, ImageMap);
     }
 
-    [[nodiscard]]
     auto DscImage::getMapForFileOffsets() const noexcept -> ADT::MemoryMap {
         return dscMap();
     }

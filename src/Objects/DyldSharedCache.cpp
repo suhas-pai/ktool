@@ -138,11 +138,6 @@ namespace Objects {
             return OpenError::WrongFormat;
         }
 
-        const auto FirstMapping = HeaderV0->mappingInfoList().front();
-        if (FirstMapping.FileOffset != 0) {
-            return OpenError::FirstMappingFileOffNotZero;
-        }
-
         const auto Magic = HeaderV0->magic();
         constexpr auto MagicStart = std::string_view("dyld_v1");
 
@@ -155,6 +150,11 @@ namespace Objects {
 
         if (!IsValid) {
             return OpenError::UnrecognizedCpuKind;
+        }
+
+        const auto FirstMapping = HeaderV0->mappingInfoList().front();
+        if (FirstMapping.FileOffset != 0) {
+            return OpenError::FirstMappingFileOffNotZero;
         }
 
         return new DyldSharedCache(Map, CpuKind);
