@@ -20,7 +20,7 @@ namespace Objects {
         DscImage(const ADT::MemoryMap &DscMap,
                  const ::DyldSharedCache::ImageInfo &ImageInfo,
                  const ADT::MemoryMap &Map) noexcept
-        : MachO(Map), DscMap(DscMap), ImageInfo(ImageInfo) {}
+        : MachO(Map, Kind::DscImage), DscMap(DscMap), ImageInfo(ImageInfo) {}
     public:
         enum class OpenError {
             None,
@@ -35,7 +35,7 @@ namespace Objects {
             SizeTooSmall,
             TooManyLoadCommands,
 
-            SizeTooLarge,
+            OutOfBoundsSegment,
         };
 
         ~DscImage() noexcept override {}
@@ -51,6 +51,10 @@ namespace Objects {
 
         [[nodiscard]] constexpr auto info() const noexcept {
             return ImageInfo;
+        }
+
+        [[nodiscard]] constexpr auto address() const noexcept {
+            return ImageInfo.Address;
         }
 
         [[nodiscard]] inline auto path() const noexcept {

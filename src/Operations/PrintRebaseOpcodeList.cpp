@@ -226,8 +226,8 @@ namespace Operations {
                 MachO::RebaseByteOpcodeGetName(Byte.opcode());
 
             fprintf(OutFile,
-                    "Rebase-Opcode %0*" PRIu64 ": ",
-                    SizeDigitLength,
+                    "Rebase-Opcode %" ZEROPAD_FMT PRIu64 ": ",
+                    ZEROPAD_FMT_ARGS(SizeDigitLength),
                     Counter);
 
             constexpr auto LongestOpcodeNameLength =

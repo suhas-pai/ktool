@@ -403,6 +403,7 @@ namespace  MachO {
     const SegmentInfo *
     ExportTrieEntryCollection::LookupInfoForAddress(
         const SegmentList &SegList,
+        [[maybe_unused]] const ExportTrieFlags::Kind Kind,
         const uint64_t Address,
         const SectionInfo **const SectionOut) const noexcept
     {
@@ -439,7 +440,10 @@ namespace  MachO {
 
                     const auto Addr = ExportInfo.imageOffset();
                     const auto Segment =
-                        LookupInfoForAddress(*SegList, Addr, &Section);
+                        LookupInfoForAddress(*SegList,
+                                             ExportInfo.kind(),
+                                             Addr,
+                                             &Section);
 
                     ExportNode->setSegment(Segment);
                     ExportNode->setSection(Section);
@@ -504,12 +508,28 @@ namespace  MachO {
     ExportTrieEntryCollection
     ExportTrieEntryCollection::Open(const ExportTrieMap &Trie,
                                     const SegmentList *const SegList,
-                                    Error *const Error)
+                                    Error *const ErrorOut)
     {
         auto Result = ExportTrieEntryCollection();
-        Result.ParseFromTrie(Trie, SegList, Error);
+        Result.ParseFromTrie(Trie, SegList, ErrorOut);
 
         return Result;
+    }
+
+    auto
+    ExportTrieExportCollection::LookupInfoForAddress(
+        const SegmentList &SegList,
+        [[maybe_unused]] const ExportTrieFlags::Kind Kind,
+        const uint64_t Address,
+        const SectionInfo **const SectionOut) const noexcept
+        -> const SegmentInfo *
+    {
+        const auto Segment = SegList.findSegmentWithVmAddr(Address);
+        if (Segment != nullptr) {
+            *SectionOut = Segment->findSectionWithVmAddr(Address);
+        }
+
+        return Segment;
     }
 
     ExportTrieExportCollection
@@ -518,10 +538,20 @@ namespace  MachO {
                                      Error *const ErrorOut) noexcept
     {
         auto Result = ExportTrieExportCollection();
+        Result.Parse(Trie, SegList, ErrorOut);
+
+        return Result;
+    }
+
+    void
+    ExportTrieExportCollection::Parse(const ExportTrieMap::ExportMap &Trie,
+                                      const SegmentList *const SegList,
+                                      Error *const ErrorOut) noexcept
+    {
         for (auto Iter = Trie.begin(); Iter != Trie.end(); Iter++) {
             if (Iter.hasError()) {
                 *ErrorOut = Iter.getError();
-                return Result;
+                return;
             }
 
             auto Entry = EntryInfo();
@@ -530,19 +560,19 @@ namespace  MachO {
             if (!ExportInfo.isReexport()) {
                 if (SegList != nullptr) {
                     const auto Addr = ExportInfo.imageOffset();
-                    if (const auto Segment =
-                            SegList->findSegmentWithVmAddr(Addr);
-                        Segment != nullptr)
-                    {
-                        Entry.setSegment(Segment);
-                        Entry.setSection(Segment->findSectionWithVmAddr(Addr));
-                    }
+                    auto Section = static_cast<const SectionInfo *>(nullptr);
+
+                    Entry.setSegment(
+                        LookupInfoForAddress(*SegList,
+                                             ExportInfo.kind(),
+                                             Addr,
+                                             &Section));
+
+                    Entry.setSection(Section);
                 }
             }
 
-            Result.EntryList.emplace_back(std::make_unique<EntryInfo>(Entry));
+            EntryList.emplace_back(std::make_unique<EntryInfo>(Entry));
         }
-
-        return Result;
     }
 }

@@ -34,6 +34,9 @@ namespace Objects {
 
         explicit MachO(const ADT::MemoryMap &Map) noexcept
         : Base(Kind::MachO), Map(Map) {}
+
+        explicit MachO(const ADT::MemoryMap &Map, const enum Kind Kind) noexcept
+        : Base(Kind), Map(Map) {}
     public:
 
         ~MachO() noexcept override {}

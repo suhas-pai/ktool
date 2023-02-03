@@ -253,8 +253,10 @@ namespace Operations {
                                     fputs("Image is not a dynamic-library\n",
                                           stderr);
                                     exit(1);
-                                case ErrorKind::SizeTooLarge:
-                                    fputs("Image extends beyond of file\n",
+                                case ErrorKind::OutOfBoundsSegment:
+                                    fputs("At least one of image's segments "
+                                          "isn't fully contained within a "
+                                          "single mapping\n",
                                           stderr);
                                     exit(1);
                                 case ErrorKind::TooManyLoadCommands:

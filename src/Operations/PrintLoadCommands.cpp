@@ -837,24 +837,8 @@ namespace Operations {
             case LoadCommandKind::Uuid: {
                 const auto UuidCmd = cast<UuidCommand>(LC, IsBigEndian);
                 fprintf(OutFile,
-                        "\t\"%.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-"
-                        "%.2X%.2x%.2x%.2x%.2X%.2X\"\n",
-                        UuidCmd.Uuid[0],
-                        UuidCmd.Uuid[1],
-                        UuidCmd.Uuid[2],
-                        UuidCmd.Uuid[3],
-                        UuidCmd.Uuid[4],
-                        UuidCmd.Uuid[5],
-                        UuidCmd.Uuid[6],
-                        UuidCmd.Uuid[7],
-                        UuidCmd.Uuid[8],
-                        UuidCmd.Uuid[9],
-                        UuidCmd.Uuid[10],
-                        UuidCmd.Uuid[11],
-                        UuidCmd.Uuid[12],
-                        UuidCmd.Uuid[13],
-                        UuidCmd.Uuid[14],
-                        UuidCmd.Uuid[15]);
+                        "\t\"" UUID_FMT "\"\n",
+                        UUID_FMT_ARGS(UuidCmd.Uuid));
                 break;
             }
             case LoadCommandKind::Rpath: {

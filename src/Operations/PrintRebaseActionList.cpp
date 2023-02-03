@@ -50,8 +50,8 @@ namespace Operations {
                       const bool Is64Bit) noexcept
     {
         fprintf(OutFile,
-                "Rebase Action %0*" PRIu64 ": ",
-                SizeDigitLength,
+                "Rebase Action %" ZEROPAD_FMT PRIu64 ": ",
+                ZEROPAD_FMT_ARGS(SizeDigitLength),
                 Counter);
 
         constexpr auto RebaseWriteKindLongestDescLength =

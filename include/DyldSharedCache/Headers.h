@@ -245,6 +245,17 @@ namespace DyldSharedCache {
         }
     };
 
+    struct SubCacheEntryV1 {
+        uint8_t Uuid[16];
+        uint64_t CacheVMOffset;
+    };
+
+    struct SubCacheEntry {
+        uint8_t Uuid[16];
+        uint64_t CacheVMOffset;
+        char FileSuffix[32];
+    };
+
     // Apple doesn't provide versions for their dyld_shared_caches, so we have
     // to make up our own.
 
@@ -378,6 +389,9 @@ namespace DyldSharedCache {
 
             return ADT::Range::FromEnd(Begin, End.value());
         }
+
+        [[nodiscard]] constexpr auto hasSubCacheV1List() const noexcept;
+        [[nodiscard]] constexpr auto hasSubCacheList() const noexcept;
     };
 
     inline bool ImageInfo::isAlias(const HeaderV0 &Header) const noexcept {
@@ -811,6 +825,13 @@ namespace DyldSharedCache {
 
     [[nodiscard]] constexpr auto HeaderV0::isV9() const noexcept -> bool {
         return MappingOffset >= sizeof(DyldSharedCache::HeaderV9);
+    }
+
+    [[nodiscard]] constexpr auto HeaderV0::hasSubCacheV1List() const noexcept {
+        return isV8();
+    }
+    [[nodiscard]] constexpr auto HeaderV0::hasSubCacheList() const noexcept {
+        return isV9();
     }
 
     using Header = HeaderV9;

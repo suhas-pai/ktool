@@ -45,6 +45,8 @@ namespace Objects {
             WrongFormat,
             UnrecognizedCpuKind,
             SizeTooSmall,
+
+            FirstMappingFileOffNotZero,
         };
 
         static auto Open(const ADT::MemoryMap &Map) noexcept ->
@@ -287,6 +289,12 @@ namespace Objects {
 
             return nullptr;
         }
+
+        [[nodiscard]] auto subCacheEntryV1InfoList() const noexcept
+            -> std::optional<ADT::List<::DyldSharedCache::SubCacheEntryV1>>;
+
+        [[nodiscard]] auto subCacheEntryInfoList() const noexcept
+            -> std::optional<ADT::List<::DyldSharedCache::SubCacheEntry>>;
 
         [[nodiscard]]
         auto getImageObjectAtIndex(uint32_t Index) const noexcept

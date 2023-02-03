@@ -198,8 +198,8 @@ namespace Operations {
 
         for (const auto &Category : CategoryList) {
             fprintf(OutFile,
-                    "\t\tObjc-Class Category %0*" PRIu64 ": ",
-                    CategoryListSizeDigitLength,
+                    "\t\tObjc-Class Category %" ZEROPAD_FMT PRIu64 ": ",
+                    ZEROPAD_FMT_ARGS(CategoryListSizeDigitLength),
                     Index);
 
             Utils::PrintAddress(OutFile, Category->address(), Is64Bit);
@@ -358,8 +358,8 @@ namespace Operations {
                 }
 
                 fprintf(OutFile,
-                        "Objective-C Class %0*" PRIu64 ": ",
-                        MaxDigitLength,
+                        "Objective-C Class %" ZEROPAD_FMT PRIu64 ": ",
+                        ZEROPAD_FMT_ARGS(MaxDigitLength),
                         I);
 
                 if (Node->external()) {

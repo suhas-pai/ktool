@@ -299,9 +299,9 @@ namespace Operations {
             const auto PtrSize = Utils::PointerSize(Is64Bit);
 
             fprintf(OutFile,
-                    "%s %0*" PRIu64 ": %s",
+                    "%s %" ZEROPAD_FMT PRIu64 ": %s",
                     Name,
-                    SizeDigitLength,
+                    ZEROPAD_FMT_ARGS(SizeDigitLength),
                     Counter,
                     OpcodeName.data());
 

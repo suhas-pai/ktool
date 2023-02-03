@@ -135,6 +135,7 @@ namespace Utils {
 }
 
 #define CHAR_ARR_FMT(Size) "%." TO_STRING(Size) "s"
+#define CHAR_ARR_FMT_ARGS(val) val
 
 #define STRING_VIEW_FMT "%.*s"
 #define STRING_VIEW_FMT_ARGS(SV) static_cast<int>((SV).length()), (SV).data()
@@ -161,3 +162,24 @@ namespace Utils {
 
 #define ADDR_RANGE_FMT_ARGS(BEGIN, END) \
     BEGIN, END, ((END) < (BEGIN)) ? " (Overflows)" : ""
+
+#define UUID_FMT "%.2X%.2X%.2X%.2X-%.2X%.2X-%.2X%.2X-%.2X%.2X-" \
+                 "%.2X%.2x%.2x%.2x%.2X%.2X"
+
+#define UUID_FMT_ARGS(UUID) \
+    UUID[0], \
+    UUID[1], \
+    UUID[2], \
+    UUID[3], \
+    UUID[4], \
+    UUID[5], \
+    UUID[6], \
+    UUID[7], \
+    UUID[8], \
+    UUID[9], \
+    UUID[10], \
+    UUID[11], \
+    UUID[12], \
+    UUID[13], \
+    UUID[14], \
+    UUID[15]

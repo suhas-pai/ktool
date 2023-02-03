@@ -98,9 +98,9 @@ namespace Operations {
                     const struct PrintBindSymbolList::Options &Options) noexcept
     {
         fprintf(OutFile,
-                "%s Symbol %0*" PRIu64 ": ",
+                "%s Symbol %" ZEROPAD_FMT PRIu64 ": ",
                 Name,
-                SizeDigitLength,
+                ZEROPAD_FMT_ARGS(SizeDigitLength),
                 Counter);
 
         if (const auto *Segment =

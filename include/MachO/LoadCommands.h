@@ -1587,6 +1587,7 @@ namespace MachO {
         constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
             return
                 Kind == LoadCommandKind::LoadDylib ||
+                Kind == LoadCommandKind::LoadWeakDylib ||
                 Kind == LoadCommandKind::IdDylib ||
                 Kind == LoadCommandKind::ReexportDylib ||
                 Kind == LoadCommandKind::LazyLoadDylib ||

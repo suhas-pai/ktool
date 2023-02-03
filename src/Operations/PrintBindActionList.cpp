@@ -92,9 +92,9 @@ namespace Operations {
                     const struct PrintBindActionList::Options &Options) noexcept
     {
         fprintf(OutFile,
-                "%s Action %0*" PRIu64 ": ",
+                "%s Action %" ZEROPAD_FMT PRIu64 ": ",
                 Name,
-                SizeDigitLength,
+                ZEROPAD_FMT_ARGS(SizeDigitLength),
                 Counter);
 
         if (const auto *const Segment =

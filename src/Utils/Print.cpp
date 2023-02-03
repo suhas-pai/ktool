@@ -218,45 +218,45 @@ namespace Utils {
                             const std::string_view Suffix) noexcept -> int
     {
         auto WrittenOut = fprintf(OutFile, "%s", Prefix.data());
-        if (PadSegments) {
-            const auto SegmentLength =
-                Segment.empty() ? Segment.length() : STR_LENGTH("<null>");
-
-            if (SegmentLength < MachO::SegmentMaxNameLength) {
-                WrittenOut +=
-                    PadSpaces(OutFile,
-                              MachO::SegmentMaxNameLength - SegmentLength);
-            }
-        }
-
         if (!Segment.empty()) {
+            if (PadSegments) {
+                if (Segment.length() < MachO::SegmentMaxNameLength) {
+                    const auto PadLength =
+                        MachO::SegmentMaxNameLength - Segment.length();
+
+                    WrittenOut += PadSpaces(OutFile, PadLength);
+                }
+            }
+
             WrittenOut +=
                 fprintf(OutFile,
                         "\"" STRING_VIEW_FMT "\",",
                         STRING_VIEW_FMT_ARGS(Segment));
-        } else {
-            WrittenOut += fputs("<null>,", OutFile);
-        }
 
-        if (!Section.empty()) {
-            WrittenOut +=
-                fprintf(OutFile,
-                        "\"" STRING_VIEW_FMT "\"",
-                        STRING_VIEW_FMT_ARGS(Section));
-        } else {
-            WrittenOut += fputs("<null>", OutFile);
-        }
-
-        if (PadSections) {
-            const auto SectionLength =
-                !Section.empty() ? Section.length() : STR_LENGTH("<null>");
-
-            if (SectionLength < MachO::SegmentSectionMaxNameLength) {
-                const auto PadLength =
-                    MachO::SegmentSectionMaxNameLength - SectionLength;
-
-                WrittenOut += PadSpaces(OutFile, PadLength);
+            if (!Section.empty()) {
+                WrittenOut +=
+                    fprintf(OutFile,
+                            "\"" STRING_VIEW_FMT "\"",
+                            STRING_VIEW_FMT_ARGS(Section));
+            } else {
+                /* Two Spaces for the 2 apostrophes we won't be using */
+                WrittenOut += fputs("<invalid>  ", OutFile);
             }
+
+            if (PadSections) {
+                const auto SectionLength =
+                    !Section.empty() ?
+                        Section.length() : STR_LENGTH("<invalid>");
+
+                if (SectionLength < MachO::SegmentSectionMaxNameLength) {
+                    const auto PadLength =
+                        MachO::SegmentSectionMaxNameLength - SectionLength;
+
+                    WrittenOut += PadSpaces(OutFile, PadLength);
+                }
+            }
+        } else {
+            WrittenOut += PadSpaces(OutFile, SegmentSectionPairMaxLen);
         }
 
         return WrittenOut + fprintf(OutFile, "%s", Suffix.data());

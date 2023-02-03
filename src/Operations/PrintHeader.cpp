@@ -5,6 +5,7 @@
 //  Created by suhaspai on 11/15/22.
 //
 
+#include <cstdio>
 #include <memory>
 #include <type_traits>
 #include <unordered_map>
@@ -654,7 +655,9 @@ namespace Operations {
             Utils::PrintOffsetSizeRange(OutFile,
                                         ADT::Range::FromSize(Address, Size),
                                         std::is_same_v<AddrType, uint64_t>,
-                                        SizeIs64Bit);
+                                        SizeIs64Bit,
+                                        /*Prefix=*/" (",
+                                        /*Suffix=*/")");
         }
 
         if (IsOffset) {
@@ -690,8 +693,9 @@ namespace Operations {
             const auto MaxProt = Mapping.maxProt();
 
             fprintf(OutFile,
-                    "\tMapping %0*d: " MACH_VMPROT_INIT_MAX_FMT " \n",
-                    MappingCountDigitLength,
+                    "\tMapping %" ZEROPAD_FMT PRIu32 ": "
+                    MACH_VMPROT_INIT_MAX_FMT " \n",
+                    ZEROPAD_FMT_ARGS(MappingCountDigitLength),
                     Index,
                     MACH_VMPROT_INIT_MAX_FMT_ARGS(InitProt, MaxProt));
 
@@ -733,8 +737,78 @@ namespace Operations {
             }
 
             fprintf(OutFile,
-                    "\n\t\tSize: %s\n",
+                    "\n\t\tSize:        %s\n",
                     Utils::FormattedSizeForOutput(Mapping.Size).c_str()),
+
+            Index++;
+        }
+    }
+
+    static void
+    PrintSubCacheEntryInfo(FILE *const OutFile,
+                           const Objects::DyldSharedCache &Dsc)
+    {
+        const auto MappingCountDigitLength =
+            Utils::GetIntegerDigitCount(Dsc.mappingCount());
+
+        constexpr auto LongestKeyLength = STR_LENGTH("Cache Vm-Offset: ");
+        auto Index = uint32_t(1);
+
+        if (const auto ListOpt = Dsc.subCacheEntryInfoList()) {
+            for (const auto &Info : ListOpt.value()) {
+                fprintf(OutFile,
+                        "\tSub-Cache Entry %" ZEROPAD_FMT PRIu32 ": "
+                        UUID_FMT " \n",
+                        ZEROPAD_FMT_ARGS(MappingCountDigitLength),
+                        Index,
+                        UUID_FMT_ARGS(Info.Uuid));
+
+                Utils::RightPadSpaces(OutFile,
+                                      fputs("\t\tCache Vm-Offset: ", OutFile),
+                                      STR_LENGTH("\t\t") + LongestKeyLength);
+
+                Utils::PrintAddress(OutFile,
+                                    Info.CacheVMOffset,
+                                    /*Is64Bit=*/true,
+                                    /*Prefix=*/"",
+                                    /*Suffix=*/"\n");
+
+                Utils::RightPadSpaces(OutFile,
+                                      fputs("\t\tFile-Suffix: ", OutFile),
+                                      STR_LENGTH("\t\t") + LongestKeyLength);
+
+                fprintf(OutFile,
+                        "\"" CHAR_ARR_FMT(32) "\"\n",
+                        CHAR_ARR_FMT_ARGS(Info.FileSuffix));
+
+                Index++;
+            }
+
+            return;
+        }
+
+        const auto ListOpt = Dsc.subCacheEntryV1InfoList();
+        if (!ListOpt.has_value()) {
+            return;
+        }
+
+        for (const auto &Info : ListOpt.value()) {
+            fprintf(OutFile,
+                    "\tSub-Cache V1 Entry %" ZEROPAD_FMT PRIu32 ": "
+                    UUID_FMT " \n",
+                    ZEROPAD_FMT_ARGS(MappingCountDigitLength),
+                    Index,
+                    UUID_FMT_ARGS(Info.Uuid));
+
+            Utils::RightPadSpaces(OutFile,
+                                  fputs("\t\tCache Vm-Offset: ", OutFile),
+                                  STR_LENGTH("\t\t") + LongestKeyLength);
+
+            Utils::PrintAddress(OutFile,
+                                Info.CacheVMOffset,
+                                /*Is64Bit=*/true,
+                                /*Prefix=*/"",
+                                /*Suffix=*/"\n");
 
             Index++;
         }
@@ -816,6 +890,8 @@ namespace Operations {
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
+        fputc('\n', OutFile);
+
         const auto &Header = Dsc.headerV1();
         PrintDscSizeRange(OutFile,
                           Dsc.range(),
@@ -857,6 +933,8 @@ namespace Operations {
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
+        fputc('\n', OutFile);
+
         const auto &Header = Dsc.headerV2();
         PrintDscSizeRange(OutFile,
                           Dsc.range(),
@@ -936,6 +1014,8 @@ namespace Operations {
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
+        fputc('\n', OutFile);
+
         const auto &Header = Dsc.headerV4();
         PrintOffsetCountPair(OutFile,
                              Dsc.range(),
@@ -977,8 +1057,6 @@ namespace Operations {
                             /*Is64Bit=*/true,
                             /*Prefix=*/"",
                             /*Suffix=*/"\n");
-
-        fputc('\n', OutFile);
     }
 
     static inline void
@@ -993,9 +1071,9 @@ namespace Operations {
     }
 
     static inline void
-    PrintPlatformKindValue(FILE *const OutFile,
-                           const char *const Key,
-                           const Dyld3::Platform Platform)
+    PrintPlatformValue(FILE *const OutFile,
+                       const char *const Key,
+                       const Dyld3::Platform Platform)
     {
         PrintDscKey(OutFile, Key);
         fprintf(OutFile,
@@ -1009,6 +1087,8 @@ namespace Operations {
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
+        fputc('\n', OutFile);
+
         const auto &Header = Dsc.headerV5();
         PrintDscSizeRange(OutFile,
                           Dsc.range(),
@@ -1062,7 +1142,7 @@ namespace Operations {
                                             List,
                                             DscRangeKind::ProgClosuresTrie);
 
-        PrintPlatformKindValue(OutFile, "Platform", Header.platform());
+        PrintPlatformValue(OutFile, "Platform", Header.platform());
 
         PrintDscKey(OutFile, "Closure-Format Version");
         fprintf(OutFile, "%" PRIu32 "\n", Header.FormatVersion);
@@ -1100,15 +1180,16 @@ namespace Operations {
         } else {
             fprintf(OutFile, "%s\n", std::to_string(Header.MaxSlide).c_str());
         }
-
-        fputc('\n', OutFile);
     }
+
     static void
     PrintDscHeaderV6Info(FILE *const OutFile,
                          const Objects::DyldSharedCache &Dsc,
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
+        fputc('\n', OutFile);
+
         const auto &Header = Dsc.headerV6();
         PrintDscSizeRange(OutFile,
                           Dsc.range(),
@@ -1161,7 +1242,6 @@ namespace Operations {
                                             Options,
                                             List,
                                             DscRangeKind::OtherTrie);
-        fputc('\n', OutFile);
     }
 
     static void
@@ -1181,8 +1261,9 @@ namespace Operations {
             const auto MaxProt = Mapping.maxProt();
 
             fprintf(OutFile,
-                    "\tMapping %0*d: " MACH_VMPROT_INIT_MAX_FMT " \n",
-                    MappingCountDigitLength,
+                    "\tMapping %" ZEROPAD_FMT PRIu32 ": "
+                    MACH_VMPROT_INIT_MAX_FMT " \n",
+                    ZEROPAD_FMT_ARGS(MappingCountDigitLength),
                     Index,
                     MACH_VMPROT_INIT_MAX_FMT_ARGS(InitProt, MaxProt));
 
@@ -1277,6 +1358,8 @@ namespace Operations {
                          const Objects::DyldSharedCache &Dsc,
                          const struct PrintHeader::Options &Options) noexcept
     {
+        fputc('\n', OutFile);
+
         const auto &Header = Dsc.headerV7();
         PrintOffsetCountPair(OutFile,
                              Dsc.range(),
@@ -1287,11 +1370,9 @@ namespace Operations {
                              /*Suffix=*/"\n");
 
         if (Header.MappingWithSlideCount <= 10) {
-            fputs("Mappings With Slide Info: \n", OutFile);
+            fputs("Mappings With Slide Info:\n", OutFile);
             PrintMappingWithSlideInfoList(OutFile, Options, Dsc);
         }
-
-        fputc('\n', OutFile);
     }
 
     static void
@@ -1311,6 +1392,8 @@ namespace Operations {
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
+        fputc('\n', OutFile);
+
         const auto &Header = Dsc.headerV8();
 
         PrintDscKey(OutFile, "Dylibs Prebuilt Loader Set Address");
@@ -1347,7 +1430,7 @@ namespace Operations {
                                             DscRangeKind::ProgramTrie);
 
         PrintPackedVersion(OutFile, "OS Version", Header.osVersion());
-        PrintPlatformKindValue(OutFile,
+        PrintPlatformValue(OutFile,
                                "Alternate Platform",
                                Header.altPlatform());
 
@@ -1379,6 +1462,10 @@ namespace Operations {
                              Header.SubCacheArrayCount,
                              /*Suffix=*/"\n");
 
+        if (Header.SubCacheArrayCount < 10) {
+            PrintSubCacheEntryInfo(OutFile, Dsc);
+        }
+
         PrintDscKey(OutFile, "Symbol File UUID");
         Utils::PrintUuid(OutFile, Header.SymbolFileUUID, "", "\n");
 
@@ -1405,7 +1492,6 @@ namespace Operations {
 
         // HACK: Temp fix to bad output
         fflush(OutFile);
-
         PrintDscRangeOverlapsErrorOrNewline(OutFile,
                                             Options,
                                             List,
@@ -1418,6 +1504,8 @@ namespace Operations {
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
+        fputc('\n', OutFile);
+
         const auto &Header = Dsc.headerV9();
         PrintCacheKind(OutFile, "Cache Sub-Kind", Header.Kind);
 

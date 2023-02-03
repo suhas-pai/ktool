@@ -4,14 +4,18 @@
  */
 
 #include <algorithm>
+
 #include "ADT/Maximizer.h"
+#include "DscImage/ExportTrie.h"
 
 #include "MachO/ExportTrie.h"
 #include "MachO/LibraryList.h"
 
+#include "Operations/Base.h"
 #include "Operations/Common.h"
 #include "Operations/PrintExportTrie.h"
 
+#include "Utils/Overflow.h"
 #include "Utils/Print.h"
 
 namespace Operations {
@@ -29,10 +33,10 @@ namespace Operations {
                        "Got Object-Kind None in "
                        "PrintExportTrie::supportsObjectKind()");
             case Objects::Kind::DyldSharedCache:
+            case Objects::Kind::DscImage:
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
-            case Objects::Kind::DscImage:
                 return false;
         }
 
@@ -188,17 +192,20 @@ namespace Operations {
         fputc(')', OutFile);
     }
 
-    static int
+    static auto
     HandleTreeOption(
+        RunResult &Result,
         FILE *const OutFile,
         MachO::ExportTrieEntryCollection &EntryCollection,
         const MachO::LibraryList &LibraryList,
         const bool Is64Bit,
         const struct PrintExportTrie::Options &Options) noexcept
+            -> RunResult &
     {
+        using RunError = PrintExportTrie::RunError;
         if (EntryCollection.empty()) {
             fputs("Provided file has an empty export-trie\n", OutFile);
-            return 1;
+            return Result.set(RunError::None);
         }
 
         if (!Options.SectionRequirements.empty()) {
@@ -237,7 +244,7 @@ namespace Operations {
                 fputs("Provided file has no export-trie after filtering with "
                       "provided requirements\n",
                       OutFile);
-                return 1;
+                return Result.set(RunError::None);
             }
         }
 
@@ -250,7 +257,7 @@ namespace Operations {
             fprintf(OutFile,
                     "Provided file's export-trie has %" PRIu64 " nodes\n",
                     Count);
-            return 0;
+            return Result.set(RunError::None);
         }
 
         if (Options.Sort) {
@@ -288,7 +295,7 @@ namespace Operations {
         };
 
         EntryCollection.PrintHorizontal(OutFile, TabLength, PrintNode);
-        return 0;
+        return Result.set(RunError::None);
     }
 
     static auto
@@ -352,6 +359,7 @@ namespace Operations {
                         continue;
                     }
 
+                    ExportTrieRangeOpt = TrieRange;
                     break;
                 }
                 case MachO::LoadCommandKind::LoadDylib:
@@ -414,6 +422,187 @@ namespace Operations {
         return Result.set(RunError::None);
     }
 
+    static auto
+    PrintExportList(RunResult &Result,
+                    FILE *const OutFile,
+                    uint64_t BaseAddress,
+                    const MachO::ExportTrieMap &ExportTrieMap,
+                    const ::MachO::LibraryList &LibraryList,
+                    const ::MachO::SegmentList &SegmentList,
+                    const PrintExportTrie::Options &Opt,
+                    const bool Is64Bit) noexcept -> RunResult &
+    {
+        using RunError = PrintExportTrie::RunError;
+
+        auto Count = uint64_t();
+        auto ExportList = std::vector<ExportInfo>();
+        auto LongestExportLength = ADT::Maximizer<uint64_t>();
+
+        if (Opt.OnlyCount && Opt.SectionRequirements.empty()) {
+            for ([[maybe_unused]] const auto &Info : ExportTrieMap.exportMap())
+            {
+                Count++;
+                continue;
+            }
+        } else {
+            for (const auto &Info : ExportTrieMap.exportMap()) {
+                LongestExportLength.set(Info.string().length());
+
+                auto SegmentName = std::string_view();
+                auto SectionName = std::string_view();
+
+                if (!Info.isReexport()) {
+                    const auto ImageOffset = Info.exportInfo().imageOffset();
+                    const auto Addr =
+                        Info.absolute() && ImageOffset != 0 ?
+                            ImageOffset :
+                            Utils::AddAndCheckOverflow(BaseAddress,
+                                                       ImageOffset).value();
+
+                    if (const auto Segment =
+                            SegmentList.findSegmentWithVmAddr(Addr))
+                    {
+                        if (const auto Section =
+                                Segment->findSectionWithVmAddr(Addr))
+                        {
+                            SectionName = Section->Name;
+                        }
+
+                        SegmentName = Segment->Name;
+                    }
+                }
+
+                const auto &Kind = Info.kind();
+                if (!ExportMeetsRequirements(Kind,
+                                             SegmentName,
+                                             SectionName,
+                                             Opt))
+                {
+                    continue;
+                }
+
+                if (Opt.OnlyCount) {
+                    Count++;
+                    continue;
+                }
+
+                ExportList.emplace_back(ExportInfo {
+                    .Kind = Kind,
+                    .Info = Info.exportInfo(),
+                    .SegmentName = SegmentName,
+                    .SectionName = SectionName,
+                    .String = std::string(Info.string())
+                });
+            }
+        }
+
+        if (ExportList.empty()) {
+            return Result.set(RunError::NoExports);
+        }
+
+        if (Opt.OnlyCount) {
+            fprintf(OutFile,
+                    "Provided file's export-trie has %" PRIu64 " nodes\n",
+                    Count);
+            return Result.set(RunError::None);
+        }
+
+        if (Opt.Sort) {
+            const auto Comparator =
+                [](const ExportInfo &Lhs, const ExportInfo &Rhs) noexcept
+            {
+                return Lhs.String < Rhs.String;
+            };
+
+            std::sort(ExportList.begin(), ExportList.end(), Comparator);
+        }
+
+        auto Counter = uint32_t();
+        const auto SizeDigitLength =
+            Utils::GetIntegerDigitCount(ExportList.size());
+
+        constexpr auto LongestDescLength =
+            MachO::ExportTrieExportKindGetDesc(
+                MachO::ExportTrieExportKind::StubAndResolver).length();
+
+        for (const auto &Export : ExportList) {
+            const auto RightPadAmt =
+                static_cast<int>(STR_LENGTH("Export : ") + SizeDigitLength);
+
+            Utils::RightPadSpaces(OutFile,
+                                    fprintf(OutFile,
+                                            "Export %" ZEROPAD_FMT PRIu32 ": ",
+                                            ZEROPAD_FMT_ARGS(SizeDigitLength),
+                                            Counter),
+                                    RightPadAmt);
+
+            if (!Export.Info.isReexport()) {
+                Utils::PrintSegmentSectionPair(OutFile,
+                                               Export.SegmentName,
+                                               Export.SectionName,
+                                               /*PadSegment=*/true,
+                                               /*PadSection=*/true,
+                                               /*Prefix=*/"",
+                                               /*Suffix=*/" ");
+
+                const auto ImageOffset = Export.Info.imageOffset();
+                Utils::PrintAddress(OutFile, ImageOffset, Is64Bit);
+            } else {
+                const auto OffsetLength =
+                    Is64Bit ?
+                        Utils::Address64Length : Utils::Address32Length;
+                const auto PadLength =
+                    Utils::SegmentSectionPairMaxLen + OffsetLength;
+
+                Utils::PadSpaces(OutFile, PadLength);
+            }
+
+            const auto KindDesc =
+                MachO::ExportTrieExportKindGetDesc(Export.Kind);
+
+            fprintf(OutFile,
+                    "\t%" RIGHTPAD_FMT "s",
+                    RIGHTPAD_FMT_ARGS(static_cast<int>(LongestDescLength)),
+                    KindDesc.data());
+
+            const auto RightPad =
+                static_cast<int>(LongestExportLength.value() +
+                                    STR_LENGTH("\"\""));
+
+            Utils::RightPadSpaces(OutFile,
+                                    fprintf(OutFile,
+                                            "\"%s\"",
+                                            Export.String.data()),
+                                    RightPad);
+
+            if (Export.Info.isReexport()) {
+                const auto ImportName = Export.Info.reexportImportName();
+                const auto DylibOrdinal =
+                    Export.Info.reexportDylibOrdinal();
+
+                if (!ImportName.empty()) {
+                    fprintf(OutFile,
+                            " (Re-exported as %s, ",
+                            ImportName.data());
+                } else {
+                    fputs(" (Re-exported from ", OutFile);
+                }
+
+                Operations::PrintDylibOrdinalInfo(OutFile,
+                                                    DylibOrdinal,
+                                                    LibraryList,
+                                                    Opt.Verbose,
+                                                    "",
+                                                    ")");
+            }
+
+            fputc('\n', OutFile);
+            Counter++;
+        }
+
+        return Result.set(RunError::None);
+    }
+
     auto PrintExportTrie::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
@@ -442,13 +631,15 @@ namespace Operations {
             return Result.set(RunError::NoExportTrieFound);
         }
 
+        const auto Map = MachO.map();
         const auto &ExportTrieRange = ExportTrieRangeOpt.value();
-        if (!MachO.map().range().contains(ExportTrieRange)) {
+
+        if (!Map.range().contains(ExportTrieRange)) {
             return Result.set(RunError::ExportTrieOutOfBounds);
         }
 
         const auto ExportTrieMap =
-            MachO::ExportTrieMap(ADT::MemoryMap(MachO.map(), ExportTrieRange));
+            MachO::ExportTrieMap(ADT::MemoryMap(Map, ExportTrieRange));
 
         if (Opt.PrintTree) {
             auto Error = MachO::ExportTrieParseError::None;
@@ -456,175 +647,85 @@ namespace Operations {
                 MachO::ExportTrieEntryCollection::Open(ExportTrieMap,
                                                        &SegmentList,
                                                        &Error);
-            HandleTreeOption(OutFile,
-                             EntryCollection,
-                             LibraryList,
-                             MachO.is64Bit(),
-                             Opt);
-        } else {
-            auto Count = uint64_t();
-            auto ExportList = std::vector<ExportInfo>();
-            auto LongestExportLength = ADT::Maximizer<uint64_t>();
-
-            if (Opt.OnlyCount && Opt.SectionRequirements.empty()) {
-                for ([[maybe_unused]] const auto &Info :
-                        ExportTrieMap.exportMap())
-                {
-                    Count++;
-                    continue;
-                }
-            } else {
-                for (const auto &Info : ExportTrieMap.exportMap()) {
-                    LongestExportLength.set(Info.string().length());
-
-                    auto SegmentName = std::string_view();
-                    auto SectionName = std::string_view();
-
-                    if (!Info.isReexport()) {
-                        const auto Addr = Info.exportInfo().imageOffset();
-                        if (const auto Segment =
-                                SegmentList.findSegmentWithVmAddr(Addr))
-                        {
-                            if (const auto Section =
-                                    Segment->findSectionWithVmAddr(Addr))
-                            {
-                                SectionName = Section->Name;
-                            }
-
-                            SegmentName = Segment->Name;
-                        }
-                    }
-
-                    const auto &Kind = Info.kind();
-                    if (!ExportMeetsRequirements(Kind,
-                                                 SegmentName,
-                                                 SectionName,
-                                                 Opt))
-                    {
-                        continue;
-                    }
-
-                    if (Opt.OnlyCount) {
-                        Count++;
-                        continue;
-                    }
-
-                    ExportList.emplace_back(ExportInfo {
-                        .Kind = Kind,
-                        .Info = Info.exportInfo(),
-                        .SegmentName = SegmentName,
-                        .SectionName = SectionName,
-                        .String = std::string(Info.string())
-                    });
-                }
-            }
-
-            if (ExportList.empty()) {
-                return Result.set(RunError::NoExports);
-            }
-
-            if (Opt.OnlyCount) {
-                fprintf(OutFile,
-                        "Provided file's export-trie has %" PRIu64 " nodes\n",
-                        Count);
-                return Result.set(RunError::None);
-            }
-
-            if (Opt.Sort) {
-                const auto Comparator =
-                    [](const ExportInfo &Lhs, const ExportInfo &Rhs) noexcept
-                {
-                    return Lhs.String < Rhs.String;
-                };
-
-                std::sort(ExportList.begin(), ExportList.end(), Comparator);
-            }
-
-            auto Counter = uint32_t();
-            const auto SizeDigitLength =
-                Utils::GetIntegerDigitCount(ExportList.size());
-
-            constexpr auto LongestDescLength =
-                MachO::ExportTrieExportKindGetDesc(
-                    MachO::ExportTrieExportKind::StubAndResolver).length();
-
-            for (const auto &Export : ExportList) {
-                const auto RightPadAmt =
-                    static_cast<int>(STR_LENGTH("Export : ") + SizeDigitLength);
-
-                Utils::RightPadSpaces(OutFile,
-                                      fprintf(OutFile,
-                                              "Export %0*" PRIu32 ": ",
-                                              SizeDigitLength,
-                                              Counter),
-                                      RightPadAmt);
-
-                if (!Export.Info.isReexport()) {
-                    Utils::PrintSegmentSectionPair(OutFile,
-                                                   Export.SegmentName.data(),
-                                                   Export.SectionName.data(),
-                                                   /*PadSegment=*/true,
-                                                   /*PadSection=*/true,
-                                                   /*Prefix=*/"",
-                                                   /*Suffix=*/" ");
-
-                    const auto ImageOffset = Export.Info.imageOffset();
-                    Utils::PrintAddress(OutFile, Is64Bit, ImageOffset);
-                } else {
-                    const auto OffsetLength =
-                        Is64Bit ?
-                            Utils::Address64Length : Utils::Address32Length;
-                    const auto PadLength =
-                        Utils::SegmentSectionPairMaxLen + OffsetLength;
-
-                    Utils::PadSpaces(OutFile, PadLength);
-                }
-
-                const auto KindDesc =
-                    MachO::ExportTrieExportKindGetDesc(Export.Kind);
-
-                fprintf(OutFile,
-                        "\t%" RIGHTPAD_FMT "s",
-                        RIGHTPAD_FMT_ARGS(static_cast<int>(LongestDescLength)),
-                        KindDesc.data());
-
-                const auto RightPad =
-                    static_cast<int>(LongestExportLength.value() +
-                                     STR_LENGTH("\"\""));
-
-                Utils::RightPadSpaces(OutFile,
-                                      fprintf(OutFile,
-                                              "\"%s\"",
-                                              Export.String.data()),
-                                      RightPad);
-
-                if (Export.Info.isReexport()) {
-                    const auto ImportName = Export.Info.reexportImportName();
-                    const auto DylibOrdinal =
-                        Export.Info.reexportDylibOrdinal();
-
-                    if (!ImportName.empty()) {
-                        fprintf(OutFile,
-                                " (Re-exported as %s, ",
-                                ImportName.data());
-                    } else {
-                        fputs(" (Re-exported from ", OutFile);
-                    }
-
-                    Operations::PrintDylibOrdinalInfo(OutFile,
-                                                      DylibOrdinal,
-                                                      LibraryList,
-                                                      Opt.Verbose,
-                                                      "",
-                                                      ")");
-                }
-
-                fputc('\n', OutFile);
-                Counter++;
-            }
+            return HandleTreeOption(Result,
+                                    OutFile,
+                                    EntryCollection,
+                                    LibraryList,
+                                    Is64Bit,
+                                    Opt);
         }
 
-        return Result.set(RunError::None);
+        return PrintExportList(Result,
+                               OutFile,
+                               /*BaseAddress=*/0,
+                               ExportTrieMap,
+                               LibraryList,
+                               SegmentList,
+                               Opt,
+                               Is64Bit);
+    }
+
+    auto PrintExportTrie::run(const Objects::DscImage &Image) const noexcept
+        -> RunResult
+    {
+        const auto IsBigEndian = Image.isBigEndian();
+        const auto Is64Bit = Image.is64Bit();
+
+        auto Result = RunResult(Objects::Kind::MachO);
+        auto ExportTrieRangeOpt = std::optional<ADT::Range>(std::nullopt);
+
+        auto LibraryList = MachO::LibraryList();
+        auto SegmentList = MachO::SegmentList();
+
+        CollectLoadCommands(Image,
+                            LibraryList,
+                            SegmentList,
+                            ExportTrieRangeOpt,
+                            Result,
+                            Is64Bit,
+                            IsBigEndian);
+
+        if (Result.get<RunError>() != RunError::None) {
+            return Result;
+        }
+
+        if (!ExportTrieRangeOpt.has_value()) {
+            return Result.set(RunError::NoExportTrieFound);
+        }
+
+        const auto Map = Image.getMapForFileOffsets();
+        const auto &ExportTrieRange = ExportTrieRangeOpt.value();
+
+        if (!Map.range().contains(ExportTrieRange)) {
+            return Result.set(RunError::ExportTrieOutOfBounds);
+        }
+
+        const auto ExportTrieMap =
+            MachO::ExportTrieMap(ADT::MemoryMap(Map, ExportTrieRange));
+
+        if (Opt.PrintTree) {
+            auto Error = MachO::ExportTrieParseError::None;
+            auto EntryCollection =
+                DscImage::ExportTrieEntryCollection::Open(ExportTrieMap,
+                                                          &SegmentList,
+                                                          Image.address(),
+                                                          &Error);
+            return HandleTreeOption(Result,
+                                    OutFile,
+                                    EntryCollection,
+                                    LibraryList,
+                                    Is64Bit,
+                                    Opt);
+        }
+
+        return PrintExportList(Result,
+                               OutFile,
+                               Image.address(),
+                               ExportTrieMap,
+                               LibraryList,
+                               SegmentList,
+                               Opt,
+                               Is64Bit);
     }
 
     auto PrintExportTrie::run(const Objects::Base &Base) const noexcept
@@ -636,8 +737,9 @@ namespace Operations {
                        "PrintExportTrie::run() got Object with Kind::None");
             case Objects::Kind::MachO:
                 return run(static_cast<const Objects::MachO &>(Base));
-            case Objects::Kind::DyldSharedCache:
             case Objects::Kind::DscImage:
+                return run(static_cast<const Objects::DscImage &>(Base));
+            case Objects::Kind::DyldSharedCache:
             case Objects::Kind::FatMachO:
                 return RunResultUnsupported;
         }

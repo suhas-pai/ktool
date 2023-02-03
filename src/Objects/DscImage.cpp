@@ -6,6 +6,7 @@
 #include "DyldSharedCache/Headers.h"
 
 #include "MachO/Header.h"
+#include "Objects/Base.h"
 #include "Objects/DyldSharedCache.h"
 
 namespace Objects {
@@ -17,17 +18,17 @@ namespace Objects {
         auto MaxPossibleSize = uint64_t();
         auto FileOffset = uint64_t();
 
-        const auto Header =
-            Dsc.getPtrForAddress<::MachO::Header>(ImageInfo.Address,
-                                                  &MaxPossibleSize,
-                                                  &FileOffset);
+        const auto FirstMapping = Dsc.mappingInfoList().front();
+        const auto HeaderFileOffsetOpt =
+            FirstMapping.getFileOffsetFromAddr(ImageInfo.Address,
+                                               &MaxPossibleSize);
 
-        if (Header == nullptr) {
+        if (!HeaderFileOffsetOpt.has_value()) {
             const auto MagicPtr =
                 Dsc.getPtrForAddress<::MachO::Magic>(ImageInfo.Address);
 
             if (MagicPtr == nullptr) {
-                return OpenError::WrongFormat;
+                return OpenError::InvalidAddress;
             }
 
             if (::MachO::MagicIsThin(*MagicPtr)) {
@@ -36,6 +37,9 @@ namespace Objects {
 
             return OpenError::WrongFormat;
         }
+
+        const auto Header =
+            Dsc.map().get<::MachO::Header>(HeaderFileOffsetOpt.value());
 
         if (!::MachO::MagicIsThin(Header->Magic)) {
             return OpenError::WrongFormat;
@@ -83,12 +87,25 @@ namespace Objects {
                 if (const auto Segment =
                         Iter.dyn_cast<::MachO::SegmentCommand64>())
                 {
+                    auto FoundMapping = true;
+                    for (const auto &Mapping : Dsc.mappingInfoList()) {
+                        const auto FileRange = Segment->fileRange(IsBigEndian);
+                        if (Mapping.fileRange().contains(FileRange)) {
+                            FoundMapping = true;
+                            break;
+                        }
+                    }
+
+                    if (!FoundMapping) {
+                        return OpenError::OutOfBoundsSegment;
+                    }
+
                     const auto NewFileSize =
                         Utils::AddAndCheckOverflow(
                             Segment->fileSize(IsBigEndian), FileSize);
 
                     if (!NewFileSize.has_value()) {
-                        return OpenError::SizeTooLarge;
+                        return OpenError::OutOfBoundsSegment;
                     }
 
                     FileSize = NewFileSize.value();
@@ -102,22 +119,28 @@ namespace Objects {
                 if (const auto Segment =
                         Iter.dyn_cast<::MachO::SegmentCommand>())
                 {
-                    const auto NewFileSize =
-                        Utils::AddAndCheckOverflow(
-                            Segment->fileSize(IsBigEndian), FileSize);
-
-                    if (!NewFileSize.has_value()) {
-                        return OpenError::SizeTooLarge;
+                    auto FoundMapping = true;
+                    for (const auto &Mapping : Dsc.mappingInfoList()) {
+                        const auto FileRange = Segment->fileRange(IsBigEndian);
+                        if (Mapping.fileRange().contains(FileRange)) {
+                            FoundMapping = true;
+                            break;
+                        }
                     }
 
-                    FileSize = NewFileSize.value();
+                    if (!FoundMapping) {
+                        return OpenError::OutOfBoundsSegment;
+                    }
+
+                    FileSize += Segment->fileSize(IsBigEndian);
+                    if (FileSize > std::numeric_limits<uint32_t>::max()) {
+                        return OpenError::OutOfBoundsSegment;
+                    }
                 }
             }
         }
 
-        if (FileSize > MaxPossibleSize) {
-            return OpenError::SizeTooLarge;
-        }
+        FileSize = std::min(FileSize, MaxPossibleSize);
 
         const auto ImageRange = ADT::Range::FromSize(FileOffset, FileSize);
         const auto ImageMap = ADT::MemoryMap(Dsc.map(), ImageRange);

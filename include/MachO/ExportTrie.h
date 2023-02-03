@@ -1200,6 +1200,7 @@ namespace MachO {
 
         [[nodiscard]] virtual auto
         LookupInfoForAddress(const MachO::SegmentList &SegList,
+                             ExportTrieFlags::Kind Kind,
                              uint64_t Address,
                              const SectionInfo **SectionOut) const noexcept
             -> const SegmentInfo *;
@@ -1314,15 +1315,27 @@ namespace MachO {
         using EntryInfo = ExportTrieExportCollectionEntryInfo;
         using Error = ExportTrieParseError;
         using EntryListType = std::vector<std::unique_ptr<EntryInfo>>;
-    private:
-        explicit ExportTrieExportCollection() noexcept = default;
     protected:
         EntryListType EntryList;
+
+        explicit ExportTrieExportCollection() noexcept = default;
+
+        void
+        Parse(const ExportTrieMap::ExportMap &Trie,
+              const SegmentList *SegList,
+              Error *const ErrorOut) noexcept;
     public:
         static ExportTrieExportCollection
         Open(const ExportTrieMap::ExportMap &Trie,
-             const MachO::SegmentList *SegList,
+             const SegmentList *SegList,
              Error *Error) noexcept;
+
+        [[nodiscard]] virtual auto
+        LookupInfoForAddress(const SegmentList &SegList,
+                             ExportTrieFlags::Kind Kind,
+                             uint64_t Address,
+                             const SectionInfo **SectionOut) const noexcept
+            -> const SegmentInfo *;
 
         using Iterator = EntryListType::iterator;
         using ConstIterator = EntryListType::const_iterator;

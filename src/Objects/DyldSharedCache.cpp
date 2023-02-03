@@ -138,6 +138,11 @@ namespace Objects {
             return OpenError::WrongFormat;
         }
 
+        const auto FirstMapping = HeaderV0->mappingInfoList().front();
+        if (FirstMapping.FileOffset != 0) {
+            return OpenError::FirstMappingFileOffNotZero;
+        }
+
         const auto Magic = HeaderV0->magic();
         constexpr auto MagicStart = std::string_view("dyld_v1");
 
@@ -153,6 +158,44 @@ namespace Objects {
         }
 
         return new DyldSharedCache(Map, CpuKind);
+    }
+
+    auto DyldSharedCache::subCacheEntryV1InfoList() const noexcept
+        -> std::optional<ADT::List<::DyldSharedCache::SubCacheEntryV1>>
+    {
+        if (!header().hasSubCacheV1List()) {
+            return std::nullopt;
+        }
+
+        const auto &Header = headerV8();
+        const auto Array =
+            map().get<::DyldSharedCache::SubCacheEntryV1>(
+                Header.SubCacheArrayOffset, Header.SubCacheArrayCount);
+
+        if (Array == nullptr) {
+            return std::nullopt;
+        }
+
+        return ADT::List(Array, Header.SubCacheArrayCount);
+    }
+
+    auto DyldSharedCache::subCacheEntryInfoList() const noexcept
+        -> std::optional<ADT::List<::DyldSharedCache::SubCacheEntry>>
+    {
+        if (!header().hasSubCacheList()) {
+            return std::nullopt;
+        }
+
+        const auto &Header = headerV9();
+        const auto Array =
+            map().get<::DyldSharedCache::SubCacheEntry>(
+                Header.SubCacheArrayOffset, Header.SubCacheArrayCount);
+
+        if (Array == nullptr) {
+            return std::nullopt;
+        }
+
+        return ADT::List(Array, Header.SubCacheArrayCount);
     }
 
     auto

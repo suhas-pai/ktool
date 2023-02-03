@@ -325,8 +325,8 @@ namespace Operations {
                     LongestCStringLength + STR_LENGTH(" \"\""));
 
                 fprintf(OutFile,
-                        " (Length: %0*" PRIuPTR ", File Offset: ",
-                        CStringListSizeDigitCount,
+                        " (Length: %" ZEROPAD_FMT PRIuPTR ", File Offset: ",
+                        ZEROPAD_FMT_ARGS(CStringListSizeDigitCount),
                         Info.String.length());
 
                 Utils::PrintAddress(OutFile, Info.FileOffset, Is64Bit, "", ")");
