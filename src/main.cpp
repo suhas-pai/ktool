@@ -25,6 +25,7 @@
 #include "Operations/PrintRebaseOpcodeList.h"
 #include "Operations/PrintRebaseActionList.h"
 #include "Operations/PrintObjcClassList.h"
+#include "Operations/PrintProgramTrie.h"
 
 struct OperationInfo {
     std::string Path;
@@ -689,6 +690,33 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintObjcClassList>(
                 new Operations::PrintObjcClassList(stdout, Options));
+    } else if (OperationString == "--program-trie") {
+        auto Options = Operations::PrintProgramTrie::Options();
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            if (Arg == "-v" || Arg == "--verbose") {
+                Options.Verbose = true;
+            } else if (Arg == "--tree") {
+                Options.PrintTree = true;
+            } else if (Arg == "--only-count") {
+                Options.OnlyCount = true;
+            } else if (Arg == "--sort") {
+                Options.Sort = true;
+            } else if (Arg.front() == '-') {
+                fprintf(stderr,
+                        "Got unrecognized argument \"%s\" for option %s\n",
+                        Arg.data(),
+                        OperationString.data());
+                return 1;
+            } else {
+                break;
+            }
+        }
+
+        Operation.Kind = Operations::Kind::PrintProgramTrie;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintProgramTrie>(
+                new Operations::PrintProgramTrie(stdout, Options));
     } else if (OperationString.front() == '-') {
         fprintf(stderr,
                 "Unrecognized operation: \"%s\"\n",
@@ -1005,6 +1033,22 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     return 1;
                 case Operations::PrintObjcClassList::RunError::UnalignedSection:
                     fputs("Objc class-list section is mis-aligned\n", stderr);
+                    return 1;
+            }
+
+            break;
+        case Operations::Kind::PrintProgramTrie:
+            switch (Operations::PrintProgramTrie::RunError(Result.Error)) {
+                case Operations::PrintProgramTrie::RunError::None:
+                    break;
+                case Operations::PrintProgramTrie::RunError::NoProgramTrie:
+                    fputs("Program-trie was not found in file\n", stderr);
+                    return 1;
+                case Operations::PrintProgramTrie::RunError::OutOfBounds:
+                    fputs("Program-trie is in an invalid location\n", stderr);
+                    return 1;
+                case Operations::PrintProgramTrie::RunError::NoExports:
+                    fputs("Program-trie has no exported nodes\n", stderr);
                     return 1;
             }
 
