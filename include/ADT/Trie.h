@@ -819,6 +819,65 @@ namespace ADT {
             { a.createChildNode(b) } noexcept -> TreeNodeDerived;
         };
 
+    template <TreeDerived TreeType,
+              TrieExportInfoParser T,
+              TrieNodeCollectionNodeCreator<T> NodeCreatorType>
+
+    auto
+    TrieCreateTree(TreeType &Tree,
+                   Trie<T> &Trie,
+                   NodeCreatorType &NodeCreator,
+                   const TrieParseOptions &Options = TrieParseOptions(),
+                   TrieParseError *const ErrorOut = nullptr) noexcept
+    {
+        auto Iter = Trie.begin(Options);
+        const auto End = Trie.end();
+
+        if (Iter == End) {
+            return;
+        }
+
+        setRoot(NodeCreator.createChildNode(*Iter));
+
+        auto Parent = Tree.root();
+        auto PrevDepthLevel = uint64_t(1);
+
+        const auto MoveUpParentHierarchy =
+            [&](const uint64_t Amt) noexcept
+        {
+            for (auto I = uint64_t(); I != Amt; I++) {
+                Parent = Parent->parent();
+            }
+        };
+
+        for (Iter++; Iter != End; Iter++) {
+            if (Iter.hasError()) {
+                if (ErrorOut != nullptr) {
+                    *ErrorOut = Iter.getError();
+                }
+
+                return;
+            }
+
+            const auto DepthLevel = Iter->depthLevel();
+            if (PrevDepthLevel > DepthLevel) {
+                MoveUpParentHierarchy(
+                    static_cast<uint64_t>(PrevDepthLevel) - DepthLevel);
+            }
+
+            const auto Current = NodeCreator.createChildNode(*Iter);
+
+            Parent->addChild(*Current);
+            if (Iter->node().childCount() != 0) {
+                Parent = Current;
+            }
+
+            PrevDepthLevel = DepthLevel;
+        }
+
+        return Tree;
+    }
+
     template <TrieExportInfoParser T,
               TrieNodeCollectionNodeCreator<T> NodeCreatorType>
 
@@ -829,7 +888,7 @@ namespace ADT {
     public:
         explicit TrieNodeCollection() noexcept = default;
 
-        virtual void
+        void
         ParseFromTrie(Trie<T> &Trie,
                       NodeCreatorType &NodeCreator,
                       const ParseOptions &Options = ParseOptions(),
