@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include <algorithm>
+
 #include "ADT/Trie.h"
 #include "Utils/Leb128.h"
 

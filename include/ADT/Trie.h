@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <__concepts/derived_from.h>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -608,21 +607,20 @@ namespace ADT {
         struct ExportIterator {
         public:
             using Error = ParseError;
-            using ParseOptions = ParseOptions;
         protected:
-            Iterator Iterator;
+            Iterator Iter;
             auto Advance() noexcept -> decltype(*this) {
                 do {
-                    Iterator++;
-                    if (Iterator.hasError()) {
+                    Iter++;
+                    if (Iter.hasError()) {
                         break;
                     }
 
-                    if (Iterator.isAtEnd()) {
+                    if (Iter.isAtEnd()) {
                         break;
                     }
 
-                    if (Iterator.info().node().isExport()) {
+                    if (Iter.info().node().isExport()) {
                         break;
                     }
                 } while (true);
@@ -637,28 +635,38 @@ namespace ADT {
                 TrieParser &TrieParser,
                 T &ExportInfoParser,
                 const ParseOptions &Options = ParseOptions()) noexcept
-            : Iterator(Begin, End, TrieParser, ExportInfoParser, Options) {
+            : Iter(Begin, End, TrieParser, ExportInfoParser, Options) {
+                Advance();
+            }
+
+            explicit
+            ExportIterator(
+                const ADT::MemoryMap &Map,
+                TrieParser &TrieParser,
+                T &ExportInfoParser,
+                const ParseOptions &Options = ParseOptions()) noexcept
+            : Iter(Map, TrieParser, ExportInfoParser, Options) {
                 Advance();
             }
 
             [[nodiscard]] inline auto &info() noexcept {
-                return Iterator.info();
+                return Iter.info();
             }
 
             [[nodiscard]] inline auto &info() const noexcept {
-                return Iterator.info();
+                return Iter.info();
             }
 
             [[nodiscard]] inline auto isAtEnd() const noexcept {
-                return Iterator.isAtEnd();
+                return Iter.isAtEnd();
             }
 
             [[nodiscard]] inline auto hasError() const noexcept {
-                return Iterator.hasError();
+                return Iter.hasError();
             }
 
             [[nodiscard]] inline auto getError() const noexcept {
-                return Iterator.getError();
+                return Iter.getError();
             }
 
             inline auto operator++() noexcept -> decltype(*this) {
@@ -681,24 +689,24 @@ namespace ADT {
             }
 
             [[nodiscard]] inline auto &operator*() noexcept {
-                return Iterator.info();
+                return Iter.info();
             }
 
             [[nodiscard]] inline const auto &operator*() const noexcept {
-                return Iterator.info();
+                return Iter.info();
             }
 
             [[nodiscard]] inline auto operator->() noexcept {
-                return &Iterator.info();
+                return &Iter.info();
             }
 
             [[nodiscard]] inline auto operator->() const noexcept {
-                return &Iterator.info();
+                return &Iter.info();
             }
 
             [[nodiscard]]
             inline auto operator==(const IteratorEnd &End) const noexcept {
-                return Iterator == End;
+                return Iter== End;
             }
 
             [[nodiscard]]
