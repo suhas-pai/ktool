@@ -41,6 +41,7 @@ namespace ADT {
         template <typename T = uint8_t,
                   bool Verify = true,
                   uint64_t Size = sizeof(T)>
+
         [[nodiscard]]
         inline auto base(const uint64_t Count = 1) const noexcept -> T * {
             if constexpr (Verify) {

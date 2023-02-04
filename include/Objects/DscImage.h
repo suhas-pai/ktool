@@ -54,7 +54,7 @@ namespace Objects {
         }
 
         [[nodiscard]] constexpr auto address() const noexcept {
-            return ImageInfo.Address;
+            return info().Address;
         }
 
         [[nodiscard]] inline auto path() const noexcept {

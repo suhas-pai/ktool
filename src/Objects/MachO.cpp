@@ -6,6 +6,7 @@
 //
 
 #include "Objects/MachO.h"
+#include "Utils/Overflow.h"
 
 namespace Objects {
     auto MachO::VerifyMap(const ADT::MemoryMap &Map) noexcept -> OpenError {
@@ -36,10 +37,15 @@ namespace Objects {
         const auto Header = Map.base<::MachO::Header, false>();
 
         const auto LoadCommandsRange = Header->loadCommandsRange();
-        const auto MinLoadCommandSize =
-            sizeof(::MachO::LoadCommand) * Header->ncmds();
+        const auto MinLoadCommandSizeOpt =
+            Utils::MulAndCheckOverflow(
+                sizeof(::MachO::LoadCommand), Header->ncmds());
 
-        if (LoadCommandsRange.size() < MinLoadCommandSize) {
+        if (!MinLoadCommandSizeOpt.has_value()) {
+            return OpenError::TooManyLoadCommands;
+        }
+
+        if (LoadCommandsRange.size() < MinLoadCommandSizeOpt.value()) {
             return OpenError::TooManyLoadCommands;
         }
 

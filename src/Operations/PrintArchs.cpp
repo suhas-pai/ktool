@@ -41,7 +41,7 @@ namespace Operations {
                           const uint32_t Ordinal,
                           const bool Verbose,
                           const bool IsBigEndian,
-                          const char *const Prefix) noexcept
+                          const std::string_view Prefix) noexcept
     {
         auto ObjectDesc = std::string_view("<Unrecognized>");
         if (ArchObject != nullptr) {
@@ -63,23 +63,27 @@ namespace Operations {
         const auto Align = Arch.align(IsBigEndian);
 
         fprintf(OutFile,
-                "%sArch #%" PRIu32 ": %s\n"
-                "%s\tCpuKind:    %s\n"
-                "%s\tCpuSubKind: %s\n"
-                "%s\tOffset:     " ADDRESS_32_FMT " (" ADDR_RANGE_32_FMT ")\n"
-                "%s\tSize:       %s\n"
-                "%s\tAlign:      %" PRIu32 " (%s)\n",
-                Prefix, Ordinal, ObjectDesc.data(),
-                Prefix,
+                STRING_VIEW_FMT "Arch #%" PRIu32 ": %s\n"
+                STRING_VIEW_FMT "\tCpuKind:    %s\n"
+                STRING_VIEW_FMT "\tCpuSubKind: %s\n"
+                STRING_VIEW_FMT "\tOffset:     " ADDRESS_32_FMT
+                    " (" ADDR_RANGE_32_FMT ")\n"
+                STRING_VIEW_FMT "\tSize:       %s\n"
+                STRING_VIEW_FMT "\tAlign:      %" PRIu32 " (%s)\n",
+                STRING_VIEW_FMT_ARGS(Prefix), Ordinal, ObjectDesc.data(),
+                STRING_VIEW_FMT_ARGS(Prefix),
                     Mach::CpuKindIsValid(CpuKind) ?
                         Verbose ?
                             Mach::CpuKindGetString(CpuKind).data() :
                             Mach::CpuKindGetDesc(CpuKind).data()
                         : "Unrecognized",
-                Prefix, SubKindString,
-                Prefix, Offset, ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
-                Prefix, Utils::FormattedSizeForOutput(Size).data(),
-                Prefix, Align, Utils::FormattedSize(1ull << Align).data());
+                STRING_VIEW_FMT_ARGS(Prefix), SubKindString,
+                STRING_VIEW_FMT_ARGS(Prefix), Offset,
+                    ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
+                STRING_VIEW_FMT_ARGS(Prefix),
+                    Utils::FormattedSizeForOutput(Size).c_str(),
+                STRING_VIEW_FMT_ARGS(Prefix), Align,
+                    Utils::FormattedSize(1ull << Align).c_str());
     }
 
     void
@@ -89,7 +93,7 @@ namespace Operations {
                             const uint32_t Ordinal,
                             const bool Verbose,
                             const bool IsBigEndian,
-                            const char *const Prefix) noexcept
+                            const std::string_view Prefix) noexcept
     {
         auto ObjectDesc = std::string_view("<Unrecognized>");
         if (ArchObject != nullptr) {
@@ -111,22 +115,27 @@ namespace Operations {
         const auto Align = Arch.align(IsBigEndian);
 
         fprintf(OutFile,
-                "%sArch #%" PRIu32 ": %s\n"
-                "%s\tCpuKind:    %s\n"
-                "%s\tCpuSubKind: %s\n"
-                "%s\tOffset:     " ADDRESS_64_FMT " (" ADDR_RANGE_64_FMT ")\n"
-                "%s\tSize:       %s\n"
-                "%s\tAlign:      %" PRIu32 " (%s)\n",
-                Prefix, Ordinal, ObjectDesc.data(),
-                Prefix, Mach::CpuKindIsValid(CpuKind) ?
-                    Verbose ?
-                        Mach::CpuKindGetString(CpuKind).data() :
-                        Mach::CpuKindGetDesc(CpuKind).data()
-                    : "Unrecognized",
-                Prefix, SubKindString,
-                Prefix, Offset, ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
-                Prefix, Utils::FormattedSizeForOutput(Size).data(),
-                Prefix, Align, Utils::FormattedSize(1ull << Align).data());
+                STRING_VIEW_FMT "Arch #%" PRIu32 ": %s\n"
+                STRING_VIEW_FMT "\tCpuKind:    %s\n"
+                STRING_VIEW_FMT "\tCpuSubKind: %s\n"
+                STRING_VIEW_FMT "\tOffset:     " ADDRESS_64_FMT
+                    " (" ADDR_RANGE_64_FMT ")\n"
+                STRING_VIEW_FMT "\tSize:       %s\n"
+                STRING_VIEW_FMT "\tAlign:      %" PRIu32 " (%s)\n",
+                STRING_VIEW_FMT_ARGS(Prefix), Ordinal, ObjectDesc.data(),
+                STRING_VIEW_FMT_ARGS(Prefix),
+                    Mach::CpuKindIsValid(CpuKind) ?
+                        Verbose ?
+                            Mach::CpuKindGetString(CpuKind).data() :
+                            Mach::CpuKindGetDesc(CpuKind).data()
+                        : "Unrecognized",
+                STRING_VIEW_FMT_ARGS(Prefix), SubKindString,
+                STRING_VIEW_FMT_ARGS(Prefix), Offset,
+                    ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
+                STRING_VIEW_FMT_ARGS(Prefix),
+                    Utils::FormattedSizeForOutput(Size).c_str(),
+                STRING_VIEW_FMT_ARGS(Prefix), Align,
+                    Utils::FormattedSize(1ull << Align).c_str());
     }
 
     auto
@@ -154,7 +163,7 @@ namespace Operations {
             for (const auto &Arch : Fat.archList()) {
                 const auto Object =
                     std::unique_ptr<Objects::Base>(
-                        Fat.getArchObjectAtIndex(I).ptr());
+                       Fat.getArchObjectAtIndex(I).ptr());
 
                 PrintArch(OutFile,
                           Arch,

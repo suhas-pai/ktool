@@ -49,7 +49,7 @@ namespace ADT {
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {
-            return size() == 0;
+            return Begin == End;
         }
 
         [[nodiscard]] constexpr auto &front() noexcept {

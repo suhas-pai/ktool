@@ -39,7 +39,7 @@ namespace Operations {
                   uint32_t Ordinal,
                   bool Verbose,
                   bool IsBigEndian,
-                  const char *Prefix = "") noexcept;
+                  const std::string_view Prefix = "") noexcept;
 
         static void
         PrintArch64(FILE *OutFile,
@@ -48,7 +48,7 @@ namespace Operations {
                     uint32_t Ordinal,
                     bool Verbose,
                     bool IsBigEndian,
-                    const char *Prefix = "") noexcept;
+                    const std::string_view Prefix = "") noexcept;
 
         RunResult run(const Objects::Base &Base) const noexcept override;
         RunResult run(const Objects::FatMachO &MachO) const noexcept;
