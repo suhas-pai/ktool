@@ -46,6 +46,7 @@ namespace Objects {
             UnrecognizedCpuKind,
             SizeTooSmall,
 
+            NoMappings,
             FirstMappingFileOffNotZero,
         };
 
@@ -181,6 +182,42 @@ namespace Objects {
             return *map().base<::DyldSharedCache::HeaderV9, false>();
         }
 
+        [[nodiscard]] inline auto isV1() const noexcept {
+            return header().isV1();
+        }
+
+        [[nodiscard]] inline auto isV2() const noexcept {
+            return header().isV2();
+        }
+
+        [[nodiscard]] inline auto isV3() const noexcept {
+            return header().isV3();
+        }
+
+        [[nodiscard]] inline auto isV4() const noexcept {
+            return header().isV4();
+        }
+
+        [[nodiscard]] inline auto isV5() const noexcept {
+            return header().isV5();
+        }
+
+        [[nodiscard]] inline auto isV6() const noexcept {
+            return header().isV6();
+        }
+
+        [[nodiscard]] inline auto isV7() const noexcept {
+            return header().isV7();
+        }
+
+        [[nodiscard]] inline auto isV8() const noexcept {
+            return header().isV8();
+        }
+
+        [[nodiscard]] inline auto isV9() const noexcept {
+            return header().isV9();
+        }
+
         [[nodiscard]] inline auto getVersion() const noexcept {
             return header().getVersion();
         }
@@ -260,17 +297,114 @@ namespace Objects {
             return header().imageInfoList();
         }
 
+        [[nodiscard]] inline auto
+        getFileOffsetForAddress(
+            const uint64_t Addr,
+            const bool InsideMappings = true,
+            uint64_t *const MaxSizeOut = nullptr) const noexcept
+                -> std::optional<uint64_t>
+        {
+            if (Addr == 0) {
+                return std::nullopt;
+            }
+
+            if (InsideMappings) {
+                for (const auto &Mapping : headerV0().mappingInfoList()) {
+                    if (const auto Offset =
+                            Mapping.getFileOffsetFromAddr(Addr, MaxSizeOut))
+                    {
+                        return Offset.value();
+                    }
+                }
+            } else {
+                const auto FirstMappingAddress =
+                    mappingInfoList().front().Address;
+
+                if (Addr < FirstMappingAddress) {
+                    return std::nullopt;
+                }
+
+                const auto Offset = Addr - FirstMappingAddress;
+                const auto DscSize = range().size();
+
+                if (Offset >= DscSize) {
+                    return std::nullopt;
+                }
+
+                *MaxSizeOut = DscSize - Offset;
+                return Offset;
+            }
+
+            return std::nullopt;
+        }
+
+        [[nodiscard]] inline auto
+        getFileRangeForAddrRange(
+            const ADT::Range &AddrRange,
+            const bool InsideMappings = true,
+            uint64_t *const MaxSizeOut = nullptr) const noexcept
+                -> std::optional<ADT::Range>
+        {
+            const uint64_t BaseAddr = AddrRange.begin();
+            if (AddrRange.empty() || BaseAddr == 0) {
+                return std::nullopt;
+            }
+
+            if (InsideMappings) {
+                for (const auto &Mapping : headerV0().mappingInfoList()) {
+                    if (const auto Offset =
+                            Mapping.getFileOffsetFromAddr(BaseAddr, MaxSizeOut))
+                    {
+                        const auto AddrRangeSize = AddrRange.size();
+                        if (*MaxSizeOut < AddrRangeSize) {
+                            return std::nullopt;
+                        }
+
+                        return ADT::Range::FromSize(Offset.value(),
+                                                    AddrRangeSize);
+                    }
+                }
+            } else {
+                const auto FirstMappingAddress =
+                    mappingInfoList().front().Address;
+
+                if (BaseAddr < FirstMappingAddress) {
+                    return std::nullopt;
+                }
+
+                const auto Offset = BaseAddr - FirstMappingAddress;
+                const auto DscSize = range().size();
+
+                if (Offset >= DscSize) {
+                    return std::nullopt;
+                }
+
+                const auto MaxSize = DscSize - Offset;
+                const auto AddrRangeSize = AddrRange.size();
+
+                if (AddrRangeSize > MaxSize) {
+                    return std::nullopt;
+                }
+
+                return ADT::Range::FromSize(Offset, AddrRangeSize);
+            }
+
+            return std::nullopt;
+        }
+
         template <typename T = uint8_t, uint64_t Size = sizeof(T)>
         [[nodiscard]] inline auto
-        getPtrForAddress(
-            const uint64_t Address,
-            uint64_t *const TotalAvailSize = nullptr,
-            uint64_t *const FileOffsetOut = nullptr) const noexcept
+        getPtrForAddress(const uint64_t Address,
+                         const bool InsideMappings = true,
+                         uint64_t *const TotalAvailSize = nullptr,
+                         uint64_t *const FileOffsetOut = nullptr) const noexcept
             -> T *
         {
             auto AvailSize = uint64_t();
             if (const auto Offset =
-                    header().getFileOffsetForAddress(Address, &AvailSize))
+                    getFileOffsetForAddress(Address,
+                                            InsideMappings,
+                                            &AvailSize))
             {
                 if (AvailSize < Size) {
                     return nullptr;

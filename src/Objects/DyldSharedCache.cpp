@@ -153,6 +153,10 @@ namespace Objects {
             return OpenError::UnrecognizedCpuKind;
         }
 
+        if (HeaderV0->mappingInfoList().empty()) {
+            return OpenError::NoMappings;
+        }
+
         const auto FirstMapping = HeaderV0->mappingInfoList().front();
         if (FirstMapping.FileOffset != 0) {
             return OpenError::FirstMappingFileOffNotZero;
