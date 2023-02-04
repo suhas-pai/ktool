@@ -20,8 +20,8 @@ namespace MachO {
     {
         using Error = ADT::TrieParseError;
 
-        const auto Flags = Utils::ReadUleb128(Ptr, NodeEnd, &Ptr);
-        if (Ptr == nullptr) {
+        const auto FlagsOpt = Utils::ReadUleb128(Ptr, NodeEnd, &Ptr);
+        if (!FlagsOpt.has_value()) {
             return Error::InvalidUleb128;
         }
 
@@ -31,10 +31,10 @@ namespace MachO {
 
         setFlags(Flags);
         if (isReexport()) {
-            const auto DylibOrdinal =
+            const auto DylibOrdinalOpt =
                 Utils::ReadUleb128<uint32_t>(Ptr, NodeEnd, &Ptr);
 
-            if (Ptr == nullptr) {
+            if (!DylibOrdinalOpt.has_value()) {
                 return Error::InvalidUleb128;
             }
 
@@ -42,7 +42,7 @@ namespace MachO {
                 return Error::InvalidFormat;
             }
 
-            setReexportDylibOrdinal(DylibOrdinal);
+            setReexportDylibOrdinal(DylibOrdinalOpt.value());
             if (*Ptr != '\0') {
                 const auto String = reinterpret_cast<const char *>(Ptr);
                 const auto MaxLength = static_cast<uint64_t>(NodeEnd - Ptr);
@@ -61,25 +61,25 @@ namespace MachO {
                 Ptr += 1;
             }
         } else {
-            const auto ImageOffset = Utils::ReadUleb128(Ptr, NodeEnd, &Ptr);
-            if (Ptr == nullptr) {
+            const auto ImageOffsetOpt = Utils::ReadUleb128(Ptr, NodeEnd, &Ptr);
+            if (!ImageOffsetOpt.has_value()) {
                 return Error::InvalidUleb128;
             }
 
-            setImageOffset(ImageOffset);
+            setImageOffset(ImageOffsetOpt.value());
             if (stubAndResolver()) {
                 if (Ptr == NodeEnd) {
                     return Error::InvalidFormat;
                 }
 
-                const auto ResolverStubAddress =
+                const auto ResolverStubAddressOpt =
                     Utils::ReadUleb128(Ptr, NodeEnd, &Ptr);
 
-                if (Ptr == nullptr) {
+                if (!ResolverStubAddressOpt.has_value()) {
                     return Error::InvalidUleb128;
                 }
 
-                setResolverStubAddress(ResolverStubAddress);
+                setResolverStubAddress(ResolverStubAddressOpt.value());
             }
         }
 

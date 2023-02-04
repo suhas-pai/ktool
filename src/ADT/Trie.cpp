@@ -14,8 +14,8 @@ namespace ADT {
                           std::vector<ADT::Range> &RangeList,
                           TrieNodeInfo *const InfoOut) noexcept -> Error
     {
-        auto NodeSize = Utils::ReadUleb128<uint32_t>(Ptr, End, &Ptr);
-        if (Ptr == nullptr) {
+        auto NodeSizeOpt = Utils::ReadUleb128<uint32_t>(Ptr, End, &Ptr);
+        if (!NodeSizeOpt.has_value()) {
             return Error::InvalidUleb128;
         }
 
@@ -23,6 +23,7 @@ namespace ADT {
             return Error::InvalidFormat;
         }
 
+        const auto NodeSize = NodeSizeOpt.value();
         const auto Offset = static_cast<uint64_t>(Ptr - Begin);
         const auto OffsetEndOpt = Utils::AddAndCheckOverflow(Offset, NodeSize);
 
@@ -69,8 +70,8 @@ namespace ADT {
 
         Ptr += StringLength + 1;
 
-        const auto Next = Utils::ReadUleb128(Ptr, End, &Ptr);
-        if (Ptr == nullptr) {
+        const auto NextOpt = Utils::ReadUleb128(Ptr, End, &Ptr);
+        if (!NextOpt.has_value()) {
             return Error::InvalidUleb128;
         }
 
@@ -78,6 +79,7 @@ namespace ADT {
             return Error::InvalidFormat;
         }
 
+        const auto Next = NextOpt.value();
         if (Next >= static_cast<uint64_t>(End - Begin)) {
             return Error::InvalidFormat;
         }

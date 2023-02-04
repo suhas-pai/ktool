@@ -7,6 +7,7 @@
 
 #include <concepts>
 #include <cstdint>
+#include <optional>
 
 namespace Utils {
     [[nodiscard]]
@@ -41,7 +42,8 @@ namespace Utils {
 
     template <std::integral T, typename U, bool Signed>
     constexpr static auto
-    ReadLeb128Base(U *const Begin, U *const End, U **const PtrOut) noexcept -> T
+    ReadLeb128Base(U *const Begin, U *const End, U **const PtrOut) noexcept ->
+        std::optional<T>
     {
         static_assert(Signed ^ std::unsigned_integral<T>,
                       "T must be an unsigned integer if Signed=False");
@@ -56,8 +58,8 @@ namespace Utils {
         }
 
         if (Begin == End) {
-            *PtrOut = nullptr;
-            return Byte;
+            *PtrOut = (U *)Iter;
+            return std::nullopt;
         }
 
         constexpr auto MaxShift = Leb128GetIntegerMaxShift<T>();
@@ -77,16 +79,16 @@ namespace Utils {
             }
 
             if (Iter == End) {
-                *PtrOut = nullptr;
-                return Value;
+                *PtrOut = (U *)Iter;
+                return std::nullopt;
             }
         }
 
         if (constexpr auto ValueMax = Leb128GetLastByteValueMax<T>()) {
             Byte = *Iter;
             if (Byte > ValueMax) {
-                *PtrOut = nullptr;
-                return Value;
+                *PtrOut = (U *)Iter;
+                return std::nullopt;
             }
 
             Iter++;
@@ -98,8 +100,8 @@ namespace Utils {
             }
         }
 
-        *PtrOut = nullptr;
-        return Value;
+        *PtrOut = (U *)Iter;
+        return std::nullopt;
     }
 
     template <std::unsigned_integral T = uint64_t, typename U>

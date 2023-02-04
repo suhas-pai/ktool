@@ -6,9 +6,7 @@
 #pragma once
 #include <vector>
 
-#include "ADT/Tree.h"
 #include "ADT/Trie.h"
-
 #include "MachO/SegmentList.h"
 
 namespace MachO {
@@ -510,7 +508,8 @@ namespace MachO {
             return reinterpret_cast<ExportTrieChildNode *>(Node);
         }
 
-        [[nodiscard]] static inline auto get(const TreeNode *Node) noexcept {
+        [[nodiscard]]
+        static inline auto get(const TreeNode *const Node) noexcept {
             return reinterpret_cast<const ExportTrieChildNode *>(Node);
         }
 
