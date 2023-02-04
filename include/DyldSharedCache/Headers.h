@@ -350,27 +350,6 @@ namespace DyldSharedCache {
             return ADT::List(Ptr, MappingCount);
         }
 
-        [[nodiscard]] inline auto
-        getFileOffsetForAddress(
-            const uint64_t Addr,
-            uint64_t *const MaxSizeOut = nullptr) const noexcept
-                -> std::optional<uint64_t>
-        {
-            if (Addr == 0) {
-                return std::nullopt;
-            }
-
-            for (const auto &Mapping : mappingInfoList()) {
-                if (const auto Offset =
-                        Mapping.getFileOffsetFromAddr(Addr, MaxSizeOut))
-                {
-                    return Offset.value();
-                }
-            }
-
-            return std::nullopt;
-        }
-
         [[nodiscard]] inline ADT::Range getMappingsRange() const noexcept {
             auto End = ADT::Maximizer<uint64_t>();
 
@@ -824,6 +803,7 @@ namespace DyldSharedCache {
     [[nodiscard]] constexpr auto HeaderV0::hasSubCacheV1List() const noexcept {
         return isV8();
     }
+
     [[nodiscard]] constexpr auto HeaderV0::hasSubCacheList() const noexcept {
         return isV9();
     }
