@@ -139,6 +139,14 @@ namespace Utils {
                  const std::string_view Prefix,
                  const std::string_view Suffix) noexcept -> int
     {
+        if (Address == 0) {
+            return
+                fprintf(OutFile,
+                        STRING_VIEW_FMT "0x0" STRING_VIEW_FMT,
+                        STRING_VIEW_FMT_ARGS(Prefix),
+                        STRING_VIEW_FMT_ARGS(Suffix));
+        }
+
         auto Result = int();
         if (Is64Bit) {
             Result =
@@ -168,6 +176,10 @@ namespace Utils {
                          const std::string_view Prefix,
                          const std::string_view Suffix) noexcept -> int
     {
+        if (Range.empty()) {
+            return 0;
+        }
+
         const auto Begin = Range.begin();
         const auto End = Range.end().value();
 
@@ -188,7 +200,10 @@ namespace Utils {
                             static_cast<uint32_t>(Begin));
             }
         } else {
-            WrittenOut += fputs("0x0-", OutFile);
+            WrittenOut +=
+                fprintf(OutFile,
+                        STRING_VIEW_FMT "0x0-",
+                        STRING_VIEW_FMT_ARGS(Prefix));
         }
 
         if (Is64Bit || SizeIs64Bit){
