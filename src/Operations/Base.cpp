@@ -24,8 +24,7 @@ namespace Operations {
         exit(1);
     }
 
-    auto
-    Base::runAndHandleFile(const HandleFileOptions Options) const noexcept
+    auto Base::runAndHandleFile(const HandleFileOptions Options) const noexcept
         -> RunResult
     {
         const auto FileMap =

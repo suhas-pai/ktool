@@ -13,6 +13,7 @@
 
 #include "Operations/PrintHeader.h"
 #include "Operations/PrintId.h"
+#include "Operations/PrintImageList.h"
 #include "Operations/PrintLoadCommands.h"
 #include "Operations/PrintLibraries.h"
 #include "Operations/PrintArchs.h"
@@ -717,6 +718,40 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintProgramTrie>(
                 new Operations::PrintProgramTrie(stdout, Options));
+    } else if (OperationString == "--image-list") {
+        auto Options = Operations::PrintImageList::Options();
+        auto Path = std::string();
+
+        using SortKind = Operations::PrintImageList::Options::SortKind;
+        for (; I != argc; I++) {
+            const auto Arg = std::string_view(argv[I]);
+            if (Arg == "-v" || Arg == "--verbose") {
+                Options.Verbose = true;
+            } else if (Arg == "--only-count") {
+                Options.OnlyCount = true;
+            } else if (Arg == "--sort-by-address") {
+                Options.SortKindList.emplace_back(SortKind::ByAddress);
+            } else if (Arg == "--sort-by-name") {
+                Options.SortKindList.emplace_back(SortKind::ByName);
+            } else if (Arg == "--sort-by-inode") {
+                Options.SortKindList.emplace_back(SortKind::ByInode);
+            } else if (Arg == "--sort-by-modtime") {
+                Options.SortKindList.emplace_back(SortKind::ByModTime);
+            } else if (Arg.front() == '-') {
+                fprintf(stderr,
+                        "Got unrecognized argument \"%s\" for option %s\n",
+                        Arg.data(),
+                        OperationString.data());
+                return 1;
+            } else {
+                break;
+            }
+        }
+
+        Operation.Kind = Operations::Kind::PrintImageList;
+        Operation.Op =
+            std::unique_ptr<Operations::PrintImageList>(
+                new Operations::PrintImageList(stdout, Options));
     } else if (OperationString.front() == '-') {
         fprintf(stderr,
                 "Unrecognized operation: \"%s\"\n",
@@ -1049,6 +1084,16 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     return 1;
                 case Operations::PrintProgramTrie::RunError::NoExports:
                     fputs("Program-trie has no exported nodes\n", stderr);
+                    return 1;
+            }
+
+            break;
+        case Operations::Kind::PrintImageList:
+            switch (Operations::PrintImageList::RunError(Result.Error)) {
+                case Operations::PrintImageList::RunError::None:
+                    break;
+                case Operations::PrintImageList::RunError::NoImages:
+                    fputs("File has no images\n", stderr);
                     return 1;
             }
 

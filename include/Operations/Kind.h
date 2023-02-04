@@ -22,5 +22,6 @@ namespace Operations {
         PrintRebaseActionList,
         PrintObjcClassList,
         PrintProgramTrie,
+        PrintImageList
     };
 }
