@@ -5,16 +5,12 @@
 //  Created by suhaspai on 11/15/22.
 //
 
-#include <cstdio>
 #include <memory>
-#include <type_traits>
 #include <unordered_map>
 
 #include "ADT/FlagsIterator.h"
-#include "DyldSharedCache/Headers.h"
 #include "Objects/DyldSharedCache.h"
 
-#include "Operations/Base.h"
 #include "Operations/PrintArchs.h"
 #include "Operations/PrintHeader.h"
 
@@ -706,8 +702,7 @@ namespace Operations {
 
             Utils::PrintAddress(OutFile,
                                 Mapping.FileOffset,
-                                /*Is64Bit=*/true,
-                                /*Prefix=*/"");
+                                /*Is64Bit=*/true);
 
             const auto PrintRange = !Mapping.empty() && Options.Verbose;
             if (PrintRange) {
@@ -715,19 +710,15 @@ namespace Operations {
                                             Mapping.fileRange(),
                                             /*Is64Bit=*/true,
                                             /*SizeIs64Bit=*/true,
-                                            " (",
-                                            ")");
+                                            /*Prefix=*/" (",
+                                            /*Suffix=*/")");
             }
 
             Utils::RightPadSpaces(OutFile,
                                   fputs("\n\t\tAddress: ", OutFile),
                                   STR_LENGTH("\n\t\t") + LongestKeyLength);
 
-            Utils::PrintAddress(OutFile,
-                                Mapping.Address,
-                                /*Pad=*/true,
-                                /*Prefix=*/"");
-
+            Utils::PrintAddress(OutFile, Mapping.Address, /*Pad=*/true);
             if (PrintRange) {
                 Utils::PrintOffsetSizeRange(OutFile,
                                             Mapping.addressRange(),
@@ -758,7 +749,7 @@ namespace Operations {
         if (const auto ListOpt = Dsc.subCacheEntryInfoList()) {
             for (const auto &Info : ListOpt.value()) {
                 fprintf(OutFile,
-                        "\tSub-Cache Entry %" ZEROPAD_FMT PRIu32 ": "
+                        "\tSubCache Entry %" ZEROPAD_FMT PRIu32 ": "
                         UUID_FMT " \n",
                         ZEROPAD_FMT_ARGS(MappingCountDigitLength),
                         Index,
@@ -795,7 +786,7 @@ namespace Operations {
 
         for (const auto &Info : ListOpt.value()) {
             fprintf(OutFile,
-                    "\tSub-Cache V1 Entry %" ZEROPAD_FMT PRIu32 ": "
+                    "\tSubCache V1 Entry %" ZEROPAD_FMT PRIu32 ": "
                     UUID_FMT " \n",
                     ZEROPAD_FMT_ARGS(MappingCountDigitLength),
                     Index,
@@ -881,7 +872,6 @@ namespace Operations {
             fprintf(OutFile,
                     "%s\n",
                     Utils::GetFormattedNumber(Header.ImagesCountOld).c_str());
-
         }
 
         PrintDscKey(OutFile, "Dyld Base-Address");
@@ -1085,7 +1075,13 @@ namespace Operations {
                        const Dyld3::Platform Platform)
     {
         PrintDscKey(OutFile, Key);
-        fprintf(OutFile, "%s\n", Dyld3::PlatformGetDesc(Platform).data());
+        if (Dyld3::PlatformIsValid(Platform)) {
+            fprintf(OutFile, "%s\n", Dyld3::PlatformGetDesc(Platform).data());
+        } else {
+            fprintf(OutFile,
+                    "<unknown, value=%" PRIu32 ">\n",
+                    static_cast<uint32_t>(Platform));
+        }
     }
 
     static void
@@ -1505,6 +1501,18 @@ namespace Operations {
                                             Options,
                                             List,
                                             DscRangeKind::RosettaReadWrite);
+
+        PrintDscKey(OutFile, "Images Offset");
+        Utils::PrintAddress(OutFile,
+                            Header.ImagesOffset,
+                            false,
+                            "",
+                            "\n");
+
+        PrintDscKey(OutFile, "Images Count");
+        fprintf(OutFile,
+                "%s\n",
+                Utils::GetFormattedNumber(Header.ImagesCount).c_str());
     }
 
     static void
@@ -1514,10 +1522,9 @@ namespace Operations {
                          const DscRangeList &List) noexcept
     {
         fputc('\n', OutFile);
-
         const auto &Header = Dsc.headerV9();
-        PrintCacheKind(OutFile, "Cache Sub-Kind", Header.Kind);
 
+        PrintCacheKind(OutFile, "Cache Sub-Kind", Header.cacheSubKind());
         PrintDscSizeRange(OutFile,
                           Dsc.range(),
                           "Objc Optimizations Offset",
