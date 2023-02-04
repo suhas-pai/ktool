@@ -33,7 +33,9 @@ namespace Operations {
 
     auto PrintId::run(const Objects::MachO &MachO) const noexcept -> RunResult {
         auto Result = RunResult(Objects::Kind::MachO);
-        if (MachO.fileKind() != MachO::FileKind::DynamicLibrary) {
+        if (MachO.fileKind() != MachO::FileKind::DynamicLibrary &&
+            MachO.fileKind() != MachO::FileKind::DynamicLinker)
+        {
             return Result.set(RunError::NotADylib);
         }
 
