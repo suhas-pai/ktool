@@ -35,15 +35,15 @@ namespace Dyld3 {
             return Value >> static_cast<uint8_t>(Shift);
         }
     public:
-        [[nodiscard]] constexpr auto revision() const noexcept {
+        [[nodiscard]] constexpr auto revision() const noexcept -> uint8_t {
             return getForMaskShift(Masks::Revision, Shifts::Revision);
         }
 
-        [[nodiscard]] constexpr auto minor() const noexcept {
+        [[nodiscard]] constexpr auto minor() const noexcept -> uint8_t {
             return getForMaskShift(Masks::Minor, Shifts::Minor);
         }
 
-        [[nodiscard]] constexpr auto major() const noexcept {
+        [[nodiscard]] constexpr auto major() const noexcept -> uint16_t {
             return getForMaskShift(Masks::Major, Shifts::Major);
         }
 
@@ -125,7 +125,7 @@ namespace Dyld3 {
             return getForMaskShift(Masks::Minor, Shifts::Minor);
         }
 
-        [[nodiscard]] constexpr auto major() const noexcept {
+        [[nodiscard]] constexpr auto major() const noexcept -> uint32_t {
             return getForMaskShift(Masks::Major, Shifts::Major);
         }
 
@@ -173,7 +173,8 @@ namespace Dyld3 {
     (VERSION).minor(), \
     (VERSION).revision()
 
-#define DYLD3_PACKED_VERSION_64_FMT "%llu.%u.%u.%u.%u"
+#define DYLD3_PACKED_VERSION_64_FMT \
+    "%" PRIu32 ".%" PRIu16 ".%" PRIu16 ".%" PRIu16 ".%" PRIu16
 #define DYLD3_PACKED_VERSION_64_FMT_ARGS(VERSION) \
     (VERSION).major(), \
     (VERSION).minor(), \
