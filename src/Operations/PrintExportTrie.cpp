@@ -102,12 +102,11 @@ namespace Operations {
         std::string String;
     };
 
-    constexpr static inline auto TabLength = uint32_t(4);
-
     [[nodiscard]] static auto
     GetSymbolLengthForLongestPrintedLineAndCount(
         const MachO::ExportTrieEntryCollection &Collection,
-        uint64_t &Count) noexcept
+        uint64_t &Count,
+        const PrintExportTrie::Options &Opt) noexcept
     {
         auto LongestLength = ADT::Maximizer<uint64_t>();
 
@@ -118,7 +117,7 @@ namespace Operations {
             }
 
             const auto Length =
-                Iter.printLineLength(TabLength) + Iter->string().length();
+                Iter.printLineLength(Opt.TabLength) + Iter->string().length();
 
             LongestLength.set(Length);
         }
@@ -136,7 +135,7 @@ namespace Operations {
                         const struct PrintExportTrie::Options &Options) noexcept
     {
         const auto RightPad =
-            static_cast<int>(LongestLength + STR_LENGTH("\"\" -"));
+            static_cast<int>(LongestLength + STR_LENGTH("\"\" "));
 
         const auto KindDesc =
             ExportTrieExportKindIsValid(Export.kind()) ?
@@ -251,7 +250,8 @@ namespace Operations {
         auto Count = uint64_t();
         const auto LongestLength =
             GetSymbolLengthForLongestPrintedLineAndCount(EntryCollection,
-                                                         Count);
+                                                         Count,
+                                                         Options);
 
         if (Options.OnlyCount) {
             fprintf(OutFile,
@@ -294,7 +294,7 @@ namespace Operations {
             return true;
         };
 
-        EntryCollection.PrintHorizontal(OutFile, TabLength, PrintNode);
+        EntryCollection.PrintHorizontal(OutFile, Options.TabLength, PrintNode);
         return Result.set(RunError::None);
     }
 

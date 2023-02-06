@@ -22,6 +22,7 @@ namespace Operations {
             bool Sort : 1 = false;
             bool Verbose : 1 = false;
 
+            uint32_t TabLength = ADT::TreeNode::DefaultTabLength;
             struct SegmentSectionPair {
                 std::optional<std::string> SegmentName;
                 std::optional<std::string> SectionName;

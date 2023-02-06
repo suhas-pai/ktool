@@ -350,6 +350,28 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.OnlyCount = true;
             } else if (Arg == "--sort") {
                 Options.Sort = true;
+            } else if (Arg == "--tab-length") {
+                I++;
+                if (I == argc) {
+                    fputs("Option --tab-length expects a number to be "
+                          "provided\n",
+                          stderr);
+                    return 1;
+                }
+
+                const auto TabLengthArgOpt = Utils::to_uint<uint32_t>(argv[I]);
+                if (!TabLengthArgOpt.has_value()) {
+                    fprintf(stderr, "%s is not a valid number\n", argv[I]);
+                    return 1;
+                }
+
+                const auto TabLength = TabLengthArgOpt.value();
+                if (TabLength == 0) {
+                    fputs("A tab-length of 0 is invalid\n", stderr);
+                    return 1;
+                }
+
+                Options.TabLength = TabLength;
             } else if (Arg == "--require-kind") {
                 I++;
                 if (I == argc) {
@@ -700,6 +722,28 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.OnlyCount = true;
             } else if (Arg == "--sort") {
                 Options.Sort = true;
+            } else if (Arg == "--tab-length") {
+                I++;
+                if (I == argc) {
+                    fputs("Option --tab-length expects a number to be "
+                          "provided\n",
+                          stderr);
+                    return 1;
+                }
+
+                const auto TabLengthArgOpt = Utils::to_uint<uint32_t>(argv[I]);
+                if (!TabLengthArgOpt.has_value()) {
+                    fprintf(stderr, "%s is not a valid number\n", argv[I]);
+                    return 1;
+                }
+
+                const auto TabLength = TabLengthArgOpt.value();
+                if (TabLength == 0) {
+                    fputs("A tab-length of 0 is invalid\n", stderr);
+                    return 1;
+                }
+
+                Options.TabLength = TabLength;
             } else if (Arg.front() == '-') {
                 fprintf(stderr,
                         "Got unrecognized argument \"%s\" for option %s\n",

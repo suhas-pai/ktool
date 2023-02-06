@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "ADT/Tree.h"
 #include "Objects/DyldSharedCache.h"
 #include "Base.h"
 
@@ -16,6 +17,8 @@ namespace Operations {
             bool PrintTree : 1 = false;
             bool Sort : 1 = false;
             bool Verbose : 1 = false;
+
+            uint32_t TabLength = ADT::TreeNode::DefaultTabLength;
         };
     protected:
         FILE *OutFile;

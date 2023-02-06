@@ -58,12 +58,11 @@ namespace Operations {
                             /*Suffix=*/")");
     }
 
-    constexpr static inline auto TabLength = uint32_t(4);
-
     [[nodiscard]] static auto
     GetSymbolLengthForLongestPrintedLineAndCount(
         const ::DyldSharedCache::ProgramTrieEntryCollection &Collection,
-        uint64_t &Count) noexcept
+        uint64_t &Count,
+        const PrintProgramTrie::Options &Opt) noexcept
     {
         auto LongestLength = ADT::Maximizer<uint64_t>();
 
@@ -74,7 +73,7 @@ namespace Operations {
             }
 
             const auto Length =
-                Iter.printLineLength(TabLength) + Iter->string().length();
+                Iter.printLineLength(Opt.TabLength) + Iter->string().length();
 
             LongestLength.set(Length);
         }
@@ -99,7 +98,8 @@ namespace Operations {
         auto Count = uint64_t();
         const auto LongestLength =
             GetSymbolLengthForLongestPrintedLineAndCount(EntryCollection,
-                                                         Count);
+                                                         Count,
+                                                         Options);
 
         if (Options.OnlyCount) {
             fprintf(OutFile,
@@ -142,7 +142,7 @@ namespace Operations {
             return true;
         };
 
-        EntryCollection.PrintHorizontal(OutFile, TabLength, PrintNode);
+        EntryCollection.PrintHorizontal(OutFile, Options.TabLength, PrintNode);
         return Result.set(RunError::None);
     }
 

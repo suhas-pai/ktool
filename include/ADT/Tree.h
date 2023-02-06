@@ -408,6 +408,8 @@ namespace ADT {
             return 0;
         }
 
+        constexpr static auto DefaultTabLength = 2;
+
         template <typename NodePrinter>
         const TreeNode &
         PrintHorizontal(FILE *const OutFile,
@@ -463,7 +465,7 @@ namespace ADT {
 
         [[nodiscard]] constexpr
         auto printLineLength(const uint64_t TabLength) const noexcept {
-            return TabLength * (depthLevel() - 1);
+            return (TabLength + 2) * (depthLevel() - 1);
         }
 
         [[nodiscard]] auto isAtEnd() const noexcept {
@@ -586,9 +588,9 @@ namespace ADT {
                     fputs("│", OutFile);
 
                     WrittenOut += 1;
-                    WrittenOut += Utils::PadSpaces(OutFile, TabLength - 1);
-                } else {
                     WrittenOut += Utils::PadSpaces(OutFile, TabLength);
+                } else {
+                    WrittenOut += Utils::PadSpaces(OutFile, TabLength + 1);
                 }
             }
 
@@ -599,15 +601,15 @@ namespace ADT {
                 fputs("└", OutFile);
             }
 
-            // Subtract 1 for the ├ or └ character, and 1 for the space in
+            // Add 1 for the ├ or └ character, and 1 for the space in
             // between the "----" and the node-printer's string.
 
-            const auto DashCount = TabLength - 2;
-            WrittenOut += static_cast<int>(DashCount);
+            const auto DashCount = TabLength;
+            WrittenOut += static_cast<int>(DashCount) + 2;
 
             Utils::PrintMultTimes(OutFile,
-                                    "─",
-                                    static_cast<uint64_t>(DashCount));
+                                  "─",
+                                  static_cast<uint64_t>(DashCount));
             fputc(' ', OutFile);
 
             WrittenOut += 1;

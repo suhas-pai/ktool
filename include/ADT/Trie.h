@@ -605,6 +605,7 @@ namespace ADT {
             Iterator Iter;
             auto Advance() noexcept -> decltype(*this) {
                 do {
+                    Iter++;
                     if (Iter.hasError()) {
                         break;
                     }
@@ -616,8 +617,6 @@ namespace ADT {
                     if (Iter.info().node().isExport()) {
                         break;
                     }
-
-                    Iter++;
                 } while (true);
 
                 return *this;
@@ -631,7 +630,12 @@ namespace ADT {
                 T &ExportInfoParser,
                 const ParseOptions &Options = ParseOptions()) noexcept
             : Iter(Begin, End, TrieParser, ExportInfoParser, Options) {
-                Advance();
+                if (!Iter.hasError() &&
+                    !Iter.isAtEnd() &&
+                    !Iter.info().node().isExport())
+                {
+                    Advance();
+                }
             }
 
             explicit
