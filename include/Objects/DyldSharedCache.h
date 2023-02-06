@@ -511,8 +511,13 @@ namespace Objects {
                     return CpuKind == Mach::CpuKind::Arm64 &&
                            SubKind == static_cast<int32_t>(Mach::Arm64::All);
                 case CpuKind::arm64e:
-                    return CpuKind == Mach::CpuKind::Arm64 &&
-                           SubKind == static_cast<int32_t>(Mach::Arm64::arm64e);
+                    if (CpuKind != Mach::CpuKind::Arm64) {
+                        return false;
+                    }
+
+                    return
+                        SubKind == static_cast<int32_t>(Mach::Arm64::arm64e) ||
+                        SubKind == -2147483646;
                 case CpuKind::arm64_32:
                     return CpuKind == Mach::CpuKind::Arm64_32 &&
                            SubKind == static_cast<int32_t>(Mach::Arm64_32::All);
