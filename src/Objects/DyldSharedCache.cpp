@@ -76,7 +76,7 @@ namespace Objects {
 
                 [[fallthrough]];
             case DyldSharedCache::CpuKind::arm64:
-                if (MagicCpuKindStr == "  arm64") {
+                if (MagicCpuKindStr == "   arm64") {
                     CpuKind = DyldSharedCache::CpuKind::arm64;
                     break;
                 }
