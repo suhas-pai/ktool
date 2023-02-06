@@ -6,13 +6,15 @@
 //
 
 #pragma once
+
 #include <concepts>
+#include <limits>
 
 namespace ADT {
     template <std::integral T>
     struct Maximizer {
     protected:
-        T Value;
+        T Value = std::numeric_limits<T>::min();
     public:
         constexpr Maximizer() noexcept = default;
         constexpr explicit Maximizer(const T Value) noexcept : Value(Value) {}
