@@ -143,7 +143,8 @@ namespace Operations {
 
         fputc(' ', OutFile);
 
-        const auto PadLength = RightPad - WrittenOut - 1;
+        /* Add 1 as at least 1 '-' that should be printed */
+        const auto PadLength = RightPad - WrittenOut + 1;
         Utils::PrintMultTimes(OutFile,
                               "-",
                               static_cast<uint64_t>(PadLength));
@@ -192,14 +193,13 @@ namespace Operations {
     }
 
     static auto
-    HandleTreeOption(
-        RunResult &Result,
-        FILE *const OutFile,
-        MachO::ExportTrieEntryCollection &EntryCollection,
-        const MachO::LibraryList &LibraryList,
-        const bool Is64Bit,
-        const struct PrintExportTrie::Options &Options) noexcept
-            -> RunResult &
+    HandleTreeOption(RunResult &Result,
+                     FILE *const OutFile,
+                     MachO::ExportTrieEntryCollection &EntryCollection,
+                     const MachO::LibraryList &LibraryList,
+                     const bool Is64Bit,
+                     const struct PrintExportTrie::Options &Options) noexcept
+        -> RunResult &
     {
         using RunError = PrintExportTrie::RunError;
         if (EntryCollection.empty()) {
@@ -236,7 +236,9 @@ namespace Operations {
                     continue;
                 }
 
-                Iter = EntryCollection.RemoveNode(*Iter.node(), true);
+                Iter =
+                    EntryCollection.RemoveNode(*Iter.node(),
+                                               /*RemoveParentLeafs=*/true);
             }
 
             if (EntryCollection.empty()) {

@@ -645,7 +645,12 @@ namespace ADT {
                 T &ExportInfoParser,
                 const ParseOptions &Options = ParseOptions()) noexcept
             : Iter(Map, TrieParser, ExportInfoParser, Options) {
-                Advance();
+                if (!Iter.hasError() &&
+                    !Iter.isAtEnd() &&
+                    !Iter.info().node().isExport())
+                {
+                    Advance();
+                }
             }
 
             [[nodiscard]] inline auto &info() noexcept {
@@ -849,9 +854,7 @@ namespace ADT {
         auto Parent = Tree.root();
         auto PrevDepthLevel = uint64_t(1);
 
-        const auto MoveUpParentHierarchy =
-            [&](const uint64_t Amt) noexcept
-        {
+        const auto MoveUpParentHierarchy = [&](const uint64_t Amt) noexcept {
             for (auto I = uint64_t(); I != Amt; I++) {
                 Parent = Parent->parent();
             }
@@ -920,8 +923,7 @@ namespace ADT {
             auto Parent = root();
             auto PrevDepthLevel = uint64_t(1);
 
-            const auto MoveUpParentHierarchy =
-                [&](const uint64_t Amt) noexcept
+            const auto MoveUpParentHierarchy = [&](const uint64_t Amt) noexcept
             {
                 for (auto I = uint64_t(); I != Amt; I++) {
                     Parent = Parent->parent();
