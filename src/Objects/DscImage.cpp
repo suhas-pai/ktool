@@ -4,7 +4,7 @@
  */
 
 #include "DyldSharedCache/Headers.h"
-#include "Objects/DyldSharedCache.h"
+#include "Objects/DscImage.h"
 
 namespace Objects {
     auto
@@ -14,11 +14,9 @@ namespace Objects {
     {
         auto MaxPossibleSize = uint64_t();
         auto FileOffset = uint64_t();
-        auto Map = ADT::MemoryMap();
 
         const auto HeaderPair =
             Dsc.getPtrForAddress<::MachO::Header>(ImageInfo.Address,
-                                                  Map,
                                                   /*InsideMappings=*/true,
                                                   &MaxPossibleSize,
                                                   &FileOffset);
@@ -70,12 +68,14 @@ namespace Objects {
             return OpenError::TooManyLoadCommands;
         }
 
+        const auto Map = HeaderPair->first.map();
         const auto IsBigEndian = Header->isBigEndian();
+
         const auto LoadCommandsRange =
             ADT::Range::FromSize(FileOffset + Header->size(), LoadCommandsSize);
         const auto LoadCommandsMap =
-            ::MachO::LoadCommandsMap(
-                ADT::MemoryMap(Map, LoadCommandsRange), IsBigEndian);
+            ::MachO::LoadCommandsMap(ADT::MemoryMap(Map, LoadCommandsRange),
+                                     IsBigEndian);
 
         auto FileSize = uint64_t();
         if (Header->is64Bit()) {
@@ -144,10 +144,10 @@ namespace Objects {
         const auto ImageRange = ADT::Range::FromSize(FileOffset, FileSize);
         const auto ImageMap = ADT::MemoryMap(Map, ImageRange);
 
-        return new DscImage(Map, ImageInfo, ImageMap);
+        return new DscImage(Dsc, HeaderPair->first, ImageInfo, ImageMap);
     }
 
     auto DscImage::getMapForFileOffsets() const noexcept -> ADT::MemoryMap {
-        return dscMap();
+        return DscInfo.map();
     }
 }

@@ -83,7 +83,6 @@ namespace ADT {
         InvalidFormat,
         OverlappingRanges,
         TooDeep,
-        EmptyExport
     };
 
     struct TrieParser {
@@ -338,7 +337,7 @@ namespace ADT {
                 return true;
             }
 
-            auto Advance() noexcept -> Error {
+            [[nodiscard]] auto Advance() noexcept -> Error {
                 auto &StackList = Info->stackListRef();
                 const auto MaxDepth = Info->maxDepth();
 
@@ -404,10 +403,6 @@ namespace ADT {
                     if (Stack.childOrdinal() == 0) {
                         const auto IsExportInfo = Node.isExport();
                         if (IsExportInfo) {
-                            if (Info->string().empty()) {
-                                return Error::EmptyExport;
-                            }
-
                             Info->setIsExport(true);
                             const auto Error =
                                 Info->exportInfo().ParseExportData(
@@ -522,8 +517,10 @@ namespace ADT {
                     return;
                 }
 
-                NextStack = std::make_unique<StackInfo>(Node);
-                this->ParseError = Advance();
+                if (Node.childCount() != 0) {
+                    NextStack = std::make_unique<StackInfo>(Node);
+                    this->ParseError = Advance();
+                }
             }
 
             [[nodiscard]] inline auto &info() noexcept {
@@ -608,7 +605,6 @@ namespace ADT {
             Iterator Iter;
             auto Advance() noexcept -> decltype(*this) {
                 do {
-                    Iter++;
                     if (Iter.hasError()) {
                         break;
                     }
@@ -620,6 +616,8 @@ namespace ADT {
                     if (Iter.info().node().isExport()) {
                         break;
                     }
+
+                    Iter++;
                 } while (true);
 
                 return *this;
@@ -900,8 +898,15 @@ namespace ADT {
                       Error *const ErrorOut = nullptr) noexcept
         {
             auto Iter = Trie.begin(Options);
-            const auto End = Trie.end();
+            if (Iter.hasError()) {
+                if (ErrorOut != nullptr) {
+                    *ErrorOut = Iter.getError();
+                }
 
+                return;
+            }
+
+            const auto End = Trie.end();
             if (Iter == End) {
                 return;
             }

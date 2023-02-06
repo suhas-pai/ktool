@@ -703,6 +703,10 @@ namespace Operations {
         const auto Map = Image.getMapForFileOffsets();
         const auto &ExportTrieRange = ExportTrieRangeOpt.value();
 
+        if (ExportTrieRange.empty()) {
+            return Result.set(RunError::NoExports);
+        }
+
         if (!Map.range().contains(ExportTrieRange)) {
             return Result.set(RunError::ExportTrieOutOfBounds);
         }

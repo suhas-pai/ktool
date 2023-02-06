@@ -42,11 +42,16 @@ namespace Utils {
 
     template <std::integral T, typename U, bool Signed>
     constexpr static auto
-    ReadLeb128Base(U *const Begin, U *const End, U **const PtrOut) noexcept ->
-        std::optional<T>
+    ReadLeb128Base(U *const Begin, U *const End, U **const PtrOut) noexcept
+        -> std::optional<T>
     {
         static_assert(Signed ^ std::unsigned_integral<T>,
                       "T must be an unsigned integer if Signed=False");
+
+        if (Begin == End) {
+            *PtrOut = (U *)Begin;
+            return std::nullopt;
+        }
 
         auto Iter = static_cast<const uint8_t *>(Begin);
         auto Byte = *Iter;
@@ -57,7 +62,7 @@ namespace Utils {
             return Byte;
         }
 
-        if (Begin == End) {
+        if (Iter == End) {
             *PtrOut = (U *)Iter;
             return std::nullopt;
         }

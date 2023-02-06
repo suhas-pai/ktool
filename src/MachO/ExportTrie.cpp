@@ -13,7 +13,7 @@ namespace MachO {
         uint8_t *& Ptr,
         uint8_t *const NodeEnd,
         [[maybe_unused]] uint8_t *const TrieEnd,
-        [[maybe_unused]] std::string_view String,
+        [[maybe_unused]] const std::string_view String,
         [[maybe_unused]] std::vector<ADT::Range> &RangeList,
         [[maybe_unused]] std::vector<ADT::TrieStackInfo> &StackInfo) noexcept
             -> ADT::TrieParseError
@@ -81,10 +81,6 @@ namespace MachO {
 
                 setResolverStubAddress(ResolverStubAddressOpt.value());
             }
-        }
-
-        if (Ptr != NodeEnd) {
-            return Error::InvalidUleb128;
         }
 
         return Error::None;

@@ -4,23 +4,28 @@
  */
 
 #pragma once
+#include "DyldSharedCache.h"
 
-#include "ADT/MemoryMap.h"
 #include "DyldSharedCache/Headers.h"
+#include "Objects/DyldSharedCache/CacheInfo.h"
 #include "Objects/MachO.h"
 
 namespace Objects {
     struct DyldSharedCache;
     struct DscImage : public MachO {
     protected:
-        ADT::MemoryMap DscMap;
+        const DyldSharedCache &Dsc;
         const ::DyldSharedCache::ImageInfo &ImageInfo;
 
+        DyldSharedCacheInfo DscInfo;
+
         explicit
-        DscImage(const ADT::MemoryMap &DscMap,
+        DscImage(const DyldSharedCache &Dsc,
+                 const DyldSharedCacheInfo &DscInfo,
                  const ::DyldSharedCache::ImageInfo &ImageInfo,
                  const ADT::MemoryMap &Map) noexcept
-        : MachO(Map, Kind::DscImage), DscMap(DscMap), ImageInfo(ImageInfo) {}
+        : MachO(Map, Kind::DscImage), Dsc(Dsc), ImageInfo(ImageInfo),
+          DscInfo(DscInfo) {}
     public:
         enum class OpenError {
             None,
@@ -45,8 +50,8 @@ namespace Objects {
              const ::DyldSharedCache::ImageInfo &ImageInfo) noexcept
              -> ADT::PointerOrError<DscImage, OpenError>;
 
-        [[nodiscard]] constexpr auto dscMap() const noexcept {
-            return DscMap;
+        [[nodiscard]] constexpr auto &dsc() const noexcept {
+            return Dsc;
         }
 
         [[nodiscard]] constexpr auto info() const noexcept {
@@ -63,5 +68,38 @@ namespace Objects {
 
         [[nodiscard]]
         ADT::MemoryMap getMapForFileOffsets() const noexcept override;
+
+        template <typename T = uint8_t, uint64_t Size = sizeof(T)>
+        [[nodiscard]] inline auto
+        getMapForAddrRange(const ADT::Range &AddrRange,
+                           const bool InsideMappings = true) const noexcept
+                -> std::optional<std::pair<DyldSharedCacheInfo, ADT::MemoryMap>>
+        {
+            return dsc().getMapForAddrRange<T, Size>(AddrRange, InsideMappings);
+        }
+
+        template <typename T = uint8_t, uint64_t Size = sizeof(T)>
+        [[nodiscard]] inline auto
+        getMapForFileRange(const ADT::Range &FileRange,
+                           const bool InsideMappings = true) const noexcept
+                -> std::optional<std::pair<DyldSharedCacheInfo, ADT::MemoryMap>>
+        {
+            return dsc().getMapForFileRange<T, Size>(FileRange, InsideMappings);
+        }
+
+        template <typename T = uint8_t, uint64_t Size = sizeof(T)>
+        [[nodiscard]] inline auto
+        getPtrForAddress(const uint64_t Address,
+                         const bool InsideMappings = true,
+                         uint64_t *const TotalAvailSize = nullptr,
+                         uint64_t *const FileOffsetOut = nullptr) const noexcept
+            -> std::optional<std::pair<const DyldSharedCacheInfo &, T *>>
+        {
+            return
+                dsc().getPtrForAddress<T, Size>(Address,
+                                                InsideMappings,
+                                                TotalAvailSize,
+                                                FileOffsetOut);
+        }
     };
 }

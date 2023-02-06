@@ -4,7 +4,9 @@
  */
 
 #include "DyldSharedCache/Headers.h"
+
 #include "Objects/DyldSharedCache.h"
+#include "Objects/DscImage.h"
 
 namespace Objects {
     constexpr auto GetCpuKind(const std::string_view MagicCpuKindStr) noexcept {
