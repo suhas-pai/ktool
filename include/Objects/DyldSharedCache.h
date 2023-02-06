@@ -5,10 +5,8 @@
 
 #pragma once
 
-#include "ADT/PointerOrError.h"
-
+#include <unordered_map>
 #include "DyldSharedCache/Headers.h"
-#include "Mach/Machine.h"
 
 #include "Objects/Base.h"
 #include "Objects/DscImage.h"
@@ -30,15 +28,7 @@ namespace Objects {
             arm64e,
             arm64_32
         };
-    protected:
-        ADT::MemoryMap Map;
-        CpuKind CpuKind;
 
-        explicit
-        DyldSharedCache(const ADT::MemoryMap &Map,
-                        enum CpuKind CpuKind) noexcept
-        : Base(Kind::DyldSharedCache), Map(Map), CpuKind(CpuKind) {}
-    public:
         enum class OpenError {
             None,
 
@@ -47,20 +37,375 @@ namespace Objects {
             SizeTooSmall,
 
             NoMappings,
+            MappingsOutOfBounds,
+
             FirstMappingFileOffNotZero,
+            FailedToOpenSubCaches,
+
+            SubCacheHasDiffCpuKind,
+            SubCacheHasDiffVersion,
+
+            RecursiveSubCache,
         };
 
-        static auto Open(const ADT::MemoryMap &Map) noexcept ->
-            ADT::PointerOrError<DyldSharedCache, OpenError>;
+        struct CacheInfo {
+            friend struct DyldSharedCache;
+        protected:
+            ADT::MemoryMap Map;
+
+            constexpr CacheInfo() noexcept = default;
+            constexpr CacheInfo(const ADT::MemoryMap &Map) noexcept
+            : Map(Map) {}
+        public:
+            [[nodiscard]] constexpr auto map() const noexcept {
+                return Map;
+            }
+
+            [[nodiscard]] constexpr auto range() const noexcept {
+                return ADT::Range::FromSize(0, map().size());
+            }
+
+            [[nodiscard]] inline auto &header() const noexcept {
+                return *Map.base<::DyldSharedCache::HeaderV9, false>();
+            }
+
+            [[nodiscard]] inline auto isV1() const noexcept {
+                return header().isV1();
+            }
+
+            [[nodiscard]] inline auto isV2() const noexcept {
+                return header().isV2();
+            }
+
+            [[nodiscard]] inline auto isV3() const noexcept {
+                return header().isV3();
+            }
+
+            [[nodiscard]] inline auto isV4() const noexcept {
+                return header().isV4();
+            }
+
+            [[nodiscard]] inline auto isV5() const noexcept {
+                return header().isV5();
+            }
+
+            [[nodiscard]] inline auto isV6() const noexcept {
+                return header().isV6();
+            }
+
+            [[nodiscard]] inline auto isV7() const noexcept {
+                return header().isV7();
+            }
+
+            [[nodiscard]] inline auto isV8() const noexcept {
+                return header().isV8();
+            }
+
+            [[nodiscard]] inline auto isV9() const noexcept {
+                return header().isV9();
+            }
+
+            [[nodiscard]] inline auto getVersion() const noexcept {
+                return header().getVersion();
+            }
+
+            [[nodiscard]]
+            inline auto headerV0() const noexcept
+                -> ::DyldSharedCache::HeaderV0 &
+            {
+                return header();
+            }
+
+            [[nodiscard]]
+            inline auto headerV1() const noexcept
+                -> ::DyldSharedCache::HeaderV1 &
+            {
+                assert(isV1());
+                return header();
+            }
+
+            [[nodiscard]]
+            inline auto headerV2() const noexcept
+                -> ::DyldSharedCache::HeaderV2 &
+            {
+                assert(isV2());
+                return header();
+            }
+
+            [[nodiscard]]
+            inline auto headerV3() const noexcept
+                -> ::DyldSharedCache::HeaderV3 &
+            {
+                assert(isV3());
+                return header();
+            }
+
+            [[nodiscard]]
+            inline auto headerV4() const noexcept
+                -> ::DyldSharedCache::HeaderV4 &
+            {
+                assert(isV4());
+                return header();
+            }
+
+            [[nodiscard]]
+            inline auto headerV5() const noexcept
+                -> ::DyldSharedCache::HeaderV5 &
+            {
+                assert(isV5());
+                return header();
+            }
+
+            [[nodiscard]]
+            inline auto headerV6() const noexcept
+                -> ::DyldSharedCache::HeaderV6 &
+            {
+                assert(isV6());
+                return header();
+            }
+
+            [[nodiscard]]
+            inline auto headerV7() const noexcept
+                -> ::DyldSharedCache::HeaderV7 &
+            {
+                assert(isV7());
+                return header();
+            }
+
+            [[nodiscard]]
+            inline auto headerV8() const noexcept
+                -> ::DyldSharedCache::HeaderV8 &
+            {
+                assert(isV8());
+                return header();
+            }
+
+            [[nodiscard]]
+            inline auto headerV9() const noexcept
+                -> ::DyldSharedCache::HeaderV9 &
+            {
+                assert(isV9());
+                return header();
+            }
+
+            [[nodiscard]] inline auto mappingCount() const noexcept {
+                return header().MappingCount;
+            }
+
+            [[nodiscard]] inline auto imageCount() const noexcept {
+                return header().imageCount();
+            }
+
+            [[nodiscard]] inline auto mappingInfoList() const noexcept {
+                const auto Ptr =
+                    map().get<const ::DyldSharedCache::MappingInfo>(
+                        header().MappingOffset);
+                return ADT::List<const ::DyldSharedCache::MappingInfo>(
+                    Ptr, header().MappingCount);
+            }
+
+            [[nodiscard]] inline auto imageInfoList() const noexcept {
+                const auto Ptr =
+                    map().get<const ::DyldSharedCache::ImageInfo>(
+                        header().imageOffset());
+
+                return ADT::List<const ::DyldSharedCache::ImageInfo>(
+                    Ptr, header().imageCount());
+            }
+
+
+            [[nodiscard]] inline auto
+            getFileOffsetForAddress(
+                const uint64_t Addr,
+                const bool InsideMappings = true,
+                uint64_t *const MaxSizeOut = nullptr) const noexcept
+                    -> std::optional<uint64_t>
+            {
+                if (Addr == 0) {
+                    return std::nullopt;
+                }
+
+                if (InsideMappings) {
+                    for (const auto &Mapping : mappingInfoList()) {
+                        if (const auto Offset =
+                                Mapping.getFileOffsetFromAddr(Addr, MaxSizeOut))
+                        {
+                            return Offset.value();
+                        }
+                    }
+                } else {
+                    const auto FirstMappingAddress =
+                        mappingInfoList().front().Address;
+
+                    if (Addr < FirstMappingAddress) {
+                        return std::nullopt;
+                    }
+
+                    const auto Offset = Addr - FirstMappingAddress;
+                    const auto DscSize = map().range().size();
+
+                    if (Offset >= DscSize) {
+                        return std::nullopt;
+                    }
+
+                    if (MaxSizeOut != nullptr) {
+                        *MaxSizeOut = DscSize - Offset;
+                    }
+
+                    return Offset;
+                }
+
+                return std::nullopt;
+            }
+
+            [[nodiscard]] inline auto
+            getFileRangeForAddrRange(
+                const ADT::Range &AddrRange,
+                const bool InsideMappings = true) const noexcept
+                    -> std::optional<ADT::Range>
+            {
+                const uint64_t BaseAddr = AddrRange.begin();
+                if (AddrRange.empty() || BaseAddr == 0) {
+                    return std::nullopt;
+                }
+
+                if (InsideMappings) {
+                    for (const auto &Mapping : mappingInfoList()) {
+                        uint64_t MaxSize = uint64_t();
+                        if (const auto Offset =
+                                Mapping.getFileOffsetFromAddr(BaseAddr,
+                                                              &MaxSize))
+                        {
+                            const auto AddrRangeSize = AddrRange.size();
+                            if (MaxSize < AddrRangeSize) {
+                                return std::nullopt;
+                            }
+
+                            return ADT::Range::FromSize(Offset.value(),
+                                                        AddrRangeSize);
+                        }
+                    }
+                } else {
+                    const auto FirstMappingAddress =
+                        mappingInfoList().front().Address;
+
+                    if (BaseAddr < FirstMappingAddress) {
+                        return std::nullopt;
+                    }
+
+                    const auto Offset = BaseAddr - FirstMappingAddress;
+                    const auto DscSize = map().range().size();
+
+                    if (Offset >= DscSize) {
+                        return std::nullopt;
+                    }
+
+                    const auto MaxSize = DscSize - Offset;
+                    const auto AddrRangeSize = AddrRange.size();
+
+                    if (AddrRangeSize > MaxSize) {
+                        return std::nullopt;
+                    }
+
+                    return ADT::Range::FromSize(Offset, AddrRangeSize);
+                }
+
+                return std::nullopt;
+            }
+
+            template <typename T = uint8_t, uint64_t Size = sizeof(T)>
+            [[nodiscard]] inline auto
+            getPtrForAddress(
+                const uint64_t Address,
+                ADT::MemoryMap &MapOut,
+                const bool InsideMappings = true,
+                uint64_t *const TotalAvailSize = nullptr,
+                uint64_t *const FileOffsetOut = nullptr) const noexcept
+                    -> T *
+            {
+                auto AvailSize = uint64_t();
+                if (const auto Offset =
+                        getFileOffsetForAddress(Address,
+                                                InsideMappings,
+                                                &AvailSize))
+                {
+                    if (AvailSize < Size) {
+                        return nullptr;
+                    }
+
+                    if (TotalAvailSize != nullptr) {
+                        *TotalAvailSize = AvailSize;
+                    }
+
+                    if (FileOffsetOut != nullptr) {
+                        *FileOffsetOut = Offset.value();
+                    }
+
+                    MapOut = map();
+                    return map().get<T>(Offset.value());
+                }
+
+                return nullptr;
+            }
+
+            template <typename T = uint8_t, uint64_t Size = sizeof(T)>
+            [[nodiscard]] inline auto
+            getMapForAddrRange(const ADT::Range &AddrRange,
+                               const bool InsideMappings = true) const noexcept
+                    -> std::optional<std::pair<CacheInfo, ADT::MemoryMap>>
+            {
+                const auto FileRangeOpt =
+                    getFileRangeForAddrRange(AddrRange, InsideMappings);
+
+                if (!FileRangeOpt.has_value()) {
+                    return std::nullopt;
+                }
+
+                const auto Map = ADT::MemoryMap(map(), FileRangeOpt.value());
+                return std::make_pair(*this, Map);
+            }
+        };
+    protected:
+        CacheInfo Info;
+        CpuKind CpuKind;
+
+        struct SubCacheInfo {
+            ADT::FileMap *Map;
+            CacheInfo Info;
+
+            explicit
+            SubCacheInfo(ADT::FileMap *const Map,
+                         const CacheInfo &Info) noexcept
+            : Map(Map), Info(Info) {}
+        };
+
+        std::string Path;
+        std::unordered_map<std::string_view, SubCacheInfo> SubCacheList;
+
+        auto CollectSubCaches(ADT::FileMap::Prot Prot) noexcept -> OpenError;
+        auto VerifySubCacheMap(const ADT::MemoryMap &Map) noexcept -> OpenError;
+
+        explicit
+        DyldSharedCache(const ADT::MemoryMap &Map,
+                        const enum CpuKind CpuKind,
+                        const std::string_view Path) noexcept
+        : Base(Kind::DyldSharedCache), Info(Map), CpuKind(CpuKind),
+          Path(Path) {}
+    public:
+        static auto
+        Open(const ADT::MemoryMap &Map,
+             std::string_view Path,
+             ADT::FileMap::Prot SubCacheProt) noexcept
+                -> ADT::PointerOrError<DyldSharedCache, OpenError>;
 
         ~DyldSharedCache() noexcept override {}
 
         [[nodiscard]] constexpr auto map() const noexcept {
-            return Map;
+            return Info.map();
         }
 
         [[nodiscard]] constexpr auto range() const noexcept {
-            return ADT::Range::FromSize(0, Map.size());
+            return Info.range();
         }
 
         [[nodiscard]] constexpr auto cpuKind() const noexcept {
@@ -179,122 +524,113 @@ namespace Objects {
         }
 
         [[nodiscard]] inline auto &header() const noexcept {
-            return *map().base<::DyldSharedCache::HeaderV9, false>();
+            return Info.header();
         }
 
         [[nodiscard]] inline auto isV1() const noexcept {
-            return header().isV1();
+            return Info.isV1();
         }
 
         [[nodiscard]] inline auto isV2() const noexcept {
-            return header().isV2();
+            return Info.isV2();
         }
 
         [[nodiscard]] inline auto isV3() const noexcept {
-            return header().isV3();
+            return Info.isV3();
         }
 
         [[nodiscard]] inline auto isV4() const noexcept {
-            return header().isV4();
+            return Info.isV4();
         }
 
         [[nodiscard]] inline auto isV5() const noexcept {
-            return header().isV5();
+            return Info.isV5();
         }
 
         [[nodiscard]] inline auto isV6() const noexcept {
-            return header().isV6();
+            return Info.isV6();
         }
 
         [[nodiscard]] inline auto isV7() const noexcept {
-            return header().isV7();
+            return Info.isV7();
         }
 
         [[nodiscard]] inline auto isV8() const noexcept {
-            return header().isV8();
+            return Info.isV8();
         }
 
         [[nodiscard]] inline auto isV9() const noexcept {
-            return header().isV9();
+            return Info.isV9();
         }
 
         [[nodiscard]] inline auto getVersion() const noexcept {
-            return header().getVersion();
+            return Info.getVersion();
         }
 
         [[nodiscard]]
         inline auto headerV0() const noexcept -> ::DyldSharedCache::HeaderV0 & {
-            return header();
+            return Info.headerV0();
         }
 
         [[nodiscard]]
         inline auto headerV1() const noexcept -> ::DyldSharedCache::HeaderV1 & {
-            assert(header().isV1());
-            return header();
+            return Info.headerV1();
         }
 
         [[nodiscard]]
         inline auto headerV2() const noexcept -> ::DyldSharedCache::HeaderV2 & {
-            assert(header().isV2());
-            return header();
+            return Info.headerV2();
         }
 
         [[nodiscard]]
         inline auto headerV3() const noexcept -> ::DyldSharedCache::HeaderV3 & {
-            assert(header().isV3());
-            return header();
+            return Info.headerV3();
         }
 
         [[nodiscard]]
         inline auto headerV4() const noexcept -> ::DyldSharedCache::HeaderV4 & {
-            assert(header().isV4());
-            return header();
+            return Info.headerV4();
         }
 
         [[nodiscard]]
         inline auto headerV5() const noexcept -> ::DyldSharedCache::HeaderV5 & {
-            assert(header().isV5());
-            return header();
+            return Info.headerV5();
         }
 
         [[nodiscard]]
         inline auto headerV6() const noexcept -> ::DyldSharedCache::HeaderV6 & {
-            assert(header().isV6());
-            return header();
+            return Info.headerV6();
         }
 
         [[nodiscard]]
         inline auto headerV7() const noexcept -> ::DyldSharedCache::HeaderV7 & {
-            assert(header().isV7());
-            return header();
+            return Info.headerV7();
         }
 
         [[nodiscard]]
         inline auto headerV8() const noexcept -> ::DyldSharedCache::HeaderV8 & {
-            assert(header().isV8());
-            return header();
+            return Info.headerV8();
         }
 
         [[nodiscard]]
         inline auto headerV9() const noexcept -> ::DyldSharedCache::HeaderV9 & {
-            assert(header().isV9());
-            return header();
+            return Info.headerV9();
         }
 
         [[nodiscard]] inline auto mappingCount() const noexcept {
-            return header().MappingCount;
+            return Info.mappingCount();
         }
 
         [[nodiscard]] inline auto imageCount() const noexcept {
-            return header().imageCount();
+            return Info.imageCount();
         }
 
         [[nodiscard]] inline auto mappingInfoList() const noexcept {
-            return header().mappingInfoList();
+            return Info.mappingInfoList();
         }
 
         [[nodiscard]] inline auto imageInfoList() const noexcept {
-            return header().imageInfoList();
+            return Info.imageInfoList();
         }
 
         [[nodiscard]] inline auto
@@ -308,85 +644,52 @@ namespace Objects {
                 return std::nullopt;
             }
 
-            if (InsideMappings) {
-                for (const auto &Mapping : headerV0().mappingInfoList()) {
-                    if (const auto Offset =
-                            Mapping.getFileOffsetFromAddr(Addr, MaxSizeOut))
-                    {
-                        return Offset.value();
-                    }
+            if (const auto Result =
+                    Info.getFileOffsetForAddress(Addr,
+                                                 InsideMappings,
+                                                 MaxSizeOut))
+            {
+                return Result;
+            }
+
+            for (const auto &SubCachePair : SubCacheList) {
+                const auto &SubCache = SubCachePair.second.Info;
+                if (const auto Result =
+                        SubCache.getFileOffsetForAddress(Addr,
+                                                         InsideMappings,
+                                                         MaxSizeOut))
+                {
+                    return Result;
                 }
-            } else {
-                const auto FirstMappingAddress =
-                    mappingInfoList().front().Address;
-
-                if (Addr < FirstMappingAddress) {
-                    return std::nullopt;
-                }
-
-                const auto Offset = Addr - FirstMappingAddress;
-                const auto DscSize = range().size();
-
-                if (Offset >= DscSize) {
-                    return std::nullopt;
-                }
-
-                *MaxSizeOut = DscSize - Offset;
-                return Offset;
             }
 
             return std::nullopt;
         }
 
+        template <typename T = uint8_t, uint64_t Size = sizeof(T)>
         [[nodiscard]] inline auto
-        getFileRangeForAddrRange(
-            const ADT::Range &AddrRange,
-            const bool InsideMappings = true,
-            uint64_t *const MaxSizeOut = nullptr) const noexcept
-                -> std::optional<ADT::Range>
+        getMapForAddrRange(const ADT::Range &AddrRange,
+                           const bool InsideMappings = true) const noexcept
+                -> std::optional<std::pair<CacheInfo, ADT::MemoryMap>>
         {
             const uint64_t BaseAddr = AddrRange.begin();
             if (AddrRange.empty() || BaseAddr == 0) {
                 return std::nullopt;
             }
 
-            if (InsideMappings) {
-                for (const auto &Mapping : headerV0().mappingInfoList()) {
-                    if (const auto Offset =
-                            Mapping.getFileOffsetFromAddr(BaseAddr, MaxSizeOut))
-                    {
-                        const auto AddrRangeSize = AddrRange.size();
-                        if (*MaxSizeOut < AddrRangeSize) {
-                            return std::nullopt;
-                        }
+            if (const auto Result =
+                    Info.getMapForAddrRange(AddrRange, InsideMappings))
+            {
+                return Result;
+            }
 
-                        return ADT::Range::FromSize(Offset.value(),
-                                                    AddrRangeSize);
-                    }
+            for (const auto &SubCachePair : SubCacheList) {
+                const auto &SubCache = SubCachePair.second.Info;
+                if (const auto Result =
+                        SubCache.getMapForAddrRange(AddrRange, InsideMappings))
+                {
+                    return Result;
                 }
-            } else {
-                const auto FirstMappingAddress =
-                    mappingInfoList().front().Address;
-
-                if (BaseAddr < FirstMappingAddress) {
-                    return std::nullopt;
-                }
-
-                const auto Offset = BaseAddr - FirstMappingAddress;
-                const auto DscSize = range().size();
-
-                if (Offset >= DscSize) {
-                    return std::nullopt;
-                }
-
-                const auto MaxSize = DscSize - Offset;
-                const auto AddrRangeSize = AddrRange.size();
-
-                if (AddrRangeSize > MaxSize) {
-                    return std::nullopt;
-                }
-
-                return ADT::Range::FromSize(Offset, AddrRangeSize);
             }
 
             return std::nullopt;
@@ -395,33 +698,36 @@ namespace Objects {
         template <typename T = uint8_t, uint64_t Size = sizeof(T)>
         [[nodiscard]] inline auto
         getPtrForAddress(const uint64_t Address,
+                         ADT::MemoryMap &MapOut,
                          const bool InsideMappings = true,
                          uint64_t *const TotalAvailSize = nullptr,
                          uint64_t *const FileOffsetOut = nullptr) const noexcept
-            -> T *
+            -> std::optional<std::pair<const CacheInfo &, T *>>
         {
-            auto AvailSize = uint64_t();
-            if (const auto Offset =
-                    getFileOffsetForAddress(Address,
-                                            InsideMappings,
-                                            &AvailSize))
+            if (const auto Result =
+                    Info.getPtrForAddress<T, Size>(Address,
+                                                   MapOut,
+                                                   InsideMappings,
+                                                   TotalAvailSize,
+                                                   FileOffsetOut))
             {
-                if (AvailSize < Size) {
-                    return nullptr;
-                }
-
-                if (TotalAvailSize != nullptr) {
-                    *TotalAvailSize = AvailSize;
-                }
-
-                if (FileOffsetOut != nullptr) {
-                    *FileOffsetOut = Offset.value();
-                }
-
-                return Map.get<T>(Offset.value());
+                return std::make_pair(Info, Result);
             }
 
-            return nullptr;
+            for (const auto &SubCachePair : SubCacheList) {
+                const auto &SubCache = SubCachePair.second.Info;
+                if (const auto Result =
+                        SubCache.getPtrForAddress<T, Size>(Address,
+                                                           MapOut,
+                                                           InsideMappings,
+                                                           TotalAvailSize,
+                                                           FileOffsetOut))
+                {
+                    return std::make_pair(SubCache, Result);
+                }
+            }
+
+            return std::nullopt;
         }
 
         [[nodiscard]] auto subCacheEntryV1InfoList() const noexcept

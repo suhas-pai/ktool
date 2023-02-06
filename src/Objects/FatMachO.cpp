@@ -62,7 +62,7 @@ namespace Objects {
             return Error;
         }
 
-        const auto Header = *Map.base<::MachO::FatHeader>();
+        const auto Header = *Map.base<::MachO::FatHeader, false>();
         if (Header.ArchCount == 0) {
             return new FatMachO(Map);
         }
@@ -172,19 +172,19 @@ namespace Objects {
     auto FatMachO::getArchObjectAtIndex(const uint32_t Index) const noexcept
         -> Objects::OpenResult
     {
-        const auto ArchCount = archCount();
-        assert(Index < ArchCount);
-
+        assert(!Utils::IndexOutOfBounds(Index, archCount()));
         if (is64Bit()) {
             const auto ArchList = archs64();
             const auto ArchRange = ArchList[Index].range(isBigEndian());
 
-            return Objects::Open(ADT::MemoryMap(Map, ArchRange));
+            return Objects::OpenFrom(ADT::MemoryMap(Map, ArchRange),
+                                     Kind::FatMachO);
         }
 
         const auto ArchList = archs();
         const auto ArchRange = ArchList[Index].range(isBigEndian());
 
-        return Objects::Open(ADT::MemoryMap(Map, ArchRange));
+        return Objects::OpenFrom(ADT::MemoryMap(Map, ArchRange),
+                                 Kind::FatMachO);
     }
 }

@@ -97,7 +97,28 @@ namespace DyldSharedCache {
             [[nodiscard]] inline bool isConstData() const noexcept {
                 return has(Masks::ConstData);
             }
-        };
+
+            constexpr auto setAuthData(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
+                setValueForMask(Masks::AuthData, 0, Value);
+                return *this;
+            }
+
+            constexpr auto setDirtyData(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
+                setValueForMask(Masks::DirtyData, 0, Value);
+                return *this;
+            }
+
+            constexpr auto setConstData(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
+                setValueForMask(Masks::ConstData, 0, Value);
+                return *this;
+            }
+         };
 
         uint64_t Address;
         uint64_t Size;
@@ -136,10 +157,10 @@ namespace DyldSharedCache {
             return Size == 0;
         }
 
-        [[nodiscard]] inline uint64_t
+        [[nodiscard]] inline auto
         getFileOffsetFromAddr(
             const uint64_t Addr,
-            uint64_t *const MaxSizeOut = nullptr) const noexcept
+            uint64_t *const MaxSizeOut = nullptr) const noexcept -> uint64_t
         {
             if (!addressRange().containsLoc(Addr)) {
                 return 0;
@@ -161,19 +182,6 @@ namespace DyldSharedCache {
         uint64_t Inode;
         uint32_t PathFileOffset;
         uint32_t Pad;
-
-        [[nodiscard]]
-        inline auto pathPtr(const uint8_t *const Map) const noexcept {
-            return reinterpret_cast<const char *>(Map) + PathFileOffset;
-        }
-
-        [[nodiscard]]
-        inline auto isAlias(const HeaderV0 &Header) const noexcept -> bool;
-
-        [[nodiscard]]
-        inline auto isAlias(const uint8_t *const Map) const noexcept {
-            return isAlias(*reinterpret_cast<const HeaderV0 *>(Map));
-        }
     };
 
     struct ImageInfoExtra {
@@ -248,6 +256,11 @@ namespace DyldSharedCache {
         uint8_t Uuid[16];
         uint64_t CacheVMOffset;
         char FileSuffix[32];
+
+        [[nodiscard]] constexpr auto fileSuffix() const noexcept {
+            return std::string_view(FileSuffix,
+                                    strnlen(FileSuffix, sizeof(FileSuffix)));
+        }
     };
 
     // Apple doesn't provide versions for their dyld_shared_caches, so we have
@@ -318,61 +331,9 @@ namespace DyldSharedCache {
             return std::nullopt;
         }
 
-        [[nodiscard]] inline auto imageInfoList() const noexcept {
-            const auto Ptr =
-                reinterpret_cast<const ImageInfo *>(
-                    reinterpret_cast<const uint8_t *>(this) + ImagesOffsetOld);
-
-            return ADT::List(Ptr, ImagesCountOld);
-        }
-
-        [[nodiscard]] inline auto mappingInfoList() const noexcept {
-            const auto Ptr =
-                reinterpret_cast<const MappingInfo *>(
-                    reinterpret_cast<const uint8_t *>(this) + MappingOffset);
-
-            return ADT::List(Ptr, MappingCount);
-        }
-
-        [[nodiscard]] inline auto imageInfoList() noexcept {
-            const auto Ptr =
-                reinterpret_cast<ImageInfo *>(
-                    reinterpret_cast<uint8_t *>(this) + ImagesOffsetOld);
-
-            return ADT::List(Ptr, ImagesCountOld);
-        }
-
-        [[nodiscard]] inline auto mappingInfoList() noexcept {
-            const auto Ptr =
-                reinterpret_cast<MappingInfo *>(
-                    reinterpret_cast<uint8_t *>(this) + MappingOffset);
-
-            return ADT::List(Ptr, MappingCount);
-        }
-
-        [[nodiscard]] inline ADT::Range getMappingsRange() const noexcept {
-            auto End = ADT::Maximizer<uint64_t>();
-
-            const auto List = mappingInfoList();
-            const auto Begin = List.front().Address;
-
-            for (const auto &Mapping : List) {
-                End.set(Mapping.Address + Mapping.Size);
-            }
-
-            return ADT::Range::FromEnd(Begin, End.value());
-        }
-
         [[nodiscard]] constexpr auto hasSubCacheV1List() const noexcept;
         [[nodiscard]] constexpr auto hasSubCacheList() const noexcept;
     };
-
-    inline bool ImageInfo::isAlias(const HeaderV0 &Header) const noexcept {
-        const auto MappingList = Header.mappingInfoList();
-        const auto FirstMappingFileOff = MappingList.front().FileOffset;
-
-        return PathFileOffset < FirstMappingFileOff;
-    }
 
     // From dyld v195.5
 
@@ -443,7 +404,7 @@ namespace DyldSharedCache {
             return std::nullopt;
         }
 
-        [[nodiscard]] inline auto getImageTextInfoList() noexcept {
+        [[nodiscard]] inline auto imageTextInfoList() noexcept {
             const auto Map = reinterpret_cast<uint8_t *>(this);
             const auto Ptr =
                 reinterpret_cast<ImageTextInfo *>(Map + ImagesTextOffset);
@@ -622,21 +583,6 @@ namespace DyldSharedCache {
             }
 
             return std::nullopt;
-        }
-
-        [[nodiscard]] inline auto imageInfoList() noexcept {
-            const auto Map = reinterpret_cast<uint8_t *>(this);
-            const auto Ptr = reinterpret_cast<ImageInfo *>(Map + ImagesOffset);
-
-            return ADT::List(Ptr, ImagesCount);
-        }
-
-        [[nodiscard]] inline auto imageInfoList() const noexcept {
-            const auto Map = reinterpret_cast<const uint8_t *>(this);
-            const auto Ptr =
-                reinterpret_cast<const ImageInfo *>(Map + ImagesOffset);
-
-            return ADT::List(Ptr, ImagesCount);
         }
 
         [[nodiscard]] inline auto programsPBLSetPoolRange() const noexcept {

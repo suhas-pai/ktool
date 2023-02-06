@@ -5,12 +5,7 @@
 //  Created by suhaspai on 11/13/22.
 //
 
-#include <cerrno>
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
 #include <fcntl.h>
-#include <unistd.h>
 
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -18,7 +13,10 @@
 #include "ADT/FileMap.h"
 
 namespace ADT {
-    FileMap::FileMap(const char *const Path, const Prot Prot) noexcept {
+    auto
+    FileMap::Open(const char *const Path, const Prot Prot) noexcept
+        -> PointerOrError<FileMap, OpenError>
+    {
         auto Mode = O_RDONLY;
         switch (Prot) {
             case Prot::Read:
@@ -37,20 +35,12 @@ namespace ADT {
 
         const auto Fd = open(Path, Mode);
         if (Fd == -1) {
-            fprintf(stderr,
-                    "Failed to open file (at path %s), error=%s\n",
-                    Path,
-                    strerror(errno));
-            exit(1);
+            return OpenError::FailedToOpen;
         }
 
         struct stat Sbuf = {};
         if (fstat(Fd, &Sbuf) != 0) {
-            fprintf(stderr,
-                    "Failed to get info on file (at path %s), error=%s\n",
-                    Path,
-                    strerror(errno));
-            exit(1);
+            return OpenError::FailedToStat;
         }
 
         const auto Flags = MAP_PRIVATE;
@@ -63,16 +53,10 @@ namespace ADT {
                  0);
 
         if (Map == MAP_FAILED) {
-            fprintf(stderr,
-                    "Failed to open memory-map of file (at path %s), "
-                    "error=%s\n",
-                    Path,
-                    strerror(errno));
-            exit(1);
+            return OpenError::FailedToMemMap;
         }
 
-        this->Base = Map;
-        this->Size = static_cast<size_t>(Sbuf.st_size);
+        return new FileMap(Map, static_cast<uint64_t>(Sbuf.st_size));
     }
 
     FileMap::~FileMap() noexcept {

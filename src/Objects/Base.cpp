@@ -13,15 +13,24 @@
 namespace Objects {
     Base::~Base() noexcept {}
 
-    auto Open(const ADT::MemoryMap &Map) noexcept -> OpenResult {
+    auto
+    Open(const ADT::MemoryMap &Map,
+         std::string_view Path,
+         ADT::FileMap::Prot Prot) noexcept
+        -> OpenResult
+    {
         const auto Kind = Kind::None;
         switch (Kind) {
             case Kind::None:
             case Kind::DyldSharedCache: {
-                const auto Object = Objects::DyldSharedCache::Open(Map);
-                using ErrorKind = Objects::DyldSharedCache::OpenError;
+                const auto Object =
+                    Objects::DyldSharedCache::Open(Map,
+                                                   std::string(Path),
+                                                   Prot);
 
+                using ErrorKind = Objects::DyldSharedCache::OpenError;
                 const auto Error = Object.error();
+
                 if (Error == ErrorKind::None) {
                     return Object.ptr();
                 }
@@ -69,8 +78,7 @@ namespace Objects {
         return OpenErrorUnrecognized;
     }
 
-    auto
-    OpenFrom(const ADT::MemoryMap &Map, const Kind FromKind) noexcept
+    auto OpenFrom(const ADT::MemoryMap &Map, const Kind FromKind) noexcept
         -> OpenResult
     {
         const auto Kind = Kind::None;
@@ -112,20 +120,8 @@ namespace Objects {
 
                 [[fallthrough]];
             }
-            case Kind::DyldSharedCache: {
-                const auto Object = Objects::DyldSharedCache::Open(Map);
-                using ErrorKind = Objects::DyldSharedCache::OpenError;
-
-                const auto Error = Object.error();
-                if (Error == ErrorKind::None) {
-                    return Object.ptr();
-                }
-
-                if (Error != ErrorKind::WrongFormat) {
-                    return OpenError(Kind::DyldSharedCache,
-                                     static_cast<uint32_t>(Error));
-                }
-            }
+            case Kind::DyldSharedCache:
+                break;
             case Kind::DscImage:
                 break;
         }

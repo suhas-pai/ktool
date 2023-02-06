@@ -8,9 +8,6 @@
 #include <cstdio>
 #include <memory>
 
-#include "ADT/FileMap.h"
-#include "MachO/LoadCommands.h"
-
 #include "Operations/PrintHeader.h"
 #include "Operations/PrintId.h"
 #include "Operations/PrintImageList.h"
@@ -223,7 +220,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 }
 
                 const auto LimitArgOpt = Utils::to_uint<uint32_t>(argv[I]);
-                if (!LimitArgOpt) {
+                if (!LimitArgOpt.has_value()) {
                     fprintf(stderr,
                             "%s is not a valid limit-number\n",
                             argv[I]);
@@ -364,9 +361,9 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
 
                 const auto KindArg = std::string_view(argv[I]);
                 const auto KindOpt =
-                    MachO::ExportTrieExportKindGetFromString(argv[I]);
+                    MachO::ExportTrieExportKindGetFromString(KindArg);
 
-                if (!KindOpt) {
+                if (!KindOpt.has_value()) {
                     fprintf(stderr,
                             "%s is not a valid export-kind\n",
                             KindArg.data());
@@ -797,7 +794,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             const auto IndexArg = std::string_view(argv[I]);
             const auto ArchIndexOpt = Utils::to_uint<uint32_t>(IndexArg);
 
-            if (!ArchIndexOpt) {
+            if (!ArchIndexOpt.has_value()) {
                 fprintf(stderr,
                         "%s is not a valid index-number\n",
                         argv[I]);

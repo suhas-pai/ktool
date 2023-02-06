@@ -7,6 +7,7 @@
 
 #include "Operations/PrintProgramTrie.h"
 #include "DyldSharedCache/ProgramTrie.h"
+#include "Utils/Print.h"
 
 namespace Operations {
     PrintProgramTrie::PrintProgramTrie(FILE *const OutFile,
@@ -50,7 +51,11 @@ namespace Operations {
                               "-",
                               static_cast<uint64_t>(PadLength));
 
-        fprintf(OutFile, "> (Exported - Index = %" PRIu32 ")", Export.index());
+        Utils::PrintAddress(OutFile,
+                            Export.index(),
+                            /*Is64Bit=*/false,
+                            /*Prefix=*/"> (Exported - Index = ",
+                            /*Suffix=*/")");
     }
 
     constexpr static inline auto TabLength = uint32_t(8);
@@ -259,19 +264,19 @@ namespace Operations {
             return Result.set(RunError::NoProgramTrie);
         }
 
-        const auto ProgramTrieRangeOpt =
-            Dsc.getFileRangeForAddrRange(
-                Header.programTrieRange(), /*InsideMappings=*/false);
+        const auto ProgramTrieMemMapOpt =
+            Dsc.getMapForAddrRange(Header.programTrieRange());
 
-        if (!ProgramTrieRangeOpt.has_value()) {
+        if (!ProgramTrieMemMapOpt.has_value()) {
             return Result.set(RunError::OutOfBounds);
         }
 
-        const auto ProgramTrieRange = ProgramTrieRangeOpt.value();
+        const auto ProgramTriePair = ProgramTrieMemMapOpt.value();
+
         auto TrieParser = ADT::TrieParser();
         auto ProgramTrieMap =
-            ::DyldSharedCache::ProgramTrieMap(
-                ADT::MemoryMap(Dsc.map(), ProgramTrieRange), TrieParser);
+            ::DyldSharedCache::ProgramTrieMap(ProgramTriePair.second,
+                                              TrieParser);
 
         if (Opt.PrintTree) {
             auto Error = ::DyldSharedCache::ProgramTrieMap::ParseError::None;

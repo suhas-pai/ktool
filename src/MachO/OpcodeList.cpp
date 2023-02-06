@@ -14,7 +14,7 @@ namespace MachO {
         const auto Ptr = reinterpret_cast<const char *>(Iter);
         const auto Length = strnlen(Ptr, static_cast<uint64_t>(End - Iter));
 
-        Iter += (Length + 1);
+        Iter += Length + 1;
         if (Iter >= End) {
             return std::nullopt;
         }

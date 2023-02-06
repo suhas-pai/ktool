@@ -4,9 +4,6 @@
  */
 
 #include "DyldSharedCache/Headers.h"
-
-#include "MachO/Header.h"
-#include "Objects/Base.h"
 #include "Objects/DyldSharedCache.h"
 
 namespace Objects {
@@ -16,29 +13,32 @@ namespace Objects {
         -> ADT::PointerOrError<DscImage, OpenError>
     {
         auto MaxPossibleSize = uint64_t();
+        auto FileOffset = uint64_t();
+        auto Map = ADT::MemoryMap();
 
-        const auto &FirstMapping = Dsc.mappingInfoList().front();
-        const auto HeaderFileOffsetOpt =
-            FirstMapping.getFileOffsetFromAddr(ImageInfo.Address,
-                                               &MaxPossibleSize);
+        const auto HeaderPair =
+            Dsc.getPtrForAddress<::MachO::Header>(ImageInfo.Address,
+                                                  Map,
+                                                  /*InsideMappings=*/true,
+                                                  &MaxPossibleSize,
+                                                  &FileOffset);
 
-        if (!HeaderFileOffsetOpt.has_value()) {
-            const auto MagicPtr =
-                Dsc.getPtrForAddress<::MachO::Magic>(ImageInfo.Address);
+        if (!HeaderPair.has_value()) {
+            return OpenError::SizeTooSmall;
+        }
 
-            if (MagicPtr == nullptr) {
+        const auto Header = HeaderPair->second;
+        if (MaxPossibleSize < sizeof(::MachO::Header)) {
+            if (MaxPossibleSize < sizeof(::MachO::Magic)) {
                 return OpenError::InvalidAddress;
             }
 
-            if (::MachO::MagicIsThin(*MagicPtr)) {
+            if (::MachO::MagicIsThin(Header->Magic)) {
                 return OpenError::SizeTooSmall;
             }
 
             return OpenError::WrongFormat;
         }
-
-        const auto FileOffset = HeaderFileOffsetOpt.value();
-        const auto Header = Dsc.map().get<::MachO::Header>(FileOffset);
 
         if (!::MachO::MagicIsThin(Header->Magic)) {
             return OpenError::WrongFormat;
@@ -75,7 +75,7 @@ namespace Objects {
             ADT::Range::FromSize(FileOffset + Header->size(), LoadCommandsSize);
         const auto LoadCommandsMap =
             ::MachO::LoadCommandsMap(
-                ADT::MemoryMap(Dsc.map(), LoadCommandsRange), IsBigEndian);
+                ADT::MemoryMap(Map, LoadCommandsRange), IsBigEndian);
 
         auto FileSize = uint64_t();
         if (Header->is64Bit()) {
@@ -142,9 +142,9 @@ namespace Objects {
         FileSize = std::min(FileSize, MaxPossibleSize);
 
         const auto ImageRange = ADT::Range::FromSize(FileOffset, FileSize);
-        const auto ImageMap = ADT::MemoryMap(Dsc.map(), ImageRange);
+        const auto ImageMap = ADT::MemoryMap(Map, ImageRange);
 
-        return new DscImage(Dsc.map(), ImageInfo, ImageMap);
+        return new DscImage(Map, ImageInfo, ImageMap);
     }
 
     auto DscImage::getMapForFileOffsets() const noexcept -> ADT::MemoryMap {

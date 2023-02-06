@@ -7,12 +7,9 @@
 
 #include <memory>
 #include <string>
-#include <string_view>
-#include <type_traits>
 #include <vector>
 
 #include "ADT/MemoryMap.h"
-#include "ADT/Range.h"
 #include "ADT/Tree.h"
 
 namespace ADT {

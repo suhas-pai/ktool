@@ -5,10 +5,12 @@
 //  Created by suhaspai on 11/13/22.
 //
 
+#pragma once
 #include <cstdint>
 
 #include "FlagsBase.h"
 #include "MemoryMap.h"
+#include "PointerOrError.h"
 #include "Range.h"
 
 namespace ADT {
@@ -16,6 +18,9 @@ namespace ADT {
     protected:
         void *Base = nullptr;
         uint64_t Size = 0;
+
+        explicit FileMap(void *const Base, const uint64_t Size) noexcept
+        : Base(Base), Size(Size) {}
     public:
         enum class Prot {
             Read = 0b1,
@@ -34,8 +39,19 @@ namespace ADT {
             Shared
         };
 
-        explicit FileMap(const char *Path, Prot Prot) noexcept;
+        enum class OpenError {
+            None,
+            FailedToOpen,
+            FailedToStat,
+            FailedToMemMap,
+        };
+
+        static auto
+        Open(const char *Path, Prot Prot) noexcept
+            -> PointerOrError<FileMap, OpenError>;
+
         explicit FileMap(const FileMap &FileMap) noexcept = delete;
+        FileMap(FileMap &&FileMap) noexcept = default;
 
         ~FileMap() noexcept;
 

@@ -5,7 +5,6 @@
 //  Created by suhaspai on 11/21/22.
 //
 
-#include <cstdio>
 #include <inttypes.h>
 
 #include "ADT/FileMap.h"
@@ -27,21 +26,235 @@ namespace Operations {
     auto Base::runAndHandleFile(const HandleFileOptions Options) const noexcept
         -> RunResult
     {
-        const auto FileMap =
-            ADT::FileMap(Options.Path.data(), ADT::FileMap::Prot::Read);
+        const auto Prot = ADT::FileMap::Prot::Read;
+        const auto FileMapOrError =
+            ADT::FileMap::Open(Options.Path.data(), Prot);
 
-        const auto ObjectOrError = Objects::Open(FileMap.map());
+        switch (FileMapOrError.error()) {
+            case ADT::FileMap::OpenError::None:
+                break;
+            case ADT::FileMap::OpenError::FailedToOpen:
+                fprintf(stderr,
+                        "Failed to open file (at path %s), error=%s\n",
+                        Options.Path.data(),
+                        strerror(errno));
+                exit(1);
+            case ADT::FileMap::OpenError::FailedToStat:
+                fprintf(stderr,
+                        "Failed to get info on file (at path %s), error=%s\n",
+                        Options.Path.data(),
+                        strerror(errno));
+                exit(1);
+            case ADT::FileMap::OpenError::FailedToMemMap:
+                fprintf(stderr,
+                        "Failed to open memory-map of file (at path %s), "
+                        "error=%s\n",
+                        Options.Path.data(),
+                        strerror(errno));
+                exit(1);
+        }
+
+        const auto FileMap = FileMapOrError.ptr();
+        const auto ObjectOrError =
+            Objects::Open(FileMap->map(), Options.Path, Prot);
+
         if (ObjectOrError.hasError()) {
-            fprintf(stderr,
-                    "File (at path %s) is of an unrecognized format\n",
-                    Options.Path.data());
-            exit(1);
+            if (ObjectOrError.error().isUnrecognizedFormat()) {
+                fprintf(stderr,
+                        "File (at path %s) is of an unrecognized format\n",
+                        Options.Path.data());
+                exit(1);
+            }
+
+            switch (ObjectOrError.error().Kind) {
+                case Objects::Kind::None:
+                    assert(false &&
+                           "Got Object-Kind None when handling error in "
+                           "Operations::runAndHandleFile()");
+                case Objects::Kind::MachO: {
+                    using OpenError = Objects::MachO::OpenError;
+                    switch (OpenError(ObjectOrError.error().Error)) {
+                        case OpenError::None:
+                            assert(false &&
+                                   "Got Error::None when handling "
+                                   "Objects::MachO::OpenError in "
+                                   "Operations::runAndHandleFile()");
+                        case OpenError::WrongFormat:
+                            assert(false &&
+                                   "Got Error::WrongFormat when handling "
+                                   "Objects::MachO::OpenError in "
+                                   "Operations::runAndHandleFile()");
+                        case OpenError::SizeTooSmall:
+                            fputs("File is too small to be a valid mach-o "
+                                  "file\n", stderr);
+                            exit(1);
+                        case OpenError::TooManyLoadCommands:
+                            fputs("Mach-O file has too many load-commands\n",
+                                  stderr);
+                            exit(1);
+                    }
+
+                    break;
+                }
+                case Objects::Kind::FatMachO: {
+                    using OpenError = Objects::FatMachO::OpenError;
+                    switch (OpenError(ObjectOrError.error().Error)) {
+                        case OpenError::None:
+                            assert(false &&
+                                   "Got Error::None when handling "
+                                   "Objects::FatMachO::OpenError in "
+                                   "Operations::runAndHandleFile()");
+                        case OpenError::WrongFormat:
+                            assert(false &&
+                                   "Got Error::WrongFormat when handling "
+                                   "Objects::FatMachO::OpenError in "
+                                   "Operations::runAndHandleFile()");
+                        case OpenError::SizeTooSmall:
+                            fputs("File is too small to be a valid mach-o "
+                                  "file\n", stderr);
+                            exit(1);
+                        case OpenError::TooManyArchitectures:
+                            fputs("Fat Mach-O file has too many "
+                                  "architectures\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::ArchOutOfBounds:
+                            fputs("Fat Mach-O File has at least 1 arch "
+                                  "out-of-bounds of file\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::OverlappingArchs:
+                            fputs("Fat Mach-O File has at least 2 archs "
+                                  "overlap one another\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::ArchsForSameCpu:
+                            fputs("Fat Mach-O File has at least 2 archs "
+                                  "for the same cpu\n",
+                                  stderr);
+                            exit(1);
+                        }
+
+                    break;
+                }
+                case Objects::Kind::DyldSharedCache: {
+                    using OpenError = Objects::DyldSharedCache::OpenError;
+                    switch (OpenError(ObjectOrError.error().Error)) {
+                        case OpenError::None:
+                            assert(false &&
+                                   "Got Error::None when handling "
+                                   "Objects::DyldSharedCache::OpenError in "
+                                   "Operations::runAndHandleFile()");
+                        case OpenError::WrongFormat:
+                            assert(false &&
+                                   "Got Error::WrongFormat when handling "
+                                   "Objects::DyldSharedCache::OpenError in "
+                                   "Operations::runAndHandleFile()");
+                        case OpenError::UnrecognizedCpuKind:
+                            fputs("Dyld-shared-cache has an unrecognized "
+                                  "cputype\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::SizeTooSmall:
+                            fputs("File is too small to be a valid "
+                                  "dyld-shared-cache file\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::NoMappings:
+                            fputs("Dyld Shared-Cache's has no mappings\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::MappingsOutOfBounds:
+                            fputs("Dyld Shared-Cache's mappings are "
+                                  "out-of-bound\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::FirstMappingFileOffNotZero:
+                            fputs("Dyld Shared-Cache's first-mapping's "
+                                  "file-offset is not 0x0\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::FailedToOpenSubCaches:
+                            fputs("Failed to open sub-caches of shared-cache\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::SubCacheHasDiffCpuKind:
+                            fputs("At least 1 Sub-cache has a different "
+                                  "cpu-kind\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::SubCacheHasDiffVersion:
+                            fputs("At least 1 Sub-cache has a different "
+                                  "header-size\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::RecursiveSubCache:
+                            fputs("At least 1 Sub-cache has its own "
+                                  "sub-caches\n",
+                                  stderr);
+                            exit(1);
+                    }
+
+                    break;
+                }
+                case Objects::Kind::DscImage: {
+                    using OpenError = Objects::DscImage::OpenError;
+                    switch (OpenError(ObjectOrError.error().Error)) {
+                        case OpenError::None:
+                            assert(false &&
+                                   "Got Error::None when handling "
+                                   "Objects::DscImage::OpenError in "
+                                   "Operations::runAndHandleFile()");
+                        case OpenError::WrongFormat:
+                            assert(false &&
+                                   "Got Error::WrongFormat when handling "
+                                   "Objects::DscImage::OpenError in "
+                                   "Operations::runAndHandleFile()");
+                        case OpenError::InvalidAddress:
+                            fputs("Dsc-image has an invalid address inside "
+                                  "shared-cache\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::WrongCpuInfo:
+                            fputs("Dsc-image has a different cputype than its "
+                                  "shared-cache\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::NotMarkedAsImage:
+                            fputs("Dsc-image is not marked as a mach-o image\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::NotADylib:
+                            fputs("Dsc-image is neither a dylib or dylinker\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::SizeTooSmall:
+                            fputs("Dsc-image is too small to be a valid "
+                                  "mach-o\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::TooManyLoadCommands:
+                            fputs("Dsc-image has too many load-commands\n",
+                                  stderr);
+                            exit(1);
+                        case OpenError::OutOfBoundsSegment:
+                            fputs("Dsc-image has a segment that is "
+                                  "out-of-bounds of its shared-cache\n",
+                                  stderr);
+                            exit(1);
+                    }
+
+                    break;
+                }
+            }
         }
 
         const auto Object = ObjectOrError.ptr();
         const auto Result = runAndHandleFile(*Object, Options);
 
+        delete FileMap;
         delete Object;
+
         return Result;
     }
 

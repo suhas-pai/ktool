@@ -58,7 +58,7 @@ namespace Objects {
         }
 
         [[nodiscard]] inline auto path() const noexcept {
-            return std::string_view(ImageInfo.pathPtr(dscMap().base()));
+            return Map.string(ImageInfo.PathFileOffset);
         }
 
         [[nodiscard]]

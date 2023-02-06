@@ -91,9 +91,12 @@ namespace Operations {
         }
 
         auto Result = RunResult(Objects::Kind::DscImage);
+        const auto PathOpt = Image.path();
+
         fprintf(OutFile,
                 "\"" STRING_VIEW_FMT "\"",
-                STRING_VIEW_FMT_ARGS(Image.path()));
+                STRING_VIEW_FMT_ARGS(
+                    PathOpt.has_value() ? PathOpt.value() : "<invalid>"));
 
         return Result.set(RunError::None);
     }

@@ -395,18 +395,17 @@ namespace Operations {
                 [&](const MachO::BindActionInfo &Lhs,
                     const MachO::BindActionInfo &Rhs) noexcept
             {
+                auto Compare = int();
                 for (const auto &SortKind : Opt.SortKindList) {
-                    const auto CmpResult =
-                        CompareActionsBySortKind(Lhs, Rhs, SortKind);
-
-                    if (CmpResult != 0) {
-                        return CmpResult < 0;
+                    Compare = CompareActionsBySortKind(Lhs, Rhs, SortKind);
+                    if (Compare != 0) {
+                        break;
                     }
 
                     continue;
                 }
 
-                return false;
+                return Compare < 0;
             };
 
             std::sort(BindActionInfoList.begin(),

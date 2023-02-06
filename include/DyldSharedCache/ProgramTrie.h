@@ -129,7 +129,7 @@ namespace DyldSharedCache {
         }
 
         [[nodiscard]] constexpr auto isExport() const noexcept {
-            return Ordinal == 0;
+            return Ordinal != 0;
         }
 
         [[nodiscard]]

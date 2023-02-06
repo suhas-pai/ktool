@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "ADT/FileMap.h"
 #include "ADT/MemoryMap.h"
 #include "ADT/PointerOrError.h"
 
@@ -52,9 +53,11 @@ namespace Objects {
     constexpr static auto OpenErrorUnrecognized = OpenError(Kind::None, 1);
 
     using OpenResult = typename ADT::PointerOrError<Base, OpenError>;
-    auto Open(const ADT::MemoryMap &Map) noexcept -> OpenResult;
-
     auto
-    OpenFrom(const ADT::MemoryMap &Map, const Kind FromKind) noexcept
+    Open(const ADT::MemoryMap &Map,
+         std::string_view Path,
+         ADT::FileMap::Prot Prot) noexcept -> OpenResult;
+
+    auto OpenFrom(const ADT::MemoryMap &Map, const Kind FromKind) noexcept
         -> OpenResult;
 }

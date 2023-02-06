@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <string_view>
 #include "Range.h"
 
 #include "Utils/Misc.h"
@@ -98,6 +99,19 @@ namespace ADT {
             }
 
             return reinterpret_cast<T *>(AdjBase);
+        }
+
+        [[nodiscard]]
+        inline auto string(const uint64_t Offset) const noexcept ->
+            std::optional<std::string_view>
+        {
+            const auto Ptr = get<const char>(Offset);
+            if (Ptr == nullptr) {
+                return std::nullopt;
+            }
+
+            const auto Length = strnlen(Ptr, size() - Offset);
+            return std::string_view(Ptr, Length);
         }
 
         [[nodiscard]]

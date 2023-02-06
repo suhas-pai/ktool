@@ -4,13 +4,7 @@
  */
 
 #include "DyldSharedCache/Headers.h"
-#include "Mach/Machine.h"
-
-#include "MachO/Magic.h"
-#include "Objects/DscImage.h"
 #include "Objects/DyldSharedCache.h"
-#include "Objects/Base.h"
-#include "Utils/Misc.h"
 
 namespace Objects {
     constexpr auto GetCpuKind(const std::string_view MagicCpuKindStr) noexcept {
@@ -105,9 +99,13 @@ namespace Objects {
         return std::pair(CpuKind, true);
     }
 
-    auto DyldSharedCache::Open(const ADT::MemoryMap &Map) noexcept ->
-        ADT::PointerOrError<DyldSharedCache, OpenError>
+    static auto
+    VerifyMap(const ADT::MemoryMap &Map,
+              enum DyldSharedCache::CpuKind &CpuKindOut) noexcept
+        -> DyldSharedCache::OpenError
     {
+        using OpenError = DyldSharedCache::OpenError;
+
         const auto HeaderV0 = Map.base<::DyldSharedCache::HeaderV0>();
         if (HeaderV0 == nullptr) {
             const auto MagicPtr =
@@ -153,16 +151,139 @@ namespace Objects {
             return OpenError::UnrecognizedCpuKind;
         }
 
-        if (HeaderV0->mappingInfoList().empty()) {
+        if (HeaderV0->MappingOffset < sizeof(::DyldSharedCache::HeaderV0)) {
+            return OpenError::MappingsOutOfBounds;
+        }
+
+        if (HeaderV0->MappingCount == 0) {
             return OpenError::NoMappings;
         }
 
-        const auto FirstMapping = HeaderV0->mappingInfoList().front();
-        if (FirstMapping.FileOffset != 0) {
+        const auto MappingsRangeOpt = HeaderV0->getMappingInfoListRange();
+        if (!MappingsRangeOpt.has_value()) {
+            return OpenError::MappingsOutOfBounds;
+        }
+
+        if (!Map.range().contains(MappingsRangeOpt.value())) {
+            return OpenError::MappingsOutOfBounds;
+        }
+
+        const auto FirstMapping =
+            Map.get<const ::DyldSharedCache::MappingInfo, false>(
+                HeaderV0->MappingOffset);
+
+        if (FirstMapping->FileOffset != 0) {
             return OpenError::FirstMappingFileOffNotZero;
         }
 
-        return new DyldSharedCache(Map, CpuKind);
+        CpuKindOut = CpuKind;
+        return OpenError::None;
+    }
+
+    auto DyldSharedCache::VerifySubCacheMap(const ADT::MemoryMap &Map) noexcept
+        -> OpenError
+    {
+        using OpenError = DyldSharedCache::OpenError;
+
+        auto CpuKind = DyldSharedCache::CpuKind::i386;
+        if (const auto Error = VerifyMap(Map, CpuKind);
+            Error != OpenError::None)
+        {
+            return OpenError::FailedToOpenSubCaches;
+        }
+
+        if (CpuKind != this->CpuKind) {
+            return OpenError::SubCacheHasDiffCpuKind;
+        }
+
+        const auto Header = Map.base<::DyldSharedCache::HeaderV9, false>();
+        if (Header->getVersion() != getVersion()) {
+            return OpenError::SubCacheHasDiffVersion;
+        }
+
+        if (Header->SubCacheArrayCount != 0) {
+            return OpenError::RecursiveSubCache;
+        }
+
+        return OpenError::None;
+    }
+
+    auto
+    DyldSharedCache::CollectSubCaches(const ADT::FileMap::Prot Prot) noexcept
+        -> OpenError
+    {
+        if (const auto ListOpt = subCacheEntryInfoList()) {
+            for (const auto &SubCacheEntry : ListOpt.value()) {
+                const auto FileSuffix = SubCacheEntry.fileSuffix();
+                const auto SubCachePath = std::string(Path).append(FileSuffix);
+
+                const auto FileMapOrErr =
+                    ADT::FileMap::Open(SubCachePath.c_str(), Prot);
+
+                if (FileMapOrErr.hasError()) {
+                    return OpenError::FailedToOpenSubCaches;
+                }
+
+                auto FileMap = FileMapOrErr.ptr();
+                const auto Map = FileMap->map();
+
+                if (const auto Error = VerifySubCacheMap(Map);
+                    Error != OpenError::None)
+                {
+                    return Error;
+                }
+
+                SubCacheList.emplace(FileSuffix, SubCacheInfo(FileMap, Map));
+            }
+        } else if (const auto ListOpt = subCacheEntryV1InfoList()) {
+            for (auto I = uint32_t(1); I <= ListOpt.value().size(); I++) {
+                const auto FileSuffix = std::string(".") + std::to_string(I);
+                const auto SubCachePath = std::string(Path).append(FileSuffix);
+                const auto FileMapOrErr =
+                    ADT::FileMap::Open(SubCachePath.c_str(), Prot);
+
+                if (FileMapOrErr.hasError()) {
+                    return OpenError::FailedToOpenSubCaches;
+                }
+
+                auto FileMap = FileMapOrErr.ptr();
+                const auto Map = FileMap->map();
+
+                if (const auto Error = VerifySubCacheMap(Map);
+                    Error != OpenError::None)
+                {
+                    return Error;
+                }
+
+                SubCacheList.emplace(FileSuffix, SubCacheInfo(FileMap, Map));
+            }
+        }
+
+        return OpenError::None;
+    }
+
+    auto
+    DyldSharedCache::Open(const ADT::MemoryMap &Map,
+                          const std::string_view Path,
+                          const ADT::FileMap::Prot SubCacheProt) noexcept ->
+        ADT::PointerOrError<DyldSharedCache, OpenError>
+    {
+        auto CpuKind = CpuKind::i386;
+        if (const auto Error = VerifyMap(Map, CpuKind);
+            Error != OpenError::None)
+        {
+            return Error;
+        }
+
+        const auto Result = new DyldSharedCache(Map, CpuKind, Path);
+        if (const auto Error = Result->CollectSubCaches(SubCacheProt);
+            Error != OpenError::None)
+        {
+            delete Result;
+            return Error;
+        }
+
+        return Result;
     }
 
     auto DyldSharedCache::subCacheEntryV1InfoList() const noexcept

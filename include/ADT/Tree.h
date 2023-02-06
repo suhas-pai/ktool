@@ -527,7 +527,7 @@ namespace ADT {
         constexpr auto operator+=(const size_t Amount) noexcept
             -> decltype(*this)
         {
-            for (auto I = 0; I != Amount; I++) {
+            for (auto I = size_t(); I != Amount; I++) {
                 operator++();
             }
 
@@ -537,7 +537,7 @@ namespace ADT {
         constexpr auto operator-=(const size_t Amount) noexcept
             -> decltype(*this)
         {
-            for (auto I = 0; I != Amount; I++) {
+            for (auto I = size_t(); I != Amount; I++) {
                 operator--();
             }
 

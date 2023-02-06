@@ -113,7 +113,7 @@ namespace Operations {
             return Result.set(RunError::None);
         }
 
-        const auto Map = Dsc.map().base();
+        const auto Map = Dsc.map();
 
         auto ImageInfoList = std::vector<ImageInfo>();
         auto LongestImagePath = ADT::Maximizer<uint64_t>();
@@ -121,8 +121,12 @@ namespace Operations {
         ImageInfoList.reserve(ImageCount);
         for (const auto &Info : Dsc.imageInfoList()) {
             auto NewInfo = ImageInfo();
+            if (const auto PathOpt = Map.string(Info.PathFileOffset)) {
+                NewInfo.Path = PathOpt.value();
+            } else {
+                NewInfo.Path = "<invalid>";
+            }
 
-            NewInfo.Path = std::string_view(Info.pathPtr(Map));
             NewInfo.Address = Info.Address;
             NewInfo.ModTime = Info.ModTime;
             NewInfo.Inode = Info.Inode;
@@ -155,7 +159,7 @@ namespace Operations {
         const auto ImageInfoListSizeDigitCount =
             Utils::GetIntegerDigitCount(ImageCount);
 
-        auto Counter = static_cast<uint64_t>(1);
+        auto Counter = uint64_t(1);
         for (const auto &Info : ImageInfoList) {
             fprintf(OutFile,
                     "Image %" ZEROPAD_FMT PRIu64 ": ",
@@ -171,21 +175,17 @@ namespace Operations {
                                      STR_LENGTH("\"\""));
 
                 Utils::RightPadSpaces(OutFile, WrittenOut, RightPad);
-
-                fputs(" <", OutFile);
-                if (Info.isAlias(Map)) {
-                    fputs("Alias, ", OutFile);
-                }
-
                 Utils::PrintAddress(OutFile,
                                     Info.Address,
                                     /*Is64Bit=*/true,
-                                    "Address: ");
+                                    /*Prefix=*/" <Address: ");
 
                 fprintf(OutFile,
-                        ", Modification-Time: %s, Inode: %" PRIu64 ">",
+                        ", Modification-Time: %s (Value: %" PRIu64 "), "
+                        "Inode: %" PRIu64 ">",
                         Utils::GetHumanReadableTimestamp(
                             static_cast<time_t>(Info.ModTime)).c_str(),
+                        Info.ModTime,
                         Info.Inode);
             }
 

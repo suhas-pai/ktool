@@ -41,7 +41,7 @@ namespace Utils {
         if (Size < Base) {
             auto Result = std::string();
 
-            Result.reserve(STR_LENGTH("1023") + STR_LENGTH(" bytes"));
+            Result.reserve(STR_LENGTH("1,023") + STR_LENGTH(" bytes"));
             Result.append(GetFormattedNumber(Size));
             Result.append(" Bytes");
 
@@ -63,11 +63,11 @@ namespace Utils {
         auto Result = std::string();
 
         if (static_cast<uint64_t>(ResultAmount) == ResultAmount) {
-            Result.reserve(STR_LENGTH("1023.999 ") + 1 + Name.length());
+            Result.reserve(STR_LENGTH("1,023 ") + 1 + Name.length());
             Result.append(
                 GetFormattedNumber(static_cast<uint64_t>(ResultAmount)));
         } else {
-            Result.reserve(STR_LENGTH("1023 ") + 1 + Name.length());
+            Result.reserve(STR_LENGTH("1023.999 ") + 1 + Name.length());
             Result.append(ToStringWithPrecision(ResultAmount));
         }
 
