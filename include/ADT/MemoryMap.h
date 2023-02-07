@@ -20,7 +20,8 @@ namespace ADT {
         uint64_t Size = 0;
     public:
         constexpr explicit MemoryMap() noexcept = default;
-        constexpr explicit MemoryMap(void *Base, uint64_t Size)
+        constexpr
+        explicit MemoryMap(void *const Base, const uint64_t Size) noexcept
         : Base(Base), Size(Size) {}
 
         [[nodiscard]] inline auto range() const noexcept {
