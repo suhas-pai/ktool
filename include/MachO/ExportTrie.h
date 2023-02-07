@@ -553,7 +553,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr auto setString(const std::string &Value) noexcept
+        constexpr auto setString(const std::string_view Value) noexcept
             -> decltype(*this)
         {
             this->String = Value;
