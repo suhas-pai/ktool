@@ -51,6 +51,10 @@ namespace MachO {
                 return Ptr->kind(IsBigEndian);
             }
 
+            [[nodiscard]] constexpr auto cmdsize() const noexcept {
+                return Ptr->cmdsize(IsBigEndian);
+            }
+
             template <MachO::LoadCommandKind Kind>
             [[nodiscard]] constexpr auto isa() const noexcept -> decltype(auto)
             {
@@ -64,9 +68,8 @@ namespace MachO {
             }
 
             template <MachO::LoadCommandKind Kind>
-            [[nodiscard]] constexpr auto dyn_cast() const noexcept
-                -> decltype(auto)
-            {
+            [[nodiscard]]
+            constexpr auto dyn_cast() const noexcept -> decltype(auto) {
                 return MachO::dyn_cast<Kind>(Ptr, IsBigEndian);
             }
 
@@ -83,17 +86,15 @@ namespace MachO {
             }
 
             template <LoadCommandDerived T>
-            [[nodiscard]] constexpr auto dyn_cast() const noexcept
-                -> decltype(auto)
-            {
+            [[nodiscard]]
+            constexpr auto dyn_cast() const noexcept -> decltype(auto) {
                 return MachO::dyn_cast<T>(Ptr, IsBigEndian);
             }
 
             inline auto operator++() noexcept -> decltype(*this) {
                 Ptr =
                     reinterpret_cast<MachO::LoadCommand *>(
-                        reinterpret_cast<uint8_t *>(Ptr) +
-                        Ptr->cmdsize(IsBigEndian));
+                        reinterpret_cast<uint8_t *>(Ptr) + cmdsize());
                 return *this;
             }
 
@@ -119,8 +120,8 @@ namespace MachO {
                 return Ptr;
             }
 
-            constexpr auto
-            operator<=>(const Iterator &Other) const noexcept = default;
+            constexpr
+            auto operator<=>(const Iterator &Other) const noexcept = default;
 
             [[nodiscard]] constexpr
             auto operator==(const Iterator &Other) const noexcept {
