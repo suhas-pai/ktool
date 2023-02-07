@@ -32,11 +32,11 @@ namespace Operations {
                 assert(false &&
                        "Got Object-Kind None in "
                        "PrintExportTrie::supportsObjectKind()");
-            case Objects::Kind::DyldSharedCache:
             case Objects::Kind::DscImage:
             case Objects::Kind::MachO:
                 return true;
             case Objects::Kind::FatMachO:
+            case Objects::Kind::DyldSharedCache:
                 return false;
         }
 
