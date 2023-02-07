@@ -383,13 +383,21 @@ namespace Operations {
                     if (!supportsObjectKind(Objects::Kind::DscImage)) {
                         fputs("Operation doesn't support Dyld Shared-Cache "
                               "Images, but does support Dyld Shared-Cache "
-                              "Images.\nDrop the arch-index option to run on "
-                              "the Dyld Shared-Cache file\n",
+                              "Images.\nDrop the --image-index option to run "
+                              "on the Dyld Shared-Cache file\n",
                               stderr);
                         exit(1);
                     }
-                } else if (Options.ImageIndex == -1) {
+                } else if (!supportsObjectKind(Objects::Kind::DscImage)) {
                     PrintUnsupportedError(Options.Path);
+                }
+
+                if (Options.ImageIndex == -1) {
+                    fputs("Operation doesn't support Dyld Shared-Cache. Please "
+                          "select an image by its index using option "
+                          "--image-index\n",
+                          stderr);
+                    exit(1);
                 }
 
                 const auto ImageCount = Dsc.imageCount();
