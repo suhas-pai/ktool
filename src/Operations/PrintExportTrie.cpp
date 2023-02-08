@@ -572,7 +572,7 @@ namespace Operations {
 
             const auto RightPad =
                 static_cast<int>(LongestExportLength.value() +
-                                    STR_LENGTH("\"\""));
+                                 STR_LENGTH("\"\""));
 
             Utils::RightPadSpaces(OutFile,
                                     fprintf(OutFile,
@@ -582,8 +582,7 @@ namespace Operations {
 
             if (Export.Info.isReexport()) {
                 const auto ImportName = Export.Info.reexportImportName();
-                const auto DylibOrdinal =
-                    Export.Info.reexportDylibOrdinal();
+                const auto DylibOrdinal = Export.Info.reexportDylibOrdinal();
 
                 if (!ImportName.empty()) {
                     fprintf(OutFile,
@@ -594,11 +593,11 @@ namespace Operations {
                 }
 
                 Operations::PrintDylibOrdinalInfo(OutFile,
-                                                    DylibOrdinal,
-                                                    LibraryList,
-                                                    Opt.Verbose,
-                                                    "",
-                                                    ")");
+                                                  DylibOrdinal,
+                                                  LibraryList,
+                                                  Opt.Verbose,
+                                                  "",
+                                                  ")");
             }
 
             fputc('\n', OutFile);

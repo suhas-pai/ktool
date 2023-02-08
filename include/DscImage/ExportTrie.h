@@ -16,6 +16,7 @@ namespace DscImage {
         explicit
         ExportTrieEntryCollectionNodeCreator(const MachO::SegmentList *SegList,
                                              uint64_t ImageAddress) noexcept;
+
         [[nodiscard]] const MachO::SegmentInfo *
         LookupInfoForAddress(
             MachO::ExportTrieFlags::Kind Kind,
