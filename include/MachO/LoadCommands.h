@@ -379,11 +379,19 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto isRequiredByDyld(const bool IsBigEndian) const noexcept {
+            if (!isRecognized(IsBigEndian)) {
+                return false;
+            }
+
             return LoadCommandKindIsRequiredByDyld(kind(IsBigEndian));
         }
 
         [[nodiscard]]
         constexpr auto isSharedLibrary(const bool IsBigEndian) const noexcept {
+            if (!isRecognized(IsBigEndian)) {
+                return false;
+            }
+
             return LoadCommandKindIsSharedLibrary(kind(IsBigEndian));
         }
     };
