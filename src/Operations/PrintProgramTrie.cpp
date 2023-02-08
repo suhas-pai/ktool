@@ -7,6 +7,7 @@
 
 #include "Operations/PrintProgramTrie.h"
 #include "DyldSharedCache/ProgramTrie.h"
+
 #include "Utils/Print.h"
 
 namespace Operations {
@@ -146,7 +147,7 @@ namespace Operations {
         return Result.set(RunError::None);
     }
 
-    struct ExportInfo {
+    struct SExportInfo {
         std::string String;
         uint32_t Index;
     };
@@ -161,7 +162,8 @@ namespace Operations {
         using RunError = PrintProgramTrie::RunError;
 
         auto Count = uint64_t();
-        auto ExportList = std::vector<ExportInfo>();
+        auto ExportList = std::vector<SExportInfo>();
+
         auto LongestExportLength = ADT::Maximizer<uint64_t>();
         auto IndexDigitCountMaximizer = ADT::Maximizer<uint32_t>();
 
@@ -179,10 +181,12 @@ namespace Operations {
                     continue;
                 }
 
-                IndexDigitCountMaximizer.set(Info.exportInfo().index());
-                ExportList.emplace_back(ExportInfo {
+                IndexDigitCountMaximizer.set(
+                    Utils::GetIntegerDigitCount(Info.exportInfo().index()));
+
+                ExportList.push_back(SExportInfo {
                     .String = std::string(Info.string()),
-                    .Index = Info.exportInfo().index()
+                    .Index = Info.exportInfo().index(),
                 });
             }
         }
@@ -200,7 +204,7 @@ namespace Operations {
 
         if (Opt.Sort) {
             const auto Comparator =
-                [](const ExportInfo &Lhs, const ExportInfo &Rhs) noexcept
+                [](const SExportInfo &Lhs, const SExportInfo &Rhs) noexcept
             {
                 return Lhs.String < Rhs.String;
             };
@@ -214,36 +218,20 @@ namespace Operations {
 
         for (const auto &Export : ExportList) {
             const auto RightPadAmt =
-                static_cast<int>(STR_LENGTH("Dylib : ") + SizeDigitLength);
-
-            Utils::RightPadSpaces(OutFile,
-                                    fprintf(OutFile,
-                                            "Dylib %" ZEROPAD_FMT PRIu32 ": ",
-                                            ZEROPAD_FMT_ARGS(SizeDigitLength),
-                                            Counter),
-                                    RightPadAmt);
-
-            const auto IndexRightPad =
-                static_cast<int>(
-                    IndexDigitCountMaximizer.value() + STR_LENGTH("\t\t"));
+                static_cast<int>(STR_LENGTH("Program : ") +
+                                 SizeDigitLength);
 
             Utils::RightPadSpaces(OutFile,
                                   fprintf(OutFile,
-                                          "\t%" PRIu32 "\t",
-                                          Export.Index),
-                                  IndexRightPad);
+                                          "Program %" ZEROPAD_FMT
+                                          PRIu32 ": ",
+                                          ZEROPAD_FMT_ARGS(SizeDigitLength),
+                                          Counter),
+                                  RightPadAmt);
 
-            const auto RightPad =
-                static_cast<int>(LongestExportLength.value() +
-                                 STR_LENGTH("\"\""));
+            fprintf(OutFile, "\t" ADDRESS_32_FMT "\t", Export.Index);
+            fprintf(OutFile, "\"%s\"\n", Export.String.c_str());
 
-            Utils::RightPadSpaces(OutFile,
-                                    fprintf(OutFile,
-                                            "\"%s\"",
-                                            Export.String.data()),
-                                    RightPad);
-
-            fputc('\n', OutFile);
             Counter++;
         }
 
