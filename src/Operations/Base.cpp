@@ -14,6 +14,7 @@
 #include "Objects/FatMachO.h"
 
 #include "Operations/Base.h"
+#include "Utils/Misc.h"
 
 namespace Operations {
     auto PrintUnsupportedError(const std::string_view Path) noexcept {
@@ -305,7 +306,7 @@ namespace Operations {
                 const auto ArchIndex = static_cast<uint32_t>(Options.ArchIndex);
                 const auto ArchCount = Fat.archCount();
 
-                if (Options.ArchIndex >= ArchCount) {
+                if (Utils::IndexOutOfBounds(ArchIndex, ArchCount)) {
                     fprintf(stderr,
                             "An Arch-Index of %" PRIu32 " is invalid. The "
                             "provided Fat Mach-O file only has %" PRIu32
@@ -404,7 +405,7 @@ namespace Operations {
                 const auto ImageIndex =
                     static_cast<uint32_t>(Options.ImageIndex);
 
-                if (ImageIndex >= ImageCount) {
+                if (Utils::IndexOutOfBounds(ImageIndex, ImageCount)) {
                     fprintf(stderr,
                             "An Image-Index of %" PRIu32 " is invalid. The "
                             "provided Dyld Shared-Cache file only has %" PRIu32
