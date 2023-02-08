@@ -1118,10 +1118,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case Operations::PrintProgramTrie::RunError::None:
                     break;
                 case Operations::PrintProgramTrie::RunError::NoProgramTrie:
-                    fputs("Program-trie was not found in file\n", stderr);
+                    fputs("File has no program-trie\n", stderr);
                     return 1;
                 case Operations::PrintProgramTrie::RunError::OutOfBounds:
-                    fputs("Program-trie is in an invalid location\n", stderr);
+                    fputs("Program-trie is out-of-bounds of file\n", stderr);
                     return 1;
                 case Operations::PrintProgramTrie::RunError::NoExports:
                     fputs("Program-trie has no exported nodes\n", stderr);
