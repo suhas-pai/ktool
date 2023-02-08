@@ -1288,10 +1288,12 @@ namespace Operations {
             } else {
                 fprintf(OutFile,
                         "LC %" ZEROPAD_FMT PRIu32 ": <unknown> (Value: "
-                        "%" PRIu32 ")\n",
+                        "%" PRIu32 ")\n"
+                        "\tCmdSize: %" PRIu32 "\n",
                         ZEROPAD_FMT_ARGS(NcmdsDigitCount),
                         Counter,
-                        static_cast<uint32_t>(Kind));
+                        static_cast<uint32_t>(Kind),
+                        LoadCommand.cmdsize(IsBigEndian));
             }
 
             PrintLoadCommand(OutFile,
