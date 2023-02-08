@@ -522,7 +522,7 @@ namespace Operations {
             std::sort(ExportList.begin(), ExportList.end(), Comparator);
         }
 
-        auto Counter = uint32_t();
+        auto Counter = uint32_t(1);
         const auto SizeDigitLength =
             Utils::GetIntegerDigitCount(ExportList.size());
 
