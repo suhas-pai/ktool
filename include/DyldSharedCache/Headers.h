@@ -331,8 +331,8 @@ namespace DyldSharedCache {
             return std::nullopt;
         }
 
-        [[nodiscard]] constexpr auto hasSubCacheV1List() const noexcept;
-        [[nodiscard]] constexpr auto hasSubCacheList() const noexcept;
+        [[nodiscard]] constexpr auto hasSubCacheV1Array() const noexcept;
+        [[nodiscard]] constexpr auto hasSubCacheArray() const noexcept;
     };
 
     // From dyld v195.5
@@ -699,15 +699,13 @@ namespace DyldSharedCache {
     [[nodiscard]]
     constexpr auto HeaderV0::imageOffset() const noexcept -> uint32_t {
         return isV8() ?
-            static_cast<const HeaderV8 &>(*this).ImagesOffset :
-            ImagesOffsetOld;
+            static_cast<const HeaderV8 &>(*this).ImagesOffset : ImagesOffsetOld;
     }
 
     [[nodiscard]]
     constexpr auto HeaderV0::imageCount() const noexcept -> uint32_t {
         return isV8() ?
-            static_cast<const HeaderV8 &>(*this).ImagesCount :
-            ImagesCountOld;
+            static_cast<const HeaderV8 &>(*this).ImagesCount : ImagesCountOld;
     }
 
     [[nodiscard]] constexpr auto HeaderV0::isV1() const noexcept -> bool {
@@ -746,11 +744,11 @@ namespace DyldSharedCache {
         return MappingOffset >= sizeof(DyldSharedCache::HeaderV9);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::hasSubCacheV1List() const noexcept {
+    [[nodiscard]] constexpr auto HeaderV0::hasSubCacheV1Array() const noexcept {
         return isV8();
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::hasSubCacheList() const noexcept {
+    [[nodiscard]] constexpr auto HeaderV0::hasSubCacheArray() const noexcept {
         return isV9();
     }
 

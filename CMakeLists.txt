@@ -25,7 +25,6 @@ endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_target_properties(ktool PROPERTIES OUTPUT_NAME "ktool_debug")
-    set(ENV{ASAN_OPTIONS} ["detect_leaks=1"])
     target_link_options(ktool PRIVATE "-fsanitize=undefined")
 endif()
 

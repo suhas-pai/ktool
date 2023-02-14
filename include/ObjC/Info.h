@@ -529,8 +529,7 @@ namespace ObjC {
 
         constexpr auto
         setProtocolsAddress(const uint32_t Value,
-                            const bool IsBigEndian) noexcept
-            -> decltype(*this)
+                            const bool IsBigEndian) noexcept -> decltype(*this)
         {
             this->BaseProtocols = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
@@ -554,8 +553,7 @@ namespace ObjC {
 
         constexpr auto
         setPropertiesAddress(const uint32_t Value,
-                             const bool IsBigEndian) noexcept
-            -> decltype(*this)
+                             const bool IsBigEndian) noexcept -> decltype(*this)
         {
             this->BaseProperties = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;

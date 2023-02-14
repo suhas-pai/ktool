@@ -31,8 +31,8 @@ namespace MachO {
         DoRebaseUlebTimesSkipUleb = 0x80
     };
 
-    [[nodiscard]] constexpr auto
-    RebaseByteOpcodeIsValid(const RebaseByteOpcode Opcode) noexcept {
+    [[nodiscard]] constexpr 
+    auto RebaseByteOpcodeIsValid(const RebaseByteOpcode Opcode) noexcept {
         switch (Opcode) {
             case RebaseByteOpcode::Done:
             case RebaseByteOpcode::SetKindImm:
@@ -49,8 +49,8 @@ namespace MachO {
         return false;
     }
 
-    [[nodiscard]] constexpr auto
-    RebaseByteOpcodeGetName(const RebaseByteOpcode Opcode) noexcept
+    [[nodiscard]] constexpr 
+    auto RebaseByteOpcodeGetName(const RebaseByteOpcode Opcode) noexcept
         -> std::string_view
     {
         switch (Opcode) {
@@ -75,12 +75,12 @@ namespace MachO {
         }
 
         assert(false &&
-               "MachO::RebaseByteOpcodeGetString() got invalid "
-               "RebaseByteOpcode");
+               "MachO::RebaseByteOpcodeGetString() got unrecognized "
+               "MachO::RebaseByteOpcode");
     }
 
-    [[nodiscard]] constexpr auto
-    RebaseByteOpcodeGetDesc(const RebaseByteOpcode Opcode) noexcept
+    [[nodiscard]] constexpr
+    auto RebaseByteOpcodeGetDesc(const RebaseByteOpcode Opcode) noexcept
         -> std::string_view
     {
         switch (Opcode) {
@@ -105,7 +105,8 @@ namespace MachO {
         }
 
         assert(false &&
-               "MachO::RebaseByteOpcodeGetDesc() got invalid RebaseByteOpcode");
+               "MachO::RebaseByteOpcodeGetDesc() got unrecognized "
+               "MachO::RebaseByteOpcode");
     }
 
     enum class RebaseWriteKind : uint8_t {
@@ -128,8 +129,8 @@ namespace MachO {
         return false;
     }
 
-    [[nodiscard]] constexpr auto
-    RebaseWriteKindGetString(const RebaseWriteKind Kind) noexcept
+    [[nodiscard]]
+    constexpr auto RebaseWriteKindGetString(const RebaseWriteKind Kind) noexcept
         -> std::string_view
     {
         using Enum = RebaseWriteKind;
@@ -145,11 +146,12 @@ namespace MachO {
         }
 
         assert(false &&
-               "MachO::RebaseWriteKindGetString() got invalid RebaseWritKind");
+               "MachO::RebaseWriteKindGetString() got unrecognized "
+               "MachO::RebaseWritKind");
     }
 
-    [[nodiscard]] constexpr auto
-    RebaseWriteKindGetDesc(const RebaseWriteKind Kind) noexcept
+    [[nodiscard]]
+    constexpr auto RebaseWriteKindGetDesc(const RebaseWriteKind Kind) noexcept
         -> std::string_view
     {
         using Enum = RebaseWriteKind;
@@ -165,7 +167,8 @@ namespace MachO {
         }
 
         assert(false &&
-               "MachO::RebaseWriteKindGetDesc() got invalid RebaseWritKind");
+               "MachO::RebaseWriteKindGetDesc() got unrecognized "
+               "MachO::RebaseWritKind");
     }
 
     enum class RebaseByteDylibSpecialOrdinal : uint8_t {
@@ -193,7 +196,7 @@ namespace MachO {
             return uint8_t(valueForMask(Masks::Immediate));
         }
 
-        constexpr auto SetOpcode(const Opcode Opcode) noexcept
+        constexpr auto setOpcode(const Opcode Opcode) noexcept
             -> decltype(*this)
         {
             setValueForMask(Masks::Opcode, 0, static_cast<uint8_t>(Opcode));
@@ -521,7 +524,7 @@ namespace MachO {
                     return false;
             }
 
-            assert(0 && "Unrecognized Rebase-Opcode Parse Error");
+            assert(false && "Unrecognized MachO::RebaseOpcodeParseError");
         }
     };
 
@@ -546,8 +549,12 @@ namespace MachO {
         : Iter(Begin, End, std::make_unique<RebaseActionIterateInfo>()),
           Is64Bit(Is64Bit)
         {
-            LastByte.SetOpcode(RebaseByte::Opcode::SetKindImm);
-            operator++();
+            LastByte.setOpcode(RebaseByte::Opcode::SetKindImm);
+            if (!Iter.hasError() &&
+                !Iter.isAtEnd())
+            {
+                operator++();
+            }
         }
 
         [[nodiscard]] inline auto &info() noexcept {
@@ -635,7 +642,7 @@ namespace MachO {
             return !operator==(End);
         }
 
-        inline RebaseOpcodeParseError Advance() noexcept {
+        [[nodiscard]] inline RebaseOpcodeParseError Advance() noexcept {
             auto &Info = info();
             const auto AddChangeToSegmentAddress =
                 [&](const int64_t Add) noexcept
@@ -683,7 +690,7 @@ namespace MachO {
                         }
 
                         Info.AddrInSeg += AddAmt;
-                        LastByte.SetOpcode(RebaseByte::Opcode::SetKindImm);
+                        LastByte.setOpcode(RebaseByte::Opcode::SetKindImm);
 
                         Iter++;
                         break;
@@ -692,7 +699,7 @@ namespace MachO {
                     [[fallthrough]];
                 case RebaseByte::Opcode::DoRebaseAddAddrUleb:
                     // Clear the Last-Opcode.
-                    LastByte.SetOpcode(RebaseByte::Opcode::SetKindImm);
+                    LastByte.setOpcode(RebaseByte::Opcode::SetKindImm);
                     FinalizeChangesForSegmentAddress();
                     Iter++;
 
@@ -781,8 +788,9 @@ namespace MachO {
                         continue;
                     }
                     case RebaseByte::Opcode::DoRebaseAddAddrUleb: {
-                        const auto Error = CheckIfCanRebase();
-                        if (Error != ErrorEnum::None) {
+                        if (const auto Error = CheckIfCanRebase();
+                            Error != ErrorEnum::None)
+                        {
                             return Error;
                         }
 
@@ -800,8 +808,9 @@ namespace MachO {
                     }
                     case RebaseByte::Opcode::DoRebaseImmTimes:
                     case RebaseByte::Opcode::DoRebaseUlebTimes: {
-                        const auto Error = CheckIfCanRebase();
-                        if (Error != ErrorEnum::None) {
+                        if (const auto Error = CheckIfCanRebase();
+                            Error != ErrorEnum::None)
+                        {
                             return Error;
                         }
 
@@ -826,8 +835,9 @@ namespace MachO {
                         return ErrorEnum::OutOfBoundsSegmentAddr;
                     }
                     case RebaseByte::Opcode::DoRebaseUlebTimesSkipUleb: {
-                        const auto Error = CheckIfCanRebase();
-                        if (Error != ErrorEnum::None) {
+                        if (const auto Error = CheckIfCanRebase();
+                            Error != ErrorEnum::None)
+                        {
                             return Error;
                         }
 
@@ -864,7 +874,7 @@ namespace MachO {
                 return ErrorEnum::UnrecognizedRebaseOpcode;
             }
 
-            LastByte.SetOpcode(RebaseByte::Opcode::Done);
+            LastByte.setOpcode(RebaseByte::Opcode::Done);
             return ErrorEnum::None;
         }
     };

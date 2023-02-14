@@ -855,7 +855,6 @@ namespace Operations {
             case LoadCommandKind::CodeSignature:
             case LoadCommandKind::SegmentSplitInfo:
             case LoadCommandKind::FunctionStarts:
-            case LoadCommandKind::DyldEnvironment:
             case LoadCommandKind::DataInCode:
             case LoadCommandKind::DylibCodeSignDRS:
             case LoadCommandKind::LinkerOptimizationHint:
@@ -1032,7 +1031,8 @@ namespace Operations {
                 break;
             }
             case LoadCommandKind::DyldInfo:
-            case LoadCommandKind::DyldInfoOnly: {
+            case LoadCommandKind::DyldInfoOnly:
+            case LoadCommandKind::DyldEnvironment: {
                 const auto &DyldInfoCmd =
                     cast<DyldInfoCommand>(LC, IsBigEndian);
 

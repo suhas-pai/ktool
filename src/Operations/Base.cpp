@@ -6,7 +6,6 @@
 //
 
 #include <inttypes.h>
-
 #include "ADT/FileMap.h"
 
 #include "Objects/DscImage.h"

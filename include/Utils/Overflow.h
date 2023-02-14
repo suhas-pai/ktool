@@ -11,7 +11,6 @@
 
 namespace Utils {
     template <std::integral T = uint64_t, std::integral U, std::integral V>
-
     [[nodiscard]]
     constexpr auto WillAddOverflow(const U Lhs, const V Rhs) noexcept {
         auto Result = T();
@@ -34,7 +33,7 @@ namespace Utils {
     }
 
     template <std::integral T = uint64_t, std::integral U, std::integral V>
-
+    [[nodiscard]]
     constexpr auto AddAndCheckOverflow(const U Lhs, const V Rhs) noexcept
         -> std::optional<T>
     {
@@ -51,12 +50,12 @@ namespace Utils {
               std::integral V,
               std::integral... Rest>
 
+    [[nodiscard]]
     constexpr auto
     AddAndCheckOverflow(const U Lhs, const V Rhs, Rest... rest) noexcept
         -> std::optional<T>
     {
-        const auto FirstOpt = AddAndCheckOverflow(Lhs, Rhs);
-        if (FirstOpt.has_value()) {
+        if (const auto FirstOpt = AddAndCheckOverflow(Lhs, Rhs)) {
             return AddAndCheckOverflow(FirstOpt.value(), rest...);
         }
 
@@ -64,6 +63,7 @@ namespace Utils {
     }
 
     template <std::integral T = uint64_t, std::integral U, std::integral V>
+    [[nodiscard]]
     constexpr auto SubAndCheckOverflow(const U Lhs, const V Rhs) noexcept
         -> std::optional<T>
     {
@@ -80,12 +80,11 @@ namespace Utils {
               std::integral V,
               std::integral... Rest>
 
-    constexpr auto
+    [[nodiscard]] constexpr auto
     SubAndCheckOverflow(const T Lhs, const T Rhs, Rest... rest) noexcept
         -> std::optional<T>
     {
-        const auto FirstOpt = SubAndCheckOverflow(Lhs, Rhs);
-        if (FirstOpt.has_value()) {
+        if (const auto FirstOpt = SubAndCheckOverflow(Lhs, Rhs)) {
             return SubAndCheckOverflow(FirstOpt.value(), rest...);
         }
 
@@ -93,6 +92,7 @@ namespace Utils {
     }
 
     template <std::integral T = uint64_t, std::integral U, std::integral V>
+    [[nodiscard]]
     constexpr auto MulAndCheckOverflow(const U Lhs, const V Rhs) noexcept
         -> std::optional<T>
     {
@@ -109,16 +109,15 @@ namespace Utils {
               std::integral V,
               std::integral... Rest>
 
-    constexpr auto
+    [[nodiscard]] constexpr auto
     MulAndCheckOverflow(const U Lhs, const V Rhs, Rest... rest) noexcept
         -> std::optional<T>
     {
-        const auto FirstOpt = MulAndCheckOverflow(Lhs, Rhs);
-        if (!FirstOpt.has_value()) {
-            return std::nullopt;
+        if (const auto FirstOpt = MulAndCheckOverflow(Lhs, Rhs)) {
+            return MulAndCheckOverflow(FirstOpt.value(), rest...);
         }
 
-        return MulAndCheckOverflow(FirstOpt.value(), rest...);
+        return std::nullopt;
     }
 
     template <std::integral T = uint64_t,
@@ -126,12 +125,11 @@ namespace Utils {
               std::integral V,
               std::integral W>
 
-    constexpr auto
+    [[nodiscard]] constexpr auto
     MulAddAndCheckOverflow(const U F, const V S, const W Th) noexcept
         -> std::optional<T>
     {
-        const auto FirstOpt = MulAndCheckOverflow(F, S);
-        if (FirstOpt.has_value()) {
+        if (const auto FirstOpt = MulAndCheckOverflow(F, S)) {
             return AddAndCheckOverflow(FirstOpt.value(), Th);
         }
 
@@ -142,13 +140,12 @@ namespace Utils {
               std::integral U,
               std::integral V,
               std::integral W>
-
-    constexpr auto
+    
+    [[nodiscard]] constexpr auto
     AddMulAndCheckOverflow(const U F, const V S, const W Th) noexcept
         -> std::optional<T>
     {
-        const auto FirstOpt = AddAndCheckOverflow(F, S);
-        if (FirstOpt.has_value()) {
+        if (const auto FirstOpt = AddAndCheckOverflow(F, S)) {
             return MulAndCheckOverflow(FirstOpt.value(), Th);
         }
 
@@ -156,6 +153,7 @@ namespace Utils {
     }
 
     template <typename T, std::integral U>
+    [[nodiscard]]
     inline auto AddPtrAndCheckOverflow(T *const Ptr, const U Value) noexcept
         -> std::optional<T *>
     {
@@ -172,16 +170,14 @@ namespace Utils {
     }
 
     template <typename T, std::integral U, std::integral... Rest>
-    inline auto
+    [[nodiscard]] inline auto
     AddPtrAndCheckOverflow(T *const Ptr, const U Rhs, Rest... rest) noexcept
         -> std::optional<T *>
     {
-        const auto FirstOpt = AddPtrAndCheckOverflow(Ptr, Rhs);
-        if (FirstOpt.has_value()) {
-            return AddPtrAndCheckOverflow(FirstOpt.value(), Rhs, rest...);
+        if (const auto FirstOpt = AddPtrAndCheckOverflow(Ptr, Rhs)) {
+            return AddPtrAndCheckOverflow(FirstOpt.value(), rest...);
         }
 
         return std::nullopt;
     }
-
 }

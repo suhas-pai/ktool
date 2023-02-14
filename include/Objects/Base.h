@@ -52,6 +52,9 @@ namespace Objects {
     constexpr static auto OpenErrorNone = OpenError();
     constexpr static auto OpenErrorUnrecognized = OpenError(Kind::None, 1);
 
+    static_assert(OpenErrorNone.isNone());
+    static_assert(OpenErrorUnrecognized.isUnrecognizedFormat());
+
     using OpenResult = typename ADT::PointerOrError<Base, OpenError>;
     auto
     Open(const ADT::MemoryMap &Map,

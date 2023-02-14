@@ -41,7 +41,7 @@ namespace Operations {
         explicit
         PrintCStringSection(FILE *OutFile,
                             const std::optional<std::string> &SegmentName,
-                            const std::string &SectionName,
+                            const std::string_view SectionName,
                             const struct Options &Options) noexcept;
 
         ~PrintCStringSection() noexcept override {}

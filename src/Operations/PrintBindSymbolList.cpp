@@ -103,10 +103,8 @@ namespace Operations {
                 ZEROPAD_FMT_ARGS(SizeDigitLength),
                 Counter);
 
-        if (const auto *Segment =
-                SegmentList.atOrNull(
-                    static_cast<uint64_t>(Action.SegmentIndex)))
-        {
+        const auto SegmentIndex = static_cast<uint64_t>(Action.SegmentIndex);
+        if (const auto Segment = SegmentList.atOrNull(SegmentIndex)) {
             auto FullAddr = uint64_t();
             const auto Section =
                 Segment->findSectionWithVmAddrIndex(Action.AddrInSeg,
@@ -185,7 +183,8 @@ namespace Operations {
 
         switch (List.size()) {
             case 0:
-                assert(0 && "Bind-Symbol List shouldn't be empty at this point");
+                assert(false &&
+                       "Bind-Symbol List shouldn't be empty at this point");
             case 1:
                 fprintf(OutFile, "1 %s Symbol:\n", Name);
                 break;

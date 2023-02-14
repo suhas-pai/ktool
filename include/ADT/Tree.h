@@ -99,40 +99,40 @@ namespace ADT {
             return false;
         }
 
-        constexpr auto
-        setParent(TreeNode *const Value) noexcept -> decltype(*this) {
+        constexpr
+        auto setParent(TreeNode *const Value) noexcept -> decltype(*this) {
             assert(Value != this);
 
             this->Parent = Value;
             return *this;
         }
 
-        constexpr auto
-        setPrevSibling(TreeNode *const Value) noexcept -> decltype(*this) {
+        constexpr 
+        auto setPrevSibling(TreeNode *const Value) noexcept -> decltype(*this) {
             assert(Value != this);
 
             this->PrevSibling = Value;
             return *this;
         }
 
-        constexpr auto
-        setNextSibling(TreeNode *const Value) noexcept -> decltype(*this) {
+        constexpr
+        auto setNextSibling(TreeNode *const Value) noexcept -> decltype(*this) {
             assert(Value != this);
 
             this->NextSibling = Value;
             return *this;
         }
 
-        constexpr auto
-        setFirstChild(TreeNode *const Value) noexcept -> decltype(*this) {
+        constexpr
+        auto setFirstChild(TreeNode *const Value) noexcept -> decltype(*this) {
             assert(Value != this);
 
             this->FirstChild = Value;
             return *this;
         }
 
-        constexpr auto
-        setLastChild(TreeNode *const Value) noexcept -> decltype(*this) {
+        constexpr
+        auto setLastChild(TreeNode *const Value) noexcept -> decltype(*this) {
             assert(Value != this);
 
             this->LastChild = Value;
@@ -184,7 +184,7 @@ namespace ADT {
         template <typename T>
         constexpr auto
         forEachSiblingTillEnd(const TreeNode *const End,
-                            const T &lambda) const noexcept
+                              const T &lambda) const noexcept
         {
             TREE_NODE_ITERATE_SIBLINGS_TILL_END(*this, End, Sibling) {
                 lambda(*Sibling);
@@ -194,7 +194,7 @@ namespace ADT {
         template <typename T>
         constexpr auto
         forSelfAndEachSiblingTillEnd(const TreeNode *const End,
-                                    const T &lambda) const noexcept
+                                     const T &lambda) const noexcept
         {
             lambda(*this);
             forEachSiblingTillEnd(End, lambda);
@@ -273,11 +273,7 @@ namespace ADT {
             return LastSibling;
         }
 
-        inline auto addChild(TreeNode &Node) noexcept -> decltype(*this) {
-            return addChildren(Node);
-        }
-
-        inline auto
+        constexpr auto
         addChildren(TreeNode &Node, TreeNode *const End = nullptr) noexcept
             -> decltype(*this)
         {
@@ -296,8 +292,8 @@ namespace ADT {
             return *this;
         }
 
-        constexpr auto addSibling(TreeNode &Node) noexcept -> decltype(*this) {
-            return addSiblings(Node);
+        constexpr auto addChild(TreeNode &Node) noexcept -> decltype(*this) {
+            return addChildren(Node);
         }
 
         constexpr auto
@@ -319,6 +315,10 @@ namespace ADT {
             return *this;
         }
 
+        constexpr auto addSibling(TreeNode &Node) noexcept -> decltype(*this) {
+            return addSiblings(Node);
+        }
+
         [[nodiscard]]
         constexpr auto getChildCount() const noexcept -> uint64_t {
             auto Count = uint64_t();
@@ -332,8 +332,7 @@ namespace ADT {
         [[nodiscard]] constexpr auto
         findNextSiblingForDFSIterator(
             const TreeNode *const End,
-            uint64_t *const DepthChangeOut) const noexcept
-            -> const TreeNode *
+            uint64_t *const DepthChangeOut) const noexcept -> const TreeNode *
         {
             auto DepthChange = uint64_t();
             for (auto Node = this; Node != End; Node = Node->parent()) {
@@ -359,7 +358,7 @@ namespace ADT {
         findNextNodeForDFSIterator(
             const TreeNode *const End = nullptr,
             int64_t *const DepthChangeOut = nullptr) const noexcept
-            -> const TreeNode *
+                -> const TreeNode *
         {
             if (const auto FirstChild = firstChild()) {
                 if (DepthChangeOut != nullptr) {
@@ -374,11 +373,11 @@ namespace ADT {
         }
 
         inline auto validateChildren() const noexcept -> decltype(*this) {
-            if (leaf()) {
+            const auto FirstChild = firstChild();
+            if (FirstChild == nullptr) {
                 return *this;
             }
 
-            const auto FirstChild = firstChild();
             assert(FirstChild->parent() == this);
 
             const auto SecondChild = FirstChild->nextSibling();
@@ -387,9 +386,8 @@ namespace ADT {
             }
 
             auto Prev = FirstChild;
-            auto Visited = std::set<TreeNode *>();
+            auto Visited = std::set<TreeNode *>({ FirstChild });
 
-            Visited.insert(FirstChild);
             SecondChild->forSelfAndEachSibling([&](TreeNode &Sibling) {
                 assert(!Visited.contains(&Sibling));
                 assert(Sibling.parent() == this);
@@ -443,15 +441,15 @@ namespace ADT {
         constexpr TreeDFSIterator(T *const Current, T *const End) noexcept
         : Current(Current), End(End) {}
 
-        [[nodiscard]] constexpr auto &operator*() const noexcept {
+        [[nodiscard]] constexpr auto operator*() const noexcept -> reference {
             return *Current;
         }
 
-        [[nodiscard]] constexpr auto &operator*() noexcept {
+        [[nodiscard]] constexpr auto operator*() noexcept -> reference {
             return *Current;
         }
 
-        [[nodiscard]] constexpr auto operator->() const noexcept {
+        [[nodiscard]] constexpr auto operator->() const noexcept -> pointer {
             return Current;
         }
 
@@ -468,7 +466,7 @@ namespace ADT {
             return (TabLength + 2) * (depthLevel() - 1);
         }
 
-        [[nodiscard]] auto isAtEnd() const noexcept {
+        [[nodiscard]] constexpr auto isAtEnd() const noexcept {
             return Current == End;
         }
 
@@ -552,12 +550,12 @@ namespace ADT {
         }
 
         [[nodiscard]]
-        constexpr bool operator==(const TreeDFSIterator &Iter) const noexcept {
+        constexpr auto operator==(const TreeDFSIterator &Iter) const noexcept {
             return Current == Iter.Current;
         }
 
         [[nodiscard]]
-        constexpr bool operator!=(const TreeDFSIterator &Iter) const noexcept {
+        constexpr auto operator!=(const TreeDFSIterator &Iter) const noexcept {
             return !operator==(Iter);
         }
     };
@@ -586,9 +584,7 @@ namespace ADT {
             for (auto I = RootDepthLevel; I != End; I++) {
                 if (Iter.getParentAtIndex(I)->nextSibling() != nullptr) {
                     fputs("│", OutFile);
-
-                    WrittenOut += 1;
-                    WrittenOut += Utils::PadSpaces(OutFile, TabLength);
+                    WrittenOut += Utils::PadSpaces(OutFile, TabLength) + 1;
                 } else {
                     WrittenOut += Utils::PadSpaces(OutFile, TabLength + 1);
                 }
@@ -601,17 +597,13 @@ namespace ADT {
                 fputs("└", OutFile);
             }
 
-            // Add 1 for the ├ or └ character, and 1 for the space in
-            // between the "----" and the node-printer's string.
+            // Add 1 for the ├ or └ character, and 1 for the space after the
+            // "----".
 
-            const auto DashCount = TabLength;
-            WrittenOut += static_cast<int>(DashCount) + 2;
+            WrittenOut += static_cast<int>(TabLength) + 2;
+            Utils::PrintMultTimes(OutFile, "─", TabLength);
 
-            Utils::PrintMultTimes(OutFile,
-                                  "─",
-                                  static_cast<uint64_t>(DashCount));
             fputc(' ', OutFile);
-
             WrittenOut += 1;
 
             NodePrinterFunc(OutFile, WrittenOut, DepthLevel, Info);
@@ -803,8 +795,7 @@ namespace ADT {
                                                           *FirstChild);
                         }
 
-                        const auto LastChild = Node.lastChild();
-                        LastChild->addSiblings(*NextSibling);
+                        Node.lastChild()->addSiblings(*NextSibling);
                     } else if (ParentPtr != nullptr) {
                         ParentPtr->setFirstChild(nullptr);
                         ParentPtr->setLastChild(nullptr);

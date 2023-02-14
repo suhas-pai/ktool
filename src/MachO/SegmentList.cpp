@@ -4,7 +4,6 @@
  */
 
 #include "MachO/SegmentList.h"
-#include "MachO/LoadCommands.h"
 
 namespace MachO {
     SegmentList::SegmentList(const MachO::LoadCommandsMap &Map,

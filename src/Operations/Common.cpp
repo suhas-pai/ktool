@@ -21,8 +21,7 @@ namespace Operations {
         auto IsOutOfBounds = true;
 
         if (!Utils::OrdinalOutOfBounds(DylibOrdinal, List.size())) {
-            const auto &PathOpt = List.at(DylibOrdinal - 1).Path;
-            if (PathOpt.has_value()) {
+            if (const auto &PathOpt = List.at(DylibOrdinal - 1).Path) {
                 LibraryPath = PathOpt.value();
             } else {
                 LibraryPath = "<Malformed>";

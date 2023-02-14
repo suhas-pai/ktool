@@ -36,11 +36,11 @@ namespace Objects {
 
         ~FatMachO() noexcept override {}
 
-        static auto Open(const ADT::MemoryMap &Map) noexcept ->
-            ADT::PointerOrError<FatMachO, OpenError>;
+        static auto Open(const ADT::MemoryMap &Map) noexcept
+            -> ADT::PointerOrError<FatMachO, OpenError>;
 
-        static auto OpenAndValidateArchs(const ADT::MemoryMap &Map) noexcept ->
-            ADT::PointerOrError<FatMachO, OpenError>;
+        static auto OpenAndValidateArchs(const ADT::MemoryMap &Map) noexcept
+            -> ADT::PointerOrError<FatMachO, OpenError>;
 
         [[nodiscard]] auto
         getArchObjectForCpu(Mach::CpuKind CpuKind,

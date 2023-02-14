@@ -124,7 +124,8 @@ namespace Operations {
     {
         switch (SortKind) {
             case PrintObjcClassList::Options::SortKind::None:
-                assert(0 && "Unrecognized Sort-Kind");
+                assert(false &&
+                       "Unrecognized PrintObjcClassList::Options::SortKind");
             case PrintObjcClassList::Options::SortKind::ByName:
                 return Lhs.name().compare(Rhs.name());
             case PrintObjcClassList::Options::SortKind::ByDylibOrdinal:
@@ -170,7 +171,7 @@ namespace Operations {
             continue;
         }
 
-        return false;
+        return 0;
     };
 
     static void
@@ -253,8 +254,6 @@ namespace Operations {
         }
     }
 
-    constexpr static auto TabLength = uint32_t(8);
-
     static void
     PrintObjcClassInfoList(
         FILE *const OutFile,
@@ -284,7 +283,8 @@ namespace Operations {
             }
 
             const auto NameLength = Class.name().length();
-            const auto Length = Iter.printLineLength(TabLength) + NameLength;
+            const auto Length = 
+                Iter.printLineLength(Options.TabLength) + NameLength;
 
             LongestLength.set(Length);
             LongestName.set(NameLength);
@@ -328,7 +328,7 @@ namespace Operations {
             };
 
             ObjcClassCollection.PrintHorizontal(OutFile,
-                                                TabLength,
+                                                Options.TabLength,
                                                 Printer);
         } else {
             auto ObjcClassList = ObjcClassCollection.getAsList();

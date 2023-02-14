@@ -6,9 +6,7 @@
 //
 
 #pragma once
-
 #include "ADT/MemoryMap.h"
-#include "ADT/PointerOrError.h"
 
 #include "MachO/Header.h"
 #include "MachO/LoadCommandsMap.h"

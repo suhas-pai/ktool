@@ -148,8 +148,7 @@ namespace MachO {
                                                       BindAddress);
     }
 
-    [[nodiscard]]
-    auto
+    [[nodiscard]] auto
     ObjcClassInfoList::getInfoForAddress(const uint64_t Address) const noexcept
         -> ObjcClassInfo *
     {
@@ -174,7 +173,8 @@ namespace MachO {
     }
 
     template <bool Is64Bit>
-    static void ParseObjcClassCategorySection(
+    static void
+    ParseObjcClassCategorySection(
         const SectionInfo &SectInfo,
         const DeVirtualizer &DeVirt,
         const BindActionList::UnorderedMap &BindList,

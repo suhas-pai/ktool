@@ -6,17 +6,18 @@
 //
 
 #pragma once
-#include <type_traits>
-#include <unistd.h>
 
 #include <concepts>
 #include <optional>
+#include <type_traits>
 
 #include <array>
 #include <cstring>
 #include <string>
 #include <string_view>
+
 #include <time.h>
+#include <unistd.h>
 
 #define bit_sizeof(T) (sizeof(T) * 8)
 #define SizeOfField(Type, Field) (sizeof(((Type *)0)->Field))

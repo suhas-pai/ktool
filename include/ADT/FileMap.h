@@ -6,7 +6,6 @@
 //
 
 #pragma once
-#include <cstdint>
 
 #include "FlagsBase.h"
 #include "MemoryMap.h"

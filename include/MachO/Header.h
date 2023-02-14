@@ -32,6 +32,7 @@ namespace MachO {
         FileSet
     };
 
+    [[nodiscard]]
     constexpr auto FileKindIsValid(const FileKind FileKind) noexcept {
         switch (FileKind) {
             case FileKind::Object:
@@ -52,6 +53,7 @@ namespace MachO {
         return false;
     }
 
+    [[nodiscard]]
     constexpr auto FileKindGetString(const FileKind FileKind) noexcept
         -> std::string_view
     {
@@ -85,6 +87,7 @@ namespace MachO {
         assert(false && "Called FileKindGetString() with unknown FileKind");
     }
 
+    [[nodiscard]]
     constexpr auto FileKindGetDesc(const FileKind FileKind) noexcept
         -> std::string_view
     {

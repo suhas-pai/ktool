@@ -29,7 +29,9 @@ namespace MachO {
     protected:
         std::vector<LibraryInfo> List;
     public:
-        LibraryList() noexcept = default;
+        explicit LibraryList() noexcept = default;
+
+        explicit
         LibraryList(const LoadCommandsMap &Map, bool IsBigEndian) noexcept;
 
         constexpr auto

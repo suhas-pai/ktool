@@ -18,10 +18,10 @@ namespace ADT {
     template <typename PointerType, typename ErrorType>
     struct PointerOrError<PointerType,
                           ErrorType,
-                          std::enable_if_t<std::is_enum_v<ErrorType>>>
+                          std::enable_if_t<
+                            std::is_enum_v<ErrorType> &&
+                            sizeof(ErrorType) < sizeof(void *)>>
     {
-        static_assert(sizeof(ErrorType) < sizeof(void *),
-                      "ErrorType cannot be greater than 7 Bytes");
     protected:
         union {
             PointerType *Ptr;

@@ -43,7 +43,7 @@ namespace Operations {
         explicit
         PrintSymbolPtrSection(FILE *OutFile,
                               const std::optional<std::string> &SegmentName,
-                              const std::string &SectionName,
+                              const std::string_view SectionName,
                               const struct Options &Options) noexcept;
 
         ~PrintSymbolPtrSection() noexcept override {}

@@ -18,7 +18,7 @@
 #include "ADT/Range.h"
 
 namespace Utils {
-    template <std::integral T>
+    template <std::unsigned_integral T>
     [[nodiscard]] constexpr auto GetIntegerDigitCount(T Integer) noexcept {
         auto DigitLength = unsigned();
         do {

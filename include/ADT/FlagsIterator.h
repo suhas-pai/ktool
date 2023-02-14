@@ -8,16 +8,19 @@
 #pragma once
 
 #include <concepts>
+
 #include "ADT/FlagsBase.h"
 #include "Utils/Misc.h"
 
 namespace ADT {
-    template <std::integral T>
+    template <std::unsigned_integral T>
     struct FlagsIterator {
     protected:
         FlagsBase<T> Value;
         uint8_t BitIndex = bit_sizeof(T);
     public:
+        using difference_type = ptrdiff_t;
+
         constexpr FlagsIterator(const T Value) noexcept
         : Value(Value), BitIndex(this->Value.getFirstSet()) {}
 

@@ -96,7 +96,8 @@ namespace MachO {
         }
 
         assert(false &&
-               "BindByteOpcodeGetName() got unrecognized BindByteOpcode");
+               "MachO::BindByteOpcodeGetName() got unrecognized "
+               "MachO::BindByteOpcode");
     }
 
     [[nodiscard]]
@@ -135,7 +136,8 @@ namespace MachO {
         }
 
         assert(false &&
-               "BindByteOpcodeGetDesc() got unrecognized BindByteOpcode");
+               "MachO::BindByteOpcodeGetDesc() got unrecognized "
+               "MachO:;BindByteOpcode");
     }
 
     enum class BindByteSubOpcode : uint8_t {
@@ -182,7 +184,8 @@ namespace MachO {
         }
 
         assert(false &&
-               "BindWriteKindGetName() got unrecognized BindWriteKind");
+               "MachO::BindWriteKindGetName() got unrecognized "
+               "MachO::BindWriteKind");
     }
 
     [[nodiscard]]
@@ -203,7 +206,8 @@ namespace MachO {
         }
 
         assert(false &&
-               "BindWriteKindGetDesc() got unrecognized BindWriteKind");
+               "MachO::BindWriteKindGetDesc() got unrecognized "
+               "MachO::BindWriteKind");
     }
 
     enum class BindByteDylibSpecialOrdinal : uint8_t {
@@ -244,8 +248,8 @@ namespace MachO {
         }
 
         assert(false &&
-               "BindByteDylibSpecialOrdinalGetName() got unrecognized "
-               "BindByteDylibSpecialOrdinal");
+               "MachO::BindByteDylibSpecialOrdinalGetName() got unrecognized "
+               "MachO::BindByteDylibSpecialOrdinal");
     }
 
     [[nodiscard]] constexpr auto
@@ -264,8 +268,8 @@ namespace MachO {
         }
 
         assert(false &&
-               "BindByteDylibSpecialOrdinalGetDesc() got unrecognized "
-               "BindByteDylibSpecialOrdinal");
+               "MachO::BindByteDylibSpecialOrdinalGetDesc() got unrecognized "
+               "MachO::BindByteDylibSpecialOrdinal");
     }
 
     struct BindSymbolFlags : public ADT::FlagsBase<uint8_t> {
@@ -447,20 +451,20 @@ namespace MachO {
         BindOpcodeIteratorBase(const BindOpcodeIteratorBase &) = delete;
 
         [[nodiscard]]
-        inline auto getOffset(const uint8_t *const Base) const noexcept {
+        inline auto offset(const uint8_t *const Base) const noexcept {
             assert(Base <= Iter->ptr());
             return static_cast<uint64_t>(Iter->ptr() - Base);
         }
 
         [[nodiscard]]
-        inline auto getOffset(const BindByte *const Ptr) const noexcept {
+        inline auto pffset(const BindByte *const Ptr) const noexcept {
             const auto Base = reinterpret_cast<const uint8_t *>(Ptr);
 
             assert(Base <= Iter->ptr());
             return static_cast<uint64_t>(Iter->ptr() - Base);
         }
 
-        [[nodiscard]] inline const uint8_t *getPtr() const noexcept {
+        [[nodiscard]] inline const uint8_t *ptr() const noexcept {
             return Iter->ptr();
         }
 
@@ -773,15 +777,16 @@ namespace MachO {
             -> std::optional<uint64_t>
         {
             if (SegmentIndex < 0) {
-                return std::numeric_limits<uint64_t>::max();
+                return std::nullopt;
             }
 
             const auto SegIndex = static_cast<uint64_t>(SegmentIndex);
             if (const auto Segment = List.atOrNull(SegIndex)) {
-                const auto FullAddr = Segment->VmRange.locForIndex(AddrInSeg);
                 if (const auto Section =
-                        Segment->findSectionWithVmAddr(FullAddr))
+                        Segment->findSectionWithVmAddrIndex(AddrInSeg))
                 {
+                    const auto FullAddr =
+                        Segment->VmRange.locForIndex(AddrInSeg);
                     const auto VmIndex =
                         Section->vmRange().indexForLoc(FullAddr);
 
@@ -859,7 +864,7 @@ namespace MachO {
                     return false;
             }
 
-            assert(0 && "Unrecognized Bind-Opcode Parse Error");
+            assert(false && "Unrecognized MachO::BindOpcodeParseError");
         }
     };
 
@@ -907,17 +912,17 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        inline auto getOffset(const uint8_t *const Base) const noexcept {
+        inline auto offset(const uint8_t *const Base) const noexcept {
             assert(Base <= Iter->ptr());
-            return static_cast<uint64_t>(Iter->getPtr() - Base);
+            return static_cast<uint64_t>(Iter->ptr() - Base);
         }
 
         [[nodiscard]]
-        inline uint64_t getOffset(const BindByte *const Ptr) const noexcept {
+        inline uint64_t offset(const BindByte *const Ptr) const noexcept {
             const auto Base = reinterpret_cast<const uint8_t *>(Ptr);
 
-            assert(Base <= Iter->getPtr());
-            return Iter->getPtr() - Base;
+            assert(Base <= Iter->ptr());
+            return Iter->ptr() - Base;
         }
 
         [[nodiscard]] constexpr auto
@@ -925,13 +930,14 @@ namespace MachO {
                               const bool Is64Bit) noexcept
         {
             const auto &Info = info();
-            const auto SegmentIndex = Info.Action.SegmentIndex;
-
-            if (SegmentIndex == -1) {
+            if (Info.Action.SegmentIndex == -1) {
                 return false;
             }
 
-            if (SegmentIndex >= SegList.size()) {
+            const auto SegmentIndex =
+                static_cast<uint64_t>(Info.Action.SegmentIndex);
+
+            if (Utils::IndexOutOfBounds(SegmentIndex, SegList.size())) {
                 return false;
             }
 

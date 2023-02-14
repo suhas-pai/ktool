@@ -22,7 +22,7 @@ namespace Operations {
     PrintCStringSection::PrintCStringSection(
         FILE *const OutFile,
         const std::optional<std::string> &SegmentName,
-        const std::string &SectionName,
+        const std::string_view SectionName,
         const struct Options &Options) noexcept
     : OutFile(OutFile), Opt(Options), SegmentName(SegmentName),
       SectionName(SectionName) {}
@@ -159,8 +159,7 @@ namespace Operations {
         return 0;
     }
 
-    auto
-    PrintCStringSection::run(const Objects::MachO &MachO) const noexcept
+    auto PrintCStringSection::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
         auto Result = RunResult(Objects::Kind::MachO);
@@ -339,8 +338,7 @@ namespace Operations {
         return Result.set(RunError::None);
     }
 
-    auto
-    PrintCStringSection::run(const Objects::Base &Base) const noexcept
+    auto PrintCStringSection::run(const Objects::Base &Base) const noexcept
         -> RunResult
     {
         switch (Base.kind()) {

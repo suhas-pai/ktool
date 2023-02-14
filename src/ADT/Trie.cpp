@@ -63,8 +63,7 @@ namespace ADT {
                               uint8_t *& Ptr,
                               uint8_t *const End,
                               std::vector<ADT::Range> &RangeList,
-                              TrieNodeInfo *const InfoOut) noexcept
-        -> Error
+                              TrieNodeInfo *const InfoOut) noexcept -> Error
     {
         const auto StringPtr = reinterpret_cast<const char *>(Ptr);
         const auto StringLength =

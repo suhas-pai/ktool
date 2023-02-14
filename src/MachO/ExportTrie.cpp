@@ -68,10 +68,6 @@ namespace MachO {
 
             setImageOffset(ImageOffsetOpt.value());
             if (stubAndResolver()) {
-                if (Ptr == NodeEnd) {
-                    return Error::InvalidFormat;
-                }
-
                 const auto ResolverStubAddressOpt =
                     Utils::ReadUleb128(Ptr, NodeEnd, &Ptr);
 

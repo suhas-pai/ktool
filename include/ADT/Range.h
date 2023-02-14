@@ -24,6 +24,7 @@ namespace ADT {
         : Begin(Begin), Size(Size) {}
     public:
         [[nodiscard]] constexpr Range() noexcept = default;
+
         [[nodiscard]] constexpr static
         auto FromSize(const uint64_t Begin, const uint64_t Size) noexcept {
             return Range(Begin, Size);
@@ -44,11 +45,11 @@ namespace ADT {
         template <std::integral T>
         [[nodiscard]] constexpr auto canRepresentIn() const noexcept {
             return (Begin <= std::numeric_limits<T>::max() &&
-                    Size <= (std::numeric_limits<T>::max() - Begin));
+                    size() <= (std::numeric_limits<T>::max() - Begin));
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {
-            return Size == 0;
+            return size() == 0;
         }
 
         [[nodiscard]]
@@ -56,12 +57,24 @@ namespace ADT {
             return Loc >= Begin && (Loc - Begin) < Size;
         }
 
-        template <typename T>
+        template <typename T, uint64_t Size = sizeof(T)>
         [[nodiscard]] constexpr auto
         containsLoc(const uint64_t Loc,
                     const uint64_t Count = 1) const noexcept
         {
-            return Loc >= Begin && (Loc + (sizeof(T) * Count) - Begin) < Size;
+            const auto TotalOpt = Utils::MulAndCheckOverflow(Size, Count);
+            if (!TotalOpt.has_value()) {
+                return false;
+            }
+
+            const auto OffsetOpt =
+                Utils::AddAndCheckOverflow(Loc - Begin, TotalOpt.value());
+
+            if (!OffsetOpt.has_value()) {
+                return false;
+            }
+
+            return Loc >= Begin && OffsetOpt.value() < this->Size;
         }
 
         [[nodiscard]]
@@ -74,17 +87,25 @@ namespace ADT {
             return Idx < Size;
         }
 
-        template <typename T>
+        [[nodiscard]]
+        constexpr auto containsEndIndex(const uint64_t Idx) const noexcept {
+            return Idx != 0 && Idx <= Size;
+        }
+
+        template <typename T, uint64_t Size = sizeof(T)>
         [[nodiscard]] constexpr auto
         containsIndex(const uint64_t Idx,
                       const uint64_t Count = 1) const noexcept
         {
-            return containsIndex(Idx + (sizeof(T) * Count));
-        }
+            if (const auto TotalOpt = Utils::MulAndCheckOverflow(Size, Count)) {
+                if (const auto EndOpt =
+                        Utils::AddAndCheckOverflow(Idx, TotalOpt.value()))
+                {
+                    return containsEndIndex(EndOpt.value());
+                }
+            }
 
-        [[nodiscard]]
-        constexpr auto containsEndIndex(const uint64_t Idx) const noexcept {
-            return Idx != 0 && Idx <= Size;
+            return false;
         }
 
         [[nodiscard]] constexpr auto
@@ -95,7 +116,7 @@ namespace ADT {
 
             const auto Index = Loc - Begin;
             if (MaxSizeOut != nullptr) {
-                *MaxSizeOut = Size - Index;
+                *MaxSizeOut = size() - Index;
             }
 
             return Index;
@@ -118,13 +139,17 @@ namespace ADT {
             }
 
             const auto MinSize = (Other.Size + (Other.Begin - Begin));
-            return Begin <= Other.Begin && Size >= MinSize;
+            return Begin <= Other.Begin && size() >= MinSize;
         }
 
-        template <typename T>
+        template <typename T, uint64_t Size = sizeof(T)>
         [[nodiscard]]
         constexpr auto canContain(const uint64_t Count = 1) const noexcept {
-            return Size >= (sizeof(T) * Count);
+            if (const auto TotalOpt = Utils::MulAndCheckOverflow(Size, Count)) {
+                return size() >= TotalOpt.value();
+            }
+
+            return false;
         }
 
         [[nodiscard]]
@@ -150,7 +175,7 @@ namespace ADT {
         [[nodiscard]]
         constexpr auto containsAsIndex(const Range &Other) const noexcept {
             const auto MinSize = (Other.Size + (Other.Begin - Begin));
-            return containsIndex(Other.Begin) && Size >= MinSize;
+            return containsIndex(Other.Begin) && size() >= MinSize;
         }
 
         [[nodiscard]]
@@ -167,7 +192,7 @@ namespace ADT {
 
         [[nodiscard]]
         constexpr auto operator==(const Range &Range) const noexcept {
-            return Begin == Range.Begin && Size == Range.Size;
+            return Begin == Range.Begin && size() == Range.Size;
         }
 
         [[nodiscard]]

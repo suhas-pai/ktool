@@ -4,7 +4,6 @@
  */
 
 #pragma once
-
 #include <unordered_map>
 
 #include "DyldSharedCache/CacheInfo.h"
@@ -50,19 +49,19 @@ namespace Objects {
             RecursiveSubCache,
         };
 
-        using CacheInfo = DyldSharedCacheInfo;
+        using SingleCacheInfo = DyldSharedSingleCacheInfo;
     protected:
-        CacheInfo Info;
+        SingleCacheInfo Info;
         CpuKind CpuKind;
 
         struct SubCacheInfo {
-            ADT::FileMap *Map;
-            CacheInfo Info;
+            ADT::FileMap *FileMap;
+            SingleCacheInfo Info;
 
             explicit
-            SubCacheInfo(ADT::FileMap *const Map,
-                         const CacheInfo &Info) noexcept
-            : Map(Map), Info(Info) {}
+            SubCacheInfo(ADT::FileMap *const FileMap,
+                         const SingleCacheInfo &Info) noexcept
+            : FileMap(FileMap), Info(Info) {}
         };
 
         std::string Path;
@@ -328,7 +327,7 @@ namespace Objects {
         [[nodiscard]] inline auto
         getMapForAddrRange(const ADT::Range &AddrRange,
                            const bool InsideMappings = true) const noexcept
-                -> std::optional<std::pair<CacheInfo, ADT::MemoryMap>>
+            -> std::optional<std::pair<SingleCacheInfo, ADT::MemoryMap>>
         {
             const uint64_t BaseAddr = AddrRange.begin();
             if (AddrRange.empty() || BaseAddr == 0) {
@@ -357,7 +356,7 @@ namespace Objects {
         [[nodiscard]] inline auto
         getMapForFileRange(const ADT::Range &FileRange,
                            const bool InsideMappings = true) const noexcept
-                -> std::optional<std::pair<CacheInfo, ADT::MemoryMap>>
+            -> std::optional<std::pair<SingleCacheInfo, ADT::MemoryMap>>
         {
             const uint64_t BaseFile = FileRange.begin();
             if (FileRange.empty() || BaseFile == 0) {
@@ -388,7 +387,7 @@ namespace Objects {
                          const bool InsideMappings = true,
                          uint64_t *const TotalAvailSize = nullptr,
                          uint64_t *const FileOffsetOut = nullptr) const noexcept
-            -> std::optional<std::pair<CacheInfo, T *>>
+            -> std::optional<std::pair<SingleCacheInfo, T *>>
         {
             if (const auto Result =
                     Info.getPtrForAddress<T, Size>(Address,

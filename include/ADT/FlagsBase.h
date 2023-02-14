@@ -40,7 +40,7 @@ namespace ADT {
         }
 
         template <typename E>
-        constexpr auto valueForMask(const E Mask) const noexcept {
+        [[nodiscard]] constexpr auto valueForMask(const E Mask) const noexcept {
             return Flags & static_cast<T>(Mask);
         }
 
@@ -97,7 +97,7 @@ namespace ADT {
         constexpr auto getFirstSet(const uint8_t Index = 0) const noexcept
             -> uint8_t
         {
-            assert(Index < bit_sizeof(T));
+            assert(!Utils::IndexOutOfBounds(Index, bit_sizeof(T)));
 
             const uint64_t Flags = this->Flags >> Index;
             if (Flags == 0) {
@@ -117,7 +117,7 @@ namespace ADT {
         constexpr auto getCount(const uint8_t Index = 0) const noexcept
             -> uint8_t
         {
-            assert(Index < bit_sizeof(T));
+            assert(!Utils::IndexOutOfBounds(Index, bit_sizeof(T)));
 
             if constexpr (sizeof(T) == sizeof(long long)) {
                 return __builtin_popcountll(Flags >> Index);
@@ -132,6 +132,8 @@ namespace ADT {
         constexpr auto removeFirstBits(const uint8_t BitCount) const noexcept
             -> decltype(*this)
         {
+            assert(BitCount <= bit_sizeof(T));
+
             Flags >>= BitCount;
             return *this;
         }

@@ -4,10 +4,11 @@
  */
 
 #include <algorithm>
-
 #include "ADT/Maximizer.h"
+
 #include "Objects/DscImage.h"
 #include "Operations/PrintImageList.h"
+
 #include "Utils/Print.h"
 
 namespace Operations {

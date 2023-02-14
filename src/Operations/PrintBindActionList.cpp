@@ -50,7 +50,8 @@ namespace Operations {
     {
         switch (SortKind) {
             case PrintBindActionList::Options::SortKind::None:
-                assert(0 && "Unrecognized Sort-Kind");
+                assert(false &&
+                       "Unrecognized PrintBindActionList::Options::SortKind");
             case PrintBindActionList::Options::SortKind::ByName:
                 return Lhs.SymbolName.compare(Rhs.SymbolName);
             case PrintBindActionList::Options::SortKind::ByDylibOrdinal:
@@ -179,8 +180,9 @@ namespace Operations {
 
         switch (List.size()) {
             case 0:
-                assert(0 &&
-                       "Bind-Action List shouldn't be empty at this point");
+                assert(false &&
+                       "MachO::BindActionList shouldn't be empty at this "
+                       "point");
             case 1:
                 fprintf(OutFile, "1 %s Action:\n", Name);
                 break;

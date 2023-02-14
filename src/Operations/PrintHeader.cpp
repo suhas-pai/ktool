@@ -506,7 +506,7 @@ namespace Operations {
 
             switch (Kind) {
                 case DscRangeKind::None:
-                    assert(0 && "Overlap-Kind None is set");
+                    assert(false && "Overlap-Kind None is set");
                 case DscRangeKind::MappingInfoList:
                     fputs("Mapping-Info Range", OutFile);
                     break;
@@ -551,7 +551,7 @@ namespace Operations {
                     break;
                 case DscRangeKind::ProgramsPBLSetPool:
                     fputs("Programs Prebuilt Loader Set Pool Range",
-                        OutFile);
+                          OutFile);
                     break;
                 case DscRangeKind::ProgramTrie:
                     fputs("Program Trie Range", OutFile);
@@ -575,7 +575,7 @@ namespace Operations {
                     fputs("Dynamic Data Max", OutFile);
                     break;
                 case DscRangeKind::End:
-                    assert(0 && "Overlap-Kind End is set");
+                    assert(false && "Overlap-Kind End is set");
             }
 
             Count++;
@@ -972,7 +972,7 @@ namespace Operations {
                             Offset,
                             std::is_same_v<OffsetType, uint64_t>);
 
-        WarnIfOutOfRange(OutFile, Range, Offset, 1);
+        WarnIfOutOfRange(OutFile, Range, Offset, /*Size=*/1);
 
         PrintDscKey(OutFile, CountKey);
         fprintf(OutFile,

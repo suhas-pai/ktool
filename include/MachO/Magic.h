@@ -25,7 +25,7 @@ namespace MachO {
         SwappedFat64 = 0xBFBAFECA
     };
 
-    constexpr auto MagicIsValid(const Magic Magic) noexcept {
+    [[nodiscard]] constexpr auto MagicIsValid(const Magic Magic) noexcept {
         switch (Magic) {
             case Magic::Default:
             case Magic::Swapped:
@@ -41,7 +41,7 @@ namespace MachO {
         return false;
     }
 
-    constexpr auto MagicIsThin(const Magic Magic) noexcept {
+    [[nodiscard]] constexpr auto MagicIsThin(const Magic Magic) noexcept {
         switch (Magic) {
             case Magic::Default:
             case Magic::Swapped:
@@ -58,7 +58,7 @@ namespace MachO {
         assert(false && "MachO::MagicIsThin() got unrecognized magic");
     }
 
-    constexpr auto MagicIsFat(const Magic Magic) noexcept {
+    [[nodiscard]] constexpr auto MagicIsFat(const Magic Magic) noexcept {
         switch (Magic) {
             case Magic::Fat:
             case Magic::SwappedFat:
@@ -75,7 +75,7 @@ namespace MachO {
         assert(false && "MachO::MagicIsFat() got unrecognized magic");
     }
 
-    constexpr auto MagicIs64Bit(const Magic Magic) noexcept {
+    [[nodiscard]] constexpr auto MagicIs64Bit(const Magic Magic) noexcept {
         switch (Magic) {
             case Magic::Default64:
             case Magic::Swapped64:
@@ -92,7 +92,7 @@ namespace MachO {
         assert(false && "MachO::MagicIs64Bit() got unrecognized magic");
     }
 
-    constexpr auto MagicIsBigEndian(const Magic Magic) noexcept {
+    [[nodiscard]] constexpr auto MagicIsBigEndian(const Magic Magic) noexcept {
         switch (Magic) {
             case Magic::Swapped:
             case Magic::Swapped64:
@@ -109,6 +109,7 @@ namespace MachO {
         assert(false && "MachO::MagicIsBigEndian() got unrecognized magic");
     }
 
+    [[nodiscard]]
     constexpr auto MagicGetString(const Magic Magic) noexcept
         -> std::string_view
     {
@@ -134,6 +135,7 @@ namespace MachO {
         assert(false && "Called MachO::MagicGetString() with unknown Magic");
     }
 
+    [[nodiscard]]
     constexpr auto MagicGetDesc(const Magic Magic) noexcept -> std::string_view
     {
         switch (Magic) {

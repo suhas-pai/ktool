@@ -4,9 +4,10 @@
  */
 
 #pragma once
-#include "DyldSharedCache.h"
 
+#include "DyldSharedCache.h"
 #include "DyldSharedCache/Headers.h"
+
 #include "Objects/DyldSharedCache/CacheInfo.h"
 #include "Objects/MachO.h"
 
@@ -17,11 +18,11 @@ namespace Objects {
         const DyldSharedCache &Dsc;
         const ::DyldSharedCache::ImageInfo &ImageInfo;
 
-        DyldSharedCacheInfo DscInfo;
+        DyldSharedSingleCacheInfo DscInfo;
 
         explicit
         DscImage(const DyldSharedCache &Dsc,
-                 const DyldSharedCacheInfo &DscInfo,
+                 const DyldSharedSingleCacheInfo &DscInfo,
                  const ::DyldSharedCache::ImageInfo &ImageInfo,
                  const ADT::MemoryMap &Map) noexcept
         : MachO(Map, Kind::DscImage), Dsc(Dsc), ImageInfo(ImageInfo),
@@ -73,7 +74,8 @@ namespace Objects {
         [[nodiscard]] inline auto
         getMapForAddrRange(const ADT::Range &AddrRange,
                            const bool InsideMappings = true) const noexcept
-                -> std::optional<std::pair<DyldSharedCacheInfo, ADT::MemoryMap>>
+                -> std::optional<
+                    std::pair<DyldSharedSingleCacheInfo, ADT::MemoryMap>>
         {
             return dsc().getMapForAddrRange<T, Size>(AddrRange, InsideMappings);
         }
@@ -82,7 +84,8 @@ namespace Objects {
         [[nodiscard]] inline auto
         getMapForFileRange(const ADT::Range &FileRange,
                            const bool InsideMappings = true) const noexcept
-                -> std::optional<std::pair<DyldSharedCacheInfo, ADT::MemoryMap>>
+            -> std::optional<
+                std::pair<DyldSharedSingleCacheInfo, ADT::MemoryMap>>
         {
             return dsc().getMapForFileRange<T, Size>(FileRange, InsideMappings);
         }
@@ -93,7 +96,7 @@ namespace Objects {
                          const bool InsideMappings = true,
                          uint64_t *const TotalAvailSize = nullptr,
                          uint64_t *const FileOffsetOut = nullptr) const noexcept
-            -> std::optional<std::pair<const DyldSharedCacheInfo &, T *>>
+            -> std::optional<std::pair<const DyldSharedSingleCacheInfo &, T *>>
         {
             return
                 dsc().getPtrForAddress<T, Size>(Address,

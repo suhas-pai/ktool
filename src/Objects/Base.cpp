@@ -15,8 +15,8 @@ namespace Objects {
 
     auto
     Open(const ADT::MemoryMap &Map,
-         std::string_view Path,
-         ADT::FileMap::Prot Prot) noexcept
+         const std::string_view Path,
+         const ADT::FileMap::Prot Prot) noexcept
         -> OpenResult
     {
         const auto Kind = Kind::None;

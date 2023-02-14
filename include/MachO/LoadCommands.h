@@ -18,6 +18,7 @@
 #include "Dyld3/Platform.h"
 
 #include "Mach/VmProt.h"
+#include "Utils/Misc.h"
 
 namespace MachO {
     constexpr static auto LoadCommandReqByDyld = static_cast<uint32_t>(1 << 31);
@@ -1469,7 +1470,7 @@ namespace MachO {
                   const bool IsBigEndian) const noexcept
         {
             const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBigEndian);
-            return Offset < Cmd->cmdsize(IsBigEndian);
+            return Utils::IndexOutOfBounds(Offset, Cmd->cmdsize(IsBigEndian));
         }
 
         [[nodiscard]] constexpr auto
@@ -1480,7 +1481,7 @@ namespace MachO {
             const auto Offset = ADT::SwitchEndianIf(this->Offset, IsBigEndian);
             const auto CmdSize = Cmd->cmdsize(IsBigEndian);
 
-            if (Offset >= CmdSize) {
+            if (Utils::IndexOutOfBounds(Offset, CmdSize)) {
                 return std::nullopt;
             }
 
@@ -3183,7 +3184,8 @@ namespace MachO {
         constexpr static bool IsOfKind(const LoadCommandKind Kind) noexcept {
             return
                 Kind == LoadCommandKind::DyldInfo ||
-                Kind == LoadCommandKind::DyldInfoOnly;
+                Kind == LoadCommandKind::DyldInfoOnly ||
+                Kind == LoadCommandKind::DyldEnvironment;
         }
 
         uint32_t RebaseOffset;
@@ -3800,7 +3802,7 @@ namespace MachO {
 
     template <>
     struct LoadCommandTypeFromKind<LoadCommandKind::DyldEnvironment> {
-        using type = LinkeditDataCommand;
+        using type = DyldInfoCommand;
     };
 
     template <>

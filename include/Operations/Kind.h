@@ -5,6 +5,8 @@
 //  Created by suhaspai on 11/15/22.
 //
 
+#pragma once
+
 namespace Operations {
     enum class Kind {
         PrintHeader,

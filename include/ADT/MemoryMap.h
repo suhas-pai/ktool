@@ -20,6 +20,7 @@ namespace ADT {
         uint64_t Size = 0;
     public:
         constexpr explicit MemoryMap() noexcept = default;
+
         constexpr
         explicit MemoryMap(void *const Base, const uint64_t Size) noexcept
         : Base(Base), Size(Size) {}
@@ -47,10 +48,14 @@ namespace ADT {
         [[nodiscard]]
         inline auto base(const uint64_t Count = 1) const noexcept -> T * {
             if constexpr (Verify) {
-                const auto TotalSize =
-                    Utils::MulAndCheckOverflow(Size, Count).value();
+                const auto TotalSizeOpt =
+                    Utils::MulAndCheckOverflow(Size, Count);
 
-                if (!range().canContainSize(TotalSize)) {
+                if (!TotalSizeOpt.has_value()) {
+                    return nullptr;
+                }
+
+                if (!range().canContainSize(TotalSizeOpt.value())) {
                     return nullptr;
                 }
             }
@@ -66,13 +71,19 @@ namespace ADT {
             return Result;
         }
 
-        template <typename T = void *, bool Verify = true>
+        template <typename T = uint8_t,
+                  bool Verify = true,
+                  uint64_t Size = sizeof(T)>
+
         [[nodiscard]] inline
         auto get(const uint64_t Offset, const uint64_t Count = 1) const noexcept
             -> T *
         {
             if constexpr (Verify) {
-                if (size() < (Offset + sizeof(T) * Count)) {
+                const auto EndOpt =
+                    Utils::AddMulAndCheckOverflow(Offset, Size, Count);
+
+                if (!EndOpt.has_value() || size() < EndOpt.value()) {
                     return nullptr;
                 }
             }
@@ -81,7 +92,7 @@ namespace ADT {
             return reinterpret_cast<T *>(AdjBase);
         }
 
-        template <typename T = void *, bool Verify = true>
+        template <typename T = uint8_t, bool Verify = true>
         [[nodiscard]] inline auto
         getFromRange(const Range &Range,
                      T **const EndOut = nullptr) const noexcept -> T *
@@ -103,8 +114,8 @@ namespace ADT {
         }
 
         [[nodiscard]]
-        inline auto string(const uint64_t Offset) const noexcept ->
-            std::optional<std::string_view>
+        inline auto string(const uint64_t Offset) const noexcept
+            -> std::optional<std::string_view>
         {
             const auto Ptr = get<const char>(Offset);
             if (Ptr == nullptr) {
@@ -112,6 +123,10 @@ namespace ADT {
             }
 
             const auto Length = strnlen(Ptr, size() - Offset);
+            if (Length == 0) {
+                return std::nullopt;
+            }
+
             return std::string_view(Ptr, Length);
         }
 

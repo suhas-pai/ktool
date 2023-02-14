@@ -267,8 +267,8 @@ namespace Objects {
     auto
     DyldSharedCache::Open(const ADT::MemoryMap &Map,
                           const std::string_view Path,
-                          const ADT::FileMap::Prot SubCacheProt) noexcept ->
-        ADT::PointerOrError<DyldSharedCache, OpenError>
+                          const ADT::FileMap::Prot SubCacheProt) noexcept
+        -> ADT::PointerOrError<DyldSharedCache, OpenError>
     {
         auto CpuKind = CpuKind::i386;
         if (const auto Error = VerifyMap(Map, CpuKind);
@@ -291,7 +291,7 @@ namespace Objects {
     auto DyldSharedCache::subCacheEntryV1InfoList() const noexcept
         -> std::optional<ADT::List<::DyldSharedCache::SubCacheEntryV1>>
     {
-        if (!header().hasSubCacheV1List()) {
+        if (!header().hasSubCacheV1Array()) {
             return std::nullopt;
         }
 
@@ -310,7 +310,7 @@ namespace Objects {
     auto DyldSharedCache::subCacheEntryInfoList() const noexcept
         -> std::optional<ADT::List<::DyldSharedCache::SubCacheEntry>>
     {
-        if (!header().hasSubCacheList()) {
+        if (!header().hasSubCacheArray()) {
             return std::nullopt;
         }
 

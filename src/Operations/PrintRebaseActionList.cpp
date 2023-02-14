@@ -9,8 +9,8 @@
 #include "MachO/SegmentList.h"
 
 #include "Objects/MachO.h"
-
 #include "Operations/PrintRebaseActionList.h"
+
 #include "Utils/Print.h"
 
 namespace Operations {

@@ -42,8 +42,7 @@ namespace MachO {
         ObjC::ClassRoFlags Flags;
         CategoryListType CategoryList;
     public:
-        ObjcClassInfo() noexcept {}
-
+        explicit ObjcClassInfo() noexcept {}
         explicit ObjcClassInfo(const std::string_view Name) noexcept
         : Name(Name) {}
 
@@ -154,7 +153,7 @@ namespace MachO {
             return CategoryList;
         }
 
-        inline auto setName(const std::string &Value) noexcept
+        inline auto setName(const std::string_view Value) noexcept
             -> decltype(*this)
         {
             this->Name = Value;
@@ -236,8 +235,7 @@ namespace MachO {
         uint64_t Address = 0;
         bool sIsNull : 1 = false;
     public:
-        ObjcClassCategoryInfo() {}
-
+        explicit ObjcClassCategoryInfo() {}
         [[nodiscard]] constexpr auto name() const noexcept -> std::string_view {
             return Name;
         }
@@ -254,15 +252,14 @@ namespace MachO {
             return sIsNull;
         }
 
-        constexpr auto setName(const std::string &Value) noexcept
+        constexpr auto setName(const std::string_view Value) noexcept
             -> decltype(*this)
         {
             this->Name = Value;
             return *this;
         }
 
-        constexpr auto setName(std::string &&Value) noexcept
-            -> decltype(*this)
+        constexpr auto setName(std::string &&Value) noexcept -> decltype(*this)
         {
             this->Name = Value;
             return *this;
@@ -297,9 +294,9 @@ namespace MachO {
             UnalignedSection,
         };
 
-        template <bool Is54Bit>
+        template <bool Is64Bit>
         using ObjcClassType =
-            std::conditional_t<Is54Bit, ObjC::Class64, ObjC::Class>;
+            std::conditional_t<Is64Bit, ObjC::Class64, ObjC::Class>;
 
         template <bool Is64Bit>
         using ObjcClassRoType =

@@ -8,6 +8,7 @@
 #pragma once
 #include <vector>
 
+#include "ADT/Tree.h"
 #include "Objects/FatMachO.h"
 #include "Base.h"
 
@@ -18,6 +19,7 @@ namespace Operations {
             bool PrintCategories : 1 = false;
             bool PrintTree : 1 = false;
             bool Verbose : 1 = false;
+            uint32_t TabLength = ADT::TreeNode::DefaultTabLength;
 
             enum class SortKind {
                 None,
@@ -25,7 +27,7 @@ namespace Operations {
                 ByDylibOrdinal,
                 ByKind
             };
-
+            
             std::vector<SortKind> SortKindList;
         };
     protected:

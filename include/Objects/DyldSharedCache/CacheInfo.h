@@ -1,21 +1,21 @@
 /*
  * Objects/DyldSharedCache/CacheInfo.h
+ * © suhas pai
  */
 
 #pragma once
 
 #include "ADT/MemoryMap.h"
 #include "DyldSharedCache/Headers.h"
-#include <optional>
 
 namespace Objects {
-    struct DyldSharedCacheInfo {
+    struct DyldSharedSingleCacheInfo {
         friend struct DyldSharedCache;
     protected:
         ADT::MemoryMap Map;
 
-        constexpr DyldSharedCacheInfo() noexcept = default;
-        constexpr DyldSharedCacheInfo(const ADT::MemoryMap &Map) noexcept
+        constexpr DyldSharedSingleCacheInfo() noexcept = default;
+        constexpr DyldSharedSingleCacheInfo(const ADT::MemoryMap &Map) noexcept
         : Map(Map) {}
     public:
         [[nodiscard]] constexpr auto map() const noexcept {
@@ -215,7 +215,7 @@ namespace Objects {
                     uint64_t MaxSize = uint64_t();
                     if (const auto Offset =
                             Mapping.getFileOffsetFromAddr(BaseAddr,
-                                                            &MaxSize))
+                                                          &MaxSize))
                     {
                         const auto AddrRangeSize = AddrRange.size();
                         if (MaxSize < AddrRangeSize) {
@@ -291,7 +291,7 @@ namespace Objects {
         [[nodiscard]] inline auto
         getMapForFileRange(const ADT::Range &FileRange,
                            const bool InsideMappings = true) const noexcept
-                -> std::optional<std::pair<DyldSharedCacheInfo, ADT::MemoryMap>>
+            -> std::optional<std::pair<DyldSharedSingleCacheInfo, ADT::MemoryMap>>
         {
             if (!range().contains(FileRange)) {
                 return std::nullopt;
@@ -316,8 +316,8 @@ namespace Objects {
         template <typename T = uint8_t, uint64_t Size = sizeof(T)>
         [[nodiscard]] inline auto
         getMapForAddrRange(const ADT::Range &AddrRange,
-                            const bool InsideMappings = true) const noexcept
-                -> std::optional<std::pair<DyldSharedCacheInfo, ADT::MemoryMap>>
+                           const bool InsideMappings = true) const noexcept
+            -> std::optional<std::pair<DyldSharedSingleCacheInfo, ADT::MemoryMap>>
         {
             const auto FileRangeOpt =
                 getFileRangeForAddrRange(AddrRange, InsideMappings);

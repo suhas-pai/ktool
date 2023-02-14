@@ -222,14 +222,15 @@ namespace Operations {
 
             Utils::RightPadSpaces(OutFile,
                                   fprintf(OutFile,
-                                          "Program %" ZEROPAD_FMT
-                                          PRIu32 ": ",
+                                          "Program %" ZEROPAD_FMT PRIu32 ": ",
                                           ZEROPAD_FMT_ARGS(SizeDigitLength),
                                           Counter),
                                   RightPadAmt);
 
-            fprintf(OutFile, "\t" ADDRESS_32_FMT "\t", Export.Index);
-            fprintf(OutFile, "\"%s\"\n", Export.String.c_str());
+            fprintf(OutFile,
+                    "\t" ADDRESS_32_FMT "\t%s\"\n",
+                    Export.Index,
+                    Export.String.c_str());
 
             Counter++;
         }

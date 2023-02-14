@@ -154,7 +154,7 @@ namespace ADT {
         }
     };
 
-    template<typename T>
+    template <typename T>
     concept TrieExportInfoParser =
         requires(T a,
                  uint8_t *& Ptr,
@@ -342,10 +342,6 @@ namespace ADT {
                 const auto MaxDepth = Info->maxDepth();
 
                 if (!StackList.empty()) {
-                    if (StackList.size() == MaxDepth) {
-                        return Error::TooDeep;
-                    }
-
                     auto &PrevStack = StackList.back();
                     const auto &PrevNode = PrevStack.node();
 
@@ -357,10 +353,18 @@ namespace ADT {
                             if (!MoveUptoParentNode()) {
                                 return Error::None;
                             }
+                        } else {
+                            if (StackList.size() == MaxDepth) {
+                                return Error::TooDeep;
+                            }
                         }
 
                         PrevStack.setChildOrdinal(1);
                     } else {
+                        if (StackList.size() == MaxDepth) {
+                            return Error::TooDeep;
+                        }
+
                         switch (Direction) {
                             case Direction::Normal:
                                 PrevStack.childOrdinalRef() += 1;
@@ -603,7 +607,7 @@ namespace ADT {
             using Error = ParseError;
         protected:
             Iterator Iter;
-            auto Advance() noexcept -> decltype(*this) {
+            inline auto Advance() noexcept -> decltype(*this) {
                 do {
                     Iter++;
                     if (Iter.hasError()) {
@@ -825,7 +829,7 @@ namespace ADT {
         }
     };
 
-    template<typename T, typename U>
+    template <typename T, typename U>
     concept TrieNodeCollectionNodeCreator =
         requires(T a, typename Trie<U>::IterateInfo &b) {
             { a.createChildNode(b) } noexcept -> TreeNodeDerived;
@@ -849,7 +853,7 @@ namespace ADT {
             return;
         }
 
-        setRoot(NodeCreator.createChildNode(*Iter));
+        Tree.setRoot(NodeCreator.createChildNode(*Iter));
 
         auto Parent = Tree.root();
         auto PrevDepthLevel = uint64_t(1);
@@ -885,7 +889,7 @@ namespace ADT {
             PrevDepthLevel = DepthLevel;
         }
 
-        return Tree;
+        return;
     }
 
     template <TrieExportInfoParser T,
@@ -904,56 +908,7 @@ namespace ADT {
                       const ParseOptions &Options = ParseOptions(),
                       Error *const ErrorOut = nullptr) noexcept
         {
-            auto Iter = Trie.begin(Options);
-            if (Iter.hasError()) {
-                if (ErrorOut != nullptr) {
-                    *ErrorOut = Iter.getError();
-                }
-
-                return;
-            }
-
-            const auto End = Trie.end();
-            if (Iter == End) {
-                return;
-            }
-
-            setRoot(NodeCreator.createChildNode(*Iter));
-
-            auto Parent = root();
-            auto PrevDepthLevel = uint64_t(1);
-
-            const auto MoveUpParentHierarchy = [&](const uint64_t Amt) noexcept
-            {
-                for (auto I = uint64_t(); I != Amt; I++) {
-                    Parent = Parent->parent();
-                }
-            };
-
-            for (Iter++; Iter != End; Iter++) {
-                if (Iter.hasError()) {
-                    if (ErrorOut != nullptr) {
-                        *ErrorOut = Iter.getError();
-                    }
-
-                    return;
-                }
-
-                const auto DepthLevel = Iter->depthLevel();
-                if (PrevDepthLevel > DepthLevel) {
-                    MoveUpParentHierarchy(
-                        static_cast<uint64_t>(PrevDepthLevel) - DepthLevel);
-                }
-
-                const auto Current = NodeCreator.createChildNode(*Iter);
-
-                Parent->addChild(*Current);
-                if (Iter->node().childCount() != 0) {
-                    Parent = Current;
-                }
-
-                PrevDepthLevel = DepthLevel;
-            }
+            TrieCreateTree(*this, Trie, NodeCreator, Options, ErrorOut);
         }
     };
 }

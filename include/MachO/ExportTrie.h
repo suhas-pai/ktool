@@ -4,6 +4,7 @@
  */
 
 #pragma once
+#include <cassert>
 #include <vector>
 
 #include "ADT/Trie.h"
@@ -426,6 +427,8 @@ namespace MachO {
         constexpr auto setReexportDylibOrdinal(const uint32_t Value) noexcept
             -> decltype(*this)
         {
+            assert(isReexport());
+
             this->Info.ReexportDylibOrdinal = Value;
             return *this;
         }
@@ -433,6 +436,8 @@ namespace MachO {
         constexpr auto setResolverStubAddress(const uint32_t Value) noexcept
             -> decltype(*this)
         {
+            assert(stubAndResolver());
+
             this->Info.Loc.ResolverStubAddress = Value;
             return *this;
         }
@@ -598,7 +603,7 @@ namespace MachO {
             return reinterpret_cast<const ExportTrieExportChildNode *>(this);
         }
 
-        inline auto setParent(ExportTrieChildNode *Parent) noexcept
+        inline auto setParent(ExportTrieChildNode *const Parent) noexcept
             -> decltype(*this)
         {
             this->Parent = Parent;

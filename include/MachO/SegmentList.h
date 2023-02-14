@@ -148,7 +148,7 @@ namespace MachO {
         inline auto atOrNull(const size_t Index) const noexcept
             -> const SegmentInfo *
         {
-            if (Index >= size()) {
+            if (Utils::IndexOutOfBounds(Index, size())) {
                 return nullptr;
             }
 
@@ -168,8 +168,8 @@ namespace MachO {
                                const uint64_t Size = 1) const noexcept
             -> std::optional<uint64_t>;
 
-        [[nodiscard]] virtual auto
-        findSegmentWithName(const std::string_view Name) const noexcept
+        [[nodiscard]] virtual
+        auto findSegmentWithName(const std::string_view Name) const noexcept
             -> const SegmentInfo *
         {
             for (const auto &Info : List) {
@@ -194,8 +194,8 @@ namespace MachO {
             return nullptr;
         }
 
-        [[nodiscard]] virtual auto
-        findSegmentWithVmAddr(const uint64_t Addr) const noexcept
+        [[nodiscard]]
+        virtual auto findSegmentWithVmAddr(const uint64_t Addr) const noexcept
             -> const SegmentInfo *
         {
             for (const auto &Info : List) {

@@ -41,8 +41,8 @@ namespace Utils {
     }
 
     template <std::integral T, typename U, bool Signed>
-    constexpr static auto
-    ReadLeb128Base(U *const Begin, U *const End, U **const PtrOut) noexcept
+    [[nodiscard]] constexpr static
+    auto ReadLeb128Base(U *const Begin, U *const End, U **const PtrOut) noexcept
         -> std::optional<T>
     {
         static_assert(Signed ^ std::unsigned_integral<T>,

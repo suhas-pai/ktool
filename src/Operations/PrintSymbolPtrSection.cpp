@@ -9,7 +9,6 @@
 #include <type_traits>
 
 #include "ADT/Maximizer.h"
-
 #include "Operations/PrintSymbolPtrSection.h"
 #include "Utils/Print.h"
 
@@ -17,7 +16,7 @@ namespace Operations {
     PrintSymbolPtrSection::PrintSymbolPtrSection(
         FILE *const OutFile,
         const std::optional<std::string> &SegmentName,
-        const std::string &SectionName,
+        const std::string_view SectionName,
         const struct Options &Options) noexcept
     : OutFile(OutFile), Opt(Options), SegmentName(SegmentName),
       SectionName(SectionName) {}
@@ -102,7 +101,8 @@ namespace Operations {
         auto Index = Ordinal - 1;
 
         for (const auto &Segment : SegmentList) {
-            if (Index >= Segment.SectionNameList.size()) {
+            if (Utils::IndexOutOfBounds(Index, Segment.SectionNameList.size()))
+            {
                 Index -= Segment.SectionNameList.size();
                 continue;
             }
@@ -200,7 +200,7 @@ namespace Operations {
                 continue;
             }
 
-            if (Index >= SymbolCount) {
+            if (Utils::IndexOutOfBounds(Index, SymbolCount)) {
                 if (!SkipInvalidIndices) {
                     Result.set(RunError::IndexOutOfBounds);
                     return 1;
@@ -247,7 +247,7 @@ namespace Operations {
         const SymbolInfo &Rhs,
         const std::vector<DylibInfo> &DylibInfoList,
         const PrintSymbolPtrSection::Options::SortKind SortKind) noexcept
-        -> int
+            -> int
     {
         switch (SortKind) {
             using SortKind = PrintSymbolPtrSection::Options::SortKind;
@@ -296,8 +296,7 @@ namespace Operations {
         assert(false && "CompareEntriesBySortKind() got unrecognized SortKind");
     }
 
-    auto
-    PrintSymbolPtrSection::run(const Objects::MachO &MachO) const noexcept
+    auto PrintSymbolPtrSection::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
         using namespace MachO;
@@ -494,21 +493,18 @@ namespace Operations {
                     break;
             }
 
-            if (const auto DylibCmd =
-                    dyn_cast<Kind::LoadDylib,
-                             Kind::LoadWeakDylib,
-                             Kind::ReexportDylib,
-                             Kind::LazyLoadDylib,
-                             Kind::LoadUpwardDylib>(&LC, IsBigEndian))
-            {
-                const auto PathOpt = DylibCmd->name(IsBigEndian);
+            if (LC.isSharedLibrary(IsBigEndian)) {
+                const auto DylibCmd =
+                    MachO::cast<MachO::DylibCommand>(LC, IsBigEndian);
+
+                const auto PathOpt = DylibCmd.name(IsBigEndian);
                 const auto Info = DylibInfo {
                     .Path =
                         std::string(PathOpt.has_value() ?
                             PathOpt.value() : Malformed),
-                    .CurrentVersion = DylibCmd->currentVersion(IsBigEndian),
-                    .CompatVersion = DylibCmd->compatVersion(IsBigEndian),
-                    .Timestamp = DylibCmd->timestamp(IsBigEndian)
+                    .CurrentVersion = DylibCmd.currentVersion(IsBigEndian),
+                    .CompatVersion = DylibCmd.compatVersion(IsBigEndian),
+                    .Timestamp = DylibCmd.timestamp(IsBigEndian)
                 };
 
                 DylibList.push_back(Info);

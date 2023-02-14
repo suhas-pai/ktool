@@ -138,8 +138,9 @@ namespace Operations {
                     Utils::FormattedSize(1ull << Align).c_str());
     }
 
-    auto
-    PrintArchs::run(const Objects::FatMachO &Fat) const noexcept -> RunResult {
+    auto PrintArchs::run(const Objects::FatMachO &Fat) const noexcept
+        -> RunResult
+    {
         const auto IsBigEndian = Fat.isBigEndian();
 
         auto I = uint32_t();

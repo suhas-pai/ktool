@@ -11,7 +11,6 @@
 #include "MachO/ExportTrie.h"
 #include "MachO/LibraryList.h"
 
-#include "Operations/Base.h"
 #include "Operations/Common.h"
 #include "Operations/PrintExportTrie.h"
 
@@ -331,7 +330,8 @@ namespace Operations {
                         IsBigEndian);
                     break;
                 case Kind::DyldInfo:
-                case Kind::DyldInfoOnly: {
+                case Kind::DyldInfoOnly:
+                case Kind::DyldEnvironment: {
                     const auto &DyldInfo =
                         cast<MachO::DyldInfoCommand>(LC, IsBigEndian);
                     const auto DyldInfoTrieRange =
@@ -403,7 +403,6 @@ namespace Operations {
                 case MachO::LoadCommandKind::VersionMinMacOS:
                 case MachO::LoadCommandKind::VersionMinIOS:
                 case MachO::LoadCommandKind::FunctionStarts:
-                case MachO::LoadCommandKind::DyldEnvironment:
                 case MachO::LoadCommandKind::Main:
                 case MachO::LoadCommandKind::DataInCode:
                 case MachO::LoadCommandKind::SourceVersion:

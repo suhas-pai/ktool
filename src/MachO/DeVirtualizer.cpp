@@ -9,7 +9,7 @@ namespace MachO {
     auto
     DeVirtualizer::getPtrForAddress(const uint64_t VmAddr,
                                     const bool IgnoreSectionBounds,
-                                    void **EndOut) const noexcept
+                                    void **const EndOut) const noexcept
         -> void *
     {
         if (const auto Segment = segmentList().findSegmentWithVmAddr(VmAddr)) {

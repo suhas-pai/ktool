@@ -44,9 +44,9 @@ namespace Dyld3 {
         return false;
     }
 
-    [[nodiscard]] constexpr
-    auto PlatformGetString(const enum Platform Platform) noexcept ->
-        std::string_view
+    [[nodiscard]]
+    constexpr auto PlatformGetString(const enum Platform Platform) noexcept
+        -> std::string_view
     {
         switch (Platform) {
             case Platform::macOS:
@@ -71,12 +71,13 @@ namespace Dyld3 {
                 return "PLATFORM_DRIVERKIT";
         }
 
-        assert(false && "PlatformGetString() called with unknown Platform");
+        assert(false &&
+               "Dyld3::PlatformGetString() called with unknown Platform");
     }
 
-    [[nodiscard]] constexpr
-    auto PlatformGetDesc(const enum Platform Platform) noexcept ->
-        std::string_view
+    [[nodiscard]]
+    constexpr auto PlatformGetDesc(const enum Platform Platform) noexcept
+        -> std::string_view
     {
         switch (Platform) {
             case Platform::macOS:
@@ -101,6 +102,7 @@ namespace Dyld3 {
                 return "DriverKit";
         }
 
-        assert(false && "PlatformGetDesc() called with unknown Platform");
+        assert(false &&
+               "Dyld3::PlatformGetDesc() called with unknown Platform");
     }
 }

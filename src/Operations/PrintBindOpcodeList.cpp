@@ -38,8 +38,7 @@ namespace Operations {
     }
 
     static void
-    PrintFlags(FILE *const OutFile,
-               const MachO::BindSymbolFlags Flags) noexcept
+    PrintFlags(FILE *const OutFile, const MachO::BindSymbolFlags Flags) noexcept
     {
         fputs(" - <", OutFile);
 
@@ -90,7 +89,7 @@ namespace Operations {
     }
 
     template <MachO::BindInfoKind BindKind, typename ListType>
-    std::vector<BindOpcodeInfo>
+    auto
     CollectBindOpcodeList(const MachO::SegmentList &SegList,
                           const ListType &List,
                           const bool Is64Bit) noexcept
@@ -353,10 +352,10 @@ namespace Operations {
                         {
                             const auto DylibIndex =
                                 static_cast<uint64_t>(Iter.DylibOrdinal) - 1;
-                            const auto &PathOpt =
-                                LibraryList.at(DylibIndex).Path;
 
-                            if (PathOpt.has_value()) {
+                            if (const auto &PathOpt =
+                                    LibraryList.at(DylibIndex).Path)
+                            {
                                 Path = PathOpt.value();
                             }
                         } else {

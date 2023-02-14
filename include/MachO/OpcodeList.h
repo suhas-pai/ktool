@@ -52,24 +52,12 @@ namespace MachO {
 
             template <typename T = uint64_t>
             [[nodiscard]] auto ReadUleb128() noexcept -> std::optional<T> {
-                auto Ptr = static_cast<const uint8_t *>(nullptr);
-                if (const auto Value = Utils::ReadUleb128(Iter, End, &Ptr)) {
-                    Iter = Ptr;
-                    return Value;
-                }
-
-                return std::nullopt;
+                return Utils::ReadUleb128(Iter, End, &Iter);
             }
 
             template <typename T = int64_t>
             [[nodiscard]] auto ReadSleb128() noexcept -> std::optional<T> {
-                auto Ptr = static_cast<const uint8_t *>(nullptr);
-                if (const auto Value = Utils::ReadSleb128(Iter, End, &Ptr)) {
-                    Iter = Ptr;
-                    return Value;
-                }
-
-                return std::nullopt;
+                return Utils::ReadSleb128(Iter, End, &Iter);
             }
 
             [[nodiscard]]

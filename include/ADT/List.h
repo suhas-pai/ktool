@@ -11,6 +11,7 @@
 #include <iterator>
 #include <ranges>
 
+#include "Utils/Misc.h"
 #include "Utils/Overflow.h"
 
 namespace ADT {
@@ -72,14 +73,14 @@ namespace ADT {
             return const_cast<const T&>(End[-1]);
         }
 
-        [[nodiscard]] constexpr auto &at(const size_t Idx) noexcept {
-            assert(Idx < size());
-            return Begin[Idx];
+        [[nodiscard]] constexpr auto &at(const size_t Index) noexcept {
+            assert(!Utils::IndexOutOfBounds(Index, size()));
+            return Begin[Index];
         }
 
-        [[nodiscard]] constexpr auto &at(const size_t Idx) const noexcept {
-            assert(Idx < size());
-            return const_cast<const T&>(Begin[Idx]);
+        [[nodiscard]] constexpr auto &at(const size_t Index) const noexcept {
+            assert(!Utils::IndexOutOfBounds(Index, size()));
+            return const_cast<const T&>(Begin[Index]);
         }
 
         [[nodiscard]] constexpr auto &operator[](const size_t Index) noexcept {
@@ -105,7 +106,7 @@ namespace ADT {
             using pointer = T*;
             using reference = T&;
 
-            constexpr auto &operator++() noexcept {
+            constexpr auto operator++() noexcept -> decltype(*this) {
                 Data++;
                 return *this;
             }
@@ -114,7 +115,7 @@ namespace ADT {
                 return operator++();
             }
 
-            constexpr auto &operator--() noexcept {
+            constexpr auto operator--() noexcept -> decltype(*this) {
                 Data--;
                 return *this;
             }
@@ -144,7 +145,9 @@ namespace ADT {
             }
 
             [[nodiscard]]
-            constexpr auto operator-(const Iterator &Rhs) const noexcept {
+            constexpr auto operator-(const Iterator &Rhs) const noexcept
+                -> difference_type
+            {
                 return Data - Rhs.Data;
             }
 
@@ -169,7 +172,9 @@ namespace ADT {
             }
 
             [[nodiscard]] constexpr
-            auto &operator[](const difference_type Index) const noexcept {
+            auto operator[](const difference_type Index) const noexcept
+                -> reference
+            {
                 return Data[Index];
             }
 
@@ -186,11 +191,13 @@ namespace ADT {
                 return !operator==(Rhs);
             }
 
-            [[nodiscard]] constexpr auto &operator*() const noexcept {
+            [[nodiscard]]
+            constexpr auto operator*() const noexcept -> reference {
                 return *Data;
             }
 
-            [[nodiscard]] constexpr auto operator->() const noexcept {
+            [[nodiscard]]
+            constexpr auto operator->() const noexcept -> pointer {
                 return Data;
             }
         };
