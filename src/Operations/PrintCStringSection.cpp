@@ -229,7 +229,7 @@ namespace Operations {
             for (const auto &LC : MachO.loadCommandsMap()) {
                 using namespace MachO;
                 if (const auto Segment =
-                        dyn_cast<MachO::SegmentCommand>(&LC, IsBigEndian))
+                        dyn_cast<SegmentCommand>(&LC, IsBigEndian))
                 {
                     if (const auto SegName = SegmentName) {
                         if (Segment->segmentName() != SegmentName) {
@@ -242,8 +242,7 @@ namespace Operations {
                     }
 
                     auto Section =
-                        static_cast<
-                            const MachO::SegmentCommand::Section *>(nullptr);
+                        static_cast<const SegmentCommand::Section *>(nullptr);
 
                     const auto IterateResult =
                         IterateSections(*Segment,

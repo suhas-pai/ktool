@@ -92,6 +92,34 @@ namespace ADT {
             return Idx != 0 && Idx <= Size;
         }
 
+        [[nodiscard]]
+        constexpr auto isBelow(const Range &Range) const noexcept {
+            if (empty()) {
+                return true;
+            }
+
+            if (Range.begin() < Begin) {
+                return false;
+            }
+
+            const auto BeginIndex = Begin - Range.begin();
+            return BeginIndex >= Range.size();
+        }
+
+        [[nodiscard]]
+        constexpr auto isAbove(const Range &Range) const noexcept {
+            if (empty()) {
+                return true;
+            }
+
+            if (Begin < Range.begin()) {
+                return false;
+            }
+
+            const auto BeginIndex = Range.begin() - Begin;
+            return BeginIndex >= size();
+        }
+
         template <typename T, uint64_t Size = sizeof(T)>
         [[nodiscard]] constexpr auto
         containsIndex(const uint64_t Idx,
@@ -181,13 +209,25 @@ namespace ADT {
         [[nodiscard]]
         constexpr auto indexForLocRange(const Range &Range) const noexcept {
             assert(contains(Range));
-            return ADT::Range::FromSize(Range.begin() - Begin, Range.size());
+            return Range::FromSize(Range.begin() - Begin, Range.size());
         }
 
         [[nodiscard]]
         constexpr auto locForIndexRange(const Range &Range) const noexcept {
             assert(containsAsIndex(Range));
-            return ADT::Range::FromSize(Begin + Range.begin(), Range.size());
+            return Range::FromSize(Begin + Range.begin(), Range.size());
+        }
+
+        [[nodiscard]]
+        constexpr auto fromIndex(const uint64_t Index) const noexcept {
+            assert(containsIndex(Index));
+            return Range::FromSize(Index, size() - Index);
+        }
+
+        [[nodiscard]]
+        constexpr auto toIndex(const uint64_t Index) const noexcept {
+            assert(containsIndex(Index));
+            return Range::FromSize(0, Index);
         }
 
         [[nodiscard]]

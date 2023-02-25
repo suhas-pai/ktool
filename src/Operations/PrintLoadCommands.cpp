@@ -1204,72 +1204,14 @@ namespace Operations {
 
         auto MaxDylibPathLength = ADT::Maximizer<uint32_t>();
         for (const auto &LC : MachO.loadCommandsMap()) {
-            switch (LC.kind(IsBigEndian)) {
-                case MachO::LoadCommandKind::LoadDylib:
-                case MachO::LoadCommandKind::ReexportDylib:
-                case MachO::LoadCommandKind::LazyLoadDylib:
-                case MachO::LoadCommandKind::LoadUpwardDylib:
-                case MachO::LoadCommandKind::LoadWeakDylib: {
-                    const auto &DylibCmd =
-                        MachO::cast<MachO::DylibCommand>(LC, IsBigEndian);
+            if (LC.isSharedLibrary(IsBigEndian)) {
+                const auto &DylibCmd =
+                    MachO::cast<MachO::DylibCommand>(LC, IsBigEndian);
 
-                    if (const auto NameOpt = DylibCmd.name(IsBigEndian)) {
-                        MaxDylibPathLength.set(NameOpt->length());
-                    }
-
-                    break;
+                if (const auto NameOpt = DylibCmd.name(IsBigEndian)) {
+                    MaxDylibPathLength.set(NameOpt->length());
                 }
-                case MachO::LoadCommandKind::Segment:
-                case MachO::LoadCommandKind::SymbolTable:
-                case MachO::LoadCommandKind::SymbolSegment:
-                case MachO::LoadCommandKind::Thread:
-                case MachO::LoadCommandKind::UnixThread:
-                case MachO::LoadCommandKind::LoadFixedVMSharedLib:
-                case MachO::LoadCommandKind::IdFixedVMSharedLib:
-                case MachO::LoadCommandKind::Identity:
-                case MachO::LoadCommandKind::FixedVMFile:
-                case MachO::LoadCommandKind::PrePage:
-                case MachO::LoadCommandKind::DynamicSymbolTable:
-                case MachO::LoadCommandKind::LoadDylinker:
-                case MachO::LoadCommandKind::IdDylinker:
-                case MachO::LoadCommandKind::IdDylib:
-                case MachO::LoadCommandKind::PreBoundDylib:
-                case MachO::LoadCommandKind::Routines:
-                case MachO::LoadCommandKind::SubFramework:
-                case MachO::LoadCommandKind::SubUmbrella:
-                case MachO::LoadCommandKind::SubClient:
-                case MachO::LoadCommandKind::SubLibrary:
-                case MachO::LoadCommandKind::TwoLevelHints:
-                case MachO::LoadCommandKind::PreBindChecksum:
-                case MachO::LoadCommandKind::Segment64:
-                case MachO::LoadCommandKind::Routines64:
-                case MachO::LoadCommandKind::Uuid:
-                case MachO::LoadCommandKind::Rpath:
-                case MachO::LoadCommandKind::CodeSignature:
-                case MachO::LoadCommandKind::SegmentSplitInfo:
-                case MachO::LoadCommandKind::EncryptionInfo:
-                case MachO::LoadCommandKind::DyldInfo:
-                case MachO::LoadCommandKind::DyldInfoOnly:
-                case MachO::LoadCommandKind::VersionMinMacOS:
-                case MachO::LoadCommandKind::VersionMinIOS:
-                case MachO::LoadCommandKind::FunctionStarts:
-                case MachO::LoadCommandKind::DyldEnvironment:
-                case MachO::LoadCommandKind::Main:
-                case MachO::LoadCommandKind::DataInCode:
-                case MachO::LoadCommandKind::SourceVersion:
-                case MachO::LoadCommandKind::DylibCodeSignDRS:
-                case MachO::LoadCommandKind::EncryptionInfo64:
-                case MachO::LoadCommandKind::LinkerOption:
-                case MachO::LoadCommandKind::LinkerOptimizationHint:
-                case MachO::LoadCommandKind::VersionMinTVOS:
-                case MachO::LoadCommandKind::VersionMinWatchOS:
-                case MachO::LoadCommandKind::Note:
-                case MachO::LoadCommandKind::BuildVersion:
-                case MachO::LoadCommandKind::DyldExportsTrie:
-                case MachO::LoadCommandKind::DyldChainedFixups:
-                case MachO::LoadCommandKind::FileSetEntry:
-                    break;
-                }
+            }
         }
 
         const auto NcmdsDigitCount =

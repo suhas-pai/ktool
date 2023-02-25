@@ -74,8 +74,8 @@ namespace Objects {
         DyldSharedCache(const ADT::MemoryMap &Map,
                         const enum CpuKind CpuKind,
                         const std::string_view Path) noexcept
-        : Base(Kind::DyldSharedCache), Info(Map), CpuKind(CpuKind),
-          Path(Path) {}
+        : Base(Kind::DyldSharedCache), Info(Map, /*VmOffset=*/0),
+          CpuKind(CpuKind), Path(Path) {}
     public:
         static auto
         Open(const ADT::MemoryMap &Map,
@@ -352,33 +352,31 @@ namespace Objects {
             return std::nullopt;
         }
 
-        template <typename T = uint8_t, uint64_t Size = sizeof(T)>
+        template <typename T, uint64_t Size = sizeof(T)>
         [[nodiscard]] inline auto
-        getMapForFileRange(const ADT::Range &FileRange,
-                           const bool InsideMappings = true) const noexcept
-            -> std::optional<std::pair<SingleCacheInfo, ADT::MemoryMap>>
+        getForFileRange(ADT::Range FileRange,
+                        const bool InsideMappings = true) const noexcept -> T *
         {
             const uint64_t BaseFile = FileRange.begin();
             if (FileRange.empty() || BaseFile == 0) {
                 return std::nullopt;
             }
 
-            if (const auto Result =
-                    Info.getMapForFileRange(FileRange, InsideMappings))
-            {
-                return Result;
+            if (!range().contains(FileRange)) {
+                return std::nullopt;
             }
 
-            for (const auto &SubCachePair : SubCacheList) {
-                const auto &SubCache = SubCachePair.second.Info;
-                if (const auto Result =
-                        SubCache.getMapForFileRange(FileRange, InsideMappings))
-                {
-                    return Result;
+            if (InsideMappings) {
+                for (const auto &Mapping : mappingInfoList()) {
+                    if (Mapping.fileRange().contains(FileRange)) {
+                        return map().get<T, /*Verify=*/false, Size>();
+                    }
                 }
+
+                return std::nullopt;
             }
 
-            return std::nullopt;
+            return map().get<T, /*Verify=*/false, Size>();
         }
 
         template <typename T = uint8_t, uint64_t Size = sizeof(T)>

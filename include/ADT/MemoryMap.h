@@ -7,7 +7,10 @@
 
 #pragma once
 
+#include <optional>
 #include <string_view>
+
+#include "List.h"
 #include "Range.h"
 
 #include "Utils/Misc.h"
@@ -39,6 +42,10 @@ namespace ADT {
 
         [[nodiscard]] constexpr auto size() const noexcept {
             return Size;
+        }
+
+        [[nodiscard]] constexpr auto empty() const noexcept {
+            return size() == 0;
         }
 
         template <typename T = uint8_t,
@@ -111,6 +118,22 @@ namespace ADT {
             }
 
             return reinterpret_cast<T *>(AdjBase);
+        }
+
+        template <typename T, uint64_t Size = sizeof(T), bool Verify = true>
+        [[nodiscard]] constexpr auto list() const noexcept
+            -> std::optional<ADT::List<T>>
+        {
+            const auto Base = base<T, Verify>();
+            if (Base == nullptr) {
+                return std::nullopt;
+            }
+
+            if (size() < Size) {
+                return std::nullopt;
+            }
+
+            return ADT::List<T>(Base, size() / Size);
         }
 
         [[nodiscard]]

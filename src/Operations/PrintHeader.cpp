@@ -178,7 +178,7 @@ namespace Operations {
         ImageTextInfoList,
 
         // HeaderV5
-        DylibsImageGroup,
+        PatchInfo,
         OtherImageGroup,
         ProgClosures,
         ProgClosuresTrie,
@@ -314,10 +314,10 @@ namespace Operations {
             }
 
             [[fallthrough]];
-            case DscRangeKind::DylibsImageGroup:
+            case DscRangeKind::PatchInfo:
                 AddRangeToList(Result, DscRange {
-                    .Kind = DscRangeKind::DylibsImageGroup,
-                    .Range = Header.dylibsImageGroupRange(),
+                    .Kind = DscRangeKind::PatchInfo,
+                    .Range = Header.patchInfoRange(),
                     .OverlapKindSet = {}
                 });
 
@@ -525,7 +525,7 @@ namespace Operations {
                 case DscRangeKind::ImageTextInfoList:
                     fputs("Image-Text Info Range", OutFile);
                     break;
-                case DscRangeKind::DylibsImageGroup:
+                case DscRangeKind::PatchInfo:
                     fputs("Dylibs Image-Group Range", OutFile);
                     break;
                 case DscRangeKind::OtherImageGroup:
@@ -1072,7 +1072,7 @@ namespace Operations {
     static inline void
     PrintPlatformValue(FILE *const OutFile,
                        const char *const Key,
-                       const Dyld3::Platform Platform)
+                       const Dyld3::Platform Platform) noexcept
     {
         PrintDscKey(OutFile, Key);
         if (Dyld3::PlatformIsValid(Platform)) {
@@ -1095,16 +1095,16 @@ namespace Operations {
         const auto &Header = Dsc.headerV5();
         PrintDscSizeRange(OutFile,
                           Dsc.range(),
-                          "Dylibs Image-Group Address",
-                          "Dylibs Image-Group Size",
-                          Header.DylibsImageGroupAddr,
-                          Header.DylibsImageGroupSize,
+                          "Patch Info Address",
+                          "Patch Info Size",
+                          Header.PatchInfoAddr,
+                          Header.PatchInfoSize,
                           Options.Verbose);
 
         PrintDscRangeOverlapsErrorOrNewline(OutFile,
                                             Options,
                                             List,
-                                            DscRangeKind::DylibsImageGroup);
+                                            DscRangeKind::PatchInfo);
 
         PrintDscSizeRange(OutFile,
                           Dsc.range(),
@@ -1152,12 +1152,12 @@ namespace Operations {
 
         PrintBoolValue(OutFile,
                        "Dylibs Expected On Disk",
-                       Header.DylibsImageGroupSize);
+                       Header.DylibsExpectedOnDisk);
 
         PrintBoolValue(OutFile, "Simulator", Header.Simulator);
         PrintBoolValue(OutFile,
                        "Locally-Built Cache",
-                       Header.isLocallyBuiltCache() ? true : false);
+                       Header.isLocallyBuiltCache().value_or(false));
 
         PrintBoolValue(OutFile,
                        "Built From Chained-Fixups",
@@ -1205,7 +1205,7 @@ namespace Operations {
         PrintDscRangeOverlapsErrorOrNewline(OutFile,
                                             Options,
                                             List,
-                                            DscRangeKind::DylibsImageGroup);
+                                            DscRangeKind::PatchInfo);
 
         PrintDscSizeRange(OutFile,
                           Dsc.range(),
@@ -1516,6 +1516,85 @@ namespace Operations {
     }
 
     static void
+    PrintObjcOptsInfo(FILE *const OutFile,
+                      const Objects::DyldSharedCache &Dsc,
+                      const DyldSharedCache::HeaderV9 &Header) noexcept
+    {
+        const auto ObjcOptsRange =
+            ADT::Range::FromSize(Header.DynamicDataOffset,
+                                 sizeof(DyldSharedCache::DynamicDataHeader));
+
+        if (const auto Header =
+                Dsc.getForFileRange<
+                    DyldSharedCache::ObjcOptimizationHeader>(ObjcOptsRange))
+        {
+            fprintf(OutFile,
+                    "\tVersion: %" PRIu32 "\n"
+                    "\tFlags:   %" PRIu32 "\n",
+                    Header->Version,
+                    Header->Flags);
+
+            auto Counter = uint32_t();
+            for (const auto Bit :
+                    ADT::FlagsIterator<uint32_t>(Header->flags()))
+            {
+                using FlagsStruct =
+                    DyldSharedCache::ObjcOptimizationHeader::FlagsStruct;
+
+                const auto Flag = static_cast<FlagsStruct::Kind>(1ull << Bit);
+                fprintf(OutFile,
+                        "\t\t%" PRIu32 ". Bit %" PRIu32 ": %s\n",
+                        Counter + 1,
+                        Bit,
+                        FlagsStruct::KindIsValid(Flag) ?
+                            FlagsStruct::KindGetString(Flag).data() :
+                            "<unknown>");
+
+                Counter++;
+            }
+
+            fprintf(OutFile,
+                    "\tHeader-Info Read-Only Cache Offset: " ADDRESS_64_FMT "\n"
+                    "\tHeader-Info Read-Write Cache Offset: " ADDRESS_64_FMT
+                        "\n"
+                    "\tSelector Hash-Table Cache Offset: " ADDRESS_64_FMT "\n"
+                    "\tClass Hash-Table Cache Offset: " ADDRESS_64_FMT "\n"
+                    "\tProtocol Hash-Table Cache Offset: " ADDRESS_64_FMT "\n"
+                    "\tRelative Method Selector Base Address Offset: "
+                        ADDRESS_64_FMT "\n",
+                    Header->HeaderInfoReadOnlyCacheOffset,
+                    Header->HeaderInfoReadWriteCacheOffset,
+                    Header->SelectorHashTableCacheOffset,
+                    Header->ClassHashTableCacheOffset,
+                    Header->ProtocolHashTableCacheOffset,
+                    Header->RelativeMethodSelectorBaseAddressOffset);
+        }
+    }
+
+    static void
+    PrintDynamicDataHeader(FILE *const OutFile,
+                           const Objects::DyldSharedCache &Dsc,
+                           const DyldSharedCache::HeaderV9 &Header) noexcept
+    {
+        const auto DynamicDataHeaderRange =
+            ADT::Range::FromSize(Header.DynamicDataOffset,
+                                 sizeof(DyldSharedCache::DynamicDataHeader));
+
+        if (const auto Header =
+                Dsc.getForFileRange<
+                    DyldSharedCache::DynamicDataHeader>(DynamicDataHeaderRange))
+        {
+            fprintf(OutFile,
+                    "\tMagic:   " STRING_VIEW_FMT "\n"
+                    "\tFsId:    %" PRIu64 "\n"
+                    "\tFsObjId: %" PRIu64 "\n",
+                    STRING_VIEW_FMT_ARGS(Header->magic()),
+                    Header->FsId,
+                    Header->FsObjectId);
+        }
+    }
+
+    static void
     PrintDscHeaderV9Info(FILE *const OutFile,
                          const Objects::DyldSharedCache &Dsc,
                          const struct PrintHeader::Options &Options,
@@ -1534,13 +1613,14 @@ namespace Operations {
                           Options.Verbose,
                           /*Prefix=*/"",
                           /*Suffix=*/"",
-                          /*IsOffset=*/false);
+                          /*IsOffset=*/true);
 
         PrintDscRangeOverlapsErrorOrNewline(OutFile,
                                             Options,
                                             List,
                                             DscRangeKind::ObjcOpts);
 
+        PrintObjcOptsInfo(OutFile, Dsc, Header);
         PrintDscSizeRange(OutFile,
                           Dsc.range(),
                           "Cache Atlas Offset",
@@ -1550,7 +1630,7 @@ namespace Operations {
                           Options.Verbose,
                           /*Prefix=*/"",
                           /*Suffix=*/"",
-                          /*IsOffset=*/false);
+                          /*IsOffset=*/true);
 
         PrintDscRangeOverlapsErrorOrNewline(OutFile,
                                             Options,
@@ -1566,12 +1646,14 @@ namespace Operations {
                           Options.Verbose,
                           /*Prefix=*/"",
                           /*Suffix=*/"",
-                          /*IsOffset=*/false);
+                          /*IsOffset=*/true);
 
         PrintDscRangeOverlapsErrorOrNewline(OutFile,
                                             Options,
                                             List,
                                             DscRangeKind::DynamicDataMax);
+
+        PrintDynamicDataHeader(OutFile, Dsc, Header);
     }
 
     auto

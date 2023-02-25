@@ -263,6 +263,109 @@ namespace DyldSharedCache {
         }
     };
 
+    struct DynamicDataHeader {
+        char Magic[16];
+        uint64_t FsId;
+        uint64_t FsObjectId;
+
+        [[nodiscard]] constexpr auto magic() const noexcept {
+            return std::string_view(Magic, strnlen(Magic, sizeof(Magic)));
+        }
+    };
+
+    struct ObjcOptimizationHeader {
+        struct FlagsStruct : public ADT::FlagsBase<uint32_t> {
+            using ADT::FlagsBase<uint32_t>::FlagsBase;
+
+            enum class Kind : uint32_t {
+                IsProduction = 1 << 0,
+                NoMissingWeakSuperclasses = 1 << 1,
+                LargeSharedCache = 1 << 2
+            };
+
+            [[nodiscard]] constexpr
+            static auto KindIsValid(const FlagsStruct::Kind Kind) noexcept {
+                switch (Kind) {
+                    case Kind::IsProduction:
+                    case Kind::NoMissingWeakSuperclasses:
+                    case Kind::LargeSharedCache:
+                        return true;
+                }
+
+                return false;
+            }
+
+            [[nodiscard]] constexpr
+            static auto KindGetString(const FlagsStruct::Kind Kind) noexcept
+                -> std::string_view
+            {
+                switch (Kind) {
+                    case Kind::IsProduction:
+                        return "Is Production";
+                    case Kind::NoMissingWeakSuperclasses:
+                        return "No Missing Weak Superclasses";
+                    case Kind::LargeSharedCache:
+                        return "Large Shared-Cache";
+                }
+
+                assert(false &&
+                       "DyldSharedCache::ObjcOptimizationHeader::FlagsStruct::"
+                       "KindGetString() got unknown Kind");
+            }
+
+
+            [[nodiscard]] constexpr auto isProduction() const noexcept -> bool {
+                return valueForMask(Kind::IsProduction);
+            }
+
+            [[nodiscard]]
+            constexpr auto noMissingWeakSuperclasses() const noexcept -> bool {
+                return valueForMask(Kind::NoMissingWeakSuperclasses);
+            }
+
+            [[nodiscard]]
+            constexpr auto largeSharedCache() const noexcept -> bool {
+                return valueForMask(Kind::LargeSharedCache);
+            }
+
+            constexpr auto setIsProduction(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
+                setValueForMask(Kind::IsProduction, 0, Value);
+                return *this;
+            }
+
+            constexpr auto
+            setNoMissingWeakSuperclasses(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
+                setValueForMask(Kind::IsProduction, 0, Value);
+                return *this;
+            }
+
+            constexpr
+            auto setLargeSharedCache(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
+                setValueForMask(Kind::LargeSharedCache, 0, Value);
+                return *this;
+            }
+        };
+
+        uint32_t Version;
+        uint32_t Flags;
+        uint64_t HeaderInfoReadOnlyCacheOffset;
+        uint64_t HeaderInfoReadWriteCacheOffset;
+        uint64_t SelectorHashTableCacheOffset;
+        uint64_t ClassHashTableCacheOffset;
+        uint64_t ProtocolHashTableCacheOffset;
+        uint64_t RelativeMethodSelectorBaseAddressOffset;
+
+        [[nodiscard]] constexpr auto flags() const noexcept {
+            return FlagsStruct(Flags);
+        }
+    };
+
     // Apple doesn't provide versions for their dyld_shared_caches, so we have
     // to make up our own.
 
@@ -424,8 +527,8 @@ namespace DyldSharedCache {
     // From dyld v519.2.1
 
     struct HeaderV5 : public HeaderV4 {
-        uint64_t DylibsImageGroupAddr;
-        uint64_t DylibsImageGroupSize;
+        uint64_t PatchInfoAddr;
+        uint64_t PatchInfoSize;
 
         uint64_t OtherImageGroupAddr;
         uint64_t OtherImageGroupSize;
@@ -448,9 +551,8 @@ namespace DyldSharedCache {
         uint64_t SharedRegionSize;
         uint64_t MaxSlide;
 
-        [[nodiscard]] constexpr auto dylibsImageGroupRange() const noexcept {
-            return ADT::Range::FromSize(DylibsImageGroupAddr,
-                                        DylibsImageGroupSize);
+        [[nodiscard]] constexpr auto patchInfoRange() const noexcept {
+            return ADT::Range::FromSize(PatchInfoAddr, PatchInfoSize);
         }
 
         [[nodiscard]] constexpr auto otherImageGroupRange() const noexcept {

@@ -13,10 +13,13 @@ namespace Objects {
         friend struct DyldSharedCache;
     protected:
         ADT::MemoryMap Map;
+        uint64_t VmOffset;
 
         constexpr DyldSharedSingleCacheInfo() noexcept = default;
-        constexpr DyldSharedSingleCacheInfo(const ADT::MemoryMap &Map) noexcept
-        : Map(Map) {}
+        constexpr
+        DyldSharedSingleCacheInfo(const ADT::MemoryMap &Map,
+                                  uint64_t VmOffset) noexcept
+        : Map(Map), VmOffset(VmOffset) {}
     public:
         [[nodiscard]] constexpr auto map() const noexcept {
             return Map;
@@ -149,11 +152,9 @@ namespace Objects {
             const auto Ptr =
                 map().get<const ::DyldSharedCache::ImageInfo>(
                     header().imageOffset());
-
             return ADT::List<const ::DyldSharedCache::ImageInfo>(
                 Ptr, header().imageCount());
         }
-
 
         [[nodiscard]] inline auto
         getFileOffsetForAddress(
@@ -289,35 +290,10 @@ namespace Objects {
 
         template <typename T = uint8_t, uint64_t Size = sizeof(T)>
         [[nodiscard]] inline auto
-        getMapForFileRange(const ADT::Range &FileRange,
-                           const bool InsideMappings = true) const noexcept
-            -> std::optional<std::pair<DyldSharedSingleCacheInfo, ADT::MemoryMap>>
-        {
-            if (!range().contains(FileRange)) {
-                return std::nullopt;
-            }
-
-            if (InsideMappings) {
-                auto FoundMapping = false;
-                for (const auto &Mapping : mappingInfoList()) {
-                    if (Mapping.fileRange().contains(FileRange)) {
-                        FoundMapping = true;
-                    }
-                }
-
-                if (!FoundMapping) {
-                    return std::nullopt;
-                }
-            }
-
-            return std::make_pair(*this, ADT::MemoryMap(map(), FileRange));
-        }
-
-        template <typename T = uint8_t, uint64_t Size = sizeof(T)>
-        [[nodiscard]] inline auto
         getMapForAddrRange(const ADT::Range &AddrRange,
                            const bool InsideMappings = true) const noexcept
-            -> std::optional<std::pair<DyldSharedSingleCacheInfo, ADT::MemoryMap>>
+            -> std::optional<
+                    std::pair<DyldSharedSingleCacheInfo, ADT::MemoryMap>>
         {
             const auto FileRangeOpt =
                 getFileRangeForAddrRange(AddrRange, InsideMappings);

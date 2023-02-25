@@ -148,6 +148,6 @@ namespace Objects {
     }
 
     auto DscImage::getMapForFileOffsets() const noexcept -> ADT::MemoryMap {
-        return DscInfo.map();
+        return dscMap();
     }
 }

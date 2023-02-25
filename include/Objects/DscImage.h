@@ -67,6 +67,10 @@ namespace Objects {
             return Map.string(ImageInfo.PathFileOffset);
         }
 
+        [[nodiscard]] constexpr auto dscMap() const noexcept {
+            return DscInfo.map();
+        }
+
         [[nodiscard]]
         ADT::MemoryMap getMapForFileOffsets() const noexcept override;
 
@@ -80,14 +84,13 @@ namespace Objects {
             return dsc().getMapForAddrRange<T, Size>(AddrRange, InsideMappings);
         }
 
-        template <typename T = uint8_t, uint64_t Size = sizeof(T)>
+        template <typename T, uint64_t Size = sizeof(T)>
         [[nodiscard]] inline auto
         getMapForFileRange(const ADT::Range &FileRange,
                            const bool InsideMappings = true) const noexcept
-            -> std::optional<
-                std::pair<DyldSharedSingleCacheInfo, ADT::MemoryMap>>
+            -> T *
         {
-            return dsc().getMapForFileRange<T, Size>(FileRange, InsideMappings);
+            return dsc().getForFileRange<T, Size>(FileRange, InsideMappings);
         }
 
         template <typename T = uint8_t, uint64_t Size = sizeof(T)>

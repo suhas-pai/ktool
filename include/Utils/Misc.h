@@ -7,17 +7,10 @@
 
 #pragma once
 
-#include <concepts>
-#include <optional>
-#include <type_traits>
-
-#include <array>
-#include <cstring>
 #include <string>
-#include <string_view>
-
-#include <time.h>
 #include <unistd.h>
+
+#include "Utils/Overflow.h"
 
 #define bit_sizeof(T) (sizeof(T) * 8)
 #define SizeOfField(Type, Field) (sizeof(((Type *)0)->Field))
@@ -108,15 +101,21 @@ namespace Utils {
                 return std::nullopt;
             }
 
-            Result *= 10;
-            Result += static_cast<T>(Ch - '0');
+            const auto NewResultOpt =
+                Utils::MulAddAndCheckOverflow(Result, 10, T(Ch - '0'));
+
+            if (!NewResultOpt.has_value()) {
+                return std::nullopt;
+            }
+
+            Result = NewResultOpt.value();
         }
 
         return Result;
     }
 
     [[nodiscard]]
-    inline std::string getFullPath(const std::string_view Path) noexcept {
+    inline auto getFullPath(const std::string_view Path) noexcept {
         if (Path.front() == '/') {
             return std::string(Path);
         }

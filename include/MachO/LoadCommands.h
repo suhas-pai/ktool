@@ -400,8 +400,8 @@ namespace MachO {
     static_assert(sizeof(LoadCommand) == 8,
                   "struct LoadCommand doesn't have CmdSize 8");
 
-    [[nodiscard]] auto
-    ValidateCmdsize(const LoadCommand *LC, bool IsBigEndian) noexcept
+    [[nodiscard]]
+    auto ValidateCmdsize(const LoadCommand *LC, bool IsBigEndian) noexcept
         -> CmdSizeInvalidKind;
 
     struct SegmentCommand : public LoadCommand {

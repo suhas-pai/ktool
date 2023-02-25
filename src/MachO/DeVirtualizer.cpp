@@ -45,10 +45,9 @@ namespace MachO {
     }
 
     auto
-    DeVirtualizer::getPtrForRange(const ADT::Range &Range,
-                                  const bool IgnoreSectionBounds,
-                                  void **const EndOut) const noexcept
-        -> void *
+    DeVirtualizer::getMapForRange(const ADT::Range &Range,
+                                  const bool IgnoreSectionBounds) const noexcept
+        -> std::optional<ADT::MemoryMap>
     {
         if (const auto Segment =
                 segmentList().findSegmentContainingVmRange(Range))
@@ -61,7 +60,7 @@ namespace MachO {
                     Segment->findSectionContainingVmRange(Range);
 
                 if (Section == nullptr) {
-                    return nullptr;
+                    return std::nullopt;
                 }
 
                 FileRange = Section->fileRange();
@@ -72,16 +71,12 @@ namespace MachO {
             }
 
             if (!FileRange.containsAsIndex(Range)) {
-                return nullptr;
+                return std::nullopt;
             }
 
-            if (EndOut != nullptr) {
-                *EndOut = Map.get(FileRange.end().value());
-            }
-
-            return Map.getFromRange(FileRange.locForIndexRange(VmRange));
+            return ADT::MemoryMap(Map, FileRange.locForIndexRange(VmRange));
         }
 
-        return nullptr;
+        return std::nullopt;
     }
 }

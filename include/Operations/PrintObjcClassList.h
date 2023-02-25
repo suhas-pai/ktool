@@ -6,10 +6,13 @@
 //
 
 #pragma once
-#include <vector>
 
+#include <vector>
 #include "ADT/Tree.h"
+
 #include "Objects/FatMachO.h"
+#include "Objects/DscImage.h"
+
 #include "Base.h"
 
 namespace Operations {
@@ -46,12 +49,14 @@ namespace Operations {
             NoDyldInfo,
             NoObjcData,
             UnalignedSection,
+            ObjcDataOutOfBounds,
         };
 
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
         RunResult run(const Objects::Base &Base) const noexcept override;
         RunResult run(const Objects::MachO &MachO) const noexcept;
+        RunResult run(const Objects::DscImage &Image) const noexcept;
 
         [[nodiscard]] constexpr auto &options() const noexcept {
             return Opt;

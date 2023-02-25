@@ -4,6 +4,7 @@
  */
 
 #include "ADT/Maximizer.h"
+#include "DyldSharedCache/DeVirtualizer.h"
 
 #include "MachO/BindInfo.h"
 #include "MachO/DeVirtualizer.h"
@@ -32,9 +33,9 @@ namespace Operations {
                        "Got Object-Kind None in "
                        "PrintObjcClassList::supportsObjectKind()");
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return true;
             case Objects::Kind::DyldSharedCache:
-            case Objects::Kind::DscImage:
             case Objects::Kind::FatMachO:
                 return false;
         }
@@ -283,7 +284,7 @@ namespace Operations {
             }
 
             const auto NameLength = Class.name().length();
-            const auto Length = 
+            const auto Length =
                 Iter.printLineLength(Options.TabLength) + NameLength;
 
             LongestLength.set(Length);
@@ -480,7 +481,6 @@ namespace Operations {
         auto BindRange = ADT::Range();
         auto LazyBindRange = ADT::Range();
         auto WeakBindRange = ADT::Range();
-        auto FoundDyldInfo = false;
 
         for (const auto &LC : MachO.loadCommandsMap()) {
             if (LC.isSharedLibrary(IsBigEndian)) {
@@ -512,13 +512,7 @@ namespace Operations {
                 BindRange = DyldInfo->bindRange(IsBigEndian);
                 LazyBindRange = DyldInfo->lazyBindRange(IsBigEndian);
                 WeakBindRange = DyldInfo->weakBindRange(IsBigEndian);
-
-                FoundDyldInfo = true;
             }
-        }
-
-        if (!FoundDyldInfo) {
-            return Result.set(RunError::NoDyldInfo);
         }
 
         auto BindActionInfoList = MachO::BindActionList::UnorderedMap();
@@ -569,6 +563,7 @@ namespace Operations {
         auto ObjcClassInfoList = MachO::ObjcClassInfoList();
         auto Error =
             ObjcClassInfoList.Parse(DeVirtualizer,
+                                    SegmentList,
                                     BindActionInfoList,
                                     IsBigEndian,
                                     Is64Bit);
@@ -580,12 +575,16 @@ namespace Operations {
                 return Result.set(RunError::NoObjcData);
             case MachO::ObjcParse::Error::UnalignedSection:
                 return Result.set(RunError::UnalignedSection);
+            case MachO::ObjcParse::Error::DataOutOfBounds:
+                return Result.set(RunError::ObjcDataOutOfBounds);
         }
 
         if (Opt.PrintCategories) {
             auto CategoryInfoList = MachO::ObjcClassCategoryInfoList();
             Error =
-                CategoryInfoList.CollectFrom(DeVirtualizer,
+                CategoryInfoList.CollectFrom(MachO.map(),
+                                             DeVirtualizer,
+                                             SegmentList,
                                              BindActionInfoList,
                                              &ObjcClassInfoList,
                                              IsBigEndian,
@@ -595,6 +594,149 @@ namespace Operations {
                 case MachO::ObjcParse::Error::None:
                 case MachO::ObjcParse::Error::NoObjcData:
                 case MachO::ObjcParse::Error::UnalignedSection:
+                case MachO::ObjcParse::Error::DataOutOfBounds:
+                    break;
+            }
+        }
+
+        PrintObjcClassInfoList(OutFile,
+                               LibraryList,
+                               ObjcClassInfoList,
+                               Is64Bit,
+                               Opt);
+
+        return Result.set(RunError::None);
+    }
+
+    auto
+    PrintObjcClassList::run(const Objects::DscImage &Image) const noexcept
+        -> RunResult
+    {
+        auto Result = RunResult(Objects::Kind::MachO);
+
+        const auto IsBigEndian = Image.isBigEndian();
+        const auto Is64Bit = Image.is64Bit();
+
+        auto SegmentList = MachO::SegmentList();
+        auto LibraryList = MachO::LibraryList();
+
+        auto BindRange = ADT::Range();
+        auto LazyBindRange = ADT::Range();
+        auto WeakBindRange = ADT::Range();
+
+        for (const auto &LC : Image.loadCommandsMap()) {
+            if (LC.isSharedLibrary(IsBigEndian)) {
+                LibraryList.addLibrary(
+                    cast<MachO::DylibCommand>(LC, IsBigEndian), IsBigEndian);
+                continue;
+            }
+
+            using Kind = MachO::LoadCommandKind;
+            if (Is64Bit) {
+                if (const auto Segment =
+                        MachO::dyn_cast<Kind::Segment64>(&LC, IsBigEndian))
+                {
+                    SegmentList.addSegment(*Segment, IsBigEndian);
+                    continue;
+                }
+            } else {
+                if (const auto Segment =
+                        MachO::dyn_cast<Kind::Segment>(&LC, IsBigEndian))
+                {
+                    SegmentList.addSegment(*Segment, IsBigEndian);
+                    continue;
+                }
+            }
+
+            if (const auto DyldInfo =
+                    MachO::dyn_cast<MachO::DyldInfoCommand>(&LC, IsBigEndian))
+            {
+                BindRange = DyldInfo->bindRange(IsBigEndian);
+                LazyBindRange = DyldInfo->lazyBindRange(IsBigEndian);
+                WeakBindRange = DyldInfo->weakBindRange(IsBigEndian);
+            }
+        }
+
+        auto BindActionInfoList = MachO::BindActionList::UnorderedMap();
+        auto ParseError = MachO::BindOpcodeParseError::None;
+
+        const auto Map = Image.dscMap();
+        if (Map.range().contains(BindRange)) {
+            const auto BindList =
+                MachO::BindActionList(Map,
+                                      BindRange,
+                                      SegmentList,
+                                      Is64Bit);
+
+            ParseError =
+                BindList.getAsUnorderedMap(SegmentList, BindActionInfoList);
+
+            PrintBindParseError(ParseError);
+        }
+
+        if (Map.range().contains(LazyBindRange)) {
+            const auto LazyBindList =
+                MachO::LazyBindActionList(Map,
+                                          LazyBindRange,
+                                          SegmentList,
+                                          Is64Bit);
+
+            ParseError =
+                LazyBindList.getAsUnorderedMap(SegmentList, BindActionInfoList);
+
+            PrintBindParseError(ParseError);
+        }
+
+        if (Map.range().contains(WeakBindRange)) {
+            const auto WeakBindList =
+                MachO::WeakBindActionList(Map,
+                                          WeakBindRange,
+                                          SegmentList,
+                                          Is64Bit);
+
+            ParseError =
+                WeakBindList.getAsUnorderedMap(SegmentList, BindActionInfoList);
+
+            PrintBindParseError(ParseError);
+        }
+
+        const auto DeVirtualizer = DyldSharedCache::DeVirtualizer(Image.dsc());
+
+        auto ObjcClassInfoList = MachO::ObjcClassInfoList();
+        auto Error =
+            ObjcClassInfoList.Parse(DeVirtualizer,
+                                    SegmentList,
+                                    BindActionInfoList,
+                                    IsBigEndian,
+                                    Is64Bit);
+
+        switch (Error) {
+            case MachO::ObjcParse::Error::None:
+                break;
+            case MachO::ObjcParse::Error::NoObjcData:
+                return Result.set(RunError::NoObjcData);
+            case MachO::ObjcParse::Error::UnalignedSection:
+                return Result.set(RunError::UnalignedSection);
+            case MachO::ObjcParse::Error::DataOutOfBounds:
+                return Result.set(RunError::ObjcDataOutOfBounds);
+        }
+
+        if (Opt.PrintCategories) {
+            auto CategoryInfoList = MachO::ObjcClassCategoryInfoList();
+            Error =
+                CategoryInfoList.CollectFrom(Map,
+                                             DeVirtualizer,
+                                             SegmentList,
+                                             BindActionInfoList,
+                                             &ObjcClassInfoList,
+                                             IsBigEndian,
+                                             Is64Bit);
+
+            switch (Error) {
+                case MachO::ObjcParse::Error::None:
+                case MachO::ObjcParse::Error::NoObjcData:
+                case MachO::ObjcParse::Error::UnalignedSection:
+                case MachO::ObjcParse::Error::DataOutOfBounds:
                     break;
             }
         }
@@ -618,8 +760,9 @@ namespace Operations {
                        "PrintObjcClassList::run() got Object with Kind::None");
             case Objects::Kind::MachO:
                 return run(static_cast<const Objects::MachO &>(Base));
-            case Objects::Kind::FatMachO:
             case Objects::Kind::DscImage:
+                return run(static_cast<const Objects::DscImage &>(Base));
+            case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:
                 return RunResultUnsupported;
         }

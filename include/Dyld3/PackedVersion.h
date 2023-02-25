@@ -31,7 +31,7 @@ namespace Dyld3 {
 
         [[nodiscard]] constexpr auto
         getForMaskShift(const Masks Mask, const Shifts Shift) const noexcept {
-            const auto Value = (Flags & static_cast<uint32_t>(Mask));
+            const auto Value = Flags & static_cast<uint32_t>(Mask);
             return Value >> static_cast<uint8_t>(Shift);
         }
     public:

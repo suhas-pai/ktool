@@ -24,7 +24,7 @@ namespace ADT {
         constexpr List() noexcept = default;
         constexpr List(T *const Begin, T *const End) noexcept
         : Begin(Begin), End(End) {
-            if (Begin != End) {
+            if (!empty()) {
                 assert(Begin != nullptr);
             }
         }
@@ -33,7 +33,7 @@ namespace ADT {
         : Begin(Begin),
           End(Utils::AddPtrAndCheckOverflow(Begin, Size).value())
         {
-            if (Size != 0) {
+            if (!empty()) {
                 assert(Begin != nullptr);
             }
         }

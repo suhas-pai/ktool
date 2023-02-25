@@ -30,10 +30,10 @@ namespace Operations {
                        "Got Object-Kind None in "
                        "PrintBindActionList::supportsObjectKind()");
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return true;
             case Objects::Kind::DyldSharedCache:
             case Objects::Kind::FatMachO:
-            case Objects::Kind::DscImage:
                 return false;
         }
 
@@ -485,9 +485,9 @@ namespace Operations {
                 assert(false &&
                        "PrintBindActionList::run() got Object with Kind::None");
             case Objects::Kind::MachO:
+            case Objects::Kind::DscImage:
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::DyldSharedCache:
-            case Objects::Kind::DscImage:
             case Objects::Kind::FatMachO:
                 return RunResultUnsupported;
         }

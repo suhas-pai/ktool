@@ -235,10 +235,16 @@ namespace Objects {
                     return Error;
                 }
 
-                SubCacheList.emplace(FileSuffix, SubCacheInfo(FileMap, Map));
+                auto Info =
+                    SubCacheInfo(
+                        FileMap,
+                        SingleCacheInfo(Map, SubCacheEntry.CacheVMOffset));
+
+                SubCacheList.emplace(FileSuffix, Info);
             }
         } else if (const auto ListOpt = subCacheEntryV1InfoList()) {
-            for (auto I = uint32_t(1); I <= ListOpt.value().size(); I++) {
+            auto I = uint32_t(1);
+            for (const auto &SubCacheEntry : ListOpt.value()) {
                 const auto FileSuffix = std::string(".") + std::to_string(I);
                 const auto SubCachePath = std::string(Path).append(FileSuffix);
                 const auto FileMapOrErr =
@@ -257,7 +263,13 @@ namespace Objects {
                     return Error;
                 }
 
-                SubCacheList.emplace(FileSuffix, SubCacheInfo(FileMap, Map));
+                auto Info =
+                    SubCacheInfo(
+                        FileMap,
+                        SingleCacheInfo(Map, SubCacheEntry.CacheVMOffset));
+
+                SubCacheList.emplace(FileSuffix, Info);
+                I++;
             }
         }
 

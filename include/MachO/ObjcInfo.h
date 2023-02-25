@@ -292,6 +292,7 @@ namespace MachO {
             None,
             NoObjcData,
             UnalignedSection,
+            DataOutOfBounds
         };
 
         template <bool Is64Bit>
@@ -346,7 +347,7 @@ namespace MachO {
         SetSuperWithBindAction(
             ObjcClassInfo *const Info,
             const BindActionList::Info &Action,
-            const MachO::SegmentList &SegmentList,
+            const SegmentList &SegmentList,
             ObjcClassCollectionType &List,
             std::vector<ObjcClassInfo *> &ExternalAndRootClassList) noexcept
         {
@@ -405,9 +406,9 @@ namespace MachO {
         template <bool Is64Bit>
         static void
         ParseObjcClass(const uint64_t Addr,
-                    const MachO::DeVirtualizer &DeVirtualizer,
-                    ObjcClassInfo &Info,
-                    const bool IsBigEndian) noexcept
+                       const ADT::DeVirtualizer &DeVirtualizer,
+                       ObjcClassInfo &Info,
+                       const bool IsBigEndian) noexcept
         {
             using ClassType = ObjcClassType<Is64Bit>;
             using ClassRoType = ObjcClassRoType<Is64Bit>;
@@ -467,7 +468,8 @@ namespace MachO {
         static void
         FixSuperForClassInfo(
             ObjcClassInfo *const Info,
-            const MachO::DeVirtualizer &DeVirtualizer,
+            const ADT::DeVirtualizer &DeVirtualizer,
+            const SegmentList &SegmentList,
             const BindActionList::UnorderedMap &BindCollection,
             ObjcClassCollectionType &List,
             std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
@@ -482,7 +484,7 @@ namespace MachO {
             {
                 SetSuperWithBindAction(Info,
                                        Iter->second,
-                                       DeVirtualizer.segmentList(),
+                                       SegmentList,
                                        List,
                                        ExternalAndRootClassList);
                 return;
@@ -516,6 +518,7 @@ namespace MachO {
             SetSuperClassForClassInfo(Ptr, Info);
             FixSuperForClassInfo<Is64Bit>(Ptr,
                                           DeVirtualizer,
+                                          SegmentList,
                                           BindCollection,
                                           List,
                                           ExternalAndRootClassList,
@@ -525,9 +528,9 @@ namespace MachO {
         template <bool Is64Bit>
         static void
         HandleAddrForObjcClass(const uint64_t Addr,
-                            const MachO::DeVirtualizer &DeVirtualizer,
-                            ObjcClassCollectionType &List,
-                            const bool IsBigEndian) noexcept
+                               const ADT::DeVirtualizer &DeVirtualizer,
+                               ObjcClassCollectionType &List,
+                               const bool IsBigEndian) noexcept
         {
             if (Addr == 0) {
                 return;
@@ -547,7 +550,8 @@ namespace MachO {
         template <bool Is64Bit>
         static void
         FixSuperClassForClassList(
-            const MachO::DeVirtualizer &DeVirtualizer,
+            const ADT::DeVirtualizer &DeVirtualizer,
+            const SegmentList &SegmentList,
             const BindActionList::UnorderedMap &BindCollection,
             ObjcClassCollectionType &List,
             std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
@@ -555,7 +559,8 @@ namespace MachO {
         {
             for (auto &Iter : List) {
                 const auto Info = Iter.second.get();
-                const auto SuperAddr = reinterpret_cast<uint64_t>(Info->super());
+                const auto SuperAddr =
+                    reinterpret_cast<uint64_t>(Info->super());
 
                 if ((SuperAddr & 1) == 0) {
                     continue;
@@ -567,6 +572,7 @@ namespace MachO {
 
                 FixSuperForClassInfo<Is64Bit>(Info,
                                               DeVirtualizer,
+                                              SegmentList,
                                               BindCollection,
                                               List,
                                               ExternalAndRootClassList,
@@ -577,30 +583,33 @@ namespace MachO {
         template <bool Is64Bit>
         static auto
         ParseObjcClassListSection(
-            const MachO::SectionInfo &SectionInfo,
-            const MachO::DeVirtualizer &DeVirtualizer,
+            const SectionInfo &SectionInfo,
+            const ADT::DeVirtualizer &DeVirtualizer,
+            const SegmentList &SegmentList,
             const BindActionList::UnorderedMap &BindList,
             ObjcClassCollectionType &ClassList,
             std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
             const bool IsBigEndian) noexcept
         {
             using PtrAddrType = Utils::PointerAddrConstType<Is64Bit>;
+            const auto SectionMapOpt =
+                DeVirtualizer.getMapForRange(SectionInfo.vmRange());
 
-            const auto Map = DeVirtualizer.map();
-            auto End = static_cast<uint8_t *>(nullptr);
-            const auto Begin = Map.getFromRange(SectionInfo.fileRange(), &End);
+            if (!SectionMapOpt.has_value()) {
+                return Error::DataOutOfBounds;
+            }
 
-            const auto Size = static_cast<uint64_t>(End - Begin);
-            if (!Utils::IntegerIsPointerAligned<Is64Bit>(Size)) {
+            const auto SectionMap = SectionMapOpt.value();
+            if (!Utils::IntegerIsPointerAligned<Is64Bit>(SectionMap.size())) {
                 return Error::UnalignedSection;
             }
 
-            const auto List =
-                ADT::List<PtrAddrType>(
-                    reinterpret_cast<PtrAddrType *>(Begin),
-                    reinterpret_cast<PtrAddrType *>(End));
+            const auto ListOpt = SectionMap.list<PtrAddrType>();
+            if (!ListOpt.has_value()) {
+                return Error::DataOutOfBounds;
+            }
 
-            for (const auto &Addr : List) {
+            for (const auto &Addr : ListOpt.value()) {
                 HandleAddrForObjcClass<Is64Bit>(Addr,
                                                 DeVirtualizer,
                                                 ClassList,
@@ -608,10 +617,11 @@ namespace MachO {
             }
 
             FixSuperClassForClassList<Is64Bit>(DeVirtualizer,
-                                            BindList,
-                                            ClassList,
-                                            ExternalAndRootClassList,
-                                            IsBigEndian);
+                                               SegmentList,
+                                               BindList,
+                                               ClassList,
+                                               ExternalAndRootClassList,
+                                               IsBigEndian);
             return Error::None;
         }
 
@@ -635,42 +645,44 @@ namespace MachO {
         static auto
         ParseObjcClassRefsSection(
             const SectionInfo &SectionInfo,
-            const MachO::DeVirtualizer &DeVirtualizer,
+            const ADT::DeVirtualizer &DeVirtualizer,
+            const SegmentList &SegmentList,
             const BindActionList::UnorderedMap &BindCollection,
             ObjcClassCollectionType &ClassList,
             std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
             const bool IsBigEndian) noexcept
         {
             using PointerAddrType = Utils::PointerAddrConstType<Is64Bit>;
+            const auto SectionMapOpt =
+                DeVirtualizer.getMapForRange(SectionInfo.vmRange());
 
-            const auto Map = DeVirtualizer.map();
-            auto End = static_cast<uint8_t *>(nullptr);
-            const auto Begin = Map.getFromRange(SectionInfo.fileRange(), &End);
+            if (!SectionMapOpt.has_value()) {
+                return Error::DataOutOfBounds;
+            }
 
-            const auto Size = static_cast<uint64_t>(End - Begin);
-            if (!Utils::IntegerIsPointerAligned<Is64Bit>(Size)) {
+            const auto SectionMap = SectionMapOpt.value();
+            if (!Utils::IntegerIsPointerAligned<Is64Bit>(SectionMap.size())) {
                 return Error::UnalignedSection;
             }
 
-            const auto List =
-                ADT::List<PointerAddrType>(
-                    reinterpret_cast<PointerAddrType *>(Begin),
-                    reinterpret_cast<PointerAddrType *>(End));
+            const auto ListOpt = SectionMap.list<PointerAddrType>();
+            if (!ListOpt.has_value()) {
+                return Error::DataOutOfBounds;
+            }
 
             auto ListAddr = SectionInfo.vmRange().begin();
-            for (const auto &Addr : List) {
+            for (const auto &Addr : ListOpt.value()) {
                 if (const auto Iter = BindCollection.find(ListAddr);
                     Iter != BindCollection.end())
                 {
                     const auto &It = Iter->second;
                     const auto Name =
                         GetNameFromBindActionSymbol(It.SymbolName);
+                    const auto DylibOrdinal =
+                        static_cast<uint64_t>(It.DylibOrdinal);
 
                     auto NewInfo =
-                        CreateExternalClass(
-                            Name,
-                            static_cast<uint64_t>(It.DylibOrdinal),
-                            ListAddr);
+                        CreateExternalClass(Name, DylibOrdinal, ListAddr);
 
                     const auto Ptr =
                         ClassCollectionTypeAddClass(ClassList,
@@ -689,11 +701,11 @@ namespace MachO {
             }
 
             FixSuperClassForClassList<Is64Bit>(DeVirtualizer,
-                                            BindCollection,
-                                            ClassList,
-                                            ExternalAndRootClassList,
-                                            IsBigEndian);
-
+                                               SegmentList,
+                                               BindCollection,
+                                               ClassList,
+                                               ExternalAndRootClassList,
+                                               IsBigEndian);
             return Error::None;
         }
 
@@ -747,7 +759,8 @@ namespace MachO {
         ObjcClassInfoList() noexcept = default;
 
         auto
-        Parse(const MachO::DeVirtualizer &DeVirtualizer,
+        Parse(const ADT::DeVirtualizer &DeVirtualizer,
+              const SegmentList &SegmentList,
               const BindActionList::UnorderedMap &BindList,
               bool IsBigEndian,
               bool Is64Bit) noexcept -> ObjcParse::Error;
@@ -795,11 +808,13 @@ namespace MachO {
     public:
         ObjcClassCategoryInfoList() noexcept = default;
 
-        ObjcParse::Error
-        CollectFrom(const DeVirtualizer &DeVirtualizer,
+        auto
+        CollectFrom(const ADT::MemoryMap &Map,
+                    const ADT::DeVirtualizer &DeVirtualizer,
+                    const SegmentList &SegmentList,
                     const BindActionList::UnorderedMap &BindCollection,
                     ObjcClassInfoList *ClassInfoTree,
                     bool IsBigEndian,
-                    bool Is64Bit) noexcept;
+                    bool Is64Bit) noexcept -> ObjcParse::Error;
     };
 }

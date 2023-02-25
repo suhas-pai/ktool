@@ -1121,16 +1121,21 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             break;
         case Operations::Kind::PrintObjcClassList:
             switch (Operations::PrintObjcClassList::RunError(Result.Error)) {
-                case Operations::PrintObjcClassList::RunError::None:
+                using RunError = Operations::PrintObjcClassList::RunError;
+                case RunError::None:
                     break;
-                case Operations::PrintObjcClassList::RunError::NoDyldInfo:
+                case RunError::NoDyldInfo:
                     fputs("No dyld-info load command was found\n", stderr);
                     return 1;
-                case Operations::PrintObjcClassList::RunError::NoObjcData:
+                case RunError::NoObjcData:
                     fputs("No objc class-list data was found\n", stderr);
                     return 1;
-                case Operations::PrintObjcClassList::RunError::UnalignedSection:
+                case RunError::UnalignedSection:
                     fputs("Objc class-list section is mis-aligned\n", stderr);
+                    return 1;
+                case RunError::ObjcDataOutOfBounds:
+                    fputs("Objc class-list data is out-of-bounds of file\n",
+                          stderr);
                     return 1;
             }
 
