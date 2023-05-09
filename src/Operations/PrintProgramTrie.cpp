@@ -4,6 +4,7 @@
  */
 
 #include <algorithm>
+#include <cstdio>
 
 #include "Operations/PrintProgramTrie.h"
 #include "DyldSharedCache/ProgramTrie.h"
@@ -143,7 +144,7 @@ namespace Operations {
             return true;
         };
 
-        EntryCollection.PrintHorizontal(OutFile, Options.TabLength, PrintNode);
+        EntryCollection.printHorizontal(OutFile, Options.TabLength, PrintNode);
         return Result.set(RunError::None);
     }
 
@@ -176,11 +177,6 @@ namespace Operations {
         } else {
             for (const auto &Info : ProgramTrieMap.exportMap()) {
                 LongestExportLength.set(Info.string().length());
-                if (Opt.OnlyCount) {
-                    Count++;
-                    continue;
-                }
-
                 IndexDigitCountMaximizer.set(
                     Utils::GetIntegerDigitCount(Info.exportInfo().index()));
 
@@ -276,6 +272,25 @@ namespace Operations {
                     ProgramTrieMap,
                     Options,
                     &Error);
+
+            switch (Error) {
+                case ADT::TrieParseError::None:
+                    break;
+                case ADT::TrieParseError::InvalidUleb128:
+                    fputs("Encountered an invalid uleb128 while parsing trie\n",
+                          stderr);
+                    return Result.set(RunError::None);
+                case ADT::TrieParseError::InvalidFormat:
+                    fputs("Trie is invalid\n",stderr);
+                    return Result.set(RunError::None);
+                case ADT::TrieParseError::OverlappingRanges:
+                    fputs("At least two nodes in trie are overlapping\n",
+                          stderr);
+                    return Result.set(RunError::None);
+                case ADT::TrieParseError::TooDeep:
+                    fputs("Trie is too deep\n", stderr);
+                    return Result.set(RunError::None);
+            }
 
             return HandleTreeOption(Result,
                                     OutFile,

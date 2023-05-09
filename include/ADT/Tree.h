@@ -107,7 +107,7 @@ namespace ADT {
             return *this;
         }
 
-        constexpr 
+        constexpr
         auto setPrevSibling(TreeNode *const Value) noexcept -> decltype(*this) {
             assert(Value != this);
 
@@ -410,7 +410,7 @@ namespace ADT {
 
         template <typename NodePrinter>
         const TreeNode &
-        PrintHorizontal(FILE *const OutFile,
+        printHorizontal(FILE *const OutFile,
                         const uint32_t TabLength,
                         const NodePrinter &NodePrinterFunc) noexcept;
     };
@@ -564,7 +564,7 @@ namespace ADT {
 
     template <typename NodePrinter>
     const TreeNode &
-    TreeNode::PrintHorizontal(FILE *const OutFile,
+    TreeNode::printHorizontal(FILE *const OutFile,
                               const uint32_t TabLength,
                               const NodePrinter &NodePrinterFunc) noexcept
     {
@@ -916,13 +916,13 @@ namespace ADT {
 
         template <typename NodePrinter>
         auto
-        PrintHorizontal(FILE *const OutFile,
+        printHorizontal(FILE *const OutFile,
                         const uint32_t TabLength,
                         const NodePrinter &NodePrinterFunc) const noexcept
             -> decltype(*this)
         {
             if (const auto Root = root()) {
-                Root->PrintHorizontal<NodePrinter>(OutFile,
+                Root->printHorizontal<NodePrinter>(OutFile,
                                                    TabLength,
                                                    NodePrinterFunc);
             }

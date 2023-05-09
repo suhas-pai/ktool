@@ -56,10 +56,13 @@ namespace ADT {
 
         [[nodiscard]] constexpr auto size() const noexcept { return Size; }
 
-        template <typename T = void, bool Verify = true>
+        template <typename T = void,
+                  uint64_t Size = sizeof(T),
+                  bool Verify = true>
+
         [[nodiscard]] constexpr auto base() const noexcept {
             if constexpr (Verify) {
-                if (size() < sizeof(T)) {
+                if (size() < Size) {
                     return nullptr;
                 }
             }

@@ -13,8 +13,7 @@ namespace DyldSharedCache {
     protected:
         const Objects::DyldSharedCache &Dsc;
     public:
-        explicit
-        DeVirtualizer(const Objects::DyldSharedCache &Dsc) noexcept
+        explicit DeVirtualizer(const Objects::DyldSharedCache &Dsc) noexcept
         : Dsc(Dsc) {}
 
         [[nodiscard]] void *

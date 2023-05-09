@@ -29,7 +29,7 @@ namespace Utils {
     }
 
     template <std::unsigned_integral T>
-    inline auto GetFormattedNumber(const T Number) noexcept {
+    [[nodiscard]] inline auto GetFormattedNumber(const T Number) noexcept {
         char buffer[20] = {};
         std::to_chars(buffer, buffer + sizeof(buffer), Number);
 

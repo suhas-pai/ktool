@@ -1190,8 +1190,8 @@ namespace Operations {
     }
 
     auto
-    PrintLoadCommands::run(const Objects::MachO &MachO) const noexcept ->
-        RunResult
+    PrintLoadCommands::run(const Objects::MachO &MachO) const noexcept
+        -> RunResult
     {
         auto Result = RunResult(Objects::Kind::MachO);
         auto Counter = static_cast<uint32_t>(1);

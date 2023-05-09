@@ -161,7 +161,7 @@ namespace ADT {
                 static_cast<uint64_t>(
                     reinterpret_cast<const uint8_t *>(Ptr) - base<uint8_t>());
 
-            if (Utils::IndexOutOfBounds(Result, range().size())) {
+            if (Utils::IndexOutOfBounds(Result, size())) {
                 return std::nullopt;
             }
 

@@ -295,7 +295,7 @@ namespace Operations {
             return true;
         };
 
-        EntryCollection.PrintHorizontal(OutFile, Options.TabLength, PrintNode);
+        EntryCollection.printHorizontal(OutFile, Options.TabLength, PrintNode);
         return Result.set(RunError::None);
     }
 
@@ -426,7 +426,7 @@ namespace Operations {
     static auto
     PrintExportList(RunResult &Result,
                     FILE *const OutFile,
-                    uint64_t BaseAddress,
+                    const uint64_t BaseAddress,
                     const MachO::ExportTrieMap &ExportTrieMap,
                     const ::MachO::LibraryList &LibraryList,
                     const ::MachO::SegmentList &SegmentList,

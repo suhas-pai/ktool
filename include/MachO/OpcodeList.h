@@ -85,7 +85,7 @@ namespace MachO {
                 return Info;
             }
 
-            [[nodiscard]] constexpr auto *operator->() noexcept {
+            [[nodiscard]] constexpr auto operator->() noexcept {
                 return &Info;
             }
 
@@ -93,7 +93,7 @@ namespace MachO {
                 return Info;
             }
 
-            [[nodiscard]] constexpr auto *operator->() const noexcept {
+            [[nodiscard]] constexpr auto operator->() const noexcept {
                 return &Info;
             }
 

@@ -359,24 +359,26 @@ namespace Objects {
         {
             const uint64_t BaseFile = FileRange.begin();
             if (FileRange.empty() || BaseFile == 0) {
-                return std::nullopt;
+                return nullptr;
             }
 
             if (!range().contains(FileRange)) {
-                return std::nullopt;
+                return nullptr;
             }
 
             if (InsideMappings) {
                 for (const auto &Mapping : mappingInfoList()) {
                     if (Mapping.fileRange().contains(FileRange)) {
-                        return map().get<T, /*Verify=*/false, Size>();
+                        return
+                            map().get<T, /*Verify=*/false, Size>(
+                                FileRange.begin());
                     }
                 }
 
-                return std::nullopt;
+                return nullptr;
             }
 
-            return map().get<T, /*Verify=*/false, Size>();
+            return map().get<T, /*Verify=*/false, Size>(FileRange.begin());
         }
 
         template <typename T = uint8_t, uint64_t Size = sizeof(T)>

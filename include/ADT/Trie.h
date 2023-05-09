@@ -831,8 +831,8 @@ namespace ADT {
 
     template <typename T, typename U>
     concept TrieNodeCollectionNodeCreator =
-        requires(T a, typename Trie<U>::IterateInfo &b) {
-            { a.createChildNode(b) } noexcept -> TreeNodeDerived;
+        requires(T A, typename Trie<U>::IterateInfo &B) {
+            { A.createChildNode(B) } noexcept -> TreeNodeDerived;
         };
 
     template <TreeDerived TreeType,

@@ -104,10 +104,9 @@ namespace MachO {
         }
 
         inline auto
-        setLastChild(const ObjcClassInfo *const LastChild) noexcept
-            -> decltype(*this)
+        setLastChild(ObjcClassInfo *const LastChild) noexcept -> decltype(*this)
         {
-            this->LastChild = const_cast<ObjcClassInfo *>(LastChild);
+            this->LastChild = LastChild;
             return *this;
         }
 

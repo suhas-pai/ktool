@@ -72,7 +72,6 @@ namespace Operations {
                                          IsOutOfBounds,
                                          Prefix,
                                          Suffix);
-
         return WrittenOut;
     }
 }

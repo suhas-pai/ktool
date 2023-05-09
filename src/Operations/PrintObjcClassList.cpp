@@ -328,7 +328,7 @@ namespace Operations {
                 return true;
             };
 
-            ObjcClassCollection.PrintHorizontal(OutFile,
+            ObjcClassCollection.printHorizontal(OutFile,
                                                 Options.TabLength,
                                                 Printer);
         } else {
