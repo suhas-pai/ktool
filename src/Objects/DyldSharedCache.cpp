@@ -344,7 +344,7 @@ namespace Objects {
     {
         assert(!Utils::IndexOutOfBounds(Index, imageCount()));
 
-        const auto &ImageInfo = imageInfoList()[Index];
+        const auto ImageInfo = imageInfoList()[Index];
         const auto ObjectOrErr = DscImage::Open(*this, ImageInfo);
 
         if (const auto Ptr = ObjectOrErr.ptr()) {

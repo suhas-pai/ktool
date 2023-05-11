@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <cstring>
 #include <string>
 #include <unistd.h>
 

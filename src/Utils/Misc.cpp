@@ -5,6 +5,7 @@
 //  Created by suhaspai on 11/22/22.
 //
 
+#include <array>
 #include "Utils/Misc.h"
 
 namespace Utils {
