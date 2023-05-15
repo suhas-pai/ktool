@@ -45,7 +45,7 @@ namespace ADT {
 
         const auto Flags = MAP_PRIVATE;
         void *const Map =
-            mmap(NULL,
+            mmap(nullptr,
                  static_cast<size_t>(Sbuf.st_size),
                  static_cast<int>(Prot),
                  Flags,
@@ -67,7 +67,7 @@ namespace ADT {
             exit(1);
         }
 
-        this->Base = NULL;
+        this->Base = nullptr;
         this->Size = 0;
     }
 }

@@ -37,7 +37,7 @@ namespace Objects {
     {
         switch (Kind) {
             case Kind::None:
-                assert(false && "Got Kind None in KindGetString()");
+                assert(false && "Got Object-Kind None in KindGetString()");
             case Kind::MachO:
                 return "Mach-O";
             case Kind::FatMachO:

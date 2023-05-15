@@ -57,9 +57,15 @@ namespace Objects {
         }
 
         const auto LoadCommandsSize = Header->sizeOfCmds();
-        const auto MinLoadCommandSize =
-            sizeof(::MachO::LoadCommand) * Header->ncmds();
+        const auto MinLoadCommandSizeOpt =
+            Utils::MulAndCheckOverflow(sizeof(::MachO::LoadCommand),
+                                       Header->ncmds());
 
+        if (!MinLoadCommandSizeOpt.has_value()) {
+            return OpenError::TooManyLoadCommands;
+        }
+
+        const auto MinLoadCommandSize = MinLoadCommandSizeOpt.value();
         if (LoadCommandsSize < MinLoadCommandSize) {
             return OpenError::TooManyLoadCommands;
         }

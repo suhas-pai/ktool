@@ -256,10 +256,12 @@ namespace ADT {
             }
 
             [[nodiscard]] inline auto &exportInfo() const noexcept {
+                assert(isExport());
                 return ExportInfo;
             }
 
             [[nodiscard]] inline auto &exportInfo() noexcept {
+                assert(isExport());
                 return ExportInfo;
             }
 

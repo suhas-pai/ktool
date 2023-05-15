@@ -111,18 +111,20 @@ namespace MachO {
         -> std::optional<uint64_t>
     {
         for (const auto &SegInfo : List) {
-            if (SegInfo.VmRange.containsLoc(VmAddr)) {
-                const uint64_t VmIndex = SegInfo.VmRange.indexForLoc(VmAddr);
-                if (!SegInfo.FileRange.containsIndex(VmIndex)) {
-                    return std::nullopt;
-                }
-
-                if (!SegInfo.FileRange.containsEndIndex(VmIndex + Size)) {
-                    return std::nullopt;
-                }
-
-                return SegInfo.FileRange.locForIndex(VmIndex);
+            if (!SegInfo.VmRange.containsLoc(VmAddr)) {
+                continue;
             }
+
+            const uint64_t VmIndex = SegInfo.VmRange.indexForLoc(VmAddr);
+            if (!SegInfo.FileRange.containsIndex(VmIndex)) {
+                return std::nullopt;
+            }
+
+            if (!SegInfo.FileRange.containsEndIndex(VmIndex + Size)) {
+                return std::nullopt;
+            }
+
+            return SegInfo.FileRange.locForIndex(VmIndex);
         }
 
         return std::nullopt;

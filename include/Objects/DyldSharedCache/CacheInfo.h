@@ -18,7 +18,7 @@ namespace Objects {
         constexpr DyldSharedSingleCacheInfo() noexcept = default;
         constexpr
         DyldSharedSingleCacheInfo(const ADT::MemoryMap &Map,
-                                  uint64_t VmOffset) noexcept
+                                  const uint64_t VmOffset) noexcept
         : Map(Map), VmOffset(VmOffset) {}
     public:
         [[nodiscard]] constexpr auto map() const noexcept {

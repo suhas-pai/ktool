@@ -87,7 +87,7 @@ namespace ADT {
             return LastChild;
         }
 
-        [[nodiscard]] constexpr auto leaf() const noexcept {
+        [[nodiscard]] constexpr auto isLeaf() const noexcept {
             return firstChild() == nullptr;
         }
 
@@ -618,10 +618,11 @@ namespace ADT {
         constexpr Tree() noexcept = default;
 
         [[nodiscard]] virtual auto root() const noexcept -> TreeNode * {
-            return nullptr;
+            assert(0 && "root() called on base class Tree");
         }
 
         virtual auto setRoot(TreeNode *) noexcept -> decltype(*this) {
+            assert(0 && "setRoot() called on base class Tree");
             return *this;
         }
 
@@ -724,7 +725,7 @@ namespace ADT {
             };
 
             for (const auto &Node : dfs()) {
-                if (Node.leaf()) {
+                if (Node.isLeaf()) {
                     continue;
                 }
 
@@ -813,7 +814,7 @@ namespace ADT {
                     if (Parent.firstChild() == &Node) {
                         Parent.setFirstChild(Node.nextSibling());
                     }
-                } else if (Node.leaf()) {
+                } else if (Node.isLeaf()) {
                     // If Node is a leaf, and ParentHasOnlyThisNode is true,
                     // then Parent will end up a leaf-node.
 
@@ -833,7 +834,7 @@ namespace ADT {
                     IsolateNode(*Child);
                     Child->clearAndDestroy();
 
-                    if (Parent == nullptr || !Parent->leaf()) {
+                    if (Parent == nullptr || !Parent->isLeaf()) {
                         RemovedRoot = (Child == &Root);
                         break;
                     }
@@ -854,7 +855,7 @@ namespace ADT {
 
                 auto RemovedRoot = false;
                 if (const auto Parent = Node.parent();
-                    Parent != nullptr && Parent->leaf() && RemoveLeafParents)
+                    Parent != nullptr && Parent->isLeaf() && RemoveLeafParents)
                 {
                     RemovedRoot = DoRemoveLeafParents(*Parent, Root);
                 }
@@ -866,7 +867,7 @@ namespace ADT {
             };
 
             if (&Node == root()) {
-                if (Node.leaf()) {
+                if (Node.isLeaf()) {
                     setRoot(nullptr);
 
                     IsolateNode(Node);
@@ -922,9 +923,7 @@ namespace ADT {
             -> decltype(*this)
         {
             if (const auto Root = root()) {
-                Root->printHorizontal<NodePrinter>(OutFile,
-                                                   TabLength,
-                                                   NodePrinterFunc);
+                Root->printHorizontal(OutFile, TabLength, NodePrinterFunc);
             }
 
             return *this;

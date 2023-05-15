@@ -49,7 +49,7 @@ namespace Utils {
                       "T must be an unsigned integer if Signed=False");
 
         if (Begin == End) {
-            *PtrOut = (U *)Begin;
+            *PtrOut = Begin;
             return std::nullopt;
         }
 

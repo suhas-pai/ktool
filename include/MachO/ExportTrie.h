@@ -117,10 +117,10 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto threadLocal() const noexcept {
-            return kind() == Kind::Absolute;
+            return kind() == Kind::ThreadLocal;
         }
 
-        [[nodiscard]] constexpr auto weak() const noexcept {
+        [[nodiscard]] constexpr auto isWeak() const noexcept {
             return has(Masks::WeakDefinition);
         }
 
@@ -200,8 +200,8 @@ namespace MachO {
             return ExportTrieExportKind::Reexport;
         }
 
-        if (Flags.isReexport()) {
-            return ExportTrieExportKind::Reexport;
+        if (Flags.isWeak()) {
+            return ExportTrieExportKind::WeakDefinition;
         }
 
         if (Flags.stubAndResolver()) {
@@ -370,7 +370,7 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto weak() const noexcept {
-            return flags().weak();
+            return flags().isWeak();
         }
 
         [[nodiscard]] constexpr auto isReexport() const noexcept {

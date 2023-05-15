@@ -39,7 +39,7 @@ namespace Utils {
     {
         auto Result = T();
         if (!__builtin_add_overflow(Lhs, Rhs, &Result)) {
-            return std::optional<T>(Result);
+            return Result;
         }
 
         return std::nullopt;
@@ -69,7 +69,7 @@ namespace Utils {
     {
         auto Result = T();
         if (!__builtin_sub_overflow(Lhs, Rhs, &Result)) {
-            return std::optional<T>(Result);
+            return Result;
         }
 
         return std::nullopt;
@@ -98,7 +98,7 @@ namespace Utils {
     {
         auto Result = T();
         if (!__builtin_mul_overflow(Lhs, Rhs, &Result)) {
-            return std::optional<T>(Result);
+            return Result;
         }
 
         return std::nullopt;
@@ -140,7 +140,7 @@ namespace Utils {
               std::integral U,
               std::integral V,
               std::integral W>
-    
+
     [[nodiscard]] constexpr auto
     AddMulAndCheckOverflow(const U F, const V S, const W Th) noexcept
         -> std::optional<T>

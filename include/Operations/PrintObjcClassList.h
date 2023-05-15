@@ -30,7 +30,7 @@ namespace Operations {
                 ByDylibOrdinal,
                 ByKind
             };
-            
+
             std::vector<SortKind> SortKindList;
         };
     protected:

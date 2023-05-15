@@ -4040,7 +4040,7 @@ namespace MachO {
             return static_cast<T *>(LC);
         }
 
-            return static_cast<T *>(LC);
+        return static_cast<T *>(nullptr);
     }
 
     template <LoadCommandKind First,

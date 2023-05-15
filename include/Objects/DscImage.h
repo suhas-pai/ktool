@@ -78,8 +78,8 @@ namespace Objects {
         [[nodiscard]] inline auto
         getMapForAddrRange(const ADT::Range &AddrRange,
                            const bool InsideMappings = true) const noexcept
-                -> std::optional<
-                    std::pair<DyldSharedSingleCacheInfo, ADT::MemoryMap>>
+            -> std::optional<
+                std::pair<DyldSharedSingleCacheInfo, ADT::MemoryMap>>
         {
             return dsc().getMapForAddrRange<T, Size>(AddrRange, InsideMappings);
         }
