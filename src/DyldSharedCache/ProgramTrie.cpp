@@ -38,7 +38,7 @@ namespace DyldSharedCache {
             Node = new ChildNode();
         }
 
-        Node->setString(std::string(Info.string()));
+        Node->setString(Info.string());
         return Node;
     }
 

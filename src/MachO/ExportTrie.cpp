@@ -115,7 +115,7 @@ namespace MachO {
             Node = new ChildNode();
         }
 
-        Node->setString(std::string(Info.string()));
+        Node->setString(Info.string());
         if (Info.isExport()) {
             auto ExportNode = Node->getAsExportNode();
             const auto &ExportInfo = Info.exportInfo();

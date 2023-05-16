@@ -159,11 +159,6 @@ namespace MachO {
             return *this;
         }
 
-        inline auto setName(std::string &&Value) noexcept -> decltype(*this) {
-            this->Name = Value;
-            return *this;
-        }
-
         inline auto setDylibOrdinal(const uint64_t Value) noexcept
             -> decltype(*this)
         {
@@ -253,12 +248,6 @@ namespace MachO {
 
         constexpr auto setName(const std::string_view Value) noexcept
             -> decltype(*this)
-        {
-            this->Name = Value;
-            return *this;
-        }
-
-        constexpr auto setName(std::string &&Value) noexcept -> decltype(*this)
         {
             this->Name = Value;
             return *this;
@@ -438,7 +427,7 @@ namespace MachO {
 
             const auto NameAddr = ClassRo->nameAddress(IsBigEndian);
             if (auto String = DeVirtualizer.getStringAtAddress(NameAddr)) {
-                Info.setName(std::string(String.value()));
+                Info.setName(String.value());
             }
 
             Info.setAddr(Addr);
@@ -631,7 +620,7 @@ namespace MachO {
         {
             auto NewInfo = ObjcClassInfo();
 
-            NewInfo.setName(std::string(Name));
+            NewInfo.setName(Name);
             NewInfo.setDylibOrdinal(DylibOrdinal);
 
             NewInfo.setIsExternal();

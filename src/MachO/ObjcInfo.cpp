@@ -220,7 +220,7 @@ namespace MachO {
 
                 const auto NameAddr = Category->nameAddress(IsBigEndian);
                 if (const auto Name = DeVirt.getStringAtAddress(NameAddr)) {
-                    Info->setName(std::string(Name.value()));
+                    Info->setName(Name.value());
                 }
 
                 // ClassAddr initially points to the 'Class' field that (may)
@@ -285,7 +285,7 @@ namespace MachO {
 
                 const auto NameAddr = Category->nameAddress(IsBigEndian);
                 if (const auto Name = DeVirt.getStringAtAddress(NameAddr)) {
-                    Info->setName(std::string(Name.value()));
+                    Info->setName(Name.value());
                 }
 
                 CategoryList.emplace_back(std::move(Info));
