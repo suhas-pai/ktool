@@ -181,8 +181,8 @@ namespace Operations {
                                       DylibOrdinal,
                                       LibraryList,
                                       Options.Verbose,
-                                      "",
-                                      ")");
+                                      /*Prefix=*/"",
+                                      /*Suffix=*/")");
             }
         } else {
             fprintf(OutFile, "%s", KindDesc.data());

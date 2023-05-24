@@ -6,6 +6,7 @@
 //
 
 #include "Objects/FatMachO.h"
+#include "Utils/Overflow.h"
 
 namespace Objects {
     static auto ValidateHeader(const ADT::MemoryMap &Map) noexcept {
@@ -33,7 +34,14 @@ namespace Objects {
             Header->is64Bit() ?
                 sizeof(::MachO::FatArch64) : sizeof(::MachO::FatArch);
 
-        const auto TotalArchListSize = ArchSize * ArchCount;
+        const auto TotalArchListSizeOpt =
+            Utils::MulAndCheckOverflow(ArchSize, ArchCount);
+
+        if (!TotalArchListSizeOpt.has_value()) {
+            return FatMachO::OpenError::TooManyArchitectures;
+        }
+
+        const auto TotalArchListSize = TotalArchListSizeOpt.value();
         if (!Map.range().canContainSize(TotalArchListSize)) {
             if (ArchCount == 1) {
                 return FatMachO::OpenError::SizeTooSmall;

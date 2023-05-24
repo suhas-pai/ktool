@@ -29,7 +29,7 @@ namespace MachO {
             return Error::InvalidFormat;
         }
 
-        setFlags(Flags);
+        setFlags(FlagsOpt.value());
         if (isReexport()) {
             const auto DylibOrdinalOpt =
                 Utils::ReadUleb128<uint32_t>(Ptr, NodeEnd, &Ptr);
