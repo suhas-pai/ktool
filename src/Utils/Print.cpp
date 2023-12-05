@@ -62,7 +62,7 @@ namespace Utils {
         const auto &Name = FormatSizeNames[Index];
         auto Result = std::string();
 
-        if (static_cast<uint64_t>(ResultAmount) == ResultAmount) {
+        if (floor(ResultAmount) == ResultAmount) {
             Result.reserve(STR_LENGTH("1,023 ") + 1 + Name.length());
             Result.append(
                 GetFormattedNumber(static_cast<uint64_t>(ResultAmount)));

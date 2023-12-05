@@ -11,7 +11,12 @@ include_directories(include)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 add_executable(ktool ${SOURCES})
-target_compile_options(ktool PUBLIC -Wall -Wextra -pedantic -Wsign-conversion -Wredundant-decls -Wstrict-overflow=5 -Wundef -Wnull-dereference -funsigned-char -fno-exceptions)
+target_compile_options(ktool PUBLIC
+    -Wall -Wextra -pedantic -Wsign-conversion -Wredundant-decls
+    -Wstrict-overflow=5 -Wundef -Wnull-dereference -funsigned-char
+    -fno-exceptions -Wcast-align -Wfloat-equal -Wredundant-decls
+    -Wstrict-overflow=5 -Wundef -Wnull-dereference -funsigned-char -Wformat=2
+    -DBUILD_KERNEL -Wno-address-of-packed-member)
 
 set_property(TARGET ktool PROPERTY CXX_STANDARD 20)
 set(CMAKE_CXX_CLANG_TIDY

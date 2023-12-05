@@ -87,10 +87,15 @@ namespace Operations {
                 Flags.value());
 
         auto Counter = static_cast<uint8_t>(1);
+        auto DigitCount =
+            Utils::GetIntegerDigitCount(
+                static_cast<uint32_t>(std::popcount(Flags.value())));
+
         for (const auto Bit : ADT::FlagsIterator(Flags)) {
             const auto Flag = MachO::Flags::Kind(1 << Bit);
             fprintf(OutFile,
-                    "\t\t %" ZEROPAD_FMT_C(2) PRIu8 ". Bit %" PRIu32 ": %s\n",
+                    "\t\t %" ZEROPAD_FMT PRIu8 ". Bit %" PRIu32 ": %s\n",
+                    DigitCount,
                     Counter,
                     Bit,
                     MachO::Flags::KindIsValid(Flag) ?
