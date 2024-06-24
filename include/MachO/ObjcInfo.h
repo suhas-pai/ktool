@@ -9,11 +9,11 @@
 #include <string_view>
 #include <vector>
 
+#include "ADT/DeVirtualizer.h"
 #include "ADT/MemoryMap.h"
 #include "ADT/Tree.h"
 
 #include "MachO/BindInfo.h"
-#include "MachO/DeVirtualizer.h"
 #include "MachO/SegmentList.h"
 
 #include "ObjC/Info.h"

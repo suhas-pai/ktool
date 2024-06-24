@@ -22,8 +22,7 @@ namespace Operations {
     : OutFile(OutFile), Opt(Options) {}
 
     bool
-    PrintExportTrie::supportsObjectKind(
-        const Objects::Kind Kind) const noexcept
+    PrintExportTrie::supportsObjectKind(const Objects::Kind Kind) const noexcept
     {
         switch (Kind) {
             case Objects::Kind::None:

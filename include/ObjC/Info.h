@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "ADT/FlagsBase.h"
 #include "ADT/SwitchEndian.h"
 
 namespace ObjC {

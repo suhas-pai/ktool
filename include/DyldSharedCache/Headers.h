@@ -6,7 +6,6 @@
 #pragma once
 
 #include "ADT/List.h"
-#include "ADT/Maximizer.h"
 #include "ADT/Range.h"
 
 #include "Dyld3/PackedVersion.h"

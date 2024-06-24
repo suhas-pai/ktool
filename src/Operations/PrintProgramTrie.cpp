@@ -5,6 +5,7 @@
 
 #include <algorithm>
 
+#include "ADT/Maximizer.h"
 #include "Operations/PrintProgramTrie.h"
 #include "DyldSharedCache/ProgramTrie.h"
 

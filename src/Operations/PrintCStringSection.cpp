@@ -6,6 +6,8 @@
 //
 
 #include <algorithm>
+
+#include "ADT/Maximizer.h"
 #include "MachO/LoadCommands.h"
 
 #include "Operations/Base.h"

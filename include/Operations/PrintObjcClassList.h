@@ -6,11 +6,9 @@
 //
 
 #pragma once
-
 #include <vector>
-#include "ADT/Tree.h"
 
-#include "Objects/FatMachO.h"
+#include "ADT/Tree.h"
 #include "Objects/DscImage.h"
 
 #include "Base.h"

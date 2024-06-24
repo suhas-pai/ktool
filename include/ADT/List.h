@@ -6,7 +6,6 @@
 #pragma once
 
 #include <cassert>
-#include <compare>
 #include <cstdint>
 #include <iterator>
 #include <ranges>

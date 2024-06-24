@@ -1,8 +1,9 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.5.0)
 project(ktool)
 
 #Bring the headers into the project
 include_directories(include)
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 #Can manually add the sources using the set command as follows:
 #set(SOURCES src/main.cpp)

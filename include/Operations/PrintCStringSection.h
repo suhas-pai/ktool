@@ -10,7 +10,6 @@
 #include <limits>
 
 #include "ADT/MemoryMap.h"
-#include "ADT/Maximizer.h"
 
 #include "Objects/MachO.h"
 #include "Base.h"

@@ -9,7 +9,6 @@
 
 #include <concepts>
 #include <cstdint>
-#include <type_traits>
 
 namespace ADT {
     struct EndianSwitcherFuncs {
