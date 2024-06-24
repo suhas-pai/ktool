@@ -18,7 +18,7 @@ namespace DyldSharedCache {
             -> ADT::TrieParseError
     {
         if (const auto IndexOpt = Utils::ReadUleb128(Ptr, NodeEnd, &Ptr)) {
-            Index = IndexOpt.value();
+            Index = static_cast<uint32_t>(IndexOpt.value());
             return ADT::TrieParseError::None;
         }
 

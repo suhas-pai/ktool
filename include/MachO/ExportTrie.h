@@ -5,7 +5,6 @@
 
 #pragma once
 #include <cassert>
-#include <vector>
 
 #include "ADT/Trie.h"
 #include "MachO/SegmentList.h"

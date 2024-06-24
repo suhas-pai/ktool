@@ -6,16 +6,11 @@
 //
 
 #include <algorithm>
-#include <optional>
-#include <vector>
-
 #include "MachO/LoadCommands.h"
-#include "Objects/DscImage.h"
 
 #include "Operations/Base.h"
 #include "Operations/PrintCStringSection.h"
 
-#include "Utils/Misc.h"
 #include "Utils/Print.h"
 
 namespace Operations {
@@ -317,10 +312,13 @@ namespace Operations {
                         STRING_VIEW_FMT_ARGS(Info.String));
 
             if (Opt.Verbose) {
-                Utils::RightPadSpaces(
-                    OutFile,
-                    WrittenOutString,
-                    LongestCStringLength + STR_LENGTH(" \"\""));
+                const auto RightPadLength =
+                    static_cast<int>(LongestCStringLength +
+                                     STR_LENGTH(" \"\""));
+
+                Utils::RightPadSpaces(OutFile,
+                                      WrittenOutString,
+                                      RightPadLength);
 
                 fprintf(OutFile,
                         " (Length: %" ZEROPAD_FMT PRIuPTR ", File Offset: ",

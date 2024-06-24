@@ -7,8 +7,6 @@
 
 #include <array>
 #include <assert.h>
-#include <cstdio>
-#include <limits>
 #include <sstream>
 #include <string>
 
@@ -240,7 +238,7 @@ namespace Utils {
                     const auto PadLength =
                         MachO::SegmentMaxNameLength - Segment.length();
 
-                    WrittenOut += PadSpaces(OutFile, PadLength);
+                    WrittenOut += PadSpaces(OutFile, static_cast<uint32_t>(PadLength));
                 }
             }
 
@@ -268,7 +266,7 @@ namespace Utils {
                     const auto PadLength =
                         MachO::SegmentSectionMaxNameLength - SectionLength;
 
-                    WrittenOut += PadSpaces(OutFile, PadLength);
+                    WrittenOut += PadSpaces(OutFile, static_cast<uint32_t>(PadLength));
                 }
             }
         } else {

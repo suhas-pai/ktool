@@ -4,7 +4,6 @@
  */
 
 #include <algorithm>
-#include <cstdio>
 
 #include "Operations/PrintProgramTrie.h"
 #include "DyldSharedCache/ProgramTrie.h"

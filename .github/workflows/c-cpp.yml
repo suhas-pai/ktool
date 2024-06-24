@@ -7,16 +7,16 @@ on:
     branches: [ master ]
 
 jobs:
-  macBuild:
-    runs-on: macos-12
+  mac-build:
+    runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: make
       run: make
-        
-  linuxBuild:  
-    runs-on: ubuntu-22.04
+
+  linux-build:
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: make
       run: make

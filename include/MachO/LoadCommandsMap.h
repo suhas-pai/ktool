@@ -6,7 +6,6 @@
 //
 
 #pragma once
-#include <compare>
 
 #include "ADT/MemoryMap.h"
 #include "LoadCommands.h"

@@ -5,9 +5,7 @@
 
 #pragma once
 
-#include <cstdio>
 #include <string_view>
-
 #include "MachO/LibraryList.h"
 
 namespace Operations {

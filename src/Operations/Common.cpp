@@ -3,7 +3,7 @@
  * © suhas pai
  */
 
-#include "Operations/Common.h"
+#include "MachO/LibraryList.h"
 
 #include "Utils/Misc.h"
 #include "Utils/Print.h"

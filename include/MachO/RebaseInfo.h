@@ -6,10 +6,8 @@
 #pragma once
 
 #include <cassert>
-#include <memory>
 #include <string_view>
 
-#include "ADT/FlagsBase.h"
 #include "ADT/MemoryMap.h"
 
 #include "MachO/DyldInfo.h"
@@ -31,7 +29,7 @@ namespace MachO {
         DoRebaseUlebTimesSkipUleb = 0x80
     };
 
-    [[nodiscard]] constexpr 
+    [[nodiscard]] constexpr
     auto RebaseByteOpcodeIsValid(const RebaseByteOpcode Opcode) noexcept {
         switch (Opcode) {
             case RebaseByteOpcode::Done:
@@ -49,7 +47,7 @@ namespace MachO {
         return false;
     }
 
-    [[nodiscard]] constexpr 
+    [[nodiscard]] constexpr
     auto RebaseByteOpcodeGetName(const RebaseByteOpcode Opcode) noexcept
         -> std::string_view
     {

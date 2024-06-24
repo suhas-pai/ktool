@@ -8,7 +8,6 @@
 #include <algorithm>
 
 #include "MachO/LoadCommands.h"
-#include "MachO/LoadCommandsMap.h"
 #include "Operations/PrintLibraries.h"
 
 #include "Utils/Print.h"

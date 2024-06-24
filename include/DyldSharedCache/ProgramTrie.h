@@ -183,7 +183,7 @@ namespace DyldSharedCache {
         constexpr auto setIndex(const uint32_t Index) noexcept
             -> decltype(*this)
         {
-            this->Ordinal = Utils::AddAndCheckOverflow(Index, 1).value();
+            this->Ordinal = Utils::AddAndCheckOverflow<uint32_t>(Index, 1).value();
             return *this;
         }
     };

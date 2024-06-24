@@ -110,7 +110,7 @@ namespace ADT {
                 return __builtin_ctzl(Flags) + Index;
             }
 
-            return __builtin_ctz(Flags) + Index;
+            return __builtin_ctz(static_cast<uint32_t>(Flags)) + Index;
         }
 
         [[nodiscard]]

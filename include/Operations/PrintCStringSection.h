@@ -8,10 +8,10 @@
 #pragma once
 
 #include <limits>
-#include <optional>
 
 #include "ADT/MemoryMap.h"
-#include "Objects/DscImage.h"
+#include "ADT/Maximizer.h"
+
 #include "Objects/MachO.h"
 #include "Base.h"
 

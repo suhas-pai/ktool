@@ -75,7 +75,7 @@ namespace MachO {
                     return Error::InvalidUleb128;
                 }
 
-                setResolverStubAddress(ResolverStubAddressOpt.value());
+                setResolverStubAddress(static_cast<uint32_t>(ResolverStubAddressOpt.value()));
             }
         }
 

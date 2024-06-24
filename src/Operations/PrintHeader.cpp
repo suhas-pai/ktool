@@ -5,7 +5,6 @@
 //  Created by suhaspai on 11/15/22.
 //
 
-#include <memory>
 #include <unordered_map>
 
 #include "ADT/FlagsIterator.h"
@@ -735,7 +734,7 @@ namespace Operations {
 
             fprintf(OutFile,
                     "\n\t\tSize:        %s\n",
-                    Utils::FormattedSizeForOutput(Mapping.Size).c_str()),
+                    Utils::FormattedSizeForOutput(Mapping.Size).c_str());
 
             Index++;
         }

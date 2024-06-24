@@ -109,7 +109,7 @@ namespace Utils {
                 return std::nullopt;
             }
 
-            Result = NewResultOpt.value();
+            Result = static_cast<T>(NewResultOpt.value());
         }
 
         return Result;

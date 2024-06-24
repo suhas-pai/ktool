@@ -126,7 +126,7 @@ namespace Dyld3 {
         }
 
         [[nodiscard]] constexpr auto major() const noexcept -> uint32_t {
-            return getForMaskShift(Masks::Major, Shifts::Major);
+            return static_cast<uint32_t>(getForMaskShift(Masks::Major, Shifts::Major));
         }
 
         constexpr auto setRevision3(const uint16_t Value) noexcept

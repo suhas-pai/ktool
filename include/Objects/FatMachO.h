@@ -7,13 +7,10 @@
 
 #pragma once
 
-#include "ADT/List.h"
 #include "ADT/PointerOrError.h"
-
 #include "MachO/Fat.h"
 
 #include "Base.h"
-#include "MachO.h"
 
 namespace Objects {
     struct FatMachO : public Base {

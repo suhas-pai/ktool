@@ -9,13 +9,9 @@
 #include "ADT/Maximizer.h"
 
 #include "Dyld3/Platform.h"
-
 #include "MachO/LoadCommands.h"
-#include "MachO/LoadCommandsMap.h"
-
 #include "Operations/PrintLoadCommands.h"
 
-#include "Utils/Misc.h"
 #include "Utils/Print.h"
 
 namespace Operations {
@@ -534,7 +530,7 @@ namespace Operations {
                             (NameOpt.has_value() ?
                                 NameOpt->length() : Malformed.length());
 
-                    Utils::PadSpaces(OutFile, PadLength);
+                    Utils::PadSpaces(OutFile, static_cast<uint32_t>(PadLength));
                     DylibIndex++;
                 }
 
@@ -1209,7 +1205,7 @@ namespace Operations {
                     MachO::cast<MachO::DylibCommand>(LC, IsBigEndian);
 
                 if (const auto NameOpt = DylibCmd.name(IsBigEndian)) {
-                    MaxDylibPathLength.set(NameOpt->length());
+                    MaxDylibPathLength.set(static_cast<uint32_t>(NameOpt->length()));
                 }
             }
         }

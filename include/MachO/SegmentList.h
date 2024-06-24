@@ -8,7 +8,6 @@
 #include <cassert>
 #include <initializer_list>
 #include <optional>
-#include <string>
 #include <vector>
 
 #include "MachO/LoadCommands.h"

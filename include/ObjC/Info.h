@@ -5,12 +5,11 @@
 
 #pragma once
 
-#include "ADT/FlagsBase.h"
 #include "ADT/SwitchEndian.h"
 
 namespace ObjC {
-    constexpr static auto IsSwiftObjcClassPreStableMask = (1ull << 0);
-    constexpr static auto IsSwiftObjcClassStableMask    = (1ull << 1);
+    constexpr static auto IsSwiftObjcClassPreStableMask = 1ull << 0;
+    constexpr static auto IsSwiftObjcClassStableMask = 1ull << 1;
 
     struct Class {
         uint32_t Isa;

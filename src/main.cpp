@@ -5,7 +5,6 @@
 //  Created by suhaspai on 10/2/22.
 //
 
-#include <cstdio>
 #include <memory>
 
 #include "Operations/PrintHeader.h"

@@ -4,7 +4,6 @@
  */
 
 #include "MachO/ObjcInfo.h"
-#include "MachO/DeVirtualizer.h"
 
 namespace MachO {
     void

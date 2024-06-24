@@ -8,7 +8,6 @@
 
 #include "MachO/BindInfo.h"
 #include "MachO/LibraryList.h"
-#include "MachO/LoadCommands.h"
 #include "MachO/SegmentList.h"
 
 #include "Operations/Common.h"

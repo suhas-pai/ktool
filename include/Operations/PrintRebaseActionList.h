@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <vector>
 #include "Operations/Base.h"
 
 namespace Operations {

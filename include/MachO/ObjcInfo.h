@@ -6,9 +6,7 @@
 #pragma once
 
 #include <algorithm>
-#include <initializer_list>
 #include <string_view>
-#include <unordered_map>
 #include <vector>
 
 #include "ADT/MemoryMap.h"
@@ -19,7 +17,6 @@
 #include "MachO/SegmentList.h"
 
 #include "ObjC/Info.h"
-#include "Utils/Overflow.h"
 
 namespace MachO {
     struct ObjcClassCategoryInfo;

@@ -6,7 +6,6 @@
 //
 
 #include <algorithm>
-#include <type_traits>
 
 #include "ADT/Maximizer.h"
 #include "Operations/PrintSymbolPtrSection.h"
@@ -221,7 +220,7 @@ namespace Operations {
             };
 
             IndexMaximizer.set(Info.Index);
-            SymbolLengthMaximizer.set(Info.String.length());
+            SymbolLengthMaximizer.set(static_cast<uint32_t>(Info.String.length()));
 
             if (MachO::SymTabCommand::Entry::KindIsValid(Info.Kind)) {
                 const auto Desc =
