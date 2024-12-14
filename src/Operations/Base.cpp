@@ -1,22 +1,20 @@
 //
-//  src/Operations/Base.cpp
+//  Operations/Base.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 4/4/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <unistd.h>
 
-#include "Kind.h"
-#include "Utils/MachOTypePrinter.h"
-#include "Operation.h"
+#include "Objects/DscMemory.h"
+#include "Objects/FatMachOMemory.h"
 
-#include "PrintArchList.h"
-#include "PrintHeader.h"
-#include "PrintLoadCommands.h"
-#include "PrintSharedLibraries.h"
-#include "PrintId.h"
+#include "Operations/Kind.h"
+#include "Operations/Operation.h"
+
+#include "Utils/MachOTypePrinter.h"
 
 Operation::Operation(OperationKind Kind) noexcept : Kind(Kind) {
     assert(Kind != OperationKind::None);
@@ -95,7 +93,9 @@ Operation::SupportsObjectKind(OperationKind OpKind, ObjectKind ObjKind) noexcept
 }
 
 void
-Operation::PrintLineSpamWarning(FILE *OutFile, uint64_t LineAmount) noexcept {
+Operation::PrintLineSpamWarning(FILE *const OutFile,
+                                const uint64_t LineAmount) noexcept
+{
     if (!isatty(fileno(OutFile))) {
         return;
     }
@@ -110,11 +110,11 @@ Operation::PrintLineSpamWarning(FILE *OutFile, uint64_t LineAmount) noexcept {
             LineAmount,
             DelayAmount);
 
-    sleep(DelayAmount);
+    // sleep(DelayAmount);
 }
 
 static
-void PrintSelectArchMessage(const ConstFatMachOMemoryObject &Object) noexcept {
+void PrintSelectArchMessage(const FatMachOMemoryObject &Object) noexcept {
     const auto ArchCount = Object.getArchCount();
     fprintf(stdout, "Please select one of %" PRIu32 " archs", ArchCount);
 
@@ -137,7 +137,7 @@ static void PrintSelectImageMessage(const DscMemoryObject &Object) noexcept {
 }
 
 void
-Operation::PrintObjectKindNotSupportedError(OperationKind OpKind,
+Operation::PrintObjectKindNotSupportedError(const OperationKind OpKind,
                                             const MemoryObject &Object) noexcept
 {
     assert(OpKind != OperationKind::None);
@@ -199,11 +199,11 @@ Operation::PrintObjectKindNotSupportedError(OperationKind OpKind,
 }
 
 void
-Operation::PrintOptionHelpMenu(FILE *OutFile,
-                               OperationKind Kind,
-                               const char *Prefix,
-                               const char *LinePrefix,
-                               const char *Suffix) noexcept
+Operation::PrintOptionHelpMenu(FILE *const OutFile,
+                               const OperationKind Kind,
+                               const char *const Prefix,
+                               const char *const LinePrefix,
+                               const char *const Suffix) noexcept
 {
     constexpr auto Tab = "    ";
     fprintf(OutFile, "%s%sOptions:\n", Prefix, LinePrefix);
@@ -493,21 +493,21 @@ Operation::PrintOptionHelpMenu(FILE *OutFile,
 }
 
 static void
-PrintItemForSupportList(FILE *OutFile,
+PrintItemForSupportList(FILE *const OutFile,
                         bool &DidPrint,
-                        const char *LinePrefix,
-                        const char *Name) noexcept
+                        const char *const LinePrefix,
+                        const char *const Name) noexcept
 {
     PrintUtilsWriteItemAfterFirstForList(OutFile, " │ ", DidPrint);
     fprintf(OutFile, "%s%s", LinePrefix, Name);
 }
 
 void
-Operation::PrintObjectKindSupportsList(FILE *OutFile,
-                                       OperationKind OpKind,
-                                       const char *Prefix,
-                                       const char *LinePrefix,
-                                       const char *Suffix) noexcept
+Operation::PrintObjectKindSupportsList(FILE *const OutFile,
+                                       const OperationKind OpKind,
+                                       const char *const Prefix,
+                                       const char *const LinePrefix,
+                                       const char *const Suffix) noexcept
 {
     fprintf(OutFile, "%s%sSupports: ", Prefix, LinePrefix);
 
@@ -555,19 +555,18 @@ Operation::PrintObjectKindSupportsList(FILE *OutFile,
 }
 
 void
-Operation::PrintPathOptionHelpMenu(FILE *OutFile,
-                                   OperationKind ForKind,
-                                   const char *Prefix,
-                                   const char *LinePrefix,
-                                   const char *Suffix) noexcept
+Operation::PrintPathOptionHelpMenu(FILE *const OutFile,
+                                   const OperationKind ForKind,
+                                   const char *const Prefix,
+                                   const char *const LinePrefix,
+                                   const char *const Suffix) noexcept
 {
     constexpr auto SelectArchString =
-        "%s\t--arch <ordinal>,          Select arch (at ordinal) of a FAT "
-        "Mach-O File\n";
+        "%s\t--arch <ordinal>,          Select arch of a FAT Mach-O File\n";
 
     constexpr auto SelectDscImageString =
-        "%s\t--image <path-or-ordinal>, Select image (at path or ordinal) of "
-        "an Apple dyld_shared_cache file\n";
+        "%s\t--image <path-or-ordinal>, Select image of an Apple "
+        "dyld_shared_cache file\n";
 
     if (ForKind == OperationKind::None) {
         fprintf(OutFile, "%sPath-Options:\n", Prefix);
@@ -589,22 +588,22 @@ Operation::PrintPathOptionHelpMenu(FILE *OutFile,
     fprintf(OutFile, "%s%sPath Options:\n", Prefix, LinePrefix);
     if (SupportsFatMachO) {
         fprintf(OutFile,
-                "%s\t--arch <ordinal>,          Select arch (at ordinal) of a "
-                "FAT Mach-O File\n",
+                "%s\t-arch <ordinal>,          Select arch of a FAT Mach-O "
+                "File\n",
                 LinePrefix);
     }
 
     if (SupportsDsc) {
         fprintf(OutFile,
-                "%s\t--image <path-or-ordinal>, Select image (at path or "
-                "ordinal) of an Apple dyld_shared_cache file\n",
+                "%s\t-image <path-or-ordinal>, Select image of an Apple "
+                "dyld_shared_cache file\n",
                 LinePrefix);
     }
 
     fprintf(OutFile, "%s", Suffix);
 }
 
-void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
+void Operation::PrintHelpMenu(FILE *const OutFile) noexcept {
     constexpr auto OperationKindList = magic_enum::enum_values<OperationKind>();
     auto LongestOptionNameLength = LargestIntHelper<int>();
 
@@ -613,8 +612,9 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
 
     for (auto Iter = Begin; Iter != End; Iter++) {
         const auto &IKind = *Iter;
+        const auto ShortName =
+            OperationKindGetOptionShortName(IKind).value_or("");
 
-        const auto ShortName = OperationKindGetOptionShortName(IKind);
         const auto Name = OperationKindGetOptionName(IKind);
         const auto Description = OperationKindGetDescription(IKind);
 
@@ -655,7 +655,8 @@ void Operation::PrintHelpMenu(FILE *OutFile) noexcept {
     fputs("Operations:\n", OutFile);
     for (auto Iter = Begin;;) {
         const auto &Kind = *Iter;
-        const auto &ShortName = OperationKindGetOptionShortName(Kind);
+        const auto ShortName =
+            OperationKindGetOptionShortName(Kind).value_or("");
 
         if (!ShortName.empty()) {
             fprintf(OutFile, "\t-%s, ", ShortName.data());

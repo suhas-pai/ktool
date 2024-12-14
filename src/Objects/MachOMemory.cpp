@@ -1,29 +1,25 @@
 //
-//  src/Objects/MachOMemory.cpp
+//  Objects/MachOMemory.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 3/30/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
+#include "Objects/MachOMemory.h"
 #include "Utils/DoesOverflow.h"
-#include "MachOMemory.h"
 
-ConstMachOMemoryObject::ConstMachOMemoryObject(
-    const ConstMemoryMap &Map) noexcept
+MachOMemoryObject::MachOMemoryObject(
+    const MemoryMap &Map) noexcept
 : MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()) {}
 
-ConstMachOMemoryObject::ConstMachOMemoryObject(
+MachOMemoryObject::MachOMemoryObject(
     const ObjectKind Kind,
-    const ConstMemoryMap &Map) noexcept
+    const MemoryMap &Map) noexcept
 : MemoryObject(Kind), Map(Map.getBegin()), End(Map.getEnd()) {}
 
-MachOMemoryObject::MachOMemoryObject(const MemoryMap &Map) noexcept
-: ConstMachOMemoryObject(Map) {}
-
 auto
-ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept -> Error
-{
+MachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept -> Error {
     if (!Map.isLargeEnoughForType<MachO::Header>()) {
         return Error::SizeTooSmall;
     }
@@ -70,19 +66,18 @@ ConstMachOMemoryObject::ValidateMap(const ConstMemoryMap &Map) noexcept -> Error
     return Error::None;
 }
 
-auto
-ConstMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept ->
-    PointerOrError<ConstMachOMemoryObject, Error>
+auto MachOMemoryObject::Open(const MemoryMap &Map) noexcept
+    -> ExpectedPointer<MachOMemoryObject, Error>
 {
     const auto Error = ValidateMap(Map);
     if (Error != Error::None) {
         return Error;
     }
 
-    return new ConstMachOMemoryObject(Map);
+    return new MachOMemoryObject(Map);
 }
 
-bool ConstMachOMemoryObject::errorDidMatchFormat(const Error Error) noexcept {
+bool MachOMemoryObject::errorDidMatchFormat(const Error Error) noexcept {
     switch (Error) {
         case Error::None:
             return true;

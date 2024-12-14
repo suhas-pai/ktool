@@ -1,16 +1,14 @@
 //
-//  src/Operation/PrintCStringSection.cpp
+//  Operation/PrintCStringSection.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 6/30/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "ADT/DscImage.h"
-
-#include "Common.h"
-#include "Operation.h"
-#include "PrintCStringSection.h"
+#include "Operations/Common.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintCStringSection.h"
 
 PrintCStringSectionOperation::PrintCStringSectionOperation() noexcept
 : Operation(OpKind) {}
@@ -46,8 +44,7 @@ static inline bool ShouldExcludeString(std::string_view String) noexcept {
 }
 
 static void
-GetCStringList(FILE *const OutFile,
-               const uint8_t *const Map,
+GetCStringList(const uint8_t *const Map,
                const MachO::SectionInfo &Section,
                std::vector<StringInfo> &StringList,
                LargestIntHelper<uint64_t> &LongestStringLength) noexcept
@@ -141,8 +138,7 @@ PrintCStringList(
     auto InfoList = std::vector<StringInfo>();
     auto LongestStringLength = LargestIntHelper();
 
-    GetCStringList(Options.OutFile,
-                   MapBegin,
+    GetCStringList(MapBegin,
                    *Section.get(),
                    InfoList,
                    LongestStringLength);
@@ -162,13 +158,13 @@ PrintCStringList(
             InfoListSize);
 
     auto Counter = static_cast<uint64_t>(1);
-    const auto StringListSizeDigithLength =
+    const auto StringListSizeDigitLength =
         PrintUtilsGetIntegerDigitLength(InfoListSize);
 
     for (const auto &Info : InfoList) {
         fprintf(Options.OutFile,
                 "C-String %0*" PRIu64 ": ",
-                StringListSizeDigithLength,
+                StringListSizeDigitLength,
                 Counter);
 
         PrintUtilsWriteOffset32Or64(Options.OutFile, Is64Bit, Info.Addr);
@@ -201,7 +197,7 @@ PrintCStringList(
 }
 
 int
-PrintCStringSectionOperation::Run(const ConstDscImageMemoryObject &Object,
+PrintCStringSectionOperation::Run(const DscImageMemoryObject &Object,
                                   const struct Options &Options) noexcept
 {
     const auto LoadCmdStorage =
@@ -218,7 +214,7 @@ PrintCStringSectionOperation::Run(const ConstDscImageMemoryObject &Object,
 
 
 int
-PrintCStringSectionOperation::Run(const ConstMachOMemoryObject &Object,
+PrintCStringSectionOperation::Run(const MachOMemoryObject &Object,
                                   const struct Options &Options) noexcept
 {
     const auto LoadCmdStorage =
@@ -233,9 +229,10 @@ PrintCStringSectionOperation::Run(const ConstMachOMemoryObject &Object,
     return Result;
 }
 
-struct PrintCStringSectionOperation::Options
+auto
 PrintCStringSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                int *const IndexOut) noexcept
+    -> struct PrintCStringSectionOperation::Options
 {
     struct Options Options;
 

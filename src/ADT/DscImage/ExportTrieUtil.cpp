@@ -1,19 +1,20 @@
 //
-//  src/ADT/DscImage/ExportTrieUtil.cpp
+//  ADT/DscImage/ExportTrieUtil.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 7/17/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "ExportTrieUtil.h"
+#include "ADT/DscImage/ExportTrieUtil.h"
 
 namespace DscImage {
-    const SegmentInfo *
+    auto
     ExportTrieEntryCollection::LookupInfoForAddress(
         const MachO::SegmentInfoCollection *const Collection,
         const uint64_t Address,
         const SectionInfo **const SectionOut) const noexcept
+            -> const SegmentInfo *
     {
         const auto SegCollection =
             reinterpret_cast<const SegmentInfoCollection *>(Collection);
@@ -31,11 +32,12 @@ namespace DscImage {
         return nullptr;
     }
 
-    ExportTrieEntryCollection
+    auto
     ExportTrieEntryCollection::Open(
         const MachO::ConstExportTrieList &List,
         const SegmentInfoCollection *const Collection,
-        Error *ErrorOut) noexcept
+        Error *const ErrorOut) noexcept
+            -> ExportTrieEntryCollection
     {
         auto Result = ExportTrieEntryCollection();
         Result.ParseFromTrie(List, Collection, ErrorOut);

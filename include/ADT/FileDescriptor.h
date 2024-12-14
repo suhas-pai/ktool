@@ -1,9 +1,9 @@
 //
-//  include/ADT/FileDescriptor.h
+//  ADT/FileDescriptor.h
 //  ktool
 //
 //  Created by Suhas Pai on 3/30/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -49,11 +49,17 @@ public:
     [[nodiscard]]
     static FileDescriptor Create(const char *Path, int Mode) noexcept;
 
-    [[nodiscard]] inline bool isOpen() const noexcept { return (Fd != -1); }
-    [[nodiscard]] inline bool isEmpty() const noexcept { return !isOpen(); }
-    [[nodiscard]] inline bool hasError() const noexcept { return isEmpty(); }
+    [[nodiscard]] inline auto isOpen() const noexcept { return Fd != -1; }
+    [[nodiscard]] inline auto isEmpty() const noexcept {
+        return !this->isOpen();
+    }
+
+    [[nodiscard]] inline auto hasError() const noexcept {
+        return this->isEmpty();
+    }
+
     [[nodiscard]] inline int getDescriptor() const noexcept {
-        assert(isOpen());
+        assert(this->isOpen());
         return Fd;
     }
 
@@ -61,11 +67,11 @@ public:
     bool Write(const void *Buf, size_t Size) noexcept;
     bool TruncateToSize(uint64_t Length) noexcept;
 
-    [[nodiscard]] std::optional<struct stat> GetInfo() const noexcept;
-    [[nodiscard]] std::optional<uint64_t> GetSize() const noexcept;
+    [[nodiscard]] auto GetInfo() const noexcept -> std::optional<struct stat>;
+    [[nodiscard]] auto GetSize() const noexcept -> std::optional<uint64_t>;
 
-    FileDescriptor &operator=(const FileDescriptor &) noexcept = delete;
-    FileDescriptor &operator=(FileDescriptor &&) noexcept;
+    auto operator=(const FileDescriptor &) noexcept = delete;
+    auto operator=(FileDescriptor &&) noexcept -> decltype(*this);
 
     void Close() noexcept;
 };

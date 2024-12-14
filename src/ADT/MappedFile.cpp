@@ -1,20 +1,20 @@
 //
-//  src/ADT/MappedFile.cpp
+//  ADT/MappedFile.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 4/2/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "MappedFile.h"
+#include "ADT/MappedFile.h"
 
-MappedFile::MappedFile(const OpenError Error) noexcept : ErrorStorage(Error) {}
+MappedFile::MappedFile(const OpenError Error) noexcept : MapOrError(Error) {}
 MappedFile::MappedFile(void *const Map, const uint64_t Size) noexcept
-: Map(Map), Size(Size) {}
+: MapOrError(Map), Size(Size) {}
 
 MappedFile::MappedFile(MappedFile &&Rhs) noexcept
-: Map(Rhs.Map), Size(Rhs.Size) {
-    Rhs.Map = nullptr;
+: MapOrError(Rhs.MapOrError), Size(Rhs.Size) {
+    Rhs.MapOrError.clear();
     Rhs.Size = 0;
 }
 

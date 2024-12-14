@@ -1,19 +1,21 @@
 //
-//  include/ADT/Mach-O/ObjcUtil.cpp
+//  ADT/Mach-O/ObjcUtil.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 6/13/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include "ADT/BasicContiguousList.h"
-#include "ADT/LocationRange.h"
 #include "ADT/MemoryMap.h"
-#include "Utils/PointerUtils.h"
+#include "ADT/Range.h"
 
-#include "BindUtil.h"
-#include "DeVirtualizer.h"
-#include "ObjcUtil.h"
+#include "ADT/Mach-O/BindUtil.h"
+#include "ADT/Mach-O/DeVirtualizer.h"
+#include "ADT/Mach-O/ObjcInfo.h"
+#include "ADT/Mach-O/ObjcUtil.h"
+
+#include "Utils/PointerUtils.h"
 
 namespace MachO {
     void
@@ -25,18 +27,18 @@ namespace MachO {
         }
 
         if (List.size() != 1) {
-            setRoot(ObjcParse::AddClassToList(this->List, Info(), 0));
-            getRoot()->setIsNull();
+            this->setRoot(ObjcParse::AddClassToList(this->List, Info(), 0));
+            this->getRoot()->setIsNull();
 
             for (const auto &Node : List) {
-                getRoot()->AddChild(*Node);
+                this->getRoot()->AddChild(*Node);
             }
         } else {
-            setRoot(List.front());
+            this->setRoot(List.front());
         }
     }
 
-    ObjcClassInfoCollection &
+    auto
     ObjcClassInfoCollection::Parse(
         const uint8_t *Map,
         const SegmentInfoCollection &SegmentCollection,
@@ -45,6 +47,7 @@ namespace MachO {
         bool Is64Bit,
         bool IsBigEndian,
         Error *ErrorOut) noexcept
+            -> decltype(*this)
     {
         auto Error = ObjcParse::Error::None;
         auto ExternalAndRootClassList = std::vector<Info *>();
@@ -154,7 +157,7 @@ namespace MachO {
         const BindActionList *BindList,
         const LazyBindActionList *LazyBindList,
         const WeakBindActionList *WeakBindList,
-        const LocationRange &Range,
+        const Range &Range,
         BindActionCollection &CollectionOut,
         BindOpcodeParseError *ParseErrorOut,
         BindActionCollection::Error *CollectionErrorOut) noexcept
@@ -190,7 +193,7 @@ namespace MachO {
         return 0;
     }
 
-    ObjcClassInfoCollection &
+    auto
     ObjcClassInfoCollection::Parse(
         const ConstMemoryMap &Map,
         const SegmentInfoCollection &SegmentCollection,
@@ -203,6 +206,7 @@ namespace MachO {
         Error *ErrorOut,
         BindOpcodeParseError *ParseErrorOut,
         BindActionCollection::Error *CollectionErrorOut) noexcept
+            -> decltype(*this)
     {
         auto Error = ObjcParse::Error::None;
         auto ExternalAndRootClassList = std::vector<Info *>();
@@ -342,8 +346,10 @@ namespace MachO {
         return *this;
     }
 
-    std::vector<ObjcClassInfo *>
-    ObjcClassInfoCollection::GetAsList() const noexcept {
+    auto
+    ObjcClassInfoCollection::GetAsList() const noexcept
+        -> std::vector<Info *>
+    {
         auto Result = std::vector<Info *>();
         Result.reserve(List.size());
 
@@ -354,8 +360,9 @@ namespace MachO {
         return Result;
     }
 
-    ObjcClassInfo *
-    ObjcClassInfoCollection::AddNullClass(uint64_t Address) noexcept {
+    auto ObjcClassInfoCollection::AddNullClass(const uint64_t Address) noexcept
+        -> ObjcClassInfo *
+    {
         auto NewInfo = Info();
 
         NewInfo.setAddr(Address);
@@ -364,10 +371,11 @@ namespace MachO {
         return ObjcParse::AddClassToList(List, std::move(NewInfo), Address);
     }
 
-    ObjcClassInfo *
-    ObjcClassInfoCollection::AddExternalClass(std::string_view Name,
-                                              uint64_t DylibOrdinal,
-                                              uint64_t BindAddr) noexcept
+    auto
+    ObjcClassInfoCollection::AddExternalClass(const std::string_view Name,
+                                              const uint64_t DylibOrdinal,
+                                              const uint64_t BindAddr) noexcept
+        -> ObjcClassInfo *
     {
         auto NewInfo =
             ObjcParse::CreateExternalClass(Name, DylibOrdinal, BindAddr);
@@ -375,8 +383,10 @@ namespace MachO {
         return ObjcParse::AddClassToList(List, std::move(NewInfo), BindAddr);
     }
 
-    ObjcClassInfo *
-    ObjcClassInfoCollection::GetInfoForAddress(uint64_t Address) const noexcept
+    auto
+    ObjcClassInfoCollection::GetInfoForAddress(
+        const uint64_t Address) const noexcept
+            -> ObjcClassInfo *
     {
         const auto Iter = List.find(Address);
         if (Iter != List.end()) {
@@ -386,9 +396,10 @@ namespace MachO {
         return nullptr;
     }
 
-    ObjcClassInfo *
+    auto
     ObjcClassInfoCollection::GetInfoForClassName(
-        std::string_view Name) const noexcept
+        const std::string_view Name) const noexcept
+            -> ObjcClassInfo *
     {
         for (const auto &Iter : List) {
             const auto &Info = Iter.second;
@@ -402,13 +413,13 @@ namespace MachO {
 
     template <PointerKind Kind>
     static void ParseObjcClassCategorySection(
-        const uint8_t *Map,
-        const SectionInfo *SectInfo,
+        const uint8_t *const Map,
+        const SectionInfo *const SectInfo,
         const ConstDeVirtualizer &DeVirt,
-        const BindActionCollection *BindCollection,
-        ObjcClassInfoCollection *ClassInfoTree,
+        const BindActionCollection *const BindCollection,
+        ObjcClassInfoCollection *const ClassInfoTree,
         std::vector<std::unique_ptr<ObjcClassCategoryInfo>> &CategoryList,
-        bool IsBigEndian) noexcept
+        const bool IsBigEndian) noexcept
     {
         using PtrAddrType = PointerAddrConstTypeFromKind<Kind>;
         using ObjcCategoryType = ObjcParse::ClassCategoryTypeCalculator<Kind>;
@@ -443,7 +454,7 @@ namespace MachO {
                 }
 
                 // ClassAddr initially points to the 'Class' field that (may)
-                // get binded.
+                // get bound.
 
                 auto Class = static_cast<ObjcClassInfo *>(nullptr);
                 auto ClassAddr =
@@ -507,16 +518,17 @@ namespace MachO {
         }
     }
 
-    ObjcClassCategoryCollection &
+    auto
     ObjcClassCategoryCollection::CollectFrom(
         const uint8_t *Map,
         const SegmentInfoCollection &SegmentCollection,
         const ConstDeVirtualizer &DeVirtualizer,
-        const BindActionCollection *BindCollection,
-        ObjcClassInfoCollection *ClassInfoTree,
-        bool IsBigEndian,
-        bool Is64Bit,
-        Error *ErrorOut) noexcept
+        const BindActionCollection *const BindCollection,
+        ObjcClassInfoCollection *const ClassInfoTree,
+        const bool IsBigEndian,
+        const bool Is64Bit,
+        Error *const ErrorOut) noexcept
+            -> decltype(*this)
     {
         const auto ObjcClassCategorySection =
             SegmentCollection.FindSectionWithName({
@@ -555,20 +567,21 @@ namespace MachO {
         return *this;
     }
 
-    ObjcClassCategoryCollection &
+    auto
     ObjcClassCategoryCollection::CollectFrom(
         const ConstMemoryMap &Map,
         const SegmentInfoCollection &SegmentCollection,
         const ConstDeVirtualizer &DeVirtualizer,
-        ObjcClassInfoCollection *ClassInfoTree,
-        const BindActionList *BindList,
-        const LazyBindActionList *LazyBindList,
-        const WeakBindActionList *WeakBindList,
-        bool IsBigEndian,
-        bool Is64Bit,
-        Error *ErrorOut,
-        BindOpcodeParseError *ParseErrorOut,
-        BindActionCollection::Error *CollectionErrorOut) noexcept
+        ObjcClassInfoCollection *const ClassInfoTree,
+        const BindActionList *const BindList,
+        const LazyBindActionList *const LazyBindList,
+        const WeakBindActionList *const WeakBindList,
+        const bool IsBigEndian,
+        const bool Is64Bit,
+        Error *const ErrorOut,
+        BindOpcodeParseError *const ParseErrorOut,
+        BindActionCollection::Error *const CollectionErrorOut) noexcept
+            -> decltype(*this)
     {
         const auto ObjcClassCategorySection =
             SegmentCollection.FindSectionWithName({

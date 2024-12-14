@@ -1,9 +1,9 @@
 //
-//  include/ADT/BasicMasksHandler.h
+//  ADT/BasicMasksHandler.h
 //  ktool
 //
 //  Created by Suhas Pai on 3/30/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -16,7 +16,7 @@
 template <std::integral T = uint64_t>
 [[nodiscard]]
 constexpr static T GetValueForMask(const T Integer, const T Mask) noexcept {
-    return (Integer & Mask);
+    return Integer & Mask;
 }
 
 template <std::integral T = uint64_t>
@@ -35,15 +35,15 @@ template <std::integral T = uint64_t>
 [[nodiscard]] constexpr static T
 GetValueForMaskAndShift(const T Integer, const T Mask, const T Shift) noexcept {
     const auto MaskedValue = GetValueForMask(Integer, Mask);
-    return (MaskedValue >> Shift);
+    return MaskedValue >> Shift;
 }
 
 template <std::integral T = uint64_t>
-constexpr static T
+constexpr static auto
 SetValueForMaskAndShift(T &Integer,
                         const T Mask,
                         const T Shift,
-                        const T Value) noexcept
+                        const T Value) noexcept -> T
 {
     return SetValueForMask(Integer, Mask, (Value << Shift));
 }
@@ -63,22 +63,24 @@ public:
     constexpr BasicMasksHandler(IntegerType Integer) noexcept
     : Integer(Integer) {};
 
-    [[nodiscard]] constexpr
-    IntegerType getValueForMask(const MaskType Mask) const noexcept {
+    [[nodiscard]]
+    constexpr auto getValueForMask(const MaskType Mask) const noexcept {
         return GetValueForMask(Integer, static_cast<MaskIntegerType>(Mask));
     }
 
     [[nodiscard]] constexpr bool empty() const noexcept {
-        return (Integer == 0);
+        return Integer == 0;
     }
 
     [[nodiscard]]
-    constexpr bool hasValueForMask(const MaskType Mask) const noexcept {
-        return getValueForMask(Mask);
+    constexpr auto hasValueForMask(const MaskType Mask) const noexcept {
+        return this->getValueForMask(Mask);
     }
 
-    constexpr BasicMasksHandler &
-    setValueForMask(const MaskType Mask, const IntegerType Value) noexcept {
+    constexpr auto
+    setValueForMask(const MaskType Mask, const IntegerType Value) noexcept
+        -> decltype(*this)
+    {
         const auto MaskValue = static_cast<MaskIntegerType>(Mask);
         SetValueForMask(this->Integer, MaskValue, Value);
 
@@ -91,61 +93,39 @@ public:
     }
 
     [[nodiscard]]
-    constexpr bool operator==(const BasicMasksHandler &Rhs) const noexcept {
-        return Integer == Rhs.Integer;
+    constexpr auto operator<=>(const BasicMasksHandler &Rhs) const noexcept {
+        return Integer <=> Rhs.Integer;
     }
 
     [[nodiscard]]
-    constexpr bool operator!=(const BasicMasksHandler &Rhs) const noexcept {
-        return Integer != Rhs.Integer;
-    }
-
-    [[nodiscard]]
-    constexpr bool operator<(const BasicMasksHandler &Rhs) const noexcept {
-        return Integer < Rhs.Integer;
-    }
-
-    [[nodiscard]]
-    constexpr bool operator<=(const BasicMasksHandler &Rhs) const noexcept {
-        return Integer <= Rhs.Integer;
-    }
-
-    [[nodiscard]]
-    constexpr bool operator>(const BasicMasksHandler &Rhs) const noexcept {
-        return Integer > Rhs.Integer;
-    }
-
-    [[nodiscard]]
-    constexpr bool operator>=(const BasicMasksHandler &Rhs) const noexcept {
-        return Integer >= Rhs.Integer;
-    }
-
-    [[nodiscard]] constexpr
-    BasicMasksHandler operator&(const BasicMasksHandler &Rhs) const noexcept {
+    constexpr auto operator&(const BasicMasksHandler &Rhs) const noexcept {
         return BasicMasksHandler(Integer & Rhs.Integer);
     }
 
-    constexpr
-    BasicMasksHandler &operator&=(const BasicMasksHandler &Rhs) const noexcept {
-        return (*this = (*this & Rhs.Integer));
-    }
-
-    [[nodiscard]] constexpr
-    BasicMasksHandler operator|(const BasicMasksHandler &Rhs) const noexcept {
-        return BasicMasksHandler(Integer | Rhs.Integer);
-    }
-
-    constexpr
-    BasicMasksHandler &operator|=(const BasicMasksHandler &Rhs) const noexcept {
-        return (*this = (*this | Rhs.Integer));
+    constexpr auto operator&=(const BasicMasksHandler &Rhs) const noexcept
+        -> decltype(*this)
+    {
+        *this = *this & Rhs.Integer;
+        return *this;
     }
 
     [[nodiscard]]
-    constexpr BasicMasksHandler operator~() const noexcept {
+    constexpr auto operator|(const BasicMasksHandler &Rhs) const noexcept {
+        return BasicMasksHandler(Integer | Rhs.Integer);
+    }
+
+    constexpr auto operator|=(const BasicMasksHandler &Rhs) const noexcept
+        -> decltype(*this)
+    {
+        *this = *this | Rhs.Integer;
+        return *this;
+    }
+
+    [[nodiscard]] constexpr auto operator~() const noexcept {
         return BasicMasksHandler(~Integer);
     }
 
-    [[nodiscard]] constexpr IntegerType value() const noexcept {
+    [[nodiscard]] constexpr auto value() const noexcept {
         return Integer;
     }
 
@@ -153,7 +133,7 @@ public:
         return Integer;
     }
 
-    constexpr BasicMasksHandler &clear() noexcept {
+    constexpr auto clear() noexcept -> decltype(*this) {
         Integer = 0;
         return *this;
     }
@@ -178,7 +158,7 @@ public:
     using MaskIntegerType = std::underlying_type_t<MaskType>;
     using ShiftIntegerType = std::underlying_type_t<ShiftType>;
 
-    [[nodiscard]] constexpr IntegerType
+    [[nodiscard]] constexpr auto
     getValueForMaskAndShift(const MaskType Mask,
                             const ShiftType Shift) const noexcept
     {
@@ -188,15 +168,16 @@ public:
         return GetValueForMaskAndShift(this->Integer, MaskedValue, ShiftInteger);
     }
 
-    [[nodiscard]] constexpr IntegerType
-    getValueForMaskNoShift(const MaskType Mask) const noexcept {
+    [[nodiscard]]
+    constexpr auto getValueForMaskNoShift(const MaskType Mask) const noexcept {
         return Base::getValueForMask(Mask);
     }
 
-    constexpr BasicMasksAndShiftsHandler &
+    constexpr auto
     setValueForMaskAndShift(const MaskType Mask,
                             const ShiftType Shift,
                             const IntegerType Value) noexcept
+        -> decltype(*this)
     {
         const auto ShiftAmount = static_cast<IntegerType>(Shift);
         const auto ShiftedValue =
@@ -206,15 +187,18 @@ public:
         return *this;
     }
 
-    constexpr BasicMasksAndShiftsHandler &
+    constexpr auto
     setValueForMaskNoShift(const MaskType Mask,
                            const IntegerType Value) noexcept
+        -> decltype(*this)
     {
         this->setValueForMask(Mask, Value);
         return *this;
     }
 
-    constexpr BasicMasksAndShiftsHandler &clear() noexcept {
+    constexpr auto clear() noexcept
+        -> decltype(*this)
+    {
         this->Base::clear();
         return *this;
     }
@@ -228,12 +212,16 @@ struct BasicFlags : public BasicMasksHandler<FlagsType> {
     constexpr BasicFlags(IntegerType Integer) noexcept
     : BasicMasksHandler<FlagsType>(Integer) {};
 
-    constexpr BasicFlags &add(const FlagsType Flag) noexcept {
+    constexpr auto add(const FlagsType Flag) noexcept
+        -> decltype(*this)
+    {
         this->setValueForMask(Flag, static_cast<int>(Flag));
         return *this;
     }
 
-    constexpr BasicFlags &remove(const FlagsType Flag) noexcept {
+    constexpr auto remove(const FlagsType Flag) noexcept
+        -> decltype(*this)
+    {
         this->setValueForMask(Flag, 0);
         return *this;
     }
@@ -243,18 +231,20 @@ struct BasicFlags : public BasicMasksHandler<FlagsType> {
         return this->getValueForMask(Flag);
     }
 
-    constexpr BasicFlags &
-    setValueForFlag(const FlagsType &Flag, const bool Value) noexcept {
-        this->setValueForMask(Flag, static_cast<IntegerType>(Flag));
+    constexpr auto
+    setValueForFlag(const FlagsType &Flag, const bool Value) noexcept
+        -> decltype(*this)
+    {
+        this->setValueForMask(Flag, static_cast<IntegerType>(Value));
         return *this;
     }
 
     [[nodiscard]]
-    constexpr bool hasBitsSetAfterFlag(const FlagsType Flag) const noexcept {
+    constexpr auto hasBitsSetAfterFlag(const FlagsType Flag) const noexcept {
         const auto FlagInteger = static_cast<IntegerType>(Flag);
         const auto Mask = ~(FlagInteger - 1);
 
-        return (this->Integer & Mask);
+        return this->Integer & Mask;
     }
 
     [[nodiscard]] constexpr operator bool() const noexcept {

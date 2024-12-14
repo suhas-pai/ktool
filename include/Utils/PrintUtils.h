@@ -1,9 +1,9 @@
 //
-//  include/Utils/PrintUtils.h
+//  Utils/PrintUtils.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/16/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -90,17 +90,20 @@ enum PrintKind {
     Verbose
 };
 
-[[nodiscard]]
-constexpr bool PrintKindIsVerbose(PrintKind Kind) noexcept {
-    return (Kind == PrintKind::Verbose);
+[[nodiscard]] constexpr auto PrintKindIsVerbose(const PrintKind Kind) noexcept {
+    return Kind == PrintKind::Verbose;
 }
 
 [[nodiscard]]
-constexpr PrintKind PrintKindFromIsVerbose(bool IsVerbose) noexcept {
+constexpr auto PrintKindFromIsVerbose(const bool IsVerbose) noexcept {
     return (IsVerbose) ? PrintKind::Verbose : PrintKind::Default;
 }
 
-inline int PrintUtilsCharMultTimes(FILE *OutFile, char Ch, int Times) noexcept {
+inline int
+PrintUtilsCharMultTimes(FILE *const OutFile,
+                        const char Ch,
+                        const int Times) noexcept
+{
     assert(Times >= 0 && "PrintUtilsCharMultTimes(): Times less than 0");
     for (auto I = int(); I != Times; I++) {
         fputc(Ch, OutFile);
@@ -109,8 +112,11 @@ inline int PrintUtilsCharMultTimes(FILE *OutFile, char Ch, int Times) noexcept {
     return Times;
 }
 
-inline int
-PrintUtilsStringMultTimes(FILE *OutFile, const char *Str, int Times) noexcept {
+inline auto
+PrintUtilsStringMultTimes(FILE *const OutFile,
+                          const char *const Str,
+                          const int Times) noexcept
+{
     assert(Times >= 0 && "PrintUtilsStringMultTimes(): Times less than 0");
 
     auto Total = int();
@@ -121,27 +127,27 @@ PrintUtilsStringMultTimes(FILE *OutFile, const char *Str, int Times) noexcept {
     return Total;
 }
 
-inline int PrintUtilsPadSpaces(FILE *OutFile, int Times) noexcept {
+inline auto PrintUtilsPadSpaces(FILE *const OutFile, int Times) noexcept {
     assert(Times >= 0 && "PrintUtilsPadSpaces(): Times less than 0");
     return fprintf(OutFile, "%" PRINTF_RIGHTPAD_FMT "s", Times, "");
 }
 
-inline int PrintUtilsPadTabs(FILE *OutFile, int Times) noexcept {
+inline auto PrintUtilsPadTabs(FILE *const OutFile, int Times) noexcept {
     assert(Times >= 0 && "PrintUtilsPadTabs(): Times less than 0");
     return PrintUtilsCharMultTimes(OutFile, '\t', Times);
 }
 
-inline int
-PrintUtilsRightPadSpaces(FILE *OutFile, int WrittenOut, int Total) noexcept {
+inline auto
+PrintUtilsRightPadSpaces(FILE *const OutFile, int WrittenOut, int Total) noexcept {
     const auto PadLength = (Total - WrittenOut);
     return PrintUtilsPadSpaces(OutFile, PadLength);
 }
 
-inline int
-PrintUtilsWriteOffset32OverflowsRange(FILE *OutFile,
+inline auto
+PrintUtilsWriteOffset32OverflowsRange(FILE *const OutFile,
                                       uint32_t Offset,
-                                      const char *Prefix = "",
-                                      const char *Suffix = "") noexcept
+                                      const char *const Prefix = "",
+                                      const char *const Suffix = "") noexcept
 {
     if (Offset != 0) {
         const auto Result =
@@ -157,11 +163,11 @@ PrintUtilsWriteOffset32OverflowsRange(FILE *OutFile,
     return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
 }
 
-inline int
-PrintUtilsWriteOffset64OverflowsRange(FILE *OutFile,
+inline auto
+PrintUtilsWriteOffset64OverflowsRange(FILE *const OutFile,
                                       uint64_t Offset,
-                                      const char *Prefix = "",
-                                      const char *Suffix = "") noexcept {
+                                      const char *const Prefix = "",
+                                      const char *const Suffix = "") noexcept {
     if (Offset != 0) {
         const auto Result =
             fprintf(OutFile,
@@ -176,12 +182,12 @@ PrintUtilsWriteOffset64OverflowsRange(FILE *OutFile,
     return fprintf(OutFile, "%s" OFFSET_0x0 "%s", Prefix, Suffix);
 }
 
-inline int
-PrintUtilsWriteOffset32Range(FILE *OutFile,
+inline auto
+PrintUtilsWriteOffset32Range(FILE *const OutFile,
                              uint32_t Begin,
                              uint32_t End,
-                             const char *Prefix = "",
-                             const char *Suffix = "") noexcept
+                             const char *const Prefix = "",
+                             const char *const Suffix = "") noexcept
 {
     if (Begin != 0) {
         const auto Result =
@@ -205,12 +211,12 @@ PrintUtilsWriteOffset32Range(FILE *OutFile,
     return Result;
 }
 
-inline int
-PrintUtilsWriteOffset64Range(FILE *OutFile,
+inline auto
+PrintUtilsWriteOffset64Range(FILE *const OutFile,
                              uint64_t Begin,
                              uint64_t End,
-                             const char *Prefix = "",
-                             const char *Suffix = "") noexcept
+                             const char *const Prefix = "",
+                             const char *const Suffix = "") noexcept
 {
     if (Begin != 0) {
         const auto Result =
@@ -234,12 +240,12 @@ PrintUtilsWriteOffset64Range(FILE *OutFile,
     return Result;
 }
 
-inline int
-PrintUtilsWriteOffset32To64Range(FILE *OutFile,
-                                 uint32_t Begin,
-                                 uint64_t End,
-                                 const char *Prefix = "",
-                                 const char *Suffix = "") noexcept
+inline auto
+PrintUtilsWriteOffset32To64Range(FILE *const OutFile,
+                                 const uint32_t Begin,
+                                 const uint64_t End,
+                                 const char *const Prefix = "",
+                                 const char *const Suffix = "") noexcept
 {
     if (Begin != 0) {
         const auto Result =
@@ -263,12 +269,12 @@ PrintUtilsWriteOffset32To64Range(FILE *OutFile,
     return Result;
 }
 
-inline int
-PrintUtilsWriteOffsetSizeRange(FILE *OutFile,
+inline auto
+PrintUtilsWriteOffsetSizeRange(FILE *const OutFile,
                                uint32_t Begin,
                                uint32_t Size,
-                               const char *Prefix = "",
-                               const char *Suffix = "") noexcept
+                               const char *const Prefix = "",
+                               const char *const Suffix = "") noexcept
 {
     auto End = uint32_t();
     auto Result = int();
@@ -288,7 +294,7 @@ PrintUtilsWriteOffsetSizeRange(FILE *OutFile,
 }
 
 template <std::integral T>
-inline int
+inline auto
 PrintUtilsWriteNumber(FILE *const OutFile,
                       const T Number,
                       const char *const Prefix = "",
@@ -309,12 +315,12 @@ PrintUtilsWriteNumber(FILE *const OutFile,
     return fprintf(OutFile, "%s%" PRIu8 "%s", Prefix, (uint8_t)Number, Suffix);
 }
 
-inline int
-PrintUtilsWriteOffsetSizeRange(FILE *OutFile,
+inline auto
+PrintUtilsWriteOffsetSizeRange(FILE *const OutFile,
                                uint64_t Begin,
                                uint64_t Size,
-                               const char *Prefix = "",
-                               const char *Suffix = "") noexcept
+                               const char *const Prefix = "",
+                               const char *const Suffix = "") noexcept
 {
     auto End = uint64_t();
     auto Result = int();
@@ -333,12 +339,12 @@ PrintUtilsWriteOffsetSizeRange(FILE *OutFile,
     return Result;
 }
 
-inline int
-PrintUtilsWriteOffset(FILE *OutFile,
+inline auto
+PrintUtilsWriteOffset(FILE *const OutFile,
                       uint32_t Offset,
                       bool Pad = true,
-                      const char *Prefix = "",
-                      const char *Suffix = "") noexcept
+                      const char *const Prefix = "",
+                      const char *const Suffix = "") noexcept
 {
     if (Offset == 0) {
         auto WrittenOut =
@@ -357,12 +363,12 @@ PrintUtilsWriteOffset(FILE *OutFile,
     return fprintf(OutFile, "%s" OFFSET_32_FMT "%s", Prefix, Offset, Suffix);
 }
 
-inline int
-PrintUtilsWriteOffset(FILE *OutFile,
+inline auto
+PrintUtilsWriteOffset(FILE *const OutFile,
                       uint64_t Offset,
                       bool Pad = true,
-                      const char *Prefix = "",
-                      const char *Suffix = "") noexcept
+                      const char *const Prefix = "",
+                      const char *const Suffix = "") noexcept
 {
     if (Offset == 0) {
         auto WrittenOut = fprintf(OutFile, "%s", Prefix);
@@ -383,13 +389,13 @@ PrintUtilsWriteOffset(FILE *OutFile,
     return fprintf(OutFile, "%s" OFFSET_64_FMT "%s", Prefix, Offset, Suffix);
 }
 
-inline int
-PrintUtilsWriteOffset32Or64(FILE *OutFile,
+inline auto
+PrintUtilsWriteOffset32Or64(FILE *const OutFile,
                             bool Is64Bit,
                             uint64_t Offset,
                             bool Pad = true,
-                            const char *Prefix = "",
-                            const char *Suffix = "") noexcept
+                            const char *const Prefix = "",
+                            const char *const Suffix = "") noexcept
 {
     if (Is64Bit) {
         return PrintUtilsWriteOffset(OutFile, Offset, Pad, Prefix, Suffix);
@@ -405,13 +411,13 @@ PrintUtilsWriteOffset32Or64(FILE *OutFile,
     return Result;
 }
 
-inline int
-PrintUtilsWriteOffsetRange(FILE *OutFile,
+inline auto
+PrintUtilsWriteOffsetRange(FILE *const OutFile,
                            uint64_t Begin,
                            uint64_t End,
                            bool Is64Bit,
-                           const char *Prefix = "",
-                           const char *Suffix = "") noexcept
+                           const char *const Prefix = "",
+                           const char *const Suffix = "") noexcept
 {
     if (Is64Bit) {
         const auto Result =
@@ -429,13 +435,13 @@ PrintUtilsWriteOffsetRange(FILE *OutFile,
     return Result;
 }
 
-inline int
-PrintUtilsWriteOffsetRange32(FILE *OutFile,
-                             uint32_t Begin,
-                             uint64_t End,
-                             bool Is64Bit,
-                             const char *Prefix = "",
-                             const char *Suffix = "") noexcept
+inline auto
+PrintUtilsWriteOffsetRange32(FILE *const OutFile,
+                             const uint32_t Begin,
+                             const uint64_t End,
+                             const bool Is64Bit,
+                             const char *const Prefix = "",
+                             const char *const Suffix = "") noexcept
 {
     if (Is64Bit) {
         const auto Result =
@@ -457,14 +463,14 @@ PrintUtilsWriteOffsetRange32(FILE *OutFile,
     return Result;
 }
 
-inline int
-PrintUtilsWriteSizeRange32(FILE *OutFile,
-                           bool Is64Bit,
-                           uint32_t Offset,
-                           uint32_t Size,
-                           uint64_t *EndOut,
-                           const char *Prefix = "",
-                           const char *Suffix = "") noexcept
+inline auto
+PrintUtilsWriteSizeRange32(FILE *const OutFile,
+                           const bool Is64Bit,
+                           const uint32_t Offset,
+                           const uint32_t Size,
+                           uint64_t *const EndOut,
+                           const char *const Prefix = "",
+                           const char *const Suffix = "") noexcept
 {
     auto End = uint64_t();
     auto Overflows = false;
@@ -504,14 +510,14 @@ PrintUtilsWriteSizeRange32(FILE *OutFile,
     return PrintUtilsWriteOffset32Range(OutFile, Offset, End32, Prefix, Suffix);
 }
 
-inline int
-PrintUtilsWriteSizeRange64(FILE *OutFile,
-                           bool Is64Bit,
-                           uint64_t Offset,
-                           uint64_t Size,
-                           uint64_t *EndOut,
-                           const char *Prefix = "",
-                           const char *Suffix = "") noexcept
+inline auto
+PrintUtilsWriteSizeRange64(FILE *const OutFile,
+                           const bool Is64Bit,
+                           const uint64_t Offset,
+                           const uint64_t Size,
+                           uint64_t *const EndOut,
+                           const char *const Prefix = "",
+                           const char *const Suffix = "") noexcept
 {
     auto End = uint64_t();
     auto Overflows = false;
@@ -540,20 +546,22 @@ PrintUtilsWriteSizeRange64(FILE *OutFile,
 }
 
 template <const char String[], int Length>
-inline int PrintUtilsWriteBackwards(FILE *OutFile) noexcept {
+inline auto PrintUtilsWriteBackwards(FILE *const OutFile) noexcept {
     PrintUtilsCharMultTimes(OutFile, '\b', Length);
     return fprintf(OutFile, "%" PRINTF_PRECISION_FMT "s", Length, String);
 }
 
-inline int
-PrintUtilsWriteBackwards(FILE *OutFile, const char *String, int Length) noexcept
+inline auto
+PrintUtilsWriteBackwards(FILE *const OutFile,
+                         const char *const String,
+                         const int Length) noexcept
 {
     PrintUtilsCharMultTimes(OutFile, '\b', Length);
     return fprintf(OutFile, "%" PRINTF_PRECISION_FMT "s", Length, String);
 }
 
 template <std::integral T>
-[[nodiscard]] inline int PrintUtilsGetIntegerDigitLength(T Integer) noexcept {
+[[nodiscard]] inline auto PrintUtilsGetIntegerDigitLength(T Integer) noexcept {
     auto DigitLength = int();
     do {
         DigitLength++;
@@ -563,18 +571,18 @@ template <std::integral T>
 }
 
 template <typename T>
-[[nodiscard]] inline int
+[[nodiscard]] inline auto
 PrintUtilsGetIntegerDigitLength(const LargestIntHelper<T> &Helper) noexcept {
     return PrintUtilsGetIntegerDigitLength(Helper.value());
 }
 
 int
-PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
+PrintUtilsWriteMachOSegmentSectionPair(FILE *const OutFile,
                                        const char *SegmentName,
                                        const char *SectionName,
                                        bool Pad,
-                                       const char *Prefix = "",
-                                       const char *Suffix = "") noexcept;
+                                       const char *const Prefix = "",
+                                       const char *const Suffix = "") noexcept;
 
 namespace MachO {
     struct SegmentInfo;
@@ -582,18 +590,18 @@ namespace MachO {
 }
 
 int
-PrintUtilsWriteMachOSegmentSectionPair(FILE *OutFile,
+PrintUtilsWriteMachOSegmentSectionPair(FILE *const OutFile,
                                        const MachO::SegmentInfo *Segment,
                                        const MachO::SectionInfo *Section,
                                        bool Pad,
-                                       const char *Prefix = "",
-                                       const char *Suffix = "") noexcept;
+                                       const char *const Prefix = "",
+                                       const char *const Suffix = "") noexcept;
 
-inline int
-PrintUtilsWriteUuid(FILE *OutFile,
+inline auto
+PrintUtilsWriteUuid(FILE *const OutFile,
                     const uint8_t Uuid[16],
-                    const char *Prefix = "",
-                    const char *Suffix = "") noexcept
+                    const char *const Prefix = "",
+                    const char *const Suffix = "") noexcept
 {
     const auto Result =
         fprintf(OutFile,
@@ -633,7 +641,7 @@ constexpr static std::string_view PrintUtilFormatSizeNames[] = {
 };
 
 template <std::integral T>
-inline int
+inline auto
 PrintUtilsWriteFormattedNumber(FILE *const OutFile,
                                const T Number,
                                const char *const Prefix = "",
@@ -650,11 +658,11 @@ PrintUtilsWriteFormattedNumber(FILE *const OutFile,
     return fprintf(OutFile, "%s%s%s", Prefix, String.c_str(), Suffix);
 }
 
-inline int
-PrintUtilsWriteFormattedSize(FILE *OutFile,
-                             uint64_t Size,
-                             const char *Prefix = "",
-                             const char *Suffix = "") noexcept
+inline auto
+PrintUtilsWriteFormattedSize(FILE *const OutFile,
+                             const uint64_t Size,
+                             const char *const Prefix = "",
+                             const char *const Suffix = "") noexcept
 {
     constexpr auto Base = 1000;
 
@@ -680,9 +688,9 @@ PrintUtilsWriteFormattedSize(FILE *OutFile,
     return 0;
 }
 
-inline int
-PrintUtilsWriteItemAfterFirstForList(FILE *OutFile,
-                                     const char *String,
+inline auto
+PrintUtilsWriteItemAfterFirstForList(FILE *const OutFile,
+                                     const char *const String,
                                      bool &DidPassFirst) noexcept
 {
     auto WrittenOut = int();

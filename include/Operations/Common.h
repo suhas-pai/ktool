@@ -1,13 +1,12 @@
 //
-//  include/Operations/Common.h
+//  Operations/Common.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/23/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
-#include <string_view>
 
 #include "ADT/MachO.h"
 #include "Objects/MachOMemory.h"
@@ -17,13 +16,13 @@ struct OperationCommon {
     GetLoadCommandStorage(MachOMemoryObject &Object, FILE *ErrFile) noexcept;
 
     static MachO::ConstLoadCommandStorage
-    GetConstLoadCommandStorage(const ConstMachOMemoryObject &Object,
+    GetConstLoadCommandStorage(const MachOMemoryObject &Object,
                                FILE *ErrFile) noexcept;
 
     constexpr static auto InvalidLCString =
         std::string_view("(Invalid LoadCommand-String)");
 
-    [[nodiscard]] static const std::string_view &
+    [[nodiscard]] static std::string_view
     GetLoadCommandStringValue(
         const MachO::LoadCommandString::GetValueResult &) noexcept;
 
@@ -38,7 +37,7 @@ struct OperationCommon {
         MachO::SharedLibraryInfoCollection::Error Error) noexcept;
 
     static void
-    PrintSpecialDylibOrdinal(FILE *OutFile, int64_t DylibOrdinal) noexcept;
+    PrintSpecialDylibOrdinal(FILE *const OutFile, int64_t DylibOrdinal) noexcept;
 
     static int
     HandleBindOpcodeParseError(FILE *ErrFile,
@@ -53,18 +52,18 @@ struct OperationCommon {
     HandleRebaseOpcodeParseError(FILE *ErrFile,
                                  MachO::RebaseOpcodeParseError Error) noexcept;
 
-    // 32 for Max Segment and Section Names, 4 for the apostraphes, and 1 for
+    // 32 for Max Segment and Section Names, 4 for the apostrophes, and 1 for
     // the comma.
 
     constexpr static auto SegmentSectionPairMaxLength = 32 + 4 + 1;
 
     static void
-    PrintDylibOrdinalPath(FILE *OutFile,
+    PrintDylibOrdinalPath(FILE *const OutFile,
                           const MachO::SharedLibraryInfoCollection &Collection,
                           int64_t DylibOrdinal) noexcept;
 
     static void
-    PrintDylibOrdinalInfo(FILE *OutFile,
+    PrintDylibOrdinalInfo(FILE *const OutFile,
                           const MachO::SharedLibraryInfoCollection &Collection,
                           int64_t DylibOrdinal,
                           PrintKind Print) noexcept;
@@ -97,7 +96,7 @@ struct OperationCommon {
     GetBindActionCollection(
         FILE *ErrFile,
         const ConstMemoryMap &Map,
-        const LocationRange &Range,
+        const Range &Range,
         const MachO::ConstLoadCommandStorage &LoadCmdStorage,
         const MachO::SegmentInfoCollection &SegmentCollection,
         MachO::BindActionCollection &Collection,
@@ -114,13 +113,13 @@ struct OperationCommon {
     GetFlagInfoList(MachO::Header::FlagsType Flags) noexcept;
 
     static void
-    PrintFlagInfoList(FILE *OutFile,
+    PrintFlagInfoList(FILE *const OutFile,
                       const std::vector<FlagInfo> &FlagInfoList,
                       PrintKind PrintKind,
                       const char *LinePrefix = "",
                       const char *LineSuffix = "") noexcept;
 
     static int
-    HandleExportTrieParseError(FILE *OutFile,
+    HandleExportTrieParseError(FILE *const OutFile,
                                MachO::ExportTrieParseError ParseError) noexcept;
 };

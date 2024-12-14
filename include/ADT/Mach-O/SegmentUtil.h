@@ -1,15 +1,12 @@
 //
-//  include/ADT/Mach-O/SegmentUtil.h
+//  ADT/Mach-O/SegmentUtil.h
 //  ktool
 //
 //  Created by Suhas Pai on 5/16/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
-
-#include "ADT/MemoryMap.h"
-#include "Concepts/Const.h"
 #include "SegmentInfo.h"
 
 namespace MachO {
@@ -41,78 +38,90 @@ namespace MachO {
                               bool Is64Bit,
                               Error *ErrorOut) noexcept;
     public:
-        [[nodiscard]] static SegmentInfoCollection
+        [[nodiscard]] static auto
         Open(const ConstLoadCommandStorage &LoadCmdStorage,
              bool Is64Bit,
-             Error *ErrorOut) noexcept;
+             Error *ErrorOut) noexcept
+                -> SegmentInfoCollection;
 
-        [[nodiscard]] static std::unique_ptr<SegmentInfo>
+        [[nodiscard]] static auto
         OpenSegmentInfoWithName(const ConstLoadCommandStorage &LoadCmdStorage,
                                 bool Is64Bit,
                                 std::string_view Name,
-                                Error *ErrorOut) noexcept;
+                                Error *ErrorOut) noexcept
+            -> std::unique_ptr<SegmentInfo>;
 
-        [[nodiscard]] static std::unique_ptr<SectionInfo>
+        [[nodiscard]] static auto
         OpenSectionInfoWithName(const ConstLoadCommandStorage &LoadCmdStorage,
                                 bool Is64Bit,
                                 std::string_view SegmentName,
                                 std::string_view SectionName,
                                 std::unique_ptr<SegmentInfo> *SegmentOut,
-                                Error *ErrorOut) noexcept;
+                                Error *ErrorOut) noexcept
+            -> std::unique_ptr<SectionInfo>;
 
-        [[nodiscard]] const SegmentInfo &front() const noexcept {
-            return *List.front().get();
+        [[nodiscard]] inline auto &front() const noexcept {
+            return *this->List.front().get();
         }
 
-        [[nodiscard]] const SegmentInfo &back() const noexcept {
-            return *List.back().get();
+        [[nodiscard]] inline auto &back() const noexcept {
+            return *this->List.back().get();
         }
 
-        [[nodiscard]] const SegmentInfo *
-        GetInfoForName(std::string_view Name) const noexcept;
+        [[nodiscard]] auto
+        GetInfoForName(std::string_view Name) const noexcept
+            -> const SegmentInfo *;
 
-        [[nodiscard]] const SectionInfo *
+        [[nodiscard]] auto
         FindSectionWithName(std::string_view SegmentName,
-                            std::string_view Name) const noexcept;
+                            std::string_view Name) const noexcept
+            -> const SectionInfo *;
 
-        [[nodiscard]] const SegmentInfo *
-        FindSegmentContainingAddress(uint64_t Address) const noexcept;
+        [[nodiscard]] auto
+        FindSegmentContainingAddress(uint64_t Address) const noexcept
+            -> const SegmentInfo *;
 
-        [[nodiscard]] const SectionInfo *
+        [[nodiscard]] auto
         FindSectionWithName(
-            const std::initializer_list<SectionNamePair> &List) const noexcept;
+            const std::initializer_list<SectionNamePair> &List) const noexcept
+                -> const SectionInfo *;
 
-        [[nodiscard]] const SectionInfo *
-        GetSectionWithIndex(uint64_t SectionIndex) const noexcept;
+        [[nodiscard]] auto
+        GetSectionWithIndex(uint64_t SectionIndex) const noexcept
+            -> const SectionInfo *;
 
-        [[nodiscard]] uint8_t *
+        [[nodiscard]] auto
         GetDataForVirtualAddr(uint8_t *Map,
                               uint64_t Addr,
                               uint64_t Size,
-                              uint8_t **EndOut = nullptr) const noexcept;
+                              uint8_t **EndOut = nullptr) const noexcept
+            -> uint8_t *;
 
-        [[nodiscard]] const uint8_t *
+        [[nodiscard]] auto
         GetDataForVirtualAddr(const uint8_t *Map,
                               uint64_t Addr,
                               uint64_t Size,
-                              const uint8_t **EndOut = nullptr) const noexcept;
+                              const uint8_t **EndOut = nullptr) const noexcept
+            -> const uint8_t *;
 
-        [[nodiscard]] uint8_t *
+        [[nodiscard]] auto
         GetDataForVirtualAddrIgnoreSections(
             uint8_t *Map,
             uint64_t Addr,
             uint64_t Size,
-            uint8_t **EndOut = nullptr) const noexcept;
+            uint8_t **EndOut = nullptr) const noexcept
+                -> uint8_t *;
 
-        [[nodiscard]] const uint8_t *
+        [[nodiscard]] auto
         GetDataForVirtualAddrIgnoreSections(
             const uint8_t *Map,
             uint64_t Addr,
             uint64_t Size,
-            const uint8_t **EndOut = nullptr) const noexcept;
+            const uint8_t **EndOut = nullptr) const noexcept
+                -> const uint8_t *;
 
         template <Concepts::NotConst T>
-        [[nodiscard]] inline T *
+        [[nodiscard]] inline auto
         GetPtrForVirtualAddr(uint8_t *const Map,
                              const uint64_t Addr,
                              const uint64_t Size = sizeof(T),
@@ -128,7 +137,7 @@ namespace MachO {
         }
 
         template <typename T>
-        [[nodiscard]] inline T *
+        [[nodiscard]] inline auto
         GetPtrForVirtualAddr(const uint8_t *const Map,
                              const uint64_t Addr,
                              const uint64_t Size = sizeof(T),
@@ -145,7 +154,7 @@ namespace MachO {
         }
 
         template <Concepts::NotConst T>
-        [[nodiscard]] inline T *
+        [[nodiscard]] inline auto
         GetPtrForVirtualAddrIgnoreSections(
              uint8_t *const Map,
              const uint64_t Addr,
@@ -163,7 +172,7 @@ namespace MachO {
         }
 
         template <typename T>
-        [[nodiscard]] inline T *
+        [[nodiscard]] inline auto
         GetPtrForVirtualAddrIgnoreSections(
             const uint8_t *const Map,
             const uint64_t Addr,
@@ -180,42 +189,41 @@ namespace MachO {
             return reinterpret_cast<T *>(Data);
         }
 
-        [[nodiscard]]
-        inline const SegmentInfo &at(const uint64_t Index) const noexcept {
-            assert(IndexOutOfBounds(Index, this->size()));
-            return *List.at(Index).get();
+        [[nodiscard]] inline auto size() const noexcept {
+            return this->List.size();
         }
 
-        [[nodiscard]] inline
-        const SegmentInfo *atOrNull(const uint64_t Index) const noexcept {
+        [[nodiscard]] inline auto &at(const uint64_t Index) const noexcept {
+            assert(IndexOutOfBounds(Index, this->size()));
+            return *this->List.at(Index).get();
+        }
+
+        [[nodiscard]] inline auto atOrNull(const uint64_t Index) const noexcept
+            -> const SegmentInfo *
+        {
             if (IndexOutOfBounds(Index, this->size())) {
                 return nullptr;
             }
 
-            return List.at(Index).get();
+            return this->List.at(Index).get();
         }
 
-        [[nodiscard]] inline bool empty() const noexcept {
-            return List.empty();
+        [[nodiscard]] inline auto empty() const noexcept {
+            return this->List.empty();
         }
 
-        [[nodiscard]] inline uint64_t size() const noexcept {
-            return List.size();
+        [[nodiscard]] inline auto begin() const noexcept {
+            return this->List.cbegin();
         }
 
-        [[nodiscard]]
-        inline decltype(List)::const_iterator begin() const noexcept {
-            return List.cbegin();
-        }
-
-        [[nodiscard]]
-        inline decltype(List)::const_iterator end() const noexcept {
-            return List.cend();
+        [[nodiscard]] inline auto end() const noexcept {
+            return this->List.cend();
         }
     };
 
-    SegmentInfoCollection::Error
+    auto
     CollectSegmentInfoList(const ConstLoadCommandStorage &LoadCmdStorage,
                            bool Is64Bit,
-                           SegmentInfoCollection &CollectionOut) noexcept;
+                           SegmentInfoCollection &CollectionOut) noexcept
+        -> SegmentInfoCollection::Error;
 }

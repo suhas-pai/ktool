@@ -1,14 +1,12 @@
 //
-//  include/ADT/DscImage/SegmentUtil.h
+//  ADT/DscImage/SegmentUtil.h
 //  ktool
 //
 //  Created by Suhas Pai on 7/17/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
-
-#include "ADT/DyldSharedCache/Headers.h"
 #include "ADT/Mach-O/SegmentUtil.h"
 
 namespace DscImage {
@@ -19,32 +17,36 @@ namespace DscImage {
     protected:
         uint64_t ImageAddress;
     public:
-        [[nodiscard]] static SegmentInfoCollection
+        [[nodiscard]] static auto
         Open(uint64_t ImageAddress,
              const MachO::ConstLoadCommandStorage &LoadCmdStorage,
              bool Is64Bit,
-             Error *ErrorOut) noexcept;
+             Error *ErrorOut) noexcept
+            -> SegmentInfoCollection;
 
-        [[nodiscard]] inline uint64_t
+        [[nodiscard]] constexpr auto
         getFullAddressFromRelative(const uint64_t Relative) const noexcept {
             return ImageAddress + Relative;
         }
 
-        [[nodiscard]] inline const SegmentInfo *
+        [[nodiscard]] constexpr auto
         FindSegmentWithImageRelativeAddress(const uint64_t Address)
             const noexcept
         {
-            const auto FullAddr = getFullAddressFromRelative(Address);
+            const auto FullAddr = this->getFullAddressFromRelative(Address);
             return FindSegmentContainingAddress(FullAddr);
         }
 
-        [[nodiscard]] inline const SectionInfo *
+        [[nodiscard]] constexpr auto
         FindSectionWithImageRelativeAddress(
             const uint64_t Address,
             const SegmentInfo **const SegmentOut = nullptr) const noexcept
+                -> const SectionInfo *
         {
-            const auto FullAddr = getFullAddressFromRelative(Address);
-            if (const auto Segment = FindSegmentContainingAddress(FullAddr)) {
+            const auto FullAddr = this->getFullAddressFromRelative(Address);
+            if (const auto Segment =
+                    this->FindSegmentContainingAddress(FullAddr))
+            {
                 *SegmentOut = Segment;
                 return Segment->FindSectionContainingAddress(FullAddr);
             }

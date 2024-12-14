@@ -1,20 +1,17 @@
 //
-//  src/Operations/PrintArchList.cpp
+//  Operations/PrintArchList.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 4/24/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cstring>
-#include "ADT/MachO.h"
+
+#include "Operations/Operation.h"
+#include "Operations/PrintArchList.h"
 
 #include "Utils/MachOTypePrinter.h"
-#include "Utils/PrintUtils.h"
-
-#include "Common.h"
-#include "Operation.h"
-#include "PrintArchList.h"
 
 PrintArchListOperation::PrintArchListOperation() noexcept : Operation(OpKind) {}
 PrintArchListOperation::PrintArchListOperation(
@@ -22,7 +19,7 @@ PrintArchListOperation::PrintArchListOperation(
 : Operation(OpKind), Options(Options) {}
 
 int
-PrintArchListOperation::Run(const ConstFatMachOMemoryObject &Object,
+PrintArchListOperation::Run(const FatMachOMemoryObject &Object,
                             const struct Options &Options) noexcept
 {
     const auto ArchCount = Object.getArchCount();
@@ -47,9 +44,10 @@ PrintArchListOperation::Run(const ConstFatMachOMemoryObject &Object,
     return 0;
 }
 
-struct PrintArchListOperation::Options
+auto
 PrintArchListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                          int *const IndexOut) noexcept
+    -> struct PrintArchListOperation::Options
 {
     auto Index = int();
     struct Options Options;

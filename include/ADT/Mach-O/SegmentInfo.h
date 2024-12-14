@@ -1,9 +1,9 @@
 //
-//  include/ADT/Mach-O/SegmentInfo.h
+//  ADT/Mach-O/SegmentInfo.h
 //  ktool
 //
 //  Created by Suhas Pai on 5/16/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -12,7 +12,9 @@
 #include <string>
 #include <vector>
 
-#include "ADT/LocationRange.h"
+#include "ADT/Range.h"
+#include "ADT/Mach-O/MemoryProtections.h"
+
 #include "Concepts/Const.h"
 #include "Utils/MiscTemplates.h"
 
@@ -25,111 +27,126 @@ namespace MachO {
         const SegmentInfo *Segment;
         std::string Name;
 
-        LocationRange FileRange;
-        LocationRange MemoryRange;
+        Range FileRange;
+        Range MemoryRange;
 
         SegmentSectionFlags Flags;
 
         uint32_t Reserved1;
         uint32_t Reserved2;
     public:
-        [[nodiscard]]
-        constexpr const SegmentInfo *getSegment() const noexcept {
+        [[nodiscard]] constexpr auto getSegment() const noexcept {
             return Segment;
         }
 
         [[nodiscard]]
-        constexpr std::string_view getName() const noexcept {
-            return Name;
+        constexpr auto getName() const noexcept -> std::string_view {
+            return this->Name;
         }
 
-        [[nodiscard]]
-        constexpr const LocationRange &getFileRange() const noexcept {
-            return FileRange;
+        [[nodiscard]] constexpr auto getFileRange() const noexcept {
+            return this->FileRange;
         }
 
-        [[nodiscard]]
-        constexpr const LocationRange &getMemoryRange() const noexcept {
-            return MemoryRange;
+        [[nodiscard]] constexpr auto getMemoryRange() const noexcept {
+            return this->MemoryRange;
         }
 
-        [[nodiscard]]
-        constexpr SegmentSectionFlags getFlags() const noexcept {
-            return Flags;
+        [[nodiscard]] constexpr auto getFlags() const noexcept {
+            return this->Flags;
         }
 
-        [[nodiscard]]
-        constexpr SegmentSectionKind getKind() const noexcept {
-            return getFlags().getKind();
+        [[nodiscard]] constexpr auto getKind() const noexcept {
+            return this->getFlags().getKind();
         }
 
-        [[nodiscard]] constexpr uint32_t getReserved1() const noexcept {
-            return Reserved1;
+        [[nodiscard]] constexpr auto getReserved1() const noexcept {
+            return this->Reserved1;
         }
 
-        [[nodiscard]] constexpr uint32_t getReserved2() const noexcept {
-            return Reserved2;
+        [[nodiscard]] constexpr auto getReserved2() const noexcept {
+            return this->Reserved2;
         }
 
-        constexpr
-        SectionInfo &setSegment(const SegmentInfo *const Segment) noexcept {
+        constexpr auto setSegment(const SegmentInfo *const Segment) noexcept
+            -> decltype(*this)
+        {
             this->Segment = Segment;
             return *this;
         }
 
-        constexpr SectionInfo &setName(const std::string &Name) noexcept {
+        constexpr auto setNameCopy(const std::string_view Name) noexcept
+            -> decltype(*this)
+        {
             this->Name = Name;
             return *this;
         }
 
-        constexpr
-        SectionInfo &setFileRange(const LocationRange &LocRange) noexcept {
+        constexpr auto setName(std::string_view &&Name) noexcept
+            -> decltype(*this)
+        {
+            this->Name = std::move(Name);
+            return *this;
+        }
+
+        constexpr auto setFileRange(const Range &LocRange) noexcept
+            -> decltype(*this)
+        {
             this->FileRange = LocRange;
             return *this;
         }
 
-        constexpr
-        SectionInfo &setMemoryRange(const LocationRange &LocRange) noexcept {
+        constexpr auto setMemoryRange(const Range &LocRange) noexcept
+            -> decltype(*this)
+        {
             this->MemoryRange = LocRange;
             return *this;
         }
 
-        constexpr
-        SectionInfo &setFlags(const SegmentSectionFlags Flags) noexcept {
+        constexpr auto setFlags(const SegmentSectionFlags Flags) noexcept
+            -> decltype(*this)
+        {
             this->Flags = Flags;
             return *this;
         }
 
-        constexpr SectionInfo &setReserved1(const uint32_t Num) noexcept {
+        constexpr auto setReserved1(const uint32_t Num) noexcept
+            -> decltype(*this)
+        {
             this->Reserved1 = Num;
             return *this;
         }
 
-        constexpr SectionInfo &setReserved2(const uint32_t Num) noexcept {
+        constexpr auto setReserved2(const uint32_t Num) noexcept
+            -> decltype(*this)
+        {
             this->Reserved2 = Num;
             return *this;
         }
 
         template <Concepts::NotConst T = uint8_t>
-        [[nodiscard]] inline T *getData(uint8_t *const Map) const noexcept {
-            return reinterpret_cast<T *>(Map + getFileRange().getBegin());
+        [[nodiscard]] inline auto getData(uint8_t *const Map) const noexcept {
+            return reinterpret_cast<T *>(Map + this->getFileRange().getBegin());
         }
 
         template <typename T = const uint8_t>
         [[nodiscard]]
-        inline T *getData(const uint8_t *const Map) const noexcept {
-            return reinterpret_cast<T *>(Map + getFileRange().getBegin());
+        inline auto getData(const uint8_t *const Map) const noexcept {
+            return reinterpret_cast<T *>(Map + this->getFileRange().getBegin());
         }
 
         template <Concepts::NotConst T = uint8_t>
-        [[nodiscard]] inline T *getDataEnd(uint8_t *const Map) const noexcept {
-            return reinterpret_cast<T *>(Map + getFileRange().getEnd());
+        [[nodiscard]]
+        inline auto getDataEnd(uint8_t *const Map) const noexcept {
+            return reinterpret_cast<T *>(
+                Map + this->getFileRange().getEnd().value());
         }
 
         template <typename T = const uint8_t>
         [[nodiscard]]
-        inline T *getDataEnd(const uint8_t *const Map) const noexcept {
-            return reinterpret_cast<T *>(Map + getFileRange().getEnd());
+        inline auto getDataEnd(const uint8_t *const Map) const noexcept {
+            return reinterpret_cast<T *>(
+                Map + this->getFileRange().getEnd().value());
         }
     };
 
@@ -137,8 +154,8 @@ namespace MachO {
     protected:
         std::string Name;
 
-        LocationRange FileRange;
-        LocationRange MemoryRange;
+        Range FileRange;
+        Range MemoryRange;
 
         MemoryProtections InitProt;
         MemoryProtections MaxProt;
@@ -146,81 +163,97 @@ namespace MachO {
         SegmentFlags Flags;
         std::vector<std::unique_ptr<SectionInfo>> SectionList;
     public:
-        [[nodiscard]] constexpr std::string_view getName() const noexcept {
-            return Name;
-        }
-
-        [[nodiscard]] constexpr LocationRange getFileRange() const noexcept {
-            return FileRange;
-        }
-
-        [[nodiscard]] constexpr LocationRange getMemoryRange() const noexcept {
-            return MemoryRange;
-        }
-
-        [[nodiscard]] constexpr MemoryProtections getInitProt() const noexcept {
-            return InitProt;
-        }
-
-        [[nodiscard]] constexpr MemoryProtections getMaxProt() const noexcept {
-            return MaxProt;
-        }
-
-        [[nodiscard]] constexpr SegmentFlags getFlags() const noexcept {
-            return Flags;
-        }
-
         [[nodiscard]]
-        constexpr const decltype(SectionList) &getSectionList() const noexcept {
-            return SectionList;
+        constexpr auto getName() const noexcept -> std::string_view {
+            return this->Name;
         }
 
-        [[nodiscard]]
-        constexpr decltype(SectionList) &getSectionListRef() noexcept {
-            return SectionList;
+        [[nodiscard]] constexpr auto getFileRange() const noexcept {
+            return this->FileRange;
         }
 
-        constexpr SegmentInfo &setName(std::string_view Name) noexcept {
+        [[nodiscard]] constexpr auto getMemoryRange() const noexcept {
+            return this->MemoryRange;
+        }
+
+        [[nodiscard]] constexpr auto getInitProt() const noexcept {
+            return this->InitProt;
+        }
+
+        [[nodiscard]] constexpr auto getMaxProt() const noexcept {
+            return this->MaxProt;
+        }
+
+        [[nodiscard]] constexpr auto getFlags() const noexcept {
+            return this->Flags;
+        }
+
+        [[nodiscard]] constexpr auto &getSectionList() const noexcept {
+            return this->SectionList;
+        }
+
+        [[nodiscard]] constexpr auto &getSectionListRef() noexcept {
+            return this->SectionList;
+        }
+
+        constexpr auto setName(std::string_view Name) noexcept
+            -> decltype(*this)
+        {
             this->Name = Name;
             return *this;
         }
 
-        constexpr SegmentInfo &setFileRange(LocationRange LocRange) noexcept {
+        constexpr auto setFileRange(Range LocRange) noexcept
+            -> decltype(*this)
+        {
             this->FileRange = LocRange;
             return *this;
         }
 
-        constexpr SegmentInfo &setMemoryRange(LocationRange LocRange) noexcept {
+        constexpr auto setMemoryRange(Range LocRange) noexcept
+            -> decltype(*this)
+        {
             this->MemoryRange = LocRange;
             return *this;
         }
 
-        constexpr SegmentInfo &setInitProt(MemoryProtections Prot) noexcept {
+        constexpr auto setInitProt(MemoryProtections Prot) noexcept
+            -> decltype(*this)
+        {
             this->InitProt = Prot;
             return *this;
         }
 
-        constexpr SegmentInfo &setMaxProt(MemoryProtections Prot) noexcept {
+        constexpr auto setMaxProt(MemoryProtections Prot) noexcept
+            -> decltype(*this)
+        {
             this->MaxProt = Prot;
             return *this;
         }
 
-        constexpr SegmentInfo &setFlags(SegmentFlags Flags) noexcept {
+        constexpr auto setFlags(SegmentFlags Flags) noexcept
+            -> decltype(*this)
+        {
             this->Flags = Flags;
             return *this;
         }
 
-        [[nodiscard]] const SectionInfo *
-        FindSectionWithName(std::string_view Name) const noexcept;
+        [[nodiscard]] auto
+        FindSectionWithName(std::string_view Name) const noexcept
+            -> const SectionInfo *;
 
-        [[nodiscard]] const SectionInfo *
-        FindSectionContainingAddress(uint64_t Address) const noexcept;
+        [[nodiscard]] auto
+        FindSectionContainingAddress(uint64_t Address) const noexcept
+            -> const SectionInfo *;
 
-        [[nodiscard]] const SectionInfo *
-        FindSectionContainingRelativeAddress(uint64_t Address) const noexcept;
+        [[nodiscard]] auto
+        FindSectionContainingRelativeAddress(uint64_t Address) const noexcept
+            -> const SectionInfo *;
 
-        [[nodiscard]] inline const SectionInfo *
-        getSectionAtOrdinal(const uint64_t Ordinal) const noexcept {
+        [[nodiscard]]
+        inline auto getSectionAtOrdinal(const uint64_t Ordinal) const noexcept
+            -> const SectionInfo *
+        {
             const auto SectionIndex = OrdinalToIndex(Ordinal);
             if (IndexOutOfBounds(SectionIndex, SectionList.size())) {
                 return nullptr;
@@ -230,25 +263,28 @@ namespace MachO {
         }
 
         template <Concepts::NotConst T = uint8_t>
-        [[nodiscard]] inline T *getData(uint8_t *const Map) const noexcept {
-            return reinterpret_cast<T *>(Map + getFileRange().getBegin());
+        [[nodiscard]] inline auto getData(uint8_t *const Map) const noexcept {
+            return reinterpret_cast<T *>(Map + this->getFileRange().getBegin());
         }
 
         template <typename T = const uint8_t>
         [[nodiscard]]
-        inline T *getData(const uint8_t *const Map) const noexcept {
-            return reinterpret_cast<T *>(Map + getFileRange().getBegin());
+        inline auto getData(const uint8_t *const Map) const noexcept {
+            return reinterpret_cast<T *>(Map + this->getFileRange().getBegin());
         }
 
         template <Concepts::NotConst T = uint8_t>
-        [[nodiscard]] inline T *getDataEnd(uint8_t *const Map) const noexcept {
-            return reinterpret_cast<T *>(Map + getFileRange().getEnd());
+        [[nodiscard]]
+        inline auto getDataEnd(uint8_t *const Map) const noexcept {
+            return reinterpret_cast<T *>(
+                Map + this->getFileRange().getEnd().value());
         }
 
         template <typename T = const uint8_t>
         [[nodiscard]]
-        inline T *getDataEnd(const uint8_t *const Map) const noexcept {
-            return reinterpret_cast<T *>(Map + getFileRange().getEnd());
+        inline auto getDataEnd(const uint8_t *const Map) const noexcept {
+            return reinterpret_cast<T *>(
+                Map + this->getFileRange().getEnd().value());
         }
     };
 }

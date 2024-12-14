@@ -1,9 +1,9 @@
 //
-//  include/Utils/Path.h
+//  Utils/Path.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/11/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -13,17 +13,18 @@
 
 struct PathUtil {
     [[nodiscard]]
-    static inline bool isAbsolute(std::string_view Path) noexcept {
+    static inline auto isAbsolute(const std::string_view Path) noexcept {
         if (Path.empty()) {
             return false;
         }
 
-        return (Path.front() == '/');
+        return Path.front() == '/';
     }
 
-    [[nodiscard]]
-    static std::string MakeAbsolute(std::string_view Path) noexcept;
+    [[nodiscard]] static auto MakeAbsolute(std::string_view Path) noexcept
+        -> std::string;
 
-    [[nodiscard]] static std::string
-    ConcatPaths(std::string_view Lhs, std::string_view Rhs) noexcept;
+    [[nodiscard]] static
+    auto ConcatPaths(std::string_view Lhs, std::string_view Rhs) noexcept
+        -> std::string;
 };

@@ -1,17 +1,16 @@
 
 //
-//  include/ADT/Mach-O/ExportTrieUtil.h
+//  ADT/Mach-O/ExportTrieUtil.h
 //  ktool
 //
 //  Created by Suhas Pai on 6/5/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
 
 #include <memory>
 
-#include "ADT/ByteVector.h"
 #include "ADT/Tree.h"
 
 #include "ExportTrie.h"
@@ -35,43 +34,14 @@ namespace MachO {
             return new ExportTrieChildNode;
         }
 
-        [[nodiscard]] inline ExportTrieChildNode *getParent() const noexcept {
-            return get(Parent);
-        }
-
         [[nodiscard]]
-        inline ExportTrieChildNode *getPrevSibling() const noexcept {
-            return get(PrevSibling);
-        }
-
-        [[nodiscard]]
-        inline ExportTrieChildNode *getNextSibling() const noexcept {
-            return get(NextSibling);
-        }
-
-        [[nodiscard]]
-        inline ExportTrieChildNode *getFirstChild() const noexcept {
-            return get(FirstChild);
-        }
-
-        [[nodiscard]]
-        inline ExportTrieChildNode *getLastChild() const noexcept {
-            return get(LastChild);
-        }
-
-        [[nodiscard]]
-        static inline ExportTrieChildNode &get(TreeNode &Node) noexcept {
+        static inline auto &get(TreeNode &Node) noexcept {
             return reinterpret_cast<ExportTrieChildNode &>(Node);
         }
 
-        [[nodiscard]] static inline
-        const ExportTrieChildNode &get(const TreeNode &Node) noexcept {
-            return reinterpret_cast<const ExportTrieChildNode &>(Node);
-        }
-
         [[nodiscard]]
-        static inline ExportTrieChildNode *get(TreeNode *Node) noexcept {
-            return reinterpret_cast<ExportTrieChildNode *>(Node);
+        static inline auto &get(const TreeNode &Node) noexcept {
+            return reinterpret_cast<const ExportTrieChildNode &>(Node);
         }
 
         [[nodiscard]] static inline
@@ -79,30 +49,54 @@ namespace MachO {
             return reinterpret_cast<const ExportTrieChildNode *>(Node);
         }
 
-        [[nodiscard]] inline uint64_t GetLength() const noexcept override {
-            return String.length();
+        [[nodiscard]] static inline auto get(TreeNode *Node) noexcept {
+            return reinterpret_cast<ExportTrieChildNode *>(Node);
+        }
+
+        [[nodiscard]] inline auto getParent() const noexcept {
+            return this->get(this->Parent);
+        }
+
+        [[nodiscard]] inline auto getPrevSibling() const noexcept {
+            return this->get(this->PrevSibling);
+        }
+
+        [[nodiscard]] inline auto getNextSibling() const noexcept {
+            return this->get(this->NextSibling);
         }
 
         [[nodiscard]]
-        constexpr ExportTrieExportKind getKind() const noexcept {
+        inline auto getFirstChild() const noexcept {
+            return this->get(this->FirstChild);
+        }
+
+        [[nodiscard]] inline auto getLastChild() const noexcept {
+            return this->get(this->LastChild);
+        }
+
+        [[nodiscard]] inline uint64_t GetLength() const noexcept override {
+            return this->String.length();
+        }
+
+        [[nodiscard]] constexpr auto getKind() const noexcept {
             return Kind;
         }
 
-        [[nodiscard]]
-        constexpr std::string_view getString() const noexcept {
-            return String;
+        [[nodiscard]] constexpr auto getString() const noexcept {
+            return std::string_view(String);
         }
 
-        [[nodiscard]] constexpr bool isExport() const noexcept {
-            return (getKind() != ExportTrieExportKind::None);
+        [[nodiscard]] constexpr auto isExport() const noexcept {
+            return this->getKind() != ExportTrieExportKind::None;
         }
 
-        [[nodiscard]] constexpr bool isReexport() const noexcept {
-            return (getKind() == ExportTrieExportKind::Reexport);
+        [[nodiscard]] constexpr auto isReexport() const noexcept {
+            return this->getKind() == ExportTrieExportKind::Reexport;
         }
 
-        [[nodiscard]]
-        inline ExportTrieExportChildNode *getIfExportNode() noexcept {
+        [[nodiscard]] inline auto getIfExportNode() noexcept
+            -> ExportTrieExportChildNode *
+        {
             if (this->isExport()) {
                 return reinterpret_cast<ExportTrieExportChildNode *>(this);
             }
@@ -110,8 +104,9 @@ namespace MachO {
             return nullptr;
         }
 
-        [[nodiscard]] inline
-        const ExportTrieExportChildNode *getIfExportNode() const noexcept {
+        [[nodiscard]] inline auto getIfExportNode() const noexcept
+            -> const ExportTrieExportChildNode *
+        {
             if (!this->isExport()) {
                 return nullptr;
             }
@@ -119,20 +114,19 @@ namespace MachO {
             return reinterpret_cast<const ExportTrieExportChildNode *>(this);
         }
 
-        [[nodiscard]]
-        inline ExportTrieExportChildNode *getAsExportNode() noexcept {
+        [[nodiscard]] inline auto getAsExportNode() noexcept {
             assert(this->isExport());
             return reinterpret_cast<ExportTrieExportChildNode *>(this);
         }
 
-        [[nodiscard]] inline
-        const ExportTrieExportChildNode *getAsExportNode() const noexcept {
+        [[nodiscard]] inline auto getAsExportNode() const noexcept {
             assert(this->isExport());
             return reinterpret_cast<const ExportTrieExportChildNode *>(this);
         }
 
-        inline
-        ExportTrieChildNode &setParent(ExportTrieChildNode *Parent) noexcept {
+        constexpr auto setParent(ExportTrieChildNode *Parent) noexcept
+            -> decltype(*this)
+        {
             this->Parent = Parent;
             return *this;
         }
@@ -147,13 +141,13 @@ namespace MachO {
     public:
         using ExportTrieChildNode::ExportTrieChildNode;
 
-        [[nodiscard]]
-        constexpr const ExportTrieExportInfo &getInfo() const noexcept {
-            return Info;
+        [[nodiscard]] constexpr auto &getInfo() const noexcept {
+            return this->Info;
         }
 
-        constexpr ExportTrieExportChildNode &
-        setInfo(const ExportTrieExportInfo &Value) noexcept {
+        constexpr auto setInfo(const ExportTrieExportInfo &Value) noexcept
+            -> decltype(*this)
+        {
             this->Info = Value;
             return *this;
         }
@@ -163,26 +157,28 @@ namespace MachO {
             return new ExportTrieExportChildNode;
         }
 
-        [[nodiscard]] inline const SegmentInfo *getSegment() const noexcept {
+        [[nodiscard]] inline auto getSegment() const noexcept {
             assert(!this->isReexport());
-            return Segment;
+            return this->Segment;
         }
 
-        [[nodiscard]] inline const SectionInfo *getSection() const noexcept {
+        [[nodiscard]] inline auto getSection() const noexcept {
             assert(!this->isReexport());
-            return Section;
+            return this->Section;
         }
 
-        constexpr
-        ExportTrieChildNode &setSegment(const SegmentInfo *Value) noexcept {
+        constexpr auto setSegment(const SegmentInfo *const Value) noexcept
+            -> decltype(*this)
+        {
             assert(!this->isReexport());
 
             this->Segment = Value;
             return *this;
         }
 
-        constexpr
-        ExportTrieChildNode &setSection(const SectionInfo *Value) noexcept {
+        constexpr auto setSection(const SectionInfo *const Value) noexcept
+            -> decltype(*this)
+        {
             assert(!this->isReexport());
 
             this->Section = Value;
@@ -217,12 +213,12 @@ namespace MachO {
              const SegmentInfoCollection *SegmentCollection,
              Error *ErrorOut = nullptr);
 
-        [[nodiscard]] inline ChildNode *getRoot() const noexcept {
-            return reinterpret_cast<ChildNode *>(Root);
+        [[nodiscard]] inline auto getRoot() const noexcept {
+            return reinterpret_cast<ChildNode *>(this->Root);
         }
 
-        inline
-        ChildNode *RemoveNode(ChildNode &Ref, bool RemoveParentLeafs) noexcept {
+        inline auto
+        RemoveNode(ChildNode &Ref, const bool RemoveParentLeafs) noexcept {
             auto &Node = reinterpret_cast<TreeNode &>(Ref);
             const auto Result = Tree::RemoveNode(Node, RemoveParentLeafs);
 
@@ -232,32 +228,35 @@ namespace MachO {
         using Iterator = TreeIterator<ChildNode>;
         using ConstIterator = TreeIterator<const ChildNode>;
 
-        [[nodiscard]] inline Iterator begin() const noexcept {
-            return Iterator(getRoot());
+        [[nodiscard]] inline auto begin() const noexcept {
+            return Iterator(this->getRoot());
         }
 
-        [[nodiscard]] inline Iterator end() const noexcept {
+        [[nodiscard]] inline auto end() const noexcept {
             return Iterator::Null();
         }
 
-        [[nodiscard]] inline ConstIterator cbegin() const noexcept {
-            return ConstIterator(getRoot());
+        [[nodiscard]] inline auto cbegin() const noexcept {
+            return ConstIterator(this->getRoot());
         }
 
-        [[nodiscard]] inline ConstIterator cend() const noexcept {
+        [[nodiscard]] inline auto cend() const noexcept {
             return ConstIterator::Null();
         }
 
         template <typename T>
-        inline ExportTrieEntryCollection &forEach(const T &Callback) noexcept {
-            forEachNode(Callback);
+        inline auto forEach(const T &Callback) noexcept
+            -> decltype(*this)
+        {
+            this->forEachNode(Callback);
             return *this;
         }
 
         template <typename T>
-        inline const ExportTrieEntryCollection &
-        forEach(const T &Callback) const noexcept {
-            forEachNode(Callback);
+        inline auto forEach(const T &Callback) const noexcept
+            -> decltype(*this)
+        {
+            this->forEachNode(Callback);
             return *this;
         }
     };
@@ -270,33 +269,33 @@ namespace MachO {
         const SectionInfo *Section = nullptr;
     public:
         [[nodiscard]]
-        constexpr const ExportTrieExportInfo &getInfo() const noexcept {
+        constexpr auto &getInfo() const noexcept {
             return Export;
         }
 
-        [[nodiscard]]
-        constexpr ExportTrieExportInfo &getInfo() noexcept {
-            return Export;
+        [[nodiscard]] constexpr auto getInfo() noexcept {
+            return this->Export;
         }
 
         [[nodiscard]]
-        constexpr const SegmentInfo *getSegment() const noexcept {
-            return Segment;
+        constexpr auto getSegment() const noexcept {
+            return this->Segment;
         }
 
         [[nodiscard]]
-        constexpr const SectionInfo *getSection() const noexcept {
-            return Section;
+        constexpr auto getSection() const noexcept {
+            return this->Section;
         }
 
-        constexpr ExportTrieExportCollectionEntryInfo &
-        setSegment(const SegmentInfo *Value) noexcept {
+        constexpr auto setSegment(const SegmentInfo *const Value) noexcept
+            -> decltype(*this)
+        {
             this->Segment = Value;
             return *this;
         }
 
-        constexpr ExportTrieExportCollectionEntryInfo &
-        setSection(const SectionInfo *Value) noexcept {
+        constexpr auto
+        setSection(const SectionInfo *const Value) noexcept -> decltype(*this) {
             this->Section = Value;
             return *this;
         }
@@ -320,20 +319,20 @@ namespace MachO {
         using Iterator = EntryListType::iterator;
         using ConstIterator = EntryListType::const_iterator;
 
-        [[nodiscard]] inline Iterator begin() noexcept {
-            return EntryList.begin();
+        [[nodiscard]] inline auto begin() noexcept {
+            return this->EntryList.begin();
         }
 
-        [[nodiscard]] inline Iterator end() noexcept {
-            return EntryList.end();
+        [[nodiscard]] inline auto end() noexcept {
+            return this->EntryList.end();
         }
 
-        [[nodiscard]] inline ConstIterator begin() const noexcept {
-            return EntryList.cbegin();
+        [[nodiscard]] inline auto begin() const noexcept {
+            return this->EntryList.cbegin();
         }
 
-        [[nodiscard]] inline ConstIterator end() const noexcept {
-            return EntryList.cend();
+        [[nodiscard]] inline auto end() const noexcept {
+            return this->EntryList.cend();
         }
     };
 }

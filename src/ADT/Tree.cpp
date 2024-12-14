@@ -1,15 +1,12 @@
 //
-//  src/ADT/Tree.cpp
+//  ADT/Tree.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 6/8/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include <algorithm>
-
-#include "Utils/PrintUtils.h"
-#include "Tree.h"
+#include "ADT/Tree.h"
 
 TreeNode &TreeNode::SetAsParentOfChildren() noexcept {
     return SetAsParentOfChildren(*this);
@@ -53,7 +50,7 @@ void TreeNode::ValidateChildArray() const noexcept {
         return;
     }
 
-    const auto FirstChild = getFirstChild();
+    const auto FirstChild = this->getFirstChild();
     assert(FirstChild->getParent() == this);
 
     const auto SecondChild = FirstChild->getNextSibling();
@@ -71,7 +68,7 @@ void TreeNode::ValidateChildArray() const noexcept {
         Prev = &Sibling;
     });
 
-    assert(Prev == getLastChild());
+    assert(Prev == this->getLastChild());
 }
 
 static void
@@ -122,19 +119,24 @@ TreeNode &TreeNode::AddChild(TreeNode &Node) noexcept {
     return *this;
 }
 
-TreeNode &
-TreeNode::AddChildren(TreeNode &Node, TreeNode *const End) noexcept {
+auto TreeNode::AddChildren(TreeNode &Node, TreeNode *const End) noexcept
+    -> decltype(*this)
+{
     AddChildrenRaw(*this, Node, End);
     return *this;
 }
 
-TreeNode &TreeNode::AddSibling(TreeNode &Node) noexcept {
+auto TreeNode::AddSibling(TreeNode &Node) noexcept
+    -> decltype(*this)
+{
     AddSiblingsRaw(*this, Node, nullptr);
     return *this;
 }
 
-TreeNode &
-TreeNode::AddSiblings(TreeNode &Node, TreeNode *const End) noexcept {
+auto
+TreeNode::AddSiblings(TreeNode &Node, TreeNode *const End) noexcept
+    -> decltype(*this)
+{
     AddSiblingsRaw(*this, Node, End);
     return *this;
 }
@@ -152,9 +154,10 @@ uint64_t Tree::GetCount() const noexcept {
     return Count;
 }
 
-const TreeNode *
+auto
 TreeNode::FindPrevNodeForIterator(const TreeNode *const End,
                                   uint64_t *const DepthChangeOut) const noexcept
+    -> const TreeNode *
 {
     auto DepthChange = uint64_t();
     for (auto Node = this; Node != End; Node = Node->getParent()) {
@@ -172,10 +175,11 @@ TreeNode::FindPrevNodeForIterator(const TreeNode *const End,
     return End;
 }
 
-const TreeNode *
+auto
 TreeNode::FindNextSiblingForIterator(
     const TreeNode *const End,
     uint64_t *const DepthChangeOut) const noexcept
+    -> const TreeNode *
 {
     auto DepthChange = uint64_t();
     for (auto Node = this; Node != End; Node = Node->getParent()) {
@@ -197,11 +201,12 @@ TreeNode::FindNextSiblingForIterator(
     return End;
 }
 
-const TreeNode *
+auto
 TreeNode::FindNextNodeForIterator(const TreeNode *const End,
                                   int64_t *const DepthChangeOut) const noexcept
+    -> const TreeNode *
 {
-    if (const auto FirstChild = getFirstChild()) {
+    if (const auto FirstChild = this->getFirstChild()) {
         if (DepthChangeOut != nullptr) {
             *DepthChangeOut = -1;
         }
@@ -210,7 +215,7 @@ TreeNode::FindNextNodeForIterator(const TreeNode *const End,
     }
 
     const auto Out = reinterpret_cast<uint64_t *>(DepthChangeOut);
-    return FindNextSiblingForIterator(End, Out);
+    return this->FindNextSiblingForIterator(End, Out);
 }
 
 static void ClearNode(TreeNode &Node) noexcept {
@@ -288,7 +293,7 @@ static void IsolateNode(TreeNode &Node) noexcept {
     }
 }
 
-[[nodiscard]] static bool
+[[nodiscard]] static auto
 DoRemoveLeafParents(TreeNode &LeafParent, TreeNode &Root) noexcept {
     auto Child = &LeafParent;
     auto Parent = LeafParent.getParent();
@@ -310,7 +315,7 @@ DoRemoveLeafParents(TreeNode &LeafParent, TreeNode &Root) noexcept {
     return RemovedRoot;
 }
 
-[[nodiscard]] static bool
+[[nodiscard]] static auto
 IsolateNodeAndRemoveFromParent(TreeNode &Node,
                                TreeNode &Root,
                                const bool RemoveLeafParents) noexcept
@@ -330,11 +335,13 @@ IsolateNodeAndRemoveFromParent(TreeNode &Node,
     return RemovedRoot;
 }
 
-TreeNode *
-Tree::RemoveNode(TreeNode &Node, const bool RemoveParentLeafs) noexcept {
-    if (&Node == Root) {
+auto
+Tree::RemoveNode(TreeNode &Node, const bool RemoveParentLeafs) noexcept
+    -> TreeNode *
+{
+    if (&Node == this->getRoot()) {
         if (Node.isLeaf()) {
-            setRoot(nullptr);
+            this->setRoot(nullptr);
 
             IsolateNode(Node);
             Node.clearAndDestroy();
@@ -343,16 +350,16 @@ Tree::RemoveNode(TreeNode &Node, const bool RemoveParentLeafs) noexcept {
         }
 
         if (Node.hasOnlyOneChild()) {
-            setRoot(Node.getFirstChild());
+            this->setRoot(Node.getFirstChild());
 
             IsolateNode(Node);
             Node.clearAndDestroy();
 
-            return getRoot();
+            return this->getRoot();
         }
 
-        setRoot(Node.createNew());
-        getRoot()->SetAsParentOfChildren(*Node.getFirstChild());
+        this->setRoot(Node.createNew());
+        this->getRoot()->SetAsParentOfChildren(*Node.getFirstChild());
 
         IsolateNode(Node);
         Node.clearAndDestroy();
@@ -364,7 +371,7 @@ Tree::RemoveNode(TreeNode &Node, const bool RemoveParentLeafs) noexcept {
         const_cast<TreeNode *>(Node.FindNextNodeForIterator());
 
     if (IsolateNodeAndRemoveFromParent(Node, *Root, RemoveParentLeafs)) {
-        setRoot(nullptr);
+        this->setRoot(nullptr);
     }
 
     return NextNode;

@@ -1,25 +1,23 @@
 //
-//  include/ADT/Info.h
+//  ADT/Info.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/5/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
 
 #include <cstdint>
-#include <string_view>
 
 namespace Mach {
     constexpr auto CpuKindIs64BitMask = static_cast<uint32_t>(0x1000000);
-    constexpr auto CpuKindIs64Bit32Mask =
-        static_cast<uint32_t>(0x2000000);
+    constexpr auto CpuKindIs64Bit32Mask = static_cast<uint32_t>(0x2000000);
 
     constexpr auto Arm64PtrAuthMask = static_cast<uint32_t>(0x0f000000);
 
     [[nodiscard]]
-    constexpr uint32_t Arm64PtrAuthGetVersion(const uint32_t X) noexcept {
+    constexpr auto Arm64PtrAuthGetVersion(const uint32_t X) noexcept {
         return (X & Arm64PtrAuthMask) >> 24;
     }
 
@@ -50,11 +48,11 @@ namespace Mach {
     };
 
     [[nodiscard]] inline bool CpuKindIs64Bit(const CpuKind CpuKind) noexcept {
-        return (static_cast<int32_t>(CpuKind) & CpuKindIs64BitMask);
+        return static_cast<int32_t>(CpuKind) & CpuKindIs64BitMask;
     }
 
     [[nodiscard]] inline bool CpuKindIs64Bit32(const CpuKind CpuKind) noexcept {
-        return (static_cast<int32_t>(CpuKind) & CpuKindIs64Bit32Mask);
+        return static_cast<int32_t>(CpuKind) & CpuKindIs64Bit32Mask;
     }
 
     namespace CpuSubKind {

@@ -1,9 +1,9 @@
 //
-//  include/Operations/Operation.h
+//  Operations/Operation.h
 //  ktool
 //
 //  Created by Suhas Pai on 08/21/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -154,8 +154,10 @@ struct OperationKindInfo<OperationKind::PrintImageList> {
     typedef PrintImageListOperation Type;
 };
 
-[[nodiscard]] constexpr std::string_view
-OperationKindGetOptionShortName(const OperationKind Kind) noexcept {
+[[nodiscard]] constexpr auto
+OperationKindGetOptionShortName(const OperationKind Kind) noexcept
+    -> std::optional<std::string_view>
+{
     switch (Kind) {
         case OperationKind::None:
             assert(0 && "Object-Kind is None");
@@ -178,12 +180,14 @@ OperationKindGetOptionShortName(const OperationKind Kind) noexcept {
         case OperationKind::PrintCStringSection:
         case OperationKind::PrintSymbolPtrSection:
         case OperationKind::PrintImageList:
-            return std::string_view();
+            return std::nullopt;
     }
 }
 
-constexpr const std::string_view &
-OperationKindGetName(const OperationKind Kind) noexcept {
+constexpr auto
+OperationKindGetName(const OperationKind Kind) noexcept
+    -> std::string_view
+{
     switch (Kind) {
         case OperationKind::None:
             assert(0 && "OperationKindGetName() got Operation-Kind None");
@@ -225,8 +229,8 @@ OperationKindGetName(const OperationKind Kind) noexcept {
     assert(0 && "Reached end of OperationKindGetName()");
 }
 
-[[nodiscard]] constexpr
-std::string_view OperationKindGetOptionName(const OperationKind Kind) noexcept {
+[[nodiscard]]
+constexpr auto OperationKindGetOptionName(const OperationKind Kind) noexcept {
     switch (Kind) {
         case OperationKind::None:
             assert(0 && "Object-Kind is None");
@@ -263,7 +267,7 @@ std::string_view OperationKindGetOptionName(const OperationKind Kind) noexcept {
     }
 }
 
-[[nodiscard]] constexpr std::string_view
+[[nodiscard]] constexpr auto
 OperationKindGetDescription(const OperationKind Kind) noexcept {
     switch (Kind) {
         case OperationKind::None:

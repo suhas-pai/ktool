@@ -1,110 +1,109 @@
 //
-//  include/ADT/MemoryMap.h
+//  ADT/MemoryMap.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/3/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
 
 #include <cstdint>
-
-#include "LocationRange.h"
-#include "RelativeRange.h"
+#include "Range.h"
 
 struct ConstMemoryMap {
 protected:
     const uint8_t *Begin;
     const uint8_t *End;
 public:
-    constexpr ConstMemoryMap(const void *Begin, const void *End) noexcept
+    constexpr
+    ConstMemoryMap(const void *const Begin, const void *const End) noexcept
     : Begin(static_cast<const uint8_t *>(Begin)),
       End(static_cast<const uint8_t *>(End))
     {
         assert(Begin <= End);
     }
 
-    [[nodiscard]] inline const uint8_t *getBegin() const noexcept {
-        return Begin;
+    [[nodiscard]] inline auto getBegin() const noexcept {
+        return this->Begin;
     }
 
-    [[nodiscard]] inline const uint8_t *getEnd() const noexcept {
-        return End;
+    [[nodiscard]] inline auto getEnd() const noexcept {
+        return this->End;
     }
 
-    [[nodiscard]] inline uint64_t size() const noexcept {
-        return (getEnd() - getBegin());
-    }
-
-    template <typename T>
-    [[nodiscard]] inline const T *getBeginAs() const noexcept {
-        return reinterpret_cast<const T *>(getBegin());
+    [[nodiscard]] inline auto size() const noexcept {
+        return this->getEnd() - this->getBegin();
     }
 
     template <typename T>
-    [[nodiscard]] inline const T *getEndAs() const noexcept {
-        return reinterpret_cast<const T *>(getEnd());
+    [[nodiscard]] inline auto getBeginAs() const noexcept {
+        return reinterpret_cast<const T *>(this->getBegin());
     }
 
-    [[nodiscard]] inline RelativeRange getRange() const noexcept {
-        return RelativeRange(size());
+    template <typename T>
+    [[nodiscard]] inline auto getEndAs() const noexcept {
+        return reinterpret_cast<const T *>(this->getEnd());
+    }
+
+    [[nodiscard]] inline auto getRange() const noexcept {
+        return Range::CreateWithSize(0, this->size());
     }
 
     [[nodiscard]] inline bool containsOffset(uint64_t Offset) const noexcept {
-        return getRange().containsLocation(Offset);
+        return this->getRange().hasLocation(Offset);
     }
 
     [[nodiscard]]
     inline bool containsEndOffset(uint64_t EndOffset) const noexcept {
-        return getRange().containsEndLocation(EndOffset);
+        return this->getRange().hasEndLocation(EndOffset);
     }
 
     [[nodiscard]]
-    inline bool containsLocRange(const LocationRange &LocRange) const noexcept {
-        return getRange().containsLocRange(LocRange);
+    inline bool containsLocRange(const Range &LocRange) const noexcept {
+        return this->getRange().contains(LocRange);
     }
 
     [[nodiscard]] inline bool containsPtr(const void *Ptr) const noexcept {
-        const auto Range = LocationRange::CreateWithEnd(getBegin(), getEnd());
-        return Range.containsLocation(Ptr);
+        const auto Range = Range::CreateWithEnd(this->getBegin(), this->getEnd());
+        return Range.hasLocation(Ptr);
     }
 
     [[nodiscard]] inline bool containsEndPtr(const void *Ptr) const noexcept {
-        const auto Range = LocationRange::CreateWithEnd(getBegin(), getEnd());
-        return Range.containsEndLocation(Ptr);
+        const auto Range = Range::CreateWithEnd(this->getBegin(), this->getEnd());
+        return Range.hasEndLocation(Ptr);
     }
 
     template <typename T>
     [[nodiscard]] constexpr
     inline bool isLargeEnoughForType(uint64_t Count = 1) const noexcept {
-        return getRange().isLargeEnoughForType<T>(Count);
+        return this->getRange().isLargeEnoughForType<T>(Count);
     }
 
     [[nodiscard]]
     constexpr bool isLargeEnoughForSize(uint64_t Size) const noexcept {
-        return getRange().isLargeEnoughForSize(Size);
+        return this->getRange().isLargeEnoughForSize(Size);
     }
 
     [[nodiscard]]
     constexpr ConstMemoryMap mapFromPtr(const void *Begin) const noexcept {
         assert(containsPtr(Begin));
-        return ConstMemoryMap(Begin, getEnd());
+        return ConstMemoryMap(this->Begin, this->getEnd());
     }
 
     [[nodiscard]]
     constexpr ConstMemoryMap mapFromOffset(uint64_t Offset) const noexcept {
         assert(containsOffset(Offset));
-        return ConstMemoryMap(getBegin() + Offset, getEnd());
+        return ConstMemoryMap(this->getBegin() + Offset, this->getEnd());
     }
 
     [[nodiscard]] constexpr ConstMemoryMap
-    mapFromLocRange(const LocationRange &LocRange) const noexcept {
+    mapFromLocRange(const Range &LocRange) const noexcept {
         assert(containsLocRange(LocRange));
 
-        const auto ThisBegin = getBegin();
+        const auto ThisBegin = this->getBegin();
         const auto Begin = ThisBegin + LocRange.getBegin();
-        const auto End = ThisBegin + LocRange.getEnd();
+        const auto End = ThisBegin + LocRange.getEnd().value();
 
         return ConstMemoryMap(Begin, End);
     }
@@ -156,17 +155,17 @@ public:
     }
 
     [[nodiscard]] constexpr ConstMemoryMap
-    constMapFromLocRange(const LocationRange &LocRange) const noexcept {
+    constMapFromLocRange(const Range &LocRange) const noexcept {
         return ConstMemoryMap::mapFromLocRange(LocRange);
     }
 
     [[nodiscard]] constexpr MemoryMap
-    mapFromLocRange(const LocationRange &LocRange) const noexcept {
-        assert(containsLocRange(LocRange));
+    mapFromLocRange(const Range &LocRange) const noexcept {
+        assert(this->containsLocRange(LocRange));
 
-        const auto ThisBegin = getBegin();
+        const auto ThisBegin = this->getBegin();
         const auto Begin = ThisBegin + LocRange.getBegin();
-        const auto End = ThisBegin + LocRange.getEnd();
+        const auto End = ThisBegin + LocRange.getEnd().value();
 
         return MemoryMap(Begin, End);
     }

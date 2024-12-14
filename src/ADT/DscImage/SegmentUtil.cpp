@@ -1,20 +1,21 @@
 //
-//  src/ADT/DscImage/SegmentUtil.cpp
+//  ADT/DscImage/SegmentUtil.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 7/17/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "SegmentUtil.h"
+#include "ADT/DscImage/SegmentUtil.h"
 
 namespace DscImage {
-    SegmentInfoCollection
+    auto
     SegmentInfoCollection::Open(
         const uint64_t ImageAddress,
         const MachO::ConstLoadCommandStorage &LoadCmdStorage,
         const bool Is64Bit,
         Error *const ErrorOut) noexcept
+            -> SegmentInfoCollection
     {
         auto Result = SegmentInfoCollection();
 

@@ -1,28 +1,24 @@
 //
-//  src/ADT/Mach-O/LoadCommands.cpp
+//  ADT/Mach-O/LoadCommands.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 3/30/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include <algorithm>
 #include <cstring>
 #include <string_view>
 
-#include "ADT/MachO.h"
-
-#include "LoadCommandsCommon.h"
-#include "Utils/Leb128.h"
-#include "Utils/MiscTemplates.h"
-#include "Utils/PointerUtils.h"
-#include "Utils/SwitchEndian.h"
-
-#include "LoadCommandTemplates.h"
+#include "ADT/Mach-O/LoadCommands.h"
+#include "ADT/Mach-O/LoadCommandsCommon.h"
+#include "ADT/Mach-O/LoadCommandTemplates.h"
 
 namespace MachO {
-    LoadCommand::CmdSizeInvalidKind
-    ValidateCmdsize(const LoadCommand *LC, bool IsBigEndian) noexcept {
+    auto
+    ValidateCmdsize(const LoadCommand *const LC,
+                    const bool IsBigEndian) noexcept
+        -> LoadCommand::CmdSizeInvalidKind
+    {
         switch (LC->getKind(IsBigEndian)) {
             case LoadCommand::Kind::Segment: {
                 using ConstPtrType =
@@ -492,8 +488,9 @@ namespace MachO {
         return LoadCommand::CmdSizeInvalidKind::None;
     }
 
-    constexpr static auto EmptyStringView = std::string_view();
-    const std::string_view &LoadCommand::KindGetName(Kind Kind) noexcept {
+    auto LoadCommand::KindGetName(const Kind Kind) noexcept
+        -> std::optional<std::string_view>
+    {
         switch (Kind) {
             case Kind::Segment:
                 return LoadCommandKindInfo<Kind::Segment>::Name;
@@ -607,11 +604,12 @@ namespace MachO {
                 return LoadCommandKindInfo<Kind::FileSetEntry>::Name;
         }
 
-        return EmptyStringView;
+        return std::nullopt;
     }
 
-    const std::string_view &
-    LoadCommand::KindGetDescription(Kind Kind) noexcept {
+    auto LoadCommand::KindGetDescription(const Kind Kind) noexcept
+        -> std::optional<std::string_view>
+    {
         switch (Kind) {
             case Kind::Segment:
                 return LoadCommandKindInfo<Kind::Segment>::Description;
@@ -732,54 +730,60 @@ namespace MachO {
                 return LoadCommandKindInfo<Kind::FileSetEntry>::Description;
         }
 
-        return EmptyStringView;
+        return std::nullopt;
     }
 
-    [[nodiscard]] static inline bool
-    IsSectionListValidForSegmentCommand(uint32_t SectionCount,
-                                        uint32_t SectionSize,
-                                        uint32_t ThisSize,
-                                        uint32_t CmdSize) noexcept
+    [[nodiscard]] static inline auto
+    IsSectionListValidForSegmentCommand(const uint32_t SectionCount,
+                                        const uint32_t SectionSize,
+                                        const uint32_t ThisSize,
+                                        const uint32_t CmdSize) noexcept
     {
         const auto SectionListSize = SectionSize * SectionCount;
         const auto ExpectedCmdSize = ThisSize + SectionListSize;
 
-        return (CmdSize >= ExpectedCmdSize);
+        return CmdSize >= ExpectedCmdSize;
     }
 
-    bool SegmentCommand::isSectionListValid(bool IsBigEndian) const noexcept {
+    bool
+    SegmentCommand::isSectionListValid(const bool IsBigEndian) const noexcept {
         const auto Result =
-            IsSectionListValidForSegmentCommand(getSectionCount(IsBigEndian),
-                                                sizeof(Section),
-                                                sizeof(this),
-                                                getCmdSize(IsBigEndian));
+            IsSectionListValidForSegmentCommand(
+                this->getSectionCount(IsBigEndian),
+                sizeof(Section),
+                sizeof(*this),
+                this->getCmdSize(IsBigEndian));
 
         return Result;
     }
 
-    bool SegmentCommand64::isSectionListValid(bool IsBigEndian) const noexcept {
-        const auto Result =
-            IsSectionListValidForSegmentCommand(getSectionCount(IsBigEndian),
-                                                sizeof(Section),
-                                                sizeof(this),
-                                                getCmdSize(IsBigEndian));
-
-        return Result;
-    }
-
-    [[nodiscard]] static inline bool
-    IsLoadCommandStringOffsetValid(uint32_t MinSize,
-                                   uint32_t CmdSize,
-                                   uint32_t Offset)
+    bool
+    SegmentCommand64::isSectionListValid(
+        const bool IsBigEndian) const noexcept
     {
-        const auto Range = LocationRange::CreateWithEnd(MinSize, CmdSize);
-        return Range.containsLocation(Offset);
+        const auto Result =
+            IsSectionListValidForSegmentCommand(
+                this->getSectionCount(IsBigEndian),
+                sizeof(Section),
+                sizeof(*this),
+                this->getCmdSize(IsBigEndian));
+
+        return Result;
     }
 
-    [[nodiscard]] static inline uint32_t
-    LoadCommandStringGetLength(const void *Begin,
-                               uint32_t Offset,
-                               uint32_t CmdSize)
+    [[nodiscard]] static inline auto
+    IsLoadCommandStringOffsetValid(const uint32_t MinSize,
+                                   const uint32_t CmdSize,
+                                   const uint32_t Offset)
+    {
+        const auto Range = Range::CreateWithEnd(MinSize, CmdSize);
+        return Range.hasLocation(Offset);
+    }
+
+    [[nodiscard]] static inline auto
+    LoadCommandStringGetLength(const void *const Begin,
+                               const uint32_t Offset,
+                               const uint32_t CmdSize)
     {
         const auto Ptr = reinterpret_cast<const char *>(Begin) + Offset;
         const auto MaxLength = (CmdSize - 1 - Offset);
@@ -789,27 +793,28 @@ namespace MachO {
     }
 
     bool
-    LoadCommandString::isOffsetValid(uint32_t MinSize,
-                                     uint32_t CmdSize,
-                                     bool IsBigEndian) const noexcept
+    LoadCommandString::isOffsetValid(const uint32_t MinSize,
+                                     const uint32_t CmdSize,
+                                     const bool IsBigEndian) const noexcept
     {
-        const auto Offset = getOffset(IsBigEndian);
+        const auto Offset = this->getOffset(IsBigEndian);
         return IsLoadCommandStringOffsetValid(MinSize, CmdSize, Offset);
     }
 
     uint32_t
-    LoadCommandString::GetLength(uint32_t CmdSize,
-                                 bool IsBigEndian) const noexcept
+    LoadCommandString::GetLength(const uint32_t CmdSize,
+                                 const bool IsBigEndian) const noexcept
     {
-        const auto Offset = getOffset(IsBigEndian);
+        const auto Offset = this->getOffset(IsBigEndian);
         return LoadCommandStringGetLength(this, Offset, CmdSize);
     }
 
-    [[nodiscard]] static LoadCommandString::GetValueResult
-    LoadCmdGetStoredString(const LoadCommand *LC,
-                           uint32_t MinSize,
-                           uint32_t CmdSize,
-                           uint32_t Offset)
+    [[nodiscard]] static auto
+    LoadCmdGetStoredString(const LoadCommand *const LC,
+                           const uint32_t MinSize,
+                           const uint32_t CmdSize,
+                           const uint32_t Offset)
+        -> LoadCommandString::GetValueResult
     {
         if (!IsLoadCommandStringOffsetValid(MinSize, CmdSize, Offset)) {
             return LoadCommandString::GetStringError::OffsetOutOfBounds;
@@ -821,18 +826,20 @@ namespace MachO {
         }
 
         const auto Data = reinterpret_cast<const char *>(LC) + Offset;
-        if ((Offset + Length) == CmdSize) {
+        if (Offset + Length == CmdSize) {
             return LoadCommandString::GetStringError::NoNullTerminator;
         }
 
-        const auto Result = std::string_view(Data, Length);
-        return Result;
+        return std::string_view(Data, Length);
     }
 
-    LoadCommandString::GetValueResult
-    FixedVMSharedLibraryCommand::GetName(bool IsBigEndian) const noexcept {
+    auto
+    FixedVMSharedLibraryCommand::GetName(
+        const bool IsBigEndian) const noexcept
+            -> LoadCommandString::GetValueResult
+    {
         const auto MinSize = sizeof(*this);
-        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto CmdSize = this->getCmdSize(IsBigEndian);
         const auto NameOffset = Info.Name.getOffset(IsBigEndian);
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, NameOffset);
@@ -840,10 +847,12 @@ namespace MachO {
         return Result;
     }
 
-    LoadCommandString::GetValueResult
-    DylibCommand::GetName(bool IsBigEndian) const noexcept {
+    auto
+    DylibCommand::GetName(bool IsBigEndian) const noexcept
+        -> LoadCommandString::GetValueResult
+    {
         const auto MinSize = sizeof(*this);
-        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto CmdSize = this->getCmdSize(IsBigEndian);
         const auto NameOffset = Info.Name.getOffset(IsBigEndian);
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, NameOffset);
@@ -851,10 +860,12 @@ namespace MachO {
         return Result;
     }
 
-    LoadCommandString::GetValueResult
-    SubFrameworkCommand::GetUmbrella(bool IsBigEndian) const noexcept {
+    auto
+    SubFrameworkCommand::GetUmbrella(bool IsBigEndian) const noexcept
+        -> LoadCommandString::GetValueResult
+    {
         const auto MinSize = sizeof(*this);
-        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto CmdSize = this->getCmdSize(IsBigEndian);
         const auto UmbrellaOffset = Umbrella.getOffset(IsBigEndian);
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, UmbrellaOffset);
@@ -862,10 +873,12 @@ namespace MachO {
         return Result;
     }
 
-    LoadCommandString::GetValueResult
-    SubClientCommand::GetClient(bool IsBigEndian) const noexcept {
+    auto
+    SubClientCommand::GetClient(bool IsBigEndian) const noexcept
+        -> LoadCommandString::GetValueResult
+    {
         const auto MinSize = sizeof(*this);
-        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto CmdSize = this->getCmdSize(IsBigEndian);
         const auto ClientOffset = Client.getOffset(IsBigEndian);
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, ClientOffset);
@@ -873,10 +886,12 @@ namespace MachO {
         return Result;
     }
 
-    LoadCommandString::GetValueResult
-    SubUmbrellaCommand::GetUmbrella(bool IsBigEndian) const noexcept {
+    auto
+    SubUmbrellaCommand::GetUmbrella(bool IsBigEndian) const noexcept
+        -> LoadCommandString::GetValueResult
+    {
         const auto MinSize = sizeof(*this);
-        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto CmdSize = this->getCmdSize(IsBigEndian);
         const auto UmbrellaOffset = Umbrella.getOffset(IsBigEndian);
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, UmbrellaOffset);
@@ -884,10 +899,11 @@ namespace MachO {
         return Result;
     }
 
-    LoadCommandString::GetValueResult
-    SubLibraryCommand::GetLibrary(bool IsBigEndian) const noexcept {
+    auto SubLibraryCommand::GetLibrary(bool IsBigEndian) const noexcept
+        -> LoadCommandString::GetValueResult
+    {
         const auto MinSize = sizeof(*this);
-        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto CmdSize = this->getCmdSize(IsBigEndian);
         const auto LibraryOffset = Library.getOffset(IsBigEndian);
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, LibraryOffset);
@@ -912,8 +928,10 @@ namespace MachO {
         return Name.isOffsetValid(sizeof(*this), CmdSize, IsBigEndian);
     }
 
-    LoadCommandString::GetValueResult
-    PreBoundDylibCommand::GetName(bool IsBigEndian) const noexcept {
+    auto
+    PreBoundDylibCommand::GetName(bool IsBigEndian) const noexcept
+        -> LoadCommandString::GetValueResult
+    {
         const auto MinSize = sizeof(*this);
         const auto CmdSize = offsetof(NakedPreBoundDylibCommand, NModules);
         const auto NameOffset = Name.getOffset(IsBigEndian);
@@ -923,10 +941,11 @@ namespace MachO {
         return Result;
     }
 
-    LoadCommandString::GetValueResult
-    PreBoundDylibCommand::GetLinkedModules(bool IsBigEndian) const noexcept {
+    auto PreBoundDylibCommand::GetLinkedModules(bool IsBigEndian) const noexcept
+        -> LoadCommandString::GetValueResult
+    {
         const auto MinSize = sizeof(*this);
-        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto CmdSize = this->getCmdSize(IsBigEndian);
         const auto NameOffset = Name.getOffset(IsBigEndian);
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, NameOffset);
@@ -934,10 +953,11 @@ namespace MachO {
         return Result;
     }
 
-    LoadCommandString::GetValueResult
-    DylinkerCommand::GetName(bool IsBigEndian) const noexcept {
+    auto DylinkerCommand::GetName(bool IsBigEndian) const noexcept
+        -> LoadCommandString::GetValueResult
+    {
         const auto MinSize = sizeof(*this);
-        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto CmdSize = this->getCmdSize(IsBigEndian);
         const auto NameOffset = Name.getOffset(IsBigEndian);
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, NameOffset);
@@ -945,10 +965,11 @@ namespace MachO {
         return Result;
     }
 
-    LoadCommandString::GetValueResult
-    FileSetEntryCommand::GetEntryID(bool IsBigEndian) const noexcept {
+    auto FileSetEntryCommand::GetEntryID(bool IsBigEndian) const noexcept
+        -> LoadCommandString::GetValueResult
+    {
         const auto MinSize = sizeof(*this);
-        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto CmdSize = this->getCmdSize(IsBigEndian);
         const auto NameOffset = EntryID.getOffset(IsBigEndian);
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, NameOffset);
@@ -956,16 +977,17 @@ namespace MachO {
         return Result;
     }
 
-    TypedAllocationOrError<SymTabCommand::Entry32List, SizeRangeError>
+    auto
     SymTabCommand::GetEntry32List(const MemoryMap &Map,
-                                  bool IsBigEndian) const noexcept
+                                  const bool IsBigEndian) const noexcept
+        -> ExpectedAlloc<SymTabCommand::Entry32List, SizeRangeError>
     {
-        const auto SymCount = getSymbolCount(IsBigEndian);
+        const auto SymCount = this->getSymbolCount(IsBigEndian);
         if (SymCount == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto SymOff = getSymbolTableOffset(IsBigEndian);
+        const auto SymOff = this->getSymbolTableOffset(IsBigEndian);
         auto SymEnd = uint64_t();
 
         if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry32),
@@ -980,16 +1002,17 @@ namespace MachO {
         return new Entry32List(Entries, SymCount);
     }
 
-    TypedAllocationOrError<SymTabCommand::Entry64List, SizeRangeError>
+    auto
     SymTabCommand::GetEntry64List(const MemoryMap &Map,
-                                  bool IsBigEndian) const noexcept
+                                  const bool IsBigEndian) const noexcept
+        -> ExpectedAlloc<SymTabCommand::Entry64List, SizeRangeError>
     {
-        const auto SymCount = getSymbolCount(IsBigEndian);
+        const auto SymCount = this->getSymbolCount(IsBigEndian);
         if (SymCount == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto SymOff = getSymbolTableOffset(IsBigEndian);
+        const auto SymOff = this->getSymbolTableOffset(IsBigEndian);
         auto SymEnd = uint64_t();
 
         if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry64),
@@ -1004,16 +1027,17 @@ namespace MachO {
         return new Entry64List(Entries, SymCount);
     }
 
-    TypedAllocationOrError<SymTabCommand::ConstEntry32List, SizeRangeError>
+    auto
     SymTabCommand::GetConstEntry32List(const ConstMemoryMap &Map,
-                                       bool IsBigEndian) const noexcept
+                                       const bool IsBigEndian) const noexcept
+        -> ExpectedAlloc<SymTabCommand::ConstEntry32List, SizeRangeError>
     {
-        const auto SymCount = getSymbolCount(IsBigEndian);
+        const auto SymCount = this->getSymbolCount(IsBigEndian);
         if (SymCount == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto SymOff = getSymbolTableOffset(IsBigEndian);
+        const auto SymOff = this->getSymbolTableOffset(IsBigEndian);
         auto SymEnd = uint64_t();
 
         if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry32), SymCount,
@@ -1022,8 +1046,8 @@ namespace MachO {
             return SizeRangeError::Overflows;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(SymOff, SymEnd);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1034,16 +1058,17 @@ namespace MachO {
         return new ConstEntry32List(Entries, SymCount);
     }
 
-    TypedAllocationOrError<SymTabCommand::ConstEntry64List, SizeRangeError>
+    auto
     SymTabCommand::GetConstEntry64List(const ConstMemoryMap &Map,
-                                       bool IsBigEndian) const noexcept
+                                       const bool IsBigEndian) const noexcept
+        -> ExpectedAlloc<SymTabCommand::ConstEntry64List, SizeRangeError>
     {
-        const auto SymCount = getSymbolCount(IsBigEndian);
+        const auto SymCount = this->getSymbolCount(IsBigEndian);
         if (SymCount == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto SymOff = getSymbolTableOffset(IsBigEndian);
+        const auto SymOff = this->getSymbolTableOffset(IsBigEndian);
         auto SymEnd = uint64_t();
 
         if (DoesMultiplyAndAddOverflow(sizeof(SymTabCommand::Entry64), SymCount,
@@ -1052,8 +1077,8 @@ namespace MachO {
             return SizeRangeError::Overflows;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(SymOff, SymEnd);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1064,17 +1089,18 @@ namespace MachO {
         return new ConstEntry64List(Entries, SymCount);
     }
 
-    TypedAllocationOrError<DynamicSymTabCommand::Entry32List, SizeRangeError>
+    auto
     DynamicSymTabCommand::GetExport32List(const MemoryMap &Map,
-                                          uint32_t SymOff,
-                                          bool IsBigEndian) noexcept
+                                          const uint32_t SymOff,
+                                          const bool IsBigEndian) noexcept
+        -> ExpectedAlloc<DynamicSymTabCommand::Entry32List, SizeRangeError>
     {
-        const auto Count = getExternalSymbolsCount(IsBigEndian);
+        const auto Count = this->getExternalSymbolsCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto Index = getExternalSymbolsIndex(IsBigEndian);
+        const auto Index = this->getExternalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
 
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry32), Index,
@@ -1088,8 +1114,8 @@ namespace MachO {
             return SizeRangeError::Overflows;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(SymOff, SymEnd);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1099,17 +1125,18 @@ namespace MachO {
         return new Entry32List(Entries + Index, Count);
     }
 
-    TypedAllocationOrError<DynamicSymTabCommand::Entry64List, SizeRangeError>
+    auto
     DynamicSymTabCommand::GetExport64List(const MemoryMap &Map,
-                                          uint32_t SymOff,
-                                          bool IsBigEndian) noexcept
+                                          const uint32_t SymOff,
+                                          const bool IsBigEndian) noexcept
+        -> ExpectedAlloc<DynamicSymTabCommand::Entry64List, SizeRangeError>
     {
-        const auto Count = getExternalSymbolsCount(IsBigEndian);
+        const auto Count = this->getExternalSymbolsCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto Index = getExternalSymbolsIndex(IsBigEndian);
+        const auto Index = this->getExternalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
 
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry64), Index,
@@ -1123,8 +1150,8 @@ namespace MachO {
             return SizeRangeError::Overflows;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(SymOff, SymEnd);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1134,19 +1161,18 @@ namespace MachO {
         return new Entry64List(Entries + Index, Count);
     }
 
-    TypedAllocationOrError<DynamicSymTabCommand::ConstEntry32List,
-                           SizeRangeError>
-
+    auto
     DynamicSymTabCommand::GetConstExport32List(const ConstMemoryMap &Map,
                                                uint32_t SymOff,
-                                               bool IsBigEndian) const noexcept
+                                               const bool IsBigEndian) const noexcept
+        -> ExpectedAlloc<DynamicSymTabCommand::ConstEntry32List, SizeRangeError>
     {
-        const auto Count = getExternalSymbolsCount(IsBigEndian);
+        const auto Count = this->getExternalSymbolsCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto Index = getExternalSymbolsIndex(IsBigEndian);
+        const auto Index = this->getExternalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
 
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry32), Index,
@@ -1160,8 +1186,8 @@ namespace MachO {
             return SizeRangeError::Overflows;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(SymOff, SymEnd);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1172,18 +1198,18 @@ namespace MachO {
         return new ConstEntry32List(Entries + Index, Count);
     }
 
-    TypedAllocationOrError<DynamicSymTabCommand::ConstEntry64List,
-                           SizeRangeError>
+    auto
     DynamicSymTabCommand::GetConstExport64List(const ConstMemoryMap &Map,
                                                uint32_t SymOff,
-                                               bool IsBigEndian) const noexcept
+                                               const bool IsBigEndian) const noexcept
+        -> ExpectedAlloc<DynamicSymTabCommand::ConstEntry64List, SizeRangeError>
     {
-        const auto Count = getExternalSymbolsCount(IsBigEndian);
+        const auto Count = this->getExternalSymbolsCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto Index = getExternalSymbolsIndex(IsBigEndian);
+        const auto Index = this->getExternalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
 
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry64), Index,
@@ -1197,8 +1223,8 @@ namespace MachO {
             return SizeRangeError::Overflows;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(SymOff, SymEnd);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1209,17 +1235,18 @@ namespace MachO {
         return new ConstEntry64List(Entries + Index, Count);
     }
 
-    TypedAllocationOrError<DynamicSymTabCommand::Entry32List, SizeRangeError>
+    auto
     DynamicSymTabCommand::GetLocalSymbol32List(const MemoryMap &Map,
                                                uint32_t SymOff,
-                                               bool IsBigEndian) noexcept
+                                               const bool IsBigEndian) noexcept
+        -> ExpectedAlloc<DynamicSymTabCommand::Entry32List, SizeRangeError>
     {
-        const auto Count = getLocalSymbolsCount(IsBigEndian);
+        const auto Count = this->getLocalSymbolsCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto Index = getLocalSymbolsIndex(IsBigEndian);
+        const auto Index = this->getLocalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
 
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry32), Index,
@@ -1233,8 +1260,8 @@ namespace MachO {
             return SizeRangeError::Overflows;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(SymOff, SymEnd);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1244,17 +1271,18 @@ namespace MachO {
         return new Entry32List(Entries + Index, Count);
     }
 
-    TypedAllocationOrError<DynamicSymTabCommand::Entry64List, SizeRangeError>
+    auto
     DynamicSymTabCommand::GetLocalSymbol64List(const MemoryMap &Map,
                                                uint32_t SymOff,
-                                               bool IsBigEndian) noexcept
+                                               const bool IsBigEndian) noexcept
+        -> ExpectedAlloc<DynamicSymTabCommand::Entry64List, SizeRangeError>
     {
-        const auto Count = getLocalSymbolsCount(IsBigEndian);
+        const auto Count = this->getLocalSymbolsCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto Index = getLocalSymbolsIndex(IsBigEndian);
+        const auto Index = this->getLocalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
 
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry64), Index,
@@ -1268,8 +1296,8 @@ namespace MachO {
             return SizeRangeError::Overflows;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(SymOff, SymEnd);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1279,20 +1307,20 @@ namespace MachO {
         return new Entry64List(Entries + Index, Count);
     }
 
-    TypedAllocationOrError<DynamicSymTabCommand::ConstEntry32List,
-                           SizeRangeError>
-
+    auto
     DynamicSymTabCommand::GetConstLocalSymbol32List(
         const ConstMemoryMap &Map,
         uint32_t SymOff,
-        bool IsBigEndian) const noexcept
+        const bool IsBigEndian) const noexcept
+            -> ExpectedAlloc<DynamicSymTabCommand::ConstEntry32List,
+                             SizeRangeError>
     {
-        const auto Count = getLocalSymbolsCount(IsBigEndian);
+        const auto Count = this->getLocalSymbolsCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto Index = getLocalSymbolsIndex(IsBigEndian);
+        const auto Index = this->getLocalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
 
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry32), Index,
@@ -1306,8 +1334,8 @@ namespace MachO {
             return SizeRangeError::Overflows;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(SymOff, SymEnd);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1318,20 +1346,20 @@ namespace MachO {
         return new ConstEntry32List(Entries + Index, Count);
     }
 
-    TypedAllocationOrError<DynamicSymTabCommand::ConstEntry64List,
-                           SizeRangeError>
-
+    auto
     DynamicSymTabCommand::GetConstLocalSymbol64List(
         const ConstMemoryMap &Map,
         uint32_t SymOff,
-        bool IsBigEndian) const noexcept
+        const bool IsBigEndian) const noexcept
+            -> ExpectedAlloc<DynamicSymTabCommand::ConstEntry64List,
+                             SizeRangeError>
     {
-        const auto Count = getLocalSymbolsCount(IsBigEndian);
+        const auto Count = this->getLocalSymbolsCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto Index = getLocalSymbolsIndex(IsBigEndian);
+        const auto Index = this->getLocalSymbolsIndex(IsBigEndian);
         auto ByteIndex = uint64_t();
 
         if (DoesAddOverflow(sizeof(DynamicSymTabCommand::Entry64), Index,
@@ -1345,8 +1373,8 @@ namespace MachO {
             return SizeRangeError::Overflows;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(SymOff, SymEnd);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(SymOff, SymEnd);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1357,25 +1385,26 @@ namespace MachO {
         return new ConstEntry64List(Entries + Index, Count);
     }
 
-    TypedAllocationOrError<BasicContiguousList<uint32_t>, SizeRangeError>
+    auto
     DynamicSymTabCommand::GetIndirectSymbolIndexTable(
         const MemoryMap &Map,
-        bool IsBigEndian) noexcept
+        const bool IsBigEndian) noexcept
+            -> ExpectedAlloc<BasicContiguousList<uint32_t>, SizeRangeError>
     {
-        const auto Count = getIndirectSymbolTableCount(IsBigEndian);
+        const auto Count = this->getIndirectSymbolTableCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto Offset = getIndirectSymbolTableOffset(IsBigEndian);
+        const auto Offset = this->getIndirectSymbolTableOffset(IsBigEndian);
         auto End = uint64_t();
 
         if (DoesMultiplyAndAddOverflow(sizeof(uint32_t), Count, Offset, &End)) {
             return SizeRangeError::Overflows;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(Offset, End);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(Offset, End);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1385,27 +1414,27 @@ namespace MachO {
         return new BasicContiguousList<uint32_t>(Entries, Count);
     }
 
-    TypedAllocationOrError<BasicContiguousList<const uint32_t>,
-                           SizeRangeError>
-
+    auto
     DynamicSymTabCommand::GetConstIndirectSymbolIndexTable(
         const ConstMemoryMap &Map,
-        bool IsBigEndian) noexcept
+        const bool IsBigEndian) noexcept
+            -> ExpectedAlloc<BasicContiguousList<const uint32_t>,
+                             SizeRangeError>
     {
-        const auto Count = getIndirectSymbolTableCount(IsBigEndian);
+        const auto Count = this->getIndirectSymbolTableCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto Offset = getIndirectSymbolTableOffset(IsBigEndian);
+        const auto Offset = this->getIndirectSymbolTableOffset(IsBigEndian);
         auto End = uint64_t();
 
         if (DoesMultiplyAndAddOverflow(sizeof(uint32_t), Count, Offset, &End)) {
             return SizeRangeError::Overflows;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(Offset, End);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(Offset, End);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1415,24 +1444,26 @@ namespace MachO {
         return new BasicContiguousList<const uint32_t>(Entries, Count);
     }
 
-    TypedAllocationOrError<TwoLevelHintsCommand::HintList, SizeRangeError>
+    auto
     TwoLevelHintsCommand::GetHintList(const MemoryMap &Map,
-                                      bool IsBigEndian) noexcept
+                                      const bool IsBigEndian) noexcept
+        -> ExpectedAlloc<TwoLevelHintsCommand::HintList,
+                                  SizeRangeError>
     {
-        const auto Count = getHintsCount(IsBigEndian);
+        const auto Count = this->getHintsCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto Offset = getHintsOffset(IsBigEndian);
+        const auto Offset = this->getHintsOffset(IsBigEndian);
         auto End = uint64_t();
 
         if (DoesMultiplyAndAddOverflow(sizeof(Hint), Count, Offset, &End)) {
             return SizeRangeError::PastEnd;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(Offset, End);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(Offset, End);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1440,26 +1471,26 @@ namespace MachO {
         return new HintList(Entries, Count);
     }
 
-    TypedAllocationOrError<TwoLevelHintsCommand::ConstHintList,
-                           SizeRangeError>
-
+    auto
     TwoLevelHintsCommand::GetConstHintList(const ConstMemoryMap &Map,
-                                           bool IsBigEndian) const noexcept
+                                           const bool IsBigEndian) const noexcept
+        -> ExpectedAlloc<TwoLevelHintsCommand::ConstHintList,
+                                  SizeRangeError>
     {
-        const auto Count = getHintsCount(IsBigEndian);
+        const auto Count = this->getHintsCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
 
-        const auto Offset = getHintsOffset(IsBigEndian);
+        const auto Offset = this->getHintsOffset(IsBigEndian);
         auto End = uint64_t();
 
         if (DoesMultiplyAndAddOverflow(sizeof(Hint), Count, Offset, &End)) {
             return SizeRangeError::PastEnd;
         }
 
-        const auto LocRange = LocationRange::CreateWithEnd(Offset, End);
-        if (!Map.getRange().containsLocRange(LocRange)) {
+        const auto LocRange = Range::CreateWithEnd(Offset, End);
+        if (!Map.getRange().contains(LocRange)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -1469,10 +1500,12 @@ namespace MachO {
         return new ConstHintList(Entries, Count);
     }
 
-    LoadCommandString::GetValueResult
-    RpathCommand::GetPath(bool IsBigEndian) const noexcept {
+    auto
+    RpathCommand::GetPath(const bool IsBigEndian) const noexcept
+        -> LoadCommandString::GetValueResult
+    {
         const auto MinSize = sizeof(*this);
-        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto CmdSize = this->getCmdSize(IsBigEndian);
         const auto PathOffset = Path.getOffset(IsBigEndian);
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, PathOffset);
@@ -1480,9 +1513,11 @@ namespace MachO {
         return Result;
     }
 
-    TypedAllocationOrError<BuildVersionCommand::ToolList, SizeRangeError>
-    BuildVersionCommand::getToolList(bool IsBigEndian) noexcept {
-        const auto Count = getToolCount(IsBigEndian);
+    auto
+    BuildVersionCommand::getToolList(const bool IsBigEndian) noexcept
+        -> ExpectedAlloc<BuildVersionCommand::ToolList, SizeRangeError>
+    {
+        const auto Count = this->getToolCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
@@ -1496,7 +1531,7 @@ namespace MachO {
             return SizeRangeError::Overflows;
         }
 
-        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto CmdSize = this->getCmdSize(IsBigEndian);
         if (End > CmdSize) {
             return SizeRangeError::PastEnd;
         }
@@ -1504,9 +1539,12 @@ namespace MachO {
         return new ToolList(Entries, Count);
     }
 
-    TypedAllocationOrError<BuildVersionCommand::ConstToolList, SizeRangeError>
-    BuildVersionCommand::getConstToolList(bool IsBigEndian) const noexcept {
-        const auto Count = getToolCount(IsBigEndian);
+    auto
+    BuildVersionCommand::getConstToolList(const bool IsBigEndian) const noexcept
+        -> ExpectedAlloc<BuildVersionCommand::ConstToolList,
+                                  SizeRangeError>
+    {
+        const auto Count = this->getToolCount(IsBigEndian);
         if (Count == 0) {
             return SizeRangeError::Empty;
         }
@@ -1520,7 +1558,7 @@ namespace MachO {
             return SizeRangeError::Overflows;
         }
 
-        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto CmdSize = this->getCmdSize(IsBigEndian);
         if (End > CmdSize) {
             return SizeRangeError::PastEnd;
         }
@@ -1528,10 +1566,11 @@ namespace MachO {
         return new ConstToolList(Entries, Count);
     }
 
-    LoadCommandString::GetValueResult
-    FixedVMFileCommand::GetName(bool IsBigEndian) const noexcept {
+    auto FixedVMFileCommand::GetName(const bool IsBigEndian) const noexcept
+        -> LoadCommandString::GetValueResult
+    {
         const auto MinSize = sizeof(*this);
-        const auto CmdSize = getCmdSize(IsBigEndian);
+        const auto CmdSize = this->getCmdSize(IsBigEndian);
         const auto NameOffset = Name.getOffset(IsBigEndian);
         const auto Result =
             LoadCmdGetStoredString(this, MinSize, CmdSize, NameOffset);

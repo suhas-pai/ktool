@@ -1,9 +1,9 @@
 //
-//  include/ADT/LargestIntHelper.h
+//  ADT/LargestIntHelper.h
 //  ktool
 //
 //  Created by Suhas Pai on 5/10/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -20,7 +20,9 @@ public:
     constexpr LargestIntHelper(const T &Integer) noexcept
     : Integer(Integer) {}
 
-    constexpr LargestIntHelper &operator=(const T &Integer) noexcept {
+    constexpr auto operator=(const T &Integer) noexcept
+        -> decltype(*this)
+    {
         if (this->Integer < Integer) {
             this->Integer = Integer;
         }
@@ -28,7 +30,7 @@ public:
         return *this;
     }
 
-    [[nodiscard]] inline T value() const noexcept {
+    [[nodiscard]] inline auto value() const noexcept {
         return Integer;
     }
 

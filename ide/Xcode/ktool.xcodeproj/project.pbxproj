@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -21,7 +21,6 @@
 		F35FF7F524486A6600BEF782 /* LoadCommandStorage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F35FF7F324486A6600BEF782 /* LoadCommandStorage.cpp */; };
 		F35FF7F624486A6600BEF782 /* LoadCommands.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F35FF7F424486A6600BEF782 /* LoadCommands.cpp */; };
 		F369E4102480E66D00F5A5E8 /* PrintBindActionList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F369E40F2480E66D00F5A5E8 /* PrintBindActionList.cpp */; };
-		F36FBF8524380E000075D461 /* LocationRange.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36FBF8024380E000075D461 /* LocationRange.cpp */; };
 		F36FBF8624380E000075D461 /* FileDescriptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36FBF8124380E000075D461 /* FileDescriptor.cpp */; };
 		F36FBF8824380E000075D461 /* MappedFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36FBF8324380E000075D461 /* MappedFile.cpp */; };
 		F3840EB42481FE16003AD004 /* PrintRebaseActionList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3840EB32481FE16003AD004 /* PrintRebaseActionList.cpp */; };
@@ -50,7 +49,6 @@
 		F3BB3090247706AB00706267 /* SharedLibraryUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3BB308F247706AB00706267 /* SharedLibraryUtil.cpp */; };
 		F3CAF1852478B37200050D8D /* PrintBindOpcodeList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3CAF1842478B37200050D8D /* PrintBindOpcodeList.cpp */; };
 		F3D66214245770BA00270435 /* PrintArchList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3D66213245770BA00270435 /* PrintArchList.cpp */; };
-		F3D66217245770E200270435 /* RelativeRange.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3D66216245770E200270435 /* RelativeRange.cpp */; };
 		F3DC4DA52452720A0063906C /* PrintSharedLibraries.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3DC4DA42452720A0063906C /* PrintSharedLibraries.cpp */; };
 		F3DC4DA7245272220063906C /* Common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3DC4DA6245272220063906C /* Common.cpp */; };
 		F3DC4DAD2452E4780063906C /* PrintId.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3DC4DAC2452E4780063906C /* PrintId.cpp */; };
@@ -74,6 +72,7 @@
 		F300066024BA90F3008EE096 /* PrintImageList.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintImageList.cpp; path = ../../src/Operations/PrintImageList.cpp; sourceTree = "<group>"; };
 		F300066224BC1DE2008EE096 /* DscImageMemory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DscImageMemory.h; path = ../../include/Objects/DscImageMemory.h; sourceTree = "<group>"; };
 		F300066324BC31D3008EE096 /* DscImageMemory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DscImageMemory.cpp; path = ../../src/Objects/DscImageMemory.cpp; sourceTree = "<group>"; };
+		F30A53102D0D3B6C005EC0A4 /* ExpectedAlloc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ExpectedAlloc.h; path = /Users/suhaspai/Developer/Projects/ktool/include/ADT/ExpectedAlloc.h; sourceTree = "<absolute>"; };
 		F3104AA9243193E100B24FEB /* ktool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ktool; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3104AC32431960E00B24FEB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../src/main.cpp; sourceTree = "<group>"; };
 		F3104AC62431966D00B24FEB /* SwitchEndian.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SwitchEndian.h; path = ../../include/Utils/SwitchEndian.h; sourceTree = "<group>"; };
@@ -83,8 +82,6 @@
 		F314A9E024B0314400796991 /* SymbolTableUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SymbolTableUtil.cpp; path = "../../src/ADT/Mach-O/SymbolTableUtil.cpp"; sourceTree = "<group>"; };
 		F31C4E7E2479B1B50057FE50 /* magic_enum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = magic_enum.h; path = ../../include/External/magic_enum.h; sourceTree = "<group>"; };
 		F31C4E7F2479B1EA0057FE50 /* EnumHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EnumHelper.h; path = ../../include/ADT/EnumHelper.h; sourceTree = "<group>"; };
-		F31C4E80247BB7370057FE50 /* PointerFlagStorage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PointerFlagStorage.h; path = ../../include/ADT/PointerFlagStorage.h; sourceTree = "<group>"; };
-		F33DFDCF2438503800BF3E47 /* Casting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Casting.h; path = ../../include/Utils/Casting.h; sourceTree = "<group>"; };
 		F33E8CD02473AA52009C4EA0 /* BindInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BindInfo.h; path = "../../include/ADT/Mach-O/BindInfo.h"; sourceTree = "<group>"; };
 		F33E8CD12473AAA0009C4EA0 /* LoadCommandsCommon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadCommandsCommon.h; path = "../../include/ADT/Mach-O/LoadCommandsCommon.h"; sourceTree = "<group>"; };
 		F33E8CD22473B0DD009C4EA0 /* ExportTrie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ExportTrie.h; path = "../../include/ADT/Mach-O/ExportTrie.h"; sourceTree = "<group>"; };
@@ -109,17 +106,13 @@
 		F369E40E2480E65700F5A5E8 /* PrintBindActionList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintBindActionList.h; path = ../../include/Operations/PrintBindActionList.h; sourceTree = "<group>"; };
 		F369E40F2480E66D00F5A5E8 /* PrintBindActionList.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintBindActionList.cpp; path = ../../src/Operations/PrintBindActionList.cpp; sourceTree = "<group>"; };
 		F36FBF7524380DD40075D461 /* BasicContiguousList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BasicContiguousList.h; path = ../../include/ADT/BasicContiguousList.h; sourceTree = "<group>"; };
-		F36FBF7624380DD40075D461 /* LocationRange.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LocationRange.h; path = ../../include/ADT/LocationRange.h; sourceTree = "<group>"; };
-		F36FBF7724380DD40075D461 /* PointerOrError.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PointerOrError.h; path = ../../include/ADT/PointerOrError.h; sourceTree = "<group>"; };
-		F36FBF7824380DD40075D461 /* PointerErrorStorage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PointerErrorStorage.h; path = ../../include/ADT/PointerErrorStorage.h; sourceTree = "<group>"; };
-		F36FBF7924380DD40075D461 /* TypedAllocation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TypedAllocation.h; path = ../../include/ADT/TypedAllocation.h; sourceTree = "<group>"; };
+		F36FBF7624380DD40075D461 /* Range.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Range.h; path = ../../include/ADT/Range.h; sourceTree = "<group>"; };
+		F36FBF7824380DD40075D461 /* ExpectedPointer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ExpectedPointer.h; path = ../../include/ADT/ExpectedPointer.h; sourceTree = "<group>"; };
 		F36FBF7A24380DD40075D461 /* BasicContiguousIterator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BasicContiguousIterator.h; path = ../../include/ADT/BasicContiguousIterator.h; sourceTree = "<group>"; };
 		F36FBF7B24380DD40075D461 /* FileDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FileDescriptor.h; path = ../../include/ADT/FileDescriptor.h; sourceTree = "<group>"; };
 		F36FBF7C24380DD40075D461 /* MachO.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MachO.h; path = ../../include/ADT/MachO.h; sourceTree = "<group>"; };
-		F36FBF7D24380DD40075D461 /* Allocation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Allocation.h; path = ../../include/ADT/Allocation.h; sourceTree = "<group>"; };
 		F36FBF7E24380DD40075D461 /* BasicWrapperIterator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BasicWrapperIterator.h; path = ../../include/ADT/BasicWrapperIterator.h; sourceTree = "<group>"; };
 		F36FBF7F24380DD40075D461 /* BasicMasksHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BasicMasksHandler.h; path = ../../include/ADT/BasicMasksHandler.h; sourceTree = "<group>"; };
-		F36FBF8024380E000075D461 /* LocationRange.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LocationRange.cpp; path = ../../src/ADT/LocationRange.cpp; sourceTree = "<group>"; };
 		F36FBF8124380E000075D461 /* FileDescriptor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileDescriptor.cpp; path = ../../src/ADT/FileDescriptor.cpp; sourceTree = "<group>"; };
 		F36FBF8324380E000075D461 /* MappedFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MappedFile.cpp; path = ../../src/ADT/MappedFile.cpp; sourceTree = "<group>"; };
 		F36FBF8A24380E7D0075D461 /* MemoryMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MemoryMap.h; path = ../../include/ADT/MemoryMap.h; sourceTree = "<group>"; };
@@ -203,9 +196,6 @@
 		F3D66211245770A300270435 /* Operation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Operation.h; path = ../../include/Operations/Operation.h; sourceTree = "<group>"; };
 		F3D66212245770AB00270435 /* PrintArchList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintArchList.h; path = ../../include/Operations/PrintArchList.h; sourceTree = "<group>"; };
 		F3D66213245770BA00270435 /* PrintArchList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintArchList.cpp; path = ../../src/Operations/PrintArchList.cpp; sourceTree = "<group>"; };
-		F3D66215245770D800270435 /* RelativeRange.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RelativeRange.h; path = ../../include/ADT/RelativeRange.h; sourceTree = "<group>"; };
-		F3D66216245770E200270435 /* RelativeRange.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RelativeRange.cpp; path = ../../src/ADT/RelativeRange.cpp; sourceTree = "<group>"; };
-		F3D662182457726B00270435 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../Makefile; sourceTree = "<group>"; };
 		F3DC4DA3245272020063906C /* PrintSharedLibraries.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintSharedLibraries.h; path = ../../include/Operations/PrintSharedLibraries.h; sourceTree = "<group>"; };
 		F3DC4DA42452720A0063906C /* PrintSharedLibraries.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintSharedLibraries.cpp; path = ../../src/Operations/PrintSharedLibraries.cpp; sourceTree = "<group>"; };
 		F3DC4DA6245272220063906C /* Common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Common.cpp; path = ../../src/Operations/Common.cpp; sourceTree = "<group>"; };
@@ -220,11 +210,7 @@
 		F3F08B7B244D27CB007F3271 /* CpuKindInfoTemplates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CpuKindInfoTemplates.h; path = ../../include/ADT/Mach/CpuKindInfoTemplates.h; sourceTree = "<group>"; };
 		F3F08B7C244D2834007F3271 /* Info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Info.h; path = ../../include/ADT/Mach/Info.h; sourceTree = "<group>"; };
 		F3F11526285656D30023F1EB /* EnumClass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EnumClass.h; path = ../../include/Concepts/EnumClass.h; sourceTree = "<group>"; };
-		F3F11527285656D30023F1EB /* RemoveAllPointers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RemoveAllPointers.h; path = ../../include/Concepts/RemoveAllPointers.h; sourceTree = "<group>"; };
-		F3F11528285656D30023F1EB /* Identity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Identity.h; path = ../../include/Concepts/Identity.h; sourceTree = "<group>"; };
-		F3F11529285656D30023F1EB /* Pointer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Pointer.h; path = ../../include/Concepts/Pointer.h; sourceTree = "<group>"; };
 		F3F1152A285656D30023F1EB /* Const.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Const.h; path = ../../include/Concepts/Const.h; sourceTree = "<group>"; };
-		F3F1152B285656D30023F1EB /* RemovePointersAndRefs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RemovePointersAndRefs.h; path = ../../include/Concepts/RemovePointersAndRefs.h; sourceTree = "<group>"; };
 		F3FBAE6D24F6153F00B9CC7A /* MemoryProtections.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MemoryProtections.h; path = "../../include/ADT/Mach-O/MemoryProtections.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -244,7 +230,6 @@
 			children = (
 				F3104AB42431941E00B24FEB /* include */,
 				F3104AB32431941A00B24FEB /* src */,
-				F3D662182457726B00270435 /* Makefile */,
 				F3104AAA243193E100B24FEB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -289,7 +274,6 @@
 				F39740F724B926CF00710C62 /* DyldSharedCache */,
 				F3856AA1244BBAC7007980C9 /* Mach */,
 				F35FF7F124486A5900BEF782 /* Mach-O */,
-				F36FBF7D24380DD40075D461 /* Allocation.h */,
 				F38FCE6924898B9A00920AB1 /* ArgvArray.h */,
 				F36FBF7A24380DD40075D461 /* BasicContiguousIterator.h */,
 				F36FBF7524380DD40075D461 /* BasicContiguousList.h */,
@@ -300,22 +284,19 @@
 				F33EC50124C2A76A00A8DB06 /* DscImage.h */,
 				F39740F924B9445F00710C62 /* DyldSharedCache.h */,
 				F31C4E7F2479B1EA0057FE50 /* EnumHelper.h */,
+				F30A53102D0D3B6C005EC0A4 /* ExpectedAlloc.h */,
+				F36FBF7824380DD40075D461 /* ExpectedPointer.h */,
 				F36FBF7B24380DD40075D461 /* FileDescriptor.h */,
 				F3B810B32467EECD00DED4F2 /* LargestIntHelper.h */,
-				F36FBF7624380DD40075D461 /* LocationRange.h */,
 				F3923E7C243C0B62002479B3 /* Mach.h */,
 				F36FBF7C24380DD40075D461 /* MachO.h */,
 				F36FBF8B243826040075D461 /* MappedFile.h */,
 				F36FBF8A24380E7D0075D461 /* MemoryMap.h */,
 				F38FCF26248DEEE300DCB79F /* OutputFile.h */,
-				F36FBF7824380DD40075D461 /* PointerErrorStorage.h */,
-				F31C4E80247BB7370057FE50 /* PointerFlagStorage.h */,
+				F36FBF7624380DD40075D461 /* Range.h */,
 				F38FCE652487B02E00920AB1 /* PointerKind.h */,
-				F36FBF7724380DD40075D461 /* PointerOrError.h */,
-				F3D66215245770D800270435 /* RelativeRange.h */,
 				F3A2D2992499C41B005DA2D0 /* SpecificCapArray.h */,
 				F38FCF29248EDD5B00DCB79F /* Tree.h */,
-				F36FBF7924380DD40075D461 /* TypedAllocation.h */,
 			);
 			name = ADT;
 			sourceTree = "<group>";
@@ -324,7 +305,6 @@
 			isa = PBXGroup;
 			children = (
 				F347E8C02528129500000203 /* llvm */,
-				F33DFDCF2438503800BF3E47 /* Casting.h */,
 				F3923E89243C1680002479B3 /* DoesOverflow.h */,
 				F37166A7246650AE0078C5CA /* IntegerLimit.h */,
 				F37166A6246650980078C5CA /* Leb128.h */,
@@ -467,10 +447,8 @@
 				F35FF7F224486A6000BEF782 /* Mach-O */,
 				F38FCE6024876FE500920AB1 /* ByteVector.cpp */,
 				F36FBF8124380E000075D461 /* FileDescriptor.cpp */,
-				F36FBF8024380E000075D461 /* LocationRange.cpp */,
 				F36FBF8324380E000075D461 /* MappedFile.cpp */,
 				F38FCF27248DEF0900DCB79F /* OutputFile.cpp */,
-				F3D66216245770E200270435 /* RelativeRange.cpp */,
 				F38FCF2A248EFB3B00DCB79F /* Tree.cpp */,
 			);
 			name = ADT;
@@ -560,11 +538,7 @@
 			isa = PBXGroup;
 			children = (
 				F3F1152A285656D30023F1EB /* Const.h */,
-				F3F11529285656D30023F1EB /* Pointer.h */,
-				F3F11528285656D30023F1EB /* Identity.h */,
 				F3F11526285656D30023F1EB /* EnumClass.h */,
-				F3F11527285656D30023F1EB /* RemoveAllPointers.h */,
-				F3F1152B285656D30023F1EB /* RemovePointersAndRefs.h */,
 			);
 			name = Concepts;
 			sourceTree = "<group>";
@@ -595,7 +569,8 @@
 		F3104AA1243193E100B24FEB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1200;
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1620;
 				ORGANIZATIONNAME = "Suhas Pai";
 				TargetAttributes = {
 					F3104AA8243193E100B24FEB = {
@@ -647,7 +622,6 @@
 				F3DC4DAD2452E4780063906C /* PrintId.cpp in Sources */,
 				F3DC4DA7245272220063906C /* Common.cpp in Sources */,
 				F3104AC42431960E00B24FEB /* main.cpp in Sources */,
-				F3D66217245770E200270435 /* RelativeRange.cpp in Sources */,
 				F3923E86243C0BA0002479B3 /* MemoryBase.cpp in Sources */,
 				F3BA28B4247096BA009B6BCE /* PrintObjcClassList.cpp in Sources */,
 				F3D66214245770BA00270435 /* PrintArchList.cpp in Sources */,
@@ -671,7 +645,6 @@
 				F3B196322439B34200AE997A /* Base.cpp in Sources */,
 				F300066424BC31D3008EE096 /* DscImageMemory.cpp in Sources */,
 				F36FBF8824380E000075D461 /* MappedFile.cpp in Sources */,
-				F36FBF8524380E000075D461 /* LocationRange.cpp in Sources */,
 				F3DC4DA52452720A0063906C /* PrintSharedLibraries.cpp in Sources */,
 				F36FBF8624380E000075D461 /* FileDescriptor.cpp in Sources */,
 			);
@@ -714,9 +687,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -773,11 +748,14 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -797,12 +775,15 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				OTHER_CFLAGS = "-I${PROJECT_DIR}/../../include/";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-fbracket-depth=4096",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -812,12 +793,15 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				OTHER_CFLAGS = "-I${PROJECT_DIR}/../../include/";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-fbracket-depth=4096",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};

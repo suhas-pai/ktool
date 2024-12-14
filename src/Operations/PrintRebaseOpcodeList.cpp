@@ -1,16 +1,18 @@
 //
-//  src/Operations/PrintRebaseOpcodeList.cpp
+//  Operations/PrintRebaseOpcodeList.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 5/29/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "Utils/PrintUtils.h"
+#include <format>
 
-#include "Common.h"
-#include "Operation.h"
-#include "PrintRebaseOpcodeList.h"
+#include "Operations/Common.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintRebaseOpcodeList.h"
+
+#include "Utils/PrintUtils.h"
 
 PrintRebaseOpcodeListOperation::PrintRebaseOpcodeListOperation() noexcept
 : Operation(OpKind) {}
@@ -55,10 +57,12 @@ CollectRebaseOpcodeList(
     const ListType &List,
     bool Is64Bit) noexcept
 {
+    // FIXME: Use LibraryCollection
+    (void)LibraryCollection;
+
     auto OpcodeInfo = RebaseOpcodeInfo();
     auto InfoList = std::vector<RebaseOpcodeInfo>();
 
-    auto Counter = uint64_t();
     for (const auto &Iter : List) {
         const auto &Byte = Iter.getByte();
         const auto &IterInfo = Iter.getInfo();
@@ -191,7 +195,6 @@ CollectRebaseOpcodeList(
         }
 
         InfoList.emplace_back(OpcodeInfo);
-        Counter++;
     }
 
     return InfoList;
@@ -199,7 +202,7 @@ CollectRebaseOpcodeList(
 
 static int
 PrintRebaseOpcodeList(
-    const ConstMachOMemoryObject &Object,
+    const MachOMemoryObject &Object,
     const ConstMemoryMap &Map,
     const struct PrintRebaseOpcodeListOperation::Options &Options) noexcept
 {
@@ -259,7 +262,7 @@ PrintRebaseOpcodeList(
     const auto Collection =
         CollectRebaseOpcodeList(SharedLibraryCollection,
                                 SegmentCollection,
-                                RebaseOpcodeListOpt.getRef(),
+                                *RebaseOpcodeListOpt.value(),
                                 Is64Bit);
 
     Operation::PrintLineSpamWarning(Options.OutFile, Collection.size());
@@ -271,17 +274,23 @@ PrintRebaseOpcodeList(
     auto Counter = static_cast<uint64_t>(1);
     for (const auto &Iter : Collection) {
         const auto &Byte = Iter.Byte;
-        const auto &OpcodeName =
+        const auto OpcodeNameOpt =
             MachO::RebaseByteOpcodeGetName(Byte.getOpcode());
+
+        const auto OpcodeName =
+            OpcodeNameOpt.has_value() ?
+                std::string(OpcodeNameOpt.value()) :
+                std::format("<unknown: 0x{:02x}>",
+                            static_cast<uint8_t>(Byte.getOpcode()));
 
         fprintf(Options.OutFile,
                 "Rebase-Opcode %0*" PRIu64 ": %s",
                 SizeDigitLength,
                 Counter,
-                OpcodeName.data());
+                OpcodeName.c_str());
 
         const auto PrintAddressInfo = [&](uint64_t Add = 0) noexcept {
-            if ((&Iter) != (&Collection.back() + 1)) {
+            if (&Iter != &Collection.back()) {
                 if ((&Iter)[1].AddrInSegOverflows) {
                     fputs(" (Overflows)", Options.OutFile);
                     return;
@@ -312,11 +321,15 @@ PrintRebaseOpcodeList(
                 fputc('\n', Options.OutFile);
                 break;
             case MachO::RebaseByte::Opcode::SetKindImm: {
+                const auto KindNameOpt =
+                    MachO::RebaseWriteKindGetName(Iter.Kind);
                 const auto KindName =
-                    MachO::RebaseWriteKindGetName(Iter.Kind).data() ?:
-                    "<unrecognized>";
+                    KindNameOpt.has_value() ?
+                        std::string(KindNameOpt.value()) :
+                        std::format("<unknown: 0x{:02x}>",
+                                    static_cast<uint8_t>(Iter.Kind));
 
-                fprintf(Options.OutFile, "(%s)\n", KindName);
+                fprintf(Options.OutFile, "(%s)\n", KindName.c_str());
                 break;
             }
             case MachO::RebaseByte::Opcode::SetSegmentAndOffsetUleb: {
@@ -410,22 +423,23 @@ PrintRebaseOpcodeList(
 }
 
 int
-PrintRebaseOpcodeListOperation::Run(const ConstDscImageMemoryObject &Object,
+PrintRebaseOpcodeListOperation::Run(const DscImageMemoryObject &Object,
                                     const struct Options &Options) noexcept
 {
     return PrintRebaseOpcodeList(Object, Object.getDscMap(), Options);
 }
 
 int
-PrintRebaseOpcodeListOperation::Run(const ConstMachOMemoryObject &Object,
+PrintRebaseOpcodeListOperation::Run(const MachOMemoryObject &Object,
                                     const struct Options &Options) noexcept
 {
     return PrintRebaseOpcodeList(Object, Object.getMap(), Options);
 }
 
-struct PrintRebaseOpcodeListOperation::Options
+auto
 PrintRebaseOpcodeListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                  int *IndexOut) noexcept
+    -> struct PrintRebaseOpcodeListOperation::Options
 {
     auto Index = int();
     struct Options Options;

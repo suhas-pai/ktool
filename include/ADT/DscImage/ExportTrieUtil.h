@@ -1,9 +1,9 @@
 //
-//  include/ADT/DscImage/ExportTrieUtil.h
+//  ADT/DscImage/ExportTrieUtil.h
 //  ktool
 //
 //  Created by Suhas Pai on 7/17/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include "ADT/Mach-O/ExportTrieUtil.h"
@@ -20,9 +20,10 @@ namespace DscImage {
 
         using MachO::ExportTrieEntryCollection::ExportTrieEntryCollection;
     public:
-        [[nodiscard]] static ExportTrieEntryCollection
+        [[nodiscard]] static auto
         Open(const MachO::ConstExportTrieList &Info,
              const DscImage::SegmentInfoCollection *Collection,
-             Error *ErrorOut) noexcept;
+             Error *ErrorOut) noexcept
+                -> ExportTrieEntryCollection;
     };
 }

@@ -1,17 +1,19 @@
 //
-//  src/Operations/PrintRebaseActionList.cpp
+//  Operations/PrintRebaseActionList.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 5/29/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cstring>
-#include "Utils/PrintUtils.h"
+#include <format>
 
-#include "Common.h"
-#include "Operation.h"
-#include "PrintRebaseActionList.h"
+#include "Operations/Common.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintRebaseActionList.h"
+
+#include "Utils/PrintUtils.h"
 
 PrintRebaseActionListOperation::PrintRebaseActionListOperation() noexcept
 : Operation(OpKind) {}
@@ -25,7 +27,6 @@ PrintRebaseAction(
     const uint64_t Counter,
     const int SizeDigitLength,
     const MachO::RebaseActionInfo &Action,
-    const MachO::SharedLibraryInfoCollection &LibraryCollection,
     const MachO::SegmentInfoCollection &SegmentCollection,
     const bool Is64Bit,
     const struct PrintRebaseActionListOperation::Options &Options) noexcept
@@ -38,7 +39,8 @@ PrintRebaseAction(
     fprintf(Options.OutFile,
             " %" PRINTF_RIGHTPAD_FMT "s",
             static_cast<int>(MachO::RebaseWriteKindGetLongestDescription()),
-            MachO::RebaseWriteKindGetDescription(Action.Kind).data());
+            MachO::RebaseWriteKindGetDescription(Action.Kind)
+                .value_or("<Unrecognized>").data());
 
     if (const auto *Segment = SegmentCollection.atOrNull(Action.SegmentIndex)) {
         const auto &MemoryRange = Segment->getMemoryRange();
@@ -53,7 +55,9 @@ PrintRebaseAction(
         PrintUtilsWriteOffset32Or64(Options.OutFile, Is64Bit, FullAddr);
     } else {
         PrintUtilsRightPadSpaces(Options.OutFile,
-                                 fputs("<unknown>", Options.OutFile),
+                                 fputs(std::format("<unknown segment 0x{:02x}>",
+                                                   Action.SegmentIndex).c_str(),
+                                       Options.OutFile),
                                  OperationCommon::SegmentSectionPairMaxLength);
     }
 
@@ -62,7 +66,7 @@ PrintRebaseAction(
 
 static int
 PrintRebaseActionList(
-    const ConstMachOMemoryObject &Object,
+    const MachOMemoryObject &Object,
     const ConstMemoryMap &Map,
     const struct PrintRebaseActionListOperation::Options &Options) noexcept
 {
@@ -147,7 +151,7 @@ PrintRebaseActionList(
 
     auto RebaseActionInfoList = std::vector<MachO::RebaseActionInfo>();
 
-    const auto RebaseActionList = RebaseActionListOpt.getRef();
+    const auto RebaseActionList = *RebaseActionListOpt.value();
     const auto RebaseActionListError =
         RebaseActionList.GetAsList(RebaseActionInfoList);
 
@@ -193,7 +197,6 @@ PrintRebaseActionList(
         PrintRebaseAction(Counter,
                           SizeDigitLength,
                           Action,
-                          SharedLibraryCollection,
                           SegmentCollection,
                           Is64Bit,
                           Options);
@@ -207,22 +210,23 @@ PrintRebaseActionList(
 }
 
 int
-PrintRebaseActionListOperation::Run(const ConstDscImageMemoryObject &Object,
+PrintRebaseActionListOperation::Run(const DscImageMemoryObject &Object,
                                     const struct Options &Options) noexcept
 {
     return PrintRebaseActionList(Object, Object.getDscMap(), Options);
 }
 
 int
-PrintRebaseActionListOperation::Run(const ConstMachOMemoryObject &Object,
+PrintRebaseActionListOperation::Run(const MachOMemoryObject &Object,
                                     const struct Options &Options) noexcept
 {
     return PrintRebaseActionList(Object, Object.getMap(), Options);
 }
 
-struct PrintRebaseActionListOperation::Options
+auto
 PrintRebaseActionListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                  int *const IndexOut) noexcept
+    -> struct PrintRebaseActionListOperation::Options
 {
     auto Index = int();
     struct Options Options;

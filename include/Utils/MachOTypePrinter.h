@@ -1,19 +1,23 @@
 //
-//  include/Utils/MachOPrinter.h
+//  Utils/MachOPrinter.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/18/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
+#include "ADT/Mach-O/Headers.h"
 
-#include "ADT/MachO.h"
+#include "ADT/Mach/CpuKindInfoTemplates.h"
+#include "ADT/Mach/CpuSubKindInfo.h"
+
+#include "PrintUtils.h"
 #include "Timestamp.h"
 
 template <std::integral OffsetType, std::integral SizeType>
 static inline int
-MachOPrintOffsetSizeRange(FILE *OutFile,
+MachOPrintOffsetSizeRange(FILE *const OutFile,
                           const OffsetType &Offset,
                           const SizeType &Size,
                           const char *LinePrefix,
@@ -83,7 +87,7 @@ MachOPrintOffsetSizeRange(FILE *OutFile,
 
 template <std::integral OffsetType, std::integral EndType>
 static inline int
-MachOPrintOffsetEndRange(FILE *OutFile,
+MachOPrintOffsetEndRange(FILE *const OutFile,
                          const OffsetType &Offset,
                          const EndType &End,
                          const char *LinePrefix,
@@ -125,7 +129,7 @@ struct MachOTypePrinter<MachO::FatHeader::Arch32> {
 
     template <PrintKind PrintKind>
     static int
-    Print(FILE *OutFile,
+    Print(FILE *const OutFile,
           const Type &Arch,
           bool IsBigEndian,
           const char *LinePrefix,
@@ -134,18 +138,18 @@ struct MachOTypePrinter<MachO::FatHeader::Arch32> {
         const auto CpuKind = Arch.getCpuKind(IsBigEndian);
         const auto CpuSubKind = Arch.getCpuSubKind(IsBigEndian);
         const auto CpuKindBrandName =
-            Mach::CpuKindGetBrandName(CpuKind).data() ?: "Unknown";
+            Mach::CpuKindGetBrandName(CpuKind).value_or("<Unrecognized>");
 
         const auto CpuKindName =
-            Mach::CpuKindGetName(CpuKind).data() ?: "Unrecognized";
+            Mach::CpuKindGetName(CpuKind).value_or("<Unrecognized>");
 
         const auto CpuSubKindFullName =
-            Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data() ?:
-            "Unknown";
+            Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind)
+                .value_or("<Unrecognized>");
 
         const auto CpuSubKindName =
-            Mach::CpuSubKind::GetName(CpuKind, CpuSubKind).data() ?:
-            "Unrecognized";
+            Mach::CpuSubKind::GetName(CpuKind, CpuSubKind)
+                .value_or("<Unrecognized>");
 
         const auto Offset = Arch.getFileOffset(IsBigEndian);
         const auto Size = Arch.getFileSize(IsBigEndian);
@@ -161,9 +165,10 @@ struct MachOTypePrinter<MachO::FatHeader::Arch32> {
                         "%sOffset:%-5s" OFFSET_32_FMT " (" OFFSET_32_RNG_FMT ")"
                         "%s\n%sSize:       %" PRIu32 "%s\n"
                         "%sAlign:      %" PRIu32 "%s\n",
-                        LinePrefix, CpuKindBrandName, CpuKindName,
-                        static_cast<int32_t>(CpuKind), LineSuffix,
-                        LinePrefix, CpuSubKindName, CpuSubKindFullName,
+                        LinePrefix, CpuKindBrandName.data(), CpuKindName.data(),
+                            static_cast<int32_t>(CpuKind), LineSuffix,
+                        LinePrefix, CpuSubKindName.data(),
+                            CpuSubKindFullName.data(),
                         CpuSubKind, LineSuffix,
                         LinePrefix, "", Offset, Offset, ArchEnd, LineSuffix,
                         LinePrefix, Size, LineSuffix,
@@ -176,8 +181,10 @@ struct MachOTypePrinter<MachO::FatHeader::Arch32> {
                         "%sOffset:%-5s" OFFSET_32_FMT " (" OFFSET_32_RNG_FMT ")"
                         "%s\n%sSize:       %" PRIu32 "%s\n"
                         "%sAlign:      %" PRIu32 "%s\n",
-                        LinePrefix, CpuKindBrandName, CpuKindName, LineSuffix,
-                        LinePrefix, CpuSubKindFullName, CpuSubKindName,
+                        LinePrefix, CpuKindBrandName.data(), CpuKindName.data(),
+                            LineSuffix,
+                        LinePrefix, CpuSubKindFullName.data(),
+                            CpuSubKindName.data(),
                         LineSuffix,
                         LinePrefix, "", Offset, Offset, ArchEnd, LineSuffix,
                         LinePrefix, Size, LineSuffix,
@@ -194,7 +201,7 @@ struct MachOTypePrinter<MachO::FatHeader::Arch64> {
 
     template <PrintKind PrintKind>
     static int
-    Print(FILE *OutFile,
+    Print(FILE *const OutFile,
           const Type &Arch,
           bool IsBigEndian,
           const char *LinePrefix = "",
@@ -203,16 +210,16 @@ struct MachOTypePrinter<MachO::FatHeader::Arch64> {
         const auto CpuKind = Arch.getCpuKind(IsBigEndian);
         const auto CpuSubKind = Arch.getCpuSubKind(IsBigEndian);
         const auto CpuKindName =
-            ((PrintKindIsVerbose(PrintKind)) ?
-                Mach::CpuKindGetBrandName(CpuKind).data() :
-                Mach::CpuKindGetName(CpuKind).data()) ?:
-             "Unrecognized";
+            PrintKindIsVerbose(PrintKind) ?
+                Mach::CpuKindGetBrandName(CpuKind).value_or("<Unrecognized>") :
+                Mach::CpuKindGetName(CpuKind).value_or("<Unrecognized>");
 
         const auto CpuSubKindName =
-            ((PrintKindIsVerbose(PrintKind)) ?
-                Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data() :
-                Mach::CpuSubKind::GetName(CpuKind, CpuSubKind).data()) ?:
-            "Unrecognized";
+            PrintKindIsVerbose(PrintKind) ?
+                Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind)
+                    .value_or("<Unrecognized>") :
+                Mach::CpuSubKind::GetName(CpuKind, CpuSubKind)
+                    .value_or("<Unrecognized>");
 
         const auto Offset = Arch.getFileOffset(IsBigEndian);
         const auto Size = Arch.getFileSize(IsBigEndian);
@@ -228,9 +235,10 @@ struct MachOTypePrinter<MachO::FatHeader::Arch64> {
                         "%sOffset:%-5s" OFFSET_64_FMT " (" OFFSET_64_RNG_FMT ")"
                         "%s\n%sSize:       %" PRIu64 "%s\n"
                         "%sAlign:      %" PRIu32 "%s\n",
-                        LinePrefix, CpuKindName, static_cast<int32_t>(CpuKind),
-                        LineSuffix,
-                        LinePrefix, CpuSubKindName, CpuSubKind, LineSuffix,
+                        LinePrefix, CpuKindName.data(),
+                            static_cast<int32_t>(CpuKind), LineSuffix,
+                        LinePrefix, CpuSubKindName.data(), CpuSubKind,
+                            LineSuffix,
                         LinePrefix, "", Offset, Offset, ArchEnd, LineSuffix,
                         LinePrefix, Size, LineSuffix,
                         LinePrefix, Align, LineSuffix);
@@ -242,8 +250,8 @@ struct MachOTypePrinter<MachO::FatHeader::Arch64> {
                         "%sOffset:%-5s" OFFSET_64_FMT " (" OFFSET_64_RNG_FMT
                         ")%s\n%sSize:       %" PRIu64 "%s\n"
                         "%sAlign:      %" PRIu32 "%s\n",
-                        LinePrefix, CpuKindName, LineSuffix,
-                        LinePrefix, CpuSubKindName, LineSuffix,
+                        LinePrefix, CpuKindName.data(), LineSuffix,
+                        LinePrefix, CpuSubKindName.data(), LineSuffix,
                         LinePrefix, "", Offset, Offset, ArchEnd, LineSuffix,
                         LinePrefix, Size, LineSuffix,
                         LinePrefix, Align, LineSuffix);
@@ -258,7 +266,7 @@ struct MachOTypePrinter<MachO::FatHeader> {
     using Type = MachO::FatHeader;
 
     static int
-    PrintArchList(FILE *OutFile,
+    PrintArchList(FILE *const OutFile,
                   const Type &Header,
                   const char *LinePrefix = "",
                   const char *LineSuffix = "") noexcept
@@ -303,7 +311,7 @@ struct MachOTypePrinter<MachO::FatHeader> {
     }
 
     static int
-    PrintArchListVerbose(FILE *OutFile,
+    PrintArchListVerbose(FILE *const OutFile,
                          const Type &Header,
                          const char *LinePrefix = "",
                          const char *LineSuffix = "") noexcept
@@ -354,7 +362,7 @@ struct MachOTypePrinter<Dyld3::PackedVersion> {
 
     template <bool RightPad = false>
     static int
-    Print(FILE *OutFile,
+    Print(FILE *const OutFile,
           const Type &Version,
           const char *LinePrefix = "",
           const char *LineSuffix = "") noexcept
@@ -381,7 +389,7 @@ struct MachOTypePrinter<Dyld3::PackedVersion> {
 
     template <bool RightPad = false>
     static inline int
-    PrintWithoutZeros(FILE *OutFile,
+    PrintWithoutZeros(FILE *const OutFile,
                       const Type &Version,
                       const char *LinePrefix = "",
                       const char *LineSuffix = "")
@@ -429,7 +437,7 @@ struct MachOTypePrinter<Dyld3::PackedVersion> {
 
     template <bool RightPad = false>
     static inline int
-    PrintOrZero(FILE *OutFile,
+    PrintOrZero(FILE *const OutFile,
                 const Type &Version,
                 const char *LinePrefix = "",
                 const char *LineSuffix = "")
@@ -479,7 +487,7 @@ struct MachOTypePrinter<struct MachO::DylibCommand::Info> {
     using Type = struct MachO::DylibCommand::Info;
 
     static int
-    Print(FILE *OutFile,
+    Print(FILE *const OutFile,
           const Type &Info,
           bool IsBigEndian,
           bool TimestampAligned,
@@ -520,7 +528,7 @@ struct MachOTypePrinter<struct MachO::DylibCommand::Info> {
     }
 
     static int
-    PrintOnOneLine(FILE *OutFile,
+    PrintOnOneLine(FILE *const OutFile,
                    const Type &Info,
                    bool IsBigEndian,
                    PrintKind PrintKind,

@@ -1,17 +1,18 @@
 //
-//  PrintImageList.cpp
+//  Operations/PrintImageList.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 7/11/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "ADT/DyldSharedCache.h"
-#include "Utils/Timestamp.h"
+#include <algorithm>
 
-#include "Common.h"
-#include "Operation.h"
-#include "PrintImageList.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintImageList.h"
+
+#include "Utils/PrintUtils.h"
+#include "Utils/Timestamp.h"
 
 PrintImageListOperation::PrintImageListOperation() noexcept
 : Operation(OpKind) {}
@@ -80,7 +81,7 @@ PrintImageCount(FILE *const OutFile,
 }
 
 int
-PrintImageListOperation::Run(const ConstDscMemoryObject &Object,
+PrintImageListOperation::Run(const DscMemoryObject &Object,
                              const struct Options &Options) noexcept
 {
     const auto ImageCount = Object.getImageCount();
@@ -193,9 +194,10 @@ AddSortKind(PrintImageListOperation::Options::SortKind SortKind,
     }
 }
 
-struct PrintImageListOperation::Options
+auto
 PrintImageListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                           int *const IndexOut) noexcept
+    -> struct PrintImageListOperation::Options
 {
     auto Index = int();
     struct Options Options;

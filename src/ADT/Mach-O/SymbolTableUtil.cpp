@@ -1,16 +1,17 @@
 //
-//  src/ADT/Mach-O/SymbolTableUtil.cpp
+//  ADT/Mach-O/SymbolTableUtil.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 7/3/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <string.h>
-#include "Utils/PointerUtils.h"
 
-#include "LoadCommands.h"
-#include "SymbolTableUtil.h"
+#include "ADT/Mach-O/LoadCommands.h"
+#include "ADT/Mach-O/SymbolTableUtil.h"
+
+#include "Utils/PointerUtils.h"
 
 namespace MachO {
     typedef
@@ -28,16 +29,17 @@ namespace MachO {
                            const SymbolTableEntry32>;
 
     template <PointerKind Kind>
-    [[nodiscard]] static SymbolTableParseError
+    [[nodiscard]] static auto
     ParseSymbol(const MachOSymbolTableEntryTypeCalculator<Kind> &Entry,
-                uint64_t Index,
-                const char *StrTab,
-                const char *StrTabEnd,
+                const uint64_t Index,
+                const char *const StrTab,
+                const char *const StrTabEnd,
                 InfoMap &InfoMap,
                 StringMap &StringMap,
                 const enum SymbolTableEntryCollection::KeyKindEnum KeyKind,
                 const SymbolTableEntryCollection::ParseOptions &Options,
-                bool IsBigEndian) noexcept
+                const bool IsBigEndian) noexcept
+        -> SymbolTableEntryCollection::Error
     {
         if (Entry.Info.isExternal()) {
             if (Options.IgnoreExternal) {
@@ -78,10 +80,10 @@ namespace MachO {
                 break;
         }
 
-        const auto StrTabRange = RelativeRange(StrTabEnd - StrTab);
+        const auto StrTabRange = Range::CreateWithSize(0, StrTabEnd - StrTab);
         const auto StringIndex = Entry.getIndex(IsBigEndian);
 
-        if (!StrTabRange.containsLocation(StringIndex)) {
+        if (!StrTabRange.hasLocation(StringIndex)) {
             return SymbolTableParseError::InvalidStringOffset;
         }
 
@@ -90,9 +92,10 @@ namespace MachO {
 
         if (StringIter == StringMap.end()) {
             const auto String = StrTab + StringIndex;
-            const auto MaxLength = (StrTabEnd - StrTab) - StringIndex;
-            const auto Length = strnlen(String, MaxLength);
+            const auto MaxLength =
+                static_cast<size_t>((StrTabEnd - StrTab) - StringIndex);
 
+            const auto Length = strnlen(String, MaxLength);
             if (Length == MaxLength) {
                 return SymbolTableParseError::NoNullTerminator;
             }
@@ -135,7 +138,7 @@ namespace MachO {
     }
 
     template <PointerKind Kind>
-    [[nodiscard]] static SymbolTableEntryCollection::Error
+    [[nodiscard]] static auto
     ParseList(const uint8_t *Begin,
               const uint64_t Count,
               uint64_t NlistStartIndex,
@@ -146,6 +149,7 @@ namespace MachO {
               enum SymbolTableEntryCollection::KeyKindEnum KeyKind,
               const SymbolTableEntryCollection::ParseOptions &Options,
               bool IsBigEndian) noexcept
+        -> SymbolTableEntryCollection::Error
     {
         using PointerType = MachOSymbolTableEntryTypeCalculator<Kind>;
         auto Index = NlistStartIndex;
@@ -173,16 +177,17 @@ namespace MachO {
         return SymbolTableParseError::None;
     }
 
-    SymbolTableEntryCollection &
-    SymbolTableEntryCollection::Parse(const uint8_t *NlistBegin,
+    auto
+    SymbolTableEntryCollection::Parse(const uint8_t *const NlistBegin,
                                       const uint64_t NlistCount,
-                                      const char *StrTab,
-                                      const char *StrEnd,
-                                      bool IsBigEndian,
-                                      bool Is64Bit,
-                                      enum KeyKindEnum KeyKind,
-                                      ParseOptions Options,
-                                      Error *ErrorOut) noexcept
+                                      const char *const StrTab,
+                                      const char *const StrEnd,
+                                      const bool IsBigEndian,
+                                      const bool Is64Bit,
+                                      const enum KeyKindEnum KeyKind,
+                                      const ParseOptions Options,
+                                      Error *const ErrorOut) noexcept
+        -> decltype(*this)
     {
         auto Error = SymbolTableEntryCollection::Error();
         if (Is64Bit) {
@@ -218,14 +223,15 @@ namespace MachO {
         return *this;
     }
 
-    SymbolTableEntryCollection &
-    SymbolTableEntryCollection::Parse(const uint8_t *Map,
+    auto
+    SymbolTableEntryCollection::Parse(const uint8_t *const Map,
                                       const SymTabCommand &SymTab,
-                                      bool IsBigEndian,
-                                      bool Is64Bit,
-                                      KeyKindEnum KeyKind,
-                                      ParseOptions Options,
-                                      Error *ErrorOut) noexcept
+                                      const bool IsBigEndian,
+                                      const bool Is64Bit,
+                                      const KeyKindEnum KeyKind,
+                                      const ParseOptions Options,
+                                      Error *const ErrorOut) noexcept
+        -> decltype(*this)
     {
         const auto NlistCount = SymTab.getSymbolCount(IsBigEndian);
         const auto NlistBegin = Map + SymTab.getSymbolTableOffset(IsBigEndian);
@@ -246,19 +252,19 @@ namespace MachO {
         return *this;
     }
 
-    SymbolTableEntryCollection &
-    SymbolTableEntryCollection::ParseIndirectSymbolIndexTable(
-        const uint8_t *NlistBegin,
+    auto SymbolTableEntryCollection::ParseIndirectSymbolIndexTable(
+        const uint8_t *const NlistBegin,
         const uint64_t NlistCount,
-        const uint32_t *IndexBegin,
-        uint64_t IndexCount,
-        const char *StrTab,
-        const char *StrEnd,
-        bool IsBigEndian,
-        bool Is64Bit,
-        KeyKindEnum KeyKind,
-        ParseOptions Options,
-        Error *ErrorOut) noexcept
+        const uint32_t *const IndexBegin,
+        const uint64_t IndexCount,
+        const char *const StrTab,
+        const char *const StrEnd,
+        const bool IsBigEndian,
+        const bool Is64Bit,
+        const KeyKindEnum KeyKind,
+        const ParseOptions Options,
+        Error *const ErrorOut) noexcept
+            -> decltype(*this)
     {
         const auto IndexEnd = IndexBegin + IndexCount;
         const auto IndexList = BasicContiguousList(IndexBegin, IndexEnd);
@@ -347,16 +353,17 @@ namespace MachO {
         return *this;
     }
 
-    SymbolTableEntryCollection &
+    auto
     SymbolTableEntryCollection::ParseIndirectSymbolIndexTable(
-        const uint8_t *Map,
+        const uint8_t *const Map,
         const SymTabCommand &SymTab,
         const DynamicSymTabCommand &DySymTab,
-        bool IsBigEndian,
-        bool Is64Bit,
-        KeyKindEnum KeyKind,
-        ParseOptions Options,
-        Error *ErrorOut) noexcept
+        const bool IsBigEndian,
+        const bool Is64Bit,
+        const KeyKindEnum KeyKind,
+        const ParseOptions Options,
+        Error *const ErrorOut) noexcept
+            -> decltype(*this)
     {
         const auto IndexListCount =
             DySymTab.getIndirectSymbolTableCount(IsBigEndian);
@@ -385,17 +392,18 @@ namespace MachO {
         return *this;
     }
 
-    SymbolTableEntryCollection &
+    auto
     SymbolTableEntryCollection::ParseIndirectSymbolsPtrSection(
-        const uint8_t *Map,
+        const uint8_t *const Map,
         const SymTabCommand &SymTab,
         const DynamicSymTabCommand &DySymTab,
         const SectionInfo &Sect,
-        bool IsBigEndian,
-        bool Is64Bit,
-        KeyKindEnum KeyKind,
-        ParseOptions Options,
-        Error *ErrorOut) noexcept
+        const bool IsBigEndian,
+        const bool Is64Bit,
+        const KeyKindEnum KeyKind,
+        const ParseOptions Options,
+        Error *const ErrorOut) noexcept
+            -> decltype(*this)
     {
         const auto IndexListOffset =
             DySymTab.getIndirectSymbolTableOffset(IsBigEndian);
@@ -403,23 +411,15 @@ namespace MachO {
             DySymTab.getIndirectSymbolTableCount(IsBigEndian);
 
         const auto IndexListMap = Map + IndexListOffset;
-        const auto IndexListRange = RelativeRange(IndexListCount);
+        const auto IndexListRange = Range::CreateWithSize(0, IndexListCount);
 
         const auto SectionSize = Sect.getFileRange().size();
         const auto SectionIndexCount = SectionSize / PointerSize(Is64Bit);
         const auto SectionIndexRange =
-            LocationRange::CreateWithSize(Sect.getReserved1(),
+            Range::CreateWithSize(Sect.getReserved1(),
                                           SectionIndexCount);
 
-        if (!SectionIndexRange.has_value()) {
-            if (ErrorOut != nullptr) {
-                *ErrorOut = SymbolTableParseError::InvalidSection;
-            }
-
-            return *this;
-        }
-
-        if (!IndexListRange.containsLocRange(SectionIndexRange.value())) {
+        if (!IndexListRange.contains(SectionIndexRange)) {
             if (ErrorOut != nullptr) {
                 *ErrorOut = SymbolTableParseError::InvalidSection;
             }
@@ -450,9 +450,11 @@ namespace MachO {
         return *this;
     }
 
-    SymbolTableEntryCollection::EntryInfo *
-    SymbolTableEntryCollection::GetInfoWithKey(KeyKindEnum KeyKind,
-                                               uint64_t Value) const noexcept
+    auto
+    SymbolTableEntryCollection::GetInfoWithKey(
+        const KeyKindEnum KeyKind,
+        const uint64_t Value) const noexcept
+            -> SymbolTableEntryCollection::EntryInfo *
     {
         assert(this->KeyKind == KeyKind);
 

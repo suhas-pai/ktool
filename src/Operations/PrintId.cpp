@@ -1,27 +1,25 @@
 //
-//  src/Operations/PrintId.cpp
+//  Operations/PrintId.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 4/24/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cstring>
-#include "ADT/MachO.h"
+
+#include "Operations/Common.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintId.h"
 
 #include "Utils/MachOTypePrinter.h"
-#include "Utils/PrintUtils.h"
-
-#include "Common.h"
-#include "Operation.h"
-#include "PrintId.h"
 
 PrintIdOperation::PrintIdOperation() noexcept : Operation(OpKind) {}
 PrintIdOperation::PrintIdOperation(const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}
 
-static int
-PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
+static auto
+PrintFromLoadCommands(const MachOMemoryObject &Object,
                       const struct PrintIdOperation::Options &Options) noexcept
 {
     using LCKind = MachO::LoadCommand::Kind;
@@ -71,7 +69,7 @@ PrintFromLoadCommands(const ConstMachOMemoryObject &Object,
 }
 
 int
-PrintIdOperation::Run(const ConstDscImageMemoryObject &Object,
+PrintIdOperation::Run(const DscImageMemoryObject &Object,
                       const struct Options &Options) noexcept
 {
     if (Options.Verbose) {
@@ -83,7 +81,7 @@ PrintIdOperation::Run(const ConstDscImageMemoryObject &Object,
 }
 
 int
-PrintIdOperation::Run(const ConstMachOMemoryObject &Object,
+PrintIdOperation::Run(const MachOMemoryObject &Object,
                       const struct Options &Options) noexcept
 {
     if (Object.getFileKind() != MachO::Header::FileKind::Dylib) {
@@ -94,9 +92,10 @@ PrintIdOperation::Run(const ConstMachOMemoryObject &Object,
     return PrintFromLoadCommands(Object, Options);
 }
 
-struct PrintIdOperation::Options
+auto
 PrintIdOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                    int *const IndexOut) noexcept
+    -> struct PrintIdOperation::Options
 {
     auto Index = int();
     struct Options Options;

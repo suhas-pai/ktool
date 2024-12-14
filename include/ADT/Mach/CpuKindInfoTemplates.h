@@ -1,15 +1,14 @@
 //
-//  include/ADT/Mach/CpuKindInfoTemplates.h
+//  ADT/Mach/CpuKindInfoTemplates.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/18/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
-#include <string_view>
 
-#include "Utils/Macros.h"
+#include <string_view>
 #include "Info.h"
 
 namespace Mach {
@@ -17,7 +16,6 @@ namespace Mach {
     struct CpuKindTemplateInfo {};
 
     using namespace std::literals;
-    constexpr auto EmptyStringValue = std::string_view();
 
     template <>
     struct CpuKindTemplateInfo<CpuKind::Any> {
@@ -227,8 +225,10 @@ namespace Mach {
         constexpr static auto Description = "Arm64_32"sv;
     };
 
-    [[nodiscard]] constexpr
-    const std::string_view &CpuKindGetName(CpuKind CpuKind) noexcept {
+    [[nodiscard]]
+    constexpr auto CpuKindGetName(CpuKind CpuKind) noexcept
+        -> std::optional<std::string_view>
+    {
         switch (CpuKind) {
             case CpuKind::Any:
                 return CpuKindTemplateInfo<CpuKind::Any>::Name;
@@ -278,11 +278,13 @@ namespace Mach {
                 return CpuKindTemplateInfo<CpuKind::Arm64_32>::Name;
         }
 
-        return EmptyStringValue;
+        return std::nullopt;
     }
 
-    [[nodiscard]] constexpr
-    const std::string_view &CpuKindGetBrandName(enum CpuKind CpuKind) noexcept {
+    [[nodiscard]]
+    constexpr auto CpuKindGetBrandName(const enum CpuKind CpuKind) noexcept
+        -> std::optional<std::string_view>
+    {
         switch (CpuKind) {
             case CpuKind::Any:
                 return CpuKindTemplateInfo<CpuKind::Any>::BrandName;
@@ -332,11 +334,13 @@ namespace Mach {
                 return CpuKindTemplateInfo<CpuKind::Arm64_32>::BrandName;
         }
 
-        return EmptyStringValue;
+        return std::nullopt;
     }
 
-    [[nodiscard]] constexpr const std::string_view &
-    CpuKindGetDescripton(enum CpuKind CpuKind) noexcept {
+    [[nodiscard]] constexpr auto
+    CpuKindGetDescription(const enum CpuKind CpuKind) noexcept
+        -> std::optional<std::string_view>
+    {
         switch (CpuKind) {
             case CpuKind::Any:
                 return CpuKindTemplateInfo<CpuKind::Any>::Description;
@@ -386,6 +390,6 @@ namespace Mach {
                 return CpuKindTemplateInfo<CpuKind::Arm64_32>::Description;
         }
 
-        return EmptyStringValue;
+        return std::nullopt;
     }
 }

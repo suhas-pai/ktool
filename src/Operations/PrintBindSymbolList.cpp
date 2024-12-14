@@ -1,17 +1,19 @@
 //
-//  src/Operations/PrintBindSymbolList.cpp
+//  Operations/PrintBindSymbolList.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 5/17/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cstring>
-#include "Utils/PrintUtils.h"
+#include <format>
 
-#include "Common.h"
-#include "Operation.h"
-#include "PrintBindSymbolList.h"
+#include "Operations/Common.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintBindSymbolList.h"
+
+#include "Utils/PrintUtils.h"
 
 PrintBindSymbolListOperation::PrintBindSymbolListOperation() noexcept
 : Operation(OpKind) {}
@@ -67,7 +69,7 @@ PrintBindAction(
     const struct PrintBindSymbolListOperation::Options &Options) noexcept
 {
     fprintf(Options.OutFile,
-            "%s Symbol %0*" PRIu64 ": ",
+            "%s Symbol %*" PRIu64 ": ",
             Name,
             SizeDigitLength,
             Counter);
@@ -96,7 +98,9 @@ PrintBindAction(
         }
     } else {
         PrintUtilsRightPadSpaces(Options.OutFile,
-                                 fputs("<unknown>", Options.OutFile),
+                                 fputs(std::format("<unknown segment 0x{:02x}>",
+                                                   Action.SegmentIndex).c_str(),
+                                       Options.OutFile),
                                  OperationCommon::SegmentSectionPairMaxLength);
     }
 
@@ -104,7 +108,8 @@ PrintBindAction(
         fprintf(Options.OutFile,
                 " %" PRINTF_RIGHTPAD_FMT "s",
                 static_cast<int>(MachO::BindWriteKindGetLongestDescription()),
-                MachO::BindWriteKindGetDescription(Action.WriteKind).data());
+                MachO::BindWriteKindGetDescription(Action.WriteKind)
+                    .value_or("<Unrecognized>").data());
     }
 
     const auto RightPad =
@@ -182,7 +187,7 @@ PrintBindActionList(
 
 static int
 PrintBindSymbolList(
-    const ConstMachOMemoryObject &Object,
+    const MachOMemoryObject &Object,
     const ConstMemoryMap &Map,
     const struct PrintBindSymbolListOperation::Options &Options) noexcept
 {
@@ -309,7 +314,7 @@ PrintBindSymbolList(
 
         BindActionListError = BindActionListOpt.getError();
         if (BindActionListError == MachO::SizeRangeError::None) {
-            const auto BindActionList = BindActionListOpt.getRef();
+            const auto &BindActionList = *BindActionListOpt.value();
             BindSymbolListError =
                 BindActionList.GetListOfSymbols(BindSymbolActionList);
         }
@@ -324,7 +329,7 @@ PrintBindSymbolList(
 
         LazyBindActionListError = LazyBindActionListOpt.getError();
         if (LazyBindActionListError == MachO::SizeRangeError::None) {
-            const auto LazyBindActionList = LazyBindActionListOpt.getRef();
+            const auto &LazyBindActionList = *LazyBindActionListOpt.value();
             LazyBindSymbolListError =
                 LazyBindActionList.GetListOfSymbols(LazyBindSymbolActionList);
         }
@@ -339,7 +344,7 @@ PrintBindSymbolList(
 
         WeakBindActionListError = WeakBindActionListOpt.getError();
         if (WeakBindActionListError == MachO::SizeRangeError::None) {
-            const auto WeakBindActionList = WeakBindActionListOpt.getRef();
+            const auto &WeakBindActionList = *WeakBindActionListOpt.value();
             WeakBindSymbolListError =
                 WeakBindActionList.GetListOfSymbols(WeakBindSymbolActionList);
         }
@@ -478,14 +483,14 @@ PrintBindSymbolList(
 }
 
 int
-PrintBindSymbolListOperation::Run(const ConstDscImageMemoryObject &Object,
+PrintBindSymbolListOperation::Run(const DscImageMemoryObject &Object,
                                   const struct Options &Options) noexcept
 {
     return PrintBindSymbolList(Object, Object.getDscMap(), Options);
 }
 
 int
-PrintBindSymbolListOperation::Run(const ConstMachOMemoryObject &Object,
+PrintBindSymbolListOperation::Run(const MachOMemoryObject &Object,
                                   const struct Options &Options) noexcept
 {
     return PrintBindSymbolList(Object, Object.getMap(), Options);
@@ -512,9 +517,10 @@ AddSortKind(PrintBindSymbolListOperation::Options::SortKind SortKind,
     }
 }
 
-struct PrintBindSymbolListOperation::Options
+auto
 PrintBindSymbolListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                int *const IndexOut) noexcept
+    -> struct PrintBindSymbolListOperation::Options
 {
     auto Index = int();
     struct Options Options;

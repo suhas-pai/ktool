@@ -1,9 +1,9 @@
 //
-//  include/ADT/Mach-O/ObjcUtil.h
+//  ADT/Mach-O/ObjcUtil.h
 //  ktool
 //
 //  Created by Suhas Pai on 6/13/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -29,7 +29,7 @@ namespace MachO {
             const BindActionList *BindList,
             const LazyBindActionList *LazyBindList,
             const WeakBindActionList *WeakBindList,
-            const LocationRange &Range,
+            const Range &Range,
             BindActionCollection &CollectionOut,
             BindOpcodeParseError *ParseErrorOut,
             BindActionCollection::Error *CollectionErrorOut) noexcept;
@@ -109,68 +109,73 @@ namespace MachO {
             return Result;
         }
 
-        [[nodiscard]] inline Info *getRoot() const noexcept {
+        [[nodiscard]] inline auto getRoot() const noexcept {
             return reinterpret_cast<Info *>(Root);
         }
 
-        [[nodiscard]] inline
-        std::unordered_map<uint64_t, std::unique_ptr<Info>> &getMap() noexcept {
+        [[nodiscard]] inline auto &getMap() noexcept {
             return List;
         }
 
-        [[nodiscard]]
-        inline const std::unordered_map<uint64_t, std::unique_ptr<Info>> &
-        getMap() const noexcept {
+        [[nodiscard]] inline auto &getMap() const noexcept {
             return List;
         }
 
-        [[nodiscard]] std::vector<ObjcClassInfo *> GetAsList() const noexcept;
-        ObjcClassInfo *AddNullClass(uint64_t BindAddress) noexcept;
+        [[nodiscard]] auto GetAsList() const noexcept
+            -> std::vector<ObjcClassInfo *>;
 
-        ObjcClassInfo *
+        auto AddNullClass(uint64_t BindAddress) noexcept -> ObjcClassInfo *;
+
+        auto
         AddExternalClass(std::string_view Name,
                          uint64_t DylibOrdinal,
-                         uint64_t BindAddress) noexcept;
+                         uint64_t BindAddress) noexcept
+            -> ObjcClassInfo *;
 
         [[nodiscard]]
-        ObjcClassInfo *GetInfoForAddress(uint64_t Address) const noexcept;
+        auto GetInfoForAddress(uint64_t Address) const noexcept
+            -> ObjcClassInfo *;
 
-        [[nodiscard]] ObjcClassInfo *
-        GetInfoForClassName(std::string_view Name) const noexcept;
+        [[nodiscard]] auto
+        GetInfoForClassName(std::string_view Name) const noexcept
+            -> ObjcClassInfo *;
 
         using Iterator = TreeIterator<ObjcClassInfo>;
         using ConstIterator = TreeIterator<const ObjcClassInfo>;
 
-        [[nodiscard]] inline Iterator begin() const noexcept {
+        [[nodiscard]] inline auto begin() const noexcept {
             return Iterator(getRoot());
         }
 
-        [[nodiscard]] inline Iterator end() const noexcept {
+        [[nodiscard]] inline auto end() const noexcept {
             return Iterator::Null();
         }
 
-        [[nodiscard]] inline ConstIterator cbegin() const noexcept {
+        [[nodiscard]] inline auto cbegin() const noexcept {
             return ConstIterator(getRoot());
         }
 
-        [[nodiscard]] inline ConstIterator cend() const noexcept {
+        [[nodiscard]] inline auto cend() const noexcept {
             return ConstIterator::Null();
         }
 
-        [[nodiscard]] inline uint64_t size() const noexcept {
+        [[nodiscard]] inline auto size() const noexcept {
             return List.size();
         }
 
         template <typename T>
-        inline const ObjcClassInfoCollection &
-        forEach(const T &Callback) const noexcept {
-            forEachNode(Callback);
+        inline auto forEach(const T &Callback) const noexcept
+            -> decltype(*this)
+        {
+            this->forEachNode(Callback);
             return *this;
         }
 
         template <typename T>
-        inline ObjcClassInfoCollection &forEach(const T &Callback) noexcept {
-            forEachNode(Callback);
+        inline auto forEach(const T &Callback) noexcept
+            -> decltype(*this)
+        {
+            this->forEachNode(Callback);
             return *this;
         }
     };
@@ -184,7 +189,7 @@ namespace MachO {
     public:
         ObjcClassCategoryCollection() noexcept = default;
 
-        ObjcClassCategoryCollection &
+        auto
         CollectFrom(const uint8_t *Map,
                     const SegmentInfoCollection &SegmentCollection,
                     const ConstDeVirtualizer &DeVirtualizer,
@@ -192,9 +197,10 @@ namespace MachO {
                     ObjcClassInfoCollection *ClassInfoTree,
                     bool IsBigEndian,
                     bool Is64Bit,
-                    Error *ErrorOut) noexcept;
+                    Error *ErrorOut) noexcept
+            -> decltype(*this);
 
-        ObjcClassCategoryCollection &
+        auto
         CollectFrom(const ConstMemoryMap &Map,
                     const SegmentInfoCollection &SegmentCollection,
                     const ConstDeVirtualizer &DeVirtualizer,
@@ -206,9 +212,10 @@ namespace MachO {
                     bool Is64Bit,
                     Error *ErrorOut,
                     BindOpcodeParseError *ParseErrorOut,
-                    BindActionCollection::Error *CollectionErrorOut) noexcept;
+                    BindActionCollection::Error *CollectionErrorOut) noexcept
+            -> decltype(*this);
 
-        [[nodiscard]] static inline ObjcClassCategoryCollection
+        [[nodiscard]] static inline auto
         Open(const uint8_t *Map,
              const SegmentInfoCollection &SegmentCollection,
              const ConstDeVirtualizer &DeVirtualizer,
@@ -231,7 +238,7 @@ namespace MachO {
             return Result;
         }
 
-        [[nodiscard]] static inline ObjcClassCategoryCollection
+        [[nodiscard]] static inline auto
         Open(const ConstMemoryMap &Map,
              const SegmentInfoCollection &SegmentCollection,
              const ConstDeVirtualizer &DeVirtualizer,
@@ -263,8 +270,8 @@ namespace MachO {
         }
 
         template <typename T>
-        inline const ObjcClassCategoryCollection &
-        forEach(const T &Callback) const noexcept {
+        inline auto forEach(const T &Callback) const noexcept -> decltype(*this)
+        {
             for (const auto &CategoryPtr : List) {
                 Callback(*CategoryPtr);
             }
@@ -273,8 +280,7 @@ namespace MachO {
         }
 
         template <typename T>
-        inline ObjcClassCategoryCollection &
-        forEach(const T &Callback) noexcept {
+        inline auto forEach(const T &Callback) noexcept -> decltype(*this) {
             for (const auto &CategoryPtr : List) {
                 Callback(*CategoryPtr);
             }

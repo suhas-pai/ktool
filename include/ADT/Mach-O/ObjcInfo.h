@@ -1,9 +1,9 @@
 //
-//  include/ADT/Mach-O/ObjcInfo.h
+//  ADT/Mach-O/ObjcInfo.h
 //  ktool
 //
 //  Created by Suhas Pai on 9/4/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -34,162 +34,178 @@ namespace MachO {
         ObjcClassRoFlags Flags;
         CategoryListType CategoryList;
     public:
-        ObjcClassInfo() noexcept {}
-
+        explicit ObjcClassInfo() noexcept {}
         explicit ObjcClassInfo(const std::string_view Name) noexcept
         : Name(Name) {}
 
-        [[nodiscard]]
-        inline TreeNode *createNew() const noexcept override {
+        [[nodiscard]] inline TreeNode *createNew() const noexcept override {
             return new ObjcClassInfo;
         }
 
-        [[nodiscard]] inline ObjcClassInfo *getParent() const noexcept {
-            return get(Parent);
-        }
-
-        [[nodiscard]] inline ObjcClassInfo *getPrevSibling() const noexcept {
-            return get(PrevSibling);
-        }
-
-        [[nodiscard]] inline ObjcClassInfo *getNextSibling() const noexcept {
-            return get(NextSibling);
-        }
-
-        [[nodiscard]] inline ObjcClassInfo *getFirstChild() const noexcept {
-            return get(FirstChild);
-        }
-
-        [[nodiscard]] inline ObjcClassInfo *getLastChild() const noexcept {
-            return get(LastChild);
-        }
-
-        [[nodiscard]]
-        static inline ObjcClassInfo &get(TreeNode &Node) noexcept {
+        [[nodiscard]] static inline auto get(TreeNode &Node) noexcept {
             return reinterpret_cast<ObjcClassInfo &>(Node);
         }
 
-        [[nodiscard]] static
-        inline const ObjcClassInfo &get(const TreeNode &Node) noexcept {
+        [[nodiscard]]
+        static inline auto get(const TreeNode &Node) noexcept {
             return reinterpret_cast<const ObjcClassInfo &>(Node);
         }
 
-        [[nodiscard]]
-        static inline ObjcClassInfo *get(TreeNode *const Node) noexcept {
+        [[nodiscard]] static inline auto get(TreeNode *const Node) noexcept {
             return reinterpret_cast<ObjcClassInfo *>(Node);
         }
 
-        [[nodiscard]] static
-        inline const ObjcClassInfo *get(const TreeNode *const Node) noexcept {
+        [[nodiscard]]
+        static inline auto get(const TreeNode *const Node) noexcept {
             return reinterpret_cast<const ObjcClassInfo *>(Node);
         }
 
-        [[nodiscard]] inline uint64_t GetLength() const noexcept override {
-            return Name.length();
+        [[nodiscard]] inline auto getParent() const noexcept {
+            return this->get(Parent);
         }
 
-        [[nodiscard]] inline ObjcClassInfo *getSuper() const noexcept {
+        [[nodiscard]] inline auto getPrevSibling() const noexcept {
+            return this->get(PrevSibling);
+        }
+
+        [[nodiscard]] inline auto getNextSibling() const noexcept {
+            return this->get(NextSibling);
+        }
+
+        [[nodiscard]] inline auto getFirstChild() const noexcept {
+            return this->get(FirstChild);
+        }
+
+        [[nodiscard]] inline auto getLastChild() const noexcept {
+            return this->get(LastChild);
+        }
+
+        [[nodiscard]] inline uint64_t GetLength() const noexcept override {
+            return this->Name.length();
+        }
+
+        [[nodiscard]] inline auto getSuper() const noexcept {
             return reinterpret_cast<ObjcClassInfo *>(Parent);
         }
 
-        inline ObjcClassInfo &setSuper(ObjcClassInfo *const Parent) noexcept {
+        inline auto setSuper(ObjcClassInfo *const Parent) noexcept
+            -> decltype(*this)
+        {
             this->Parent = reinterpret_cast<TreeNode *>(Parent);
             return *this;
         }
 
-        inline ObjcClassInfo &
-        setLastChild(const ObjcClassInfo *const LastChild) noexcept {
+        inline auto
+        setLastChild(const ObjcClassInfo *const LastChild) noexcept
+            -> decltype(*this)
+        {
             this->LastChild = const_cast<ObjcClassInfo *>(LastChild);
             return *this;
         }
 
-        [[nodiscard]]
-        constexpr std::string_view getName() const noexcept {
-            return Name;
+        [[nodiscard]] constexpr auto getName() const noexcept
+            -> std::string_view
+        {
+            return this->Name;
         }
 
-        [[nodiscard]]
-        constexpr uint64_t getDylibOrdinal() const noexcept {
-            return DylibOrdinal;
+        [[nodiscard]] constexpr auto getDylibOrdinal() const noexcept {
+            return this->DylibOrdinal;
         }
 
-        [[nodiscard]] constexpr bool isExternal() const noexcept {
-            return sIsExternal;
+        [[nodiscard]] constexpr auto isExternal() const noexcept {
+            return this->sIsExternal;
         }
 
-        [[nodiscard]] constexpr bool isNull() const noexcept {
-            return sIsNull;
+        [[nodiscard]] constexpr auto isNull() const noexcept {
+            return this->sIsNull;
         }
 
-        [[nodiscard]] constexpr bool isSwift() const noexcept {
-            return sIsSwift;
+        [[nodiscard]] constexpr auto isSwift() const noexcept {
+            return this->sIsSwift;
         }
 
-        [[nodiscard]]
-        constexpr ObjcClassRoFlags getFlags() const noexcept {
-            return Flags;
+        [[nodiscard]] constexpr auto getFlags() const noexcept {
+            return this->Flags;
         }
 
-        [[nodiscard]] constexpr uint64_t getAddress() const noexcept {
+        [[nodiscard]] constexpr auto getAddress() const noexcept {
             assert(!this->isExternal());
-            return Addr;
+            return this->Addr;
         }
 
-        [[nodiscard]]
-        constexpr uint64_t getBindAddress() const noexcept {
+        [[nodiscard]] constexpr auto getBindAddress() const noexcept {
             assert(this->isExternal());
-            return BindAddr;
+            return this->BindAddr;
         }
 
-        [[nodiscard]]
-        constexpr const CategoryListType &getCategoryList() const noexcept {
-            return CategoryList;
+        [[nodiscard]] constexpr auto &getCategoryList() const noexcept {
+            return this->CategoryList;
         }
 
-        [[nodiscard]]
-        constexpr CategoryListType &getCategoryListRef() noexcept {
-            return CategoryList;
+        [[nodiscard]] constexpr auto &getCategoryListRef() noexcept {
+            return this->CategoryList;
         }
 
-        inline ObjcClassInfo &setName(const std::string &Value) noexcept {
-            this->Name = Value;
+        inline auto setName(const std::string_view Name) noexcept
+            -> decltype(*this)
+        {
+            this->Name = Name;
             return *this;
         }
 
-        inline ObjcClassInfo &setDylibOrdinal(const uint64_t Value) noexcept {
+        inline auto setName(std::string &&Name) noexcept
+            -> decltype(*this)
+        {
+            this->Name = std::move(Name);
+            return *this;
+        }
+
+        inline auto setDylibOrdinal(const uint64_t Value) noexcept
+            -> decltype(*this)
+        {
             this->DylibOrdinal = Value;
             return *this;
         }
 
-        inline ObjcClassInfo &setIsExternal(const bool Value = true) noexcept {
+        inline auto setIsExternal(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
             this->sIsExternal = Value;
             return *this;
         }
 
-        inline ObjcClassInfo &setIsNull(const bool Value = true) noexcept {
+        inline auto setIsNull(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
             this->sIsNull = Value;
             return *this;
         }
 
-        inline ObjcClassInfo &setIsSwift(const bool Value = true) noexcept {
+        inline auto setIsSwift(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
             this->sIsSwift = Value;
             return *this;
         }
 
-        constexpr
-        ObjcClassInfo &setFlags(const ObjcClassRoFlags &Value) noexcept {
+        constexpr auto setFlags(const ObjcClassRoFlags &Value) noexcept
+            -> decltype(*this)
+        {
             this->Flags = Value;
             return *this;
         }
 
-        inline ObjcClassInfo &setAddr(const uint64_t Value) noexcept {
+        inline auto setAddr(const uint64_t Value) noexcept -> decltype(*this) {
             assert(!this->isExternal());
 
             this->Addr = Value;
             return *this;
         }
 
-        inline ObjcClassInfo &setBindAddr(const uint64_t Value) noexcept {
+        inline auto setBindAddr(const uint64_t Value) noexcept
+            -> decltype(*this)
+        {
             assert(this->isExternal());
 
             this->BindAddr = Value;
@@ -197,12 +213,12 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr bool operator==(const ObjcClassInfo &Rhs) noexcept {
-            return (Addr == Rhs.Addr);
+        constexpr auto operator==(const ObjcClassInfo &Rhs) noexcept {
+            return Addr == Rhs.Addr;
         }
 
         [[nodiscard]]
-        constexpr bool operator!=(const ObjcClassInfo &Rhs) noexcept {
+        constexpr auto operator!=(const ObjcClassInfo &Rhs) noexcept {
             return !(*this == Rhs);
         }
     };
@@ -216,42 +232,53 @@ namespace MachO {
     public:
         ObjcClassCategoryInfo() {}
 
-        [[nodiscard]] constexpr std::string_view getName() const noexcept {
-            return Name;
+        [[nodiscard]] constexpr auto getName() const noexcept
+            -> std::string_view
+        {
+            return this->Name;
         }
 
-        [[nodiscard]] constexpr const ObjcClassInfo *getClass() const noexcept {
-            return Class;
+        [[nodiscard]] constexpr auto getClass() const noexcept {
+            return this->Class;
         }
 
-        [[nodiscard]] constexpr uint64_t getAddress() const noexcept {
-            return Address;
+        [[nodiscard]] constexpr auto getAddress() const noexcept {
+            return this->Address;
         }
 
-        [[nodiscard]] constexpr bool isNull() const noexcept {
-            return sIsNull;
+        [[nodiscard]] constexpr auto isNull() const noexcept {
+            return this->sIsNull;
         }
 
-        constexpr
-        ObjcClassCategoryInfo &setName(const std::string &Value) noexcept {
-            this->Name = Value;
+        constexpr auto setName(const std::string_view Name) noexcept
+            -> decltype(*this)
+        {
+            this->Name = Name;
             return *this;
         }
 
-        constexpr ObjcClassCategoryInfo &
-        setClass(const ObjcClassInfo *const Value) noexcept {
+        constexpr auto setName(std::string &&Name) noexcept -> decltype(*this) {
+            this->Name = Name;
+            return *this;
+        }
+
+        constexpr auto setClass(const ObjcClassInfo *const Value) noexcept
+            -> decltype(*this)
+        {
             this->Class = Value;
             return *this;
         }
 
-        constexpr
-        ObjcClassCategoryInfo &setAddress(const uint64_t Value) noexcept {
+        constexpr auto setAddress(const uint64_t Value) noexcept
+            -> decltype(*this)
+        {
             this->Address = Value;
             return *this;
         }
 
-        constexpr
-        ObjcClassCategoryInfo &setIsNull(const bool Value = true) noexcept {
+        constexpr auto setIsNull(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
             this->sIsNull = Value;
             return *this;
         }

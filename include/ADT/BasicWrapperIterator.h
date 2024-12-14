@@ -1,9 +1,9 @@
 //
-//  include/ADT/BasicWrapperIterator.h
+//  ADT/BasicWrapperIterator.h
 //  ktool
 //
 //  Created by Suhas Pai on 3/14/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -18,85 +18,65 @@ public:
     constexpr BasicWrapperIterator(const T &Item) noexcept : Item(Item) {}
     constexpr BasicWrapperIterator(T &&Item) noexcept : Item(std::move(Item)) {}
 
-    inline BasicWrapperIterator &moveBack() noexcept {
-        Item--;
+    inline auto moveBack() noexcept -> decltype(*this) {
+        this->Item--;
         return *this;
     }
 
-    inline BasicWrapperIterator &advance() noexcept {
-        Item++;
-        return *this;
-    }
-
-    [[nodiscard]]
-    constexpr BasicWrapperIterator operator+(StepType Amt) noexcept {
-        return BasicWrapperIterator(Item + Amt);
-    }
-
-    [[nodiscard]]
-    constexpr BasicWrapperIterator operator-(StepType Amt) noexcept {
-        return BasicWrapperIterator(Item - Amt);
-    }
-
-    constexpr BasicWrapperIterator &operator++() noexcept {
-        return advance();
-    }
-
-    constexpr BasicWrapperIterator &operator++(int) noexcept {
-        return advance();
-    }
-
-    constexpr BasicWrapperIterator &operator--() noexcept {
-        return moveBack();
-    }
-
-    constexpr BasicWrapperIterator &operator--(int) noexcept {
-        return moveBack();
-    }
-
-    constexpr BasicWrapperIterator &operator+=(StepType Amt) noexcept {
-        Item += Amt;
-        return *this;
-    }
-
-    constexpr BasicWrapperIterator &operator-=(StepType Amt) noexcept {
-        Item -= Amt;
+    inline auto advance() noexcept -> decltype(*this) {
+        this->Item++;
         return *this;
     }
 
     [[nodiscard]]
-    constexpr bool operator==(const BasicWrapperIterator &Rhs) const noexcept {
-        return (Item == Rhs.Item);
+    constexpr auto operator+(const StepType Amt) noexcept {
+        return BasicWrapperIterator(this->Item + Amt);
     }
 
     [[nodiscard]]
-    constexpr bool operator!=(const BasicWrapperIterator &Rhs) const noexcept {
-        return (Item != Rhs.Item);
+    constexpr auto operator-(const StepType Amt) noexcept {
+        return BasicWrapperIterator(this->Item - Amt);
+    }
+
+    constexpr auto operator++() noexcept -> decltype(*this) {
+        return this->advance();
+    }
+
+    constexpr auto operator++(int) noexcept -> decltype(*this) {
+        return this->advance();
+    }
+
+    constexpr auto operator--() noexcept -> decltype(*this) {
+        return this->moveBack();
+    }
+
+    constexpr auto operator--(int) noexcept -> decltype(*this) {
+        return this->moveBack();
+    }
+
+    constexpr auto operator+=(const StepType Amt) noexcept -> decltype(*this) {
+        this->Item += Amt;
+        return *this;
+    }
+
+    constexpr auto operator-=(const StepType Amt) noexcept -> decltype(*this) {
+        this->Item -= Amt;
+        return *this;
     }
 
     [[nodiscard]]
-    constexpr bool operator<(const BasicWrapperIterator &Rhs) const noexcept {
-        return (Item < Rhs.Item);
+    constexpr auto operator<=>(const BasicWrapperIterator &Rhs) const noexcept {
+        return this->Item <=> Rhs.Item;
     }
 
     [[nodiscard]]
-    constexpr bool operator<=(const BasicWrapperIterator &Rhs) const noexcept {
-        return (Item <= Rhs.Item);
+    constexpr auto operator!=(const BasicWrapperIterator &Rhs) const noexcept {
+        return this->Item != Rhs.Item;
     }
 
-    [[nodiscard]]
-    constexpr bool operator>(const BasicWrapperIterator &Rhs) const noexcept {
-        return (Item > Rhs.Item);
-    }
+    constexpr auto &operator*() noexcept { return this->Item; }
+    constexpr auto &operator*() const noexcept { return this->Item; }
 
-    [[nodiscard]]
-    constexpr bool operator>=(const BasicWrapperIterator &Rhs) const noexcept {
-        return (Item >= Rhs.Item);
-    }
-
-    constexpr T &operator*() noexcept { return Item; }
-    constexpr const T &operator*() const noexcept { return Item; }
-
-    constexpr T &operator->() noexcept { return Item; }
-    constexpr const T &operator->() const noexcept { return Item; }
+    constexpr auto &operator->() noexcept { return this->Item; }
+    constexpr auto &operator->() const noexcept { return this->Item; }
 };

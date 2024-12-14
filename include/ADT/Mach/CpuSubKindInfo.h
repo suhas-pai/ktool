@@ -1,9 +1,9 @@
 //
-//  include/ADT/Mach/CpuSubKindInfo.h
+//  ADT/Mach/CpuSubKindInfo.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/19/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -1060,51 +1060,51 @@ namespace Mach {
     const CpuKindInfo *GetInfoForCpuKind(const CpuKind CpuKind) noexcept {
         switch (CpuKind) {
             case CpuKind::Any:
-                return (CpuKindInfoTable + 0);
+                return CpuKindInfoTable + 0;
             case CpuKind::Vax:
-                return (CpuKindInfoTable + 1);
+                return CpuKindInfoTable + 1;
             case CpuKind::Romp:
-                return (CpuKindInfoTable + 2);
+                return CpuKindInfoTable + 2;
             case CpuKind::NS32032:
-                return (CpuKindInfoTable + 3);
+                return CpuKindInfoTable + 3;
             case CpuKind::NS32332:
-                return (CpuKindInfoTable + 4);
+                return CpuKindInfoTable + 4;
             case CpuKind::Mc680x0:
-                return (CpuKindInfoTable + 5);
+                return CpuKindInfoTable + 5;
             case CpuKind::i386:
-                return (CpuKindInfoTable + 6);
+                return CpuKindInfoTable + 6;
             case CpuKind::x86_64:
-                return (CpuKindInfoTable + 7);
+                return CpuKindInfoTable + 7;
             case CpuKind::Mips:
-                return (CpuKindInfoTable + 8);
+                return CpuKindInfoTable + 8;
             case CpuKind::NS32532:
-                return (CpuKindInfoTable + 9);
+                return CpuKindInfoTable + 9;
             case CpuKind::Hppa:
-                return (CpuKindInfoTable + 10);
+                return CpuKindInfoTable + 10;
             case CpuKind::Arm:
-                return (CpuKindInfoTable + 11);
+                return CpuKindInfoTable + 11;
             case CpuKind::Mc88000:
-                return (CpuKindInfoTable + 12);
+                return CpuKindInfoTable + 12;
             case CpuKind::Sparc:
-                return (CpuKindInfoTable + 13);
+                return CpuKindInfoTable + 13;
             case CpuKind::i860:
-                return (CpuKindInfoTable + 14);
+                return CpuKindInfoTable + 14;
             case CpuKind::i860Little:
-                return (CpuKindInfoTable + 15);
+                return CpuKindInfoTable + 15;
             case CpuKind::Rs9600:
-                return (CpuKindInfoTable + 16);
+                return CpuKindInfoTable + 16;
             case CpuKind::Mc98000:
-                return (CpuKindInfoTable + 17);
+                return CpuKindInfoTable + 17;
             case CpuKind::PowerPC:
-                return (CpuKindInfoTable + 18);
+                return CpuKindInfoTable + 18;
             case CpuKind::PowerPC64:
-                return (CpuKindInfoTable + 19);
+                return CpuKindInfoTable + 19;
             case CpuKind::Veo:
-                return (CpuKindInfoTable + 20);
+                return CpuKindInfoTable + 20;
             case CpuKind::Arm64:
-                return (CpuKindInfoTable + 21);
+                return CpuKindInfoTable + 21;
             case CpuKind::Arm64_32:
-                return (CpuKindInfoTable + 22);
+                return CpuKindInfoTable + 22;
         }
 
         return nullptr;
@@ -1118,11 +1118,11 @@ namespace Mach {
             case CpuKind::Any:
                 switch (Any(SubKind)) {
                     case Any::Multiple:
-                        return (AnyCpuSubKindTable + 0);
+                        return AnyCpuSubKindTable + 0;
                     case Any::LittleEndian:
-                        return (AnyCpuSubKindTable + 1);
+                        return AnyCpuSubKindTable + 1;
                     case Any::BigEndian:
-                        return (AnyCpuSubKindTable + 2);
+                        return AnyCpuSubKindTable + 2;
                 }
 
                 break;
@@ -1130,31 +1130,31 @@ namespace Mach {
             case CpuKind::Vax:
                 switch (Vax(SubKind)) {
                     case Vax::All:
-                      return (VaxCpuSubKindTable + 0);
+                      return VaxCpuSubKindTable + 0;
                     case Vax::n780:
-                      return (VaxCpuSubKindTable + 1);
+                      return VaxCpuSubKindTable + 1;
                     case Vax::n785:
-                      return (VaxCpuSubKindTable + 2);
+                      return VaxCpuSubKindTable + 2;
                     case Vax::n750:
-                      return (VaxCpuSubKindTable + 3);
+                      return VaxCpuSubKindTable + 3;
                     case Vax::n730:
-                      return (VaxCpuSubKindTable + 4);
+                      return VaxCpuSubKindTable + 4;
                     case Vax::UvaXI:
-                      return (VaxCpuSubKindTable + 5);
+                      return VaxCpuSubKindTable + 5;
                     case Vax::UvaXII:
-                      return (VaxCpuSubKindTable + 6);
+                      return VaxCpuSubKindTable + 6;
                     case Vax::n8200:
-                      return (VaxCpuSubKindTable + 7);
+                      return VaxCpuSubKindTable + 7;
                     case Vax::n8500:
-                      return (VaxCpuSubKindTable + 8);
+                      return VaxCpuSubKindTable + 8;
                     case Vax::n8600:
-                      return (VaxCpuSubKindTable + 9);
+                      return VaxCpuSubKindTable + 9;
                     case Vax::n8650:
-                      return (VaxCpuSubKindTable + 10);
+                      return VaxCpuSubKindTable + 10;
                     case Vax::n8800:
-                      return (VaxCpuSubKindTable + 11);
+                      return VaxCpuSubKindTable + 11;
                     case Vax::UvaXIII:
-                      return (VaxCpuSubKindTable + 12);
+                      return VaxCpuSubKindTable + 12;
                 }
 
                 break;
@@ -1162,13 +1162,13 @@ namespace Mach {
             case CpuKind::Romp:
                 switch (Romp(SubKind)) {
                     case Romp::All:
-                        return (RompCpuSubKindTable + 0);
+                        return RompCpuSubKindTable + 0;
                     case Romp::Pc:
-                        return (RompCpuSubKindTable + 1);
+                        return RompCpuSubKindTable + 1;
                     case Romp::Apc:
-                        return (RompCpuSubKindTable + 2);
+                        return RompCpuSubKindTable + 2;
                     case Romp::n135:
-                        return (RompCpuSubKindTable + 3);
+                        return RompCpuSubKindTable + 3;
                 }
 
                 break;
@@ -1178,17 +1178,17 @@ namespace Mach {
             case CpuKind::NS32532:
                 switch (Mmax(SubKind)) {
                     case Mmax::All:
-                        return (MmaxCpuSubKindTable + 0);
+                        return MmaxCpuSubKindTable + 0;
                     case Mmax::Dpc:
-                        return (MmaxCpuSubKindTable + 0);
+                        return MmaxCpuSubKindTable + 0;
                     case Mmax::Sqt:
-                        return (MmaxCpuSubKindTable + 0);
+                        return MmaxCpuSubKindTable + 0;
                     case Mmax::ApcFPU:
-                        return (MmaxCpuSubKindTable + 0);
+                        return MmaxCpuSubKindTable + 0;
                     case Mmax::ApcFPA:
-                        return (MmaxCpuSubKindTable + 0);
+                        return MmaxCpuSubKindTable + 0;
                     case Mmax::Xpc:
-                        return (MmaxCpuSubKindTable + 0);
+                        return MmaxCpuSubKindTable + 0;
                 }
 
                 break;
@@ -1196,11 +1196,11 @@ namespace Mach {
             case CpuKind::Mc680x0: {
                 switch (Mc680x0(SubKind)) {
                     case Mc680x0::All:
-                        return (Mc680x0CpuSubKindTable + 0);
+                        return Mc680x0CpuSubKindTable + 0;
                     case Mc680x0::n40:
-                        return (Mc680x0CpuSubKindTable + 1);
+                        return Mc680x0CpuSubKindTable + 1;
                     case Mc680x0::n30Only:
-                        return (Mc680x0CpuSubKindTable + 2);
+                        return Mc680x0CpuSubKindTable + 2;
                 }
 
                 break;
@@ -1209,21 +1209,21 @@ namespace Mach {
             case CpuKind::i386:
                 switch (i386(SubKind)) {
                     case i386::All:
-                        return (i386CpuSubKindTable + 0);
+                        return i386CpuSubKindTable + 0;
                     case i386::n486:
-                        return (i386CpuSubKindTable + 1);
+                        return i386CpuSubKindTable + 1;
                     case i386::n486sx:
-                        return (i386CpuSubKindTable + 2);
+                        return i386CpuSubKindTable + 2;
                     case i386::Pentium:
-                        return (i386CpuSubKindTable + 3);
+                        return i386CpuSubKindTable + 3;
                     case i386::PentiumPro:
-                        return (i386CpuSubKindTable + 4);
+                        return i386CpuSubKindTable + 4;
                     case i386::PentiumIIM3:
-                        return (i386CpuSubKindTable + 5);
+                        return i386CpuSubKindTable + 5;
                     case i386::PentiumIIM5:
-                        return (i386CpuSubKindTable + 6);
+                        return i386CpuSubKindTable + 6;
                     case i386::Pentium4:
-                        return (i386CpuSubKindTable + 7);
+                        return i386CpuSubKindTable + 7;
                 }
 
                 break;
@@ -1231,10 +1231,10 @@ namespace Mach {
             case CpuKind::x86_64:
                 switch (x86_64(SubKind)) {
                     case x86_64::All:
-                        return (x86_64CpuSubKindTable + 0);
+                        return x86_64CpuSubKindTable + 0;
 
                     case x86_64::Haswell:
-                        return (x86_64CpuSubKindTable + 1);
+                        return x86_64CpuSubKindTable + 1;
                 }
 
                 break;
@@ -1242,15 +1242,15 @@ namespace Mach {
             case CpuKind::Mips:
                 switch (Mips(SubKind)) {
                     case Mips::All:
-                        return (MipsCpuSubKindTable + 0);
+                        return MipsCpuSubKindTable + 0;
                     case Mips::r2300:
-                        return (MipsCpuSubKindTable + 1);
+                        return MipsCpuSubKindTable + 1;
                     case Mips::r2600:
-                        return (MipsCpuSubKindTable + 1);
+                        return MipsCpuSubKindTable + 1;
                     case Mips::r2800:
-                        return (MipsCpuSubKindTable + 1);
+                        return MipsCpuSubKindTable + 1;
                     case Mips::r2000a:
-                        return (MipsCpuSubKindTable + 1);
+                        return MipsCpuSubKindTable + 1;
                 }
 
                 break;
@@ -1258,9 +1258,9 @@ namespace Mach {
             case CpuKind::Hppa:
                 switch (Hppa(SubKind)) {
                     case Hppa::All:
-                        return (HppaCpuSubKindTable + 0);
+                        return HppaCpuSubKindTable + 0;
                     case Hppa::n7100LC:
-                        return (HppaCpuSubKindTable + 1);
+                        return HppaCpuSubKindTable + 1;
                 }
 
                 break;
@@ -1268,39 +1268,39 @@ namespace Mach {
             case CpuKind::Arm:
                 switch (Arm(SubKind)) {
                     case Arm::All:
-                        return (ArmCpuSubKindTable + 0);
+                        return ArmCpuSubKindTable + 0;
                     case Arm::A500Arch:
-                        return (ArmCpuSubKindTable + 1);
+                        return ArmCpuSubKindTable + 1;
                     case Arm::A500:
-                        return (ArmCpuSubKindTable + 2);
+                        return ArmCpuSubKindTable + 2;
                     case Arm::A440:
-                        return (ArmCpuSubKindTable + 3);
+                        return ArmCpuSubKindTable + 3;
                     case Arm::m4:
-                        return (ArmCpuSubKindTable + 4);
+                        return ArmCpuSubKindTable + 4;
                     case Arm::v4T:
-                        return (ArmCpuSubKindTable + 5);
+                        return ArmCpuSubKindTable + 5;
                     case Arm::v6:
-                        return (ArmCpuSubKindTable + 6);
+                        return ArmCpuSubKindTable + 6;
                     case Arm::v5tej:
-                        return (ArmCpuSubKindTable + 7);
+                        return ArmCpuSubKindTable + 7;
                     case Arm::Xscale:
-                        return (ArmCpuSubKindTable + 8);
+                        return ArmCpuSubKindTable + 8;
                     case Arm::v7:
-                        return (ArmCpuSubKindTable + 9);
+                        return ArmCpuSubKindTable + 9;
                     case Arm::v7f:
-                        return (ArmCpuSubKindTable + 10);
+                        return ArmCpuSubKindTable + 10;
                     case Arm::v7s:
-                        return (ArmCpuSubKindTable + 11);
+                        return ArmCpuSubKindTable + 11;
                     case Arm::v7k:
-                        return (ArmCpuSubKindTable + 12);
+                        return ArmCpuSubKindTable + 12;
                     case Arm::v6m:
-                        return (ArmCpuSubKindTable + 13);
+                        return ArmCpuSubKindTable + 13;
                     case Arm::v7m:
-                        return (ArmCpuSubKindTable + 14);
+                        return ArmCpuSubKindTable + 14;
                     case Arm::v7em:
-                        return (ArmCpuSubKindTable + 15);
+                        return ArmCpuSubKindTable + 15;
                     case Arm::v8:
-                        return (ArmCpuSubKindTable + 16);
+                        return ArmCpuSubKindTable + 16;
                 }
 
                 break;
@@ -1308,11 +1308,11 @@ namespace Mach {
             case CpuKind::Mc88000:
                 switch (Mc88000(SubKind)) {
                     case Mc88000::All:
-                        return (Mc88000CpuSubKindTable + 0);
+                        return Mc88000CpuSubKindTable + 0;
                     case Mc88000::n100:
-                        return (Mc88000CpuSubKindTable + 1);
+                        return Mc88000CpuSubKindTable + 1;
                     case Mc88000::n110:
-                        return (Mc88000CpuSubKindTable + 2);
+                        return Mc88000CpuSubKindTable + 2;
                 }
 
                 break;
@@ -1320,7 +1320,7 @@ namespace Mach {
             case CpuKind::Sparc:
                 switch (Sparc(SubKind)) {
                     case Sparc::All:
-                        return (SparcCpuSubKindTable + 0);
+                        return SparcCpuSubKindTable + 0;
                 }
 
                 break;
@@ -1328,9 +1328,9 @@ namespace Mach {
             case CpuKind::i860:
                 switch (i860(SubKind)) {
                     case i860::All:
-                        return (i860CpuSubKindTable + 0);
+                        return i860CpuSubKindTable + 0;
                     case i860::n860:
-                        return (i860CpuSubKindTable + 1);
+                        return i860CpuSubKindTable + 1;
                 }
 
                 break;
@@ -1338,9 +1338,9 @@ namespace Mach {
             case CpuKind::i860Little:
                 switch (i860Little(SubKind)) {
                     case i860Little::All:
-                        return (i860LittleEndianCpuSubKindTable + 0);
+                        return i860LittleEndianCpuSubKindTable + 0;
                     case i860Little::Default:
-                        return (i860LittleEndianCpuSubKindTable + 1);
+                        return i860LittleEndianCpuSubKindTable + 1;
                 }
 
                 break;
@@ -1348,9 +1348,9 @@ namespace Mach {
             case CpuKind::Rs9600:
                 switch (Rs9600(SubKind)) {
                     case Rs9600::All:
-                        return (RS9600CpuSubKindTable + 0);
+                        return RS9600CpuSubKindTable + 0;
                     case Rs9600::Default:
-                        return (RS9600CpuSubKindTable + 1);
+                        return RS9600CpuSubKindTable + 1;
                 }
 
                 break;
@@ -1358,9 +1358,9 @@ namespace Mach {
             case CpuKind::Mc98000:
                 switch (Mc98000(SubKind)) {
                     case Mc98000::All:
-                        return (Mc98000CpuSubKindTable + 0);
+                        return Mc98000CpuSubKindTable + 0;
                     case Mc98000::n601:
-                        return (Mc98000CpuSubKindTable + 1);
+                        return Mc98000CpuSubKindTable + 1;
                 }
 
                 break;
@@ -1368,31 +1368,31 @@ namespace Mach {
             case CpuKind::PowerPC:
                 switch (PowerPC(SubKind)) {
                     case PowerPC::All:
-                        return (PowerPCCpuSubKindTable + 0);
+                        return PowerPCCpuSubKindTable + 0;
                     case PowerPC::n601:
-                        return (PowerPCCpuSubKindTable + 1);
+                        return PowerPCCpuSubKindTable + 1;
                     case PowerPC::n602:
-                        return (PowerPCCpuSubKindTable + 2);
+                        return PowerPCCpuSubKindTable + 2;
                     case PowerPC::n603:
-                        return (PowerPCCpuSubKindTable + 3);
+                        return PowerPCCpuSubKindTable + 3;
                     case PowerPC::n603e:
-                        return (PowerPCCpuSubKindTable + 4);
+                        return PowerPCCpuSubKindTable + 4;
                     case PowerPC::n603ev:
-                        return (PowerPCCpuSubKindTable + 5);
+                        return PowerPCCpuSubKindTable + 5;
                     case PowerPC::n604:
-                        return (PowerPCCpuSubKindTable + 6);
+                        return PowerPCCpuSubKindTable + 6;
                     case PowerPC::n604e:
-                        return (PowerPCCpuSubKindTable + 7);
+                        return PowerPCCpuSubKindTable + 7;
                     case PowerPC::n620:
-                        return (PowerPCCpuSubKindTable + 8);
+                        return PowerPCCpuSubKindTable + 8;
                     case PowerPC::n750:
-                        return (PowerPCCpuSubKindTable + 9);
+                        return PowerPCCpuSubKindTable + 9;
                     case PowerPC::n7400:
-                        return (PowerPCCpuSubKindTable + 10);
+                        return PowerPCCpuSubKindTable + 10;
                     case PowerPC::n7500:
-                        return (PowerPCCpuSubKindTable + 11);
+                        return PowerPCCpuSubKindTable + 11;
                     case PowerPC::n970:
-                        return (PowerPCCpuSubKindTable + 12);
+                        return PowerPCCpuSubKindTable + 12;
                 }
 
                 break;
@@ -1400,9 +1400,9 @@ namespace Mach {
             case CpuKind::PowerPC64:
                 switch (PowerPC64(SubKind)) {
                     case PowerPC64::All:
-                        return (PowerPC64CpuSubKindTable + 0);
+                        return PowerPC64CpuSubKindTable + 0;
                     case PowerPC64::n970:
-                        return (PowerPC64CpuSubKindTable + 1);
+                        return PowerPC64CpuSubKindTable + 1;
                 }
 
                 break;
@@ -1410,23 +1410,23 @@ namespace Mach {
             case CpuKind::Veo:
                 switch (Veo(SubKind)) {
                     case Veo::n1:
-                        return (VeoCpuSubKindTable + 0);
+                        return VeoCpuSubKindTable + 0;
                     case Veo::n2:
-                        return (VeoCpuSubKindTable + 1);
+                        return VeoCpuSubKindTable + 1;
                     case Veo::n3:
-                        return (VeoCpuSubKindTable + 2);
+                        return VeoCpuSubKindTable + 2;
                     case Veo::n4:
-                        return (VeoCpuSubKindTable + 3);
+                        return VeoCpuSubKindTable + 3;
                 }
 
             case CpuKind::Arm64:
                 switch (Arm64(SubKind)) {
                     case Arm64::All:
-                        return (Arm64CpuSubKindTable + 0);
+                        return Arm64CpuSubKindTable + 0;
                     case Arm64::v8:
-                        return (Arm64CpuSubKindTable + 1);
+                        return Arm64CpuSubKindTable + 1;
                     case Arm64::E:
-                        return (Arm64CpuSubKindTable + 2);
+                        return Arm64CpuSubKindTable + 2;
                 }
 
                 break;
@@ -1434,7 +1434,7 @@ namespace Mach {
             case CpuKind::Arm64_32:
                 switch (Arm64_32(SubKind)) {
                     case Arm64_32::v8:
-                        return (Arm64_32CpuSubKindTable + 0);
+                        return Arm64_32CpuSubKindTable + 0;
                 }
 
                 break;
@@ -1444,32 +1444,37 @@ namespace Mach {
     }
 
     namespace CpuSubKind {
-        [[nodiscard]] constexpr std::string_view
-        GetName(const CpuKind CpuKind, const int32_t CpuSubKind) noexcept {
+        [[nodiscard]] constexpr auto
+        GetName(const CpuKind CpuKind, const int32_t CpuSubKind) noexcept
+            -> std::optional<std::string_view>
+        {
             if (auto *const Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->Name;
             }
 
-            return std::string_view();
+            return std::nullopt;
         }
 
-        [[nodiscard]] constexpr std::string_view
-        GetFullName(const CpuKind CpuKind, const int32_t CpuSubKind) noexcept {
+        [[nodiscard]] constexpr auto
+        GetFullName(const CpuKind CpuKind, const int32_t CpuSubKind) noexcept
+            -> std::optional<std::string_view>
+        {
             if (auto *const Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->FullName;
             }
 
-            return std::string_view();
+            return std::nullopt;
         }
 
-        [[nodiscard]] constexpr std::string_view
+        [[nodiscard]] constexpr auto
         GetDescription(const CpuKind CpuKind, const int32_t CpuSubKind) noexcept
+            -> std::optional<std::string_view>
         {
             if (auto *const Info = GetInfoForCpuSubKind(CpuKind, CpuSubKind)) {
                 return Info->Description;
             }
 
-            return std::string_view();
+            return std::nullopt;
         }
     }
 }

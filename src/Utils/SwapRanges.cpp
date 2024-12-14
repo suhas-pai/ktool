@@ -1,16 +1,15 @@
 //
-//  src/Utils/SwapRanges.cpp
+//  Utils/SwapRanges.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 6/2/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <algorithm>
 
-#include "ADT/LocationRange.h"
-#include "ADT/RelativeRange.h"
-#include "SwapRanges.h"
+#include "ADT/Range.h"
+#include "Utils/SwapRanges.h"
 
 void
 SwapRanges(void *const ArgLhsBegin,
@@ -26,13 +25,13 @@ SwapRanges(void *const ArgLhsBegin,
     const auto RhsBegin = reinterpret_cast<uint8_t *>(ArgRhsBegin);
     const auto RhsEnd = reinterpret_cast<uint8_t *>(ArgRhsEnd);
 
-    const auto LhsRange = LocationRange::CreateWithEnd(LhsBegin, LhsEnd);
-    const auto RhsRange = LocationRange::CreateWithEnd(RhsBegin, RhsEnd);
-    const auto FullRange = RelativeRange(End);
+    const auto LhsRange = Range::CreateWithEnd(LhsBegin, LhsEnd);
+    const auto RhsRange = Range::CreateWithEnd(RhsBegin, RhsEnd);
+    const auto FullRange =
+        Range::CreateWithSize(0, reinterpret_cast<uint64_t>(End));
 
     assert(!LhsRange.overlaps(RhsRange));
-    assert(FullRange.containsLocRange(LhsRange) &&
-           FullRange.containsLocRange(RhsRange));
+    assert(FullRange.contains(LhsRange) && FullRange.contains(RhsRange));
 
     const auto LhsSize = LhsRange.size();
     const auto RhsSize = RhsRange.size();

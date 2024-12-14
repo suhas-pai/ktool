@@ -1,25 +1,21 @@
 //
-//  src/Operations/PrintExportTrie.cpp
+//  Operations/PrintExportTrie.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 5/9/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cstdio>
 #include <cstring>
 
-#include "ADT/MachO.h"
 #include "ADT/DscImage.h"
 
-#include "Utils/MachOTypePrinter.h"
-#include "Utils/MiscTemplates.h"
-#include "Utils/PrintUtils.h"
-#include "Utils/SwapRanges.h"
+#include "Operations/Common.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintExportTrie.h"
 
-#include "Common.h"
-#include "Operation.h"
-#include "PrintExportTrie.h"
+#include "Utils/PrintUtils.h"
 
 PrintExportTrieOperation::PrintExportTrieOperation() noexcept
 : Operation(OpKind) {}
@@ -40,7 +36,7 @@ FindSegmentAndSectionForAddr(const MachO::SegmentInfoCollection &Collection,
     }
 }
 
-static bool
+static auto
 ExportMeetsRequirements(
     const MachO::ExportTrieExportKind Kind,
     std::string_view SegmentName,
@@ -91,16 +87,17 @@ static void
 PrintTreeExportInfo(
     const MachO::ExportTrieExportChildNode &Export,
     const MachO::SharedLibraryInfoCollection &SharedLibraryCollection,
-    int WrittenOut,
-    uint64_t DepthLevel,
-    int LongestLength,
-    bool Is64Bit,
+    const int WrittenOut,
+    const uint64_t DepthLevel,
+    const int LongestLength,
+    const bool Is64Bit,
     const struct PrintExportTrieOperation::Options &Options) noexcept
 {
+    (void)DepthLevel;
     const auto RightPad = static_cast<int>(LongestLength + LENGTH_OF("\"\" -"));
     const auto KindDesc =
-        ExportTrieExportKindGetDescription(Export.getKind()).data() ?:
-        "<unrecognized>";
+        ExportTrieExportKindGetDescription(Export.getKind())
+            .value_or("<Unrecognized>");
 
     fputc(' ', Options.OutFile);
 
@@ -112,7 +109,7 @@ PrintTreeExportInfo(
         fprintf(Options.OutFile,
                 "%" PRINTF_RIGHTPAD_FMT "s",
                 static_cast<int>(LENGTH_OF("Re-export")),
-                KindDesc);
+                KindDesc.data());
 
         if (!Export.isReexport()) {
             PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
@@ -143,7 +140,7 @@ PrintTreeExportInfo(
                 PrintKindFromIsVerbose(Options.Verbose));
         }
     } else {
-        fprintf(Options.OutFile, "%s", KindDesc);
+        fprintf(Options.OutFile, "%s", KindDesc.data());
     }
 
     fputc(')', Options.OutFile);
@@ -175,10 +172,11 @@ static int
 HandleTreeOption(
     MachO::ExportTrieEntryCollection &EntryCollection,
     const MachO::SharedLibraryInfoCollection &SharedLibraryCollection,
-    uint64_t Base,
-    bool Is64Bit,
+    const uint64_t Base,
+    const bool Is64Bit,
     const struct PrintExportTrieOperation::Options &Options) noexcept
 {
+    (void)Base;
     if (EntryCollection.empty()) {
         fputs("Provided file has an empty export-trie\n", Options.OutFile);
         return 1;
@@ -247,7 +245,7 @@ HandleTreeOption(
     }
 
     const auto PrintNode =
-        [&](FILE *OutFile,
+        [&](FILE *const OutFile,
             int WrittenOut,
             uint64_t DepthLevel,
             const TreeNode &Node) noexcept
@@ -290,7 +288,7 @@ void PrintExtraExportTrieError(FILE *ErrFile) noexcept {
 }
 
 using TrieListType =
-    TypedAllocationOrError<MachO::ConstExportTrieList, MachO::SizeRangeError>;
+    ExpectedAlloc<MachO::ConstExportTrieList, MachO::SizeRangeError>;
 
 static int
 FindExportTrieList(
@@ -356,7 +354,7 @@ FindExportTrieList(
 }
 
 static void
-PrintExportTrieCount(FILE *OutFile,
+PrintExportTrieCount(FILE *const OutFile,
                      uint64_t Size,
                      bool PrintColon = true) noexcept
 {
@@ -370,14 +368,16 @@ PrintExportTrieCount(FILE *OutFile,
 
 int
 PrintExportTrie(
-    const ConstMachOMemoryObject &Object,
+    const MachOMemoryObject &Object,
     const MachO::ConstLoadCommandStorage &LoadCmdStorage,
     const MachO::SegmentInfoCollection &SegmentCollection,
     const MachO::SharedLibraryInfoCollection &LibraryCollection,
     const TrieListType &TrieList,
-    uint64_t Base,
+    const uint64_t Base,
     const struct PrintExportTrieOperation::Options &Options) noexcept
 {
+    (void)LoadCmdStorage;
+
     auto ExportListCount = uint64_t();
     auto ExportList = std::vector<ExportInfo>();
     auto LongestExportLength = LargestIntHelper();
@@ -389,7 +389,14 @@ PrintExportTrie(
         ExportList.reserve(64);
     }
 
-    for (const auto &Info : TrieList.getRef()) {
+    auto &List = *TrieList.value();
+    for (auto Iter = List.begin(); Iter != List.end(); Iter++) {
+        if (Iter.hasError()) {
+            PrintExtraExportTrieError(Options.ErrFile);
+            return 1;
+        }
+
+        const auto &Info = *Iter;
         if (!Info.isExport()) {
             continue;
         }
@@ -474,6 +481,10 @@ PrintExportTrie(
     const auto SizeDigitLength =
         PrintUtilsGetIntegerDigitLength(ExportList.size());
 
+    const auto LongestDescLength =
+        static_cast<int>(
+            MachO::ExportTrieExportKindGetLongestDescriptionLength());
+
     for (const auto &Export : ExportList) {
         PrintUtilsRightPadSpaces(Options.OutFile,
                                  fprintf(Options.OutFile,
@@ -481,10 +492,6 @@ PrintExportTrie(
                                          SizeDigitLength,
                                          Counter),
                                  LENGTH_OF("Export : ") + SizeDigitLength);
-
-        constexpr const auto LongestDescLength =
-            static_cast<int>(
-                MachO::ExportTrieExportKindGetLongestDescriptionLength());
 
         if (!Export.Info.isReexport()) {
             PrintUtilsWriteMachOSegmentSectionPair(Options.OutFile,
@@ -502,7 +509,10 @@ PrintExportTrie(
             PrintUtilsPadSpaces(Options.OutFile, static_cast<int>(PadLength));
         }
 
-        const auto KindDesc = ExportTrieExportKindGetDescription(Export.Kind);
+        const auto KindDesc =
+            ExportTrieExportKindGetDescription(Export.Kind)
+                .value_or("<Unrecognized>");
+
         fprintf(Options.OutFile,
                 "\t%" PRINTF_RIGHTPAD_FMT "s",
                 LongestDescLength,
@@ -546,7 +556,7 @@ PrintExportTrie(
 }
 
 int
-PrintExportTrieOperation::Run(const ConstDscImageMemoryObject &Object,
+PrintExportTrieOperation::Run(const DscImageMemoryObject &Object,
                               const struct Options &Options) noexcept
 {
     const auto Base = Object.getAddress();
@@ -591,7 +601,7 @@ PrintExportTrieOperation::Run(const ConstDscImageMemoryObject &Object,
     if (Options.PrintTree) {
         auto Error = DscImage::ExportTrieEntryCollection::Error();
         auto EntryCollection =
-            DscImage::ExportTrieEntryCollection::Open(TrieList.getRef(),
+            DscImage::ExportTrieEntryCollection::Open(*TrieList.value(),
                                                       &SegmentCollection,
                                                       &Error);
 
@@ -625,7 +635,7 @@ PrintExportTrieOperation::Run(const ConstDscImageMemoryObject &Object,
 }
 
 int
-PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
+PrintExportTrieOperation::Run(const MachOMemoryObject &Object,
                               const struct Options &Options) noexcept
 {
     const auto LoadCmdStorage =
@@ -668,7 +678,7 @@ PrintExportTrieOperation::Run(const ConstMachOMemoryObject &Object,
     if (Options.PrintTree) {
         auto Error = MachO::ExportTrieEntryCollection::Error();
         auto EntryCollection =
-            MachO::ExportTrieEntryCollection::Open(TrieList.getRef(),
+            MachO::ExportTrieEntryCollection::Open(*TrieList.value(),
                                                    &SegmentCollection,
                                                    &Error);
 
@@ -750,6 +760,7 @@ AddSegmentRequirement(
 
     const auto Pair = PrintExportTrieOperation::Options::SegmentSectionPair {
         .SegmentName = SegmentName,
+        .SectionName = ""
     };
 
     if (std::find(List.cbegin(), List.cend(), Pair) != List.cend()) {
@@ -798,9 +809,10 @@ AddSectionRequirement(
     List.push_back(std::move(Pair));
 }
 
-struct PrintExportTrieOperation::Options
+auto
 PrintExportTrieOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                            int *const IndexOut) noexcept
+    -> struct PrintExportTrieOperation::Options
 {
     auto Index = int();
     struct Options Options;

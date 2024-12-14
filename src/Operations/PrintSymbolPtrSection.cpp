@@ -1,14 +1,14 @@
 //
-//  src/Operations/PrintSymbolPtrSection.cpp
+//  Operations/PrintSymbolPtrSection.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 7/3/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "Common.h"
-#include "Operation.h"
-#include "PrintSymbolPtrSection.h"
+#include "Operations/Common.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintSymbolPtrSection.h"
 
 PrintSymbolPtrSectionOperation::PrintSymbolPtrSectionOperation() noexcept
 : Operation(OpKind) {}
@@ -65,8 +65,7 @@ PrintSymbolList(
     const struct PrintSymbolPtrSectionOperation::Options &Options,
     const MachO::SegmentInfoCollection &SegmentCollection,
     const MachO::SharedLibraryInfoCollection &SharedLibraryCollection,
-    const std::vector<MachO::SymbolTableEntryCollectionEntryInfo *> &List,
-    const MachO::SectionInfo &Section) noexcept
+    const std::vector<MachO::SymbolTableEntryCollectionEntryInfo *> &List)
 {
     auto LargestIndex = LargestIntHelper();
     auto LongestLength = LargestIntHelper();
@@ -85,12 +84,15 @@ PrintSymbolList(
         }
 
         const auto SymbolKind = Info->getSymbolKind();
-        const auto &SymbolKindDescription =
-            MachO::SymbolTableEntrySymbolKindGetDescription(SymbolKind);
+        const auto &SymbolKindDescriptionOpt =
+            MachO::SymbolTableEntrySymbolKindGetDesc(SymbolKind);
 
         LargestIndex = Info->getIndex();
         LongestLength = Info->getString()->length();
-        LongestKind = SymbolKindDescription.length();
+
+        if (const auto SymbolKindDesc = SymbolKindDescriptionOpt) {
+            LongestKind = SymbolKindDesc->length();
+        }
     }
 
     Operation::PrintLineSpamWarning(Options.OutFile, List.size());
@@ -120,9 +122,11 @@ PrintSymbolList(
 
             const auto &SymbolInfo = Info->getSymbolInfo();
             const auto SymbolKind = SymbolInfo.getKind();
+            const auto SymbolKindDescOpt =
+                SymbolTableEntrySymbolKindGetDesc(SymbolKind);
+
             const auto SymbolKindDescription =
-                SymbolTableEntrySymbolKindGetDescription(SymbolKind).data() ?:
-                "Unrecognized";
+                SymbolKindDescOpt.value_or("Unrecognized");
 
             const auto KindRightPad =
                 static_cast<int>(LongestKind + LENGTH_OF(" <Kind: , "));
@@ -130,7 +134,7 @@ PrintSymbolList(
             PrintUtilsRightPadSpaces(Options.OutFile,
                                      fprintf(Options.OutFile,
                                              " <Kind: %s, ",
-                                             SymbolKindDescription),
+                                             SymbolKindDescription.data()),
                                      KindRightPad);
 
             fprintf(Options.OutFile,
@@ -176,7 +180,7 @@ PrintSymbolList(
 
 static int
 PrintSymbolPtrList(
-    const ConstMachOMemoryObject &Object,
+    const MachOMemoryObject &Object,
     const uint8_t *const MapBegin,
     const struct PrintSymbolPtrSectionOperation::Options &Options) noexcept
 {
@@ -371,28 +375,26 @@ PrintSymbolPtrList(
                   List.end(),
                   [&](const auto &Lhs, const auto &Rhs) noexcept
         {
-            return (Lhs->getIndex() < Rhs->getIndex());
+            return Lhs->getIndex() < Rhs->getIndex();
         });
     }
 
     PrintSymbolList(Options,
                     SegmentCollection,
                     SharedLibraryCollection,
-                    List,
-                    *Section);
-
+                    List);
     return 0;
 }
 
 int
-PrintSymbolPtrSectionOperation::Run(const ConstDscImageMemoryObject &Object,
+PrintSymbolPtrSectionOperation::Run(const DscImageMemoryObject &Object,
                                     const struct Options &Options) noexcept
 {
     return PrintSymbolPtrList(Object, Object.getDscMap().getBegin(), Options);
 }
 
 int
-PrintSymbolPtrSectionOperation::Run(const ConstMachOMemoryObject &Object,
+PrintSymbolPtrSectionOperation::Run(const MachOMemoryObject &Object,
                                     const struct Options &Options) noexcept
 {
     return PrintSymbolPtrList(Object, Object.getMap().getBegin(), Options);
@@ -419,9 +421,10 @@ AddSortKind(PrintSymbolPtrSectionOperation::Options::SortKind SortKind,
     }
 }
 
-struct PrintSymbolPtrSectionOperation::Options
+auto
 PrintSymbolPtrSectionOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                  int *const IndexOut) noexcept
+    -> struct PrintSymbolPtrSectionOperation::Options
 {
     struct Options Options;
 

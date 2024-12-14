@@ -1,21 +1,19 @@
 //
-//  include/ADT/Mach-O/BindInfo.h
+//  ADT/Mach-O/BindInfo.h
 //  ktool
 //
 //  Created by Suhas Pai on 5/18/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
 #include <memory>
 
 #include "ADT/EnumHelper.h"
-#include "ADT/LargestIntHelper.h"
+#include "ADT/ExpectedAlloc.h"
 #include "ADT/SpecificCapArray.h"
-#include "ADT/PointerOrError.h"
-#include "ADT/PointerFlagStorage.h"
-#include "Utils/PointerUtils.h"
 
+#include "Utils/PointerUtils.h"
 #include "SegmentUtil.h"
 
 namespace MachO {
@@ -36,8 +34,10 @@ namespace MachO {
         Threaded                    = 0xD0
     };
 
-    [[nodiscard]] constexpr std::string_view
-    BindByteOpcodeGetName(const BindByteOpcode Opcode) noexcept {
+    [[nodiscard]] constexpr auto
+    BindByteOpcodeGetName(const BindByteOpcode Opcode) noexcept
+        -> std::optional<std::string_view>
+    {
         using Enum = BindByteOpcode;
         switch (Opcode) {
             case Enum::Done:
@@ -70,11 +70,13 @@ namespace MachO {
                 return "Threaded";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
-    [[nodiscard]] constexpr std::string_view
-    BindByteOpcodeGetDescription(const BindByteOpcode Opcode) noexcept {
+    [[nodiscard]] constexpr auto
+    BindByteOpcodeGetDescription(const BindByteOpcode Opcode) noexcept
+        -> std::optional<std::string_view>
+    {
         using Enum = BindByteOpcode;
         switch (Opcode) {
             case Enum::Done:
@@ -107,7 +109,7 @@ namespace MachO {
                 return "Threaded";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
     enum class BindByteSubOpcode : uint8_t {
@@ -123,7 +125,9 @@ namespace MachO {
     };
 
     [[nodiscard]] constexpr static
-    std::string_view BindWriteKindGetName(const BindWriteKind Kind) noexcept {
+    auto BindWriteKindGetName(const BindWriteKind Kind) noexcept
+        -> std::optional<std::string_view>
+    {
         using Enum = BindWriteKind;
         switch (Kind) {
             case Enum::None:
@@ -136,11 +140,13 @@ namespace MachO {
                 return "BIND_TYPE_TEXT_PCREL32";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
-    [[nodiscard]] constexpr std::string_view
-    BindWriteKindGetDescription(const BindWriteKind Kind) noexcept {
+    [[nodiscard]] constexpr auto
+    BindWriteKindGetDescription(const BindWriteKind Kind) noexcept
+        -> std::optional<std::string_view>
+    {
         using Enum = BindWriteKind;
         switch (Kind) {
             case Enum::None:
@@ -153,14 +159,16 @@ namespace MachO {
                 return "PC Relative (32-Bit)";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
     [[nodiscard]]
     constexpr uint64_t BindWriteKindGetLongestDescription() noexcept {
         const auto Result =
             EnumHelper<BindWriteKind>::GetLongestAssocLength(
-                BindWriteKindGetName);
+                [](const BindWriteKind Kind) {
+                    return BindWriteKindGetDescription(Kind).value_or("");
+                });
 
         return Result;
     }
@@ -172,9 +180,10 @@ namespace MachO {
         DylibWeakLookup = static_cast<uint8_t>(-3),
     };
 
-    [[nodiscard]] constexpr std::string_view
+    [[nodiscard]] constexpr auto
     BindByteDylibSpecialOrdinalGetName(
         const BindByteDylibSpecialOrdinal Ordinal) noexcept
+            -> std::optional<std::string_view>
     {
         using Enum = BindByteDylibSpecialOrdinal;
         switch (Ordinal) {
@@ -188,12 +197,13 @@ namespace MachO {
                 return "BIND_SPECIAL_DYLIB_WEAK_LOOKUP";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
-    [[nodiscard]] constexpr std::string_view
+    [[nodiscard]] constexpr auto
     BindByteDylibSpecialOrdinalGetDescription(
         const BindByteDylibSpecialOrdinal Ordinal) noexcept
+            -> std::optional<std::string_view>
     {
         using Enum = BindByteDylibSpecialOrdinal;
         switch (Ordinal) {
@@ -207,7 +217,7 @@ namespace MachO {
                 return "Weak-Lookup";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
     enum class BindSymbolFlagsEnum : uint8_t {
@@ -222,13 +232,12 @@ namespace MachO {
         using Enum = BindSymbolFlagsEnum;
         using Base::Base;
 
-        [[nodiscard]] constexpr bool isWeakImport() const noexcept {
-            return hasValueForMask(Enum::WeakImport);
+        [[nodiscard]] constexpr auto isWeakImport() const noexcept {
+            return this->hasValueForMask(Enum::WeakImport);
         }
 
-        [[nodiscard]]
-        constexpr bool hasNonWeakDefinition() const noexcept {
-            return hasValueForMask(Enum::NonWeakDefinition);
+        [[nodiscard]] constexpr auto hasNonWeakDefinition() const noexcept {
+            return this->hasValueForMask(Enum::NonWeakDefinition);
         }
     };
 
@@ -245,24 +254,27 @@ namespace MachO {
         using SubOpcode = BindByteSubOpcode;
         using WriteKind = BindWriteKind;
 
-        [[nodiscard]]
-        constexpr BindByte::Opcode getOpcode() const noexcept {
-            return BindByte::Opcode(getValueForMaskNoShift(Masks::Opcode));
+        [[nodiscard]] constexpr auto getOpcode() const noexcept {
+            return BindByte::Opcode(this->getValueForMaskNoShift(Masks::Opcode));
         }
 
-        [[nodiscard]] constexpr uint8_t getImmediate() const noexcept {
-            return getValueForMaskNoShift(Masks::Immediate);
+        [[nodiscard]] constexpr auto getImmediate() const noexcept {
+            return this->getValueForMaskNoShift(Masks::Immediate);
         }
 
-        constexpr BindByte &setOpcode(const Opcode Opcode) noexcept {
+        constexpr auto setOpcode(const Opcode Opcode) noexcept
+            -> decltype(*this)
+        {
             const auto OpcodeInt = static_cast<IntegerType>(Opcode);
 
-            setValueForMaskNoShift(Masks::Opcode, OpcodeInt);
+            this->setValueForMaskNoShift(Masks::Opcode, OpcodeInt);
             return *this;
         }
 
-        constexpr BindByte &setImmediate(const uint8_t Immediate) noexcept {
-            setValueForMaskNoShift(Masks::Immediate, Immediate);
+        constexpr auto setImmediate(const uint8_t Immediate) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForMaskNoShift(Masks::Immediate, Immediate);
             return *this;
         }
     };
@@ -329,13 +341,12 @@ namespace MachO {
         BindSymbolFlags Flags;
         BindWriteKind WriteKind;
 
-        [[nodiscard]] constexpr bool hasError() const noexcept {
-            return (Error != BindOpcodeParseError::None);
+        [[nodiscard]] constexpr auto hasError() const noexcept {
+            return this->Error != BindOpcodeParseError::None;
         }
 
-        [[nodiscard]]
-        constexpr BindOpcodeParseError getError() const noexcept {
-            return Error;
+        [[nodiscard]] constexpr auto getError() const noexcept {
+            return this->Error;
         }
     };
 
@@ -361,7 +372,7 @@ namespace MachO {
             Info = std::make_unique<BindOpcodeIterateInfo>();
             Info->Kind = BindKind;
 
-            Advance();
+            this->Advance();
         }
 
         constexpr explicit
@@ -375,77 +386,78 @@ namespace MachO {
           ReachedEnd(false)
         {
             this->Info->Kind = BindKind;
-            Advance();
+            this->Advance();
         }
 
+        explicit
         BindOpcodeIteratorBase(const BindOpcodeIteratorBase &) = delete;
 
         [[nodiscard]]
-        inline uint64_t getOffset(const uint8_t *Base) const noexcept {
-            assert(Base <= Iter->getPtr());
-            return (Iter->getPtr() - Base);
+        inline auto getOffset(const uint8_t *Base) const noexcept {
+            assert(Base <= this->Iter->getPtr());
+            return this->Iter->getPtr() - Base;
         }
 
         [[nodiscard]]
-        inline uint64_t getOffset(const BindByte *const Ptr) const noexcept {
+        inline auto getOffset(const BindByte *const Ptr) const noexcept {
             const auto Base = reinterpret_cast<const uint8_t *>(Ptr);
 
-            assert(Base <= Iter->getPtr());
-            return (Iter->getPtr() - Base);
+            assert(Base <= this->Iter->getPtr());
+            return this->Iter->getPtr() - Base;
         }
 
-        [[nodiscard]] inline const uint8_t *getPtr() const noexcept {
-            return Iter->getPtr();
+        [[nodiscard]] inline auto getPtr() const noexcept {
+            return this->Iter->getPtr();
         }
 
-        [[nodiscard]] constexpr bool isAtEnd() const noexcept {
+        [[nodiscard]] constexpr auto isAtEnd() const noexcept {
             if constexpr (BindKind == BindInfoKind::Lazy) {
-                return (Iter.isAtEnd() && ReachedEnd);
+                return this->Iter.isAtEnd() && ReachedEnd;
             } else {
-                return ReachedEnd;
+                return this->ReachedEnd;
             }
         }
         [[nodiscard]]
-        constexpr const BindOpcodeIteratorBase &operator*() const noexcept {
+        constexpr auto operator*() const noexcept -> decltype(*this) {
             return *this;
         }
 
-        [[nodiscard]]
-        constexpr const BindOpcodeIteratorBase *operator->() const noexcept {
+        [[nodiscard]] constexpr auto operator->() const noexcept {
             return this;
         }
 
-        [[nodiscard]] constexpr BindOpcodeIterateInfo &getInfo() noexcept {
-            return *Info;
+        [[nodiscard]] constexpr auto &getInfo() noexcept {
+            return *this->Info;
         }
 
-        [[nodiscard]]
-        constexpr const BindOpcodeIterateInfo &getInfo() const noexcept {
-            return *Info;
+        [[nodiscard]] constexpr auto &getInfo() const noexcept {
+            return *this->Info;
         }
 
-        [[nodiscard]] constexpr const BindByte &getByte() const noexcept {
-            return *reinterpret_cast<const BindByte *>(Prev);
+        [[nodiscard]] constexpr auto &getByte() const noexcept {
+            return *reinterpret_cast<const BindByte *>(this->Prev);
         }
 
-        [[nodiscard]] constexpr bool hasError() const noexcept {
-            return Info->hasError();
+        [[nodiscard]] constexpr auto hasError() const noexcept {
+            return this->Info->hasError();
         }
 
-        [[nodiscard]] constexpr ErrorEnum getError() const noexcept {
-            return Info->getError();
+        [[nodiscard]] constexpr auto getError() const noexcept {
+            return this->Info->getError();
         }
 
-        constexpr BindOpcodeIteratorBase &operator++() noexcept {
-            Info->Error = Advance();
+        constexpr auto operator++() noexcept -> decltype(*this) {
+            this->Info->Error = this->Advance();
             return *this;
         }
 
-        constexpr BindOpcodeIteratorBase &operator++(int) noexcept {
+        constexpr auto operator++(int) noexcept -> decltype(*this) {
             return ++(*this);
         }
 
-        constexpr BindOpcodeIteratorBase &operator+=(uint64_t Amt) noexcept {
+        constexpr auto operator+=(uint64_t Amt) noexcept
+            -> decltype(*this)
+        {
             for (auto I = uint64_t(); I != Amt; I++) {
                 ++(*this);
             }
@@ -453,49 +465,49 @@ namespace MachO {
             return *this;
         }
 
-        [[nodiscard]] constexpr
-        bool operator==(const BindOpcodeIteratorEnd &) const noexcept {
-            return isAtEnd();
+        [[nodiscard]] constexpr auto
+        operator==(const BindOpcodeIteratorEnd &) const noexcept {
+            return this->isAtEnd();
         }
 
-        [[nodiscard]] constexpr
-        bool operator!=(const BindOpcodeIteratorEnd &End) const noexcept {
+        [[nodiscard]] constexpr auto
+        operator!=(const BindOpcodeIteratorEnd &End) const noexcept {
             return !(*this == End);
         }
 
-        constexpr BindOpcodeParseError Advance() noexcept {
+        constexpr auto Advance() noexcept -> BindOpcodeParseError {
             using ErrorEnum = BindOpcodeParseError;
 
-            const auto BytePtr = Iter->getAsByte<BindByte>();
+            const auto BytePtr = this->Iter->template getAsByte<BindByte>();
             const auto &Byte = *BytePtr;
 
-            Info->Error = ErrorEnum::None;
-            Prev = BytePtr;
-            Iter++;
+            this->Info->Error = ErrorEnum::None;
+            this->Prev = BytePtr;
+            this->Iter++;
 
-            if (Iter.isAtEnd()) {
-                ReachedEnd = true;
+            if (this->Iter.isAtEnd()) {
+                this->ReachedEnd = true;
                 return ErrorEnum::None;
             }
 
             switch (Byte.getOpcode()) {
                 case BindByte::Opcode::Done:
-                    ReachedEnd = true;
+                    this->ReachedEnd = true;
                     return ErrorEnum::None;
                 case BindByte::Opcode::SetDylibOrdinalImm:
                     if constexpr (BindKind == BindInfoKind::Weak) {
                         return ErrorEnum::IllegalBindOpcode;
                     }
 
-                    Info->DylibOrdinal = Byte.getImmediate();
+                    this->Info->DylibOrdinal = Byte.getImmediate();
                     return ErrorEnum::None;
                 case BindByte::Opcode::SetDylibOrdinalUleb:
                     if constexpr (BindKind == BindInfoKind::Weak) {
                         return ErrorEnum::IllegalBindOpcode;
                     }
 
-                    if (const auto Uleb = Iter->ReadUleb128()) {
-                        Info->DylibOrdinal = Uleb.value();
+                    if (const auto Uleb = this->Iter->ReadUleb128()) {
+                        this->Info->DylibOrdinal = Uleb.value();
                         return ErrorEnum::None;
                     }
 
@@ -507,18 +519,18 @@ namespace MachO {
 
                     auto DylibOrdinal = Byte.getImmediate();
                     if (DylibOrdinal == 0) {
-                        Info->DylibOrdinal = DylibOrdinal;
+                        this->Info->DylibOrdinal = DylibOrdinal;
                         return ErrorEnum::None;
                     }
 
                     // Sign-Extend the Dylib-Ordinal.
-                    DylibOrdinal = (0xF0 | DylibOrdinal);
+                    DylibOrdinal = 0xF0 | DylibOrdinal;
                     switch (BindByteDylibSpecialOrdinal(DylibOrdinal)) {
                         case BindByteDylibSpecialOrdinal::DylibSelf:
                         case BindByteDylibSpecialOrdinal::DylibMainExecutable:
                         case BindByteDylibSpecialOrdinal::DylibFlatLookup:
                         case BindByteDylibSpecialOrdinal::DylibWeakLookup:
-                            Info->DylibOrdinal = DylibOrdinal;
+                            this->Info->DylibOrdinal = DylibOrdinal;
                             return ErrorEnum::None;
                     }
 
@@ -526,14 +538,14 @@ namespace MachO {
                 }
 
                 case BindByte::Opcode::SetSymbolTrailingFlagsImm:
-                    Info->Flags = BindSymbolFlags(Byte.getImmediate());
-                    if (const auto StringOpt = Iter->ParseString()) {
+                    this->Info->Flags = BindSymbolFlags(Byte.getImmediate());
+                    if (const auto StringOpt = this->Iter->ParseString()) {
                         const auto &String = StringOpt.value();
                         if (String.empty()) {
                             return ErrorEnum::EmptySymbol;
                         }
 
-                        Info->SymbolName = String;
+                        this->Info->SymbolName = String;
                         return ErrorEnum::None;
                     }
 
@@ -543,8 +555,8 @@ namespace MachO {
                         return ErrorEnum::IllegalBindOpcode;
                     }
 
-                    Info->WriteKind = BindWriteKind(Byte.getImmediate());
-                    switch (Info->WriteKind) {
+                    this->Info->WriteKind = BindWriteKind(Byte.getImmediate());
+                    switch (this->Info->WriteKind) {
                         case BindByte::WriteKind::None:
                             break;
                         case BindByte::WriteKind::Pointer:
@@ -555,16 +567,16 @@ namespace MachO {
 
                     return ErrorEnum::UnrecognizedBindWriteKind;
                 case BindByte::Opcode::SetAddendSleb:
-                    if (const auto Sleb = Iter->ReadSleb128()) {
-                        Info->Addend = Sleb.value();
+                    if (const auto Sleb = this->Iter->ReadSleb128()) {
+                        this->Info->Addend = Sleb.value();
                         return ErrorEnum::None;
                     }
 
                     return ErrorEnum::InvalidLeb128;
                 case BindByte::Opcode::SetSegmentAndOffsetUleb:
-                    if (const auto Uleb = Iter->ReadUleb128()) {
-                        Info->SegOffset = Uleb.value();
-                        Info->SegmentIndex = Byte.getImmediate();
+                    if (const auto Uleb = this->Iter->ReadUleb128()) {
+                        this->Info->SegOffset = Uleb.value();
+                        this->Info->SegmentIndex = Byte.getImmediate();
 
                         return ErrorEnum::None;
                     }
@@ -576,7 +588,7 @@ namespace MachO {
                     }
 
                     if (const auto Sleb = Iter->ReadSleb128()) {
-                        Info->AddAddr = Sleb.value();
+                        this->Info->AddAddr = Sleb.value();
                         return ErrorEnum::None;
                     }
 
@@ -588,8 +600,8 @@ namespace MachO {
                         return ErrorEnum::IllegalBindOpcode;
                     }
 
-                    if (const auto Sleb = Iter->ReadSleb128()) {
-                        Info->AddAddr = Sleb.value();
+                    if (const auto Sleb = this->Iter->ReadSleb128()) {
+                        this->Info->AddAddr = Sleb.value();
                         return ErrorEnum::None;
                     }
 
@@ -599,7 +611,7 @@ namespace MachO {
                         return ErrorEnum::IllegalBindOpcode;
                     }
 
-                    Info->Scale = Byte.getImmediate();
+                    this->Info->Scale = Byte.getImmediate();
                     return ErrorEnum::None;
                 }
                 case BindByte::Opcode::DoBindUlebTimesSkippingUleb:
@@ -607,13 +619,13 @@ namespace MachO {
                         return ErrorEnum::IllegalBindOpcode;
                     }
 
-                    if (const auto Count = Iter->ReadUleb128()) {
-                        if (const auto Skip = Iter->ReadSleb128()) {
+                    if (const auto Count = this->Iter->ReadUleb128()) {
+                        if (const auto Skip = this->Iter->ReadSleb128()) {
                             const auto SkipValue = Skip.value();
                             const auto CountValue = Count.value();
 
-                            Info->Skip = SkipValue;
-                            Info->Count = CountValue;
+                            this->Info->Skip = SkipValue;
+                            this->Info->Count = CountValue;
 
                             return ErrorEnum::None;
                         }
@@ -621,14 +633,16 @@ namespace MachO {
 
                     return ErrorEnum::InvalidLeb128;
                 case BindByte::Opcode::Threaded:
-                    Info->SubOpcode = BindByteSubOpcode(Byte.getImmediate());
-                    switch (Info->SubOpcode) {
+                    this->Info->SubOpcode =
+                        BindByteSubOpcode(Byte.getImmediate());
+
+                    switch (this->Info->SubOpcode) {
                         using Enum = BindByteSubOpcode;
                         case Enum::ThreadedSetBindOrdinalTableSizeUleb:
-                            if (const auto Uleb = Iter->ReadUleb128()) {
+                            if (const auto Uleb = this->Iter->ReadUleb128()) {
                                 const auto Count = Uleb.value();
+                                this->Info->ThreadedCount = Count;
 
-                                Info->ThreadedCount = Count;
                                 return ErrorEnum::None;
                             }
 
@@ -660,18 +674,17 @@ namespace MachO {
           End(reinterpret_cast<const BindByte *>(End)),
           Is64Bit(Is64Bit) {}
 
-        [[nodiscard]] constexpr IteratorType begin() const noexcept {
-            return IteratorType(Begin, End);
+        [[nodiscard]] constexpr auto begin() const noexcept {
+            return IteratorType(this->Begin, this->End);
         }
 
-        [[nodiscard]]
-        constexpr BindOpcodeIteratorEnd end() const noexcept {
+        [[nodiscard]] constexpr auto end() const noexcept {
             return BindOpcodeIteratorEnd();
         }
 
-        [[nodiscard]] constexpr
-        uint64_t getOffsetFromIter(const IteratorType &Iter) const noexcept {
-            return (Iter->getPtr() - Begin);
+        [[nodiscard]] constexpr auto
+        getOffsetFromIter(const IteratorType &Iter) const noexcept {
+            return Iter->getPtr() - this->Begin;
         }
     };
 
@@ -683,13 +696,13 @@ namespace MachO {
                      const uint8_t *const End) noexcept
             : NakedOpcodeList::Iterator(Iter, End) {}
 
-            [[nodiscard]] inline BindByte getByte() const noexcept {
+            [[nodiscard]] inline auto getByte() const noexcept {
                 return *reinterpret_cast<const BindByte *>(this->getPtr());
             }
         };
 
-        [[nodiscard]] inline Iterator begin() const noexcept {
-            return Iterator(Begin, End);
+        [[nodiscard]] inline auto begin() const noexcept {
+            return Iterator(this->Begin, this->End);
         }
     };
 
@@ -720,8 +733,8 @@ namespace MachO {
         bool NewSymbolName : 1;
         BindSymbolFlags Flags;
 
-        [[nodiscard]] constexpr bool hasDylibOrdinal() const noexcept {
-            return (DylibOrdinal != -1);
+        [[nodiscard]] constexpr auto hasDylibOrdinal() const noexcept {
+            return this->DylibOrdinal != -1;
         }
     };
 
@@ -737,8 +750,7 @@ namespace MachO {
     struct BindActionIterateInfo : public BindOpcodeIterateInfo {
         using ErrorEnum = BindOpcodeParseError;
 
-        [[nodiscard]]
-        constexpr struct BindActionInfo getAction() const noexcept {
+        [[nodiscard]] constexpr auto getAction() const noexcept {
             const auto Result = BindActionInfo {
                 .Kind = this->Kind,
                 .WriteKind = this->WriteKind,
@@ -748,7 +760,8 @@ namespace MachO {
                 .SegmentIndex = this->SegmentIndex,
                 .SegOffset = this->SegOffset,
                 .AddrInSeg = this->AddrInSeg,
-                .NewSymbolName = this->NewSymbolName
+                .NewSymbolName = this->NewSymbolName,
+                .Flags = this->Flags,
             };
 
             return Result;
@@ -759,7 +772,7 @@ namespace MachO {
         SpecificCapArray<BindOpcodeThreadedData> ThreadedDataTable;
 
         [[nodiscard]] constexpr
-        static inline bool canIgnoreError(const ErrorEnum Error) noexcept {
+        static inline auto canIgnoreError(const ErrorEnum Error) noexcept {
             switch (Error) {
                 case ErrorEnum::None:
                 case ErrorEnum::EmptySymbol:
@@ -815,42 +828,40 @@ namespace MachO {
           Iter(Begin, End, std::make_unique<BindActionIterateInfo>()),
           Is64Bit(Is64Bit)
         {
-            LastByte.setOpcode(BindByte::Opcode::SetDylibOrdinalImm);
+            this->LastByte.setOpcode(BindByte::Opcode::SetDylibOrdinalImm);
             ++(*this);
         }
 
-        [[nodiscard]]
-        constexpr BindActionIterateInfo &getInfo() noexcept {
-            auto &Info = Iter.getInfo();
+        [[nodiscard]] constexpr auto &getInfo() noexcept {
+            auto &Info = this->Iter.getInfo();
             return reinterpret_cast<BindActionIterateInfo &>(Info);
         }
 
-        [[nodiscard]]
-        constexpr const BindActionIterateInfo &getInfo() const noexcept {
-            const auto &Info = Iter.getInfo();
+        [[nodiscard]] constexpr auto &getInfo() const noexcept {
+            const auto &Info = this->Iter.getInfo();
             return reinterpret_cast<const BindActionIterateInfo &>(Info);
         }
 
         [[nodiscard]]
-        inline uint64_t getOffset(const uint8_t *const Base) const noexcept {
-            assert(Base <= Iter->getPtr());
-            return (Iter->getPtr() - Base);
+        inline auto getOffset(const uint8_t *const Base) const noexcept {
+            assert(Base <= this->Iter->getPtr());
+            return this->Iter->getPtr() - Base;
         }
 
         [[nodiscard]]
-        inline uint64_t getOffset(const BindByte *const Ptr) const noexcept {
+        inline auto getOffset(const BindByte *const Ptr) const noexcept {
             const auto Base = reinterpret_cast<const uint8_t *>(Ptr);
+            assert(Base <= this->Iter->getPtr());
 
-            assert(Base <= Iter->getPtr());
-            return (Iter->getPtr() - Base);
+            return this->Iter->getPtr() - Base;
         }
 
         [[nodiscard]]
-        constexpr bool IsValidForSegmentCollection(
+        constexpr auto IsValidForSegmentCollection(
             const SegmentInfoCollection &Collection,
             const bool Is64Bit) noexcept
         {
-            const auto &Info = getInfo();
+            const auto &Info = this->getInfo();
             const auto SegmentIndex = Info.Action.SegmentIndex;
 
             if (SegmentIndex == -1) {
@@ -879,34 +890,35 @@ namespace MachO {
             return ContainsPtr;
         }
 
-        [[nodiscard]] constexpr bool isAtEnd() const noexcept {
-            return Iter.isAtEnd();
+        [[nodiscard]] constexpr auto isAtEnd() const noexcept {
+            return this->Iter.isAtEnd();
         }
 
-        [[nodiscard]]
-        constexpr const BindActionIterateInfo &operator*() const noexcept {
-            return getInfo();
+        [[nodiscard]] constexpr auto &operator*() const noexcept {
+            return this->getInfo();
         }
 
-        [[nodiscard]] const BindActionIterateInfo *operator->() const noexcept {
-            return &getInfo();
+        [[nodiscard]] auto operator->() const noexcept {
+            return &this->getInfo();
         }
 
-        constexpr BindActionIteratorBase &operator++() noexcept {
-            auto &Info = getInfo();
+        constexpr auto operator++() noexcept -> decltype(*this) {
+            auto &Info = this->getInfo();
             if (Info.hasError()) {
                 Iter++;
             }
 
-            Info.Error = Advance();
+            Info.Error = this->Advance();
             return *this;
         }
 
-        constexpr BindActionIteratorBase &operator++(int) noexcept {
+        constexpr auto operator++(int) noexcept -> decltype(*this) {
             return ++(*this);
         }
 
-        constexpr BindActionIteratorBase &operator+=(uint64_t Amt) noexcept {
+        constexpr auto operator+=(uint64_t Amt) noexcept
+            -> decltype(*this)
+        {
             for (auto I = uint64_t(); I != Amt; I++) {
                 ++(*this);
             }
@@ -915,23 +927,26 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr
-        bool operator==(const BindActionIteratorEnd &) const noexcept {
-            return isAtEnd();
+        auto operator==(const BindActionIteratorEnd &) const noexcept {
+            return this->isAtEnd();
         }
 
         [[nodiscard]] constexpr
-        bool operator!=(const BindActionIteratorEnd &End) const noexcept {
+        auto operator!=(const BindActionIteratorEnd &End) const noexcept {
             return !(*this == End);
         }
 
-        constexpr BindOpcodeParseError Advance() noexcept {
-            auto &Info = getInfo();
+        constexpr auto Advance() noexcept -> BindOpcodeParseError {
+            auto &Info = this->getInfo();
             const auto AddChangeToSegmentAddress = [&](int64_t Add) noexcept {
-                if (DoesAddOverflow(SegAddAddress, Add, &SegAddAddress)) {
+                if (DoesAddOverflow(this->SegAddAddress,
+                                    Add,
+                                    &this->SegAddAddress))
+                {
                     return false;
                 }
 
-                if (DoesAddOverflow(Info.AddrInSeg, SegAddAddress)) {
+                if (DoesAddOverflow(Info.AddrInSeg, this->SegAddAddress)) {
                     return false;
                 }
 
@@ -944,27 +959,28 @@ namespace MachO {
             Info.NewSymbolName = false;
 
             const auto FinalizeChangesForSegmentAddress = [&]() noexcept {
-                Info.AddrInSeg += SegAddAddress;
-                SegAddAddress = 0;
+                Info.AddrInSeg += this->SegAddAddress;
+                this->SegAddAddress = 0;
             };
 
             const auto DoThreadedBind = [&]() noexcept {
-                const auto &SegInfo = SegmentCollection.at(Info.SegmentIndex);
+                const auto &SegInfo =
+                    this->SegmentCollection.at(Info.SegmentIndex);
                 const auto SegVmAddr =
                     SegInfo.getMemoryRange().getBegin() + Info.AddrInSeg;
 
                 const auto PtrSize = PointerSize(Is64Bit);
                 const auto Data =
-                    SegmentCollection.GetDataForVirtualAddr(Map,
-                                                            SegVmAddr,
-                                                            PtrSize);
+                    this->SegmentCollection.GetDataForVirtualAddr(this->Map,
+                                                                  SegVmAddr,
+                                                                  PtrSize);
 
                 if (Data == nullptr) {
                     return ErrorEnum::OutOfBoundsSegmentAddr;
                 }
 
                 auto Value = *Data;
-                const auto IsBind = (Value & (1ull << 62));
+                const auto IsBind = Value & (1ull << 62);
 
                 if (IsBind) {
                     const auto ThreadOrdinal = (Value & 0xFFFF);
@@ -979,43 +995,45 @@ namespace MachO {
                 }
 
                 Info.AddrInSeg += PointerSize(Is64Bit);
-
                 Value &= ~(1ull << 62);
-                AddAmt = (Value & 0x3FF8000000000000) >> 51;
 
-                if (AddAmt == 0) {
-                    LastByte.setOpcode(BindByte::Opcode::SetDylibOrdinalImm);
+                this->AddAmt = (Value & 0x3FF8000000000000) >> 51;
+                if (this->AddAmt == 0) {
+                    this->LastByte.setOpcode(
+                        BindByte::Opcode::SetDylibOrdinalImm);
                 }
 
                 return ErrorEnum::None;
             };
 
-            switch (LastByte.getOpcode()) {
+            switch (this->LastByte.getOpcode()) {
                 case BindByte::Opcode::DoBindUlebTimesSkippingUleb:
-                    if (Count != 0) {
+                    if (this->Count != 0) {
                         Info.AddrInSeg += AddAmt;
-                        Count--;
+                        this->Count--;
 
-                        if (Count != 0) {
+                        if (this->Count != 0) {
                             return ErrorEnum::None;
                         }
 
-                        Info.AddrInSeg += AddAmt;
-                        LastByte.setOpcode(
+                        Info.AddrInSeg += this->AddAmt;
+                        this->LastByte.setOpcode(
                             BindByte::Opcode::SetDylibOrdinalImm);
 
-                        Iter++;
+                        this->Iter++;
                         break;
                     }
 
                 case BindByte::Opcode::DoBind:
                 case BindByte::Opcode::DoBindAddAddrUleb:
                 case BindByte::Opcode::DoBindAddAddrImmScaled:
-                    // Clear the Last-Opcode.
-                    LastByte.setOpcode(BindByte::Opcode::SetDylibOrdinalImm);
                     FinalizeChangesForSegmentAddress();
-                    Iter++;
 
+                    // Clear the Last-Opcode.
+                    this->LastByte.setOpcode(
+                        BindByte::Opcode::SetDylibOrdinalImm);
+
+                    this->Iter++;
                     break;
 
                 case BindByte::Opcode::Done:
@@ -1044,7 +1062,10 @@ namespace MachO {
                 [&](const int64_t Add) noexcept
             {
                 auto NewSegAddAddress = int64_t();
-                if (DoesAddOverflow(SegAddAddress, Add, &NewSegAddAddress)) {
+                if (DoesAddOverflow(this->SegAddAddress,
+                                    Add,
+                                    &NewSegAddAddress))
+                {
                     return false;
                 }
 
@@ -1071,13 +1092,13 @@ namespace MachO {
                 return ErrorEnum::None;
             };
 
-            for (; !Iter.isAtEnd(); Iter++) {
-                if (Iter->hasError()) {
-                    return Iter->getError();
+            for (; !this->Iter.isAtEnd(); this->Iter++) {
+                if (this->Iter->hasError()) {
+                    return this->Iter->getError();
                 }
 
-                const auto &Byte = Iter.getByte();
-                const auto &IterInfo = Iter.getInfo();
+                const auto &Byte = this->Iter.getByte();
+                const auto &IterInfo = this->Iter.getInfo();
 
                 switch (Byte.getOpcode()) {
                     case BindByte::Opcode::Done:
@@ -1133,7 +1154,7 @@ namespace MachO {
                             });
                         }
 
-                        LastByte = Byte;
+                        this->LastByte = Byte;
                         return ErrorEnum::None;
                     }
                     case BindByte::Opcode::DoBindAddAddrUleb: {
@@ -1143,7 +1164,7 @@ namespace MachO {
 
                         const auto PtrSize = PointerSize(Is64Bit);
                         if (AddChangeToSegmentAddress(PtrSize)) {
-                            LastByte = Byte;
+                            this->LastByte = Byte;
                             return ErrorEnum::None;
                         }
 
@@ -1162,7 +1183,7 @@ namespace MachO {
                         }
 
                         if (AddChangeToSegmentAddress(Add)) {
-                            LastByte = Byte;
+                            this->LastByte = Byte;
                             return ErrorEnum::None;
                         }
 
@@ -1183,8 +1204,8 @@ namespace MachO {
                         }
 
                         if (CheckChangeToSegmentAddress(Total)) {
-                            LastByte = Byte;
-                            AddAmt = SingleStep;
+                            this->LastByte = Byte;
+                            this->AddAmt = SingleStep;
 
                             this->Count = Count - 1;
                             return ErrorEnum::None;
@@ -1209,8 +1230,8 @@ namespace MachO {
                                     return Error;
                                 }
 
-                                if (AddAmt != 0) {
-                                    LastByte = Byte;
+                                if (this->AddAmt != 0) {
+                                    this->LastByte = Byte;
                                 }
 
                                 return ErrorEnum::None;
@@ -1223,7 +1244,7 @@ namespace MachO {
                 return ErrorEnum::UnrecognizedBindOpcode;
             }
 
-            LastByte.setOpcode(BindByteOpcode::Done);
+            this->LastByte.setOpcode(BindByteOpcode::Done);
             return ErrorEnum::None;
         }
     };
@@ -1256,24 +1277,27 @@ namespace MachO {
           End(reinterpret_cast<const BindByte *>(End)),
           Is64Bit(Is64Bit) {}
 
-        [[nodiscard]] inline const BindByte *getBegin() const noexcept {
-            return Begin;
+        [[nodiscard]] inline auto getBegin() const noexcept {
+            return this->Begin;
         }
 
-        [[nodiscard]] inline const BindByte *getEnd() const noexcept {
-            return End;
+        [[nodiscard]] inline auto getEnd() const noexcept {
+            return this->End;
         }
 
-        [[nodiscard]] constexpr IteratorType begin() const noexcept {
-            return IteratorType(Map, SegmentCollection, Begin, End, Is64Bit);
+        [[nodiscard]] constexpr auto begin() const noexcept {
+            return IteratorType(this->Map,
+                                this->SegmentCollection,
+                                this->Begin,
+                                this->End,
+                                this->Is64Bit);
         }
 
-        [[nodiscard]]
-        constexpr BindActionIteratorEnd end() const noexcept {
+        [[nodiscard]] constexpr auto end() const noexcept {
             return BindActionIteratorEnd();
         }
 
-        inline BindOpcodeParseError
+        inline auto
         GetAsList(std::vector<BindActionInfo> &ListOut) const noexcept {
             for (const auto &Iter : *this) {
                 const auto Error = Iter.getError();
@@ -1287,7 +1311,7 @@ namespace MachO {
             return BindOpcodeParseError::None;
         }
 
-        inline BindOpcodeParseError
+        inline auto
         GetListOfSymbols(
             std::vector<BindActionInfo> &SymbolListOut) const noexcept
         {
@@ -1310,47 +1334,54 @@ namespace MachO {
     using LazyBindActionList = BindActionListBase<BindInfoKind::Lazy>;
     using WeakBindActionList = BindActionListBase<BindInfoKind::Weak>;
 
-    TypedAllocationOrError<BindNakedOpcodeList, SizeRangeError>
+    auto
     GetBindNakedOpcodeList(const MemoryMap &Map,
                            uint32_t BindOffset,
-                           uint32_t BindSize) noexcept;
+                           uint32_t BindSize) noexcept
+        -> ExpectedAlloc<BindNakedOpcodeList, SizeRangeError>;
 
-    TypedAllocationOrError<BindOpcodeList, SizeRangeError>
+    auto
     GetBindOpcodeList(const ConstMemoryMap &Map,
                       uint32_t BindOffset,
                       uint32_t BindSize,
-                      bool Is64Bit) noexcept;
+                      bool Is64Bit) noexcept
+        -> ExpectedAlloc<BindOpcodeList, SizeRangeError>;
 
-    TypedAllocationOrError<LazyBindOpcodeList, SizeRangeError>
+    auto
     GetLazyBindOpcodeList(const ConstMemoryMap &Map,
                           uint32_t BindOffset,
                           uint32_t BindSize,
-                          bool Is64Bit) noexcept;
+                          bool Is64Bit) noexcept
+        -> ExpectedAlloc<LazyBindOpcodeList, SizeRangeError>;
 
-    TypedAllocationOrError<WeakBindOpcodeList, SizeRangeError>
+    auto
     GetWeakBindOpcodeList(const ConstMemoryMap &Map,
                           uint32_t BindOffset,
                           uint32_t BindSize,
-                          bool Is64Bit) noexcept;
+                          bool Is64Bit) noexcept
+        -> ExpectedAlloc<WeakBindOpcodeList, SizeRangeError>;
 
-    TypedAllocationOrError<BindActionList, SizeRangeError>
+    auto
     GetBindActionList(const ConstMemoryMap &Map,
                       const SegmentInfoCollection &Collection,
                       uint32_t BindOffset,
                       uint32_t BindSize,
-                      bool Is64Bit) noexcept;
+                      bool Is64Bit) noexcept
+        -> ExpectedAlloc<BindActionList, SizeRangeError>;
 
-    TypedAllocationOrError<LazyBindActionList, SizeRangeError>
+    auto
     GetLazyBindActionList(const ConstMemoryMap &Map,
                           const SegmentInfoCollection &Collection,
                           uint32_t BindOffset,
                           uint32_t BindSize,
-                          bool Is64Bit) noexcept;
+                          bool Is64Bit) noexcept
+        -> ExpectedAlloc<LazyBindActionList, SizeRangeError>;
 
-    TypedAllocationOrError<WeakBindActionList, SizeRangeError>
+    auto
     GetWeakBindActionList(const ConstMemoryMap &Map,
                           const SegmentInfoCollection &Collection,
                           uint32_t BindOffset,
                           uint32_t BindSize,
-                          bool Is64Bit) noexcept;
+                          bool Is64Bit) noexcept
+        -> ExpectedAlloc<WeakBindActionList, SizeRangeError>;
 }

@@ -1,33 +1,33 @@
 //
-//  include/Operations/PrintExportTrie.h
+//  Operations/PrintExportTrie.h
 //  ktool
 //
 //  Created by Suhas Pai on 5/9/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
-
 #include <set>
-#include <variant>
+
+#include "Objects/DscImageMemory.h"
+#include "Objects/MachOMemory.h"
 
 #include "Base.h"
 #include "Kind.h"
-#include "Objects/MachOMemory.h"
 
 struct PrintExportTrieOperation : public Operation {
 public:
     constexpr static auto OpKind = OperationKind::PrintExportTrie;
 
     [[nodiscard]]
-    constexpr static bool IsOfKind(const Operation::Options &Opt) noexcept {
-        return (Opt.getKind() == OpKind);
+    constexpr static auto IsOfKind(const Operation::Options &Opt) noexcept {
+        return Opt.getKind() == OpKind;
     }
 
     struct Options : public Operation::Options {
         [[nodiscard]]
-        constexpr static bool IsOfKind(const Operation::Options &Opt) noexcept {
-            return (Opt.getKind() == OpKind);
+        constexpr static auto IsOfKind(const Operation::Options &Opt) noexcept {
+            return Opt.getKind() == OpKind;
         }
 
         struct SegmentSectionPair {
@@ -61,11 +61,11 @@ public:
     PrintExportTrieOperation(const struct Options &Options) noexcept;
 
     static int
-    Run(const ConstMachOMemoryObject &Object,
+    Run(const MachOMemoryObject &Object,
         const struct Options &Options) noexcept;
 
     static int
-    Run(const ConstDscImageMemoryObject &Object,
+    Run(const DscImageMemoryObject &Object,
         const struct Options &Options) noexcept;
 
     [[nodiscard]] static struct Options
@@ -75,7 +75,7 @@ public:
     int ParseOptions(const ArgvArray &Argv) noexcept override;
 
     [[nodiscard]]
-    constexpr static bool SupportsObjectKind(const ObjectKind Kind) noexcept {
+    constexpr static auto SupportsObjectKind(const ObjectKind Kind) noexcept {
         switch (Kind) {
             case ObjectKind::None:
                 assert(0 && "SupportsObjectKind() got Object-Kind None");

@@ -1,9 +1,9 @@
 //
-//  include/ADT/Mach-O/MemoryProtections.h
+//  ADT/Mach-O/MemoryProtections.h
 //  ktool
 //
 //  Created by Suhas Pai on 8/25/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -17,8 +17,10 @@ namespace MachO {
         Execute = (1ull << 2)
     };
 
-    [[nodiscard]] constexpr std::string_view
-    MemoryProtectionGetName(const MemoryProtectionEnum Val) noexcept {
+    [[nodiscard]] constexpr auto
+    MemoryProtectionGetName(const MemoryProtectionEnum Val) noexcept
+        -> std::optional<std::string_view>
+    {
         switch (Val) {
             using Enum = MemoryProtectionEnum;
             case Enum::None:
@@ -31,11 +33,13 @@ namespace MachO {
                 return "VM_PROT_EXECUTE";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
-    [[nodiscard]] constexpr std::string_view
-    MemoryProtectionGetDesc(const MemoryProtectionEnum Val) noexcept {
+    [[nodiscard]] constexpr auto
+    MemoryProtectionGetDesc(const MemoryProtectionEnum Val) noexcept
+        -> std::optional<std::string_view>
+    {
         switch (Val) {
             using Enum = MemoryProtectionEnum;
             case Enum::None:
@@ -48,7 +52,7 @@ namespace MachO {
                 return "Execute";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
     struct MemoryProtections : public ::BasicFlags<MemoryProtectionEnum> {
@@ -60,33 +64,36 @@ namespace MachO {
         constexpr MemoryProtections(MaskIntegerType Integer) noexcept
         : ::BasicFlags<MemoryProtectionEnum>(Integer) {}
 
-        [[nodiscard]] constexpr bool isReadable() const noexcept {
-            return hasFlag(Masks::Read);
+        [[nodiscard]] constexpr auto isReadable() const noexcept {
+            return this->hasFlag(Masks::Read);
         }
 
-        [[nodiscard]] constexpr bool isWritable() const noexcept {
-            return hasFlag(Masks::Write);
+        [[nodiscard]] constexpr auto isWritable() const noexcept {
+            return this->hasFlag(Masks::Write);
         }
 
-        [[nodiscard]] constexpr bool isExecutable() const noexcept {
-            return hasFlag(Masks::Execute);
+        [[nodiscard]] constexpr auto isExecutable() const noexcept {
+            return this->hasFlag(Masks::Execute);
         }
 
-        constexpr
-        MemoryProtections &setReadable(const bool Value = true) noexcept {
-            setValueForFlag(Masks::Read, Value);
+        constexpr auto setReadable(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForFlag(Masks::Read, Value);
             return *this;
         }
 
-        constexpr
-        MemoryProtections &setWritable(const bool Value = true) noexcept {
-            setValueForFlag(Masks::Write, Value);
+        constexpr auto setWritable(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForFlag(Masks::Write, Value);
             return *this;
         }
 
-        constexpr
-        MemoryProtections &setExecutable(const bool Value = true) noexcept {
-            setValueForFlag(Masks::Execute, Value);
+        constexpr auto setExecutable(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForFlag(Masks::Execute, Value);
             return *this;
         }
     };

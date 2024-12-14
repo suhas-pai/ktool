@@ -1,16 +1,18 @@
 //
-//  include/ADT/Mach-O/RebaseInfo.h
+//  ADT/Mach-O/RebaseInfo.h
 //  ktool
 //
 //  Created by Suhas Pai on 5/19/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
+#include <cstdint>
 #include <memory>
 
 #include "ADT/EnumHelper.h"
-#include "ADT/PointerOrError.h"
+#include "ADT/ExpectedAlloc.h"
+
 #include "Utils/PointerUtils.h"
 
 #include "LoadCommandsCommon.h"
@@ -29,8 +31,10 @@ namespace MachO {
         DoRebaseUlebTimesSkipUleb = 0x80
     };
 
-    [[nodiscard]] constexpr std::string_view
-    RebaseByteOpcodeGetName(const RebaseByteOpcode Opcode) noexcept {
+    [[nodiscard]] constexpr auto
+    RebaseByteOpcodeGetName(const RebaseByteOpcode Opcode) noexcept
+        -> std::optional<std::string_view>
+    {
         switch (Opcode) {
             case RebaseByteOpcode::Done:
                 return "REBASE_OPCODE_DONE";
@@ -52,11 +56,13 @@ namespace MachO {
                 return "REBASE_OPCODE_DO_REBASE_ULEB_TIMES_SKIP_ULEB";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
-    [[nodiscard]] constexpr std::string_view
-    RebaseByteOpcodeGetDesc(const RebaseByteOpcode Opcode) noexcept {
+    [[nodiscard]] constexpr auto
+    RebaseByteOpcodeGetDesc(const RebaseByteOpcode Opcode) noexcept
+        -> std::optional<std::string_view>
+    {
         switch (Opcode) {
             case RebaseByteOpcode::Done:
                 return "Done";
@@ -78,7 +84,7 @@ namespace MachO {
                 return "Do Rebase Uleb128 times Skipping Uleb128 Bytes";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
     enum class RebaseWriteKind : uint8_t {
@@ -88,8 +94,10 @@ namespace MachO {
         TextPcrel32
     };
 
-    [[nodiscard]] constexpr std::string_view
-    RebaseWriteKindGetName(const RebaseWriteKind Kind) noexcept {
+    [[nodiscard]] constexpr auto
+    RebaseWriteKindGetName(const RebaseWriteKind Kind) noexcept
+        -> std::optional<std::string_view>
+    {
         using Enum = RebaseWriteKind;
         switch (Kind) {
             case Enum::None:
@@ -102,11 +110,13 @@ namespace MachO {
                 return "REBASE_TYPE_TEXT_PCREL32";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
-    [[nodiscard]] constexpr std::string_view
-    RebaseWriteKindGetDescription(const RebaseWriteKind Kind) noexcept {
+    [[nodiscard]] constexpr auto
+    RebaseWriteKindGetDescription(const RebaseWriteKind Kind) noexcept
+        -> std::optional<std::string_view>
+    {
         using Enum = RebaseWriteKind;
         switch (Kind) {
             case Enum::None:
@@ -119,14 +129,16 @@ namespace MachO {
                 return "PC Relative (32-Bit)";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
     [[nodiscard]]
     constexpr uint64_t RebaseWriteKindGetLongestDescription() noexcept {
         const auto Result =
             EnumHelper<RebaseWriteKind>::GetLongestAssocLength(
-                RebaseWriteKindGetName);
+                [](const RebaseWriteKind Kind) noexcept {
+                    return RebaseWriteKindGetDescription(Kind).value_or("");
+                });
 
         return Result;
     }
@@ -150,22 +162,24 @@ namespace MachO {
         using Shifts = DyldInfoByteShifts;
         using WriteKind = RebaseWriteKind;
 
-        [[nodiscard]] constexpr Opcode getOpcode() const noexcept {
-            return Opcode(getValueForMaskNoShift(Masks::Opcode));
+        [[nodiscard]] constexpr auto getOpcode() const noexcept {
+            return Opcode(this->getValueForMaskNoShift(Masks::Opcode));
         }
 
-        [[nodiscard]] constexpr uint8_t getImmediate() const noexcept {
-            return getValueForMaskNoShift(Masks::Immediate);
+        [[nodiscard]] constexpr auto getImmediate() const noexcept {
+            return this->getValueForMaskNoShift(Masks::Immediate);
         }
 
-        constexpr RebaseByte &SetOpcode(Opcode Opcode) noexcept {
-            setValueForMaskNoShift(Masks::Opcode,
-                                   static_cast<IntegerType>(Opcode));
+        constexpr auto SetOpcode(Opcode Opcode) noexcept -> decltype(*this) {
+            this->setValueForMaskNoShift(Masks::Opcode,
+                                         static_cast<IntegerType>(Opcode));
             return *this;
         }
 
-        constexpr RebaseByte &SetImmediate(uint8_t Immediate) noexcept {
-            setValueForMaskNoShift(Masks::Immediate, Immediate);
+        constexpr auto SetImmediate(const uint8_t Immediate) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForMaskNoShift(Masks::Immediate, Immediate);
             return *this;
         }
     };
@@ -179,12 +193,12 @@ namespace MachO {
             explicit Iterator(const uint8_t *Iter, const uint8_t *End) noexcept
             : NakedOpcodeList::Iterator(Iter, End) {}
 
-            [[nodiscard]] inline RebaseByte getByte() const noexcept {
+            [[nodiscard]] inline auto getByte() const noexcept {
                 return *reinterpret_cast<const RebaseByte *>(this->getPtr());
             }
         };
 
-        [[nodiscard]] inline Iterator begin() const noexcept {
+        [[nodiscard]] inline auto begin() const noexcept {
             return Iterator(Begin, End);
         }
     };
@@ -236,17 +250,17 @@ namespace MachO {
 
         RebaseWriteKind Kind;
 
-        [[nodiscard]] constexpr bool hasError() const noexcept {
-            return (Error != RebaseOpcodeParseError::None);
+        [[nodiscard]] constexpr auto hasError() const noexcept {
+            return Error != RebaseOpcodeParseError::None;
         }
 
-        [[nodiscard]]
-        constexpr RebaseOpcodeParseError getError() const noexcept {
+        [[nodiscard]] constexpr auto getError() const noexcept {
             return Error;
         }
 
-        [[nodiscard]]
-        constexpr int64_t GetSegmentIndex() const noexcept {
+        [[nodiscard]] constexpr auto GetSegmentIndex() const noexcept
+            -> int64_t
+        {
             if (HasSegmentIndex) {
                 return SegmentIndex;
             }
@@ -295,46 +309,44 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr const RebaseOpcodeIterator &operator*() const noexcept {
+        constexpr auto operator*() const noexcept -> decltype(*this) {
             return *this;
         }
 
-        [[nodiscard]]
-        constexpr const RebaseOpcodeIterator *operator->() const noexcept {
+        [[nodiscard]] constexpr auto operator->() const noexcept {
             return this;
         }
 
-        [[nodiscard]] constexpr RebaseOpcodeIterateInfo &getInfo() noexcept {
-            return *Info;
+        [[nodiscard]] constexpr auto &getInfo() noexcept {
+            return *this->Info;
         }
 
-        [[nodiscard]]
-        constexpr const RebaseOpcodeIterateInfo &getInfo() const noexcept {
-            return *Info;
+        [[nodiscard]] constexpr auto &getInfo() const noexcept {
+            return *this->Info;
         }
 
-        [[nodiscard]] constexpr RebaseByte getByte() const noexcept {
-            return *Prev;
+        [[nodiscard]] constexpr auto &getByte() const noexcept {
+            return *this->Prev;
         }
 
-        [[nodiscard]] constexpr bool hasError() const noexcept {
+        [[nodiscard]] constexpr auto hasError() const noexcept {
             return Info->hasError();
         }
 
-        [[nodiscard]] constexpr ErrorEnum getError() const noexcept {
+        [[nodiscard]] constexpr auto getError() const noexcept {
             return Info->getError();
         }
 
-        inline RebaseOpcodeIterator &operator++() noexcept {
+        inline auto operator++() noexcept -> decltype(*this) {
             Info->Error = Advance();
             return *this;
         }
 
-        inline RebaseOpcodeIterator &operator++(int) noexcept {
+        inline auto operator++(int) noexcept -> decltype(*this) {
             return ++(*this);
         }
 
-        constexpr RebaseOpcodeIterator &operator+=(uint64_t Amt) noexcept {
+        constexpr auto operator+=(uint64_t Amt) noexcept -> decltype(*this) {
             for (auto I = uint64_t(); I != Amt; I++) {
                 ++(*this);
             }
@@ -343,26 +355,26 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr
-        bool operator==(const RebaseOpcodeIteratorEnd &) const noexcept {
+        auto operator==(const RebaseOpcodeIteratorEnd &) const noexcept {
             return isAtEnd();
         }
 
         [[nodiscard]] constexpr
-        bool operator!=(const RebaseOpcodeIteratorEnd &End) const noexcept {
+        auto operator!=(const RebaseOpcodeIteratorEnd &End) const noexcept {
             return !(*this == End);
         }
 
-        inline RebaseOpcodeParseError Advance() noexcept {
+        inline auto Advance() noexcept -> ErrorEnum {
             using ErrorEnum = RebaseOpcodeParseError;
 
-            const auto BytePtr = Iter->getAsByte<RebaseByte>();
+            const auto BytePtr = this->Iter->getAsByte<RebaseByte>();
             const auto &Byte = *BytePtr;
 
             Info->Error = ErrorEnum::None;
             Prev = BytePtr;
-            Iter++;
+            this->Iter++;
 
-            if (Iter.isAtEnd()) {
+            if (this->Iter.isAtEnd()) {
                 ReachedEnd = true;
                 return ErrorEnum::None;
             }
@@ -384,7 +396,7 @@ namespace MachO {
 
                     return ErrorEnum::UnrecognizedRebaseWriteKind;
                 case RebaseByte::Opcode::SetSegmentAndOffsetUleb:
-                    if (const auto Uleb = Iter->ReadUleb128()) {
+                    if (const auto Uleb = this->Iter->ReadUleb128()) {
                         Info->SegOffset = Uleb.value();
                         Info->SegmentIndex = Byte.getImmediate();
                         Info->HasSegmentIndex = true;
@@ -397,14 +409,14 @@ namespace MachO {
                     Info->Scale = Byte.getImmediate();
                     return ErrorEnum::None;
                 case RebaseByte::Opcode::AddAddrUleb:
-                    if (const auto Sleb = Iter->ReadSleb128()) {
+                    if (const auto Sleb = this->Iter->ReadSleb128()) {
                         Info->AddAddr = Sleb.value();
                         return ErrorEnum::None;
                     }
 
                     return ErrorEnum::InvalidLeb128;
                 case RebaseByte::Opcode::DoRebaseAddAddrUleb:
-                    if (const auto Sleb = Iter->ReadSleb128()) {
+                    if (const auto Sleb = this->Iter->ReadSleb128()) {
                         Info->AddAddr = Sleb.value();
                         return ErrorEnum::None;
                     }
@@ -414,15 +426,15 @@ namespace MachO {
                     Info->Count = Byte.getImmediate();
                     return ErrorEnum::None;
                 case RebaseByte::Opcode::DoRebaseUlebTimes:
-                    if (const auto Uleb = Iter->ReadUleb128()) {
+                    if (const auto Uleb = this->Iter->ReadUleb128()) {
                         Info->Count = Uleb.value();
                         return ErrorEnum::None;
                     }
 
                     return ErrorEnum::InvalidLeb128;
                 case RebaseByte::Opcode::DoRebaseUlebTimesSkipUleb:
-                    if (const auto Count = Iter->ReadUleb128()) {
-                        if (const auto Skip = Iter->ReadSleb128()) {
+                    if (const auto Count = this->Iter->ReadUleb128()) {
+                        if (const auto Skip = this->Iter->ReadSleb128()) {
                             const auto SkipValue = Skip.value();
                             const auto CountValue = Count.value();
 
@@ -455,12 +467,11 @@ namespace MachO {
           End(reinterpret_cast<const RebaseByte *>(End)),
           Is64Bit(Is64Bit) {}
 
-        [[nodiscard]] inline IteratorType begin() const noexcept {
+        [[nodiscard]] inline auto begin() const noexcept {
             return IteratorType(Begin, End);
         }
 
-        [[nodiscard]]
-        constexpr RebaseOpcodeIteratorEnd end() const noexcept {
+        [[nodiscard]] constexpr auto end() const noexcept {
             return RebaseOpcodeIteratorEnd();
         }
     };
@@ -468,24 +479,26 @@ namespace MachO {
     struct RebaseActionIterateInfo : public RebaseOpcodeIterateInfo {
         using ErrorEnum = RebaseOpcodeParseError;
 
-        [[nodiscard]]
-        constexpr struct RebaseActionInfo GetAction() const noexcept {
+        [[nodiscard]] constexpr auto GetAction() const noexcept {
             const auto Result = RebaseActionInfo{
                 .Kind = this->Kind,
                 .SegmentIndex = static_cast<uint32_t>(this->SegmentIndex),
                 .SegOffset = this->SegOffset,
                 .AddrInSeg = this->AddrInSeg,
                 .HasSegmentIndex = this->HasSegmentIndex,
+                .UseThreadedRebaseRebase = this->UseThreadedRebaseRebase
             };
 
             return Result;
         };
 
         uint64_t AddrInSeg;
+
         bool NewSymbolName : 1;
+        bool UseThreadedRebaseRebase : 1;
 
         [[nodiscard]]
-        constexpr static bool CanIgnoreError(const ErrorEnum Error) noexcept {
+        constexpr static auto CanIgnoreError(const ErrorEnum Error) noexcept {
             switch (Error) {
                 case ErrorEnum::None:
                 case ErrorEnum::OutOfBoundsSegmentAddr:
@@ -493,7 +506,6 @@ namespace MachO {
                 case ErrorEnum::NoSegmentIndex:
                 case ErrorEnum::NoWriteKind:
                     return true;
-
                 case ErrorEnum::InvalidLeb128:
                 case ErrorEnum::IllegalRebaseOpcode:
                 case ErrorEnum::UnrecognizedRebaseOpcode:
@@ -529,23 +541,21 @@ namespace MachO {
             ++(*this);
         }
 
-        [[nodiscard]]
-        inline RebaseActionIterateInfo &getInfo() noexcept {
+        [[nodiscard]] inline auto &getInfo() noexcept {
             auto &Info = Iter.getInfo();
             return reinterpret_cast<RebaseActionIterateInfo &>(Info);
         }
 
-        [[nodiscard]]
-        const RebaseActionIterateInfo &getInfo() const noexcept {
+        [[nodiscard]] inline auto &getInfo() const noexcept {
             const auto &Info = Iter.getInfo();
             return reinterpret_cast<const RebaseActionIterateInfo &>(Info);
         }
 
-        [[nodiscard]] bool
+        [[nodiscard]] auto
         IsValidForSegmentCollection(const SegmentInfoCollection &Collection,
                                     const bool Is64Bit) noexcept
         {
-            const auto &Info = getInfo();
+            const auto &Info = this->getInfo();
             const auto SegmentIndex = Info.SegmentIndex;
 
             if (Info.HasSegmentIndex) {
@@ -574,22 +584,20 @@ namespace MachO {
             return ContainsPtr;
         }
 
-        [[nodiscard]] inline bool isAtEnd() const noexcept {
-            return Iter.isAtEnd();
+        [[nodiscard]] inline auto isAtEnd() const noexcept {
+            return this->Iter.isAtEnd();
         }
 
-        [[nodiscard]]
-        inline const RebaseActionIterateInfo &operator*() const noexcept {
-            return getInfo();
+        [[nodiscard]] inline auto &operator*() const noexcept {
+            return this->getInfo();
         }
 
-        [[nodiscard]]
-        inline const RebaseActionIterateInfo *operator->() const noexcept {
-            return &getInfo();
+        [[nodiscard]] inline auto operator->() const noexcept {
+            return &this->getInfo();
         }
 
-        inline RebaseActionIterator &operator++() noexcept {
-            auto &Info = getInfo();
+        inline auto operator++() noexcept -> decltype(*this) {
+            auto &Info = this->getInfo();
             if (Info.hasError()) {
                 Iter++;
             }
@@ -598,11 +606,11 @@ namespace MachO {
             return *this;
         }
 
-        inline RebaseActionIterator &operator++(int) noexcept {
+        inline auto operator++(int) noexcept -> decltype(*this) {
             return ++(*this);
         }
 
-        inline RebaseActionIterator &operator+=(uint64_t Amt) noexcept {
+        inline auto operator+=(uint64_t Amt) noexcept -> decltype(*this) {
             for (auto I = uint64_t(); I != Amt; I++) {
                 ++(*this);
             }
@@ -611,17 +619,17 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        inline bool operator==(const RebaseActionIteratorEnd &) const noexcept {
-            return isAtEnd();
+        inline auto operator==(const RebaseActionIteratorEnd &) const noexcept {
+            return this->isAtEnd();
         }
 
         [[nodiscard]] inline
-        bool operator!=(const RebaseActionIteratorEnd &End) const noexcept {
+        auto operator!=(const RebaseActionIteratorEnd &End) const noexcept {
             return !(*this == End);
         }
 
-        inline RebaseOpcodeParseError Advance() noexcept {
-            auto &Info = getInfo();
+        inline auto Advance() noexcept -> ErrorEnum{
+            auto &Info = this->getInfo();
             const auto AddChangeToSegmentAddress = [&](int64_t Add) {
                 if (DoesAddOverflow(SegAddAddress, Add, &SegAddAddress)) {
                     return false;
@@ -657,17 +665,19 @@ namespace MachO {
                         }
 
                         Info.AddrInSeg += AddAmt;
-                        LastByte.SetOpcode(RebaseByte::Opcode::SetKindImm);
+                        this->LastByte.SetOpcode(
+                            RebaseByte::Opcode::SetKindImm);
 
-                        Iter++;
+                        this->Iter++;
                         break;
                     }
 
                 case RebaseByte::Opcode::DoRebaseAddAddrUleb:
                     // Clear the Last-Opcode.
-                    LastByte.SetOpcode(RebaseByte::Opcode::SetKindImm);
                     FinalizeChangesForSegmentAddress();
-                    Iter++;
+
+                    this->LastByte.SetOpcode(RebaseByte::Opcode::SetKindImm);
+                    this->Iter++;
 
                     break;
 
@@ -706,13 +716,13 @@ namespace MachO {
                 return ErrorEnum::None;
             };
 
-            for (; !Iter.isAtEnd(); Iter++) {
-                if (Iter->hasError()) {
+            for (; !this->Iter.isAtEnd(); this->Iter++) {
+                if (this->Iter->hasError()) {
                     return Iter->getError();
                 }
 
-                const auto &Byte = Iter.getByte();
-                const auto &IterInfo = Iter.getInfo();
+                const auto &Byte = this->Iter.getByte();
+                const auto &IterInfo = this->Iter.getInfo();
 
                 switch (Byte.getOpcode()) {
                     case RebaseByte::Opcode::Done:
@@ -751,7 +761,7 @@ namespace MachO {
 
                         const auto PtrSize = PointerSize(Is64Bit);
                         if (AddChangeToSegmentAddress(PtrSize)) {
-                            LastByte = Byte;
+                            this->LastByte = Byte;
                             return ErrorEnum::None;
                         }
 
@@ -774,8 +784,8 @@ namespace MachO {
                         }
 
                         if (CheckChangeToSegmentAddress(Total)) {
-                            LastByte = Byte;
-                            AddAmt = PtrSize;
+                            this->LastByte = Byte;
+                            this->AddAmt = PtrSize;
 
                             this->Count = Count - 1;
                             return ErrorEnum::None;
@@ -803,7 +813,7 @@ namespace MachO {
                         }
 
                         if (CheckChangeToSegmentAddress(Total)) {
-                            LastByte = Byte;
+                            this->LastByte = Byte;
                             AddAmt = SingleStep;
 
                             this->Count = Count - 1;
@@ -817,7 +827,7 @@ namespace MachO {
                 return ErrorEnum::UnrecognizedRebaseOpcode;
             }
 
-            LastByte.SetOpcode(RebaseByte::Opcode::Done);
+            this->LastByte.SetOpcode(RebaseByte::Opcode::Done);
             return ErrorEnum::None;
         }
     };
@@ -844,16 +854,18 @@ namespace MachO {
                          const bool Is64Bit) noexcept
         : Begin(Begin), End(End), Is64Bit(Is64Bit) {}
 
-        [[nodiscard]] inline IteratorType begin() const noexcept {
+        [[nodiscard]] inline auto begin() const noexcept {
             return IteratorType(Begin, End, Is64Bit);
         }
 
-        [[nodiscard]] inline RebaseActionIteratorEnd end() const noexcept {
+        [[nodiscard]] inline auto end() const noexcept {
             return RebaseActionIteratorEnd();
         }
 
-        inline RebaseOpcodeParseError
-        GetAsList(std::vector<RebaseActionInfo> &ListOut) const noexcept {
+        inline auto
+        GetAsList(std::vector<RebaseActionInfo> &ListOut) const noexcept
+            -> RebaseOpcodeParseError
+        {
             for (const auto &Iter : *this) {
                 const auto Error = Iter.getError();
                 if (!Iter.CanIgnoreError(Error)) {
@@ -887,23 +899,23 @@ namespace MachO {
 
     using ConstRebaseActionList = RebaseActionList;
 
-    TypedAllocationOrError<RebaseNakedOpcodeList, SizeRangeError>
+    ExpectedAlloc<RebaseNakedOpcodeList, SizeRangeError>
     GetRebaseNakedOpcodeList(const MemoryMap &Map,
                              uint32_t RebaseOffset,
                              uint32_t RebaseSize) noexcept;
 
-    TypedAllocationOrError<ConstRebaseNakedOpcodeList, SizeRangeError>
+    ExpectedAlloc<ConstRebaseNakedOpcodeList, SizeRangeError>
     GetConstRebaseNakedOpcodeList(const ConstMemoryMap &Map,
                                   uint32_t RebaseOffset,
                                   uint32_t RebaseSize) noexcept;
 
-    TypedAllocationOrError<RebaseOpcodeList, SizeRangeError>
+    ExpectedAlloc<RebaseOpcodeList, SizeRangeError>
     GetRebaseOpcodeList(const ConstMemoryMap &Map,
                         uint32_t RebaseOffset,
                         uint32_t RebaseSize,
                         bool Is64Bit) noexcept;
 
-    TypedAllocationOrError<RebaseActionList, SizeRangeError>
+    ExpectedAlloc<RebaseActionList, SizeRangeError>
     GetRebaseActionList(const ConstMemoryMap &Map,
                         uint32_t RebaseOffset,
                         uint32_t RebaseSize,

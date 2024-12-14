@@ -1,9 +1,9 @@
 //
-//  include/ADT/BasicContinguousIterator.h
+//  ADT/BasicContiguousIterator.h
 //  ktool
 //
 //  Created by Suhas Pai on 3/8/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -24,8 +24,10 @@ public:
     constexpr BasicPointerAbstraction(uint8_t *const Ptr) noexcept
     : Base(reinterpret_cast<T *>(Ptr)) {}
 
-    inline T *operator->() noexcept { return this->Item; }
-    inline const T *operator->() const noexcept { return this->Item; }
+    [[nodiscard]] inline auto operator->() noexcept { return this->Item; }
+    [[nodiscard]] inline auto operator->() const noexcept {
+        return this->Item;
+    }
 };
 
 template <>
@@ -36,8 +38,13 @@ private:
 public:
     using BasicWrapperIterator<uint8_t *, std::ptrdiff_t>::BasicWrapperIterator;
 
-    inline uint8_t *operator->() noexcept { return this->Item; }
-    inline const uint8_t *operator->() const noexcept { return this->Item; }
+    [[nodiscard]] inline auto operator->() noexcept {
+        return this->Item;
+    }
+
+    [[nodiscard]] inline auto operator->() const noexcept {
+        return this->Item;
+    }
 };
 
 template <typename T>
@@ -45,9 +52,9 @@ struct BasicContiguousIterator : public BasicPointerAbstraction<T> {
 public:
     using BasicPointerAbstraction<T>::BasicPointerAbstraction;
 
-    T &operator*() noexcept { return *this->Item; }
-    const T &operator*() const noexcept { return *this->Item; }
+    auto &operator*() noexcept { return *this->Item; }
+    auto &operator*() const noexcept { return *this->Item; }
 
-    [[nodiscard]] inline T *getPtr() noexcept { return this->Item; }
-    [[nodiscard]] inline const T *getPtr() const noexcept { return this->Item; }
+    [[nodiscard]] constexpr auto getPtr() noexcept { return this->Item; }
+    [[nodiscard]] constexpr auto getPtr() const noexcept { return this->Item; }
 };

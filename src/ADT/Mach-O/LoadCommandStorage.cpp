@@ -1,21 +1,22 @@
 //
-//  src/ADT/Mach-O/LoadCommandStorage.cpp
+//  ADT/Mach-O/LoadCommandStorage.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 3/30/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include "ADT/Mach-O/LoadCommandStorage.h"
 
 namespace MachO {
-    static ConstLoadCommandStorage::Error
-    VerifyLoadCommands(const uint8_t *Begin,
-                       const uint8_t *End,
-                       uint32_t Count,
-                       bool IsBigEndian,
-                       bool Is64Bit,
-                       uint32_t *SizeOut) noexcept
+    static auto
+    VerifyLoadCommands(const uint8_t *const Begin,
+                       const uint8_t *const End,
+                       const uint32_t Count,
+                       const bool IsBigEndian,
+                       const bool Is64Bit,
+                       uint32_t *const SizeOut) noexcept
+        -> ConstLoadCommandStorage::Error
     {
         if (Count == 0) {
             return ConstLoadCommandStorage::Error::NoLoadCommands;
@@ -58,31 +59,33 @@ namespace MachO {
         return ConstLoadCommandStorage::Error::None;
     }
 
-    ConstLoadCommandStorage::ConstLoadCommandStorage(Error Error) noexcept
-    : ErrorStorage(Error) {}
+    ConstLoadCommandStorage::ConstLoadCommandStorage(const Error Error) noexcept
+    : BeginOrError(Error) {}
 
-    ConstLoadCommandStorage::ConstLoadCommandStorage(const uint8_t *Begin,
-                                                     const uint8_t *End,
-                                                     const uint32_t Count,
-                                                     bool IsBigEndian) noexcept
-    : Begin(Begin), End(End), Count(Count), sIsBigEndian(IsBigEndian) {}
+    ConstLoadCommandStorage::ConstLoadCommandStorage(
+        const uint8_t *const Begin,
+        const uint8_t *const End,
+        const uint32_t Count,
+        const bool IsBigEndian) noexcept
+    : BeginOrError(Begin), End(End), Count(Count), sIsBigEndian(IsBigEndian) {}
 
     LoadCommandStorage::LoadCommandStorage(Error Error) noexcept
     : ConstLoadCommandStorage(Error) {}
 
-    LoadCommandStorage::LoadCommandStorage(uint8_t *Begin,
-                                           uint8_t *End,
-                                           uint32_t Count,
-                                           bool IsBigEndian) noexcept
+    LoadCommandStorage::LoadCommandStorage(uint8_t *const Begin,
+                                           uint8_t *const End,
+                                           const uint32_t Count,
+                                           const bool IsBigEndian) noexcept
     : ConstLoadCommandStorage(Begin, End, Count, IsBigEndian) {}
 
-    ConstLoadCommandStorage
-    ConstLoadCommandStorage::Open(const uint8_t *Begin,
-                                  uint32_t Count,
+    auto
+    ConstLoadCommandStorage::Open(const uint8_t *const Begin,
+                                  const uint32_t Count,
                                   uint32_t Size,
-                                  bool IsBigEndian,
-                                  bool Is64Bit,
-                                  bool Verify) noexcept
+                                  const bool IsBigEndian,
+                                  const bool Is64Bit,
+                                  const bool Verify) noexcept
+        -> ConstLoadCommandStorage
     {
         if (Size < sizeof(LoadCommand)) {
             return Error::StorageSizeTooSmall;

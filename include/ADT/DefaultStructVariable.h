@@ -1,9 +1,9 @@
 //
-//  include/ADT/DefaultStructVariable.h
+//  ADT/DefaultStructVariable.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/18/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once

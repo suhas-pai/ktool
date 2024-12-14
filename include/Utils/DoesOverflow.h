@@ -1,9 +1,9 @@
 //
-//  include/Utils/DoesOverflow.h
+//  Utils/DoesOverflow.h
 //  ktool
 //
 //  Created by Suhas Pai on 3/30/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -16,8 +16,7 @@
 template <typename W = IntegerLimitDefaultType,
           std::integral T,
           std::integral U,
-          std::integral V,
-          typename = std::enable_if_t<!std::is_pointer_v<T>>>
+          std::integral V>
 
 [[nodiscard]] inline bool DoesAddOverflow(T Lhs, U Rhs, V *ResultOut) noexcept {
     using RealW = IntegerLimitRealValueType<V>;

@@ -1,9 +1,9 @@
 //
-//  include/ADT/PointerKind.h
+//  ADT/PointerKind.h
 //  ktool
 //
 //  Created by Suhas Pai on 6/3/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -18,17 +18,17 @@ enum class PointerKind {
 
 [[nodiscard]]
 constexpr PointerKind PointerKindFromIs64Bit(const bool Is64Bit) noexcept {
-    return (Is64Bit) ? PointerKind::s64Bit : PointerKind::s32Bit;
+    return Is64Bit ? PointerKind::s64Bit : PointerKind::s32Bit;
 }
 
 [[nodiscard]]
-constexpr bool PointerKindIs32Bit(const PointerKind Kind) noexcept {
-    return (Kind == PointerKind::s32Bit);
+constexpr auto PointerKindIs32Bit(const PointerKind Kind) noexcept {
+    return Kind == PointerKind::s32Bit;
 }
 
 [[nodiscard]]
-constexpr bool PointerKindIs64Bit(const PointerKind Kind) noexcept {
-    return (Kind == PointerKind::s64Bit);
+constexpr auto PointerKindIs64Bit(const PointerKind Kind) noexcept {
+    return Kind == PointerKind::s64Bit;
 }
 
 template <PointerKind Kind>

@@ -1,23 +1,23 @@
 //
-//  src/ADT/Mach-O/SegmentUtil.cpp
+//  ADT/Mach-O/SegmentUtil.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 5/16/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cstring>
 
-#include "LoadCommandStorage.h"
-#include "SegmentUtil.h"
+#include "ADT/Mach-O/LoadCommandStorage.h"
+#include "ADT/Mach-O/SegmentUtil.h"
 
 namespace MachO {
     template <typename SectionType>
-    [[nodiscard]] static bool
+    [[nodiscard]] static auto
     ParseSectionInfo(const SectionType &Section,
                      SectionInfo &InfoIn,
-                     bool IsBigEndian,
-                     SegmentInfoCollection::Error *ErrorOut) noexcept
+                     const bool IsBigEndian,
+                     SegmentInfoCollection::Error *const ErrorOut) noexcept
     {
         if (const auto FileRange = Section.getFileRange(IsBigEndian)) {
             InfoIn.setFileRange(FileRange.value());
@@ -42,11 +42,11 @@ namespace MachO {
     }
 
     template <typename SegmentType>
-    [[nodiscard]] static bool
+    [[nodiscard]] static auto
     ParseSegmentInfo(const SegmentType &Segment,
                      SegmentInfo &InfoIn,
-                     bool IsBigEndian,
-                     SegmentInfoCollection::Error *ErrorOut) noexcept
+                     const bool IsBigEndian,
+                     SegmentInfoCollection::Error *const ErrorOut) noexcept
     {
         if (const auto FileRange = Segment.getFileRange(IsBigEndian)) {
             InfoIn.setFileRange(FileRange.value());
@@ -96,8 +96,8 @@ namespace MachO {
     void
     SegmentInfoCollection::ParseFromLoadCommands(
         const ConstLoadCommandStorage &LoadCmdStorage,
-        bool Is64Bit,
-        Error *ErrorOut) noexcept
+        const bool Is64Bit,
+        Error *const ErrorOut) noexcept
     {
         const auto IsBigEndian = LoadCmdStorage.isBigEndian();
         auto Error = Error::None;
@@ -208,10 +208,11 @@ namespace MachO {
         }
     }
 
-    SegmentInfoCollection
+    auto
     SegmentInfoCollection::Open(const ConstLoadCommandStorage &LoadCmdStorage,
-                                bool Is64Bit,
-                                Error *ErrorOut) noexcept
+                                const bool Is64Bit,
+                                Error *const ErrorOut) noexcept
+        -> SegmentInfoCollection
     {
         auto Result = SegmentInfoCollection();
         Result.ParseFromLoadCommands(LoadCmdStorage, Is64Bit, ErrorOut);
@@ -219,12 +220,13 @@ namespace MachO {
         return Result;
     }
 
-    std::unique_ptr<SegmentInfo>
+    auto
     SegmentInfoCollection::OpenSegmentInfoWithName(
         const ConstLoadCommandStorage &LoadCmdStorage,
-        bool Is64Bit,
+        const bool Is64Bit,
         const std::string_view Name,
-        Error *ErrorOut) noexcept
+        Error *const ErrorOut) noexcept
+            -> std::unique_ptr<SegmentInfo>
     {
         const auto IsBigEndian = LoadCmdStorage.isBigEndian();
         if (Is64Bit) {
@@ -272,14 +274,15 @@ namespace MachO {
         return nullptr;
     }
 
-    std::unique_ptr<SectionInfo>
+    auto
     SegmentInfoCollection::OpenSectionInfoWithName(
         const ConstLoadCommandStorage &LoadCmdStorage,
-        bool Is64Bit,
-        std::string_view SegmentName,
-        std::string_view SectionName,
-        std::unique_ptr<SegmentInfo> *SegmentOut,
-        Error *ErrorOut) noexcept
+        const bool Is64Bit,
+        const std::string_view SegmentName,
+        const std::string_view SectionName,
+        std::unique_ptr<SegmentInfo> *const SegmentOut,
+        Error *const ErrorOut) noexcept
+            -> std::unique_ptr<SectionInfo>
     {
         const auto IsBigEndian = LoadCmdStorage.isBigEndian();
         if (Is64Bit) {
@@ -391,8 +394,9 @@ namespace MachO {
         return nullptr;
     }
 
-    const SegmentInfo *
-    SegmentInfoCollection::GetInfoForName(std::string_view Name) const noexcept
+    auto SegmentInfoCollection::GetInfoForName(
+        const std::string_view Name) const noexcept
+            -> const SegmentInfo *
     {
         for (const auto &SegInfo : *this) {
             if (SegInfo->getName() == Name) {
@@ -403,8 +407,10 @@ namespace MachO {
         return nullptr;
     }
 
-    const SectionInfo *
-    SegmentInfo::FindSectionWithName(std::string_view Name) const noexcept {
+    auto
+    SegmentInfo::FindSectionWithName(const std::string_view Name) const noexcept
+        -> const SectionInfo *
+    {
         for (const auto &SectInfo : getSectionList()) {
             if (SectInfo->getName() == Name) {
                 return SectInfo.get();
@@ -414,10 +420,10 @@ namespace MachO {
         return nullptr;
     }
 
-    const SectionInfo *
-    SegmentInfoCollection::FindSectionWithName(
-        std::string_view SegmentName,
-        std::string_view Name) const noexcept
+    auto SegmentInfoCollection::FindSectionWithName(
+        const std::string_view SegmentName,
+        const std::string_view Name) const noexcept
+            ->  const SectionInfo *
     {
         const auto *SegmentInfo = GetInfoForName(SegmentName);
         if (SegmentInfo != nullptr) {
@@ -427,9 +433,10 @@ namespace MachO {
         return nullptr;
     }
 
-    const SectionInfo *
+    auto
     SegmentInfoCollection::FindSectionWithName(
         const std::initializer_list<SectionNamePair> &List) const noexcept
+            -> const SectionInfo *
     {
         const auto NamePairBegin = List.begin();
         const auto NamePairEnd = List.end();
@@ -451,9 +458,10 @@ namespace MachO {
         return nullptr;
     }
 
-    const SectionInfo *
+    auto
     SegmentInfoCollection::GetSectionWithIndex(
         uint64_t SectionIndex) const noexcept
+            -> const SectionInfo *
     {
         for (const auto &Segment : List) {
             const auto &SectionList = Segment->getSectionList();
@@ -470,12 +478,13 @@ namespace MachO {
         return nullptr;
     }
 
-    const SegmentInfo *
+    auto
     SegmentInfoCollection::FindSegmentContainingAddress(
-        uint64_t Address) const noexcept
+        const uint64_t Address) const noexcept
+            -> const SegmentInfo *
     {
         for (const auto &Segment : *this) {
-            if (Segment->getMemoryRange().containsLocation(Address)) {
+            if (Segment->getMemoryRange().hasLocation(Address)) {
                 return Segment.get();
             }
         }
@@ -483,10 +492,12 @@ namespace MachO {
         return nullptr;
     }
 
-    const SectionInfo *
-    SegmentInfo::FindSectionContainingAddress(uint64_t Address) const noexcept {
+    auto SegmentInfo::FindSectionContainingAddress(
+        const uint64_t Address) const noexcept
+            -> const SectionInfo *
+    {
         for (const auto &Section : getSectionList()) {
-            if (Section->getMemoryRange().containsLocation(Address)) {
+            if (Section->getMemoryRange().hasLocation(Address)) {
                 return Section.get();
             }
         }
@@ -494,31 +505,32 @@ namespace MachO {
         return nullptr;
     }
 
-    const SectionInfo *
+    auto
     SegmentInfo::FindSectionContainingRelativeAddress(
-        uint64_t Address) const noexcept
+        const uint64_t Address) const noexcept
+            -> const SectionInfo *
     {
-        if (!getMemoryRange().containsRelativeLocation(Address)) {
+        if (!getMemoryRange().hasIndex(Address)) {
             return nullptr;
         }
 
-        const auto FullAddr = getMemoryRange().getBegin() + Address;
+        const auto FullAddr = this->getMemoryRange().getBegin() + Address;
         return FindSectionContainingAddress(FullAddr);
     }
 
     template <typename T>
     [[nodiscard]] static inline T *
     GetDataForVirtualAddrImpl(const SegmentInfoCollection &Collection,
-                              T *Map,
-                              uint64_t Addr,
-                              uint64_t Size,
-                              T **EndOut) noexcept
+                              T *const Map,
+                              const uint64_t Addr,
+                              const uint64_t Size,
+                              T **const EndOut) noexcept
     {
         if (Addr == 0) {
             return nullptr;
         }
 
-        const auto DataRange = LocationRange::CreateWithEnd(Addr, Addr + Size);
+        const auto DataRange = Range::CreateWithEnd(Addr, Addr + Size);
         for (const auto &Segment : Collection) {
             if (!Segment->getMemoryRange().contains(DataRange)) {
                 continue;
@@ -534,7 +546,7 @@ namespace MachO {
                 const auto Offset = (Addr - SectMemoryRange.getBegin());
                 const auto &SectFileRange = Section->getFileRange();
 
-                if (!SectFileRange.containsRelativeLocation(Offset)) {
+                if (!SectFileRange.hasIndex(Offset)) {
                     return nullptr;
                 }
 
@@ -553,16 +565,16 @@ namespace MachO {
     template <typename T>
     [[nodiscard]] static inline T *
     GetDataForVirtualAddrImplNoSections(const SegmentInfoCollection &Collection,
-                                        T *Map,
-                                        uint64_t Addr,
-                                        uint64_t Size,
-                                        T **EndOut) noexcept
+                                        T *const Map,
+                                        const uint64_t Addr,
+                                        const uint64_t Size,
+                                        T **const EndOut) noexcept
     {
         if (Addr == 0) {
             return nullptr;
         }
 
-        const auto DataRange = LocationRange::CreateWithEnd(Addr, Addr + Size);
+        const auto DataRange = Range::CreateWithEnd(Addr, Addr + Size);
         for (const auto &Segment : Collection) {
             if (!Segment->getMemoryRange().contains(DataRange)) {
                 continue;
@@ -584,10 +596,10 @@ namespace MachO {
 
     uint8_t *
     SegmentInfoCollection::GetDataForVirtualAddr(
-        uint8_t *Map,
-        uint64_t Addr,
-        uint64_t Size,
-        uint8_t **EndOut) const noexcept
+        uint8_t *const Map,
+        const uint64_t Addr,
+        const uint64_t Size,
+        uint8_t **const EndOut) const noexcept
     {
         const auto Data =
             GetDataForVirtualAddrImpl<uint8_t>(*this,
@@ -614,12 +626,13 @@ namespace MachO {
         return Data;
     }
 
-    uint8_t *
+    auto
     SegmentInfoCollection::GetDataForVirtualAddrIgnoreSections(
-        uint8_t *Map,
-        uint64_t Addr,
-        uint64_t Size,
-        uint8_t **EndOut) const noexcept
+        uint8_t *const Map,
+        const uint64_t Addr,
+        const uint64_t Size,
+        uint8_t **const EndOut) const noexcept
+            -> uint8_t *
     {
         const auto Data =
             GetDataForVirtualAddrImplNoSections<uint8_t>(*this,
@@ -632,10 +645,10 @@ namespace MachO {
 
     const uint8_t *
     SegmentInfoCollection::GetDataForVirtualAddrIgnoreSections(
-        const uint8_t *Map,
-        uint64_t Addr,
-        uint64_t Size,
-        const uint8_t **EndOut) const noexcept
+        const uint8_t *const Map,
+        const uint64_t Addr,
+        const uint64_t Size,
+        const uint8_t **const EndOut) const noexcept
     {
         const auto Data =
             GetDataForVirtualAddrImplNoSections<const uint8_t>(*this,

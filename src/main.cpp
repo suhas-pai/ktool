@@ -1,22 +1,21 @@
 //
-//  src/main.cpp
+//  main.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 3/29/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <inttypes.h>
 #include <unistd.h>
 
-#include "ADT/Allocation.h"
 #include "ADT/ArgvArray.h"
 #include "ADT/FileDescriptor.h"
 #include "ADT/MappedFile.h"
-#include "ADT/TypedAllocation.h"
 
 #include "Objects/DscMemory.h"
 #include "Objects/Kind.h"
@@ -25,11 +24,8 @@
 
 #include "Operations/Operation.h"
 
-#include "Utils/Casting.h"
-#include "Utils/DoesOverflow.h"
 #include "Utils/MiscTemplates.h"
 #include "Utils/Path.h"
-#include "Utils/PrintUtils.h"
 #include "Utils/StringUtils.h"
 
 static void PrintRunHelpMessage() noexcept {
@@ -45,35 +41,35 @@ static void PrintUnrecognizedOptionError(const char *const Option) noexcept {
 
 static void
 HandleDscImageOpenError(
-    const ConstDscMemoryObject::DscImageOpenError Error) noexcept
+    const DscMemoryObject::DscImageOpenError Error) noexcept
 {
-    if (Error == ConstDscMemoryObject::DscImageOpenError::None) {
+    if (Error == DscMemoryObject::DscImageOpenError::None) {
         return;
     }
 
     fputs("Could not open image. Error: ", stderr);
     switch (Error) {
-        case ConstDscMemoryObject::DscImageOpenError::None:
+        case DscMemoryObject::DscImageOpenError::None:
             break;
-        case ConstDscMemoryObject::DscImageOpenError::InvalidAddress:
+        case DscMemoryObject::DscImageOpenError::InvalidAddress:
             fputs("Invalid Image-Address\n", stderr);
             break;
-        case ConstDscMemoryObject::DscImageOpenError::NotAMachO:
+        case DscMemoryObject::DscImageOpenError::NotAMachO:
             fputs("Not a Mach-O\n", stderr);
             break;
-        case ConstDscMemoryObject::DscImageOpenError::InvalidMachO:
+        case DscMemoryObject::DscImageOpenError::InvalidMachO:
             fputs("Not a valid Mach-O\n", stderr);
             break;
-        case ConstDscMemoryObject::DscImageOpenError::InvalidLoadCommands:
+        case DscMemoryObject::DscImageOpenError::InvalidLoadCommands:
             fputs("Invalid Mach-O Load-Commands\n", stderr);
             break;
-        case ConstDscMemoryObject::DscImageOpenError::NotADylib:
+        case DscMemoryObject::DscImageOpenError::NotADylib:
             fputs("Not a Mach-O Dynamic Library (Dylib)\n", stderr);
             break;
-        case ConstDscMemoryObject::DscImageOpenError::NotMarkedAsImage:
+        case DscMemoryObject::DscImageOpenError::NotMarkedAsImage:
             fputs("Image is not marked as one\n", stderr);
             break;
-        case ConstDscMemoryObject::DscImageOpenError::SizeTooLarge:
+        case DscMemoryObject::DscImageOpenError::SizeTooLarge:
             fputs("Image-Size too large\n", stderr);
             break;
     }
@@ -81,9 +77,9 @@ HandleDscImageOpenError(
     exit(1);
 }
 
-[[nodiscard]] static ConstDscImageMemoryObject *
-GetImageWithPath(const ConstDscMemoryObject &Object,
-                 std::string_view Path) noexcept
+[[nodiscard]] static const DscImageMemoryObject *
+GetImageWithPath(const DscMemoryObject &Object,
+                 const std::string_view Path) noexcept
 {
     const auto ImageInfo = Object.GetImageInfoWithPath(Path);
     if (ImageInfo == nullptr) {
@@ -94,12 +90,12 @@ GetImageWithPath(const ConstDscMemoryObject &Object,
     const auto ObjectOrError = Object.GetImageWithInfo(*ImageInfo);
     HandleDscImageOpenError(ObjectOrError.getError());
 
-    return ObjectOrError.getPtr();
+    return ObjectOrError.value();
 }
 
-[[nodiscard]] static bool
+[[nodiscard]] static auto
 MatchesOption(const OperationKind Kind, const ArgvArrayIterator &Arg) noexcept {
-    const auto ShortName = OperationKindGetOptionShortName(Kind);
+    const auto ShortName = OperationKindGetOptionShortName(Kind).value_or("");
     const auto LongName = OperationKindGetOptionName(Kind);
 
     if (Arg[0] == '-' && Arg[1] != '-') {
@@ -156,7 +152,7 @@ int main(const int Argc, const char *Argv[]) {
     }
 
     auto OpsKind = OperationKind::None;
-    auto Ops = TypedAllocation<Operation>();
+    auto OpsOpt = std::optional<std::unique_ptr<Operation>>();
 
     switch (OpsKind) {
         using Enum = OperationKind;
@@ -170,89 +166,91 @@ int main(const int Argc, const char *Argv[]) {
             }
         case Enum::PrintHeader:
             if (MatchesOption(Enum::PrintHeader, OpsKindArg)) {
-                Ops = new PrintHeaderOperation();
+                OpsOpt = std::make_unique<PrintHeaderOperation>();
                 break;
             }
         case Enum::PrintLoadCommands:
             if (MatchesOption(Enum::PrintLoadCommands, OpsKindArg)) {
-                Ops = new PrintLoadCommandsOperation();
+                OpsOpt = std::make_unique<PrintLoadCommandsOperation>();
                 break;
             }
         case Enum::PrintSharedLibraries:
             if (MatchesOption(Enum::PrintSharedLibraries, OpsKindArg)) {
-                Ops = new PrintSharedLibrariesOperation();
+                OpsOpt = std::make_unique<PrintSharedLibrariesOperation>();
                 break;
             }
         case Enum::PrintId:
             if (MatchesOption(Enum::PrintId, OpsKindArg)) {
-                Ops = new PrintIdOperation();
+                OpsOpt = std::make_unique<PrintIdOperation>();
                 break;
             }
         case Enum::PrintArchList:
             if (MatchesOption(Enum::PrintArchList, OpsKindArg)) {
-                Ops = new PrintArchListOperation();
+                OpsOpt = std::make_unique<PrintArchListOperation>();
                 break;
             }
         case Enum::PrintExportTrie:
             if (MatchesOption(Enum::PrintExportTrie, OpsKindArg)) {
-                Ops = new PrintExportTrieOperation();
+                OpsOpt = std::make_unique<PrintExportTrieOperation>();
                 break;
             }
         case Enum::PrintObjcClassList:
             if (MatchesOption(Enum::PrintObjcClassList, OpsKindArg)) {
-                Ops = new PrintObjcClassListOperation();
+                OpsOpt = std::make_unique<PrintObjcClassListOperation>();
                 break;
             }
         case Enum::PrintBindActionList:
             if (MatchesOption(Enum::PrintBindActionList, OpsKindArg)) {
-                Ops = new PrintBindActionListOperation();
+                OpsOpt = std::make_unique<PrintBindActionListOperation>();
                 break;
             }
         case Enum::PrintBindOpcodeList:
             if (MatchesOption(Enum::PrintBindOpcodeList, OpsKindArg)) {
-                Ops = new PrintBindOpcodeListOperation();
+                OpsOpt = std::make_unique<PrintBindOpcodeListOperation>();
                 break;
             }
         case Enum::PrintBindSymbolList:
             if (MatchesOption(Enum::PrintBindSymbolList, OpsKindArg)) {
-                Ops = new PrintBindSymbolListOperation();
+                OpsOpt = std::make_unique<PrintBindSymbolListOperation>();
                 break;
             }
         case Enum::PrintRebaseActionList:
             if (MatchesOption(Enum::PrintRebaseActionList, OpsKindArg)) {
-                Ops = new PrintRebaseActionListOperation();
+                OpsOpt = std::make_unique<PrintRebaseActionListOperation>();
                 break;
             }
         case Enum::PrintRebaseOpcodeList:
             if (MatchesOption(Enum::PrintRebaseOpcodeList, OpsKindArg)) {
-                Ops = new PrintRebaseOpcodeListOperation();
+                OpsOpt = std::make_unique<PrintRebaseOpcodeListOperation>();
                 break;
             }
         case Enum::PrintCStringSection:
             if (MatchesOption(Enum::PrintCStringSection, OpsKindArg)) {
-                Ops = new PrintCStringSectionOperation();
+                OpsOpt = std::make_unique<PrintCStringSectionOperation>();
                 break;
             }
         case Enum::PrintSymbolPtrSection:
             if (MatchesOption(Enum::PrintSymbolPtrSection, OpsKindArg)) {
-                Ops = new PrintSymbolPtrSectionOperation();
+                OpsOpt = std::make_unique<PrintSymbolPtrSectionOperation>();
                 break;
             }
         case Enum::PrintImageList:
             if (MatchesOption(Enum::PrintImageList, OpsKindArg)) {
-                Ops = new PrintImageListOperation();
+                OpsOpt = std::make_unique<PrintImageListOperation>();
                 break;
             }
     }
 
-    if (Ops == nullptr) {
+    if (!OpsOpt.has_value()) {
         PrintUnrecognizedOptionError(OpsKindArg);
         PrintRunHelpMessage();
 
         return 1;
     }
 
+    const auto Ops = OpsOpt->get();
     const auto OpsArgv = ArgvArr.fromIndex(1);
+
     if (OpsArgv.empty()) {
         fprintf(stderr,
                 "Please provide a file for operation %s\n",
@@ -328,12 +326,12 @@ int main(const int Argc, const char *Argv[]) {
             case ObjectKind::None:
                 assert(0 && "MemoryObject::Open() returned ObjectKind::None");
             case ObjectKind::MachO: {
-                switch (ConstMachOMemoryObject::getErrorFromInt(ErrorInt)) {
-                    case ConstMachOMemoryObject::Error::None:
-                    case ConstMachOMemoryObject::Error::WrongFormat:
-                    case ConstMachOMemoryObject::Error::SizeTooSmall:
+                switch (MachOMemoryObject::getErrorFromInt(ErrorInt)) {
+                    case MachOMemoryObject::Error::None:
+                    case MachOMemoryObject::Error::WrongFormat:
+                    case MachOMemoryObject::Error::SizeTooSmall:
                         assert(0 && "Got Unhandled errors in main");
-                    case ConstMachOMemoryObject::Error::TooManyLoadCommands:
+                    case MachOMemoryObject::Error::TooManyLoadCommands:
                         fputs("Provided File has an invalid LoadCommands "
                               "buffer\n",
                               stderr);
@@ -342,28 +340,27 @@ int main(const int Argc, const char *Argv[]) {
 
                 break;
             }
-
             case ObjectKind::FatMachO: {
-                switch (ConstFatMachOMemoryObject::getErrorFromInt(ErrorInt)) {
-                    case ConstFatMachOMemoryObject::Error::None:
-                    case ConstFatMachOMemoryObject::Error::WrongFormat:
-                    case ConstFatMachOMemoryObject::Error::SizeTooSmall:
+                switch (FatMachOMemoryObject::getErrorFromInt(ErrorInt)) {
+                    case FatMachOMemoryObject::Error::None:
+                    case FatMachOMemoryObject::Error::WrongFormat:
+                    case FatMachOMemoryObject::Error::SizeTooSmall:
                         assert(0 && "Got Unhandled errors in main");
-                    case ConstFatMachOMemoryObject::Error::ZeroArchitectures:
+                    case FatMachOMemoryObject::Error::ZeroArchitectures:
                         fputs("Provided File has zero architectures\n",
                               stderr);
                         return 1;
-                    case ConstFatMachOMemoryObject::Error::TooManyArchitectures:
+                    case FatMachOMemoryObject::Error::TooManyArchitectures:
                         fputs("Provided has too many architectures for its "
                               "size",
                               stderr);
                         return 1;
-                    case ConstFatMachOMemoryObject::Error::ArchOutOfBounds:
+                    case FatMachOMemoryObject::Error::ArchOutOfBounds:
                         fputs("Provided file has architecture(s) out of "
                               "bounds\n",
                               stderr);
                         return 1;
-                    case ConstFatMachOMemoryObject::Error::ArchOverlapsArch:
+                    case FatMachOMemoryObject::Error::ArchOverlapsArch:
                         fputs("Provided file has overlapping architectures\n",
                               stderr);
                         return 1;
@@ -371,10 +368,9 @@ int main(const int Argc, const char *Argv[]) {
 
                 break;
             }
-
             case ObjectKind::DyldSharedCache: {
-                switch (ConstDscMemoryObject::getErrorFromInt(ErrorInt)) {
-                    using Error = ConstDscMemoryObject::Error;
+                switch (DscMemoryObject::getErrorFromInt(ErrorInt)) {
+                    using Error = DscMemoryObject::Error;
 
                     case Error::None:
                     case Error::WrongFormat:
@@ -405,7 +401,6 @@ int main(const int Argc, const char *Argv[]) {
 
                 break;
             }
-
             case ObjectKind::DscImage:
                 assert(0 && "Reached Dsc-Image for which no errors exist");
         }
@@ -413,9 +408,10 @@ int main(const int Argc, const char *Argv[]) {
 
     // Parse any options for the path.
 
-    auto Object = TypedAllocation(ObjectOrError.getObject());
-    const auto PathArgv = OpsArgv.fromIndex(PathIndex + 1);
+    auto Object = ObjectOrError.value();
+    auto SubObject = Object;
 
+    const auto PathArgv = OpsArgv.fromIndex(PathIndex + 1);
     for (auto &Argument : PathArgv) {
         if (!Argument.isOption()) {
             fprintf(stderr,
@@ -461,11 +457,10 @@ int main(const int Argc, const char *Argv[]) {
             }
 
             const auto ArchInfo = FatObject->GetArchInfoAtIndex(ArchIndex);
-            const auto ArchObjectOrError =
-                FatObject->GetArchObjectFromInfo(ArchInfo);
+            auto ArchObjectOrError = FatObject->GetArchObjectFromInfo(ArchInfo);
 
             switch (ArchObjectOrError.getError()) {
-                using ErrorEnum = ConstFatMachOMemoryObject::GetArchObjectError;
+                using ErrorEnum = FatMachOMemoryObject::GetArchObjectError;
                 case ErrorEnum::None:
                     break;
 
@@ -485,9 +480,7 @@ int main(const int Argc, const char *Argv[]) {
             }
 
             switch (ArchObjectOrError.getWarning()) {
-                using WarningEnum =
-                    ConstFatMachOMemoryObject::GetArchObjectWarning;
-
+                using WarningEnum = FatMachOMemoryObject::GetArchObjectWarning;
                 case WarningEnum::None:
                     break;
                 case WarningEnum::MachOCpuKindMismatch:
@@ -496,9 +489,11 @@ int main(const int Argc, const char *Argv[]) {
                     break;
             }
 
-            Object = ArchObjectOrError.getObject();
+            SubObject = ArchObjectOrError.getObject();
         } else if (strcmp(Argument, "-image") == 0) {
-            const auto DscObj = dyn_cast<ObjectKind::DyldSharedCache>(Object);
+            const auto DscObj =
+                dyn_cast<ObjectKind::DyldSharedCache>(Object);
+
             if (DscObj == nullptr) {
                 fputs("-image option not allowed: Provided file is not a Dyld "
                       "Shared-Cache File\n",
@@ -535,12 +530,15 @@ int main(const int Argc, const char *Argv[]) {
                 }
 
                 const auto &ImageInfo = DscObj->getImageInfoAtIndex(ImageIndex);
-                const auto ObjectOrError = DscObj->GetImageWithInfo(ImageInfo);
+                const auto ImageObjectOrError =
+                    DscObj->GetImageWithInfo(ImageInfo);
 
-                HandleDscImageOpenError(ObjectOrError.getError());
-                Object = ObjectOrError.getPtr();
+                HandleDscImageOpenError(ImageObjectOrError.getError());
+                SubObject = ImageObjectOrError.value();
             } else {
-                Object = GetImageWithPath(*DscObj, Argument.GetStringView());
+                SubObject =
+                    const_cast<DscImageMemoryObject *>(
+                        GetImageWithPath(*DscObj, Argument.GetStringView()));
             }
         } else {
             fprintf(stderr,
@@ -551,9 +549,9 @@ int main(const int Argc, const char *Argv[]) {
         }
     }
 
-    const auto Result = Ops->Run(*Object);
+    const auto Result = Ops->Run(*SubObject);
     if (Result == Operation::InvalidObjectKind) {
-        Ops->printObjectKindNotSupportedError(*Object);
+        Ops->printObjectKindNotSupportedError(*SubObject);
         return 1;
     }
 

@@ -1,16 +1,19 @@
 //
-//  src/Operations/PrintBindOpcodeList.cpp
+//  Operations/PrintBindOpcodeList.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 5/22/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "Utils/PrintUtils.h"
+#include <format>
+#include "Objects/DscImageMemory.h"
 
-#include "Common.h"
-#include "Operation.h"
-#include "PrintBindOpcodeList.h"
+#include "Operations/Common.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintBindOpcodeList.h"
+
+#include "Utils/PrintUtils.h"
 
 PrintBindOpcodeListOperation::PrintBindOpcodeListOperation() noexcept
 : Operation(OpKind) {}
@@ -46,8 +49,8 @@ PrintFlags(FILE *const OutFile, const MachO::BindSymbolFlags Flags) noexcept {
 struct BindOpcodeInfo : public MachO::BindOpcodeIterateInfo {
     MachO::BindByte Byte;
 
-    uint64_t AddrInSeg;
     bool AddrInSegOverflows : 1;
+    uint64_t AddrInSeg;
 
     const MachO::SegmentInfo *Segment;
     const MachO::SectionInfo *Section;
@@ -72,16 +75,19 @@ GetSegmentAndSection(const MachO::SegmentInfoCollection &Collection,
 }
 
 template <MachO::BindInfoKind BindKind, typename ListType>
-std::vector<BindOpcodeInfo>
+auto
 CollectBindOpcodeList(
     const MachO::SharedLibraryInfoCollection &LibraryCollection,
     const MachO::SegmentInfoCollection &SegmentCollection,
     const ListType &List,
     const bool Is64Bit) noexcept
+        -> std::vector<BindOpcodeInfo>
 {
+    // FIXME: Use LibraryCollection
+    (void)LibraryCollection;
+
     auto OpcodeInfo = BindOpcodeInfo();
     auto InfoList = std::vector<BindOpcodeInfo>();
-    auto Counter = uint64_t();
 
     for (const auto &Iter : List) {
         const auto &Byte = Iter.getByte();
@@ -258,7 +264,6 @@ CollectBindOpcodeList(
         }
 
         InfoList.emplace_back(OpcodeInfo);
-        Counter++;
     }
 
 done:
@@ -275,23 +280,33 @@ PrintBindOpcodeList(
     const bool Is64Bit,
     const struct PrintBindOpcodeListOperation::Options &Options) noexcept
 {
+    // FIXME: Use SegmentCollection
+    (void)SegmentCollection;
+
     auto Counter = static_cast<uint64_t>(1);
     const auto SizeDigitLength = PrintUtilsGetIntegerDigitLength(List.size());
 
     for (const auto &Iter : List) {
         const auto &Byte = Iter.Byte;
-        const auto OpcodeName = MachO::BindByteOpcodeGetName(Byte.getOpcode());
-        const auto PtrSize = PointerSize(Is64Bit);
+        const auto OpcodeNameOpt =
+            MachO::BindByteOpcodeGetName(Byte.getOpcode());
 
+        const auto OpcodeName =
+            OpcodeNameOpt.has_value() ?
+                std::string(OpcodeNameOpt.value()) :
+                std::format("<unknown: 0x{:02x}>",
+                            static_cast<uint8_t>(Byte.getOpcode()));
+
+        const auto PtrSize = PointerSize(Is64Bit);
         fprintf(Options.OutFile,
                 "%s %0*" PRIu64 ": %s",
                 Name,
                 SizeDigitLength,
                 Counter,
-                OpcodeName.data());
+                OpcodeName.c_str());
 
         const auto PrintAddressInfo = [&](uint64_t Add = 0) noexcept {
-            if ((&Iter) != (&List.back() + 1)) {
+            if (&Iter != &List.back()) {
                 if ((&Iter)[1].AddrInSegOverflows) {
                     fputs(" (Overflows)", Options.OutFile);
                     return;
@@ -355,10 +370,10 @@ PrintBindOpcodeList(
 
             case MachO::BindByte::Opcode::SetKindImm: {
                 const auto KindName =
-                    MachO::BindWriteKindGetName(Iter.WriteKind).data() ?:
-                    "<unrecognized>";
+                    MachO::BindWriteKindGetName(Iter.WriteKind)
+                        .value_or("<Unrecognized>");
 
-                fprintf(Options.OutFile, "(%s)\n", KindName);
+                fprintf(Options.OutFile, "(%s)\n", KindName.data());
                 break;
             }
             case MachO::BindByte::Opcode::SetAddendSleb:
@@ -464,7 +479,7 @@ done:
 
 static int
 PrintOpcodeList(
-    const ConstMachOMemoryObject &Object,
+    const MachOMemoryObject &Object,
     const ConstMemoryMap &Map,
     const struct PrintBindOpcodeListOperation::Options &Options) noexcept
 {
@@ -535,7 +550,7 @@ PrintOpcodeList(
                 CollectBindOpcodeList<MachO::BindInfoKind::Normal>(
                     SharedLibraryCollection,
                     SegmentCollection,
-                    BindOpcodeListOpt.getRef(),
+                    *BindOpcodeListOpt.value(),
                     Is64Bit);
         }
     }
@@ -554,7 +569,7 @@ PrintOpcodeList(
                 CollectBindOpcodeList<MachO::BindInfoKind::Lazy>(
                     SharedLibraryCollection,
                     SegmentCollection,
-                    LazyBindOpcodeListOpt.getRef(),
+                    *LazyBindOpcodeListOpt.value(),
                     Is64Bit);
         }
     }
@@ -569,7 +584,7 @@ PrintOpcodeList(
                 CollectBindOpcodeList<MachO::BindInfoKind::Lazy>(
                     SharedLibraryCollection,
                     SegmentCollection,
-                    WeakBindOpcodeListOpt.getRef(),
+                    *WeakBindOpcodeListOpt.value(),
                     Is64Bit);
         }
     }
@@ -678,22 +693,23 @@ PrintOpcodeList(
 }
 
 int
-PrintBindOpcodeListOperation::Run(const ConstDscImageMemoryObject &Object,
+PrintBindOpcodeListOperation::Run(const DscImageMemoryObject &Object,
                                   const struct Options &Options) noexcept
 {
     return PrintOpcodeList(Object, Object.getDscMap(), Options);
 }
 
 int
-PrintBindOpcodeListOperation::Run(const ConstMachOMemoryObject &Object,
+PrintBindOpcodeListOperation::Run(const MachOMemoryObject &Object,
                                   const struct Options &Options) noexcept
 {
     return PrintOpcodeList(Object, Object.getMap(), Options);
 }
 
-struct PrintBindOpcodeListOperation::Options
+auto
 PrintBindOpcodeListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                int *const IndexOut) noexcept
+    -> struct PrintBindOpcodeListOperation::Options
 {
     auto Index = int();
     struct Options Options;

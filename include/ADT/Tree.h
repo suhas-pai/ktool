@@ -1,9 +1,9 @@
 //
-//  include/ADT/Tree.h
+//  ADT/Tree.h
 //  ktool
 //
 //  Created by Suhas Pai on 6/8/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -22,41 +22,41 @@ protected:
 
     uint64_t DepthLevel = 1;
 public:
-    TreeIterator(T *Current) noexcept
+    constexpr explicit TreeIterator(T *const Current) noexcept
     : TreeIterator(Current, Current->getParent()) {}
 
+    explicit
     TreeIterator(T *Current, T *End) noexcept : Current(Current), End(End) {}
 
-    static inline TreeIterator Null() noexcept {
+    static inline auto Null() noexcept {
         return TreeIterator(nullptr, nullptr);
     }
 
-    inline T *& operator*() noexcept { return Current; }
-    inline const T *const &operator*() const noexcept { return Current; }
+    inline auto &operator*() noexcept { return Current; }
+    inline auto &operator*() const noexcept { return Current; }
 
-    inline T *operator->() noexcept { return Current; }
-    inline const T *operator->() const noexcept { return Current; }
+    inline auto operator->() noexcept { return Current; }
+    inline auto operator->() const noexcept { return Current; }
 
-    [[nodiscard]] inline T *getNode() noexcept { return Current; }
-    [[nodiscard]] inline const T *getNode() const noexcept { return Current; }
-    [[nodiscard]] inline const T *getConstNode() const noexcept {
+    [[nodiscard]] inline auto getNode() noexcept { return Current; }
+    [[nodiscard]] inline auto getNode() const noexcept { return Current; }
+    [[nodiscard]] inline auto getConstNode() const noexcept {
         return Current;
     }
 
-    [[nodiscard]] inline uint64_t getDepthLevel() const noexcept {
+    [[nodiscard]] inline auto getDepthLevel() const noexcept {
         return DepthLevel;
     }
 
-    [[nodiscard]]
-    inline uint64_t getPrintLineLength(uint64_t TabLength) noexcept {
-        return (TabLength * (getDepthLevel() - 1));
+    [[nodiscard]] inline auto getPrintLineLength(uint64_t TabLength) noexcept {
+        return TabLength * (this->getDepthLevel() - 1);
     }
 
-    [[nodiscard]] inline bool isAtEnd() const noexcept {
-        return (Current == End);
+    [[nodiscard]] inline auto isAtEnd() const noexcept {
+        return Current == End;
     }
 
-    [[nodiscard]] T *GetParentAtIndex(uint64_t DepthIndex) const noexcept {
+    [[nodiscard]] auto GetParentAtIndex(uint64_t DepthIndex) const noexcept {
         auto Parent = Current;
 
         const auto ThisDepthIndex = DepthLevel - 1;
@@ -69,7 +69,7 @@ public:
         return Parent;
     }
 
-    TreeIterator &operator--() noexcept {
+    auto operator--() noexcept -> decltype(*this) {
         auto Node = Current;
         Current = nullptr;
 
@@ -83,7 +83,7 @@ public:
         return *this;
     }
 
-    TreeIterator &operator++() noexcept {
+    auto operator++() noexcept -> decltype(*this) {
         if (const auto FirstChild = Current->getFirstChild()) {
             Current = reinterpret_cast<T *>(FirstChild);
             DepthLevel += 1;
@@ -101,11 +101,11 @@ public:
         return *this;
     }
 
-    inline TreeIterator &operator++(int) noexcept {
+    inline auto operator++(int) noexcept -> decltype(*this) {
         return ++(*this);
     }
 
-    inline TreeIterator &operator+=(uint64_t Amt) noexcept {
+    inline auto operator+=(uint64_t Amt) noexcept -> decltype(*this) {
         for (auto I = 0; I != Amt; I++) {
             ++(*this);
         }
@@ -113,18 +113,18 @@ public:
         return *this;
     }
 
-    inline TreeIterator &operator=(T *Node) noexcept {
+    inline auto operator=(T *Node) noexcept -> decltype(*this) {
         this->Current = Node;
         return *this;
     }
 
     [[nodiscard]]
-    inline bool operator==(const TreeIterator &Iter) const noexcept {
-        return (Current == Iter.Current);
+    inline auto operator==(const TreeIterator &Iter) const noexcept {
+        return Current == Iter.Current;
     }
 
     [[nodiscard]]
-    inline bool operator!=(const TreeIterator &Iter) const noexcept {
+    inline auto operator!=(const TreeIterator &Iter) const noexcept {
         return !(*this == Iter);
     }
 };
@@ -135,26 +135,27 @@ protected:
     T *Current;
     T *End = nullptr;
 public:
-    TreeNodeChildIterator(T *Current, T *End = nullptr) noexcept
+    constexpr explicit
+    TreeNodeChildIterator(T *const Current, T *const End = nullptr) noexcept
     : Current(Current), End(End) {}
 
-    inline T *& operator*() noexcept { return Current; }
-    inline const T *const &operator*() const noexcept { return Current; }
+    inline auto &operator*() noexcept { return Current; }
+    inline auto &operator*() const noexcept { return Current; }
 
-    inline T *operator->() noexcept { return Current; }
-    inline const T *operator->() const noexcept { return Current; }
+    inline auto operator->() noexcept { return Current; }
+    inline auto operator->() const noexcept { return Current; }
 
-    [[nodiscard]] inline T *getNode() noexcept { return Current; }
-    [[nodiscard]] inline const T *getNode() const noexcept { return Current; }
-    [[nodiscard]] inline const T *getConstNode() const noexcept {
+    [[nodiscard]] inline auto getNode() noexcept { return Current; }
+    [[nodiscard]] inline auto getNode() const noexcept { return Current; }
+    [[nodiscard]] inline auto getConstNode() const noexcept {
         return Current;
     }
 
-    [[nodiscard]] inline bool isAtEnd() const noexcept {
-        return (Current == End);
+    [[nodiscard]] inline auto isAtEnd() const noexcept {
+        return Current == End;
     }
 
-    TreeNodeChildIterator &operator--() noexcept {
+    auto operator--() noexcept -> decltype(*this) {
         if (const auto PrevSibling = Current->getPrevSibling()) {
             Current = reinterpret_cast<T *>(PrevSibling);
         } else {
@@ -164,7 +165,7 @@ public:
         return *this;
     }
 
-    TreeNodeChildIterator &operator++() noexcept {
+    auto operator++() noexcept -> decltype(*this) {
         if (const auto NextSibling = Current->getNextSibling()) {
             Current = reinterpret_cast<T *>(NextSibling);
             return *this;
@@ -173,30 +174,30 @@ public:
         return *this;
     }
 
-    inline TreeNodeChildIterator &operator++(int) noexcept {
+    inline auto operator++(int) noexcept -> decltype(*this) {
         return ++(*this);
     }
 
-    inline TreeNodeChildIterator &operator+=(uint64_t Amt) noexcept {
-        for (auto I = 0; I != Amt; I++) {
+    inline auto operator+=(uint64_t Amt) noexcept -> decltype(*this) {
+        for (auto I = uint64_t(); I != Amt; I++) {
             ++(*this);
         }
 
         return *this;
     }
 
-    inline TreeNodeChildIterator &operator=(T *Node) noexcept {
+    inline auto operator=(T *Node) noexcept -> decltype(*this) {
         this->Current = Node;
         return *this;
     }
 
     [[nodiscard]]
-    inline bool operator==(const TreeNodeChildIterator &Iter) const noexcept {
-        return (Current == Iter.Current);
+    inline auto operator==(const TreeNodeChildIterator &Iter) const noexcept {
+        return Current == Iter.Current;
     }
 
     [[nodiscard]]
-    inline bool operator!=(const TreeNodeChildIterator &Iter) const noexcept {
+    inline auto operator!=(const TreeNodeChildIterator &Iter) const noexcept {
         return !(*this == Iter);
     }
 };
@@ -242,38 +243,38 @@ public:
     [[nodiscard]] virtual TreeNode *createNew() const noexcept = 0;
     virtual ~TreeNode() noexcept = default;
 
-    [[nodiscard]] inline TreeNode *getParent() const noexcept {
+    [[nodiscard]] inline auto getParent() const noexcept {
         return Parent;
     }
 
-    inline TreeNode &setParent(TreeNode *const Parent) noexcept {
+    inline auto setParent(TreeNode *const Parent) noexcept
+        -> decltype(*this)
+    {
         this->Parent = Parent;
         return *this;
     }
 
-    [[nodiscard]] inline TreeNode *getFirstChild() const noexcept {
-        return FirstChild;
+    [[nodiscard]] inline auto getFirstChild() const noexcept {
+        return this->FirstChild;
     }
 
-    [[nodiscard]] inline TreeNode *getLastChild() const noexcept {
-        return LastChild;
+    [[nodiscard]] inline auto getLastChild() const noexcept {
+        return this->LastChild;
     }
 
-    [[nodiscard]] inline TreeNode *getPrevSibling() const noexcept {
-        return PrevSibling;
+    [[nodiscard]] inline auto getPrevSibling() const noexcept {
+        return this->PrevSibling;
     }
 
-    [[nodiscard]] inline TreeNode *getNextSibling() const noexcept {
-        return NextSibling;
+    [[nodiscard]] inline auto getNextSibling() const noexcept {
+        return this->NextSibling;
     }
 
-    [[nodiscard]]
-    static inline TreeNode *get(TreeNode *const Node) noexcept {
+    [[nodiscard]] static inline auto get(TreeNode *const Node) noexcept {
         return Node;
     }
 
-    [[nodiscard]] static
-    inline const TreeNode *get(const TreeNode *const Node) noexcept {
+    [[nodiscard]] static inline auto get(const TreeNode *const Node) noexcept {
         return Node;
     }
 
@@ -285,62 +286,73 @@ public:
     void ValidateChildArray() const noexcept;
     TreeNode &AddChild(TreeNode &Node) noexcept;
 
-    TreeNode &
-    AddChildren(TreeNode &Node, TreeNode *End = nullptr) noexcept;
+    auto
+    AddChildren(TreeNode &Node, TreeNode *End = nullptr) noexcept
+        -> decltype(*this);
 
-    TreeNode &AddSibling(TreeNode &Node) noexcept;
+    auto AddSibling(TreeNode &Node) noexcept -> decltype(*this);
 
-    TreeNode &
-    AddSiblings(TreeNode &Node, TreeNode *End = nullptr) noexcept;
+    auto
+    AddSiblings(TreeNode &Node, TreeNode *End = nullptr) noexcept
+        -> decltype(*this);
 
-    [[nodiscard]] const TreeNode *
+    [[nodiscard]] auto
     FindPrevNodeForIterator(const TreeNode *End = nullptr,
-                            uint64_t *DepthChangeOut = nullptr) const noexcept;
+                            uint64_t *DepthChangeOut = nullptr) const noexcept
+        -> const TreeNode *;
 
-    [[nodiscard]] const TreeNode *
+    [[nodiscard]] auto
     FindNextSiblingForIterator(
         const TreeNode *End = nullptr,
-        uint64_t *DepthChangeOut = nullptr) const noexcept;
+        uint64_t *DepthChangeOut = nullptr) const noexcept
+            -> const TreeNode *;
 
-    [[nodiscard]] const TreeNode *
+    [[nodiscard]] auto
     FindNextNodeForIterator(const TreeNode *End = nullptr,
-                            int64_t *DepthChangeOut = nullptr) const noexcept;
+                            int64_t *DepthChangeOut = nullptr) const noexcept
+        -> const TreeNode *;
 
-    inline TreeNode &setFirstChild(TreeNode *const Node) noexcept {
+    inline auto setFirstChild(TreeNode *const Node) noexcept -> decltype(*this)
+    {
         assert(Node != this);
 
         this->FirstChild = Node;
         return *this;
     }
 
-    inline TreeNode &setPrevSibling(TreeNode *const Node) noexcept {
+    inline auto setPrevSibling(TreeNode *const Node) noexcept -> decltype(*this)
+    {
         assert(Node != this);
 
         this->PrevSibling = Node;
         return *this;
     }
 
-    inline TreeNode &setNextSibling(TreeNode *const Node) noexcept {
+    inline auto setNextSibling(TreeNode *const Node) noexcept
+        -> decltype(*this)
+    {
         assert(Node != this);
 
         this->NextSibling = Node;
         return *this;
     }
 
-    inline TreeNode &setLastChild(TreeNode *const Node) noexcept {
+    inline auto setLastChild(TreeNode *const Node) noexcept
+        -> decltype(*this)
+    {
         assert(Node != this);
 
         this->LastChild = Node;
         return *this;
     }
 
-    [[nodiscard]] inline bool isLeaf() const noexcept {
-        return (getFirstChild() == nullptr);
+    [[nodiscard]] inline auto isLeaf() const noexcept {
+        return this->getFirstChild() == nullptr;
     }
 
-    [[nodiscard]] inline bool hasOnlyOneChild() const noexcept {
-        if (const auto FirstChild = getFirstChild()) {
-            return (FirstChild->getNextSibling() == nullptr);
+    [[nodiscard]] inline auto hasOnlyOneChild() const noexcept {
+        if (const auto FirstChild = this->getFirstChild()) {
+            return FirstChild->getNextSibling() == nullptr;
         }
 
         return false;
@@ -351,19 +363,19 @@ public:
     using Iterator = TreeIterator<const TreeNode>;
     using ConstIterator = Iterator;
 
-    [[nodiscard]] inline Iterator begin() const noexcept {
+    [[nodiscard]] inline auto begin() const noexcept {
         return Iterator(this);
     }
 
-    [[nodiscard]] inline Iterator end() const noexcept {
+    [[nodiscard]] inline auto end() const noexcept {
         return Iterator(nullptr);
     }
 
-    [[nodiscard]] inline ConstIterator cbegin() const noexcept {
+    [[nodiscard]] inline auto cbegin() const noexcept {
         return ConstIterator(this);
     }
 
-    [[nodiscard]] inline ConstIterator cend() const noexcept {
+    [[nodiscard]] inline auto cend() const noexcept {
         return ConstIterator(nullptr);
     }
 
@@ -456,12 +468,13 @@ public:
     }
 
     template <typename NodePrinter>
-    const TreeNode &
+    auto
     PrintHorizontal(FILE *const OutFile,
                     const int TabLength,
                     const NodePrinter &NodePrinterFunc) const noexcept
+        -> decltype(*this)
     {
-        const auto RootDepthLevel = 1;
+        const auto RootDepthLevel = static_cast<uint64_t>(1);
         if (NodePrinterFunc(OutFile, 0, RootDepthLevel, *this)) {
             fputc('\n', OutFile);
         }
@@ -520,57 +533,57 @@ public:
 
     virtual ~Tree() noexcept;
 
-    using Iterator = TreeIterator<TreeNode>;
-    using ConstIterator = TreeIterator<const TreeNode>;
-
-    [[nodiscard]] inline Iterator begin() const noexcept {
-        return Iterator(getRoot());
-    }
-
-    [[nodiscard]] inline Iterator end() const noexcept {
-        return Iterator(nullptr);
-    }
-
-    [[nodiscard]] inline ConstIterator cbegin() const noexcept {
-        return ConstIterator(getRoot());
-    }
-
-    [[nodiscard]] inline ConstIterator cend() const noexcept {
-        return ConstIterator(nullptr);
-    }
-
-    [[nodiscard]] inline TreeNode *getRoot() const noexcept {
+    [[nodiscard]] inline auto getRoot() const noexcept {
         return Root;
     }
 
-    inline Tree &setRoot(TreeNode *Root) noexcept {
+    using Iterator = TreeIterator<TreeNode>;
+    using ConstIterator = TreeIterator<const TreeNode>;
+
+    [[nodiscard]] inline auto begin() const noexcept {
+        return Iterator(this->getRoot());
+    }
+
+    [[nodiscard]] inline auto end() const noexcept {
+        return Iterator(nullptr);
+    }
+
+    [[nodiscard]] inline auto cbegin() const noexcept {
+        return ConstIterator(this->getRoot());
+    }
+
+    [[nodiscard]] inline auto cend() const noexcept {
+        return ConstIterator(nullptr);
+    }
+
+    inline auto setRoot(TreeNode *const Root) noexcept -> decltype(*this) {
         this->Root = Root;
         return *this;
     }
 
-    [[nodiscard]] inline bool empty() const noexcept {
-        return (Root == nullptr);
+    [[nodiscard]] inline auto empty() const noexcept {
+        return this->getRoot() == nullptr;
     }
 
     template <typename T>
-    [[nodiscard]] inline std::vector<T *> GetAsList() const noexcept {
+    inline void forEachNode(const T &lambda) const noexcept {
+        if (const auto Root = this->getRoot()) {
+            Root->forSelfAndEachChild(lambda);
+        }
+    }
+
+    template <typename T>
+    [[nodiscard]] inline auto GetAsList() const noexcept {
         auto Result = std::vector<T *>();
-        forEachNode([&](const auto &Iter) noexcept {
+        this->forEachNode([&](const auto &Iter) noexcept {
             Result.emplace_back(reinterpret_cast<T *>(&Iter));
         });
 
         return Result;
     }
 
-    template <typename T>
-    inline void forEachNode(const T &lambda) const noexcept {
-        if (Root != nullptr) {
-            Root->forSelfAndEachChild(lambda);
-        }
-    }
-
     template <typename Comparator>
-    Tree &Sort(const Comparator &ShouldSwap) noexcept {
+    auto Sort(const Comparator &ShouldSwap) noexcept -> decltype(*this) {
         const auto Swap = [](TreeNode &Lhs, TreeNode &Rhs) noexcept {
             const auto LPrevSibling = Lhs.getPrevSibling();
             const auto LNextSibling = Lhs.getNextSibling();
@@ -612,7 +625,7 @@ public:
             }
         };
 
-        forEachNode([&](const auto &Node) noexcept {
+        this->forEachNode([&](const auto &Node) noexcept {
             if (Node.isLeaf()) {
                 return;
             }
@@ -644,30 +657,32 @@ public:
         return *this;
     }
 
-    TreeNode *RemoveNode(TreeNode &Node, bool RemoveParentLeafs) noexcept;
+    auto RemoveNode(TreeNode &Node, bool RemoveParentLeafs) noexcept
+        -> TreeNode *;
 
     void ValidateNodes() const noexcept;
     [[nodiscard]] virtual uint64_t GetCount() const noexcept;
 
     template <typename NodePrinter>
-    const Tree &
+    auto
     PrintHorizontal(FILE *const OutFile,
                     const int TabLength,
                     const NodePrinter &NodePrinterFunc) const noexcept
+        -> decltype(*this)
     {
-        if (empty()) {
-            return *this;
+        if (!this->empty()) {
+            Root->PrintHorizontal(OutFile, TabLength, NodePrinterFunc);
         }
 
-        Root->PrintHorizontal(OutFile, TabLength, NodePrinterFunc);
         return *this;
     }
 
     template <typename NodePrinter>
-    Tree &
+    auto
     PrintHorizontal(FILE *const OutFile,
                     const int TabLength,
                     const NodePrinter &NodePrinterFunc) noexcept
+        -> decltype(*this)
     {
         const_cast<const TreeNode &>(*Root).
             PrintHorizontal(OutFile, TabLength, NodePrinterFunc);

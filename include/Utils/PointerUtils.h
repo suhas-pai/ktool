@@ -1,15 +1,14 @@
 //
-//  include/Utils/PointerSize.h
+//  Utils/PointerSize.h
 //  ktool
 //
 //  Created by Suhas Pai on 5/16/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
 
 #include <concepts>
-#include <type_traits>
 #include "ADT/PointerKind.h"
 
 template <PointerKind Kind>
@@ -37,11 +36,11 @@ template <PointerKind Kind>
 
 template <PointerKind Kind, std::integral T>
 [[nodiscard]] constexpr bool IntegerIsPointerAligned(T Integer) noexcept {
-    return ((Integer % PointerSize<Kind>()) == 0);
+    return (Integer % PointerSize<Kind>()) == 0;
 }
 
 template <std::integral T>
 [[nodiscard]] constexpr
 inline bool IntegerIsPointerAligned(T Integer, bool Is64Bit) noexcept {
-    return ((Integer % PointerSize(Is64Bit)) == 0);
+    return (Integer % PointerSize(Is64Bit)) == 0;
 }

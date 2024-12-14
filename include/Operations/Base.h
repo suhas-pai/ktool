@@ -1,17 +1,14 @@
 //
-//  include/Operations/Base.h
+//  Operations/Base.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/4/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
 
 #include "ADT/ArgvArray.h"
-#include "Objects/DscMemory.h"
-#include "Objects/MachOMemory.h"
-#include "Objects/FatMachOMemory.h"
 #include "Objects/MemoryBase.h"
 
 #include "Info.h"
@@ -46,33 +43,31 @@ public:
     Operation(OperationKind Kind) noexcept;
     virtual ~Operation() noexcept = default;
 
-    [[nodiscard]] constexpr OperationKind getKind() const noexcept {
-        return Kind;
+    [[nodiscard]] constexpr auto getKind() const noexcept {
+        return this->Kind;
     }
 
     [[nodiscard]]
-    constexpr std::string_view getOptionShortName() const noexcept {
-        return OperationKindGetOptionShortName(getKind());
+    constexpr auto getOptionShortName() const noexcept {
+        return OperationKindGetOptionShortName(this->getKind());
     }
 
-    [[nodiscard]]
-    constexpr std::string_view getOptionName() const noexcept {
-        return OperationKindGetOptionName(getKind());
+    [[nodiscard]] constexpr auto getOptionName() const noexcept {
+        return OperationKindGetOptionName(this->getKind());
     }
 
-    [[nodiscard]] constexpr std::string_view getName() const noexcept {
-        return OperationKindGetName(getKind());
+    [[nodiscard]] constexpr auto getName() const noexcept {
+        return OperationKindGetName(this->getKind());
     }
 
-    [[nodiscard]]
-    constexpr std::string_view getDescription() const noexcept {
-        return OperationKindGetDescription(getKind());
+    [[nodiscard]] constexpr auto getDescription() const noexcept {
+        return OperationKindGetDescription(this->getKind());
     }
 
     bool RequiresMap(OperationKind Kind) noexcept;
 
     static void
-    PrintLineSpamWarning(FILE *OutFile, uint64_t LineAmount) noexcept;
+    PrintLineSpamWarning(FILE *const OutFile, uint64_t LineAmount) noexcept;
 
     static void
     PrintObjectKindNotSupportedError(OperationKind OpKind,
@@ -90,28 +85,28 @@ public:
     constexpr static auto MaxShortOptionNameLength = 2;
     constexpr static auto InvalidObjectKind = -2;
 
-    static void PrintHelpMenu(FILE *OutFile) noexcept;
+    static void PrintHelpMenu(FILE *const OutFile) noexcept;
 
     static void
-    PrintOptionHelpMenu(FILE *OutFile,
+    PrintOptionHelpMenu(FILE *const OutFile,
                         OperationKind Kind,
-                        const char *Prefix = "",
+                        const char *const Prefix = "",
                         const char *LinePrefix = "",
-                        const char *Suffix = "") noexcept;
+                        const char *const Suffix = "") noexcept;
 
     static void
-    PrintObjectKindSupportsList(FILE *OutFile,
+    PrintObjectKindSupportsList(FILE *const OutFile,
                                 OperationKind ForKind,
-                                const char *Prefix = "",
+                                const char *const Prefix = "",
                                 const char *LinePrefix = "",
-                                const char *Suffix = "") noexcept;
+                                const char *const Suffix = "") noexcept;
 
     static void
-    PrintPathOptionHelpMenu(FILE *OutFile,
+    PrintPathOptionHelpMenu(FILE *const OutFile,
                             OperationKind ForKind,
-                            const char *Prefix = "",
+                            const char *const Prefix = "",
                             const char *LinePrefix = "",
-                            const char *Suffix = "") noexcept;
+                            const char *const Suffix = "") noexcept;
 
     static inline void
     PrintEntireOptionUsageMenu(FILE *const OutFile,
@@ -354,7 +349,7 @@ static inline const OptionKind *cast(const Operation::Options *const Object) {
     return static_cast<const OptionKind *>(Object);
 }
 
-// dyn_cast<T> tempaltes
+// dyn_cast<T> templates
 // dyn_cast<Kind>(Operation *) -> OperationType *
 
 template <OperationKind Kind,

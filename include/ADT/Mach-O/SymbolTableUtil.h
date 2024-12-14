@@ -1,9 +1,9 @@
 //
-//  include/ADT/Mach-O/SymbolTableUtil.h
+//  ADT/Mach-O/SymbolTableUtil.h
 //  ktool
 //
 //  Created by Suhas Pai on 7/3/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once

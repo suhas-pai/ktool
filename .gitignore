@@ -17,6 +17,9 @@
 compile_commands.json
 
 build/
+build_debug/
+build_release/
+
 bin/
 obj/
 tests/

@@ -1,24 +1,22 @@
 //
-//  src/Operations/PrintSharedLibraries.cpp
+//  Operations/PrintSharedLibraries.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 4/4/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cstring>
 #include <ctime>
+#include <format>
 #include <vector>
 
-#include "ADT/MachO.h"
+#include "Operations/Common.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintSharedLibraries.h"
 
 #include "Utils/MachOTypePrinter.h"
 #include "Utils/PrintUtils.h"
-#include "Utils/Timestamp.h"
-
-#include "Common.h"
-#include "Operation.h"
-#include "PrintSharedLibraries.h"
 
 PrintSharedLibrariesOperation::PrintSharedLibrariesOperation() noexcept
 : Operation(OpKind) {}
@@ -93,7 +91,7 @@ CompareEntriesBySortKind(
 }
 
 int
-PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
+PrintSharedLibrariesOperation::Run(const MachOMemoryObject &Object,
                                    const struct Options &Options) noexcept
 {
     constexpr static auto LongestLCKindLength =
@@ -148,17 +146,18 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
 
                 const auto &Dylib = cast<MachO::DylibCommand>(LC, IsBigEndian);
                 const auto GetNameResult = Dylib.GetName(IsBigEndian);
-                const auto &Name =
+                const auto Name =
                     OperationCommon::GetLoadCommandStringValue(GetNameResult);
 
                 MaxDylibNameLength = Name.length();
                 DylibList.push_back({
                     .Kind = LCKind,
                     .Index = LCIndex,
+                    .NameOffset = Dylib.Info.Name.getOffset(IsBigEndian),
                     .Name = Name,
                     .CurrentVersion = Dylib.Info.getCurrentVersion(IsBigEndian),
                     .CompatVersion = Dylib.Info.getCompatVersion(IsBigEndian),
-                    .Timestamp = Dylib.Info.getTimestamp(IsBigEndian)
+                    .Timestamp = Dylib.Info.getTimestamp(IsBigEndian),
                 });
 
                 break;
@@ -239,12 +238,21 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
             "Provided file has %" PRIuPTR " Shared Libraries:\n",
             DylibListSize);
 
-    const auto LCCountDigitLength = LoadCmdStorage.size();
+    const auto LCCountDigitLength =
+        PrintUtilsGetIntegerDigitLength(LoadCmdStorage.count());
     const auto DylibSizeDigitLength =
         PrintUtilsGetIntegerDigitLength(DylibListSize);
 
     auto Counter = static_cast<uint32_t>(1);
     for (const auto &DylibInfo : DylibList) {
+        const auto KindNameOpt =
+            MachO::LoadCommand::KindGetName(DylibInfo.Kind);
+        const auto KindName =
+            KindNameOpt.has_value() ?
+                std::string(KindNameOpt.value()) :
+                std::format("<unknown: 0x{:02x}>",
+                            static_cast<uint8_t>(DylibInfo.Kind));
+
         fprintf(Options.OutFile,
                 "Library %0*" PRIu32 ": LC %0*" PRIu32 ": "
                 "%" PRINTF_RIGHTPAD_FMT "s"
@@ -254,7 +262,7 @@ PrintSharedLibrariesOperation::Run(const ConstMachOMemoryObject &Object,
                 LCCountDigitLength,
                 DylibInfo.Index,
                 static_cast<int>(LongestLCKindLength),
-                MachO::LoadCommand::KindGetName(DylibInfo.Kind).data());
+                KindName.c_str());
 
         const auto WrittenOut =
             fprintf(Options.OutFile, "\"%s\"", DylibInfo.Name.data());
@@ -295,9 +303,10 @@ AddSortKind(PrintSharedLibrariesOperation::Options::SortKind SortKind,
     }
 }
 
-struct PrintSharedLibrariesOperation::Options
+auto
 PrintSharedLibrariesOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                 int *const IndexOut) noexcept
+    -> struct PrintSharedLibrariesOperation::Options
 {
     auto Index = int();
     struct Options Options;

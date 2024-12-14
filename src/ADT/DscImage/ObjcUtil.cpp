@@ -1,15 +1,15 @@
 //
-//  src/ADT/DscImage/ObjcUtil.cpp
+//  ADT/DscImage/ObjcUtil.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 9/5/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "ObjcUtil.h"
+#include "ADT/DscImage/ObjcUtil.h"
 
 namespace DscImage {
-    ObjcClassInfoCollection &
+    auto
     ObjcClassInfoCollection::Parse(
         const uint8_t *const Map,
         const MachO::SegmentInfoCollection &SegmentCollection,
@@ -18,6 +18,7 @@ namespace DscImage {
         const bool IsBigEndian,
         const bool Is64Bit,
         Error *const ErrorOut) noexcept
+            -> decltype(*this)
     {
         auto Error = MachO::ObjcParse::Error::None;
         auto ExternalAndRootClassList = std::vector<Info *>();
@@ -125,7 +126,7 @@ namespace DscImage {
         return *this;
     }
 
-    ObjcClassInfoCollection &
+    auto
     ObjcClassInfoCollection::Parse(
         const ConstMemoryMap &DscMap,
         const ConstMemoryMap &ImageMap,
@@ -139,7 +140,10 @@ namespace DscImage {
         Error *const ErrorOut,
         MachO::BindOpcodeParseError *ParseErrorOut,
         MachO::BindActionCollection::Error *const CollectionErrorOut) noexcept
+            -> decltype(*this)
     {
+        (void)ImageMap;
+
         auto Error = MachO::ObjcParse::Error::None;
         auto ExternalAndRootClassList = std::vector<Info *>();
 
@@ -331,7 +335,7 @@ namespace DscImage {
                 }
 
                 // ClassAddr initially points to the 'Class' field that (may)
-                // get binded.
+                // get bound.
 
                 auto Class = static_cast<MachO::ObjcClassInfo *>(nullptr);
                 auto ClassAddr =
@@ -441,7 +445,7 @@ namespace DscImage {
         return *this;
     }
 
-    ObjcClassCategoryCollection &
+    auto
     ObjcClassCategoryCollection::CollectFrom(
         const ConstMemoryMap &Map,
         const MachO::SegmentInfoCollection &SegmentCollection,
@@ -455,6 +459,7 @@ namespace DscImage {
         Error *const ErrorOut,
         MachO::BindOpcodeParseError *const ParseErrorOut,
         MachO::BindActionCollection::Error *const CollectionErrorOut) noexcept
+            -> decltype(*this)
     {
         const auto ObjcClassCategorySection =
             SegmentCollection.FindSectionWithName({

@@ -1,9 +1,9 @@
 //
-//  src/Utils/Path.cpp
+//  Utils/Path.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 4/11/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cassert>
@@ -12,10 +12,13 @@
 #include <string_view>
 #include <unistd.h>
 
-#include "Path.h"
+#include "Utils/Path.h"
 
 static auto Cd = std::string();
-std::string PathUtil::MakeAbsolute(const std::string_view Path) noexcept {
+
+auto PathUtil::MakeAbsolute(const std::string_view Path) noexcept
+    -> std::string
+{
     if (isAbsolute(Path)) {
         return std::string(Path);
     }
@@ -35,9 +38,10 @@ std::string PathUtil::MakeAbsolute(const std::string_view Path) noexcept {
     return ConcatPaths(Cd, Path);
 }
 
-std::string
+auto
 PathUtil::ConcatPaths(const std::string_view Lhs,
                       const std::string_view Rhs) noexcept
+    -> std::string
 {
     assert(!Lhs.empty() && !Rhs.empty() && "Lhs or Rhs is empty");
 

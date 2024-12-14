@@ -1,22 +1,22 @@
 //
-//  src/ADT/Mach-O/ExportTrie.cpp
+//  ADT/Mach-O/ExportTrie.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 5/18/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <algorithm>
 #include <cstring>
 
+#include "ADT/Mach-O/ExportTrie.h"
 #include "Utils/Leb128.h"
-#include "ExportTrie.h"
 
 namespace MachO {
     ExportTrieIterator::ExportTrieIterator(const uint8_t *Begin,
                                            const uint8_t *End,
                                            const ParseOptions &Options) noexcept
-    : Begin(Begin), End(End)
+    : Begin(Begin), EndOrError(End)
     {
         Info = std::make_unique<ExportTrieIterateInfo>();
         Info->setMaxDepth(Options.MaxDepth);
@@ -26,21 +26,22 @@ namespace MachO {
         Info->getStringRef().reserve(Options.StringReserveSize);
 
         auto Node = NodeInfo();
-        this->ParseError = ParseNode(Begin, &Node);
+        const auto Error = ParseNode(Begin, &Node);
 
-        if (ParseError.hasValue()) {
+        if (Error != Error::None) {
+            this->EndOrError = Error;
             return;
         }
 
         NextStack = std::make_unique<StackInfo>(Node);
-        this->ParseError = Advance();
+        this->EndOrError = this->Advance();
     }
 
     ExportTrieExportIterator::ExportTrieExportIterator(
-        const uint8_t *Begin,
-        const uint8_t *End) noexcept : Iterator(Begin, End)
+        const uint8_t *const Begin,
+        const uint8_t *const End) noexcept : Iterator(Begin, End)
     {
-        Advance();
+        this->Advance();
     }
 
     void ExportTrieIterator::SetupInfoForNewStack() noexcept {
@@ -59,7 +60,7 @@ namespace MachO {
         auto &Top = StackList.back();
 
         const auto EraseSuffixLength =
-            (String.length() - Top.getNode().getPrefix().length());
+            String.length() - Top.getNode().getPrefix().length();
 
         String.erase(EraseSuffixLength);
         if (Top.getRangeListSize() != 0) {
@@ -74,11 +75,14 @@ namespace MachO {
         return true;
     }
 
-    ExportTrieIterator::Error
+    auto
     ExportTrieIterator::ParseNode(const uint8_t *Ptr,
-                                  NodeInfo *InfoOut) noexcept
+                                  NodeInfo *const InfoOut) noexcept
+        -> ExportTrieIterator::Error
     {
         auto NodeSize = uint32_t();
+        auto End = EndOrError.value();
+
         if ((Ptr = ReadUleb128(Ptr, End, &NodeSize)) == nullptr) {
             return Error::InvalidUleb128;
         }
@@ -99,11 +103,11 @@ namespace MachO {
             return Error::InvalidFormat;
         }
 
-        const auto Range = LocationRange::CreateWithEnd(Offset, OffsetEnd);
         auto &RangeList = Info->getRangeListRef();
-        const auto RangeListEnd = RangeList.cend();
 
-        const auto Predicate = [&Range](const LocationRange &RhsRange) noexcept
+        const auto Range = Range::CreateWithEnd(Offset, OffsetEnd);
+        const auto RangeListEnd = RangeList.cend();
+        const auto Predicate = [&Range](const struct Range &RhsRange) noexcept
         {
             return Range.overlaps(RhsRange);
         };
@@ -124,14 +128,17 @@ namespace MachO {
         return Error::None;
     }
 
-    ExportTrieIterator::Error
+    auto
     ExportTrieIterator::ParseNextNode(const uint8_t *& Ptr,
-                                      NodeInfo *InfoOut) noexcept
+                                      NodeInfo *const InfoOut) noexcept
+        -> ExportTrieIterator::Error
     {
+        const auto End = EndOrError.value();
+
         const auto StringPtr = reinterpret_cast<const char *>(Ptr);
         const auto StringLength = strnlen(StringPtr, End - Ptr);
 
-        Ptr += (StringLength + 1);
+        Ptr += StringLength + 1;
 
         auto Next = uint64_t();
         if ((Ptr = ReadUleb128(Ptr, End, &Next)) == nullptr) {
@@ -142,7 +149,7 @@ namespace MachO {
             return Error::InvalidFormat;
         }
 
-        if (Next >= (End - Begin)) {
+        if (Next >= static_cast<uint64_t>(End - Begin)) {
             return Error::InvalidFormat;
         }
 
@@ -150,7 +157,7 @@ namespace MachO {
         return ParseNode(Begin + Next, InfoOut);
     }
 
-    ExportTrieIterator::Error ExportTrieIterator::Advance() noexcept {
+    auto ExportTrieIterator::Advance() noexcept -> ExportTrieIterator::Error {
         auto &StackList = Info->getStackListRef();
         const auto MaxDepth = Info->getMaxDepth();
 
@@ -170,9 +177,9 @@ namespace MachO {
                     if (!MoveUptoParentNode()) {
                         return Error::None;
                     }
+                } else {
+                    PrevStack.setChildOrdinal(1);
                 }
-
-                PrevStack.setChildOrdinal(1);
             } else {
                 PrevStack.getChildOrdinalRef() += 1;
                 SetupInfoForNewStack();
@@ -181,6 +188,7 @@ namespace MachO {
             SetupInfoForNewStack();
         }
 
+        const auto End = EndOrError.value();
         do {
             auto &Stack = StackList.back();
             auto &Node = Stack.getNode();
@@ -229,10 +237,10 @@ namespace MachO {
                         if (*Ptr != '\0') {
                             const auto String =
                                 reinterpret_cast<const char *>(Ptr);
+                            const auto MaxLength =
+                                static_cast<size_t>(End - Ptr);
 
-                            const auto MaxLength = (End - Ptr);
                             const auto Length = strnlen(String, MaxLength);
-
                             if (Length == MaxLength) {
                                 return Error::InvalidFormat;
                             }
@@ -382,10 +390,11 @@ namespace MachO {
         } while (true);
     }
 
-    TypedAllocationOrError<ExportTrieList, SizeRangeError>
+    auto
     GetExportTrieList(const MemoryMap &Map,
-                      uint32_t ExportOff,
-                      uint32_t ExportSize) noexcept
+                      const uint32_t ExportOff,
+                      const uint32_t ExportSize) noexcept
+        -> ExpectedAlloc<ExportTrieList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, ExportOff, ExportSize, &End);
@@ -398,10 +407,11 @@ namespace MachO {
         return new ExportTrieList(MapBegin + ExportOff, MapBegin + End);
     }
 
-    TypedAllocationOrError<ConstExportTrieList, SizeRangeError>
+    auto
     GetConstExportTrieList(const ConstMemoryMap &Map,
-                           uint32_t ExportOff,
-                           uint32_t ExportSize) noexcept
+                           const uint32_t ExportOff,
+                           const uint32_t ExportSize) noexcept
+        -> ExpectedAlloc<ConstExportTrieList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, ExportOff, ExportSize, &End);
@@ -414,10 +424,11 @@ namespace MachO {
         return new ConstExportTrieList(MapBegin + ExportOff, MapBegin + End);
     }
 
-    TypedAllocationOrError<ExportTrieExportList, SizeRangeError>
+    auto
     GetExportTrieExportList(const MemoryMap &Map,
-                            uint32_t ExportOff,
-                            uint32_t ExportSize) noexcept
+                            const uint32_t ExportOff,
+                            const uint32_t ExportSize) noexcept
+        -> ExpectedAlloc<ExportTrieExportList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, ExportOff, ExportSize, &End);
@@ -430,10 +441,11 @@ namespace MachO {
         return new ExportTrieExportList(MapBegin + ExportOff, MapBegin + End);
     }
 
-    TypedAllocationOrError<ConstExportTrieExportList, SizeRangeError>
+    auto
     GetConstExportTrieExportList(const ConstMemoryMap &Map,
-                                 uint32_t ExportOff,
-                                 uint32_t ExportSize) noexcept
+                                 const uint32_t ExportOff,
+                                 const uint32_t ExportSize) noexcept
+        -> ExpectedAlloc<ConstExportTrieExportList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, ExportOff, ExportSize, &End);
@@ -449,12 +461,13 @@ namespace MachO {
         return Result;
     }
 
-    SizeRangeError
+    auto
     GetExportListFromExportTrie(
         const ConstMemoryMap &Map,
-        uint32_t ExportOff,
-        uint32_t ExportSize,
+        const uint32_t ExportOff,
+        const uint32_t ExportSize,
         std::vector<ExportTrieIterateInfo> &ExportListOut) noexcept
+            -> SizeRangeError
     {
         // TODO: Get faster impl?
         const auto TrieList =
@@ -467,7 +480,7 @@ namespace MachO {
         // We have to create a copy because each export's string is only
         // temporary.
 
-        for (auto Export : TrieList.getRef()) {
+        for (auto Export : *TrieList.value()) {
             ExportListOut.emplace_back(std::move(Export));
         }
 

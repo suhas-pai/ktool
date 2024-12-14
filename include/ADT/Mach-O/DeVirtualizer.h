@@ -1,9 +1,9 @@
 //
-//  include/ADT/Mach-O/DeVirtualizer.h
+//  ADT/Mach-O/DeVirtualizer.h
 //  ktool
 //
 //  Created by Suhas Pai on 5/28/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -27,15 +27,16 @@ namespace MachO {
                       const SegmentInfoCollection &Collection) noexcept
         : Map(Map.getBegin()), Collection(Collection) {}
 
-        [[nodiscard]] inline const SegmentInfoCollection &
-        getSegmentCollection() const noexcept {
+        [[nodiscard]]
+        inline auto &getSegmentCollection() const noexcept {
             return Collection;
         }
 
         template <typename T>
-        [[nodiscard]] T *
+        [[nodiscard]] auto
         GetDataAtAddress(const uint64_t Address,
                          T **const EndOut = nullptr) const noexcept
+            -> T *
         {
             const auto Result =
                 Collection.GetPtrForVirtualAddr<T>(Map,
@@ -46,10 +47,11 @@ namespace MachO {
         }
 
         template <typename T>
-        [[nodiscard]] T *
+        [[nodiscard]] auto
         GetDataAtAddress(const uint64_t Address,
                          const uint64_t Size,
                          T **const EndOut = nullptr) const noexcept
+            -> T *
         {
             const auto Result =
                 Collection.GetPtrForVirtualAddr<T>(Map, Address, Size, EndOut);
@@ -58,10 +60,11 @@ namespace MachO {
         }
 
         template <typename T>
-        [[nodiscard]] T *
+        [[nodiscard]] auto
         GetDataAtAddressIgnoreSections(
             const uint64_t Address,
             T **const EndOut = nullptr) const noexcept
+                -> T *
         {
             const auto Result =
                 Collection.GetPtrForVirtualAddrIgnoreSections<T>(Map,
@@ -72,11 +75,12 @@ namespace MachO {
         }
 
         template <typename T>
-        [[nodiscard]] T *
+        [[nodiscard]] auto
         GetDataAtAddressIgnoreSections(
             const uint64_t Address,
             const uint64_t Size,
             T **const EndOut = nullptr) const noexcept
+                -> T *
         {
             const auto Result =
                 Collection.GetPtrForVirtualAddrIgnoreSections<T>(Map,
@@ -88,8 +92,9 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        std::optional<std::string_view>
-        GetStringAtAddress(uint64_t Address) const noexcept {
+        auto GetStringAtAddress(uint64_t Address) const noexcept
+            -> std::optional<std::string_view>
+        {
             auto End = static_cast<const char *>(nullptr);
             const auto Ptr = GetDataAtAddress<const char>(Address, &End);
 
@@ -136,6 +141,7 @@ namespace MachO {
         {
             const auto Result =
                 Collection.GetPtrForVirtualAddr<T>(Map, Address, Size, EndOut);
+            
             return Result;
         }
     };

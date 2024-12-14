@@ -1,17 +1,15 @@
 //
-//  include/ADT/BasicContinguousList.h
+//  ADT/BasicContiguousList.h
 //  ktool
 //
 //  Created by Suhas Pai on 3/8/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
 
 #include <cassert>
-
 #include "BasicContiguousIterator.h"
-#include "BasicWrapperIterator.h"
 
 template <typename T>
 struct BasicContiguousList {
@@ -40,67 +38,66 @@ public:
     using Iterator = BasicContiguousIterator<EntryType>;
     using ConstIterator = BasicContiguousIterator<const EntryType>;
 
-    [[nodiscard]] inline Iterator begin() const noexcept {
+    [[nodiscard]] inline auto begin() const noexcept {
         return Iterator(Begin);
     }
 
-    [[nodiscard]] inline Iterator end() const noexcept {
+    [[nodiscard]] inline auto end() const noexcept {
         return Iterator(const_cast<EntryType *>(End));
     }
 
-    [[nodiscard]] inline ConstIterator cbegin() const noexcept {
+    [[nodiscard]] inline auto cbegin() const noexcept {
         return ConstIterator(Begin);
     }
 
-    [[nodiscard]] inline ConstIterator cend() const noexcept {
+    [[nodiscard]] inline auto cend() const noexcept {
         return ConstIterator(End);
     }
 
-    [[nodiscard]] inline EntryType *getBegin() const noexcept {
+    [[nodiscard]] inline auto getBegin() const noexcept {
         return Begin;
     }
 
-    [[nodiscard]] inline const EntryType *getEnd() const noexcept {
+    [[nodiscard]] inline auto getEnd() const noexcept {
         return End;
     }
 
-    [[nodiscard]] inline EntryType &at(const uint64_t Index) noexcept {
+    [[nodiscard]] inline auto &at(const uint64_t Index) noexcept {
         return Begin[Index];
     }
 
-    [[nodiscard]]
-    inline const EntryType &at(const uint64_t Index) const noexcept {
+    [[nodiscard]] inline auto &at(const uint64_t Index) const noexcept {
         return Begin[Index];
     }
 
-    [[nodiscard]] inline uint64_t count() const noexcept {
-        return (End - Begin);
+    [[nodiscard]] inline auto count() const noexcept {
+        return End - Begin;
     }
 
-    [[nodiscard]] inline uint64_t size() const noexcept {
+    [[nodiscard]] inline auto size() const noexcept {
         return sizeof(EntryType) * count();
     }
 
-    [[nodiscard]] inline bool empty() const noexcept {
-        return (count() == 0);
+    [[nodiscard]] inline auto empty() const noexcept {
+        return count() == 0;
     }
 
-    [[nodiscard]] inline EntryType &front() noexcept {
+    [[nodiscard]] inline auto &front() noexcept {
         assert(!empty());
         return *Begin;
     }
 
-    [[nodiscard]] inline const EntryType &front() const noexcept {
+    [[nodiscard]] inline auto &front() const noexcept {
         assert(!empty());
         return *Begin;
     }
 
-    [[nodiscard]] inline EntryType &back() noexcept {
+    [[nodiscard]] inline auto &back() noexcept {
         assert(!empty());
         return End[-1];
     }
 
-    [[nodiscard]] inline const EntryType &back() const noexcept {
+    [[nodiscard]] inline auto &back() const noexcept {
         assert(!empty());
         return End[-1];
     }
@@ -134,57 +131,59 @@ public:
     using Iterator = BasicContiguousIterator<EntryType>;
     using ConstIterator = BasicContiguousIterator<const EntryType>;
 
-    [[nodiscard]] inline Iterator begin() const noexcept {
-        return Iterator(Begin);
-    }
-
-    [[nodiscard]] inline Iterator end() const noexcept { return Iterator(End); }
-
-    [[nodiscard]] inline ConstIterator cbegin() const noexcept {
-        return ConstIterator(Begin);
-    }
-
-    [[nodiscard]] inline ConstIterator cend() const noexcept {
-        return ConstIterator(End);
-    }
-
-    [[nodiscard]] inline EntryType *getBegin() const noexcept {
+    [[nodiscard]] inline auto getBegin() const noexcept {
         return Begin;
     }
 
-    [[nodiscard]] inline const EntryType *getEnd() const noexcept {
+    [[nodiscard]] inline auto getEnd() const noexcept {
         return End;
     }
 
-    [[nodiscard]] inline EntryType &at(const uint64_t Index) const noexcept {
+    [[nodiscard]] inline auto begin() const noexcept {
+        return Iterator(this->getBegin());
+    }
+
+    [[nodiscard]] inline auto end() const noexcept {
+        return Iterator(this->getEnd());
+    }
+
+    [[nodiscard]] inline auto cbegin() const noexcept {
+        return ConstIterator(this->getBegin());
+    }
+
+    [[nodiscard]] inline auto cend() const noexcept {
+        return ConstIterator(this->getEnd());
+    }
+
+    [[nodiscard]] inline auto &at(const uint64_t Index) const noexcept {
         return Begin[Index];
     }
 
-    [[nodiscard]] inline bool empty() const noexcept {
-        return (count() == 0);
+    [[nodiscard]] inline auto empty() const noexcept {
+        return this->count() == 0;
     }
 
-    [[nodiscard]] inline const EntryType &front() const noexcept {
-        assert(!empty());
-        return *Begin;
+    [[nodiscard]] inline auto &front() const noexcept {
+        assert(!this->empty());
+        return *this->getBegin();
     }
 
-    [[nodiscard]] inline EntryType &back() noexcept {
-        assert(!empty());
-        return End[-1];
+    [[nodiscard]] inline auto &back() noexcept {
+        assert(!this->empty());
+        return this->getEnd()[-1];
     }
 
-    [[nodiscard]] inline const EntryType &back() const noexcept {
-        assert(!empty());
-        return End[-1];
+    [[nodiscard]] inline auto &back() const noexcept {
+        assert(!this->empty());
+        return this->getEnd()[-1];
     }
 
-    [[nodiscard]] inline uint64_t count() const noexcept {
-        return (End - Begin);
+    [[nodiscard]] inline auto count() const noexcept {
+        return this->getEnd() - this->getBegin();
     }
 
-    [[nodiscard]] inline uint64_t size() const noexcept {
-        return sizeof(EntryType) * count();
+    [[nodiscard]] inline auto size() const noexcept {
+        return sizeof(EntryType) * this->count();
     }
 };
 
@@ -204,64 +203,64 @@ public:
     using Iterator = BasicContiguousIterator<EntryType>;
     using ConstIterator = BasicContiguousIterator<const EntryType>;
 
-    [[nodiscard]] inline Iterator begin() const noexcept {
-        return Iterator(Begin);
+    [[nodiscard]] inline auto getBegin() const noexcept {
+        return this->Begin;
     }
 
-    [[nodiscard]] inline Iterator end() const noexcept {
-        return Iterator(const_cast<EntryType *>(End));
+    [[nodiscard]] inline auto getEnd() const noexcept {
+        return this->End;
     }
 
-    [[nodiscard]] inline ConstIterator cbegin() const noexcept {
-        return ConstIterator(Begin);
+    [[nodiscard]] inline auto begin() const noexcept {
+        return Iterator(this->getBegin());
     }
 
-    [[nodiscard]] inline ConstIterator cend() const noexcept {
-        return ConstIterator(End);
+    [[nodiscard]] inline auto end() const noexcept {
+        return Iterator(const_cast<EntryType *>(this->getEnd()));
     }
 
-    [[nodiscard]] inline EntryType *getBegin() const noexcept {
-        return Begin;
+    [[nodiscard]] inline auto cbegin() const noexcept {
+        return ConstIterator(this->getBegin());
     }
 
-    [[nodiscard]] inline const EntryType *getEnd() const noexcept {
-        return End;
+    [[nodiscard]] inline auto cend() const noexcept {
+        return ConstIterator(this->getEnd());
     }
 
-    [[nodiscard]] inline EntryType &at(const uint64_t Index) const noexcept {
-        return Begin[Index];
+    [[nodiscard]] inline auto &at(const uint64_t Index) const noexcept {
+        return this->getBegin()[Index];
     }
 
-    [[nodiscard]] inline uint64_t count() const noexcept {
-        return (End - Begin);
+    [[nodiscard]] inline auto count() const noexcept {
+        return this->getEnd() - this->getBegin();
     }
 
-    [[nodiscard]] inline uint64_t size() const noexcept {
-        return sizeof(EntryType) * count();
+    [[nodiscard]] inline auto size() const noexcept {
+        return sizeof(EntryType) * this->count();
     }
 
-    [[nodiscard]] inline bool empty() const noexcept {
-        return (count() == 0);
+    [[nodiscard]] inline auto empty() const noexcept {
+        return this->count() == 0;
     }
 
-    [[nodiscard]] inline EntryType &front() noexcept {
-        assert(!empty());
-        return *Begin;
+    [[nodiscard]] inline auto &front() noexcept {
+        assert(!this->empty());
+        return *this->getBegin();
     }
 
-    [[nodiscard]] inline const EntryType &front() const noexcept {
-        assert(!empty());
-        return *Begin;
+    [[nodiscard]] inline auto &front() const noexcept {
+        assert(!this->empty());
+        return *this->getBegin();
     }
 
-    [[nodiscard]] inline EntryType &back() noexcept {
-        assert(!empty());
-        return End[-1];
+    [[nodiscard]] inline auto &back() noexcept {
+        assert(!this->empty());
+        return this->getEnd()[-1];
     }
 
-    [[nodiscard]] inline const EntryType &back() const noexcept {
-        assert(!empty());
-        return End[-1];
+    [[nodiscard]] inline auto &back() const noexcept {
+        assert(!this->empty());
+        return this->getEnd()[-1];
     }
 };
 
@@ -281,60 +280,63 @@ public:
     using Iterator = BasicContiguousIterator<EntryType>;
     using ConstIterator = BasicContiguousIterator<const EntryType>;
 
-    [[nodiscard]] inline Iterator begin() const noexcept {
-        return Iterator(Begin);
-    }
-
-    [[nodiscard]] inline Iterator end() const noexcept { return Iterator(End); }
-    [[nodiscard]] inline ConstIterator cbegin() const noexcept {
-        return ConstIterator(Begin);
-    }
-
-    [[nodiscard]] inline ConstIterator cend() const noexcept {
-        return ConstIterator(End);
-    }
-
-    [[nodiscard]] inline EntryType *getBegin() const noexcept {
+    [[nodiscard]] inline auto getBegin() const noexcept {
         return Begin;
     }
 
-    [[nodiscard]] inline const EntryType *getEnd() const noexcept {
+    [[nodiscard]] inline auto getEnd() const noexcept {
         return End;
     }
 
-    [[nodiscard]] inline EntryType &at(const uint64_t Index) const noexcept {
-        return Begin[Index];
+    [[nodiscard]] inline auto begin() const noexcept {
+        return Iterator(this->getBegin());
     }
 
-    [[nodiscard]] inline uint64_t count() const noexcept {
-        return (End - Begin);
+    [[nodiscard]] inline auto end() const noexcept {
+        return Iterator(this->getEnd());
     }
 
-    [[nodiscard]] inline uint64_t size() const noexcept {
+    [[nodiscard]] inline auto cbegin() const noexcept {
+        return ConstIterator(this->getBegin());
+    }
+
+    [[nodiscard]] inline auto cend() const noexcept {
+        return ConstIterator(this->getEnd());
+    }
+
+    [[nodiscard]] inline auto &at(const uint64_t Index) const noexcept {
+        return this->getBegin()[Index];
+    }
+
+    [[nodiscard]] inline auto count() const noexcept {
+        return static_cast<uint64_t>(End - Begin);
+    }
+
+    [[nodiscard]] inline auto size() const noexcept {
         return sizeof(EntryType) * count();
     }
 
-    [[nodiscard]] inline bool empty() const noexcept {
-        return (count() == 0);
+    [[nodiscard]] inline auto empty() const noexcept {
+        return this->count() == 0;
     }
 
-    [[nodiscard]] inline EntryType &front() noexcept {
-        assert(!empty());
-        return *Begin;
+    [[nodiscard]] inline auto &front() noexcept {
+        assert(!this->empty());
+        return *this->getBegin();
     }
 
-    [[nodiscard]] inline const EntryType &front() const noexcept {
-        assert(!empty());
-        return *Begin;
+    [[nodiscard]] inline auto &front() const noexcept {
+        assert(!this->empty());
+        return *this->getBegin();
     }
 
-    [[nodiscard]] inline EntryType &back() noexcept {
-        assert(!empty());
-        return End[-1];
+    [[nodiscard]] inline auto &back() noexcept {
+        assert(!this->empty());
+        return this->getEnd()[-1];
     }
 
-    [[nodiscard]] inline const EntryType &back() const noexcept {
-        assert(!empty());
-        return End[-1];
+    [[nodiscard]] inline auto &back() const noexcept {
+        assert(!this->empty());
+        return this->getEnd()[-1];
     }
 };

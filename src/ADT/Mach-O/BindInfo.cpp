@@ -1,18 +1,19 @@
 //
-//  src/ADT/Mach-O/BindInfo.cpp
+//  ADT/Mach-O/BindInfo.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 5/18/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "BindInfo.h"
+#include "ADT/Mach-O/BindInfo.h"
 
 namespace MachO {
-    TypedAllocationOrError<BindNakedOpcodeList, SizeRangeError>
+    auto
     GetBindNakedOpcodeList(const ConstMemoryMap &Map,
-                           uint32_t BindOffset,
-                           uint32_t BindSize) noexcept
+                           const uint32_t BindOffset,
+                           const uint32_t BindSize) noexcept
+        -> ExpectedAlloc<ConstBindNakedOpcodeList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, BindOffset, BindSize, &End);
@@ -25,10 +26,11 @@ namespace MachO {
         return new BindNakedOpcodeList(MapBegin + BindOffset, MapBegin + End);
     }
 
-    TypedAllocationOrError<ConstBindNakedOpcodeList, SizeRangeError>
+    auto
     GetConstBindNakedOpcodeList(const ConstMemoryMap &Map,
-                                uint32_t BindOffset,
-                                uint32_t BindSize) noexcept
+                                const uint32_t BindOffset,
+                                const uint32_t BindSize) noexcept
+        -> ExpectedAlloc<ConstBindNakedOpcodeList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, BindOffset, BindSize, &End);
@@ -44,11 +46,12 @@ namespace MachO {
         return Result;
     }
 
-    TypedAllocationOrError<BindOpcodeList, SizeRangeError>
+    auto
     GetBindOpcodeList(const ConstMemoryMap &Map,
-                      uint32_t BindOffset,
-                      uint32_t BindSize,
-                      bool Is64Bit) noexcept
+                      const uint32_t BindOffset,
+                      const uint32_t BindSize,
+                      const bool Is64Bit) noexcept
+        -> ExpectedAlloc<BindOpcodeList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, BindOffset, BindSize, &End);
@@ -64,11 +67,12 @@ namespace MachO {
         return Result;
     }
 
-    TypedAllocationOrError<ConstBindOpcodeList, SizeRangeError>
+    auto
     GetConstBindOpcodeList(const ConstMemoryMap &Map,
-                           uint32_t BindOffset,
-                           uint32_t BindSize,
-                           bool Is64Bit) noexcept
+                           const uint32_t BindOffset,
+                           const uint32_t BindSize,
+                           const bool Is64Bit) noexcept
+        -> ExpectedAlloc<ConstBindOpcodeList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, BindOffset, BindSize, &End);
@@ -86,11 +90,12 @@ namespace MachO {
         return Result;
     }
 
-    TypedAllocationOrError<LazyBindOpcodeList, SizeRangeError>
+    auto
     GetLazyBindOpcodeList(const ConstMemoryMap &Map,
-                          uint32_t BindOffset,
-                          uint32_t BindSize,
-                          bool Is64Bit) noexcept
+                          const uint32_t BindOffset,
+                          const uint32_t BindSize,
+                          const bool Is64Bit) noexcept
+        -> ExpectedAlloc<LazyBindOpcodeList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, BindOffset, BindSize, &End);
@@ -108,11 +113,12 @@ namespace MachO {
         return Result;
     }
 
-    TypedAllocationOrError<ConstLazyBindOpcodeList, SizeRangeError>
+    auto
     GetConstLazyBindOpcodeList(const ConstMemoryMap &Map,
-                               uint32_t BindOffset,
-                               uint32_t BindSize,
-                               bool Is64Bit) noexcept
+                               const uint32_t BindOffset,
+                               const uint32_t BindSize,
+                               const bool Is64Bit) noexcept
+        -> ExpectedAlloc<ConstLazyBindOpcodeList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, BindOffset, BindSize, &End);
@@ -130,11 +136,12 @@ namespace MachO {
         return Result;
     }
 
-    TypedAllocationOrError<WeakBindOpcodeList, SizeRangeError>
+    auto
     GetWeakBindOpcodeList(const ConstMemoryMap &Map,
-                          uint32_t BindOffset,
-                          uint32_t BindSize,
-                          bool Is64Bit) noexcept
+                          const uint32_t BindOffset,
+                          const uint32_t BindSize,
+                          const bool Is64Bit) noexcept
+        -> ExpectedAlloc<WeakBindOpcodeList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, BindOffset, BindSize, &End);
@@ -152,11 +159,12 @@ namespace MachO {
         return Result;
     }
 
-    TypedAllocationOrError<ConstWeakBindOpcodeList, SizeRangeError>
+    auto
     GetConstWeakBindOpcodeList(const ConstMemoryMap &Map,
-                               uint32_t BindOffset,
-                               uint32_t BindSize,
-                               bool Is64Bit) noexcept
+                               const uint32_t BindOffset,
+                               const uint32_t BindSize,
+                               const bool Is64Bit) noexcept
+        -> ExpectedAlloc<ConstWeakBindOpcodeList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, BindOffset, BindSize, &End);
@@ -174,12 +182,13 @@ namespace MachO {
         return Result;
     }
 
-    TypedAllocationOrError<BindActionList, SizeRangeError>
+    auto
     GetBindActionList(const ConstMemoryMap &Map,
                       const SegmentInfoCollection &SegmentCollection,
-                      uint32_t BindOffset,
-                      uint32_t BindSize,
-                      bool Is64Bit) noexcept
+                      const uint32_t BindOffset,
+                      const uint32_t BindSize,
+                      const bool Is64Bit) noexcept
+        -> ExpectedAlloc<BindActionList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, BindOffset, BindSize, &End);
@@ -198,12 +207,13 @@ namespace MachO {
         return Result;
     }
 
-    TypedAllocationOrError<LazyBindActionList, SizeRangeError>
+    auto
     GetLazyBindActionList(const ConstMemoryMap &Map,
                           const SegmentInfoCollection &SegmentCollection,
-                          uint32_t BindOffset,
-                          uint32_t BindSize,
-                          bool Is64Bit) noexcept
+                          const uint32_t BindOffset,
+                          const uint32_t BindSize,
+                          const bool Is64Bit) noexcept
+        -> ExpectedAlloc<LazyBindActionList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, BindOffset, BindSize, &End);
@@ -222,12 +232,13 @@ namespace MachO {
         return Result;
     }
 
-    TypedAllocationOrError<WeakBindActionList, SizeRangeError>
+    auto
     GetWeakBindActionList(const ConstMemoryMap &Map,
                           const SegmentInfoCollection &SegmentCollection,
-                          uint32_t BindOffset,
-                          uint32_t BindSize,
-                          bool Is64Bit) noexcept
+                          const uint32_t BindOffset,
+                          const uint32_t BindSize,
+                          const bool Is64Bit) noexcept
+        -> ExpectedAlloc<WeakBindActionList, SizeRangeError>
     {
         auto End = uint64_t();
         if (const auto Error = CheckSizeRange(Map, BindOffset, BindSize, &End);

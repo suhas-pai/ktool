@@ -1,9 +1,9 @@
 //
-//  include/ADT/Mach-O/ObjcParse.h
+//  ADT/Mach-O/ObjcParse.h
 //  ktool
 //
 //  Created by Suhas Pai on 9/4/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -43,11 +43,12 @@ namespace MachO::ObjcParse {
                            ObjcClassCategory64,
                            ObjcClassCategory>;
 
-    inline ObjcClassInfo *
+    inline auto
     AddClassToList(
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
         ObjcClassInfo &&Class,
         const uint64_t ClassAddr) noexcept
+            -> ObjcClassInfo *
     {
         const auto Ptr =
             List.insert({
@@ -69,8 +70,8 @@ namespace MachO::ObjcParse {
         }
     }
 
-    inline std::string_view
-    GetNameFromBindActionSymbol(const std::string_view Symbol) noexcept {
+    inline
+    auto GetNameFromBindActionSymbol(const std::string_view Symbol) noexcept {
         constexpr auto Prefix = std::string_view("_OBJC_CLASS_$_");
         if (Symbol.compare(0, Prefix.size(), Prefix) == 0) {
             return std::string_view(Symbol.data() + Prefix.length());
@@ -94,7 +95,7 @@ namespace MachO::ObjcParse {
                 return false;
             }
 
-            return (Lhs->getName() == ActionSymbol);
+            return Lhs->getName() == ActionSymbol;
         };
 
         const auto Begin = ExternalAndRootClassList.cbegin();
@@ -128,6 +129,9 @@ namespace MachO::ObjcParse {
                    ObjcClassInfo &Info,
                    const bool IsBigEndian) noexcept
     {
+        // FIXME: Use bind collection
+        (void)BindCollection;
+
         using ClassType = ClassTypeCalculator<Kind>;
         using ClassRoType = ClassRoTypeCalculator<Kind>;
 
@@ -168,9 +172,11 @@ namespace MachO::ObjcParse {
     SetSuperIfExists(
         const BindActionCollection &BindCollection,
         std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>> &List,
-        ObjcClassInfo *const Info,
-        const bool IsBigEndian) noexcept
+        ObjcClassInfo *const Info)
     {
+        // FIXME: Use bind collection
+        (void)BindCollection;
+
         const auto Addr = reinterpret_cast<uint64_t>(Info->getSuper()) & ~1;
         const auto Iter = List.find(Addr);
 
@@ -217,7 +223,7 @@ namespace MachO::ObjcParse {
             return;
         }
 
-        if (SetSuperIfExists(BindCollection, List, Info, IsBigEndian)) {
+        if (SetSuperIfExists(BindCollection, List, Info)) {
             return;
         }
 

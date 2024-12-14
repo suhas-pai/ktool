@@ -1,17 +1,16 @@
 //
-//  src/ADT/ByteVector.cpp
+//  ADT/ByteVector.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 6/2/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <algorithm>
 #include <cstring>
 
-#include "ByteVector.h"
-#include "LocationRange.h"
-#include "RelativeRange.h"
+#include "ADT/ByteVector.h"
+#include "ADT/Range.h"
 
 ByteVector::ByteVector(const uint64_t Capacity) noexcept {
     Reserve(Capacity);
@@ -22,7 +21,7 @@ ByteVector::~ByteVector() noexcept {
 }
 
 uint64_t ByteVector::getAllocSizeForCapacity(const uint64_t Capacity) noexcept {
-    auto ThisCapacity = capacity();
+    auto ThisCapacity = this->capacity();
     if (ThisCapacity == 0) {
         return Capacity;
     }
@@ -35,7 +34,7 @@ uint64_t ByteVector::getAllocSizeForCapacity(const uint64_t Capacity) noexcept {
 }
 
 void ByteVector::grow() noexcept {
-    growTo(getAllocSizeForCapacity(capacity() + 1));
+    this->growTo(this->getAllocSizeForCapacity(this->capacity() + 1));
 }
 
 void ByteVector::growTo(const uint64_t Capacity) noexcept {
@@ -50,20 +49,24 @@ void ByteVector::growTo(const uint64_t Capacity) noexcept {
 }
 
 void ByteVector::growIfNecessaryForSize(const uint64_t Size) noexcept {
-    if (freeSpace() >= Size) {
+    if (this->freeSpace() >= Size) {
         return;
     }
 
-    growTo(getAllocSizeForCapacity(size() + Size));
+    this->growTo(this->getAllocSizeForCapacity(this->size() + Size));
 }
 
-ByteVector &ByteVector::Reserve(const uint64_t Capacity) noexcept {
+auto ByteVector::Reserve(const uint64_t Capacity) noexcept
+    -> decltype(*this)
+{
     growTo(Capacity);
     return *this;
 }
 
-ByteVector &
-ByteVector::Add(const uint8_t *const Bytes, const uint64_t Size) noexcept {
+auto
+ByteVector::Add(const uint8_t *const Bytes, const uint64_t Size) noexcept
+    -> decltype(*this)
+{
     growIfNecessaryForSize(Size);
 
     memcpy(DataEnd, Bytes, Size);
@@ -72,20 +75,26 @@ ByteVector::Add(const uint8_t *const Bytes, const uint64_t Size) noexcept {
     return *this;
 }
 
-ByteVector &
-ByteVector::Add(const uint8_t *const Begin, uint8_t *const End) noexcept {
+auto
+ByteVector::Add(const uint8_t *const Begin, uint8_t *const End) noexcept
+    -> decltype(*this)
+{
     return Add(Begin, (End - Begin));
 }
 
-ByteVector &
-ByteVector::Remove(uint8_t *const Loc, const uint64_t Size) noexcept {
+auto
+ByteVector::Remove(uint8_t *const Loc, const uint64_t Size) noexcept
+    -> decltype(*this)
+{
     return Remove(Loc, Loc + Size);
 }
 
-ByteVector &
-ByteVector::Remove(uint8_t *const Loc, uint8_t *const End) noexcept {
-    const auto ThisRange = LocationRange::CreateWithEnd(DataBegin, DataEnd);
-    const auto LocRange = LocationRange::CreateWithEnd(Loc, End);
+auto
+ByteVector::Remove(uint8_t *const Loc, uint8_t *const End) noexcept
+    -> decltype(*this)
+{
+    const auto ThisRange = Range::CreateWithEnd(DataBegin, DataEnd);
+    const auto LocRange = Range::CreateWithEnd(Loc, End);
 
     assert(ThisRange.contains(LocRange));
 
@@ -96,8 +105,10 @@ ByteVector::Remove(uint8_t *const Loc, uint8_t *const End) noexcept {
     return *this;
 }
 
-ByteVector &
-ByteVector::Remove(const uint64_t Idx, const uint64_t Size) noexcept {
+auto
+ByteVector::Remove(const uint64_t Idx, const uint64_t Size) noexcept
+    -> decltype(*this)
+{
     return Remove(DataBegin + Idx, DataBegin + Idx + Size);
 }
 

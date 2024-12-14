@@ -1,9 +1,9 @@
 //
-//  include/ADT/MappedFile.h
+//  ADT/MappedFile.h
 //  ktool
 //
 //  Created by Suhas Pai on 3/30/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -16,7 +16,7 @@
 #include "ADT/BasicMasksHandler.h"
 #include "ADT/MemoryMap.h"
 
-#include "PointerErrorStorage.h"
+#include "ExpectedPointer.h"
 #include "FileDescriptor.h"
 
 struct MappedFile {
@@ -29,10 +29,7 @@ public:
         MmapCallFailed,
     };
 protected:
-    union {
-        void *Map = NULL;
-        PointerErrorStorage<OpenError> ErrorStorage;
-    };
+    ExpectedPointer<void, OpenError> MapOrError;
 
     uint64_t Size = 0;
     MappedFile(OpenError Error) noexcept;
@@ -53,36 +50,42 @@ public:
         using Base = BasicFlags<ProtectionsFlags>;
     public:
         using Base::Base;
-
         using Flags = ProtectionsFlags;
-        [[nodiscard]] constexpr bool canRead() const noexcept {
-            return hasFlag(Flags::Read);
+
+        [[nodiscard]] constexpr auto canRead() const noexcept {
+            return this->hasFlag(Flags::Read);
         }
 
-        [[nodiscard]] constexpr bool canWrite() const noexcept {
-            return hasFlag(Flags::Write);
+        [[nodiscard]] constexpr auto canWrite() const noexcept {
+            return this->hasFlag(Flags::Write);
         }
 
-        [[nodiscard]] constexpr bool canExecute() const noexcept {
-            return hasFlag(Flags::Execute);
+        [[nodiscard]] constexpr auto canExecute() const noexcept {
+            return this->hasFlag(Flags::Execute);
         }
 
-        constexpr Protections &setCanRead(const bool Value = true) noexcept {
-            setValueForFlag(Flags::Read, Value);
+        constexpr auto setCanRead(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForFlag(Flags::Read, Value);
             return *this;
         }
 
-        constexpr Protections &setCanWrite(const bool Value = true) noexcept {
-            setValueForFlag(Flags::Write, Value);
+        constexpr auto setCanWrite(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForFlag(Flags::Write, Value);
             return *this;
         }
 
-        constexpr Protections &setCanExecute(const bool Value = true) noexcept {
-            setValueForFlag(Flags::Execute, Value);
+        constexpr auto setCanExecute(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForFlag(Flags::Execute, Value);
             return *this;
         }
 
-        constexpr Protections &clear() noexcept {
+        constexpr auto clear() noexcept -> decltype(*this) {
             this->Base::clear();
             return *this;
         }
@@ -93,55 +96,54 @@ public:
     explicit MappedFile(const MappedFile &) noexcept = delete;
     explicit MappedFile(MappedFile &&) noexcept;
 
-    inline ~MappedFile() noexcept { Close(); }
+    inline ~MappedFile() noexcept { this->Close(); }
 
     [[nodiscard]] static MappedFile
     Open(const FileDescriptor &Fd, Protections Prot, MapKind MapKind) noexcept;
 
-    [[nodiscard]] inline bool isEmpty() const noexcept {
-        return (Map == nullptr);
+    [[nodiscard]] inline auto isEmpty() const noexcept {
+        return MapOrError.hasError();
     }
 
-    [[nodiscard]] inline bool hasError() const noexcept {
-        return ErrorStorage.hasValue();
+    [[nodiscard]] inline auto hasError() const noexcept {
+        return MapOrError.hasError();
     }
 
-    [[nodiscard]] inline OpenError getError() const noexcept {
-        return ErrorStorage.getValue();
+    [[nodiscard]] inline auto getError() const noexcept {
+        return MapOrError.getError();
     }
 
-    [[nodiscard]] inline uint8_t *getBegin() const noexcept {
-        return static_cast<uint8_t *>(Map);
+    [[nodiscard]] inline auto getBegin() const noexcept {
+        return static_cast<uint8_t *>(MapOrError.value());
     }
 
-    [[nodiscard]] inline uint8_t *getEnd() const noexcept {
-        return getBegin() + size();
+    [[nodiscard]] inline auto size() const noexcept { return this->Size; }
+    [[nodiscard]] inline auto getEnd() const noexcept {
+        return this->getBegin() + this->size();
     }
-
-    [[nodiscard]] inline uint64_t size() const noexcept { return Size; }
 
     [[nodiscard]] inline operator MemoryMap() const noexcept {
-        const auto Map = reinterpret_cast<uint8_t *>(this->Map);
+        const auto Map = reinterpret_cast<uint8_t *>(this->getBegin());
         return MemoryMap(Map, Map + Size);
     }
 
     [[nodiscard]] inline operator ConstMemoryMap() const noexcept {
-        const auto Map = reinterpret_cast<const uint8_t *>(this->Map);
+        const auto Map = reinterpret_cast<const uint8_t *>(this->getBegin());
         return ConstMemoryMap(Map, Map + Size);
     }
 
-    MappedFile &operator=(MappedFile &&Rhs) noexcept {
-        Map = Rhs.Map;
+    inline auto operator=(MappedFile &&Rhs) noexcept -> decltype(*this) {
+        this->MapOrError.setValue(Rhs.MapOrError.value());
         Size = Rhs.Size;
 
-        Rhs.Map = nullptr;
+        Rhs.MapOrError.clear();
         Rhs.Size = 0;
 
         return *this;
     }
 
-    inline MappedFile &Close() noexcept {
-        munmap(Map, Size);
+    inline auto Close() noexcept -> decltype(*this) {
+        munmap(this->getBegin(), this->size());
         return *this;
     }
 };

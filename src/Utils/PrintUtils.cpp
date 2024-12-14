@@ -1,13 +1,13 @@
 //
-//  src/Utils/PrintUtils.cpp
+//  Utils/PrintUtils.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 6/4/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "ADT/MachO.h"
-#include "PrintUtils.h"
+#include "ADT/Mach-O/SegmentInfo.h"
+#include "Utils/PrintUtils.h"
 
 int
 PrintUtilsWriteMachOSegmentSectionPair(FILE *const OutFile,

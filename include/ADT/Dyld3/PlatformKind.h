@@ -1,12 +1,15 @@
 //
-//  include/ADT/Dyld3/PlatformKind.h
+//  ADT/Dyld3/PlatformKind.h
 //  ktool
 //
 //  Created by Suhas Pai on 9/20/22.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
+
+#include <optional>
+#include <string_view>
 
 namespace Dyld3 {
     enum class PlatformKind : uint32_t {
@@ -23,8 +26,10 @@ namespace Dyld3 {
         DriverKit
     };
 
-    [[nodiscard]] constexpr std::string_view
-    PlatformKindGetName(const PlatformKind Kind) noexcept {
+    [[nodiscard]] constexpr auto
+    PlatformKindGetName(const PlatformKind Kind) noexcept
+        -> std::optional<std::string_view>
+    {
         switch (Kind) {
             case PlatformKind::macOS:
                 return "PLATFORM_KIND_MACOS";
@@ -48,11 +53,13 @@ namespace Dyld3 {
                 return "PLATFORM_DRIVERKIT";
         }
 
-        return "<unrecognized>";
+        return std::nullopt;
     }
 
-    [[nodiscard]] constexpr std::string_view
-    PlatformKindGetDescription(const PlatformKind Kind) noexcept {
+    [[nodiscard]] constexpr auto
+    PlatformKindGetDescription(const PlatformKind Kind) noexcept
+        -> std::optional<std::string_view>
+    {
         switch (Kind) {
             case PlatformKind::macOS:
                 return "macOS";
@@ -76,7 +83,7 @@ namespace Dyld3 {
                 return "Driver";
         }
 
-        return "<unrecognized>";
+        return std::nullopt;
     }
 
 }

@@ -1,24 +1,21 @@
 //
-//  src/Operations/PrintObjcClassList.cpp
+//  Operations/PrintObjcClassList.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 5/16/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cstring>
 
-#include "ADT/DscImage.h"
-#include "ADT/MachO.h"
+#include "ADT/DscImage/DeVirtualizer.h"
+#include "ADT/DscImage/ObjcUtil.h"
 
-#include "Utils/MachOTypePrinter.h"
-#include "Utils/MiscTemplates.h"
-#include "Utils/PointerUtils.h"
+#include "Operations/Common.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintObjcClassList.h"
+
 #include "Utils/PrintUtils.h"
-
-#include "Common.h"
-#include "Operation.h"
-#include "PrintObjcClassList.h"
 
 PrintObjcClassListOperation::PrintObjcClassListOperation() noexcept
 : Operation(OpKind) {}
@@ -27,12 +24,14 @@ PrintObjcClassListOperation::PrintObjcClassListOperation(
     const struct Options &Options) noexcept
 : Operation(OpKind), Options(Options) {}
 
-static inline void PrintFlagSeparator(FILE *OutFile, bool &DidPrint) noexcept {
+static inline
+void PrintFlagSeparator(FILE *const OutFile, bool &DidPrint) noexcept {
     PrintUtilsWriteItemAfterFirstForList(OutFile, " - ", DidPrint);
 }
 
 static void
-PrintClassRoFlags(FILE *OutFile, const MachO::ObjcClassRoFlags &Flags) noexcept
+PrintClassRoFlags(FILE *const OutFile,
+                  const MachO::ObjcClassRoFlags &Flags) noexcept
 {
     if (Flags.empty()) {
         return;
@@ -155,18 +154,16 @@ CompareObjcClasses(
 
 static void
 PrintCategoryList(
-    FILE *OutFile,
+    FILE *const OutFile,
     const std::vector<MachO::ObjcClassCategoryInfo *> &CategoryList,
-    bool Is64Bit) noexcept
+    const bool Is64Bit) noexcept
 {
     switch (CategoryList.size()) {
         case 0:
             return;
-
         case 1:
             fputs("\t1 Category:\n", OutFile);
             break;
-
         default:
             fprintf(OutFile,
                     "\t%" PRIuPTR " Categories:\n",
@@ -193,9 +190,9 @@ PrintCategoryList(
 
 static void
 PrintClassVerboseInfo(
-    FILE *OutFile,
+    FILE *const OutFile,
     const MachO::SharedLibraryInfoCollection &SharedLibraryCollection,
-    uint64_t LongestLength,
+    const uint64_t LongestLength,
     const MachO::ObjcClassInfo &Node,
     bool IsTree,
     int WrittenOut) noexcept
@@ -240,7 +237,7 @@ static void
 PrintObjcClassList(
     const MachO::SharedLibraryInfoCollection &SharedLibraryCollection,
     MachO::ObjcClassInfoCollection &ObjcClassCollection,
-    bool Is64Bit,
+    const bool Is64Bit,
     const struct PrintObjcClassListOperation::Options &Options) noexcept
 {
     if (ObjcClassCollection.empty()) {
@@ -280,9 +277,9 @@ PrintObjcClassList(
         }
 
         const auto Printer =
-            [&](FILE *OutFile,
+            [&](FILE *const OutFile,
                 int WrittenOut,
-                uint64_t DepthLevel,
+                const uint64_t ,
                 const TreeNode &TreeNode) noexcept
         {
             const auto &Node =
@@ -374,7 +371,7 @@ PrintObjcClassList(
 }
 
 int
-PrintObjcClassListOperation::Run(const ConstDscImageMemoryObject &Object,
+PrintObjcClassListOperation::Run(const DscImageMemoryObject &Object,
                                  const struct Options &Options) noexcept
 {
     const auto IsBigEndian = Object.isBigEndian();
@@ -481,7 +478,7 @@ PrintObjcClassListOperation::Run(const ConstDscImageMemoryObject &Object,
 }
 
 int
-PrintObjcClassListOperation::Run(const ConstMachOMemoryObject &Object,
+PrintObjcClassListOperation::Run(const MachOMemoryObject &Object,
                                  const struct Options &Options) noexcept
 {
     const auto IsBigEndian = Object.isBigEndian();
@@ -587,7 +584,7 @@ ListHasSortKind(
     const PrintObjcClassListOperation::Options::SortKind &Sort) noexcept
 {
     const auto ListEnd = List.cend();
-    return (std::find(List.cbegin(), ListEnd, Sort) != ListEnd);
+    return std::find(List.cbegin(), ListEnd, Sort) != ListEnd;
 }
 
 static inline void
@@ -602,9 +599,10 @@ AddSortKind(const char *Opt,
     }
 }
 
-struct PrintObjcClassListOperation::Options
+auto
 PrintObjcClassListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                               int *const IndexOut) noexcept
+    -> struct PrintObjcClassListOperation::Options
 {
     auto Index = int();
     struct Options Options;

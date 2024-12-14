@@ -7,16 +7,22 @@ on:
     branches: [ master ]
 
 jobs:
-  macBuild:
-    runs-on: macos-12
+  mac-build:
+    runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: make
-      run: make
-        
-  linuxBuild:  
-    runs-on: ubuntu-22.04
-    steps:
-    - uses: actions/checkout@v2
-    - name: make
-      run: make
+    - name: Install Dependencies
+      run: |
+        brew update --preinstall
+        brew install llvm ninja cmake lld
+        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+    - name: Make
+      run: |
+        cmake --preset debug
+        cmake --preset release
+
+        cd build_debug && ninja
+        cd ../build_release && ninja
+

@@ -1,25 +1,24 @@
 //
-//  src/Objects/FatMachOMemory.cpp
+//  Objects/FatMachOMemory.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 3/30/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "ADT/LocationRange.h"
-#include "ADT/Mach.h"
+#include "ADT/Range.h"
+
+#include "Objects/FatMachOMemory.h"
+#include "Objects/MachOMemory.h"
 
 #include "Utils/DoesOverflow.h"
 #include "Utils/MiscTemplates.h"
-#include "Utils/SwitchEndian.h"
-
-#include "FatMachOMemory.h"
-#include "MachOMemory.h"
 
 template <PointerKind Kind>
-[[nodiscard]] static ConstFatMachOMemoryObject::Error
+[[nodiscard]] static auto
 ValidateArchList(const ConstMemoryMap &Map,
                  const MachO::FatHeader &Header) noexcept
+    -> FatMachOMemoryObject::Error
 {
     using AddrType = PointerAddrTypeFromKind<Kind>;
     using ArchType =
@@ -28,7 +27,7 @@ ValidateArchList(const ConstMemoryMap &Map,
                                     MachO::FatHeader::Arch32>;
 
     if (Header.hasZeroArchs()) {
-        return ConstFatMachOMemoryObject::Error::ZeroArchitectures;
+        return FatMachOMemoryObject::Error::ZeroArchitectures;
     }
 
     const auto ArchCount = Header.getArchCount();
@@ -37,11 +36,11 @@ ValidateArchList(const ConstMemoryMap &Map,
     if (DoesMultiplyAndAddOverflow<AddrType>(sizeof(ArchType), ArchCount,
                                              sizeof(Header), &TotalHeaderSize))
     {
-        return ConstFatMachOMemoryObject::Error::TooManyArchitectures;
+        return FatMachOMemoryObject::Error::TooManyArchitectures;
     }
 
     if (!Map.isLargeEnoughForSize(TotalHeaderSize)) {
-        return ConstFatMachOMemoryObject::Error::SizeTooSmall;
+        return FatMachOMemoryObject::Error::SizeTooSmall;
     }
 
     const auto IsBigEndian = Header.isBigEndian();
@@ -51,71 +50,67 @@ ValidateArchList(const ConstMemoryMap &Map,
     for (const auto &Arch : BasicContiguousList(ArchListBegin, ArchListEnd)) {
         const auto ArchRangeOpt = Arch.getFileRange(IsBigEndian);
         if (!ArchRangeOpt.has_value()) {
-            return ConstFatMachOMemoryObject::Error::ArchOutOfBounds;
+            return FatMachOMemoryObject::Error::ArchOutOfBounds;
         }
 
         const auto &ArchRange = ArchRangeOpt.value();
         if (ArchRange.goesPastEnd(Map.size())) {
-            return ConstFatMachOMemoryObject::Error::ArchOutOfBounds;
+            return FatMachOMemoryObject::Error::ArchOutOfBounds;
         }
 
         for (const auto &Inner : BasicContiguousList(ArchListBegin, &Arch)) {
             const auto InnerRange = Inner.getFileRange(IsBigEndian).value();
             if (ArchRange.overlaps(InnerRange)) {
-                return ConstFatMachOMemoryObject::Error::ArchOverlapsArch;
+                return FatMachOMemoryObject::Error::ArchOverlapsArch;
             }
         }
     }
 
-    return ConstFatMachOMemoryObject::Error::None;
+    return FatMachOMemoryObject::Error::None;
 }
 
-[[nodiscard]] static ConstFatMachOMemoryObject::Error
-ValidateMap(const ConstMemoryMap &Map) noexcept {
+[[nodiscard]] static auto ValidateMap(const ConstMemoryMap &Map) noexcept
+    -> FatMachOMemoryObject::Error
+{
     if (!Map.isLargeEnoughForType<MachO::FatHeader>()) {
-        return ConstFatMachOMemoryObject::Error::SizeTooSmall;
+        return FatMachOMemoryObject::Error::SizeTooSmall;
     }
 
     const auto &Header = *Map.getBeginAs<MachO::FatHeader>();
     if (!Header.hasValidMagic()) {
-        return ConstFatMachOMemoryObject::Error::WrongFormat;
+        return FatMachOMemoryObject::Error::WrongFormat;
     }
 
-    auto Error = ConstFatMachOMemoryObject::Error::None;
+    auto Error = FatMachOMemoryObject::Error::None;
     if (Header.is64Bit()) {
         Error = ValidateArchList<PointerKind::s64Bit>(Map, Header);
     } else {
         Error = ValidateArchList<PointerKind::s32Bit>(Map, Header);
     }
 
-    if (Error != ConstFatMachOMemoryObject::Error::None) {
+    if (Error != FatMachOMemoryObject::Error::None) {
         return Error;
     }
 
-    return ConstFatMachOMemoryObject::Error::None;
+    return FatMachOMemoryObject::Error::None;
 }
 
-auto
-ConstFatMachOMemoryObject::Open(const ConstMemoryMap &Map) noexcept ->
-    PointerOrError<ConstFatMachOMemoryObject, Error>
+auto FatMachOMemoryObject::Open(const MemoryMap &Map) noexcept
+    -> ExpectedPointer<FatMachOMemoryObject, Error>
 {
     const auto Error = ValidateMap(Map);
     if (Error != Error::None) {
         return Error;
     }
 
-    return new ConstFatMachOMemoryObject(Map);
+    return new FatMachOMemoryObject(Map);
 }
 
-ConstFatMachOMemoryObject::ConstFatMachOMemoryObject(
-    const ConstMemoryMap &Map) noexcept
+FatMachOMemoryObject::FatMachOMemoryObject(
+    const MemoryMap &Map) noexcept
 : MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()) {}
 
-FatMachOMemoryObject::FatMachOMemoryObject(const MemoryMap &Map) noexcept
-: ConstFatMachOMemoryObject(Map) {}
-
-bool
-ConstFatMachOMemoryObject::errorDidMatchFormat(const Error Error) noexcept {
+bool FatMachOMemoryObject::errorDidMatchFormat(const Error Error) noexcept {
     switch (Error) {
         case Error::None:
             return true;
@@ -138,12 +133,13 @@ enum class ArchKind {
 };
 
 template <typename ListType>
-[[nodiscard]] static ConstFatMachOMemoryObject::ArchInfo
+[[nodiscard]] static auto
 GetArchInfoAtIndexImpl(const ListType &List,
                        const uint32_t Index,
                        const bool IsBigEndian) noexcept
+    -> FatMachOMemoryObject::ArchInfo
 {
-    auto Info = ConstFatMachOMemoryObject::ArchInfo();
+    auto Info = FatMachOMemoryObject::ArchInfo();
     const auto &Arch = List.at(Index);
 
     Info.CpuKind = Arch.getCpuKind(IsBigEndian);
@@ -157,8 +153,8 @@ GetArchInfoAtIndexImpl(const ListType &List,
 }
 
 auto
-ConstFatMachOMemoryObject::GetArchInfoAtIndex(
-    const uint32_t Index) const noexcept -> ArchInfo
+FatMachOMemoryObject::GetArchInfoAtIndex(const uint32_t Index) const noexcept
+    -> ArchInfo
 {
     assert(!IndexOutOfBounds(Index, this->getArchCount()));
 
@@ -183,8 +179,8 @@ GetMachOObjectResult(MemoryObject *const ArchObject,
                      const Mach::CpuKind CpuKind,
                      const int32_t CpuSubKind) noexcept
 {
-    using WarningEnum = ConstFatMachOMemoryObject::GetArchObjectWarning;
-    using GetObjectResult = ConstFatMachOMemoryObject::GetArchObjectResult;
+    using WarningEnum = FatMachOMemoryObject::GetArchObjectWarning;
+    using GetObjectResult = FatMachOMemoryObject::GetArchObjectResult;
 
     const auto MachOObject = cast<ObjectKind::MachO>(ArchObject);
     const auto ArchCpuKind = MachOObject->getCpuKind();
@@ -198,33 +194,26 @@ GetMachOObjectResult(MemoryObject *const ArchObject,
 }
 
 auto
-ConstFatMachOMemoryObject::GetArchObjectFromInfo(
-    const ArchInfo &Info) const noexcept -> GetArchObjectResult
+FatMachOMemoryObject::GetArchObjectFromInfo(const ArchInfo &Info) const noexcept
+    -> GetArchObjectResult
 {
-    const auto ArchRangeOpt =
-        LocationRange::CreateWithSize(Info.Offset, Info.Size);
-
-    if (!ArchRangeOpt.has_value()) {
+    const auto ArchRange = Range::CreateWithSize(Info.Offset, Info.Size);
+    if (!this->getRange().contains(ArchRange)) {
         return GetArchObjectError::InvalidArchRange;
     }
 
-    const auto &ArchRange = ArchRangeOpt.value();
-    if (!getRange().containsLocRange(ArchRange)) {
-        return GetArchObjectError::InvalidArchRange;
-    }
-
-    const auto ArchMap = getMap().mapFromLocRange(ArchRange);
+    const auto ArchMap = this->getMap().mapFromLocRange(ArchRange);
     auto Kind = ArchKind::None;
 
     switch (Kind) {
         case ArchKind::None:
         case ArchKind::MachO:
-            const auto ObjectOrError = ConstMachOMemoryObject::Open(ArchMap);
+            const auto ObjectOrError = MachOMemoryObject::Open(ArchMap);
             const auto Error = ObjectOrError.getError();
 
-            if (ConstMachOMemoryObject::errorDidMatchFormat(Error)) {
+            if (MachOMemoryObject::errorDidMatchFormat(Error)) {
                 const auto Result =
-                    GetMachOObjectResult(ObjectOrError.getPtr(),
+                    GetMachOObjectResult(ObjectOrError.value(),
                                          Info.CpuKind,
                                          Info.CpuSubKind);
 

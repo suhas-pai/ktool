@@ -1,9 +1,9 @@
 //
-//  src/Operations/PrintLoadCommands.cpp
+//  Operations/PrintLoadCommands.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 4/10/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cstdio>
@@ -12,14 +12,11 @@
 #include "ADT/Mach-O/LoadCommandStorage.h"
 #include "ADT/Mach-O/LoadCommands.h"
 
-#include "Objects/FatMachOMemory.h"
+#include "Operations/Common.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintLoadCommands.h"
 
 #include "Utils/MachOLoadCommandPrinter.h"
-#include "Utils/SwitchEndian.h"
-
-#include "Common.h"
-#include "Operation.h"
-#include "PrintLoadCommands.h"
 
 PrintLoadCommandsOperation::PrintLoadCommandsOperation() noexcept
 : Operation(OpKind) {}
@@ -30,8 +27,8 @@ PrintLoadCommandsOperation::PrintLoadCommandsOperation(
 
 static void
 IterateLoadCommands(
-    const ConstMachOMemoryObject &Object,
-    const RelativeRange &Range,
+    const MachOMemoryObject &Object,
+    const Range &Range,
     const MachO::ConstLoadCommandStorage &LoadCmdStorage,
     const struct PrintLoadCommandsOperation::Options &Options) noexcept
 {
@@ -490,7 +487,7 @@ IterateLoadCommands(
 }
 
 int
-PrintLoadCommandsOperation::Run(const ConstMachOMemoryObject &Object,
+PrintLoadCommandsOperation::Run(const MachOMemoryObject &Object,
                                 const struct Options &Options) noexcept
 {
     const auto LoadCmdStorage =
@@ -505,7 +502,7 @@ PrintLoadCommandsOperation::Run(const ConstMachOMemoryObject &Object,
 }
 
 int
-PrintLoadCommandsOperation::Run(const ConstDscImageMemoryObject &Object,
+PrintLoadCommandsOperation::Run(const DscImageMemoryObject &Object,
                                 const struct Options &Options) noexcept
 {
     const auto LoadCmdStorage =
@@ -519,9 +516,10 @@ PrintLoadCommandsOperation::Run(const ConstDscImageMemoryObject &Object,
     return 0;
 }
 
-struct PrintLoadCommandsOperation::Options
+auto
 PrintLoadCommandsOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                              int *const IndexOut) noexcept
+    -> struct PrintLoadCommandsOperation::Options
 {
     auto Index = int();
     struct Options Options;

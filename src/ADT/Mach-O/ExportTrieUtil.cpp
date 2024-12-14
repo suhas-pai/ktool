@@ -1,19 +1,20 @@
 //
-//  src/ADT/Mach-O/ExportTrieUtil.cpp
+//  ADT/Mach-O/ExportTrieUtil.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 6/5/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "ExportTrieUtil.h"
+#include "ADT/Mach-O/ExportTrieUtil.h"
 
 namespace MachO {
-    const SegmentInfo *
+    auto
     ExportTrieEntryCollection::LookupInfoForAddress(
         const SegmentInfoCollection *Collection,
         uint64_t Address,
         const SectionInfo **SectionOut) const noexcept
+            -> const SegmentInfo *
     {
         const auto Segment = Collection->FindSegmentContainingAddress(Address);
         if (Segment != nullptr) {
@@ -23,10 +24,11 @@ namespace MachO {
         return Segment;
     }
 
-    ExportTrieEntryCollection::ChildNode *
+    auto
     ExportTrieEntryCollection::MakeNodeForEntryInfo(
         const ExportTrieIterateInfo &Info,
         const SegmentInfoCollection *Collection) noexcept
+            -> ExportTrieEntryCollection::ChildNode *
     {
         auto Node = static_cast<ChildNode *>(nullptr);
         if (Info.isExport()) {
@@ -73,10 +75,10 @@ namespace MachO {
             return;
         }
 
-        setRoot(MakeNodeForEntryInfo(*Iter, SegmentCollection));
+        this->setRoot(MakeNodeForEntryInfo(*Iter, SegmentCollection));
 
-        auto Parent = getRoot();
-        auto PrevDepthLevel = 1;
+        auto Parent = this->getRoot();
+        auto PrevDepthLevel = static_cast<uint8_t>(1);
 
         const auto MoveUpParentHierarchy = [&](uint8_t Amt) noexcept {
             for (auto I = uint8_t(); I != Amt; I++) {
@@ -109,11 +111,12 @@ namespace MachO {
         }
     }
 
-    ExportTrieEntryCollection
+    auto
     ExportTrieEntryCollection::Open(
         const ConstExportTrieList &Trie,
-        const SegmentInfoCollection *SegmentCollection,
-        Error *Error)
+        const SegmentInfoCollection *const SegmentCollection,
+        Error *const Error)
+            -> ExportTrieEntryCollection
     {
         auto Result = ExportTrieEntryCollection();
         Result.ParseFromTrie(Trie, SegmentCollection, Error);
@@ -121,16 +124,25 @@ namespace MachO {
         return Result;
     }
 
-    ExportTrieExportCollection
+    auto
     ExportTrieExportCollection::Open(
         const ConstExportTrieExportList &Trie,
         const SegmentInfoCollection *SegmentCollection,
-        Error *Error) noexcept
+        Error *const Error) noexcept
+            -> ExportTrieExportCollection
     {
         auto Result = ExportTrieExportCollection();
-        for (auto &Iter : Trie) {
+        for (auto Iter = Trie.begin(); Iter != Trie.end(); Iter++) {
+            if (Iter.hasError()) {
+                if (Error != nullptr) {
+                    *Error = Iter.getError();
+                }
+
+                return Result;
+            }
+
             auto Entry = EntryInfo();
-            const auto &ExportInfo = Iter.getExportInfo();
+            const auto &ExportInfo = Iter->getExportInfo();
 
             if (!ExportInfo.isReexport()) {
                 if (SegmentCollection != nullptr) {

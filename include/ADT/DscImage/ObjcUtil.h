@@ -1,9 +1,9 @@
 //
-//  include/ADT/DscImage/ObjcUtil.h
+//  ADT/DscImage/ObjcUtil.h
 //  ktool
 //
 //  Created by Suhas Pai on 9/4/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -16,16 +16,17 @@ namespace DscImage {
     struct ObjcClassInfoCollection : public MachO::ObjcClassInfoCollection {
         friend struct ObjcClassCategoryCollection;
     public:
-        ObjcClassInfoCollection &
+        auto
         Parse(const uint8_t *Map,
               const MachO::SegmentInfoCollection &SegmentCollection,
               const ConstDeVirtualizer &DeVirtualizer,
               const MachO::BindActionCollection &BindCollection,
               bool IsBigEndian,
               bool Is64Bit,
-              Error *ErrorOut) noexcept;
+              Error *ErrorOut) noexcept
+                -> decltype(*this);
 
-        ObjcClassInfoCollection &
+        auto
         Parse(const ConstMemoryMap &DscMap,
               const ConstMemoryMap &ImageMap,
               const MachO::SegmentInfoCollection &SegmentCollection,
@@ -37,9 +38,10 @@ namespace DscImage {
               bool Is64Bit,
               Error *ErrorOut,
               MachO::BindOpcodeParseError *ParseErrorOut,
-              MachO::BindActionCollection::Error *CollectionErrorOut) noexcept;
+              MachO::BindActionCollection::Error *CollectionErrorOut) noexcept
+                -> decltype(*this);
 
-        [[nodiscard]] static inline ObjcClassInfoCollection
+        [[nodiscard]] static inline auto
         Open(const uint8_t *const Map,
              const MachO::SegmentInfoCollection &SegmentCollection,
              const ConstDeVirtualizer &DeVirtualizer,
@@ -60,7 +62,7 @@ namespace DscImage {
             return Result;
         }
 
-        [[nodiscard]] static inline ObjcClassInfoCollection
+        [[nodiscard]] static inline auto
         Open(const ConstMemoryMap &DscMap,
              const ConstMemoryMap &ImageMap,
              const MachO::SegmentInfoCollection &SegmentCollection,
@@ -96,7 +98,7 @@ namespace DscImage {
     struct ObjcClassCategoryCollection :
         public MachO::ObjcClassCategoryCollection
     {
-        ObjcClassCategoryCollection &
+        auto
         CollectFrom(const uint8_t *Map,
                     const MachO::SegmentInfoCollection &SegmentCollection,
                     const ConstDeVirtualizer &DeVirtualizer,
@@ -104,9 +106,10 @@ namespace DscImage {
                     ObjcClassInfoCollection *ClassInfoTree,
                     bool IsBigEndian,
                     bool Is64Bit,
-                    Error *ErrorOut) noexcept;
+                    Error *ErrorOut) noexcept
+            -> decltype(*this);
 
-        ObjcClassCategoryCollection &
+        auto
         CollectFrom(
             const ConstMemoryMap &Map,
             const MachO::SegmentInfoCollection &SegmentCollection,
@@ -119,9 +122,10 @@ namespace DscImage {
             bool Is64Bit,
             Error *ErrorOut,
             MachO::BindOpcodeParseError *ParseErrorOut,
-            MachO::BindActionCollection::Error *CollectionErrorOut) noexcept;
+            MachO::BindActionCollection::Error *CollectionErrorOut) noexcept
+                -> decltype(*this);
 
-        [[nodiscard]] static inline ObjcClassCategoryCollection
+        [[nodiscard]] static inline auto
         Open(const uint8_t *Map,
              const MachO::SegmentInfoCollection &SegmentCollection,
              const ConstDeVirtualizer &DeVirtualizer,
@@ -144,7 +148,7 @@ namespace DscImage {
             return Result;
         }
 
-        [[nodiscard]] static inline ObjcClassCategoryCollection
+        [[nodiscard]] static inline auto
         Open(const ConstMemoryMap &Map,
              const MachO::SegmentInfoCollection &SegmentCollection,
              const ConstDeVirtualizer &DeVirtualizer,

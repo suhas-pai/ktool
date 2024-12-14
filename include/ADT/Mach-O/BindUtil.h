@@ -1,9 +1,9 @@
 //
-//  include/ADT/Mach-O/BindUtil.h
+//  ADT/Mach-O/BindUtil.h
 //  ktool
 //
 //  Created by Suhas Pai on 6/17/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -34,162 +34,174 @@ namespace MachO {
             bool sIsNewSymbolName : 1;
             BindSymbolFlags Flags;
         public:
-            [[nodiscard]]
-            constexpr BindInfoKind getKind() const noexcept {
-                return Kind;
+            [[nodiscard]] constexpr auto getKind() const noexcept {
+                return this->Kind;
+            }
+
+            [[nodiscard]] constexpr auto getWriteKind() const noexcept {
+                return this->WriteKind;
+            }
+
+            [[nodiscard]] constexpr auto getAddend() const noexcept {
+                return this->Addend;
+            }
+
+            [[nodiscard]] constexpr auto getDylibOrdinal() const noexcept {
+                return this->DylibOrdinal;
             }
 
             [[nodiscard]]
-            constexpr BindWriteKind getWriteKind() const noexcept {
-                return WriteKind;
+            constexpr auto getSymbol() const noexcept -> std::string_view {
+                return *this->Symbol;
             }
 
-            [[nodiscard]] constexpr int64_t getAddend() const noexcept {
-                return Addend;
+            [[nodiscard]] constexpr auto &getSymbolRef() const noexcept {
+                return *this->Symbol;
             }
 
-            [[nodiscard]]
-            constexpr int64_t getDylibOrdinal() const noexcept {
-                return DylibOrdinal;
-            }
-
-            [[nodiscard]]
-            constexpr std::string_view getSymbol() const noexcept {
-                return *Symbol;
-            }
-
-            [[nodiscard]]
-            constexpr const std::string &getSymbolRef() const noexcept {
-                return *Symbol;
-            }
-
-            [[nodiscard]]
-            constexpr uint32_t getSegmentIndex() const noexcept {
+            [[nodiscard]] constexpr auto getSegmentIndex() const noexcept {
                 return SegmentIndex;
             }
 
-            [[nodiscard]]
-            constexpr uint64_t getSegmentOffset() const noexcept {
+            [[nodiscard]] constexpr auto getSegmentOffset() const noexcept {
                 return SegmentOffset;
             }
 
-            [[nodiscard]]
-            constexpr uint64_t getAddress() const noexcept {
+            [[nodiscard]] constexpr auto getAddress() const noexcept {
                 return Address;
             }
 
-            [[nodiscard]]
-            constexpr uint64_t getOpcodeAddress() const noexcept {
+            [[nodiscard]] constexpr auto getOpcodeAddress() const noexcept {
                 return OpcodeAddress;
             }
 
-            [[nodiscard]]
-            constexpr uint64_t getAddrInSeg() const noexcept {
+            [[nodiscard]] constexpr auto getAddrInSeg() const noexcept {
                 return AddrInSeg;
             }
 
-            [[nodiscard]]
-            constexpr bool isNewSymbolName() const noexcept {
-                return sIsNewSymbolName;
+            [[nodiscard]] constexpr auto isNewSymbolName() const noexcept {
+                return this->sIsNewSymbolName;
             }
 
-            [[nodiscard]]
-            constexpr BindSymbolFlags getFlags() const noexcept {
-                return Flags;
+            [[nodiscard]] constexpr auto getFlags() const noexcept {
+                return this->Flags;
             }
 
-            constexpr Info &setKind(const BindInfoKind Value) noexcept {
+            constexpr auto setKind(const BindInfoKind Value) noexcept
+                -> decltype(*this)
+            {
                 this->Kind = Value;
                 return *this;
             }
 
-            constexpr Info &setWriteKind(const BindWriteKind Value) noexcept {
+            constexpr auto setWriteKind(const BindWriteKind Value) noexcept
+                -> decltype(*this)
+            {
                 this->WriteKind = Value;
                 return *this;
             }
 
-            constexpr Info &setDylibOrdinal(const uint32_t Value) noexcept {
+            constexpr auto setDylibOrdinal(const uint32_t Value) noexcept
+                -> decltype(*this)
+            {
                 this->DylibOrdinal = Value;
                 return *this;
             }
 
-            constexpr Info &setAddend(const int64_t Value) noexcept {
+            constexpr auto setAddend(const int64_t Value) noexcept
+                -> decltype(*this)
+            {
                 this->Addend = Value;
                 return *this;
             }
 
-            constexpr Info &setSymbol(const std::string *const Value) noexcept {
+            constexpr auto setSymbol(const std::string *const Value) noexcept
+                -> decltype(*this)
+            {
                 this->Symbol = Value;
                 return *this;
             }
 
-            constexpr Info &setSegmentIndex(const uint32_t Value) noexcept {
+            constexpr auto setSegmentIndex(const uint32_t Value) noexcept
+                -> decltype(*this)
+            {
                 this->SegmentIndex = Value;
                 return *this;
             }
 
-            constexpr Info &setSegmentOffset(const uint64_t Value) noexcept {
+            constexpr auto setSegmentOffset(const uint64_t Value) noexcept
+                -> decltype(*this)
+            {
                 this->SegmentOffset = Value;
                 return *this;
             }
 
-            constexpr Info &setAddress(const uint64_t Value) noexcept {
+            constexpr auto setAddress(const uint64_t Value) noexcept
+                -> decltype(*this)
+            {
                 this->SegmentOffset = Value;
                 return *this;
             }
 
-            constexpr Info &setOpcodeAddress(const uint64_t Value) noexcept {
+            constexpr auto setOpcodeAddress(const uint64_t Value) noexcept
+                -> decltype(*this)
+            {
                 this->SegmentOffset = Value;
                 return *this;
             }
 
-            constexpr Info &setAddrInSeg(const uint64_t Value) noexcept {
+            constexpr auto setAddrInSeg(const uint64_t Value) noexcept
+                -> decltype(*this)
+            {
                 this->AddrInSeg = Value;
                 return *this;
             }
 
-            constexpr
-            Info &setIsNewSymbolName(const bool Value = true) noexcept {
+            constexpr auto setIsNewSymbolName(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
                 this->sIsNewSymbolName = Value;
                 return *this;
             }
 
-            constexpr Info &setFlags(const BindSymbolFlags &Value) noexcept {
+            constexpr auto setFlags(const BindSymbolFlags &Value) noexcept
+                -> decltype(*this)
+            {
                 this->Flags = Value;
                 return *this;
             }
 
             [[nodiscard]]
-            inline bool operator==(const BindActionInfo &Info) const noexcept {
-                if (Info.WriteKind != getWriteKind()) {
+            inline auto operator==(const BindActionInfo &Info) const noexcept {
+                if (Info.WriteKind != this->getWriteKind()) {
                     return false;
                 }
 
-                if (Info.Addend != getAddend()) {
+                if (Info.Addend != this->getAddend()) {
                     return false;
                 }
 
-                if (Info.DylibOrdinal != getDylibOrdinal()) {
+                if (Info.DylibOrdinal != this->getDylibOrdinal()) {
                     return false;
                 }
 
-                if (Info.SymbolName != getSymbol()) {
+                if (Info.SymbolName != this->getSymbol()) {
                     return false;
                 }
 
-                if (Info.SegmentIndex != getSegmentIndex()) {
+                if (Info.SegmentIndex != this->getSegmentIndex()) {
                     return false;
                 }
 
-                if (Info.SegOffset != getSegmentOffset()) {
+                if (Info.SegOffset != this->getSegmentOffset()) {
                     return false;
                 }
 
-                if (Info.AddrInSeg != getAddrInSeg()) {
+                if (Info.AddrInSeg != this->getAddrInSeg()) {
                     return false;
                 }
 
-                if (Info.Flags != getFlags()) {
+                if (Info.Flags != this->getFlags()) {
                     return false;
                 }
 
@@ -199,7 +211,6 @@ namespace MachO {
 
         using ActionListType =
             std::unordered_map<uint64_t, std::unique_ptr<Info>>;
-
         using SymbolListType =
             std::unordered_map<size_t, std::unique_ptr<std::string>>;
 
@@ -213,23 +224,24 @@ namespace MachO {
         SymbolListType SymbolList;
         ActionListType ActionList;
     public:
-        BindActionCollection() noexcept = default;
+        explicit BindActionCollection() noexcept = default;
 
-        BindActionCollection &
+        auto
         Parse(const SegmentInfoCollection &SegmentCollection,
               const BindActionList *BindList,
               const LazyBindActionList *LazyBindList,
               const WeakBindActionList *WeakBindList,
-              const LocationRange &Range,
+              const Range &Range,
               ParseError *ParseErrorOut,
-              Error *ErrorOut) noexcept;
+              Error *ErrorOut) noexcept
+            -> decltype(*this);
 
         [[nodiscard]] inline static BindActionCollection
         Open(const SegmentInfoCollection &SegmentCollection,
              const BindActionList *BindList,
              const LazyBindActionList *LazyBindList,
              const WeakBindActionList *WeakBindList,
-             const LocationRange &Range,
+             const Range &Range,
              ParseError *ParseErrorOut,
              Error *ErrorOut) noexcept
         {

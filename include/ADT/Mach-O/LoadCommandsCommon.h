@@ -1,9 +1,9 @@
 //
-//  include/ADT/Mach-O/DyldInfoCommon.h
+//  ADT/Mach-O/DyldInfoCommon.h
 //  ktool
 //
 //  Created by Suhas Pai on 5/18/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -11,11 +11,9 @@
 #include <optional>
 
 #include "ADT/BasicMasksHandler.h"
-#include "ADT/LocationRange.h"
+#include "ADT/Range.h"
 #include "ADT/MemoryMap.h"
 #include "Utils/Leb128.h"
-
-#include "MemoryProtections.h"
 
 namespace MachO {
     constexpr static auto KindRequiredByDyld = 0x80000000ul;
@@ -83,16 +81,17 @@ namespace MachO {
         PastEnd,
     };
 
-    [[nodiscard]] inline SizeRangeError
+    [[nodiscard]] inline auto
     CheckSizeRange(const ConstMemoryMap &Map,
                    const uint32_t Offset,
                    const uint32_t Size,
                    uint64_t *const EndOut) noexcept
+        -> SizeRangeError
     {
         auto End = static_cast<uint64_t>(Offset) + Size;
-        auto Range = LocationRange::CreateWithEnd(Offset, End);
+        auto Range = Range::CreateWithEnd(Offset, End);
 
-        if (!Map.getRange().containsLocRange(Range)) {
+        if (!Map.getRange().contains(Range)) {
             return SizeRangeError::PastEnd;
         }
 
@@ -138,7 +137,7 @@ namespace MachO {
         explicit
         NakedOpcodeList(const uint8_t *const Begin,
                         const uint32_t Size) noexcept
-        : Begin(Begin), End(this->Begin + Size) {}
+        : Begin(Begin), End(Begin + Size) {}
 
         struct EndIterator {};
 
@@ -154,17 +153,19 @@ namespace MachO {
                          const uint8_t *const End) noexcept
             : Iter(Iter), End(End) {}
 
-            [[nodiscard]] inline const uint8_t *getPtr() const noexcept {
-                return Iter;
+            [[nodiscard]] inline auto getPtr() const noexcept {
+                return this->Iter;
             }
 
             template <typename T>
-            [[nodiscard]] inline const T *getAsByte() const noexcept {
-                return reinterpret_cast<const T *>(Iter);
+            [[nodiscard]] inline auto getAsByte() const noexcept {
+                return reinterpret_cast<const T *>(this->Iter);
             }
 
             template <typename T = uint64_t>
-            [[nodiscard]] std::optional<T> ReadUleb128() noexcept {
+            [[nodiscard]] auto ReadUleb128() noexcept
+                -> std::optional<T>
+            {
                 auto Value = T();
                 auto *Ptr = ::ReadUleb128(Iter, End, &Value);
 
@@ -172,12 +173,14 @@ namespace MachO {
                     return std::nullopt;
                 }
 
-                Iter = Ptr;
+                this->Iter = Ptr;
                 return Value;
             }
 
             template <typename T = int64_t>
-            [[nodiscard]] std::optional<T> ReadSleb128() noexcept {
+            [[nodiscard]] auto ReadSleb128() noexcept
+                -> std::optional<T>
+            {
                 auto Value = T();
                 auto *Ptr = ::ReadSleb128(Iter, End, &Value);
 
@@ -185,15 +188,15 @@ namespace MachO {
                     return std::nullopt;
                 }
 
-                Iter = Ptr;
+                this->Iter = Ptr;
                 return Value;
             }
 
-            [[nodiscard]]
-            std::optional<std::string_view> ParseString() noexcept;
+            [[nodiscard]] auto ParseString() noexcept
+                -> std::optional<std::string_view>;
 
-            [[nodiscard]] inline bool isAtEnd() const noexcept {
-                return (Iter >= End);
+            [[nodiscard]] inline auto isAtEnd() const noexcept {
+                return Iter >= End;
             }
         };
 
@@ -206,52 +209,56 @@ namespace MachO {
                      const uint8_t *const End) noexcept
             : Info(Iter, End) {}
 
-            [[nodiscard]] inline const uint8_t *getPtr() const noexcept {
-                return Info.getPtr();
+            [[nodiscard]] inline auto getPtr() const noexcept {
+                return this->Info.getPtr();
             }
 
-            [[nodiscard]] inline IteratorInfo &operator*() noexcept {
-                return Info;
+            [[nodiscard]] inline auto &operator*() noexcept {
+                return this->Info;
             }
 
-            [[nodiscard]] inline IteratorInfo *operator->() noexcept {
-                return &Info;
+            [[nodiscard]] inline auto operator->() noexcept {
+                return &this->Info;
             }
 
-            [[nodiscard]]
-            inline const IteratorInfo &operator*() const noexcept {
-                return Info;
+            [[nodiscard]] inline auto &operator*() const noexcept {
+                return this->Info;
             }
 
-            [[nodiscard]]
-            inline const IteratorInfo *operator->() const noexcept {
-                return &Info;
+            [[nodiscard]] inline auto operator->() const noexcept {
+                return &this->Info;
             }
 
-            [[nodiscard]] inline bool isAtEnd() const noexcept {
-                return Info.isAtEnd();
-            }
-
-            [[nodiscard]]
-            inline bool operator==(const EndIterator &) const noexcept {
-                return isAtEnd();
+            [[nodiscard]] inline auto isAtEnd() const noexcept {
+                return this->Info.isAtEnd();
             }
 
             [[nodiscard]]
-            inline bool operator!=(const EndIterator &) const noexcept {
-                return !isAtEnd();
+            inline auto operator==(const EndIterator &) const noexcept {
+                return this->isAtEnd();
             }
 
-            inline Iterator &operator++() noexcept {
-                Info.Iter++;
+            [[nodiscard]]
+            inline auto operator!=(const EndIterator &) const noexcept {
+                return !this->isAtEnd();
+            }
+
+            inline auto operator++() noexcept
+                -> decltype(*this)
+            {
+                this->Info.Iter++;
                 return *this;
             }
 
-            inline Iterator &operator++(int) noexcept {
+            inline auto operator++(int) noexcept
+                -> decltype(*this)
+            {
                 return ++(*this);
             }
 
-            inline Iterator &operator+=(const uint64_t Amt) noexcept {
+            inline auto operator+=(const uint64_t Amt) noexcept
+                -> decltype(*this)
+            {
                 for (auto I = uint64_t(); I != Amt; I++) {
                     (*this)++;
                 }
@@ -260,11 +267,11 @@ namespace MachO {
             }
         };
 
-        [[nodiscard]] inline Iterator begin() const noexcept {
+        [[nodiscard]] inline auto begin() const noexcept {
             return Iterator(Begin, End);
         }
 
-        [[nodiscard]] inline EndIterator end() const noexcept {
+        [[nodiscard]] inline auto end() const noexcept {
             return EndIterator();
         }
     };
@@ -277,8 +284,10 @@ namespace MachO {
         ReadOnlyAfterFixup = 1 << 4
     };
 
-    [[nodiscard]] constexpr
-    std::string_view SegmentFlagsGetName(const SegmentFlagsEnum Val) noexcept {
+    [[nodiscard]]
+    constexpr auto SegmentFlagsGetName(const SegmentFlagsEnum Val) noexcept
+        -> std::optional<std::string_view>
+    {
         switch (Val) {
             using Enum = SegmentFlagsEnum;
             case Enum::HighVM:
@@ -292,10 +301,14 @@ namespace MachO {
             case Enum::ReadOnlyAfterFixup:
                 return "SG_READ_ONLY";
         }
+
+        return std::nullopt;
     }
 
-    [[nodiscard]] constexpr
-    std::string_view SegmentFlagsGetDesc(const SegmentFlagsEnum Val) noexcept {
+    [[nodiscard]] constexpr auto
+    SegmentFlagsGetDesc(const SegmentFlagsEnum Val) noexcept
+        -> std::optional<std::string_view>
+    {
         switch (Val) {
             using Enum = SegmentFlagsEnum;
             case Enum::HighVM:
@@ -309,6 +322,8 @@ namespace MachO {
             case Enum::ReadOnlyAfterFixup:
                 return "Read-Only (After Fix-Ups)";
         }
+
+        return std::nullopt;
     }
 
     struct SegmentFlags : public ::BasicFlags<SegmentFlagsEnum> {
@@ -322,52 +337,58 @@ namespace MachO {
         constexpr SegmentFlags(const FlagIntegerType Integer) noexcept
         : Base(Integer) {}
 
-        [[nodiscard]] constexpr bool isHighVM() const noexcept {
-            return hasFlag(FlagEnum::HighVM);
+        [[nodiscard]] constexpr auto isHighVM() const noexcept {
+            return this->hasFlag(FlagEnum::HighVM);
         }
 
-        [[nodiscard]] constexpr bool isFixedVMLibary() const noexcept {
-            return hasFlag(FlagEnum::FixedVMLibary);
+        [[nodiscard]] constexpr auto isFixedVMLibary() const noexcept {
+            return this->hasFlag(FlagEnum::FixedVMLibary);
         }
 
-        [[nodiscard]] constexpr bool isNoRelocations() const noexcept {
-            return hasFlag(FlagEnum::NoRelocations);
+        [[nodiscard]] constexpr auto isNoRelocations() const noexcept {
+            return this->hasFlag(FlagEnum::NoRelocations);
         }
 
-        [[nodiscard]] constexpr bool isProtected() const noexcept {
-            return hasFlag(FlagEnum::ProtectionVersion1);
+        [[nodiscard]] constexpr auto isProtected() const noexcept {
+            return this->hasFlag(FlagEnum::ProtectionVersion1);
         }
 
-        [[nodiscard]] constexpr bool isReadOnlyAfterFixup() const noexcept {
-            return hasFlag(FlagEnum::ReadOnlyAfterFixup);
+        [[nodiscard]] constexpr auto isReadOnlyAfterFixup() const noexcept {
+            return this->hasFlag(FlagEnum::ReadOnlyAfterFixup);
         }
 
-        constexpr SegmentFlags &setHighVM(const bool Value = true) noexcept {
-            setValueForFlag(FlagEnum::HighVM, Value);
+        constexpr auto setHighVM(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForFlag(FlagEnum::HighVM, Value);
             return *this;
         }
 
-        constexpr
-        SegmentFlags &setFixedVMLibary(const bool Value = true) noexcept {
-            setValueForFlag(FlagEnum::FixedVMLibary, Value);
+        constexpr auto setFixedVMLibary(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForFlag(FlagEnum::FixedVMLibary, Value);
             return *this;
         }
 
-        constexpr
-        SegmentFlags &setNoRelocations(const bool Value = true) noexcept {
-            setValueForFlag(FlagEnum::NoRelocations, Value);
+        constexpr auto setNoRelocations(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForFlag(FlagEnum::NoRelocations, Value);
             return *this;
         }
 
-        constexpr
-        SegmentFlags &setIsProtected(const bool Value = true) noexcept {
-            setValueForFlag(FlagEnum::ProtectionVersion1, Value);
+        constexpr auto setIsProtected(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForFlag(FlagEnum::ProtectionVersion1, Value);
             return *this;
         }
 
-        constexpr
-        SegmentFlags &setReadOnlyAfterFixup(const bool Value = true) noexcept {
-            setValueForFlag(FlagEnum::ReadOnlyAfterFixup, Value);
+        constexpr auto setReadOnlyAfterFixup(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForFlag(FlagEnum::ReadOnlyAfterFixup, Value);
             return *this;
         }
     };
@@ -393,14 +414,16 @@ namespace MachO {
 
         ThreadLocalRegular,
         ThreadLocalZeroFill,
-        TheradLocalVariables,
+        ThreadLocalVariables,
         ThreadLocalVariablePointers,
         ThreadLocalInitFunctionPointers,
         InitFunction32BitOffsets
     };
 
-    constexpr std::string_view
-    SegmentSectionKindGetName(const SegmentSectionKind Type) noexcept {
+    constexpr auto
+    SegmentSectionKindGetName(const SegmentSectionKind Type) noexcept
+        -> std::optional<std::string_view>
+    {
         using Enum = SegmentSectionKind;
         switch (Type) {
             case Enum::Regular:
@@ -441,7 +464,7 @@ namespace MachO {
                 return "S_THREAD_LOCAL_REGULAR";
             case Enum::ThreadLocalZeroFill:
                 return "S_THREAD_LOCAL_ZEROFILL";
-            case Enum::TheradLocalVariables:
+            case Enum::ThreadLocalVariables:
                 return "S_THREAD_LOCAL_VARIABLES";
             case Enum::ThreadLocalVariablePointers:
                 return "S_THREAD_LOCAL_VARIABLE_POINTERS";
@@ -451,11 +474,13 @@ namespace MachO {
                 return "S_INIT_FUNC_OFFSETS";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
-    constexpr std::string_view
-    SegmentSectionKindGetDescription(const SegmentSectionKind Type) noexcept {
+    constexpr auto
+    SegmentSectionKindGetDescription(const SegmentSectionKind Type) noexcept
+        -> std::optional<std::string_view>
+    {
         using Enum = SegmentSectionKind;
         switch (Type) {
             case Enum::Regular:
@@ -496,7 +521,7 @@ namespace MachO {
                 return "Thread-Local Regular";
             case Enum::ThreadLocalZeroFill:
                 return "Thread-Local Zero-Fill";
-            case Enum::TheradLocalVariables:
+            case Enum::ThreadLocalVariables:
                 return "Thread-Local Variables";
             case Enum::ThreadLocalVariablePointers:
                 return "Thread-Local Variable-Pointers";
@@ -506,7 +531,7 @@ namespace MachO {
                 return "32-Bit Init Function Offsets";
         }
 
-        return std::string_view();
+        return std::nullopt;
     }
 
     constexpr static auto SegmentSectionUserSettableAttributesMask =
@@ -540,106 +565,118 @@ namespace MachO {
 
         using Base::Base;
 
-        [[nodiscard]] constexpr bool isAllInstructions() const noexcept {
-            return hasValueForMask(MaskKind::IsAllInstructions);
+        [[nodiscard]] constexpr auto isAllInstructions() const noexcept {
+            return this->hasValueForMask(MaskKind::IsAllInstructions);
         }
 
-        [[nodiscard]] constexpr bool noRanlibTableOfContents() const noexcept {
+        [[nodiscard]] constexpr auto noRanlibTableOfContents() const noexcept {
             const auto NoRanlibTableOfContents =
-                hasValueForMask(MaskKind::NoRanlibTableOfContents);
+                this->hasValueForMask(MaskKind::NoRanlibTableOfContents);
 
             return NoRanlibTableOfContents;
         }
 
-        [[nodiscard]] constexpr bool shouldStripStaticSymbols() const noexcept {
-            return hasValueForMask(MaskKind::StripStaticSymbols);
+        [[nodiscard]] constexpr auto shouldStripStaticSymbols() const noexcept {
+            return this->hasValueForMask(MaskKind::StripStaticSymbols);
         }
 
-        [[nodiscard]] constexpr bool noDeadStripping() const noexcept {
-            return hasValueForMask(MaskKind::NoDeadStripping);
+        [[nodiscard]] constexpr auto noDeadStripping() const noexcept {
+            return this->hasValueForMask(MaskKind::NoDeadStripping);
         }
 
-        [[nodiscard]] constexpr bool hasLiveSupport() const noexcept {
-            return hasValueForMask(MaskKind::LiveSupport);
+        [[nodiscard]] constexpr auto hasLiveSupport() const noexcept {
+            return this->hasValueForMask(MaskKind::LiveSupport);
         }
 
-        [[nodiscard]] constexpr bool hasSelfModifyingCode() const noexcept {
-            return hasValueForMask(MaskKind::SelfModifyingCode);
+        [[nodiscard]] constexpr auto hasSelfModifyingCode() const noexcept {
+            return this->hasValueForMask(MaskKind::SelfModifyingCode);
         }
 
         [[nodiscard]] constexpr bool isDebugSection() const noexcept {
-            return hasValueForMask(MaskKind::IsDebugSection);
+            return this->hasValueForMask(MaskKind::IsDebugSection);
         }
 
-        [[nodiscard]] constexpr bool hasSomeInstructions() const noexcept {
-            return hasValueForMask(MaskKind::HasSomeInstructions);
+        [[nodiscard]] constexpr auto hasSomeInstructions() const noexcept {
+            return this->hasValueForMask(MaskKind::HasSomeInstructions);
         }
 
-        [[nodiscard]] constexpr bool hasExternalRelocEntries() const noexcept {
-            return hasValueForMask(MaskKind::HasExternalRelocEntries);
+        [[nodiscard]] constexpr auto hasExternalRelocEntries() const noexcept {
+            return this->hasValueForMask(MaskKind::HasExternalRelocEntries);
         }
 
-        [[nodiscard]] constexpr bool hasLocalRelocEntries() const noexcept {
-            return hasValueForMask(MaskKind::HasLocalRelocEntries);
+        [[nodiscard]] constexpr auto hasLocalRelocEntries() const noexcept {
+            return this->hasValueForMask(MaskKind::HasLocalRelocEntries);
         }
 
-        constexpr SegmentSectionAttributes &
-        setIsAllInstructions(const bool Value = true) noexcept {
-            setValueForMask(MaskKind::IsAllInstructions, Value);
+        constexpr auto setIsAllInstructions(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForMask(MaskKind::IsAllInstructions, Value);
             return *this;
         }
 
-        constexpr SegmentSectionAttributes &
-        setNoRanlibTableOfContents(const bool Value) noexcept {
-            setValueForMask(MaskKind::NoRanlibTableOfContents, Value);
+        constexpr
+        auto setNoRanlibTableOfContents(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForMask(MaskKind::NoRanlibTableOfContents, Value);
             return *this;
         }
 
-        constexpr SegmentSectionAttributes &
-        setStripStaticSymbols(const bool Value = true) noexcept {
-            setValueForMask(MaskKind::StripStaticSymbols, Value);
+        constexpr auto setStripStaticSymbols(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForMask(MaskKind::StripStaticSymbols, Value);
             return *this;
         }
 
-        constexpr SegmentSectionAttributes &
-        setNoDeadStripping(const bool Value = true) noexcept {
-            setValueForMask(MaskKind::NoDeadStripping, Value);
+        constexpr auto setNoDeadStripping(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForMask(MaskKind::NoDeadStripping, Value);
             return *this;
         }
 
-        constexpr SegmentSectionAttributes &
-        setLiveSupport(const bool Value = true) noexcept {
-            setValueForMask(MaskKind::LiveSupport, Value);
+        constexpr auto setLiveSupport(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForMask(MaskKind::LiveSupport, Value);
             return *this;
         }
 
-        constexpr SegmentSectionAttributes &
-        setSelfModifyingCode(const bool Value = true) noexcept {
-            setValueForMask(MaskKind::SelfModifyingCode, Value);
+        constexpr auto setSelfModifyingCode(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForMask(MaskKind::SelfModifyingCode, Value);
             return *this;
         }
 
-        constexpr SegmentSectionAttributes &
-        setIsDebugSection(const bool Value = true) noexcept {
-            setValueForMask(MaskKind::IsDebugSection, Value);
+        constexpr auto setIsDebugSection(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForMask(MaskKind::IsDebugSection, Value);
             return *this;
         }
 
-        constexpr SegmentSectionAttributes &
-        setHasSomeInstructions(const bool Value = true) noexcept {
-            setValueForMask(MaskKind::HasSomeInstructions, Value);
+        constexpr auto setHasSomeInstructions(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForMask(MaskKind::HasSomeInstructions, Value);
             return *this;
         }
 
-        constexpr SegmentSectionAttributes &
-        setHasExternalRelocEntries(const bool Value = true) noexcept {
-            setValueForMask(MaskKind::HasExternalRelocEntries, Value);
+        constexpr
+        auto setHasExternalRelocEntries(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForMask(MaskKind::HasExternalRelocEntries, Value);
             return *this;
         }
 
-        constexpr SegmentSectionAttributes &
-        setHasLocalRelocEntries(const bool Value = true) noexcept {
-            setValueForMask(MaskKind::HasLocalRelocEntries, Value);
+        constexpr auto setHasLocalRelocEntries(const bool Value = true) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForMask(MaskKind::HasLocalRelocEntries, Value);
             return *this;
         }
     };
@@ -662,23 +699,27 @@ namespace MachO {
 
         using Base::Base;
 
-        [[nodiscard]] constexpr Attributes getAttributes() const noexcept {
-            return Attributes(getValueForMask(MaskType::Attributes));
+        [[nodiscard]] constexpr auto getAttributes() const noexcept {
+            return Attributes(this->getValueForMask(MaskType::Attributes));
         }
 
-        [[nodiscard]] constexpr Kind getKind() const noexcept {
-            return Kind(getValueForMask(MaskType::Kind));
+        [[nodiscard]] constexpr auto getKind() const noexcept {
+            return Kind(this->getValueForMask(MaskType::Kind));
         }
 
-        [[nodiscard]] constexpr SegmentSectionFlags &
-        setAttributes(const Attributes Attributes) noexcept {
-            setValueForMask(MaskType::Attributes, Attributes.value());
+        [[nodiscard]] constexpr auto
+        setAttributes(const Attributes Attributes) noexcept
+            -> decltype(*this)
+        {
+            this->setValueForMask(MaskType::Attributes, Attributes.value());
             return *this;
         }
 
         [[nodiscard]]
-        constexpr SegmentSectionFlags &setType(const Kind Kind) noexcept {
-            setValueForMask(MaskType::Kind, static_cast<MaskIntegerType>(Kind));
+        constexpr auto setType(const Kind Kind) noexcept -> decltype(*this) {
+            this->setValueForMask(MaskType::Kind,
+                                  static_cast<MaskIntegerType>(Kind));
+
             return *this;
         }
     };

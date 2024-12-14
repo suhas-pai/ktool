@@ -1,9 +1,9 @@
 //
-//  src/ADT/FileDescriptor.cpp
+//  ADT/FileDescriptor.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 3/30/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <sys/stat.h>
@@ -11,7 +11,7 @@
 #include <cassert>
 #include <unistd.h>
 
-#include "FileDescriptor.h"
+#include "ADT/FileDescriptor.h"
 
 FileDescriptor
 FileDescriptor::Open(const char *const Path,
@@ -45,7 +45,9 @@ bool FileDescriptor::TruncateToSize(const uint64_t Size) noexcept {
     return (ftruncate(Fd, Size) == 0);
 }
 
-std::optional<struct stat> FileDescriptor::GetInfo() const noexcept {
+auto FileDescriptor::GetInfo() const noexcept
+    -> std::optional<struct stat>
+{
     assert(this->isOpen());
 
     struct stat Sbuf = {};
@@ -56,7 +58,7 @@ std::optional<struct stat> FileDescriptor::GetInfo() const noexcept {
     return Sbuf;
 }
 
-std::optional<uint64_t> FileDescriptor::GetSize() const noexcept {
+auto FileDescriptor::GetSize() const noexcept -> std::optional<uint64_t> {
     if (const auto Info = GetInfo()) {
         return Info->st_size;
     }

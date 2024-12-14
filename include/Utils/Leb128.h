@@ -1,15 +1,17 @@
 //
-//  include/Utils/Leb128.h
+//  Utils/Leb128.h
 //  ktool
 //
 //  Created by Suhas Pai on 5/7/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
 
+#include <concepts>
 #include <cstdint>
 #include <type_traits>
+
 #include "IntegerLimit.h"
 
 // The templates Convert [T = uint8_t *] to [T = const uint8_t *]
@@ -22,17 +24,17 @@ concept Leb128Type =
                 std::remove_pointer_t<T>>>, const uint8_t *>;
 
 [[maybe_unused]]
-constexpr static bool Leb128ByteIsDone(const uint8_t &Byte) noexcept {
-    return !(Byte & 0x80);
+constexpr static auto Leb128ByteIsDone(const uint8_t &Byte) noexcept {
+    return (Byte & 0x80) == 0;
 }
 
 [[maybe_unused]]
-constexpr static uint8_t Leb128ByteGetBits(const uint8_t &Byte) noexcept {
-    return (Byte & 0x7f);
+constexpr static auto Leb128ByteGetBits(const uint8_t &Byte) noexcept {
+    return Byte & 0x7f;
 }
 
 template <std::integral Integer>
-constexpr static uint8_t Leb128GetIntegerMaxShift() {
+constexpr static auto Leb128GetIntegerMaxShift() noexcept -> uint8_t {
     constexpr auto BitSize = static_cast<uint8_t>(sizeof(Integer) * 8);
     constexpr auto MaxFactor = static_cast<uint8_t>(BitSize / 7);
 
@@ -40,7 +42,7 @@ constexpr static uint8_t Leb128GetIntegerMaxShift() {
 }
 
 template <std::integral Integer>
-constexpr static uint8_t Leb128GetLastByteValueMax() {
+constexpr static auto Leb128GetLastByteValueMax() noexcept -> uint8_t {
     constexpr auto BitSize = (sizeof(Integer) * 8);
     constexpr auto Mod = (BitSize % 7);
 
@@ -48,10 +50,10 @@ constexpr static uint8_t Leb128GetLastByteValueMax() {
         return 0;
     }
 
-    return ((1ull << Mod) - 1);
+    return (1ull << Mod) - 1;
 }
 
-constexpr uint64_t
+constexpr auto
 Leb128SignExtendIfNecessary(uint64_t Value,
                             uint8_t Byte,
                             uint64_t Shift) noexcept
@@ -61,7 +63,7 @@ Leb128SignExtendIfNecessary(uint64_t Value,
     }
 
     const auto Mask = (~0ull << Shift);
-    return (Value | Mask);
+    return Value | Mask;
 }
 
 template <bool Signed,
@@ -70,7 +72,7 @@ template <bool Signed,
           typename ValueType>
 
 constexpr
-static T ReadLeb128Base(T Begin, T End, ValueType *ValueOut) noexcept {
+static T ReadLeb128Base(T Begin, T End, ValueType *const ValueOut) noexcept {
     using MaxValueType = std::conditional_t<Signed, int64_t, uint64_t>;
     using RealIntegerLimitType =
         IntegerLimitRealValueType<ValueType, MaxValueType>;
@@ -145,7 +147,8 @@ template <typename FakeIntegerLimit = IntegerLimitDefaultType,
           typename T,
           typename ValueType>
 
-constexpr static T ReadUleb128(T Begin, T End, ValueType *ValueOut) noexcept {
+constexpr
+static T ReadUleb128(T Begin, T End, ValueType *const ValueOut) noexcept {
     const auto Result =
         ReadLeb128Base<false, FakeIntegerLimit, T, ValueType>(Begin,
                                                               End,
@@ -164,7 +167,7 @@ template <typename FakeIntegerLimit = IntegerLimitDefaultType,
           typename ValueType>
 
 [[nodiscard]] constexpr static T
-ReadSleb128(const T &Begin, const T &End, ValueType *ValueOut) noexcept {
+ReadSleb128(const T &Begin, const T &End, ValueType *const ValueOut) noexcept {
     const auto Result =
         ReadLeb128Base<true, FakeIntegerLimit, T, ValueType>(Begin,
                                                              End,

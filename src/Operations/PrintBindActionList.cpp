@@ -1,17 +1,18 @@
 //
-//  src/Operations/PrintBindActionList.cpp
+//  Operations/PrintBindActionList.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 5/28/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cstring>
-#include "Utils/PrintUtils.h"
 
-#include "Common.h"
-#include "Operation.h"
-#include "PrintBindActionList.h"
+#include "Operations/Common.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintBindActionList.h"
+
+#include "Utils/PrintUtils.h"
 
 PrintBindActionListOperation::PrintBindActionListOperation() noexcept
 : Operation(OpKind) {}
@@ -70,7 +71,7 @@ PrintBindAction(
     const struct PrintBindActionListOperation::Options &Options) noexcept
 {
     fprintf(Options.OutFile,
-            "%s Action %0*" PRIu64 ": ",
+            "%s Action %*" PRIu64 ": ",
             Name,
             SizeDigitLength,
             Counter);
@@ -78,7 +79,7 @@ PrintBindAction(
     if (const auto *const Segment =
             SegmentCollection.atOrNull(Action.SegmentIndex))
     {
-        const auto &MemoryRange = Segment->getMemoryRange();
+        const auto MemoryRange = Segment->getMemoryRange();
         const auto FullAddr = MemoryRange.getBegin() + Action.AddrInSeg;
         const auto Section = Segment->FindSectionContainingAddress(FullAddr);
 
@@ -109,7 +110,8 @@ PrintBindAction(
         fprintf(Options.OutFile,
                 " %" PRINTF_RIGHTPAD_FMT "s",
                 static_cast<int>(MachO::BindWriteKindGetLongestDescription()),
-                MachO::BindWriteKindGetDescription(Action.WriteKind).data());
+                MachO::BindWriteKindGetDescription(Action.WriteKind)
+                    .value_or("<Unrecognized>").data());
     }
 
     const auto RightPad =
@@ -160,10 +162,10 @@ PrintBindActionList(
             fprintf(Options.OutFile, "1 %s Action:\n", Name);
             break;
         default:
-            fprintf(Options.OutFile,
-                    "%" PRIuPTR " %s Actions:\n",
-                    List.size(),
-                    Name);
+            PrintUtilsWriteFormattedNumber(Options.OutFile,
+                                           List.size(),
+                                           "",
+                                           " Actions:\n");
             break;
     }
 
@@ -186,7 +188,7 @@ PrintBindActionList(
 
 static int
 PrintBindActionList(
-    const ConstMachOMemoryObject &Object,
+    const MachOMemoryObject &Object,
     const ConstMemoryMap &Map,
     const struct PrintBindActionListOperation::Options &Options) noexcept
 {
@@ -277,7 +279,7 @@ PrintBindActionList(
 
         BindActionListRangeError = BindActionListOpt.getError();
         if (BindActionListRangeError == MachO::SizeRangeError::None) {
-            const auto BindActionList = BindActionListOpt.getRef();
+            const auto &BindActionList = *BindActionListOpt.value();
             BindActionListError = BindActionList.GetAsList(BindActionInfoList);
 
             if (!Options.SortKindList.empty()) {
@@ -297,7 +299,7 @@ PrintBindActionList(
 
         LazyBindActionListRangeError = LazyBindActionListOpt.getError();
         if (LazyBindActionListRangeError == MachO::SizeRangeError::None) {
-            const auto LazyBindActionList = LazyBindActionListOpt.getRef();
+            const auto &LazyBindActionList = *LazyBindActionListOpt.value();
             LazyBindActionListError =
                 LazyBindActionList.GetAsList(LazyBindActionInfoList);
 
@@ -318,7 +320,7 @@ PrintBindActionList(
 
         WeakBindActionListRangeError = WeakBindActionListOpt.getError();
         if (WeakBindActionListRangeError == MachO::SizeRangeError::None) {
-            const auto WeakBindActionList = WeakBindActionListOpt.getRef();
+            const auto &WeakBindActionList = *WeakBindActionListOpt.value();
             WeakBindActionListError =
                 WeakBindActionList.GetAsList(WeakBindActionInfoList);
 
@@ -449,14 +451,14 @@ PrintBindActionList(
 }
 
 int
-PrintBindActionListOperation::Run(const ConstDscImageMemoryObject &Object,
+PrintBindActionListOperation::Run(const DscImageMemoryObject &Object,
                                   const struct Options &Options) noexcept
 {
     return PrintBindActionList(Object, Object.getDscMap(), Options);
 }
 
 int
-PrintBindActionListOperation::Run(const ConstMachOMemoryObject &Object,
+PrintBindActionListOperation::Run(const MachOMemoryObject &Object,
                                   const struct Options &Options) noexcept
 {
     return PrintBindActionList(Object, Object.getMap(), Options);
@@ -483,9 +485,10 @@ AddSortKind(const char *const Opt,
     }
 }
 
-struct PrintBindActionListOperation::Options
+auto
 PrintBindActionListOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                                int *const IndexOut) noexcept
+    -> struct PrintBindActionListOperation::Options
 {
     auto Index = int();
     struct Options Options;

@@ -1,19 +1,20 @@
 //
-//  src/ADT/Mach-O/SharedLibraryUtil.cpp
+//  ADT/Mach-O/SharedLibraryUtil.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 5/21/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "LoadCommandStorage.h"
-#include "SharedLibraryUtil.h"
+#include "ADT/Mach-O/LoadCommandStorage.h"
+#include "ADT/Mach-O/SharedLibraryUtil.h"
 
 namespace MachO {
-    SharedLibraryInfoCollection
+    auto
     SharedLibraryInfoCollection::Open(
         const ConstLoadCommandStorage &LoadCmdStorage,
-        Error *ErrorOut) noexcept
+        Error *const ErrorOut) noexcept
+            -> SharedLibraryInfoCollection
     {
         const auto IsBigEndian = LoadCmdStorage.isBigEndian();
 

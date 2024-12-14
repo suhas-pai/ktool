@@ -1,17 +1,18 @@
 //
-//  src/ADT/Mach-O/BindUtil.cpp
+//  ADT/Mach-O/BindUtil.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 6/17/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
-#include "BindUtil.h"
+#include "ADT/Mach-O/BindUtil.h"
 
 namespace MachO {
-    static std::string *
-    GetPtrForSymbol(std::string_view Symbol,
+    static auto
+    GetPtrForSymbol(const std::string_view Symbol,
                     BindActionCollection::SymbolListType &SymbolList) noexcept
+        -> std::string *
     {
         const auto Hash = std::hash<std::string_view>()(Symbol);
         const auto Iter = SymbolList.find(Hash);
@@ -30,12 +31,12 @@ namespace MachO {
     }
 
     template <BindInfoKind BindKind, typename T>
-    static bool
+    static auto
     CollectActionListFromTrie(const T &BindList,
                               const SegmentInfoCollection &SegmentCollection,
                               BindActionCollection::SymbolListType &SymbolList,
                               BindActionCollection::ActionListType &ActionList,
-                              const LocationRange &Range,
+                              const Range &Range,
                               BindActionCollection::ParseError *ParseErrorOut,
                               BindActionCollection::Error *ErrorOut) noexcept
     {
@@ -94,7 +95,7 @@ namespace MachO {
             const auto &ActionListIter = ActionList.find(FullAddr);
 
             if (!Range.empty()) {
-                if (!Range.containsLocation(FullAddr)) {
+                if (!Range.hasLocation(FullAddr)) {
                     continue;
                 }
             }
@@ -145,14 +146,15 @@ namespace MachO {
         return true;
     }
 
-    BindActionCollection &
+    auto
     BindActionCollection::Parse(const SegmentInfoCollection &SegmentCollection,
-                                const BindActionList *BindList,
-                                const LazyBindActionList *LazyBindList,
-                                const WeakBindActionList *WeakBindList,
-                                const LocationRange &Range,
-                                ParseError *ParseErrorOut,
-                                Error *ErrorOut) noexcept
+                                const BindActionList *const BindList,
+                                const LazyBindActionList *const LazyBindList,
+                                const WeakBindActionList *const WeakBindList,
+                                const Range &Range,
+                                ParseError *const ParseErrorOut,
+                                Error *const ErrorOut) noexcept
+        -> decltype(*this)
     {
         auto ParseResult = false;
         if (BindList != nullptr) {
@@ -204,8 +206,10 @@ namespace MachO {
         return *this;
     }
 
-    const BindActionCollection::Info *
-    BindActionCollection::GetInfoForAddress(uint64_t Address) const noexcept {
+    auto BindActionCollection::GetInfoForAddress(
+        const uint64_t Address) const noexcept
+            -> const BindActionCollection::Info *
+    {
         const auto Iter = ActionList.find(Address);
         if (Iter != ActionList.end()) {
             return Iter->second.get();
@@ -214,8 +218,10 @@ namespace MachO {
         return nullptr;
     }
 
-    const std::string *
-    BindActionCollection::GetSymbolForAddress(uint64_t Address) const noexcept {
+    auto
+    BindActionCollection::GetSymbolForAddress(uint64_t Address) const noexcept
+        -> const std::string *
+    {
         if (const auto *Info = GetInfoForAddress(Address)) {
             return &Info->getSymbolRef();
         }

@@ -1,27 +1,28 @@
 //
-//  include/Utils/MiscTemplates.h
+//  Utils/MiscTemplates.h
 //  ktool
 //
 //  Created by Suhas Pai on 4/24/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
 
 #include <cassert>
+#include <concepts>
 #include <cstddef>
 #include <type_traits>
 
 template <std::integral T, std::integral U>
 [[nodiscard]]
-constexpr bool IndexOutOfBounds(T Index, U Bounds) noexcept {
-    return (Index >= Bounds);
+constexpr auto IndexOutOfBounds(T Index, U Bounds) noexcept {
+    return static_cast<U>(Index) >= Bounds;
 }
 
 template <std::integral T>
 [[nodiscard]] constexpr bool OrdinalToIndex(T Ordinal) noexcept {
     assert(Ordinal != 0);
-    return (Ordinal - 1);
+    return Ordinal - 1;
 }
 
 template <typename ... Ts>
@@ -69,5 +70,6 @@ struct LargestIntegerTypeCalculator<T, U, Rest...>  {
 
 template <typename T, size_t N>
 [[nodiscard]] constexpr size_t countof(T (&arr)[N]) noexcept {
+    (void)arr;
     return std::extent<T[N]>::value;
 }

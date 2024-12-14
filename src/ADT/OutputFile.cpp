@@ -1,15 +1,15 @@
 //
-//  src/ADT/OutputFile.cpp
+//  ADT/OutputFile.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 4/29/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cassert>
 #include <string>
 
-#include "OutputFile.h"
+#include "ADT/OutputFile.h"
 
 OutputFile::OutputFile() noexcept {
     const auto RandNumber = rand() % 99999;

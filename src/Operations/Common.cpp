@@ -1,9 +1,9 @@
 //
-//  src/Operations/Common.cpp
+//  Operations/Common.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 4/23/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cstdio>
@@ -12,8 +12,10 @@
 #include <string_view>
 
 #include "ADT/MemoryMap.h"
+#include "Operations/Common.h"
 #include "Utils/PrintUtils.h"
-#include "Common.h"
+
+using namespace std::literals;
 
 static void
 HandleLoadCommandStorageError(
@@ -42,9 +44,10 @@ HandleLoadCommandStorageError(
     }
 }
 
-MachO::LoadCommandStorage
+auto
 OperationCommon::GetLoadCommandStorage(MachOMemoryObject &Object,
                                        FILE *const ErrFile) noexcept
+    -> MachO::LoadCommandStorage
 {
     const auto LoadCommandStorage = Object.GetLoadCommandsStorage();
     const auto Error = LoadCommandStorage.getError();
@@ -57,10 +60,11 @@ OperationCommon::GetLoadCommandStorage(MachOMemoryObject &Object,
     return LoadCommandStorage;
 }
 
-MachO::ConstLoadCommandStorage
+auto
 OperationCommon::GetConstLoadCommandStorage(
-    const ConstMachOMemoryObject &Object,
+    const MachOMemoryObject &Object,
     FILE *const ErrFile) noexcept
+        -> MachO::ConstLoadCommandStorage
 {
     const auto LoadCommandStorage = Object.GetLoadCommandsStorage();
     const auto Error = LoadCommandStorage.getError();
@@ -73,9 +77,10 @@ OperationCommon::GetConstLoadCommandStorage(
     return LoadCommandStorage;
 }
 
-const std::string_view &
+auto
 OperationCommon::GetLoadCommandStringValue(
     const MachO::LoadCommandString::GetValueResult &Result) noexcept
+        -> std::string_view
 {
     using namespace std::literals;
     if (Result.hasError()) {
@@ -327,7 +332,7 @@ OperationCommon::PrintDylibOrdinalInfo(
 }
 
 constexpr static auto SegmentSectionPairFormat =
-    std::string_view("<segment-name>,<section-name>");
+    "<segment-name>,<section-name>"sv;
 
 void
 OperationCommon::ParseSegmentSectionPair(
@@ -511,9 +516,9 @@ OperationCommon::GetBindActionLists(
             return 1;
     }
 
-    BindList = BindActionOpt.getAndClaimPtr();
-    LazyBindList = LazyBindActionOpt.getAndClaimPtr();
-    WeakBindList = WeakBindActionOpt.getAndClaimPtr();
+    BindList = BindActionOpt.take();
+    LazyBindList = LazyBindActionOpt.take();
+    WeakBindList = WeakBindActionOpt.take();
 
     return 0;
 }
@@ -522,7 +527,7 @@ int
 OperationCommon::GetBindActionCollection(
     FILE *const ErrFile,
     const ConstMemoryMap &Map,
-    const LocationRange &Range,
+    const Range &Range,
     const MachO::ConstLoadCommandStorage &LoadCmdStorage,
     const MachO::SegmentInfoCollection &SegmentCollection,
     MachO::BindActionCollection &BindCollection,
@@ -564,9 +569,9 @@ OperationCommon::GetBindActionCollection(
 
     BindCollection =
         MachO::BindActionCollection::Open(SegmentCollection,
-                                          BindActionOpt.getPtr(),
-                                          LazyBindActionOpt.getPtr(),
-                                          WeakBindActionOpt.getPtr(),
+                                          BindActionOpt.value(),
+                                          LazyBindActionOpt.value(),
+                                          WeakBindActionOpt.value(),
                                           Range,
                                           &BindCollectionParseError,
                                           &BindCollectionError);
@@ -592,11 +597,12 @@ OperationCommon::GetBindActionCollection(
 
 constexpr static int LongestFlagNameLength =
     MachO::Header::FlagsEnumGetName(
-        MachO::Header::FlagsEnum::NlistOutOfSyncWithDyldInfo).length();
+        MachO::Header::FlagsEnum::NlistOutOfSyncWithDyldInfo)->length();
 
-std::vector<OperationCommon::FlagInfo>
+auto
 OperationCommon::GetFlagInfoList(
     const MachO::Header::FlagsType Flags) noexcept
+        -> std::vector<OperationCommon::FlagInfo>
 {
     using namespace MachO;
 
@@ -607,464 +613,464 @@ OperationCommon::GetFlagInfoList(
         using Enum = Header::FlagsEnum;
         case Enum::NoUndefinedReferences: {
             constexpr auto Kind = Enum::NoUndefinedReferences;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::IncrementalLink: {
             constexpr auto Kind = Enum::IncrementalLink;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::DyldLink: {
             constexpr auto Kind = Enum::DyldLink;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::BindAtLoad: {
             constexpr auto Kind = Enum::BindAtLoad;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::PreBound: {
             constexpr auto Kind = Enum::PreBound;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::SplitSegments: {
             constexpr auto Kind = Enum::SplitSegments;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::LazyInitialization: {
             constexpr auto Kind = Enum::LazyInitialization;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::TwoLevelNamespaceBindings: {
             constexpr auto Kind = Enum::TwoLevelNamespaceBindings;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::ForceFlatNamespaces: {
             constexpr auto Kind = Enum::ForceFlatNamespaces;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::NoMultipleDefinitions: {
             constexpr auto Kind = Enum::NoMultipleDefinitions;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::NoFixPrebinding: {
             constexpr auto Kind = Enum::NoFixPrebinding;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::Prebindable: {
             constexpr auto Kind = Enum::Prebindable;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::AllModulesBound: {
             constexpr auto Kind = Enum::AllModulesBound;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::SubsectionsViaSymbols: {
             constexpr auto Kind = Enum::SubsectionsViaSymbols;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::Canonical: {
             constexpr auto Kind = Enum::Canonical;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::WeakDefinitions: {
             constexpr auto Kind = Enum::WeakDefinitions;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::BindsToWeak: {
             constexpr auto Kind = Enum::BindsToWeak;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::AllowStackExecution: {
             constexpr auto Kind = Enum::AllowStackExecution;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::RootSafe: {
             constexpr auto Kind = Enum::RootSafe;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::SetuidSafe: {
             constexpr auto Kind = Enum::SetuidSafe;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::NoReexportedDylibs: {
             constexpr auto Kind = Enum::NoReexportedDylibs;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::PositionIndependentExecutable: {
             constexpr auto Kind = Enum::PositionIndependentExecutable;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::DeadStrippableDylib: {
             constexpr auto Kind = Enum::DeadStrippableDylib;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::HasTlvDescriptors: {
             constexpr auto Kind = Enum::HasTlvDescriptors;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::NoHeapExecution: {
             constexpr auto Kind = Enum::NoHeapExecution;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::AppExtensionSafe: {
             constexpr auto Kind = Enum::AppExtensionSafe;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::NlistOutOfSyncWithDyldInfo: {
             constexpr auto Kind = Enum::NlistOutOfSyncWithDyldInfo;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::SimulatorSupport: {
             constexpr auto Kind = Enum::SimulatorSupport;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
         }
         case Header::FlagsEnum::DylibInCache: {
             constexpr auto Kind = Enum::DylibInCache;
-            constexpr auto Name = Header::FlagsEnumGetName(Kind);
-            constexpr auto Description = Header::FlagsEnumGetDescription(Kind);
+            constexpr auto NameOpt = Header::FlagsEnumGetName(Kind);
+            constexpr auto DescOpt = Header::FlagsEnumGetDescription(Kind);
 
-            static_assert(Name.length() <= LongestFlagNameLength,
+            static_assert(NameOpt->length() <= LongestFlagNameLength,
                           "Flag has longer length than current record-holder");
 
             if (Flags.hasFlag(Kind)) {
                 FlagInfoList.push_back({
-                    .Name = Name,
-                    .Description = Description,
+                    .Name = NameOpt.value(),
+                    .Description = DescOpt.value(),
                     .Mask = static_cast<uint32_t>(Kind)
                 });
             }
@@ -1097,7 +1103,7 @@ OperationCommon::PrintFlagInfoList(FILE *const OutFile,
 
         if (PrintKindIsVerbose(PrintKind)) {
             fprintf(OutFile,
-                    " (Description: %s)%s\n",
+                    " (%s)%s\n",
                     Info.Description.data(),
                     LineSuffix);
         } else {

@@ -1,9 +1,9 @@
 //
-//  include/ADT/Mach-O/SharedLibraryInfo.h
+//  ADT/Mach-O/SharedLibraryInfo.h
 //  ktool
 //
 //  Created by Suhas Pai on 5/21/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #pragma once
@@ -23,64 +23,72 @@ namespace MachO {
         Dyld3::PackedVersion CurrentVersion;
         Dyld3::PackedVersion CompatVersion;
     public:
-        [[nodiscard]]
-        constexpr LoadCommand::Kind getKind() const noexcept {
-            return Kind;
+        [[nodiscard]] constexpr auto getKind() const noexcept {
+            return this->Kind;
         }
 
-        [[nodiscard]]
-        constexpr std::string_view getPath() const noexcept {
-            return Path;
+        [[nodiscard]] constexpr auto getPath() const noexcept
+            -> std::string_view
+        {
+            return this->Path;
         }
 
-        [[nodiscard]] constexpr uint32_t getIndex() const noexcept {
-            return Index;
+        [[nodiscard]] constexpr auto getIndex() const noexcept {
+            return this->Index;
         }
 
-        [[nodiscard]] constexpr uint32_t getTimestamp() const noexcept {
-            return Timestamp;
+        [[nodiscard]] constexpr auto getTimestamp() const noexcept {
+            return this->Timestamp;
         }
 
-        [[nodiscard]]
-        constexpr Dyld3::PackedVersion getCurrentVersion() const noexcept {
-            return CurrentVersion;
+        [[nodiscard]] constexpr auto getCurrentVersion() const noexcept {
+            return this->CurrentVersion;
         }
 
-        [[nodiscard]]
-        constexpr Dyld3::PackedVersion getCompatVersion() const noexcept {
-            return CompatVersion;
+        [[nodiscard]] constexpr auto getCompatVersion() const noexcept {
+            return this->CompatVersion;
         }
 
-        constexpr SharedLibraryInfo &setKind(LoadCommandKind Value) noexcept {
+        constexpr auto setKind(LoadCommandKind Value) noexcept
+            -> decltype(*this)
+        {
             this->Kind = Value;
             return *this;
         }
 
-        constexpr
-        SharedLibraryInfo &setPath(const std::string &Value) noexcept {
-            this->Path = Value;
+        constexpr auto setPath(const std::string_view Path) noexcept
+            -> decltype(*this)
+        {
+            this->Path = Path;
             return *this;
         }
 
-        constexpr SharedLibraryInfo &setIndex(const uint32_t Value) noexcept {
-            this->Index = Value;
+        constexpr auto setIndex(const uint32_t Index) noexcept
+            -> decltype(*this)
+        {
+            this->Index = Index;
             return *this;
         }
 
-        constexpr
-        SharedLibraryInfo &setTimestamp(const uint32_t Value) noexcept {
-            this->Timestamp = Value;
+        constexpr auto setTimestamp(const uint32_t Timestamp) noexcept
+            -> decltype(*this)
+        {
+            this->Timestamp = Timestamp;
             return *this;
         }
 
-        constexpr SharedLibraryInfo &
-        setCurrentVersion(const Dyld3::PackedVersion Value) noexcept {
+        constexpr auto
+        setCurrentVersion(const Dyld3::PackedVersion Value) noexcept
+            -> decltype(*this)
+        {
             this->CurrentVersion = Value;
             return *this;
         }
 
-        constexpr SharedLibraryInfo &
-        setCompatVersion(const Dyld3::PackedVersion Value) noexcept {
+        constexpr auto
+        setCompatVersion(const Dyld3::PackedVersion Value) noexcept
+            -> decltype(*this)
+        {
             this->CompatVersion = Value;
             return *this;
         }

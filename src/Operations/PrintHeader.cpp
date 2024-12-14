@@ -1,19 +1,20 @@
 //
-//  src/Operations/PrintHeader.cpp
+//  Operations/PrintHeader.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 4/10/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cstring>
+#include <format>
+
+#include "Operations/Common.h"
+#include "Operations/Operation.h"
+#include "Operations/PrintHeader.h"
 
 #include "Utils/MachOTypePrinter.h"
 #include "Utils/PrintUtils.h"
-
-#include "Common.h"
-#include "Operation.h"
-#include "PrintHeader.h"
 
 PrintHeaderOperation::PrintHeaderOperation() noexcept : Operation(OpKind) {}
 PrintHeaderOperation::PrintHeaderOperation(
@@ -21,7 +22,7 @@ PrintHeaderOperation::PrintHeaderOperation(
 : Operation(OpKind), Options(Options) {}
 
 int
-PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
+PrintHeaderOperation::Run(const MachOMemoryObject &Object,
                           const struct Options &Options) noexcept
 {
     fputs("Mach-O Single Architecture File\n", stdout);
@@ -34,56 +35,71 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
     const auto SizeOfCmds = Object.getLoadCommandsSize();
     const auto Flags = Object.getHeaderFlags();
 
-    const auto MagicDesc = MachO::Header::MagicGetDescription(Magic).data();
-    const auto FileKindName = MachO::Header::FileKindGetName(FileKind).data();
-    const auto FileKindDesc =
-        MachO::Header::FileKindGetDescription(FileKind).data();
+    const auto MagicDescOpt = MachO::Header::MagicGetDescription(Magic);
+    const auto MagicDesc =
+        MagicDescOpt.has_value() ?
+            std::string(MagicDescOpt.value()) :
+            std::format("Unrecognized (Value: 0x{:08x}",
+                        static_cast<uint32_t>(Magic));
+
+    const auto FileKindNameOpt = MachO::Header::FileKindGetName(FileKind);
+    const auto FileKindDescOpt =
+        MachO::Header::FileKindGetDescription(FileKind);
 
     const auto CpuKindValue = static_cast<int32_t>(CpuKind);
     const auto FileKindValue = static_cast<uint32_t>(FileKind);
     const auto FlagsValue = Flags.value();
 
     if (Options.Verbose) {
-        const auto MagicName = MachO::Header::MagicGetName(Magic).data();
-        const auto MagicValue = static_cast<uint32_t>(Magic);
+        const auto MagicNameOpt = MachO::Header::MagicGetName(Magic);
+        const auto MagicName =
+            MagicDescOpt.has_value() ?
+                std::string(MagicNameOpt.value()) :
+                std::format("Unrecognized (Value: 0x{:08x}",
+                            static_cast<uint32_t>(Magic));
 
+        const auto MagicValue = static_cast<uint32_t>(Magic);
         fprintf(Options.OutFile,
                 "Magic:\n"
                 "\tName:        %s\n"
                 "\tDescription: %s\n"
                 "\tValue:       %" PRIu32 " (0x%" PRIX32 ")\n",
-                MagicName,
-                MagicDesc,
+                MagicName.data(),
+                MagicDesc.data(),
                 MagicValue,
                 MagicValue);
 
-        const auto CpuKindName = Mach::CpuKindGetName(CpuKind).data();
-        if (CpuKindName != nullptr) {
+        const auto CpuKindNameOpt = Mach::CpuKindGetName(CpuKind);
+        if (CpuKindNameOpt.has_value()) {
+            const auto CpuKindBrandNameOpt = Mach::CpuKindGetBrandName(CpuKind);
+            const auto CpuKindName = std::string(CpuKindNameOpt.value());
             const auto CpuKindBrandName =
-                Mach::CpuKindGetBrandName(CpuKind).data();
-            const auto CpuSubKindName =
-                Mach::CpuSubKind::GetName(CpuKind, CpuSubKind).data();
-            const auto CpuSubKindBrandName =
-                Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data();
+                CpuKindBrandNameOpt.has_value() ?
+                    std::string(CpuKindBrandNameOpt.value()) :
+                    std::format("Unrecognized (Value: 0x{:08x}",
+                                static_cast<int32_t>(CpuKind));
 
-            fprintf(Options.OutFile,
-                    "CpuType:\n"
-                    "\tName:        %s\n"
-                    "\tDescription: %s\n"
-                    "\tValue:       %" PRIu32 " (0x%" PRIX32 ")\n",
-                    CpuKindName,
-                    CpuKindBrandName,
-                    CpuKindValue,
-                    CpuKindValue);
+            const auto CpuSubKindNameOpt =
+                Mach::CpuSubKind::GetName(CpuKind, CpuSubKind);
+            const auto CpuSubKindBrandNameOpt =
+                Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind);
 
-            if (CpuSubKindName != nullptr) {
+            if (CpuSubKindNameOpt.has_value()) {
                 fprintf(Options.OutFile,
+                        "CpuType:\n"
+                        "\tName:        %s\n"
+                        "\tDescription: %s\n"
+                        "\tValue:       %" PRIu32 " (0x%" PRIX32 ")\n"
                         "CpuSubType:\n"
                         "\tName:        %s\n"
                         "\tDescription: %s\n"
                         "\tValue:       %" PRIu32 " (0x%" PRIX32 ")\n",
-                        CpuSubKindName,
-                        CpuSubKindBrandName,
+                        CpuKindName.c_str(),
+                        CpuKindBrandName.c_str(),
+                        CpuKindValue,
+                        CpuKindValue,
+                        CpuSubKindNameOpt.value().data(),
+                        CpuSubKindBrandNameOpt.value().data(),
                         CpuSubKind,
                         CpuSubKind);
             } else {
@@ -100,7 +116,6 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
                     "\tUnrecognized\n\tValue: %" PRIu32 " (Value: 0x%X)\n",
                     CpuKindValue,
                     CpuKindValue);
-
             fprintf(Options.OutFile,
                     "CpuSubType:\n"
                     "\tUnknown\n"
@@ -109,14 +124,14 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
                     CpuSubKind);
         }
 
-        if (FileKindName != nullptr) {
+        if (FileKindNameOpt.has_value()) {
             fprintf(Options.OutFile,
                     "FileType:\n"
                     "\tName:        %s\n"
                     "\tDescription: %s\n"
                     "\tValue:       %" PRIu32 " (0x%" PRIX32 ")\n",
-                    FileKindName,
-                    FileKindDesc,
+                    FileKindNameOpt.value().data(),
+                    FileKindDescOpt.value().data(),
                     FileKindValue,
                     FileKindValue);
         } else {
@@ -149,40 +164,49 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
                                            PrintKind,
                                            "\t\t");
     } else {
-        fprintf(Options.OutFile, "Magic:      %s\n", MagicDesc);
+        const auto CpuBrandNameOpt = Mach::CpuKindGetBrandName(CpuKind);
+        const auto SubKindFullNameOpt =
+            Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind);
 
-        const auto CpuBrandName = Mach::CpuKindGetBrandName(CpuKind).data();
-        if (CpuBrandName != nullptr) {
-            fprintf(Options.OutFile, "CpuType:    %s\n", CpuBrandName);
-        } else {
-            fprintf(Options.OutFile,
-                    "CpuType:    Unrecognized (Value: %" PRIu32 ")\n",
-                    CpuKindValue);
-        }
+        const auto MagicDesc =
+            MagicDescOpt.has_value() ?
+                std::string(MagicDescOpt.value()) :
+                std::format("Unrecognized (Value: 0x{:08x}",
+                            static_cast<int32_t>(Magic));
+
+        const auto CpuBrandName =
+            CpuBrandNameOpt.has_value() ?
+                std::string(CpuBrandNameOpt.value()) :
+                std::format("Unrecognized (Value: 0x{:08x}",
+                            static_cast<int32_t>(CpuKind));
 
         const auto SubKindFullName =
-            Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data();
+            SubKindFullNameOpt.has_value() ?
+                std::string(SubKindFullNameOpt.value()) :
+                std::format("Unrecognized (Value: 0x{:08x}",
+                            static_cast<int32_t>(CpuSubKind));
 
-        if (SubKindFullName != nullptr) {
-            fprintf(Options.OutFile, "CpuSubType: %s\n", SubKindFullName);
-        } else {
-            fprintf(Options.OutFile,
-                    "CpuSubType: Unrecognized (Value: %" PRIu32 ")\n",
-                    CpuSubKind);
-        }
+        const auto FileKindDesc =
+            FileKindDescOpt.has_value() ?
+                std::string(FileKindDescOpt.value()) :
+                std::format("Unrecognized (Value: 0x{:08x}",
+                            static_cast<int32_t>(FileKindValue));
 
-        if (FileKindDesc != nullptr) {
-            fprintf(Options.OutFile, "FileType:   %s\n", FileKindDesc);
-        } else {
-            fprintf(Options.OutFile,
-                    "FileType:   Unrecognized (Value: %" PRIu32 ")\n",
-                    FileKindValue);
-        }
+        fprintf(Options.OutFile,
+                "Magic:      %s\n"
+                "CpuType:    %s\n"
+                "CpuSubType: %s\n"
+                "FileType:   %s\n",
+                MagicDesc.c_str(),
+                CpuBrandName.c_str(),
+                SubKindFullName.c_str(),
+                FileKindDesc.c_str());
 
         PrintUtilsWriteFormattedNumber(Options.OutFile,
                                        Ncmds,
                                        "Ncmds:      ",
                                        "\n");
+
         PrintUtilsWriteFormattedNumber(Options.OutFile,
                                        SizeOfCmds,
                                        "SizeOfCmds: ",
@@ -195,30 +219,40 @@ PrintHeaderOperation::Run(const ConstMachOMemoryObject &Object,
 }
 
 int
-PrintHeaderOperation::Run(const ConstFatMachOMemoryObject &Object,
+PrintHeaderOperation::Run(const FatMachOMemoryObject &Object,
                           const struct Options &Options) noexcept
 {
     fputs("Mach-O Multi-Architecture (FAT) File\n", stdout);
 
     const auto &Header = Object.getConstHeader();
     const auto &Magic = Header.Magic;
-    const auto MagicDesc = MachO::FatHeader::MagicGetDescription(Magic).data();
+
+    const auto MagicDescOpt = MachO::FatHeader::MagicGetDescription(Magic);
+    const auto MagicDesc =
+        MagicDescOpt.has_value() ?
+            std::string(MagicDescOpt.value()) :
+            std::format("Unrecognized (Value: 0x{:X})",
+                        static_cast<uint32_t>(Magic));
 
     if (Options.Verbose) {
         const auto MagicValue = static_cast<uint32_t>(Magic);
-        const auto MagicName = MachO::FatHeader::MagicGetName(Magic).data();
+        const auto MagicNameOpt = MachO::FatHeader::MagicGetName(Magic);
+        const auto MagicName =
+            MagicNameOpt.has_value() ?
+                std::string(MagicNameOpt.value()) :
+                std::format("Unrecognized (Value: 0x{:X})", MagicValue);
 
         fprintf(Options.OutFile,
                 "Magic:\n"
                 "\tName: %s\n"
                 "\tDescription: %s\n"
                 "\tValue: %" PRIu32 " (0x%" PRIX32 ")\n",
-                MagicName,
-                MagicDesc,
+                MagicName.c_str(),
+                MagicDesc.c_str(),
                 MagicValue,
                 MagicValue);
     } else {
-        fprintf(Options.OutFile, "Magic: %s\n", MagicDesc);
+        fprintf(Options.OutFile, "Magic: %s\n", MagicDesc.c_str());
     }
 
     const auto ArchsCount = Object.getArchCount();
@@ -280,7 +314,7 @@ enum class DscRangeKind {
 
 struct DscRange {
     DscRangeKind Kind;
-    LocationRange Range;
+    Range Range;
     std::bitset<static_cast<int>(DscRangeKind::End) - 1> OverlapKindSet;
 };
 
@@ -313,207 +347,201 @@ CollectDscRangeList(const DyldSharedCache::Header &Header,
             if (const auto Range = Header.getMappingInfoListRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::MappingInfoList,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::ImageInfoList: {
             if (const auto Range = Header.getImageInfoListRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::ImageInfoList,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         if (Version < DyldSharedCache::HeaderVersion::V1) {
             return Result;
         }
-
         case DscRangeKind::CodeSignature: {
             if (const auto Range = Header.getCodeSignatureRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::CodeSignature,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::SlideInfo: {
             if (const auto Range = Header.getSlideInfoRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::SlideInfo,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         if (Version < DyldSharedCache::HeaderVersion::V2) {
             return Result;
         }
-
         case DscRangeKind::LocalSymbolInfo: {
             if (const auto Range = Header.getLocalSymbolInfoRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::LocalSymbolInfo,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         if (Version < DyldSharedCache::HeaderVersion::V4) {
             return Result;
         }
-
         case DscRangeKind::AcceleratorInfo: {
             if (const auto Range = Header.getAcceleratorInfoRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::AcceleratorInfo,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::ImageTextInfoList: {
             if (const auto Range = Header.getImageTextInfoListRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::ImageTextInfoList,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         if (Version < DyldSharedCache::HeaderVersion::V5) {
             return Result;
         }
-
         case DscRangeKind::DylibsImageGroup: {
             if (const auto Range = Header.getDylibsImageGroupRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::DylibsImageGroup,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::OtherImageGroup: {
             if (const auto Range = Header.getOtherImageGroupRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::OtherImageGroup,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::ProgClosures: {
             if (const auto Range = Header.getProgClosuresRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::ProgClosures,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::ProgClosuresTrie: {
             if (const auto Range = Header.getProgClosuresTrieRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::ProgClosuresTrie,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         if (Version < DyldSharedCache::HeaderVersion::V6) {
             return Result;
         }
-
         case DscRangeKind::DylibsImageArray: {
             if (const auto Range = Header.getDylibsImageArrayRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::DylibsImageArray,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::DylibsTrie: {
             if (const auto Range = Header.getDylibsTrieRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::DylibsTrie,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::OtherImageArray: {
             if (const auto Range = Header.getOtherImageArrayRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::OtherImageArray,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::OtherTrie: {
             if (const auto Range = Header.getOtherTrieRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::OtherTrie,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         // Nothing in V7
         if (Version < DyldSharedCache::HeaderVersion::V8) {
             return Result;
         }
-
         case DscRangeKind::ProgramsPBLSetPool: {
             if (const auto Range = Header.getProgramsPBLSetPoolRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::ProgramsPBLSetPool,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::ProgramTrie: {
             if (const auto Range = Header.getProgramTrieRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::ProgramTrie,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::SwiftOpts: {
             if (const auto Range = Header.getSwiftOptsRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::SwiftOpts,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::RosettaReadOnly: {
             if (const auto Range = Header.getRosettaReadOnlyRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::RosettaReadOnly,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::RosettaReadWrite: {
             if (const auto Range = Header.getRosettaReadOnlyRange()) {
                 AddRangeToList(Result, DscRange {
                     .Kind = DscRangeKind::RosettaReadWrite,
-                    .Range = Range.value()
+                    .Range = Range.value(),
+                    .OverlapKindSet = {}
                 });
             }
         }
-
         case DscRangeKind::End:
             break;
     }
@@ -525,7 +553,7 @@ static void
 PrintDscRangeOverlapsErrorOrNewline(
     const struct PrintHeaderOperation::Options &Options,
     const DscRangeList &List,
-    DscRangeKind Kind) noexcept
+    const DscRangeKind Kind) noexcept
 {
     if (Options.Verbose) {
         fputc('\n', Options.OutFile);
@@ -639,7 +667,10 @@ constexpr static auto LongestDscKey =
     LENGTH_OF("Programs Prebuilt Loader Set Pool Address");
 
 static void
-PrintDscKey(FILE *OutFile, const char *Key, const char *Prefix = "") noexcept {
+PrintDscKey(FILE *const OutFile,
+            const char *Key,
+            const char *const Prefix = "") noexcept
+{
     fputs(Prefix, OutFile);
     fflush(OutFile);
 
@@ -649,16 +680,14 @@ PrintDscKey(FILE *OutFile, const char *Key, const char *Prefix = "") noexcept {
 }
 
 static void
-WarnIfOutOfRange(FILE *OutFile,
-                 const RelativeRange &Range,
+WarnIfOutOfRange(FILE *const OutFile,
+                 const Range &Range,
                  const uint64_t Offset,
                  const uint64_t Size,
                  bool PrintNewLine = true) noexcept
 {
-    const auto LocRangeOpt = LocationRange::CreateWithSize(Offset, Size);
-    if (!LocRangeOpt.has_value() ||
-        !Range.containsLocRange(LocRangeOpt.value()))
-    {
+    const auto LocRange = Range::CreateWithSize(Offset, Size);
+    if (!Range.contains(LocRange)) {
         fputs(" (Past EOF!)", OutFile);
     }
 
@@ -672,7 +701,7 @@ static inline int
 PrintSize(FILE *const OutFile,
           const T Size,
           const bool Verbose,
-          const char *Suffix = "") noexcept
+          const char *const Suffix = "") noexcept
 {
     auto WrittenOut = PrintUtilsWriteFormattedSize(OutFile, Size);
     if (Verbose && Size != 0) {
@@ -691,8 +720,8 @@ template <
     std::integral SizeType>
 
 static inline void
-PrintDscSizeRange(FILE *OutFile,
-                  const RelativeRange &DscRange,
+PrintDscSizeRange(FILE *const OutFile,
+                  const Range &DscRange,
                   const char *AddressName,
                   const char *SizeName,
                   AddrType Address,
@@ -736,13 +765,15 @@ PrintDscSizeRange(FILE *OutFile,
     PrintSize(OutFile, Size, Verbose);
 
     if (PrintNewLine) {
+        fprintf(OutFile, "%s\n", Suffix);
+    } else {
         fputc('\n', OutFile);
     }
 }
 
 static void
 PrintMappingInfoList(const struct PrintHeaderOperation::Options &Options,
-                     const ConstDscMemoryObject &Object)
+                     const DscMemoryObject &Object)
 {
     const auto MappingCountDigitLength =
         PrintUtilsGetIntegerDigitLength(Object.getMappingCount());
@@ -810,7 +841,7 @@ PrintMappingInfoList(const struct PrintHeaderOperation::Options &Options,
 static void
 PrintMappingWithSlideInfoList(
     const struct PrintHeaderOperation::Options &Options,
-    const ConstDscMemoryObject &Object)
+    const DscMemoryObject &Object)
 {
     const auto MappingCountDigitLength =
         PrintUtilsGetIntegerDigitLength(Object.getMappingCount());
@@ -907,7 +938,7 @@ PrintMappingWithSlideInfoList(
 
 static void
 PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
-                     const ConstDscMemoryObject &Object) noexcept
+                     const DscMemoryObject &Object) noexcept
 {
     const auto Header = Object.getHeaderV0();
 
@@ -918,10 +949,18 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
         auto CpuKind = Mach::CpuKind::Any;
         auto CpuSubKind = int32_t();
 
-        Object.getCpuKind(CpuKind, CpuSubKind);
-        fprintf(Options.OutFile,
-                " (Cpu-Kind: %s)\n",
-                Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind).data());
+        Object.retrieveCpuAndSubKind(CpuKind, CpuSubKind);
+
+        const auto FullNameOpt =
+            Mach::CpuSubKind::GetFullName(CpuKind, CpuSubKind);
+
+        if (FullNameOpt.has_value()) {
+            fprintf(Options.OutFile,
+                    " (Cpu-Kind: %s)\n",
+                    FullNameOpt.value().data());
+        } else {
+            fputs(" (Cpu-Kind: unrecognized)\n", Options.OutFile);
+        }
     } else {
         fputc('\n', Options.OutFile);
     }
@@ -971,7 +1010,7 @@ PrintDscHeaderV0Info(const struct PrintHeaderOperation::Options &Options,
 }
 
 static void
-PrintDscHeaderV1Info(const ConstDscMemoryObject &Object,
+PrintDscHeaderV1Info(const DscMemoryObject &Object,
                      const struct PrintHeaderOperation::Options &Options,
                      const DscRangeList &List) noexcept
 {
@@ -1007,7 +1046,7 @@ PrintDscHeaderV1Info(const ConstDscMemoryObject &Object,
 }
 
 static void
-PrintDscHeaderV2Info(const ConstDscMemoryObject &Object,
+PrintDscHeaderV2Info(const DscMemoryObject &Object,
                      const struct PrintHeaderOperation::Options &Options,
                      const DscRangeList &List) noexcept
 {
@@ -1034,7 +1073,7 @@ PrintDscHeaderV2Info(const ConstDscMemoryObject &Object,
 template <std::integral OffsetType, std::integral SizeType>
 static void
 PrintOffsetCountPair(FILE *const OutFile,
-                     const RelativeRange &Range,
+                     const Range &Range,
                      const char *const OffsetKey,
                      const char *const CountKey,
                      const OffsetType Offset,
@@ -1047,14 +1086,14 @@ PrintOffsetCountPair(FILE *const OutFile,
     WarnIfOutOfRange(OutFile, Range, Offset, 1);
 
     PrintDscKey(OutFile, CountKey);
-    PrintUtilsWriteFormattedNumber(OutFile, Offset);
+    PrintUtilsWriteFormattedNumber(OutFile, Count);
 
     fprintf(OutFile, "%s", Suffix);
 }
 
 static void
 PrintDscHeaderV3Info(
-    const ConstDscMemoryObject &Object,
+    const DscMemoryObject &Object,
     const struct PrintHeaderOperation::Options &Options) noexcept
 {
     PrintDscKey(Options.OutFile, "Cache-Kind");
@@ -1073,7 +1112,7 @@ PrintDscHeaderV3Info(
 }
 
 static void
-PrintDscHeaderV4Info(const ConstDscMemoryObject &Object,
+PrintDscHeaderV4Info(const DscMemoryObject &Object,
                      const struct PrintHeaderOperation::Options &Options,
                      const DscRangeList &List) noexcept
 {
@@ -1119,8 +1158,11 @@ PrintDscHeaderV4Info(const ConstDscMemoryObject &Object,
     fputc('\n', Options.OutFile);
 }
 
-static inline
-void PrintBoolValue(FILE *OutFile, const char *Key, bool Value) noexcept {
+static inline void
+PrintBoolValue(FILE *const OutFile,
+               const char *const Key,
+               const bool Value) noexcept
+{
     PrintDscKey(OutFile, Key);
 
     fputs((Value) ? "true" : "false", OutFile);
@@ -1133,13 +1175,19 @@ PrintPlatformKindValue(FILE *const OutFile,
                        const Dyld3::PlatformKind Platform)
 {
     PrintDscKey(OutFile, Key);
-    fprintf(OutFile,
-            "%s\n",
-            Dyld3::PlatformKindGetDescription(Platform).data());
+
+    const auto PlatformDescOpt = Dyld3::PlatformKindGetDescription(Platform);
+    const auto PlatformDesc =
+        PlatformDescOpt.has_value() ?
+            std::string(PlatformDescOpt.value()) :
+            std::format("<unknown (0x{:02x})>",
+                        static_cast<uint32_t>(Platform));
+
+    fprintf(OutFile, "%s\n", PlatformDesc.c_str());
 }
 
 static void
-PrintDscHeaderV5Info(const ConstDscMemoryObject &Object,
+PrintDscHeaderV5Info(const DscMemoryObject &Object,
                      const struct PrintHeaderOperation::Options &Options,
                      const DscRangeList &List) noexcept
 {
@@ -1229,7 +1277,7 @@ PrintDscHeaderV5Info(const ConstDscMemoryObject &Object,
 }
 
 static void
-PrintDscHeaderV6Info(const ConstDscMemoryObject &Object,
+PrintDscHeaderV6Info(const DscMemoryObject &Object,
                      const struct PrintHeaderOperation::Options &Options,
                      const DscRangeList &List) noexcept
 {
@@ -1283,9 +1331,9 @@ PrintDscHeaderV6Info(const ConstDscMemoryObject &Object,
 }
 
 static void
-PrintDscHeaderV7Info(const ConstDscMemoryObject &Object,
+PrintDscHeaderV7Info(const DscMemoryObject &Object,
                      const struct PrintHeaderOperation::Options &Options,
-                     const DscRangeList &List) noexcept
+                     const DscRangeList &) noexcept
 {
     const auto &Header = Object.getHeaderV7();
     PrintOffsetCountPair(Options.OutFile,
@@ -1317,7 +1365,7 @@ PrintPackedVersion(FILE *const OutFile,
 }
 
 static void
-PrintDscHeaderV8Info(const ConstDscMemoryObject &Object,
+PrintDscHeaderV8Info(const DscMemoryObject &Object,
                      const struct PrintHeaderOperation::Options &Options,
                      const DscRangeList &List) noexcept
 {
@@ -1421,7 +1469,7 @@ constexpr static auto LongestAccKey = LENGTH_OF("Bottom-Up List Offset");
 static inline void
 PrintAcceleratorKey(FILE *const OutFile,
                     const char *const Key,
-                    const char *Prefix = "") noexcept
+                    const char *const Prefix = "") noexcept
 {
     fputs(Prefix, OutFile);
     fflush(OutFile);
@@ -1432,8 +1480,8 @@ PrintAcceleratorKey(FILE *const OutFile,
 }
 
 static void
-WriteAcceleratorOffsetCountPair(FILE *OutFile,
-                                const RelativeRange &Range,
+WriteAcceleratorOffsetCountPair(FILE *const OutFile,
+                                const Range &Range,
                                 const char *OffsetName,
                                 const char *CountName,
                                 uint32_t Offset,
@@ -1450,8 +1498,8 @@ WriteAcceleratorOffsetCountPair(FILE *OutFile,
 
 static void
 PrintAcceleratorInfo(
-    FILE *OutFile,
-    const RelativeRange &Range,
+    FILE *const OutFile,
+    const Range &Range,
     const DyldSharedCache::AcceleratorInfo &Info,
     const struct PrintHeaderOperation::Options &Options) noexcept
 {
@@ -1524,7 +1572,7 @@ PrintAcceleratorInfo(
 }
 
 int
-PrintHeaderOperation::Run(const ConstDscMemoryObject &Object,
+PrintHeaderOperation::Run(const DscMemoryObject &Object,
                           const struct Options &Options) noexcept
 {
     fputs("Apple Dyld Shared-Cache File\n", Options.OutFile);
@@ -1586,9 +1634,10 @@ done:
     return 0;
 }
 
-struct PrintHeaderOperation::Options
+auto
 PrintHeaderOperation::ParseOptionsImpl(const ArgvArray &Argv,
                                        int *IndexOut) noexcept
+    -> struct PrintHeaderOperation::Options
 {
     auto Index = int();
     struct Options Options;

@@ -1,41 +1,40 @@
 //
-//  src/Objects/DscMemory.cpp
+//  Objects/DscMemory.cpp
 //  ktool
 //
 //  Created by Suhas Pai on 7/10/20.
-//  Copyright © 2020 Suhas Pai. All rights reserved.
+//  Copyright © 2020 - 2024 Suhas Pai. All rights reserved.
 //
 
 #include <cstring>
 
 #include "ADT/DyldSharedCache/Headers.h"
-#include "ADT/LocationRange.h"
+#include "ADT/Range.h"
 
-#include "Utils/Macros.h"
-#include "DscMemory.h"
+#include "Objects/DscMemory.h"
+#include "Objects/DscImageMemory.h"
 
-ConstDscMemoryObject::ConstDscMemoryObject(const ConstMemoryMap &Map,
-                                           const CpuKind CpuKind) noexcept
-: MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()),
-  sCpuKind(CpuKind) {}
+using namespace std::literals;
 
 DscMemoryObject::DscMemoryObject(const MemoryMap &Map,
                                  const CpuKind CpuKind) noexcept
-: ConstDscMemoryObject(Map, CpuKind) {}
+: MemoryObject(ObjKind), Map(Map.getBegin()), End(Map.getEnd()),
+  sCpuKind(CpuKind) {}
 
-[[nodiscard]] static ConstDscMemoryObject::Error
+[[nodiscard]] static auto
 ValidateMap(const ConstMemoryMap &Map,
-            ConstDscMemoryObject::CpuKind &CpuKind) noexcept
+            DscMemoryObject::CpuKind &CpuKind) noexcept
+    -> DscMemoryObject::Error
 {
     if (!Map.isLargeEnoughForType<DyldSharedCache::HeaderV0>()) {
-        return ConstDscMemoryObject::Error::SizeTooSmall;
+        return DscMemoryObject::Error::SizeTooSmall;
     }
 
-    constexpr auto MagicStart = std::string_view("dyld_v1");
+    constexpr auto MagicStart = "dyld_v1"sv;
     const auto Magic = Map.getBeginAs<const char>();
 
     if (memcmp(Magic, MagicStart.data(), MagicStart.length()) != 0) {
-        return ConstDscMemoryObject::Error::WrongFormat;
+        return DscMemoryObject::Error::WrongFormat;
     }
 
     const auto CpuKindStr = Magic + MagicStart.length();
@@ -43,31 +42,31 @@ ValidateMap(const ConstMemoryMap &Map,
         sizeof(DyldSharedCache::HeaderV0::Magic) - MagicStart.length();
 
     if (strncmp(CpuKindStr, "    i386", CpuKindMaxLength) == 0) {
-        CpuKind = ConstDscMemoryObject::CpuKind::i386;
+        CpuKind = DscMemoryObject::CpuKind::i386;
     } else if (strncmp(CpuKindStr, "  x86_64", CpuKindMaxLength) == 0) {
-        CpuKind = ConstDscMemoryObject::CpuKind::x86_64;
+        CpuKind = DscMemoryObject::CpuKind::x86_64;
     } else if (strncmp(CpuKindStr, " x86_64h", CpuKindMaxLength) == 0) {
-        CpuKind = ConstDscMemoryObject::CpuKind::x86_64h;
+        CpuKind = DscMemoryObject::CpuKind::x86_64h;
     } else if (strncmp(CpuKindStr, "   armv5", CpuKindMaxLength) == 0) {
-        CpuKind = ConstDscMemoryObject::CpuKind::Armv5;
+        CpuKind = DscMemoryObject::CpuKind::Armv5;
     } else if (strncmp(CpuKindStr, "   armv6", CpuKindMaxLength) == 0) {
-        CpuKind = ConstDscMemoryObject::CpuKind::Armv6;
+        CpuKind = DscMemoryObject::CpuKind::Armv6;
     } else if (strncmp(CpuKindStr, "   armv7", CpuKindMaxLength) == 0) {
-        CpuKind = ConstDscMemoryObject::CpuKind::Armv7;
+        CpuKind = DscMemoryObject::CpuKind::Armv7;
     } else if (strncmp(CpuKindStr, "  armv7f", CpuKindMaxLength) == 0) {
-        CpuKind = ConstDscMemoryObject::CpuKind::Armv7f;
+        CpuKind = DscMemoryObject::CpuKind::Armv7f;
     } else if (strncmp(CpuKindStr, "  armv7k", CpuKindMaxLength) == 0) {
-        CpuKind = ConstDscMemoryObject::CpuKind::Armv7k;
+        CpuKind = DscMemoryObject::CpuKind::Armv7k;
     } else if (strncmp(CpuKindStr, "  armv7s", CpuKindMaxLength) == 0) {
-        CpuKind = ConstDscMemoryObject::CpuKind::Armv7s;
+        CpuKind = DscMemoryObject::CpuKind::Armv7s;
     } else if (strncmp(CpuKindStr, "  arm64", CpuKindMaxLength) == 0) {
-        CpuKind = ConstDscMemoryObject::CpuKind::Arm64;
+        CpuKind = DscMemoryObject::CpuKind::Arm64;
     } else if (strncmp(CpuKindStr, "  arm64e", CpuKindMaxLength) == 0) {
-        CpuKind = ConstDscMemoryObject::CpuKind::Arm64e;
+        CpuKind = DscMemoryObject::CpuKind::Arm64e;
     } else if (memcmp(CpuKindStr, "arm64_32", CpuKindMaxLength) == 0) {
-        CpuKind = ConstDscMemoryObject::CpuKind::Arm64_32;
+        CpuKind = DscMemoryObject::CpuKind::Arm64_32;
     } else {
-        return ConstDscMemoryObject::Error::UnknownCpuKind;
+        return DscMemoryObject::Error::UnknownCpuKind;
     }
 
     auto MappingEnd = uint64_t();
@@ -75,20 +74,20 @@ ValidateMap(const ConstMemoryMap &Map,
     const auto &Header = *Map.getBeginAs<DyldSharedCache::HeaderV8>();
     const auto MappingOffset = Header.MappingOffset;
     const auto AllowedRange =
-        LocationRange::CreateWithEnd(MappingOffset, Map.size());
+        Range::CreateWithEnd(MappingOffset, Map.size());
 
     if (DoesMultiplyAndAddOverflow(sizeof(DyldSharedCache::MappingInfo),
                                    Header.MappingCount, MappingOffset,
                                    &MappingEnd))
     {
-        return ConstDscMemoryObject::Error::InvalidMappingInfoListRange;
+        return DscMemoryObject::Error::InvalidMappingInfoListRange;
     }
 
     const auto MappingRange =
-        LocationRange::CreateWithEnd(MappingOffset, MappingEnd);
+        Range::CreateWithEnd(MappingOffset, MappingEnd);
 
     if (!AllowedRange.contains(MappingRange)) {
-        return ConstDscMemoryObject::Error::InvalidMappingInfoListRange;
+        return DscMemoryObject::Error::InvalidMappingInfoListRange;
     }
 
     const auto ImagesOffset =
@@ -101,39 +100,38 @@ ValidateMap(const ConstMemoryMap &Map,
                                    ImageCount, ImagesOffset,
                                    &ImageEnd))
     {
-        return ConstDscMemoryObject::Error::InvalidImageInfoListRange;
+        return DscMemoryObject::Error::InvalidImageInfoListRange;
     }
 
     const auto ImageRange =
-        LocationRange::CreateWithEnd(ImagesOffset, ImageEnd);
+        Range::CreateWithEnd(ImagesOffset, ImageEnd);
 
     if (!AllowedRange.contains(ImageRange)) {
-        return ConstDscMemoryObject::Error::InvalidImageInfoListRange;
+        return DscMemoryObject::Error::InvalidImageInfoListRange;
     }
 
     if (MappingRange.overlaps(ImageRange)) {
-        using Error = ConstDscMemoryObject::Error;
+        using Error = DscMemoryObject::Error;
         return Error::OverlappingImageMappingInfoListRange;
     }
 
-    return ConstDscMemoryObject::Error::None;
+    return DscMemoryObject::Error::None;
 }
 
-auto
-ConstDscMemoryObject::Open(const ConstMemoryMap &Map) noexcept ->
-    PointerOrError<ConstDscMemoryObject, Error>
+auto DscMemoryObject::Open(const MemoryMap &Map) noexcept
+    -> ExpectedPointer<DscMemoryObject, Error>
 {
-    auto CpuKind = ConstDscMemoryObject::CpuKind::i386;
+    auto CpuKind = DscMemoryObject::CpuKind::i386;
     const auto Error = ValidateMap(Map, CpuKind);
 
     if (Error != Error::None) {
         return Error;
     }
 
-    return new ConstDscMemoryObject(Map, CpuKind);
+    return new DscMemoryObject(Map, CpuKind);
 }
 
-bool ConstDscMemoryObject::errorDidMatchFormat(const Error Error) noexcept {
+bool DscMemoryObject::errorDidMatchFormat(const Error Error) noexcept {
     switch (Error) {
         case Error::None:
             return true;
@@ -148,9 +146,10 @@ bool ConstDscMemoryObject::errorDidMatchFormat(const Error Error) noexcept {
     }
 }
 
-const ConstDscMemoryObject &
-ConstDscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
-                                 int32_t &CpuSubKind) const noexcept
+auto
+DscMemoryObject::retrieveCpuAndSubKind(Mach::CpuKind &CpuKind,
+                                       int32_t &CpuSubKind) const noexcept
+    -> decltype(*this)
 {
     switch (sCpuKind) {
         case CpuKind::i386:
@@ -220,19 +219,18 @@ ConstDscMemoryObject::getCpuKind(Mach::CpuKind &CpuKind,
 }
 
 auto
-ConstDscMemoryObject::ValidateImageMapAndGetEnd(
-    const ConstMemoryMap &Map) noexcept ->
-        PointerOrError<const uint8_t, DscImageOpenError>
+DscMemoryObject::ValidateImageMapAndGetEnd(const ConstMemoryMap &Map) noexcept
+    -> ExpectedPointer<const uint8_t, DscImageOpenError>
 {
-    const auto ValidateError = ConstMachOMemoryObject::ValidateMap(Map);
+    const auto ValidateError = MachOMemoryObject::ValidateMap(Map);
     switch (ValidateError) {
-        case ConstMachOMemoryObject::Error::None:
+        case MachOMemoryObject::Error::None:
             break;
-        case ConstMachOMemoryObject::Error::WrongFormat:
+        case MachOMemoryObject::Error::WrongFormat:
             return DscImageOpenError::NotAMachO;
-        case ConstMachOMemoryObject::Error::SizeTooSmall:
+        case MachOMemoryObject::Error::SizeTooSmall:
             return DscImageOpenError::InvalidMachO;
-        case ConstMachOMemoryObject::Error::TooManyLoadCommands:
+        case MachOMemoryObject::Error::TooManyLoadCommands:
             return DscImageOpenError::InvalidLoadCommands;
     }
 
@@ -264,7 +262,7 @@ ConstDscMemoryObject::ValidateImageMapAndGetEnd(
         }
     } else {
         for (const auto &LC : LoadCmdStorage) {
-            if (const auto *Seg = dyn_cast<MachO::SegmentCommand>(LC, IsBE)) {
+            if (const auto Seg = dyn_cast<MachO::SegmentCommand>(LC, IsBE)) {
                 End += Seg->FileSize;
             }
         }
@@ -277,12 +275,13 @@ ConstDscMemoryObject::ValidateImageMapAndGetEnd(
     return End;
 }
 
-const DyldSharedCache::ImageInfo *
-ConstDscMemoryObject::GetImageInfoWithPath(
+auto
+DscMemoryObject::GetImageInfoWithPath(
     const std::string_view Path) const noexcept
+        -> const DyldSharedCache::ImageInfo *
 {
-    const auto Map = getMap().getBegin();
-    for (const auto &ImageInfo : getConstImageInfoList()) {
+    const auto Map = this->getMap().getBegin();
+    for (const auto &ImageInfo : this->getConstImageInfoList()) {
         if (Path == ImageInfo.getPath(Map)) {
             return &ImageInfo;
         }
@@ -291,18 +290,38 @@ ConstDscMemoryObject::GetImageInfoWithPath(
     return nullptr;
 }
 
-auto
-ConstDscMemoryObject::GetImageWithInfo(
-    const DyldSharedCache::ImageInfo &ImageInfo) const noexcept ->
-        PointerOrError<ConstDscImageMemoryObject, DscImageOpenError>
+auto DscMemoryObject::GetImageWithInfo(
+    const DyldSharedCache::ImageInfo &ImageInfo) const noexcept
+        -> ExpectedPointer<const DscImageMemoryObject, DscImageOpenError>
+{
+    if (const auto Ptr =
+            const_cast<uint8_t *>(GetPtrForAddress(ImageInfo.Address)))
+    {
+        const auto Map = this->getMutMap();
+        const auto EndOrError =
+            ValidateImageMapAndGetEnd(Map.mapFromPtr(Ptr));
+
+        if (EndOrError.hasValue()) {
+            const auto End = const_cast<uint8_t *>(EndOrError.value());
+            return new DscImageMemoryObject(Map, ImageInfo, Ptr, End);
+        }
+    }
+
+    return DscImageOpenError::InvalidAddress;
+}
+
+auto DscMemoryObject::GetImageWithInfo(
+    const DyldSharedCache::ImageInfo &ImageInfo) noexcept
+        -> ExpectedPointer<DscImageMemoryObject, DscImageOpenError>
 {
     if (const auto Ptr = GetPtrForAddress(ImageInfo.Address)) {
-        const auto Map = getMap();
-        const auto EndOrError = ValidateImageMapAndGetEnd(Map.mapFromPtr(Ptr));
+        const auto Map = this->getMutMap();
+        const auto EndOrError =
+            ValidateImageMapAndGetEnd(Map.mapFromPtr(Ptr));
 
-        if (EndOrError.hasPtr()) {
-            const auto End = EndOrError.getPtr();
-            return new ConstDscImageMemoryObject(Map, ImageInfo, Ptr, End);
+        if (EndOrError.hasValue()) {
+            const auto End = const_cast<uint8_t *>(EndOrError.value());
+            return new DscImageMemoryObject(Map, ImageInfo, Ptr, End);
         }
     }
 
