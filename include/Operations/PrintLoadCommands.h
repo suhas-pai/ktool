@@ -28,13 +28,19 @@ namespace Operations {
 
         ~PrintLoadCommands() noexcept override {}
 
-        enum class RunError : uint32_t {
-            None,
-        };
-
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
-        RunResult run(const Objects::Base &Base) const noexcept override;
+        struct RunResult {
+            enum class Error : uint32_t {
+                None,
+                Unsupported,
+                NoLoadCommands
+            };
+
+            Error Error = Error::None;
+        };
+
+        RunResult run(const Objects::Base &Base) const noexcept;
         RunResult run(const Objects::MachO &MachO) const noexcept;
 
         [[nodiscard]] constexpr auto &options() const noexcept {

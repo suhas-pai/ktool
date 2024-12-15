@@ -15,7 +15,7 @@
 namespace ADT {
     auto
     FileMap::Open(const char *const Path, const Prot Prot) noexcept
-        -> PointerOrError<FileMap, OpenError>
+        -> std::expected<FileMap *, OpenError>
     {
         auto Mode = O_RDONLY;
         switch (Prot) {
@@ -35,12 +35,13 @@ namespace ADT {
 
         const auto Fd = open(Path, Mode);
         if (Fd == -1) {
-            return OpenError::FailedToOpen;
+            return std::unexpected(OpenError::FailedToOpen);
         }
 
         struct stat Sbuf = {};
         if (fstat(Fd, &Sbuf) != 0) {
-            return OpenError::FailedToStat;
+            close(Fd);
+            return std::unexpected(OpenError::FailedToStat);
         }
 
         const auto Flags = MAP_PRIVATE;
@@ -52,8 +53,9 @@ namespace ADT {
                  Fd,
                  0);
 
+        close(Fd);
         if (Map == MAP_FAILED) {
-            return OpenError::FailedToMemMap;
+            return std::unexpected(OpenError::FailedToMemMap);
         }
 
         return new FileMap(Map, static_cast<uint64_t>(Sbuf.st_size));

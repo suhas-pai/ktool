@@ -9,6 +9,7 @@
 #include "Objects/MachO.h"
 #include "Objects/DyldSharedCache.h"
 #include "Objects/FatMachO.h"
+#include "Objects/Open.h"
 
 namespace Objects {
     Base::~Base() noexcept {}
@@ -17,84 +18,74 @@ namespace Objects {
     Open(const ADT::MemoryMap &Map,
          const std::string_view Path,
          const ADT::FileMap::Prot Prot) noexcept
-        -> OpenResult
+            -> std::expected<Base *, OpenError>
     {
         const auto Kind = Kind::None;
         switch (Kind) {
             case Kind::None:
             case Kind::DyldSharedCache: {
-                const auto Object =
+                const auto ObjectOrError =
                     Objects::DyldSharedCache::Open(Map,
                                                    std::string(Path),
                                                    Prot);
 
-                using ErrorKind = Objects::DyldSharedCache::OpenError;
-                const auto Error = Object.error();
-
-                if (Error == ErrorKind::None) {
-                    return Object.ptr();
+                if (ObjectOrError.has_value()) {
+                    return ObjectOrError.value();
                 }
 
-                if (Error != ErrorKind::WrongFormat) {
-                    return OpenError(Kind::DyldSharedCache,
-                                     static_cast<uint32_t>(Error));
+                const auto Error = ObjectOrError.error();
+                if (Error.Kind != DyldSharedCache::OpenError::WrongFormat) {
+                    return std::unexpected(OpenError(Error));
                 }
 
                 [[fallthrough]];
             }
             case Kind::MachO: {
-                const auto Object = Objects::MachO::Open(Map);
-                using ErrorKind = Objects::MachO::OpenError;
-
-                const auto Error = Object.error();
-                if (Error == ErrorKind::None) {
-                    return Object.ptr();
+                const auto ObjectOrError = Objects::MachO::Open(Map);
+                if (ObjectOrError.has_value()) {
+                    return ObjectOrError.value();
                 }
 
-                if (Error != ErrorKind::WrongFormat) {
-                    return OpenError(Kind::MachO, static_cast<uint32_t>(Error));
+                const auto Error = ObjectOrError.error();
+                if (Error.Kind != MachO::OpenError::WrongFormat) {
+                    return std::unexpected(OpenError(Error));
                 }
 
                 [[fallthrough]];
             }
             case Kind::FatMachO: {
-                const auto Object = Objects::FatMachO::Open(Map);
-                using ErrorKind = Objects::FatMachO::OpenError;
-
-                const auto Error = Object.error();
-                if (Error == ErrorKind::None) {
-                    return Object.ptr();
+                const auto ObjectOrError = Objects::FatMachO::Open(Map);
+                if (ObjectOrError.has_value()) {
+                    return ObjectOrError.value();
                 }
 
-                if (Error!= ErrorKind::WrongFormat) {
-                    return OpenError(Kind::FatMachO,
-                                     static_cast<uint32_t>(Error));
+                const auto Error = ObjectOrError.error();
+                if (Error.Kind != FatMachO::OpenError::WrongFormat) {
+                    return std::unexpected(OpenError(Error));
                 }
             }
             case Kind::DscImage:
                 break;
         }
 
-        return OpenErrorUnrecognized;
+        return std::unexpected(OpenError::unrecognized());
     }
 
     auto OpenFrom(const ADT::MemoryMap &Map, const Kind FromKind) noexcept
-        -> OpenResult
+        -> std::expected<Base *, OpenError>
     {
         const auto Kind = Kind::None;
         switch (Kind) {
             case Kind::None:
             case Kind::MachO: {
-                const auto Object = Objects::MachO::Open(Map);
-                using ErrorKind = Objects::MachO::OpenError;
-
-                const auto Error = Object.error();
-                if (Error == ErrorKind::None) {
-                    return Object.ptr();
+                const auto ObjectOrError = Objects::MachO::Open(Map);
+                if (ObjectOrError.has_value()) {
+                    return ObjectOrError.value();
                 }
 
-                if (Error != ErrorKind::WrongFormat) {
-                    return OpenError(Kind::MachO, static_cast<uint32_t>(Error));
+                const auto Error = ObjectOrError.error();
+                if (Error.Kind != MachO::OpenError::WrongFormat) {
+                    return std::unexpected(OpenError(Error));
                 }
 
                 [[fallthrough]];
@@ -105,17 +96,14 @@ namespace Objects {
                     break;
                 }
 
-                const auto Object = Objects::FatMachO::Open(Map);
-                using ErrorKind = Objects::FatMachO::OpenError;
-
-                const auto Error = Object.error();
-                if (Error == ErrorKind::None) {
-                    return Object.ptr();
+                const auto ObjectOrError = Objects::FatMachO::Open(Map);
+                if (ObjectOrError.has_value()) {
+                    return ObjectOrError.value();
                 }
 
-                if (Error != ErrorKind::WrongFormat) {
-                    return OpenError(Kind::FatMachO,
-                                     static_cast<uint32_t>(Error));
+                const auto Error = ObjectOrError.error();
+                if (Error.Kind != FatMachO::OpenError::WrongFormat) {
+                    return std::unexpected(OpenError(Error));
                 }
 
                 [[fallthrough]];
@@ -126,6 +114,6 @@ namespace Objects {
                 break;
         }
 
-        return OpenErrorUnrecognized;
+        return std::unexpected(OpenError::unrecognized());
     }
 }

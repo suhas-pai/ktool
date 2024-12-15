@@ -14,7 +14,7 @@
 namespace Operations {
     PrintImageList::PrintImageList(FILE *const OutFile,
                                    const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options) {}
+    : Base(Operations::Kind::PrintImageList), OutFile(OutFile), Opt(Options) {}
 
     bool
     PrintImageList::supportsObjectKind(
@@ -102,16 +102,14 @@ namespace Operations {
     PrintImageList::run(const Objects::DyldSharedCache &Dsc) const noexcept
         -> RunResult
     {
-        auto Result = RunResult(Objects::Kind::DyldSharedCache);
         const auto ImageCount = Dsc.imageCount();
-
         if (ImageCount == 0) {
-            return Result.set(RunError::NoImages);
+            return RunResult(RunResult::Error::NoImages);
         }
 
         if (Opt.OnlyCount) {
             PrintImageCount(OutFile, ImageCount, false);
-            return Result.set(RunError::None);
+            return RunResult();
         }
 
         const auto Map = Dsc.map();
@@ -163,8 +161,8 @@ namespace Operations {
         auto Counter = uint64_t(1);
         for (const auto &Info : ImageInfoList) {
             fprintf(OutFile,
-                    "Image %" ZEROPAD_FMT PRIu64 ": ",
-                    ZEROPAD_FMT_ARGS(ImageInfoListSizeDigitCount),
+                    "Image %" LEFTPAD_FMT PRIu64 ": ",
+                    PAD_FMT_ARGS(ImageInfoListSizeDigitCount),
                     Counter);
 
             const auto WrittenOut =
@@ -194,7 +192,7 @@ namespace Operations {
             Counter++;
         }
 
-        return Result;
+        return RunResult();
     }
 
     auto
@@ -208,7 +206,7 @@ namespace Operations {
             case Objects::Kind::MachO:
             case Objects::Kind::DscImage:
             case Objects::Kind::FatMachO:
-                return RunResultUnsupported;
+                return RunResult(RunResult::Error::Unsupported);
         }
 
         assert(false &&

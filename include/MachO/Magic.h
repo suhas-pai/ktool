@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <assert.h>
 #include <string_view>
+#include "Utils/Assert.h"
 
 namespace MachO {
     enum class Magic : uint32_t {

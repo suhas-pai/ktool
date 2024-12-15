@@ -30,13 +30,17 @@ namespace Operations {
 
         ~PrintHeader() noexcept override {}
 
-        enum class RunError : uint32_t {
-            None,
+        struct RunResult {
+            enum class Error : uint32_t {
+                None,
+            };
+
+            Error Error = Error::None;
         };
 
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
-        RunResult run(const Objects::Base &Base) const noexcept override;
+        RunResult run(const Objects::Base &Base) const noexcept;
         RunResult run(const Objects::DyldSharedCache &Dsc) const noexcept;
         RunResult run(const Objects::MachO &MachO) const noexcept;
         RunResult run(const Objects::FatMachO &MachO) const noexcept;

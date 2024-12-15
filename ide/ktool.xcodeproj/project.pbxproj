@@ -82,7 +82,7 @@
 		F36E81482C29E5E000DFBF9B /* FlagsIterator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FlagsIterator.h; path = ../include/ADT/FlagsIterator.h; sourceTree = "<group>"; };
 		F36E81492C29E5F100DFBF9B /* List.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = List.h; path = ../include/ADT/List.h; sourceTree = "<group>"; };
 		F36E814A2C29E5F100DFBF9B /* Maximizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Maximizer.h; path = ../include/ADT/Maximizer.h; sourceTree = "<group>"; };
-		F36E814B2C29E5F900DFBF9B /* PointerOrError.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PointerOrError.h; path = ../include/ADT/PointerOrError.h; sourceTree = "<group>"; };
+		F36E814B2C29E5F900DFBF9B /* ExpectedPointer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ExpectedPointer.h; path = ../include/ADT/ExpectedPointer.h; sourceTree = "<group>"; };
 		F36E814C2C29E60700DFBF9B /* Tree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Tree.h; path = ../include/ADT/Tree.h; sourceTree = "<group>"; };
 		F36E814D2C29E60700DFBF9B /* Trie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Trie.h; path = ../include/ADT/Trie.h; sourceTree = "<group>"; };
 		F36E814E2C29E63400DFBF9B /* Trie.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Trie.cpp; path = ../src/ADT/Trie.cpp; sourceTree = "<group>"; };
@@ -329,7 +329,7 @@
 				F36E81492C29E5F100DFBF9B /* List.h */,
 				F36E814A2C29E5F100DFBF9B /* Maximizer.h */,
 				F39FAE8A2929C1B50057DC6F /* MemoryMap.h */,
-				F36E814B2C29E5F900DFBF9B /* PointerOrError.h */,
+				F36E814B2C29E5F900DFBF9B /* ExpectedPointer.h */,
 				F3AD81F828ECBD74005DE822 /* Range.h */,
 				F30BB524292A267000AF300B /* SwitchEndian.h */,
 				F36E814C2C29E60700DFBF9B /* Tree.h */,

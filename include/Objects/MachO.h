@@ -6,6 +6,8 @@
 //
 
 #pragma once
+
+#include <expected>
 #include "ADT/MemoryMap.h"
 
 #include "MachO/Header.h"
@@ -23,6 +25,10 @@ namespace Objects {
             SizeTooSmall,
             TooManyLoadCommands
         };
+
+        struct Error {
+            OpenError Kind;
+        };
     protected:
         ADT::MemoryMap Map;
 
@@ -36,36 +42,35 @@ namespace Objects {
         explicit MachO(const ADT::MemoryMap &Map, const enum Kind Kind) noexcept
         : Base(Kind), Map(Map) {}
     public:
-
         ~MachO() noexcept override {}
 
         static auto Open(const ADT::MemoryMap &Map) noexcept ->
-            ADT::PointerOrError<MachO, OpenError>;
+            std::expected<MachO *, Error>;
 
         [[nodiscard]] constexpr auto map() const noexcept {
-            return Map;
+            return this->Map;
         }
 
-        [[nodiscard]] inline auto header() const noexcept {
-            return *map().base<::MachO::Header, false>();
+        [[nodiscard]] inline auto &header() const noexcept {
+            return *this->map().base<::MachO::Header, false>();
         }
 
         [[nodiscard]] inline auto fileKind() const noexcept {
-            return header().fileKind();
+            return this->header().fileKind();
         }
 
         [[nodiscard]] inline auto isBigEndian() const noexcept {
-            return header().isBigEndian();
+            return this->header().isBigEndian();
         }
 
         [[nodiscard]] inline auto is64Bit() const noexcept {
-            return header().is64Bit();
+            return this->header().is64Bit();
         }
 
         [[nodiscard]] inline auto loadCommandsMap() const noexcept {
-            const auto IsBigEndian = isBigEndian();
+            const auto IsBigEndian = this->isBigEndian();
             const auto LoadCommandsMemoryMap =
-                ADT::MemoryMap(map(), header().loadCommandsRange());
+                ADT::MemoryMap(this->map(), this->header().loadCommandsRange());
 
             return ::MachO::LoadCommandsMap(LoadCommandsMemoryMap, IsBigEndian);
         }

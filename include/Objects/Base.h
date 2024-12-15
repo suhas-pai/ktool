@@ -7,10 +7,7 @@
 
 #pragma once
 
-#include "ADT/FileMap.h"
 #include "ADT/MemoryMap.h"
-#include "ADT/PointerOrError.h"
-
 #include "Kind.h"
 
 namespace Objects {
@@ -29,38 +26,4 @@ namespace Objects {
             return Kind;
         }
     };
-
-    struct OpenError {
-        Objects::Kind Kind : 8 = Kind::None;
-        uint32_t Error = 0;
-
-        constexpr OpenError() noexcept = default;
-        constexpr OpenError(const enum Kind Kind, const uint32_t Error) noexcept
-        : Kind(Kind), Error(Error) {
-            assert(Error != 0);
-        }
-
-        [[nodiscard]] constexpr auto isNone() const noexcept {
-            return Error == 0;
-        }
-
-        [[nodiscard]] constexpr auto isUnrecognizedFormat() const noexcept {
-            return Kind == Kind::None && Error == 1;
-        }
-    } __attribute__((packed));
-
-    constexpr static auto OpenErrorNone = OpenError();
-    constexpr static auto OpenErrorUnrecognized = OpenError(Kind::None, 1);
-
-    static_assert(OpenErrorNone.isNone());
-    static_assert(OpenErrorUnrecognized.isUnrecognizedFormat());
-
-    using OpenResult = typename ADT::PointerOrError<Base, OpenError>;
-    auto
-    Open(const ADT::MemoryMap &Map,
-         std::string_view Path,
-         ADT::FileMap::Prot Prot) noexcept -> OpenResult;
-
-    auto OpenFrom(const ADT::MemoryMap &Map, const Kind FromKind) noexcept
-        -> OpenResult;
 }

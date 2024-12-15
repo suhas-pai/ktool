@@ -12,7 +12,7 @@
 namespace Utils {
     [[nodiscard]]
     constexpr static auto Leb128ByteIsDone(const uint8_t &Byte) noexcept {
-        return !(Byte & 0x80);
+        return (Byte & 0x80) == 0;
     }
 
     [[nodiscard]]
@@ -25,7 +25,7 @@ namespace Utils {
         constexpr auto BitSize = uint8_t(sizeof(T) * 8);
         constexpr auto MaxFactor = uint8_t(BitSize / 7);
 
-        return uint8_t(MaxFactor * 7);
+        return static_cast<uint8_t>(MaxFactor * 7);
     }
 
     template <std::integral T>

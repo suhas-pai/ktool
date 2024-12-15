@@ -18,13 +18,26 @@
 
 namespace Utils {
     template <std::unsigned_integral T>
-    [[nodiscard]] constexpr auto GetIntegerDigitCount(T Integer) noexcept {
-        auto DigitLength = unsigned();
+    [[nodiscard]]
+    constexpr auto GetIntegerDigitCount(T Integer) noexcept -> uint8_t {
+        auto DigitLength = uint8_t();
         do {
             DigitLength++;
         } while (Integer /= 10);
 
         return DigitLength;
+    }
+
+    template <std::signed_integral T>
+    [[nodiscard]]
+    constexpr auto GetIntegerDigitCount(T Integer) noexcept -> uint8_t {
+        if (Integer < 0) {
+            Integer = -Integer;
+            return GetIntegerDigitCount(Integer) + 1;
+        }
+
+        return GetIntegerDigitCount(
+            static_cast<std::make_unsigned_t<T>>(Integer));
     }
 
     template <std::unsigned_integral T>
@@ -139,11 +152,10 @@ namespace Utils {
 #define STRING_VIEW_FMT_C(C) "%." TO_STRING(C) "s"
 
 #define ZEROPAD_FMT "0*"
-#define ZEROPAD_FMT_ARGS(val) val
 #define LEFTPAD_FMT "*"
-#define LEFTPAD_FMT_ARGS(val) val
 #define RIGHTPAD_FMT "-*"
-#define RIGHTPAD_FMT_ARGS(val) val
+
+#define PAD_FMT_ARGS(val) val
 #define STR_LENGTH(s) (sizeof(s) - 1)
 
 #define ADDRESS_32_FMT "0x%08" PRIX32

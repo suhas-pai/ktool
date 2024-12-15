@@ -13,7 +13,8 @@ namespace Operations {
     PrintBindOpcodeList::PrintBindOpcodeList(
         FILE *const OutFile,
         const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options) {}
+    : Base(Operations::Kind::PrintBindOpcodeList), OutFile(OutFile),
+      Opt(Options) {}
 
     bool
     PrintBindOpcodeList::supportsObjectKind(
@@ -40,26 +41,19 @@ namespace Operations {
     static void
     PrintFlags(FILE *const OutFile, const MachO::BindSymbolFlags Flags) noexcept
     {
-        fputs(" - <", OutFile);
-
+        fputs("\tFlags:", OutFile);
         if (!Flags.empty()) {
-            const auto HasNonWeakDefinition = Flags.hasNonWeakDefinition();
-            if (HasNonWeakDefinition) {
-                fputs("Has Non-Weak Definition", OutFile);
+            fputc('\n', OutFile);
+            if (Flags.hasNonWeakDefinition()) {
+                fputs("\t\tHas Non-Weak Definition\n", OutFile);
             }
 
             if (Flags.isWeakImport()) {
-                if (HasNonWeakDefinition) {
-                    fputs(", ", OutFile);
-                }
-
-                fputs("Weak-Import", OutFile);
+                fputs("\t\tWeak-Import\n", OutFile);
             }
         } else {
-            fputs("None", OutFile);
+            fputs(" None\n", OutFile);
         }
-
-        fputc('>', OutFile);
     }
 
     struct BindOpcodeInfo : public MachO::BindOpcodeIterateInfo {
@@ -275,7 +269,7 @@ namespace Operations {
             InfoList.emplace_back(OpcodeInfo);
         }
 
-    [[maybe_unused]] done:
+    done:
         return InfoList;
     }
 
@@ -298,34 +292,57 @@ namespace Operations {
             const auto PtrSize = Utils::PointerSize(Is64Bit);
 
             fprintf(OutFile,
-                    "%s %" ZEROPAD_FMT PRIu64 ": %s",
+                    "%s %" LEFTPAD_FMT PRIu64 ": %s",
                     Name,
-                    ZEROPAD_FMT_ARGS(SizeDigitLength),
+                    PAD_FMT_ARGS(SizeDigitLength),
                     Counter,
                     OpcodeName.data());
 
-            const auto PrintAddressInfo = [&](const uint64_t Add = 0) noexcept {
-                if ((&Iter) != (&List.back() + 1)) {
-                    if ((&Iter)[1].AddrInSegOverflows) {
-                        fputs(" (Overflows)", OutFile);
-                        return;
-                    }
-                }
+            auto OpcodeAndArgLength = static_cast<int>(OpcodeName.length());
+            const auto PrintArrow = [&]() noexcept {
+                constexpr auto MaxArgLength = 32;
+                constexpr auto LongestOpcodeNameLength =
+                    MachO::BindByteOpcodeGetName(
+                        MachO::BindByteOpcode::DoBindUlebTimesSkippingUleb)
+                            .length();
 
-                Utils::PrintAddress (OutFile,
-                                     Iter.AddrInSeg + Add,
-                                     Is64Bit,
-                                     " - <Segment-Address: ",
-                                     ", ");
+                fputs(" ", OutFile);
+                const auto PadLength =
+                    (LongestOpcodeNameLength + MaxArgLength) -
+                    static_cast<uint64_t>(OpcodeAndArgLength);
+
+                Utils::PrintMultTimes(OutFile, "-", PadLength);
+                fputs("> ", OutFile);
+            };
+
+            const auto PrintAddressInfo = [&](const uint64_t Add = 0) noexcept {
+                Utils::PrintSegmentSectionPair(
+                    OutFile,
+                    Iter.Segment ? Iter.Segment->Name : "",
+                    Iter.Section ? Iter.Section->Name : "",
+                    /*PadSegment=*/true,
+                    /*PadSection=*/true,
+                    /*Prefix=*/"Segment: ");
+
+                Utils::PrintAddress(OutFile,
+                                    Iter.AddrInSeg + Add,
+                                    Is64Bit,
+                                    "Segment-Address: ",
+                                    ", ");
 
                 const auto FullAddr =
-                    Iter.Segment->VmRange.begin() + Iter.AddrInSeg + Add;
+                    Iter.Segment->VmRange.locForIndex(Iter.AddrInSeg + Add);
 
                 Utils::PrintAddress(OutFile,
                                     FullAddr,
                                     Is64Bit,
                                     "Full-Address: ",
-                                    ">");
+                                    "\n");
+
+                if (Iter.AddrInSegOverflows) {
+                    fputs(" (Overflows)", OutFile);
+                    return;
+                }
             };
 
             switch (Byte.opcode()) {
@@ -372,13 +389,15 @@ namespace Operations {
                     fputs(")\n", OutFile);
                     break;
                 case MachO::BindByte::Opcode::SetSymbolTrailingFlagsImm:
-                    fprintf(OutFile,
-                            "(\"%s\", 0x%" PRIx8,
-                            Iter.SymbolName.data(),
-                            Iter.Flags.value());
+                    OpcodeAndArgLength +=
+                        fprintf(OutFile,
+                                "(Symbol: \"%s\", Flags: 0x%" PRIx8 ")",
+                                Iter.SymbolName.data(),
+                                Iter.Flags.value());
 
                     if (Options.Verbose) {
                         if (!Iter.Flags.empty()) {
+                            PrintArrow();
                             PrintFlags(OutFile, Iter.Flags);
                         }
                     }
@@ -387,54 +406,48 @@ namespace Operations {
                     break;
 
                 case MachO::BindByte::Opcode::SetKindImm: {
-                    const auto KindName =
-                        MachO::BindWriteKindIsValid(Iter.WriteKind) ?
-                            MachO::BindWriteKindGetName(Iter.WriteKind) :
-                            "<unrecognized>";
+                    if (MachO::BindWriteKindIsValid(Iter.WriteKind)) {
+                        OpcodeAndArgLength +=
+                            fprintf(OutFile,
+                                    "(Kind: %s)\n",
+                                    MachO::BindWriteKindGetName(
+                                        Iter.WriteKind).data());
+                    } else {
+                        OpcodeAndArgLength +=
+                            fprintf(OutFile,
+                                    "(Kind: <unrecognized, value: %" PRId64 ")",
+                                    static_cast<int64_t>(Iter.WriteKind));
+                    }
 
-                    fprintf(OutFile, "(%s)\n", KindName.data());
                     break;
                 }
                 case MachO::BindByte::Opcode::SetAddendSleb:
-                    Utils::PrintAddress(OutFile,
-                                        static_cast<uint64_t>(Iter.Addend),
-                                        Is64Bit,
-                                        "(",
-                                        ")\n");
+                    OpcodeAndArgLength +=
+                        Utils::PrintAddress(OutFile,
+                                            static_cast<uint64_t>(Iter.Addend),
+                                            Is64Bit,
+                                            "(Addend: ",
+                                            ")\n");
                     break;
                 case MachO::BindByte::Opcode::SetSegmentAndOffsetUleb: {
-                    fprintf(OutFile, "(%" PRId64, Iter.SegmentIndex);
+                    OpcodeAndArgLength +=
+                        fprintf(OutFile,
+                                "(Segment: %" PRId64 ")",
+                                Iter.SegmentIndex);
+
                     if (Options.Verbose) {
-                        Utils::PrintSegmentSectionPair(
-                            OutFile,
-                            Iter.Segment ? Iter.Segment->Name : "",
-                            Iter.Section ? Iter.Section->Name : "",
-                            /*PadSegment=*/false,
-                            /*PadSection=*/false,
-                            /*Prefix=*/" - <",
-                            /*Suffix=*/">");
+                        PrintArrow();
+                        PrintAddressInfo();
                     }
 
-                    Utils::PrintAddress(OutFile, Iter.AddrInSeg, Is64Bit, ", ");
-                    if (Options.Verbose) {
-                        if (Iter.Segment != nullptr) {
-                            const auto FullAddr =
-                                Iter.Segment->VmRange.begin() + Iter.AddrInSeg;
-
-                            Utils::PrintAddress(OutFile,
-                                                FullAddr,
-                                                Is64Bit,
-                                                " <Full Address: ",
-                                                ">");
-                        }
-                    }
-
-                    fputs(")\n", OutFile);
                     break;
                 }
                 case MachO::BindByte::Opcode::AddAddrUleb: {
-                    fprintf(OutFile, "(%" PRId64, Iter.AddAddr);
+                    OpcodeAndArgLength +=
+                        fprintf(OutFile, "(Add: %" PRId64 ")", Iter.AddAddr);
+
                     if (Options.Verbose) {
+                        PrintArrow();
                         PrintAddressInfo();
                     }
 
@@ -445,16 +458,22 @@ namespace Operations {
                     fputc('\n', OutFile);
                     break;
                 case MachO::BindByte::Opcode::DoBindAddAddrUleb:
-                    fprintf(OutFile, "(%" PRId64, Iter.AddAddr);
+                    OpcodeAndArgLength +=
+                        fprintf(OutFile, "(Add: %" PRId64 ")", Iter.AddAddr);
+
                     if (Options.Verbose) {
+                        PrintArrow();
                         PrintAddressInfo(PtrSize);
                     }
 
                     fputs(")\n", OutFile);
                     break;
                 case MachO::BindByte::Opcode::DoBindAddAddrImmScaled: {
-                    fprintf(OutFile, "(%" PRId64, Iter.Scale);
+                    OpcodeAndArgLength +=
+                        fprintf(OutFile, "(Scale: %" PRId64 ")", Iter.Scale);
+
                     if (Options.Verbose) {
+                        PrintArrow();
                         PrintAddressInfo(Iter.Scale * PtrSize);
                     }
 
@@ -462,16 +481,18 @@ namespace Operations {
                     break;
                 }
                 case MachO::BindByte::Opcode::DoBindUlebTimesSkippingUleb: {
-                    fprintf(OutFile,
-                            "(Skip: %" PRId64 ", Count: %" PRIu64,
-                            Iter.Skip,
-                            Iter.Count);
+                    OpcodeAndArgLength +=
+                        fprintf(OutFile,
+                                "(Skip: %" PRId64 ", Count: %" PRIu64 ")",
+                                Iter.Skip,
+                                Iter.Count);
 
                     if (Options.Verbose) {
                         const auto Add =
-                            (static_cast<uint64_t>(Iter.Skip) * Iter.Count) +
-                            (Iter.Count * PtrSize);
+                            static_cast<uint64_t>(Iter.Skip) * Iter.Count +
+                            Iter.Count * PtrSize;
 
+                        PrintArrow();
                         PrintAddressInfo(Add);
                     }
 
@@ -486,7 +507,7 @@ namespace Operations {
             Counter++;
         }
 
-    [[maybe_unused]] done:
+    done:
         return;
     }
 
@@ -494,8 +515,6 @@ namespace Operations {
     PrintBindOpcodeList::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
-        auto Result = RunResult(Objects::Kind::MachO);
-
         const auto IsBigEndian = MachO.isBigEndian();
         const auto Is64Bit = MachO.is64Bit();
 
@@ -541,12 +560,12 @@ namespace Operations {
         }
 
         if (!FoundDyldInfo) {
-            return Result.set(RunError::NoDyldInfo);
+            return RunResult(RunResult::Error::NoDyldInfo);
         }
 
         if (BindRange.empty() && LazyBindRange.empty() && WeakBindRange.empty())
         {
-            return Result.set(RunError::NoOpcodes);
+            return RunResult(RunResult::Error::NoOpcodes);
         }
 
         auto BindOpcodeList = std::vector<BindOpcodeInfo>();
@@ -554,7 +573,7 @@ namespace Operations {
         auto WeakBindOpcodeList = std::vector<BindOpcodeInfo>();
 
         if (Opt.PrintNormal) {
-            if (MachO.map().range().contains(BindRange)) {
+            if (!BindRange.empty() && MachO.map().range().contains(BindRange)) {
                 const auto BindListMap = ADT::MemoryMap(MachO.map(), BindRange);
                 const auto BindList =
                     MachO::BindOpcodeList(BindListMap, Is64Bit);
@@ -566,7 +585,9 @@ namespace Operations {
         }
 
         if (Opt.PrintLazy) {
-            if (MachO.map().range().contains(LazyBindRange)) {
+            if (!LazyBindRange.empty() &&
+                MachO.map().range().contains(LazyBindRange))
+            {
                 const auto LazyBindListMap =
                     ADT::MemoryMap(MachO.map(), LazyBindRange);
                 const auto LazyBindList =
@@ -579,7 +600,9 @@ namespace Operations {
         }
 
         if (Opt.PrintWeak) {
-            if (MachO.map().range().contains(WeakBindRange)) {
+            if (!WeakBindRange.empty() &&
+                MachO.map().range().contains(WeakBindRange))
+            {
                 const auto WeakBindListMap =
                     ADT::MemoryMap(MachO.map(), WeakBindRange);
                 const auto WeakBindList =
@@ -641,7 +664,7 @@ namespace Operations {
             }
         }
 
-        return Result.set(RunError::None);
+        return RunResult();
     }
 
     auto
@@ -657,7 +680,7 @@ namespace Operations {
             case Objects::Kind::DyldSharedCache:
             case Objects::Kind::DscImage:
             case Objects::Kind::FatMachO:
-                return RunResultUnsupported;
+                return RunResult(RunResult::Error::Unsupported);
         }
 
         assert(false &&

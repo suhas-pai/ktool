@@ -27,16 +27,22 @@ namespace Operations {
 
         ~PrintId() noexcept override {}
 
-        enum class RunError : uint32_t {
-            None,
-            NotADylib,
-            BadIdString,
-            IdNotFound
+        struct RunResult {
+            enum class Error : uint32_t {
+                None,
+                Unsupported,
+
+                NotADylib,
+                BadIdString,
+                IdNotFound
+            };
+
+            Error Error = Error::None;
         };
 
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
-        RunResult run(const Objects::Base &Base) const noexcept override;
+        RunResult run(const Objects::Base &Base) const noexcept;
         RunResult run(const Objects::MachO &MachO) const noexcept;
         RunResult run(const Objects::DscImage &Image) const noexcept;
 

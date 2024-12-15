@@ -5,10 +5,12 @@
 //  Created by suhaspai on 11/15/22.
 //
 
+#include <format>
 #include <unordered_map>
-
 #include "ADT/FlagsIterator.h"
+
 #include "Objects/DyldSharedCache.h"
+#include "Objects/Open.h"
 
 #include "Operations/PrintArchs.h"
 #include "Operations/PrintHeader.h"
@@ -18,7 +20,7 @@
 namespace Operations {
     PrintHeader::PrintHeader(FILE *const OutFile,
                              const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options) {}
+    : Base(Operations::Kind::PrintHeader), OutFile(OutFile), Opt(Options) {}
 
     bool
     PrintHeader::supportsObjectKind(const Objects::Kind Kind) const noexcept {
@@ -38,11 +40,35 @@ namespace Operations {
                "Got unknown Object-Kind in PrintHeader::supportsObjectKind()");
     }
 
+    static auto
+    StringForCpuKind(const Mach::CpuKind CpuKind,
+                     const bool Verbose) noexcept -> std::string
+    {
+        return Mach::CpuKindIsValid(CpuKind) ?
+            Verbose ?
+                std::string(Mach::CpuKindGetString(CpuKind)) :
+                std::string(Mach::CpuKindGetDesc(CpuKind))
+            : std::format("<Unknown: 0x{:02x}>",
+                          static_cast<int32_t>(CpuKind));
+    }
+
+    static auto
+    StringForSubKind(const Mach::CpuKind CpuKind,
+                     const int32_t SubKind,
+                     const bool Verbose) noexcept -> std::string
+    {
+        return Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind) ?
+            Verbose ?
+                std::string(
+                        Mach::CpuKindAndSubKindGetString(CpuKind, SubKind)) :
+                    std::string(
+                        Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind))
+            : std::format("<Unknown: 0x{:02x}>", SubKind);
+    }
+
     auto
     PrintHeader::run(const Objects::MachO &MachO) const noexcept -> RunResult {
-        auto Result = RunResult(Objects::Kind::MachO);
-
-        const auto Header = MachO.header();
+        const auto &Header = MachO.header();
         const auto CpuKind = Header.cpuKind();
         const auto SubKind = Header.cpuSubKind();
         const auto FileKind = Header.fileKind();
@@ -50,12 +76,17 @@ namespace Operations {
         const auto SizeOfCmds = Header.sizeOfCmds();
         const auto Flags = Header.flags();
 
+        const auto CpuKindString = StringForCpuKind(CpuKind, Opt.Verbose);
         const auto SubKindString =
-            Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind) ?
+            StringForSubKind(CpuKind, SubKind, Opt.Verbose);
+
+        const auto FileKindString =
+            MachO::FileKindIsValid(FileKind) ?
                 Opt.Verbose ?
-                    Mach::CpuKindAndSubKindGetString(CpuKind, SubKind).data() :
-                    Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind).data()
-                : "Unrecognized";
+                    std::string(MachO::FileKindGetString(FileKind)) :
+                    std::string(MachO::FileKindGetDesc(FileKind))
+                : std::format("<Unknown: 0x{:02x}>",
+                              static_cast<uint32_t>(FileKind));
 
         fprintf(OutFile,
                 "Apple %s Mach-O File\n"
@@ -63,26 +94,18 @@ namespace Operations {
                 "\tCputype:    %s\n"
                 "\tCpuSubtype: %s\n"
                 "\tFiletype:   %s\n"
-                "\tNcmds:      %" PRIu32 "\n"
-                "\tSizeOfCmds: %" PRIu32 "\n"
+                "\tNcmds:      %s\n"
+                "\tSizeOfCmds: %s\n"
                 "\tFlags:      0x%" PRIx32 "\n",
                 MachO.is64Bit() ? "64-Bit" : "32-Bit",
                 Opt.Verbose ?
                     MachO::MagicGetString(Header.Magic).data() :
                     MachO::MagicGetDesc(Header.Magic).data(),
-                Mach::CpuKindIsValid(CpuKind) ?
-                    Opt.Verbose ?
-                        Mach::CpuKindGetString(CpuKind).data() :
-                        Mach::CpuKindGetDesc(CpuKind).data()
-                    : "Unrecognized",
-                SubKindString,
-                MachO::FileKindIsValid(FileKind) ?
-                    Opt.Verbose ?
-                        MachO::FileKindGetString(FileKind).data() :
-                        MachO::FileKindGetDesc(FileKind).data()
-                    : "Unrecognized",
-                Ncmds,
-                SizeOfCmds,
+                CpuKindString.c_str(),
+                SubKindString.c_str(),
+                FileKindString.c_str(),
+                Utils::GetFormattedNumber(Ncmds).c_str(),
+                Utils::GetFormattedNumber(SizeOfCmds).c_str(),
                 Flags.value());
 
         auto Counter = static_cast<uint8_t>(1);
@@ -93,7 +116,8 @@ namespace Operations {
         for (const auto Bit : ADT::FlagsIterator(Flags)) {
             const auto Flag = MachO::Flags::Kind(1 << Bit);
             fprintf(OutFile,
-                    "\t\t %" ZEROPAD_FMT PRIu8 ". Bit %" PRIu32 ": %s\n",
+                    "\t\t %" LEFTPAD_FMT PRIu8
+                    ". Bit %" LEFTPAD_FMT_C(2) PRIu32 ": %s\n",
                     DigitCount,
                     Counter,
                     Bit,
@@ -104,13 +128,11 @@ namespace Operations {
             Counter++;
         }
 
-        return Result.set(RunError::None);
+        return RunResult();
     }
 
     auto
     PrintHeader::run(const Objects::FatMachO &Fat) const noexcept -> RunResult {
-        auto Result = RunResult(Objects::Kind::FatMachO);
-
         const auto Header = Fat.header();
         const auto ArchCount = Header.archCount();
 
@@ -132,7 +154,7 @@ namespace Operations {
                 for (const auto &Arch : Fat.arch64List()) {
                     const auto Object =
                         std::unique_ptr<Objects::Base>(
-                            Fat.getArchObjectAtIndex(I).ptr());
+                            Objects::OpenArch(Fat, I).value());
 
                     Operations::PrintArchs::PrintArch64(OutFile,
                                                         Arch,
@@ -147,7 +169,7 @@ namespace Operations {
                 for (const auto &Arch : Fat.archList()) {
                     const auto Object =
                         std::unique_ptr<Objects::Base>(
-                            Fat.getArchObjectAtIndex(I).ptr());
+                            Objects::OpenArch(Fat, I).value());
 
                     Operations::PrintArchs::PrintArch(OutFile,
                                                       Arch,
@@ -161,7 +183,7 @@ namespace Operations {
             }
         }
 
-        return Result.set(RunError::None);
+        return RunResult();
     }
 
     enum class DscRangeKind {
@@ -601,8 +623,6 @@ namespace Operations {
                 const std::string_view Prefix = "") noexcept
     {
         fprintf(OutFile, STRING_VIEW_FMT, STRING_VIEW_FMT_ARGS(Prefix));
-        fflush(OutFile);
-
         Utils::RightPadSpaces(OutFile,
                               fprintf(OutFile,
                                       STRING_VIEW_FMT ": ",
@@ -694,9 +714,9 @@ namespace Operations {
             const auto MaxProt = Mapping.maxProt();
 
             fprintf(OutFile,
-                    "\tMapping %" ZEROPAD_FMT PRIu32 ": "
+                    "\tMapping %" LEFTPAD_FMT PRIu32 ": "
                     MACH_VMPROT_INIT_MAX_FMT " \n",
-                    ZEROPAD_FMT_ARGS(MappingCountDigitLength),
+                    PAD_FMT_ARGS(MappingCountDigitLength),
                     Index,
                     MACH_VMPROT_INIT_MAX_FMT_ARGS(InitProt, MaxProt));
 
@@ -753,9 +773,9 @@ namespace Operations {
         if (const auto ListOpt = Dsc.subCacheEntryInfoList()) {
             for (const auto &Info : ListOpt.value()) {
                 fprintf(OutFile,
-                        "\tSubCache Entry %" ZEROPAD_FMT PRIu32 ": "
+                        "\tSubCache Entry %" LEFTPAD_FMT PRIu32 ": "
                         UUID_FMT " \n",
-                        ZEROPAD_FMT_ARGS(MappingCountDigitLength),
+                        PAD_FMT_ARGS(MappingCountDigitLength),
                         Index,
                         UUID_FMT_ARGS(Info.Uuid));
 
@@ -790,9 +810,9 @@ namespace Operations {
 
         for (const auto &Info : ListOpt.value()) {
             fprintf(OutFile,
-                    "\tSubCache V1 Entry %" ZEROPAD_FMT PRIu32 ": "
+                    "\tSubCache V1 Entry %" LEFTPAD_FMT PRIu32 ": "
                     UUID_FMT " \n",
-                    ZEROPAD_FMT_ARGS(MappingCountDigitLength),
+                    PAD_FMT_ARGS(MappingCountDigitLength),
                     Index,
                     UUID_FMT_ARGS(Info.Uuid));
 
@@ -852,7 +872,7 @@ namespace Operations {
             PrintMappingInfoList(OutFile, Options, Dsc);
         }
 
-        if (Header.isV8()) {
+        if (Header.isAtleastV8()) {
             PrintDscKey(OutFile, "Images Offset (Old)");
             Utils::PrintAddress(OutFile,
                                 Header.ImagesOffsetOld,
@@ -1180,13 +1200,9 @@ namespace Operations {
                           /*PrintNewLine=*/true);
 
         PrintDscKey(OutFile, "Max Slide");
-        if (Options.Verbose) {
-            fprintf(OutFile,
-                    "%s\n",
-                    Utils::FormattedSizeForOutput(Header.MaxSlide).c_str());
-        } else {
-            fprintf(OutFile, "%s\n", std::to_string(Header.MaxSlide).c_str());
-        }
+        fprintf(OutFile,
+                "%s\n",
+                Utils::FormattedSizeForOutput(Header.MaxSlide).c_str());
     }
 
     static void
@@ -1268,9 +1284,9 @@ namespace Operations {
             const auto MaxProt = Mapping.maxProt();
 
             fprintf(OutFile,
-                    "\tMapping %" ZEROPAD_FMT PRIu32 ": "
+                    "\tMapping %" LEFTPAD_FMT PRIu32 ": "
                     MACH_VMPROT_INIT_MAX_FMT " \n",
-                    ZEROPAD_FMT_ARGS(MappingCountDigitLength),
+                    PAD_FMT_ARGS(MappingCountDigitLength),
                     Index,
                     MACH_VMPROT_INIT_MAX_FMT_ARGS(InitProt, MaxProt));
 
@@ -1315,13 +1331,9 @@ namespace Operations {
                                   fputs("\n\t\tSize: ", OutFile),
                                   STR_LENGTH("\n\t\t") + LongestKeyLength);
 
-            if (Options.Verbose) {
-                fprintf(OutFile,
-                        "%s\n",
-                        Utils::FormattedSizeForOutput(Mapping.Size).c_str());
-            } else {
-                fprintf(OutFile, "%" PRIu64 "\n", Mapping.Size);
-            }
+            fprintf(OutFile,
+                    "%s\n",
+                    Utils::FormattedSizeForOutput(Mapping.Size).c_str());
 
             Utils::RightPadSpaces(
                 OutFile,
@@ -1347,14 +1359,10 @@ namespace Operations {
                 fputs("\n\t\tSlide-Info File Size: ", OutFile),
                 STR_LENGTH("\n\t\t") + LongestKeyLength);
 
-            if (Options.Verbose) {
-                fprintf(OutFile,
-                        "%s\n",
-                        Utils::FormattedSizeForOutput(
-                            Mapping.SlideInfoFileSize).c_str());
-            } else {
-                fprintf(OutFile, "%" PRIu64 "\n", Mapping.SlideInfoFileSize);
-            }
+            fprintf(OutFile,
+                    "%s\n",
+                    Utils::FormattedSizeForOutput(
+                        Mapping.SlideInfoFileSize).c_str());
 
             Index++;
         }
@@ -1664,7 +1672,6 @@ namespace Operations {
     PrintHeader::run(const Objects::DyldSharedCache &Dsc) const noexcept
         -> RunResult
     {
-        auto Result = RunResult(Objects::Kind::DyldSharedCache);
         fputs("Apple Dyld Shared-Cache File\n", OutFile);
 
         const auto Version = Dsc.getVersion();
@@ -1672,51 +1679,51 @@ namespace Operations {
 
         PrintDscHeaderV0Info(OutFile, Opt, Dsc);
         if (Version < DyldSharedCache::HeaderVersion::V1) {
-            return Result.set(RunError::None);
+            return RunResult();
         }
 
         PrintDscHeaderV1Info(OutFile, Dsc, Opt, List);
         if (Version < DyldSharedCache::HeaderVersion::V2) {
-            return Result.set(RunError::None);
+            return RunResult();
         }
 
         PrintDscHeaderV2Info(OutFile, Dsc, Opt, List);
         if (Version < DyldSharedCache::HeaderVersion::V3) {
-            return Result.set(RunError::None);
+            return RunResult();
         }
 
         PrintDscHeaderV3Info(OutFile, Dsc);
         if (Version < DyldSharedCache::HeaderVersion::V4) {
-            return Result.set(RunError::None);
+            return RunResult();
         }
 
         PrintDscHeaderV4Info(OutFile, Dsc, Opt, List);
         if (Version < DyldSharedCache::HeaderVersion::V5) {
-            return Result.set(RunError::None);
+            return RunResult();
         }
 
         PrintDscHeaderV5Info(OutFile, Dsc, Opt, List);
         if (Version < DyldSharedCache::HeaderVersion::V6) {
-            return Result.set(RunError::None);
+            return RunResult();
         }
 
         PrintDscHeaderV6Info(OutFile, Dsc, Opt, List);
         if (Version < DyldSharedCache::HeaderVersion::V7) {
-            return Result.set(RunError::None);
+            return RunResult();
         }
 
         PrintDscHeaderV7Info(OutFile, Dsc, Opt);
         if (Version < DyldSharedCache::HeaderVersion::V8) {
-            return Result.set(RunError::None);
+            return RunResult();
         }
 
         PrintDscHeaderV8Info(OutFile, Dsc, Opt, List);
         if (Version < DyldSharedCache::HeaderVersion::V9) {
-            return Result.set(RunError::None);
+            return RunResult();
         }
 
         PrintDscHeaderV9Info(OutFile, Dsc, Opt, List);
-        return Result.set(RunError::None);
+        return RunResult();
     }
 
     auto PrintHeader::run(const Objects::Base &Base) const noexcept -> RunResult

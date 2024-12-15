@@ -30,7 +30,7 @@ namespace MachO {
             }
 
             const auto VmIndex = VmRange.indexForLoc(VmAddr);
-            if (!FileRange.containsIndex(VmIndex)) {
+            if (!FileRange.hasIndex(VmIndex)) {
                 return nullptr;
             }
 
@@ -45,12 +45,13 @@ namespace MachO {
     }
 
     auto
-    DeVirtualizer::getMapForRange(const ADT::Range &Range,
-                                  const bool IgnoreSectionBounds) const noexcept
-        -> std::optional<ADT::MemoryMap>
+    DeVirtualizer::getMapForVmRange(
+        const ADT::Range &Range,
+        const bool IgnoreSectionBounds) const noexcept
+            -> std::optional<ADT::MemoryMap>
     {
         if (const auto Segment =
-                segmentList().findSegmentContainingVmRange(Range))
+                this->segmentList().findSegmentWithVmRange(Range))
         {
             auto FileRange = ADT::Range();
             auto VmRange = ADT::Range();
@@ -70,11 +71,15 @@ namespace MachO {
                 VmRange = Segment->VmRange;
             }
 
-            if (!FileRange.containsAsIndex(Range)) {
+            const auto IndexRange =
+                ADT::Range::FromSize(Range.front() - VmRange.front(),
+                                     Range.size());
+
+            if (!FileRange.containsAsIndex(IndexRange)) {
                 return std::nullopt;
             }
 
-            return ADT::MemoryMap(Map, FileRange.locForIndexRange(VmRange));
+            return ADT::MemoryMap(Map, FileRange.locForIndexRange(IndexRange));
         }
 
         return std::nullopt;

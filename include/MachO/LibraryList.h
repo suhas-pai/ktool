@@ -34,7 +34,7 @@ namespace MachO {
         explicit
         LibraryList(const LoadCommandsMap &Map, bool IsBigEndian) noexcept;
 
-        constexpr auto
+        auto
         addLibrary(const DylibCommand &Dylib, const bool IsBigEndian) noexcept
             -> decltype(*this)
         {

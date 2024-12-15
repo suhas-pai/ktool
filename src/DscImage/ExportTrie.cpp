@@ -33,11 +33,12 @@ namespace DscImage {
         return Result;
     }
 
-    const MachO::SegmentInfo *
+    auto
     ExportTrieEntryCollectionNodeCreator::LookupInfoForAddress(
         const MachO::ExportTrieFlags::Kind Kind,
         const uint64_t Address,
         const MachO::SectionInfo **const SectionOut) const noexcept
+            -> const MachO::SegmentInfo *
     {
         const uint64_t FullAddress =
             Kind == MachO::ExportTrieFlags::Kind::Absolute ?

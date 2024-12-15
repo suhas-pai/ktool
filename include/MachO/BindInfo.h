@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string_view>
+#include <unordered_map>
 
 #include "ADT/MemoryMap.h"
 
@@ -279,25 +280,25 @@ namespace MachO {
         };
 
         [[nodiscard]] constexpr auto isWeakImport() const noexcept {
-            return has(FlagsEnum::WeakImport);
+            return this->has(FlagsEnum::WeakImport);
         }
 
         [[nodiscard]]
         constexpr auto hasNonWeakDefinition() const noexcept {
-            return has(FlagsEnum::NonWeakDefinition);
+            return this->has(FlagsEnum::NonWeakDefinition);
         }
 
         constexpr auto setIsWeakImport(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(FlagsEnum::WeakImport, 0, Value);
+            this->setValueForMask(FlagsEnum::WeakImport, 0, Value);
             return *this;
         }
 
         constexpr auto setHasNonWeakDefinition(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(FlagsEnum::NonWeakDefinition, 0, Value);
+            this->setValueForMask(FlagsEnum::NonWeakDefinition, 0, Value);
             return *this;
         }
     };
@@ -313,24 +314,24 @@ namespace MachO {
         using WriteKind = BindWriteKind;
 
         [[nodiscard]] constexpr auto opcode() const noexcept {
-            return Opcode(valueForMask(Masks::Opcode));
+            return Opcode(this->valueForMask(Masks::Opcode));
         }
 
         [[nodiscard]] constexpr auto immediate() const noexcept {
-            return uint8_t(valueForMask(Masks::Immediate));
+            return uint8_t(this->valueForMask(Masks::Immediate));
         }
 
         constexpr auto setOpcode(const Opcode Value) noexcept -> decltype(*this)
         {
-            setValueForMask(Masks::Opcode, 0, Value);
+            this->setValueForMask(Masks::Opcode, 0, Value);
             return *this;
         }
 
-        constexpr auto setImmediate(const uint8_t Value) noexcept
+        auto setImmediate(const uint8_t Value) noexcept
             -> decltype(*this)
         {
             assert(Value <= 0xF);
-            setValueForMask(Masks::Immediate, 0, Value);
+            this->setValueForMask(Masks::Immediate, 0, Value);
 
             return *this;
         }
@@ -398,12 +399,12 @@ namespace MachO {
         BindSymbolFlags Flags;
         BindWriteKind WriteKind;
 
-        [[nodiscard]] constexpr bool hasError() const noexcept {
-            return Error != BindOpcodeParseError::None;
+        [[nodiscard]] constexpr auto error() const noexcept {
+            return this->Error;
         }
 
-        [[nodiscard]] constexpr auto error() const noexcept {
-            return Error;
+        [[nodiscard]] constexpr bool hasError() const noexcept {
+            return this->error() != BindOpcodeParseError::None;
         }
     };
 
@@ -429,7 +430,7 @@ namespace MachO {
             Info = std::make_unique<BindOpcodeIterateInfo>();
             Info->Kind = BindKind;
 
-            Advance();
+            this->Advance();
         }
 
         explicit
@@ -442,35 +443,35 @@ namespace MachO {
           Info(std::move(Info)), ReachedEnd(false)
         {
             this->Info->Kind = BindKind;
-            Advance();
+            this->Advance();
         }
 
         BindOpcodeIteratorBase(const BindOpcodeIteratorBase &) = delete;
 
         [[nodiscard]]
         inline auto offset(const uint8_t *const Base) const noexcept {
-            assert(Base <= Iter->ptr());
-            return static_cast<uint64_t>(Iter->ptr() - Base);
+            assert(Base <= this->Iter->ptr());
+            return static_cast<uint64_t>(this->Iter->ptr() - Base);
         }
 
         [[nodiscard]]
-        inline auto pffset(const BindByte *const Ptr) const noexcept {
+        inline auto offset(const BindByte *const Ptr) const noexcept {
             const auto Base = reinterpret_cast<const uint8_t *>(Ptr);
 
-            assert(Base <= Iter->ptr());
-            return static_cast<uint64_t>(Iter->ptr() - Base);
+            assert(Base <= this->Iter->ptr());
+            return static_cast<uint64_t>(this->Iter->ptr() - Base);
         }
 
         [[nodiscard]] inline const uint8_t *ptr() const noexcept {
-            return Iter->ptr();
+            return this->Iter->ptr();
         }
 
         [[nodiscard]] constexpr auto isAtEnd() const noexcept {
             if constexpr (BindKind == BindInfoKind::Lazy) {
-                return Iter.isAtEnd() && ReachedEnd;
+                return this->Iter.isAtEnd() && this->ReachedEnd;
             }
 
-            return ReachedEnd;
+            return this->ReachedEnd;
         }
         [[nodiscard]]
         constexpr auto operator*() const noexcept -> decltype(*this) {
@@ -482,27 +483,27 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto &info() noexcept {
-            return *Info;
+            return *this->Info;
         }
 
         [[nodiscard]] constexpr auto &info() const noexcept {
-            return *Info;
+            return *this->Info;
         }
 
         [[nodiscard]] inline auto &byte() const noexcept {
-            return *reinterpret_cast<const BindByte *>(Prev);
+            return *reinterpret_cast<const BindByte *>(this->Prev);
         }
 
         [[nodiscard]] constexpr auto hasError() const noexcept {
-            return Info->hasError();
+            return this->Info->hasError();
         }
 
         [[nodiscard]] constexpr auto error() const noexcept {
-            return Info->error();
+            return this->Info->error();
         }
 
         constexpr auto operator++() noexcept -> decltype(*this) {
-            Info->Error = Advance();
+            this->Info->Error = this->Advance();
             return *this;
         }
 
@@ -520,7 +521,7 @@ namespace MachO {
 
         [[nodiscard]] constexpr
         auto operator==(const BindOpcodeIteratorEnd &) const noexcept {
-            return isAtEnd();
+            return this->isAtEnd();
         }
 
         [[nodiscard]] constexpr
@@ -528,7 +529,7 @@ namespace MachO {
             return !operator==(End);
         }
 
-        constexpr BindOpcodeParseError Advance() noexcept {
+        constexpr auto Advance() noexcept -> BindOpcodeParseError {
             using ErrorEnum = BindOpcodeParseError;
 
             const auto BytePtr = Iter->asByte<BindByte>();
@@ -709,6 +710,28 @@ namespace MachO {
         }
     };
 
+    struct BindOpcodeParseResult {
+        BindOpcodeParseError Error = BindOpcodeParseError::None;
+
+        int64_t Addend = 0;
+        int64_t DylibOrdinal = -1;
+
+        BindSymbolFlags Flags;
+        std::string SymbolName;
+
+        int64_t SegmentIndex = -1;
+        uint64_t SegOffset = 0;
+        uint64_t ThreadedCount = 0;
+
+        explicit BindOpcodeParseResult() noexcept = default;
+        explicit BindOpcodeParseResult(
+            const struct BindOpcodeIterateInfo &Iter) noexcept
+        : Error(Iter.Error), Addend(Iter.Addend),
+          DylibOrdinal(Iter.DylibOrdinal), Flags(Iter.Flags),
+          SymbolName(Iter.SymbolName), SegmentIndex(Iter.SegmentIndex),
+          SegOffset(Iter.SegOffset), ThreadedCount(Iter.ThreadedCount) {}
+    };
+
     template <BindInfoKind BindKind>
     struct BindOpcodeListBase {
         using Iterator = BindOpcodeIteratorBase<BindKind>;
@@ -717,14 +740,6 @@ namespace MachO {
         const BindByte *End;
         bool Is64Bit : 1;
     public:
-        constexpr explicit
-        BindOpcodeListBase(const uint8_t *const Begin,
-                           const uint8_t *const End,
-                           const bool Is64Bit) noexcept
-        : Begin(reinterpret_cast<const BindByte *>(Begin)),
-          End(reinterpret_cast<const BindByte *>(End)),
-          Is64Bit(Is64Bit) {}
-
         explicit
         BindOpcodeListBase(const ADT::MemoryMap &Map,
                            const bool Is64Bit) noexcept
@@ -732,7 +747,7 @@ namespace MachO {
           Is64Bit(Is64Bit) {}
 
         [[nodiscard]] constexpr auto begin() const noexcept {
-            return Iterator(Begin, End);
+            return Iterator(this->Begin, this->End);
         }
 
         [[nodiscard]] constexpr auto end() const noexcept {
@@ -769,6 +784,22 @@ namespace MachO {
             return DylibOrdinal != -1;
         }
 
+        [[nodiscard]] constexpr auto
+        getFullAddressInSection(const SegmentInfo &Segment,
+                                const SectionInfo &Sect) const noexcept
+            -> std::optional<uint64_t>
+        {
+            const auto FullAddr = Segment.VmRange.locForIndex(AddrInSeg);
+            const auto VmIndex = Sect.vmRange().indexForLoc(FullAddr);
+            const auto FileRange = Sect.fileRange();
+
+            if (!FileRange.hasIndex(VmIndex)) {
+                return std::nullopt;
+            }
+
+            return FileRange.locForIndex(VmIndex);
+        }
+
         [[nodiscard]]
         constexpr auto getFullAddress(const SegmentList &List) const noexcept
             -> std::optional<uint64_t>
@@ -779,20 +810,10 @@ namespace MachO {
 
             const auto SegIndex = static_cast<uint64_t>(SegmentIndex);
             if (const auto Segment = List.atOrNull(SegIndex)) {
-                if (const auto Section =
+                if (const auto Sect =
                         Segment->findSectionWithVmAddrIndex(AddrInSeg))
                 {
-                    const auto FullAddr =
-                        Segment->VmRange.locForIndex(AddrInSeg);
-                    const auto VmIndex =
-                        Section->vmRange().indexForLoc(FullAddr);
-
-                    const auto FileRange = Section->fileRange();
-                    if (!FileRange.containsIndex(VmIndex)) {
-                        return std::nullopt;
-                    }
-
-                    return FileRange.locForIndex(VmIndex);
+                    return getFullAddressInSection(*Segment, *Sect);
                 }
             }
 
@@ -814,7 +835,7 @@ namespace MachO {
         using ErrorEnum = BindOpcodeParseError;
 
         [[nodiscard]]
-        constexpr struct BindActionInfo getAction() const noexcept {
+        constexpr auto getAction() const noexcept -> BindActionInfo {
             const auto Result = BindActionInfo {
                 .Kind = this->Kind,
                 .WriteKind = this->WriteKind,
@@ -926,7 +947,7 @@ namespace MachO {
         IsValidForSegmentList(const SegmentList &SegList,
                               const bool Is64Bit) noexcept
         {
-            const auto &Info = info();
+            const auto &Info = this->info();
             if (Info.Action.SegmentIndex == -1) {
                 return false;
             }
@@ -943,36 +964,36 @@ namespace MachO {
 
             if (Is64Bit) {
                 ContainsPtr =
-                    Segment.VmRange.template containsIndex<uint64_t>(
+                    Segment.VmRange.template hasIndex<uint64_t>(
                         Info.AddrInSeg);
             } else {
                 ContainsPtr =
-                    Segment.VmRange.template containsIndex<uint32_t>(
+                    Segment.VmRange.template hasIndex<uint32_t>(
                         Info.AddrInSeg);
             }
 
             return ContainsPtr;
         }
 
-        [[nodiscard]] constexpr bool isAtEnd() const noexcept {
-            return Iter.isAtEnd();
+        [[nodiscard]] constexpr auto isAtEnd() const noexcept {
+            return this->Iter.isAtEnd();
         }
 
         [[nodiscard]] inline auto &operator*() const noexcept {
-            return info();
+            return this->info();
         }
 
         [[nodiscard]] inline auto *operator->() const noexcept {
-            return &info();
+            return &this->info();
         }
 
         constexpr auto operator++() noexcept -> decltype(*this) {
-            auto &Info = info();
+            auto &Info = this->info();
             if (Info.hasError()) {
                 Iter++;
             }
 
-            Info.Error = Advance();
+            Info.Error = this->Advance();
             return *this;
         }
 
@@ -990,7 +1011,7 @@ namespace MachO {
 
         [[nodiscard]] constexpr
         auto operator==(const BindActionIteratorEnd &) const noexcept {
-            return isAtEnd();
+            return this->isAtEnd();
         }
 
         [[nodiscard]] constexpr
@@ -1093,17 +1114,17 @@ namespace MachO {
 
                     Info.AddrInSeg += AddAmt;
                     LastByte.setOpcode(BindByte::Opcode::SetDylibOrdinalImm);
-                    Iter++;
 
+                    this->Iter++;
                     break;
                 case BindByte::Opcode::DoBind:
                 case BindByte::Opcode::DoBindAddAddrUleb:
                 case BindByte::Opcode::DoBindAddAddrImmScaled:
                     // Clear the Last-Opcode.
-                    LastByte.setOpcode(BindByte::Opcode::SetDylibOrdinalImm);
                     FinalizeChangesForSegmentAddress();
-                    Iter++;
+                    LastByte.setOpcode(BindByte::Opcode::SetDylibOrdinalImm);
 
+                    this->Iter++;
                     break;
                 case BindByte::Opcode::Done:
                     return ErrorEnum::None;
@@ -1163,13 +1184,13 @@ namespace MachO {
                 return ErrorEnum::None;
             };
 
-            for (; !Iter.isAtEnd(); Iter++) {
+            for (; !this->isAtEnd(); this->Iter++) {
                 if (Iter->hasError()) {
-                    return Iter->error();
+                    return this->Iter->error();
                 }
 
-                const auto &Byte = Iter.byte();
-                const auto &IterInfo = Iter.info();
+                const auto &Byte = this->Iter.byte();
+                const auto &IterInfo = this->Iter.info();
 
                 switch (Byte.opcode()) {
                     case BindByte::Opcode::Done:
@@ -1371,20 +1392,36 @@ namespace MachO {
                            const SegmentList &SegList,
                            const bool Is64Bit) noexcept
         : Map(Map.base<uint8_t>()), SegList(SegList),
-          Begin(Map.get<const BindByte>(Range.begin())),
+          Begin(Map.get<const BindByte>(Range.front())),
           End(Map.get<const BindByte>(Range.end().value())),
           Is64Bit(Is64Bit) {}
 
+        [[nodiscard]] constexpr auto map() const noexcept {
+            return Map;
+        }
+
         [[nodiscard]] inline auto getBegin() const noexcept {
-            return Begin;
+            return this->Begin;
         }
 
         [[nodiscard]] inline auto getEnd() const noexcept {
-            return End;
+            return this->End;
+        }
+
+        [[nodiscard]] constexpr auto is64Bit() const noexcept {
+            return this->Is64Bit;
+        }
+
+        [[nodiscard]] constexpr auto &getSegList() const noexcept {
+            return SegList;
         }
 
         [[nodiscard]] constexpr auto begin() const noexcept {
-            return Iterator(Map, SegList, Begin, End, Is64Bit);
+            return Iterator(this->map(),
+                            this->getSegList(),
+                            this->getBegin(),
+                            this->getEnd(),
+                            this->is64Bit());
         }
 
         [[nodiscard]] constexpr auto end() const noexcept {
@@ -1398,36 +1435,98 @@ namespace MachO {
             for (const auto &Iter : *this) {
                 const auto Error = Iter.error();
                 if (!Iter.canIgnoreError(Error)) {
-                    return Error;
+                    return BindOpcodeParseResult(Iter);
                 }
 
                 ListOut.emplace_back(Iter.getAction());
             }
 
-            return BindOpcodeParseError::None;
+            return BindOpcodeParseResult();
         }
 
         [[nodiscard]] inline auto
-        getAsUnorderedMap(SegmentList &SegmentList,
+        getAsUnorderedMap(const SegmentList &SegmentList,
                           UnorderedMap &MapOut) const noexcept
         {
             for (const auto &Iter : *this) {
                 const auto Error = Iter.error();
                 if (!Iter.canIgnoreError(Error)) {
-                    return Error;
+                    return BindOpcodeParseResult(Iter);
                 }
 
                 const auto Action = Iter.getAction();
                 const auto FullAddr = Action.getFullAddress(SegmentList);
 
-                MapOut.insert({
+                MapOut.emplace(
                     FullAddr.has_value() ?
                         FullAddr.value() : std::numeric_limits<uint64_t>::max(),
                     Action
-                });
+                );
             }
 
-            return BindOpcodeParseError::None;
+            return BindOpcodeParseResult();
+        }
+
+        [[nodiscard]]
+        inline auto
+        getMapForVmRange(ADT::Range &VmRange,
+                         const SegmentList &SegmentList,
+                         UnorderedMap &MapOut) const noexcept
+            -> BindOpcodeParseResult
+        {
+            for (const auto &Iter : *this) {
+                const auto Error = Iter.error();
+                if (!Iter.canIgnoreError(Error)) {
+                    return BindOpcodeParseResult(Iter);
+                }
+
+                const auto Action = Iter.getAction();
+                const auto FullAddr = Action.getFullAddress(SegmentList);
+
+                if (!FullAddr.has_value()) {
+                    continue;
+                }
+
+                if (!VmRange.contains(FullAddr)) {
+                    continue;
+                }
+
+                MapOut.emplace(FullAddr.value(), Action);
+            }
+
+            return BindOpcodeParseResult();
+        }
+
+        [[nodiscard]]
+        inline auto
+        getMapForSection(const SegmentInfo &Segment,
+                         const SectionInfo &Section,
+                         UnorderedMap &MapOut) const noexcept
+            -> BindOpcodeParseResult
+        {
+            for (auto Iter = this->begin(); Iter != this->end(); ++Iter) {
+                const auto &Info = Iter.info();
+                if (Info.SegmentIndex != Segment.Index) {
+                    continue;
+                }
+
+                const auto Error = Info.error();
+                if (!Info.canIgnoreError(Error)) {
+                    return BindOpcodeParseResult(Info);
+                }
+
+                const auto Action = Info.getAction();
+                const auto FullAddr =
+                    Action.getFullAddressInSection(Segment, Section);
+
+                if (!FullAddr.has_value()) {
+                    continue;
+                }
+
+                MapOut.emplace(FullAddr.value(), Action);
+            }
+
+            return BindOpcodeParseResult();
         }
 
         [[nodiscard]]
@@ -1435,7 +1534,7 @@ namespace MachO {
             for (const auto &Iter : *this) {
                 const auto Error = Iter.error();
                 if (!Iter.canIgnoreError(Error)) {
-                    return Error;
+                    return BindOpcodeParseResult(Iter);
                 }
 
                 if (Iter.NewSymbolName) {
@@ -1443,7 +1542,7 @@ namespace MachO {
                 }
             }
 
-            return BindOpcodeParseError::None;
+            return BindOpcodeParseResult();
         }
     };
 

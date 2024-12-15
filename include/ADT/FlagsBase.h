@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include <assert.h>
 #include <concepts>
 #include <cstdint>
 
+#include "Utils/Assert.h"
 #include "Utils/Misc.h"
 
 namespace ADT {
@@ -21,29 +21,29 @@ namespace ADT {
 
         template <typename E>
         constexpr auto addMask(const E Mask) noexcept {
-            Flags |= static_cast<T>(Mask);
+            this->Flags |= static_cast<T>(Mask);
         }
 
         template <typename E>
         constexpr auto removeMask(const E Mask) noexcept {
-            Flags &= ~static_cast<T>(Mask);
+            this->Flags &= ~static_cast<T>(Mask);
         }
 
         template <typename E, typename S, typename V>
         constexpr void
         setValueForMask(const E Mask, const S Shift, const V Value) noexcept {
-            removeMask(Mask);
-            addMask(static_cast<T>(Value) << static_cast<T>(Shift));
+            this->removeMask(Mask);
+            this->addMask(static_cast<T>(Value) << static_cast<T>(Shift));
         }
 
         template <typename E>
         [[nodiscard]] constexpr auto valueForMask(const E Mask) const noexcept {
-            return Flags & static_cast<T>(Mask);
+            return this->Flags & static_cast<T>(Mask);
         }
 
         template <typename E>
         [[nodiscard]] constexpr auto has(const E Mask) const noexcept {
-            return valueForMask(Mask) != 0;
+            return this->valueForMask(Mask) != 0;
         }
     public:
         constexpr FlagsBase() noexcept = default;
@@ -51,42 +51,42 @@ namespace ADT {
 
         [[nodiscard]]
         constexpr auto operator|(const FlagsBase<T> Mask) const noexcept {
-            return Flags | Mask;
+            return this->Flags | Mask;
         }
 
         [[nodiscard]]
         constexpr auto operator&(const FlagsBase<T> Mask) const noexcept {
-            return Flags & Mask;
+            return this->Flags & Mask;
         }
 
         constexpr auto operator|=(const FlagsBase<T> Mask) const noexcept
             -> decltype(*this)
         {
-            Flags |= Mask;
+            this->Flags |= Mask;
             return *this;
         }
 
         constexpr auto operator&=(const FlagsBase<T> Mask) const noexcept
             -> decltype(*this)
         {
-            Flags &= Mask;
+            this->Flags &= Mask;
             return *this;
         }
 
         [[nodiscard]] constexpr auto operator~() const noexcept {
-            return FlagsBase(~Flags);
+            return FlagsBase(~this->Flags);
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {
-            return Flags == 0;
+            return this->Flags == 0;
         }
 
         [[nodiscard]] constexpr auto value() const noexcept {
-            return Flags;
+            return this->Flags;
         }
 
         constexpr auto clear() noexcept -> decltype(*this) {
-            Flags = 0;
+            this->Flags = 0;
             return *this;
         }
 
@@ -116,6 +116,7 @@ namespace ADT {
         {
             assert(!Utils::IndexOutOfBounds(Index, bit_sizeof(T)));
 
+            auto Flags = this->Flags;
             if constexpr (sizeof(T) == sizeof(long long)) {
                 return __builtin_popcountll(Flags >> Index);
             } else if constexpr (sizeof(T) == sizeof(long)) {
@@ -131,7 +132,7 @@ namespace ADT {
         {
             assert(BitCount <= bit_sizeof(T));
 
-            Flags >>= BitCount;
+            this->Flags >>= BitCount;
             return *this;
         }
 
@@ -139,7 +140,7 @@ namespace ADT {
         auto operator<=>(const FlagsBase<T> &Rhs) const noexcept = default;
 
         [[nodiscard]] constexpr auto operator<=>(const T Rhs) const noexcept {
-            return Flags <=> Rhs;
+            return this->Flags <=> Rhs;
         }
     };
 }
@@ -181,17 +182,17 @@ namespace ADT {
     } \
 \
     [[maybe_unused]] [[nodiscard]] \
-    constexpr static auto operator==(std::underlying_type_t<ENUM> Num,\
-                                     const ENUM Mask) noexcept\
+    constexpr static auto operator<=>(std::underlying_type_t<ENUM> Num,\
+                                      const ENUM Mask) noexcept\
     { \
-        return Num == static_cast<std::underlying_type_t<ENUM>>(Mask); \
+        return Num <=> static_cast<std::underlying_type_t<ENUM>>(Mask); \
     } \
 \
     [[maybe_unused]] [[nodiscard]] \
-    constexpr static auto operator==(const ENUM Mask,\
-                                     std::underlying_type_t<ENUM> Num) noexcept\
+    constexpr static auto operator<=>(const ENUM Mask,\
+                                      std::underlying_type_t<ENUM> Num) noexcept\
     { \
-        return Num == static_cast<std::underlying_type_t<ENUM>>(Mask); \
+        return Num <=> static_cast<std::underlying_type_t<ENUM>>(Mask); \
     } \
 \
     [[maybe_unused]] [[nodiscard]] \

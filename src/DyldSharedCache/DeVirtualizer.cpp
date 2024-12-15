@@ -14,7 +14,9 @@ namespace DyldSharedCache {
     {
         uint64_t TotalSize = 0;
         if (const auto Result =
-                Dsc.getPtrForAddress(Address, !IgnoreProtBounds, &TotalSize))
+                this->Dsc.getPtrForAddress(Address,
+                                           !IgnoreProtBounds,
+                                           &TotalSize))
         {
             *EndOut = Result->second + TotalSize;
             return Result->second;
@@ -23,13 +25,13 @@ namespace DyldSharedCache {
         return nullptr;
     }
 
-    [[nodiscard]] auto
-    DeVirtualizer::getMapForRange(const ADT::Range &Range,
-                                  const bool IgnoreProtBounds) const noexcept
+    auto
+    DeVirtualizer::getMapForVmRange(const ADT::Range &Range,
+                                    const bool IgnoreProtBounds) const noexcept
         -> std::optional<ADT::MemoryMap>
     {
         if (const auto Result =
-                Dsc.getMapForAddrRange(Range, !IgnoreProtBounds))
+                this->Dsc.getMapForAddrRange(Range, !IgnoreProtBounds))
         {
             return Result->second;
         }

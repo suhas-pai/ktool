@@ -10,7 +10,6 @@
 #include <bitset>
 #include <optional>
 
-#include "ADT/List.h"
 #include "ADT/MemoryMap.h"
 #include "ADT/SwitchEndian.h"
 
@@ -1136,11 +1135,11 @@ namespace MachO {
 
         [[nodiscard]]
         inline auto sectionList(const bool IsBigEndian) const noexcept {
-            return ADT::List(sections(), sectionCount(IsBigEndian));
+            return std::span(this->sections(), this->sectionCount(IsBigEndian));
         }
 
         [[nodiscard]] inline auto sectionList(const bool IsBigEndian) noexcept {
-            return ADT::List(sections(), sectionCount(IsBigEndian));
+            return std::span(this->sections(), this->sectionCount(IsBigEndian));
         }
 
         [[nodiscard]]
@@ -1411,11 +1410,11 @@ namespace MachO {
 
         [[nodiscard]]
         inline auto sectionList(const bool IsBigEndian) const noexcept {
-            return ADT::List(sections(), sectionCount(IsBigEndian));
+            return std::span(this->sections(), this->sectionCount(IsBigEndian));
         }
 
         [[nodiscard]] inline auto sectionList(const bool IsBigEndian) noexcept {
-            return ADT::List(sections(), sectionCount(IsBigEndian));
+            return std::span(this->sections(), this->sectionCount(IsBigEndian));
         }
 
         [[nodiscard]]
@@ -2222,7 +2221,7 @@ namespace MachO {
         [[nodiscard]] inline auto
         symbolEntryList(const ADT::MemoryMap &Map,
                         const bool IsBigEndian) const noexcept
-            -> std::optional<ADT::List<const Entry>>
+            -> std::optional<std::span<const Entry>>
         {
             const auto Entries =
                 Map.getFromRange<const Entry>(symRange(IsBigEndian, false));
@@ -2231,13 +2230,13 @@ namespace MachO {
                 return std::nullopt;
             }
 
-            return ADT::List(Entries, symCount(IsBigEndian));
+            return std::span(Entries, symCount(IsBigEndian));
         }
 
         [[nodiscard]] inline auto
         symbolEntryList(const ADT::MemoryMap &Map,
                         const bool IsBigEndian) noexcept
-            -> std::optional<ADT::List<Entry>>
+            -> std::optional<std::span<Entry>>
         {
             const auto Entries =
                 Map.getFromRange<Entry>(symRange(IsBigEndian, false));
@@ -2246,13 +2245,13 @@ namespace MachO {
                 return std::nullopt;
             }
 
-            return ADT::List(Entries, symCount(IsBigEndian));
+            return std::span(Entries, symCount(IsBigEndian));
         }
 
         [[nodiscard]] inline auto
         symbolEntryList64(const ADT::MemoryMap &Map,
                           const bool IsBigEndian) const noexcept
-            -> std::optional<ADT::List<const Entry64>>
+            -> std::optional<std::span<const Entry64>>
         {
             const auto Entries =
                 Map.getFromRange<const Entry64>(symRange(IsBigEndian, true));
@@ -2261,13 +2260,13 @@ namespace MachO {
                 return std::nullopt;
             }
 
-            return ADT::List(Entries, symCount(IsBigEndian));
+            return std::span(Entries, symCount(IsBigEndian));
         }
 
         [[nodiscard]] inline auto
         symbolEntryList64(const ADT::MemoryMap &Map,
                           const bool IsBigEndian) noexcept
-            -> std::optional<ADT::List<Entry64>>
+            -> std::optional<std::span<Entry64>>
         {
             const auto Entries =
                 Map.getFromRange<Entry64>(symRange(IsBigEndian, true));
@@ -2276,7 +2275,7 @@ namespace MachO {
                 return std::nullopt;
             }
 
-            return ADT::List(Entries, symCount(IsBigEndian));
+            return std::span(Entries, symCount(IsBigEndian));
         }
 
         [[nodiscard]]
@@ -3153,11 +3152,11 @@ namespace MachO {
 
         [[nodiscard]]
         inline auto toolList(const bool IsBigEndian) const noexcept {
-            return ADT::List(tools(), toolsCount(IsBigEndian));
+            return std::span(tools(), toolsCount(IsBigEndian));
         }
 
         [[nodiscard]] inline auto toolList(const bool IsBigEndian) noexcept {
-            return ADT::List(tools(), toolsCount(IsBigEndian));
+            return std::span(tools(), toolsCount(IsBigEndian));
         }
 
         [[nodiscard]]

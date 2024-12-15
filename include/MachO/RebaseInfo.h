@@ -58,9 +58,9 @@ namespace MachO {
                 return "REBASE_OPCODE_SET_TYPE_IMM";
             case RebaseByteOpcode::SetSegmentAndOffsetUleb:
                 return "REBASE_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB";
-            case RebaseByteOpcode::AddAddrImmScaled:
-                return "REBASE_OPCODE_ADD_ADDR_ULEB";
             case RebaseByteOpcode::AddAddrUleb:
+                return "REBASE_OPCODE_ADD_ADDR_ULEB";
+            case RebaseByteOpcode::AddAddrImmScaled:
                 return "REBASE_OPCODE_ADD_ADDR_IMM_SCALED";
             case RebaseByteOpcode::DoRebaseAddAddrUleb:
                 return "REBASE_OPCODE_DO_REBASE_ADD_ADDR_ULEB";
@@ -187,25 +187,25 @@ namespace MachO {
         using WriteKind = RebaseWriteKind;
 
         [[nodiscard]] constexpr auto opcode() const noexcept {
-            return Opcode(valueForMask(Masks::Opcode));
+            return Opcode(this->valueForMask(Masks::Opcode));
         }
 
         [[nodiscard]] constexpr auto immediate() const noexcept {
-            return uint8_t(valueForMask(Masks::Immediate));
+            return uint8_t(this->valueForMask(Masks::Immediate));
         }
 
         constexpr auto setOpcode(const Opcode Opcode) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::Opcode, 0, static_cast<uint8_t>(Opcode));
+            this->setValueForMask(Masks::Opcode,
+                                  0,
+                                  static_cast<uint8_t>(Opcode));
             return *this;
         }
 
-        constexpr auto setImmediate(const uint8_t Value) noexcept
-            -> decltype(*this)
-        {
+        auto setImmediate(const uint8_t Value) noexcept -> decltype(*this) {
             assert(Value <= 0xF);
-            setValueForMask(Masks::Immediate, 0, Value);
+            this->setValueForMask(Masks::Immediate, 0, Value);
 
             return *this;
         }
@@ -293,8 +293,8 @@ namespace MachO {
         : Iter(reinterpret_cast<const uint8_t *>(Begin),
                reinterpret_cast<const uint8_t *>(End))
         {
-            Info = std::make_unique<RebaseOpcodeIterateInfo>();
-            Advance();
+            this->Info = std::make_unique<RebaseOpcodeIterateInfo>();
+            this->Advance();
         }
 
         explicit
@@ -306,13 +306,13 @@ namespace MachO {
                reinterpret_cast<const uint8_t *>(End)),
           Info(std::move(Info))
         {
-            Advance();
+            this->Advance();
         }
 
         RebaseOpcodeIterator(const RebaseOpcodeIterator &) = delete;
 
         [[nodiscard]] constexpr auto isAtEnd() const noexcept {
-            return ReachedEnd;
+            return this->ReachedEnd;
         }
 
         [[nodiscard]]
@@ -325,37 +325,37 @@ namespace MachO {
         }
 
         [[nodiscard]] inline auto &info() noexcept {
-            return *Info;
+            return *this->Info;
         }
 
         [[nodiscard]] inline auto &info() const noexcept {
-            return *Info;
+            return *this->Info;
         }
 
         [[nodiscard]] constexpr auto byte() const noexcept {
-            return *Prev;
+            return *this->Prev;
         }
 
         [[nodiscard]] inline bool hasError() const noexcept {
-            return Info->hasError();
+            return this->Info->hasError();
         }
 
         [[nodiscard]] inline auto error() const noexcept {
-            return Info->error();
+            return this->Info->error();
         }
 
         inline auto operator++() noexcept -> decltype(*this) {
-            Info->Error = Advance();
+            this->Info->Error = this->Advance();
             return *this;
         }
 
         inline auto operator++(int) noexcept -> decltype(*this) {
-            return operator++();
+            return this->operator++();
         }
 
         constexpr auto operator+=(uint64_t Amt) noexcept -> decltype(*this) {
             for (auto I = uint64_t(); I != Amt; I++) {
-                operator++();
+                this->operator++();
             }
 
             return *this;
@@ -363,36 +363,36 @@ namespace MachO {
 
         [[nodiscard]] constexpr
         auto operator==(const RebaseOpcodeIteratorEnd &) const noexcept {
-            return isAtEnd();
+            return this->isAtEnd();
         }
 
         [[nodiscard]] constexpr
         auto operator!=(const RebaseOpcodeIteratorEnd &End) const noexcept {
-            return !operator==(End);
+            return !this->operator==(End);
         }
 
-        inline RebaseOpcodeParseError Advance() noexcept {
+        inline auto Advance() noexcept -> RebaseOpcodeParseError {
             using ErrorEnum = RebaseOpcodeParseError;
 
             const auto BytePtr = Iter->asByte<RebaseByte>();
             const auto &Byte = *BytePtr;
 
-            Info->Error = ErrorEnum::None;
-            Prev = BytePtr;
-            Iter++;
+            this->Info->Error = ErrorEnum::None;
+            this->Prev = BytePtr;
+            this->Iter++;
 
-            if (Iter.isAtEnd()) {
-                ReachedEnd = true;
+            if (this->Iter.isAtEnd()) {
+                this->ReachedEnd = true;
                 return ErrorEnum::None;
             }
 
             switch (Byte.opcode()) {
                 case RebaseByte::Opcode::Done:
-                    ReachedEnd = true;
+                    this->ReachedEnd = true;
                     return ErrorEnum::None;
                 case RebaseByte::Opcode::SetKindImm:
-                    Info->Kind = RebaseByte::WriteKind(Byte.immediate());
-                    switch (Info->Kind) {
+                    this->Info->Kind = RebaseByte::WriteKind(Byte.immediate());
+                    switch (this->Info->Kind) {
                         case RebaseByte::WriteKind::None:
                             break;
                         case RebaseByte::WriteKind::Pointer:
@@ -404,37 +404,37 @@ namespace MachO {
                     return ErrorEnum::UnrecognizedRebaseWriteKind;
                 case RebaseByte::Opcode::SetSegmentAndOffsetUleb:
                     if (const auto Uleb = Iter->ReadUleb128()) {
-                        Info->SegOffset = Uleb.value();
-                        Info->SegmentIndex = Byte.immediate();
-                        Info->HasSegmentIndex = true;
+                        this->Info->SegOffset = Uleb.value();
+                        this->Info->SegmentIndex = Byte.immediate();
+                        this->Info->HasSegmentIndex = true;
 
                         return ErrorEnum::None;
                     }
 
                     return ErrorEnum::InvalidLeb128;
                 case RebaseByte::Opcode::AddAddrImmScaled:
-                    Info->Scale = Byte.immediate();
+                    this->Info->Scale = Byte.immediate();
                     return ErrorEnum::None;
                 case RebaseByte::Opcode::AddAddrUleb:
                     if (const auto Sleb = Iter->ReadSleb128()) {
-                        Info->AddAddr = Sleb.value();
+                        this->Info->AddAddr = Sleb.value();
                         return ErrorEnum::None;
                     }
 
                     return ErrorEnum::InvalidLeb128;
                 case RebaseByte::Opcode::DoRebaseAddAddrUleb:
                     if (const auto Sleb = Iter->ReadSleb128()) {
-                        Info->AddAddr = Sleb.value();
+                        this->Info->AddAddr = Sleb.value();
                         return ErrorEnum::None;
                     }
 
                     return ErrorEnum::InvalidLeb128;
                 case RebaseByte::Opcode::DoRebaseImmTimes:
-                    Info->Count = Byte.immediate();
+                    this->Info->Count = Byte.immediate();
                     return ErrorEnum::None;
                 case RebaseByte::Opcode::DoRebaseUlebTimes:
                     if (const auto Uleb = Iter->ReadUleb128()) {
-                        Info->Count = Uleb.value();
+                        this->Info->Count = Uleb.value();
                         return ErrorEnum::None;
                     }
 
@@ -445,8 +445,8 @@ namespace MachO {
                             const auto SkipValue = Skip.value();
                             const auto CountValue = Count.value();
 
-                            Info->Skip = SkipValue;
-                            Info->Count = CountValue;
+                            this->Info->Skip = SkipValue;
+                            this->Info->Count = CountValue;
 
                             return ErrorEnum::None;
                         }
@@ -481,7 +481,7 @@ namespace MachO {
           Is64Bit(Is64Bit) {}
 
         [[nodiscard]] inline auto begin() const noexcept {
-            return Iterator(Begin, End);
+            return Iterator(this->Begin, this->End);
         }
 
         [[nodiscard]] constexpr auto end() const noexcept {
@@ -547,21 +547,21 @@ namespace MachO {
         : Iter(Begin, End, std::make_unique<RebaseActionIterateInfo>()),
           Is64Bit(Is64Bit)
         {
-            LastByte.setOpcode(RebaseByte::Opcode::SetKindImm);
-            if (!Iter.hasError() &&
-                !Iter.isAtEnd())
+            this->LastByte.setOpcode(RebaseByte::Opcode::SetKindImm);
+            if (!this->Iter.hasError() &&
+                !this->Iter.isAtEnd())
             {
                 operator++();
             }
         }
 
         [[nodiscard]] inline auto &info() noexcept {
-            auto &Info = Iter.info();
+            auto &Info = this->Iter.info();
             return reinterpret_cast<RebaseActionIterateInfo &>(Info);
         }
 
         [[nodiscard]] auto &info() const noexcept {
-            const auto &Info = Iter.info();
+            const auto &Info = this->Iter.info();
             return reinterpret_cast<const RebaseActionIterateInfo &>(Info);
         }
 
@@ -585,11 +585,11 @@ namespace MachO {
 
             if (Is64Bit) {
                 ContainsPtr =
-                    Segment.VmRange.template containsIndex<uint64_t>(
+                    Segment.VmRange.template hasIndex<uint64_t>(
                         Info.AddrInSeg);
             } else {
                 ContainsPtr =
-                    Segment.VmRange.template containsIndex<uint32_t>(
+                    Segment.VmRange.template hasIndex<uint32_t>(
                         Info.AddrInSeg);
             }
 
@@ -597,34 +597,34 @@ namespace MachO {
         }
 
         [[nodiscard]] inline auto isAtEnd() const noexcept {
-            return Iter.isAtEnd();
+            return this->Iter.isAtEnd();
         }
 
         [[nodiscard]] inline auto &operator*() const noexcept {
-            return info();
+            return this->info();
         }
 
         [[nodiscard]] inline auto operator->() const noexcept {
-            return &info();
+            return &this->info();
         }
 
         inline auto operator++() noexcept -> decltype(*this) {
-            auto &Info = info();
+            auto &Info = this->info();
             if (Info.hasError()) {
-                Iter++;
+                this->Iter++;
             }
 
-            Info.Error = Advance();
+            Info.Error = this->Advance();
             return *this;
         }
 
         inline auto operator++(int) noexcept -> decltype(*this) {
-            return operator++();
+            return this->operator++();
         }
 
         inline auto &operator+=(const uint64_t Amt) noexcept {
             for (auto I = uint64_t(); I != Amt; I++) {
-                operator++();
+                this->operator++();
             }
 
             return *this;
@@ -632,16 +632,18 @@ namespace MachO {
 
         [[nodiscard]]
         inline auto operator==(const RebaseActionIteratorEnd &) const noexcept {
-            return isAtEnd();
+            return this->isAtEnd();
         }
 
         [[nodiscard]] inline
         auto operator!=(const RebaseActionIteratorEnd &End) const noexcept {
-            return !operator==(End);
+            return !this->operator==(End);
         }
 
-        [[nodiscard]] inline RebaseOpcodeParseError Advance() noexcept {
-            auto &Info = info();
+        [[nodiscard]] inline auto Advance() noexcept
+            -> RebaseOpcodeParseError
+        {
+            auto &Info = this->info();
             const auto AddChangeToSegmentAddress =
                 [&](const int64_t Add) noexcept
             {
@@ -652,8 +654,10 @@ namespace MachO {
                     return false;
                 }
 
-                SegAddAddress = SegAddAddressOpt.value();
-                if (Utils::WillAddOverflow(SegAddAddress, Info.AddrInSeg)) {
+                this->SegAddAddress = SegAddAddressOpt.value();
+                if (Utils::WillAddOverflow(this->SegAddAddress,
+                                           Info.AddrInSeg))
+                {
                     return false;
                 }
 
@@ -666,41 +670,41 @@ namespace MachO {
             Info.NewSymbolName = false;
 
             const auto FinalizeChangesForSegmentAddress = [&]() noexcept {
-                if (SegAddAddress >= 0) {
+                if (this->SegAddAddress >= 0) {
                     Info.AddrInSeg += static_cast<uint64_t>(SegAddAddress);
                 } else {
                     Info.AddrInSeg -= static_cast<uint64_t>(-SegAddAddress);
                 }
 
-                SegAddAddress = 0;
+                this->SegAddAddress = 0;
             };
 
             switch (LastByte.opcode()) {
                 case RebaseByte::Opcode::DoRebaseImmTimes:
                 case RebaseByte::Opcode::DoRebaseUlebTimes:
                 case RebaseByte::Opcode::DoRebaseUlebTimesSkipUleb:
-                    if (Count != 0) {
+                    if (this->Count != 0) {
                         Info.AddrInSeg += AddAmt;
-                        Count--;
+                        this->Count--;
 
-                        if (Count != 0) {
+                        if (this->Count != 0) {
                             return ErrorEnum::None;
                         }
 
                         Info.AddrInSeg += AddAmt;
-                        LastByte.setOpcode(RebaseByte::Opcode::SetKindImm);
+                        this->LastByte.setOpcode(RebaseByte::Opcode::SetKindImm);
 
-                        Iter++;
+                        this->Iter++;
                         break;
                     }
 
                     [[fallthrough]];
                 case RebaseByte::Opcode::DoRebaseAddAddrUleb:
                     // Clear the Last-Opcode.
-                    LastByte.setOpcode(RebaseByte::Opcode::SetKindImm);
-                    FinalizeChangesForSegmentAddress();
-                    Iter++;
+                    this->LastByte.setOpcode(RebaseByte::Opcode::SetKindImm);
+                    this->Iter++;
 
+                    FinalizeChangesForSegmentAddress();
                     break;
                 case RebaseByte::Opcode::Done:
                     return ErrorEnum::None;
@@ -715,7 +719,7 @@ namespace MachO {
                 [&](const int64_t Add) noexcept
             {
                 const auto NewSegAddAddressOpt =
-                    Utils::AddAndCheckOverflow<int64_t>(SegAddAddress,
+                    Utils::AddAndCheckOverflow<int64_t>(this->SegAddAddress,
                                                         Add,
                                                         Info.AddrInSeg);
 
@@ -744,13 +748,13 @@ namespace MachO {
                 return ErrorEnum::None;
             };
 
-            for (; !Iter.isAtEnd(); Iter++) {
-                if (Iter->hasError()) {
-                    return Iter->error();
+            for (; !this->Iter.isAtEnd(); this->Iter++) {
+                if (this->Iter->hasError()) {
+                    return this->Iter->error();
                 }
 
-                const auto &Byte = Iter.byte();
-                const auto &IterInfo = Iter.info();
+                const auto &Byte = this->Iter.byte();
+                const auto &IterInfo = this->Iter.info();
 
                 switch (Byte.opcode()) {
                     case RebaseByte::Opcode::Done:
@@ -798,7 +802,7 @@ namespace MachO {
 
                         const auto PtrSize = Utils::PointerSize(Is64Bit);
                         if (AddChangeToSegmentAddress(PtrSize)) {
-                            LastByte = Byte;
+                            this->LastByte = Byte;
                             return ErrorEnum::None;
                         }
 
@@ -823,10 +827,10 @@ namespace MachO {
 
                         const auto Total = TotalOpt.value();
                         if (CheckChangeToSegmentAddress(Total)) {
-                            LastByte = Byte;
-                            AddAmt = PtrSize;
-
+                            this->LastByte = Byte;
+                            this->AddAmt = PtrSize;
                             this->Count = Count - 1;
+
                             return ErrorEnum::None;
                         }
 
@@ -858,10 +862,10 @@ namespace MachO {
                         }
 
                         if (CheckChangeToSegmentAddress(TotalOpt.value())) {
-                            LastByte = Byte;
-                            AddAmt = SingleStep;
-
+                            this->LastByte = Byte;
+                            this->AddAmt = SingleStep;
                             this->Count = Count - 1;
+
                             return ErrorEnum::None;
                         }
 
@@ -872,7 +876,7 @@ namespace MachO {
                 return ErrorEnum::UnrecognizedRebaseOpcode;
             }
 
-            LastByte.setOpcode(RebaseByte::Opcode::Done);
+            this->LastByte.setOpcode(RebaseByte::Opcode::Done);
             return ErrorEnum::None;
         }
     };
@@ -903,8 +907,12 @@ namespace MachO {
         : Begin(Map.base<const RebaseByte>()), End(Map.end<const RebaseByte>()),
           Is64Bit(Is64Bit) {}
 
+        [[nodiscard]] constexpr auto is64Bit() const noexcept {
+            return this->Is64Bit;
+        }
+
         [[nodiscard]] inline auto begin() const noexcept {
-            return Iterator(Begin, End, Is64Bit);
+            return Iterator(this->Begin, this->End, this->is64Bit());
         }
 
         [[nodiscard]] inline auto end() const noexcept {

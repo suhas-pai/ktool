@@ -50,17 +50,23 @@ namespace Operations {
 
         ~PrintExportTrie() noexcept override {}
 
-        enum class RunError : uint32_t {
-            None,
-            MultipleExportTries,
-            NoExportTrieFound,
-            ExportTrieOutOfBounds,
-            NoExports
+        struct RunResult {
+            enum class Error : uint32_t {
+                None,
+                Unsupported,
+
+                MultipleExportTries,
+                NoExportTrieFound,
+                ExportTrieOutOfBounds,
+                NoExports
+            };
+
+            Error Error = Error::None;
         };
 
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
-        RunResult run(const Objects::Base &Base) const noexcept override;
+        RunResult run(const Objects::Base &Base) const noexcept;
         RunResult run(const Objects::MachO &MachO) const noexcept;
         RunResult run(const Objects::DscImage &DscImage) const noexcept;
 

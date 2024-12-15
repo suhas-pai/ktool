@@ -17,8 +17,8 @@ namespace Operations {
         const std::optional<std::string> &SegmentName,
         const std::string_view SectionName,
         const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options), SegmentName(SegmentName),
-      SectionName(SectionName) {}
+    : Base(Operations::Kind::PrintSymbolPtrSection), OutFile(OutFile),
+      Opt(Options), SegmentName(SegmentName), SectionName(SectionName) {}
 
     bool
     PrintSymbolPtrSection::supportsObjectKind(
@@ -47,10 +47,12 @@ namespace Operations {
     IterateSections(const T &Segment,
                     const std::string_view SectionName,
                     const bool IsBigEndian,
-                    RunResult &Result,
                     std::vector<std::string_view> &SectionNameList,
-                    const typename T::Section *&SectionOut) noexcept -> int
+                    const typename T::Section *&SectionOut) noexcept
+        -> PrintSymbolPtrSection::RunResult
     {
+        using RunResult = PrintSymbolPtrSection::RunResult;
+
         SectionNameList.reserve(Segment.sectionCount(IsBigEndian));
         for (const auto &Section : Segment.sectionList(IsBigEndian)) {
             if (Section.sectionName() != SectionName) {
@@ -63,17 +65,14 @@ namespace Operations {
             if (SectionKind != Kind::LazySymbolPointers &&
                 SectionKind != Kind::NonLazySymbolPointers)
             {
-                using RunError = PrintSymbolPtrSection::RunError;
-                Result.set(RunError::NotSymbolPointerSection);
-
-                return 1;
+                return RunResult(RunResult::Error::NotSymbolPointerSection);
             }
 
             SectionOut = &Section;
             SectionNameList.emplace_back(Section.sectionName());
         }
 
-        return 0;
+        return RunResult();
     }
 
     struct DylibInfo {
@@ -131,7 +130,6 @@ namespace Operations {
                    const MachO::DynamicSymTabCommand &DynamicSymTab,
                    const ADT::MemoryMap &Map,
                    const uint32_t Reserved1,
-                   Operations::RunResult &Result,
                    const bool SkipInvalidIndices,
                    const uint64_t Limit,
                    const bool IsBigEndian,
@@ -139,8 +137,10 @@ namespace Operations {
                    uint32_t &LongestSymbolLength,
                    uint64_t &LargestIndex,
                    uint8_t &LongestKindLength) noexcept
+        -> PrintSymbolPtrSection::RunResult
     {
-        using RunError = PrintSymbolPtrSection::RunError;
+        using RunResult = PrintSymbolPtrSection::RunResult;
+
         const auto IndirectSymbolOffset =
             DynamicSymTab.indirectSymbolsOffset(IsBigEndian);
         const auto IndirectSymbolCount =
@@ -150,13 +150,11 @@ namespace Operations {
             Map.get<uint32_t>(IndirectSymbolOffset, IndirectSymbolCount);
 
         if (IndexList == nullptr) {
-            Result.set(RunError::IndexListOutOfBounds);
-            return 1;
+            return RunResult(RunResult::Error::IndexListOutOfBounds);
         }
 
         if (Reserved1 >= IndirectSymbolCount) {
-            Result.set(RunError::IndexListOutOfBounds);
-            return 1;
+            return RunResult(RunResult::Error::IndexListOutOfBounds);
         }
 
         using namespace MachO;
@@ -171,8 +169,7 @@ namespace Operations {
                 SymTab.symRange(IsBigEndian, Is64Bit));
 
         if (SymbolTable == nullptr) {
-            Result.set(RunError::SymbolTableOutOfBounds);
-            return 1;
+            return RunResult(RunResult::Error::SymbolTableOutOfBounds);
         }
 
         auto IndexMaximizer = ADT::Maximizer<uint64_t>();
@@ -183,8 +180,7 @@ namespace Operations {
             Map.getFromRange<const char>(SymTab.strRange(IsBigEndian));
 
         if (StringTable == nullptr) {
-            Result.set(RunError::StringTableOutOfBounds);
-            return 1;
+            return RunResult(RunResult::Error::StringTableOutOfBounds);
         }
 
         auto SymbolsAdded = uint64_t();
@@ -201,8 +197,7 @@ namespace Operations {
 
             if (Utils::IndexOutOfBounds(Index, SymbolCount)) {
                 if (!SkipInvalidIndices) {
-                    Result.set(RunError::IndexOutOfBounds);
-                    return 1;
+                    return RunResult(RunResult::Error::IndexOutOfBounds);
                 }
 
                 continue;
@@ -220,7 +215,8 @@ namespace Operations {
             };
 
             IndexMaximizer.set(Info.Index);
-            SymbolLengthMaximizer.set(static_cast<uint32_t>(Info.String.length()));
+            SymbolLengthMaximizer.set(
+                static_cast<uint32_t>(Info.String.length()));
 
             if (MachO::SymTabCommand::Entry::KindIsValid(Info.Kind)) {
                 const auto Desc =
@@ -237,7 +233,7 @@ namespace Operations {
         LongestSymbolLength = SymbolLengthMaximizer.value();
         LongestKindLength = KindLengthMaximizer.value();
 
-        return 0;
+        return RunResult();
     }
 
     static auto
@@ -299,10 +295,8 @@ namespace Operations {
         -> RunResult
     {
         using namespace MachO;
-
-        auto Result = RunResult(Objects::Kind::MachO);
         if (SectionName.empty()) {
-            return Result.set(RunError::EmptySectionName);
+            return RunResult(RunResult::Error::EmptySectionName);
         }
 
         auto SectionData = static_cast<const char *>(nullptr);
@@ -338,12 +332,11 @@ namespace Operations {
                         IterateSections(*Segment,
                                         SectionName,
                                         IsBigEndian,
-                                        Result,
                                         SegmentInfo.SectionNameList,
                                         Section);
 
-                    if (IterateResult != 0) {
-                        return Result;
+                    if (IterateResult.Error != RunResult::Error::None) {
+                        return IterateResult;
                     }
 
                     if (Section == nullptr) {
@@ -357,7 +350,7 @@ namespace Operations {
                     }
 
                     if (Segment->isProtected(IsBigEndian)) {
-                        return Result.set(RunError::ProtectedSegment);
+                        return RunResult(RunResult::Error::ProtectedSegment);
                     }
 
                     const auto SectionRange = Section->fileRange(IsBigEndian);
@@ -366,7 +359,7 @@ namespace Operations {
                     SectionReserved1 = Section->reserved1(IsBigEndian);
 
                     if (SectionData == nullptr) {
-                        return Result.set(RunError::InvalidSectionRange);
+                        return RunResult(RunResult::Error::InvalidSectionRange);
                     }
 
                     SegmentList.emplace_back(std::move(SegmentInfo));
@@ -387,12 +380,11 @@ namespace Operations {
                         IterateSections(*Segment,
                                         SectionName,
                                         IsBigEndian,
-                                        Result,
                                         SegmentInfo.SectionNameList,
                                         Section);
 
-                    if (IterateResult != 0) {
-                        return Result;
+                    if (IterateResult.Error != RunResult::Error::None) {
+                        return IterateResult;
                     }
 
                     if (Section == nullptr) {
@@ -406,7 +398,7 @@ namespace Operations {
                     }
 
                     if (Segment->isProtected(IsBigEndian)) {
-                        return Result.set(RunError::ProtectedSegment);
+                        return RunResult(RunResult::Error::ProtectedSegment);
                     }
 
                     const auto SectionRange = Section->fileRange(IsBigEndian);
@@ -415,7 +407,7 @@ namespace Operations {
                     SectionReserved1 = Section->reserved1(IsBigEndian);
 
                     if (SectionData == nullptr) {
-                        return Result.set(RunError::InvalidSectionRange);
+                        return RunResult(RunResult::Error::InvalidSectionRange);
                     }
 
                     SegmentList.emplace_back(std::move(SegmentInfo));
@@ -423,7 +415,7 @@ namespace Operations {
                 }
                 case Kind::SymbolTable: {
                     if (SymTabCmd != nullptr) {
-                        return Result.set(RunError::MultipleSymTabCommands);
+                        return RunResult(RunResult::Error::MultipleSymTabCommands);
                     }
 
                     SymTabCmd = cast<SymTabCommand>(&LC, IsBigEndian);
@@ -431,8 +423,8 @@ namespace Operations {
                 }
                 case Kind::DynamicSymbolTable: {
                     if (DynamicSymTabCmd != nullptr) {
-                        Result.set(RunError::MultipleDynamicSymTabCommands);
-                        return Result;
+                        return RunResult(
+                            RunResult::Error::MultipleDynamicSymTabCommands);
                     }
 
                     DynamicSymTabCmd =
@@ -511,19 +503,19 @@ namespace Operations {
         }
 
         if (SectionData == nullptr) {
-            return Result.set(RunError::SectionNotFound);
+            return RunResult(RunResult::Error::SectionNotFound);
         }
 
         if (SymTabCmd == nullptr) {
-            return Result.set(RunError::SymTabNotFound);
+            return RunResult(RunResult::Error::SymTabNotFound);
         }
 
         if (DynamicSymTabCmd == nullptr) {
-            return Result.set(RunError::DynamicSymTabNotFound);
+            return RunResult(RunResult::Error::DynamicSymTabNotFound);
         }
 
         auto SymbolInfoList = std::vector<SymbolInfo>();
-        auto IterateResult = int();
+        auto IterateResult = RunResult();
         auto LongestSymbolLength = uint32_t();
         auto LargestIndex = uint64_t();
         auto LongestKindLength = uint8_t();
@@ -534,7 +526,6 @@ namespace Operations {
                                      *DynamicSymTabCmd,
                                      Map,
                                      SectionReserved1,
-                                     Result,
                                      Opt.SkipInvalidIndices,
                                      Opt.Limit,
                                      IsBigEndian,
@@ -549,7 +540,6 @@ namespace Operations {
                                       *DynamicSymTabCmd,
                                       Map,
                                       SectionReserved1,
-                                      Result,
                                       Opt.SkipInvalidIndices,
                                       Opt.Limit,
                                       IsBigEndian,
@@ -559,8 +549,8 @@ namespace Operations {
                                       LongestKindLength);
         }
 
-        if (IterateResult != 0) {
-            return Result;
+        if (IterateResult.Error != RunResult::Error::None) {
+            return IterateResult;
         }
 
         if (!Opt.SortKindList.empty()) {
@@ -589,8 +579,8 @@ namespace Operations {
         auto Counter = uint64_t();
         for (const auto &SymbolInfo : SymbolInfoList) {
             fprintf(OutFile,
-                    "Indirect-Symbol %" ZEROPAD_FMT PRIu64 ": ",
-                    ZEROPAD_FMT_ARGS(SymbolInfoListSizeDigitCount),
+                    "Indirect-Symbol %" LEFTPAD_FMT PRIu64 ": ",
+                    PAD_FMT_ARGS(SymbolInfoListSizeDigitCount),
                     Counter + 1);
 
             const auto PrintLength =
@@ -620,7 +610,7 @@ namespace Operations {
 
                 fprintf(OutFile,
                         "Index: %" ZEROPAD_FMT PRIu64,
-                        ZEROPAD_FMT_ARGS(MaxIndexDigitCount),
+                        PAD_FMT_ARGS(MaxIndexDigitCount),
                         SymbolInfo.Index);
 
                 if (SymbolInfo.PrivateExternal) {
@@ -680,7 +670,7 @@ namespace Operations {
             Counter++;
         }
 
-        return Result.set(RunError::None);
+        return RunResult(RunResult::Error::None);
     }
 
     auto
@@ -697,7 +687,7 @@ namespace Operations {
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:
-                return RunResultUnsupported;
+                return RunResult(RunResult::Error::Unsupported);
         }
 
         assert(false &&

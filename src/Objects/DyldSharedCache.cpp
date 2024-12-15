@@ -3,6 +3,10 @@
  * © suhas pai
  */
 
+#include <sys/fcntl.h>
+#include <sys/stat.h>
+
+#include <format>
 #include "DyldSharedCache/Headers.h"
 
 #include "Objects/DyldSharedCache.h"
@@ -102,6 +106,76 @@ namespace Objects {
     }
 
     static auto
+    VerifyHeaderMagicAndCpuKind(
+        const std::string_view &Magic,
+        enum DyldSharedCache::CpuKind &CpuKindOut) noexcept
+            -> DyldSharedCache::OpenError
+    {
+        constexpr auto MagicStart = std::string_view("dyld_v1");
+        if (!Magic.starts_with(MagicStart)) {
+            return DyldSharedCache::OpenError::WrongFormat;
+        }
+
+        const auto MagicCpuKindStr = Magic.substr(MagicStart.length());
+        const auto [CpuKind, IsValid] = GetCpuKind(MagicCpuKindStr);
+
+        if (!IsValid) {
+            return DyldSharedCache::OpenError::UnrecognizedCpuKind;
+        }
+
+        CpuKindOut = CpuKind;
+        return DyldSharedCache::OpenError::None;
+    }
+
+    static auto
+    VerifyHeaderMappingInfo(
+        ::DyldSharedCache::HeaderV0 &Header,
+        ADT::Range Range) noexcept
+            -> DyldSharedCache::OpenError
+    {
+        if (Header.MappingOffset < sizeof(::DyldSharedCache::HeaderV0)) {
+            return DyldSharedCache::OpenError::MappingsOutOfBounds;
+        }
+
+        if (Header.MappingCount == 0) {
+            return DyldSharedCache::OpenError::NoMappings;
+        }
+
+        const auto MappingsRangeOpt = Header.getMappingInfoListRange();
+        if (!MappingsRangeOpt.has_value()) {
+            return DyldSharedCache::OpenError::MappingsOutOfBounds;
+        }
+
+        if (!Range.contains(MappingsRangeOpt.value())) {
+            return DyldSharedCache::OpenError::MappingsOutOfBounds;
+        }
+
+        return DyldSharedCache::OpenError::None;
+    }
+
+    static auto VerifyMappingList(
+        const std::span<::DyldSharedCache::MappingInfo> &MappingSpan) noexcept
+            -> DyldSharedCache::OpenError
+    {
+        const auto &FirstMapping = MappingSpan.front();
+        if (FirstMapping.FileOffset != 0) {
+            return DyldSharedCache::OpenError::FirstMappingFileOffNotZero;
+        }
+
+        for (const auto &Mapping : MappingSpan) {
+            if (!Mapping.addressRange().end().has_value()) {
+                return DyldSharedCache::OpenError::MappingsOutOfBounds;
+            }
+
+            if (!Mapping.fileRange().end().has_value()) {
+                return DyldSharedCache::OpenError::MappingsOutOfBounds;
+            }
+        }
+
+        return DyldSharedCache::OpenError::None;
+    }
+
+    static auto
     VerifyMap(const ADT::MemoryMap &Map,
               enum DyldSharedCache::CpuKind &CpuKindOut) noexcept
         -> DyldSharedCache::OpenError
@@ -119,71 +193,54 @@ namespace Objects {
                 return OpenError::SizeTooSmall;
             }
 
-            const auto MagicLength =
-                strnlen(MagicPtr, sizeof(::DyldSharedCache::HeaderV0::Magic));
+            const auto MagicSv =
+                std::string_view(
+                    MagicPtr,
+                    strnlen(MagicPtr,
+                            sizeof(::DyldSharedCache::HeaderV0::Magic)));
 
-            const auto Magic = std::string_view(MagicPtr, MagicLength);
-            constexpr auto MagicStart = std::string_view("dyld_v1");
-
-            if (!Magic.starts_with(MagicStart)) {
-                return OpenError::WrongFormat;
-            }
-
-            const auto MagicCpuKindStr = Magic.substr(MagicStart.length());
-            const auto [CpuKind, IsValid] = GetCpuKind(MagicCpuKindStr);
-
-            if (!IsValid) {
-                return OpenError::UnrecognizedCpuKind;
+            if (const auto Error =
+                    VerifyHeaderMagicAndCpuKind(MagicSv, CpuKindOut);
+                Error != OpenError::None)
+            {
+                return Error;
             }
 
             return OpenError::WrongFormat;
         }
 
-        const auto Magic = HeaderV0->magic();
-        constexpr auto MagicStart = std::string_view("dyld_v1");
-
-        if (!Magic.starts_with(MagicStart)) {
-            return OpenError::WrongFormat;
+        if (const auto Error =
+                VerifyHeaderMagicAndCpuKind(CARR_TO_SV(HeaderV0->Magic),
+                                            CpuKindOut);
+            Error != OpenError::None)
+        {
+            return Error;
         }
 
-        const auto MagicCpuKindStr = Magic.substr(MagicStart.length());
-        const auto [CpuKind, IsValid] = GetCpuKind(MagicCpuKindStr);
-
-        if (!IsValid) {
-            return OpenError::UnrecognizedCpuKind;
+        if (const auto Error = VerifyHeaderMappingInfo(*HeaderV0, Map.range());
+            Error != OpenError::None)
+        {
+            return Error;
         }
 
-        if (HeaderV0->MappingOffset < sizeof(::DyldSharedCache::HeaderV0)) {
-            return OpenError::MappingsOutOfBounds;
+        auto MappingList =
+            std::span<::DyldSharedCache::MappingInfo>(
+                Map.get<::DyldSharedCache::MappingInfo, false>(
+                    HeaderV0->MappingOffset),
+                HeaderV0->MappingCount);
+
+        if (const auto Error = VerifyMappingList(MappingList);
+            Error != OpenError::None)
+        {
+            return Error;
         }
 
-        if (HeaderV0->MappingCount == 0) {
-            return OpenError::NoMappings;
-        }
-
-        const auto MappingsRangeOpt = HeaderV0->getMappingInfoListRange();
-        if (!MappingsRangeOpt.has_value()) {
-            return OpenError::MappingsOutOfBounds;
-        }
-
-        if (!Map.range().contains(MappingsRangeOpt.value())) {
-            return OpenError::MappingsOutOfBounds;
-        }
-
-        const auto FirstMapping =
-            Map.get<const ::DyldSharedCache::MappingInfo, false>(
-                HeaderV0->MappingOffset);
-
-        if (FirstMapping->FileOffset != 0) {
-            return OpenError::FirstMappingFileOffNotZero;
-        }
-
-        CpuKindOut = CpuKind;
         return OpenError::None;
     }
 
-    auto DyldSharedCache::VerifySubCacheMap(const ADT::MemoryMap &Map) noexcept
-        -> OpenError
+    auto
+    DyldSharedCache::VerifySubCacheMap(const ADT::MemoryMap &Map) const noexcept
+        -> Error
     {
         using OpenError = DyldSharedCache::OpenError;
 
@@ -191,167 +248,392 @@ namespace Objects {
         if (const auto Error = VerifyMap(Map, CpuKind);
             Error != OpenError::None)
         {
-            return OpenError::FailedToOpenSubCaches;
+            return DyldSharedCache::Error(OpenError::FailedToOpenSubCaches);
         }
 
         if (CpuKind != this->CpuKind) {
-            return OpenError::SubCacheHasDiffCpuKind;
+            return DyldSharedCache::Error(OpenError::SubCacheHasDiffCpuKind);
         }
 
         const auto Header = Map.base<::DyldSharedCache::HeaderV9, false>();
-        if (Header->getVersion() != getVersion()) {
-            return OpenError::SubCacheHasDiffVersion;
+        if (Header->getVersion() != this->getVersion()) {
+            return DyldSharedCache::Error(OpenError::SubCacheHasDiffVersion);
         }
 
         if (Header->SubCacheArrayCount != 0) {
-            return OpenError::RecursiveSubCache;
+            return DyldSharedCache::Error(OpenError::RecursiveSubCache);
         }
 
-        return OpenError::None;
+        return DyldSharedCache::Error(OpenError::None);
     }
 
     auto
-    DyldSharedCache::CollectSubCaches(const ADT::FileMap::Prot Prot) noexcept
-        -> OpenError
+    DyldSharedCache::OpenSubCacheFileMap(
+        const SubCacheInfo &SubCache) const noexcept -> Error
     {
-        if (const auto ListOpt = subCacheEntryInfoList()) {
-            for (const auto &SubCacheEntry : ListOpt.value()) {
-                const auto FileSuffix = SubCacheEntry.fileSuffix();
-                const auto SubCachePath = std::string(Path).append(FileSuffix);
+        if (SubCache.FileMap != nullptr) {
+            return Error(OpenError::None);
+        }
 
-                const auto FileMapOrErr =
-                    ADT::FileMap::Open(SubCachePath.c_str(), Prot);
+        if (SubCache.Error.Kind != OpenError::None) {
+            return SubCache.Error;
+        }
 
-                if (FileMapOrErr.hasError()) {
-                    return OpenError::FailedToOpenSubCaches;
-                }
+        const auto FileMapOrErr =
+            ADT::FileMap::Open(SubCache.Path.c_str(), SubCache.Prot);
 
-                auto FileMap = FileMapOrErr.ptr();
-                const auto Map = FileMap->map();
+        if (!FileMapOrErr.has_value()) {
+            return Error(OpenError::FailedToOpenSubCaches);
+        }
 
-                if (const auto Error = VerifySubCacheMap(Map);
-                    Error != OpenError::None)
-                {
-                    return Error;
-                }
+        auto FileMap = FileMapOrErr.value();
+        const auto Map = FileMap->map();
 
-                auto Info =
-                    SubCacheInfo(
-                        FileMap,
-                        SingleCacheInfo(Map, SubCacheEntry.CacheVMOffset));
+        if (const auto Err = VerifySubCacheMap(Map);
+            Err.Kind != OpenError::None)
+        {
+            return Error(Err);
+        }
 
-                SubCacheList.emplace(FileSuffix, Info);
+        auto &SingleInfo = (SingleCacheInfo &)SubCache.Info;
+        SingleInfo.Map = Map;
+
+        return Error(OpenError::None);
+    }
+
+    auto
+    DyldSharedCache::FillSubCacheInfo(
+        SubCacheInfo &SubCache,
+        const std::filesystem::path &Path,
+        const ADT::FileMap::Prot Prot) noexcept -> Error
+    {
+        const int Fd = ::open(Path.c_str(), O_RDONLY);
+        if (Fd < 0) {
+            if (access(Path.c_str(), F_OK) < 0) {
+                SubCache.Error = Error(OpenError::SubCacheFileDoesNotExist);
+                return SubCache.Error;
             }
-        } else if (const auto ListOpt = subCacheEntryV1InfoList()) {
-            auto I = uint32_t(1);
-            for (const auto &SubCacheEntry : ListOpt.value()) {
-                const auto FileSuffix = std::string(".") + std::to_string(I);
-                const auto SubCachePath = std::string(Path).append(FileSuffix);
+
+            SubCache.Error = Error(OpenError::FailedToOpenSubCaches);
+            return SubCache.Error;
+        }
+
+        struct stat Stat;
+        if (::fstat(Fd, &Stat) < 0) {
+            close(Fd);
+            SubCache.Error = Error(OpenError::FailedToOpenSubCaches);
+
+            return SubCache.Error;
+        }
+
+        const auto MapRange =
+            ADT::Range::FromSize(0, static_cast<size_t>(Stat.st_size));
+
+        auto Header = ::DyldSharedCache::HeaderV0();
+        if (const auto HeaderSize = ::read(Fd, &Header, sizeof(Header));
+            HeaderSize < static_cast<ssize_t>(sizeof(Header)))
+        {
+            close(Fd);
+            SubCache.Error = Error(OpenError::FailedToOpenSubCaches);
+
+            return SubCache.Error;
+        }
+
+        auto CpuKind = DyldSharedCache::CpuKind::i386;
+        if (const auto Err =
+                VerifyHeaderMagicAndCpuKind(CARR_TO_SV(Header.Magic), CpuKind);
+            Err != DyldSharedCache::OpenError::None)
+        {
+            close(Fd);
+            SubCache.Error = Error(Err);
+
+            return SubCache.Error;
+        }
+
+        if (const auto Err = VerifyHeaderMappingInfo(Header, MapRange);
+            Err != DyldSharedCache::OpenError::None)
+        {
+            close(Fd);
+            SubCache.Error = Error(Err);
+
+            return SubCache.Error;
+        }
+
+        const auto MappingListRangeOpt = Header.getMappingInfoListRange();
+        if (!MappingListRangeOpt.has_value()) {
+            close(Fd);
+            SubCache.Error = Error(OpenError::FailedToOpenSubCaches);
+
+            return SubCache.Error;
+        }
+
+        const auto MappingList =
+            std::unique_ptr<::DyldSharedCache::MappingInfo[]>(
+                new ::DyldSharedCache::MappingInfo[Header.MappingCount]);
+
+        if (Header.MappingOffset < sizeof(::DyldSharedCache::HeaderV0)) {
+            close(Fd);
+            SubCache.Error = Error(OpenError::MappingsOutOfBounds);
+
+            return SubCache.Error;
+        }
+
+        if (Header.MappingCount == 0) {
+            close(Fd);
+            SubCache.Error = Error(OpenError::NoMappings);
+
+            return SubCache.Error;
+        }
+
+        if (::lseek(Fd, Header.MappingOffset, SEEK_SET) < 0) {
+            close(Fd);
+            SubCache.Error = Error(OpenError::MappingsOutOfBounds);
+
+            return SubCache.Error;
+        }
+
+        const auto MappingSpan =
+            std::span(MappingList.get(), Header.MappingCount);
+
+        const auto ReadSize = MappingSpan.size() * sizeof(MappingSpan.front());
+        if (::read(Fd, MappingList.get(), ReadSize) <
+                static_cast<ssize_t>(ReadSize))
+        {
+            close(Fd);
+            SubCache.Error = Error(OpenError::MappingsOutOfBounds);
+
+            return SubCache.Error;
+        }
+
+        if (const auto Err = VerifyMappingList(MappingSpan);
+            Err != DyldSharedCache::OpenError::None)
+        {
+            close(Fd);
+            SubCache.Error = Error(Err);
+
+            return SubCache.Error;
+        }
+
+        SubCache.Path = Path;
+        if (SubCache.Info.MaxVmSize == 0) {
+            const auto MaxVmOffset =
+                MappingSpan.back().addressRange().end().value();
+
+            if (MaxVmOffset > SubCache.Info.VmOffset) {
+                close(Fd);
+                SubCache.Error = Error(OpenError::MappingsOutOfBounds);
+
+                return SubCache.Error;
+            }
+
+            SubCache.Info.MaxVmSize = MaxVmOffset - SubCache.Info.VmOffset;
+        }
+
+        close(Fd);
+
+        SubCache.Info.FirstAddr = MappingSpan.front().addressRange().front();
+        SubCache.Prot = Prot;
+        SubCache.Error = Error(OpenError::None);
+
+        return SubCache.Error;
+    }
+
+    auto
+    DyldSharedCache::CollectSubCaches(
+        const ADT::FileMap::Prot Prot,
+        const SubCacheProvidedPathMap &SubCacheProvidedPathMap) noexcept
+            -> Error
+    {
+        if (const auto ListOpt = this->subCacheEntryInfoList()) {
+            const auto &List = ListOpt.value();
+            for (const auto &SubCacheEntry : List) {
+                auto MaxVmSize = uint64_t();
+                if (&SubCacheEntry != &List.back()) {
+                    const auto NextVmOffset = (&SubCacheEntry)[1].CacheVMOffset;
+                    if (NextVmOffset <= SubCacheEntry.CacheVMOffset) {
+                        return Error(OpenError::SubCacheListIsInvalid);
+                    }
+
+                    MaxVmSize = NextVmOffset - SubCacheEntry.CacheVMOffset;
+                } else {
+                    MaxVmSize =
+                        this->mappingInfoList()
+                            .back()
+                            .addressRange()
+                            .end()
+                            .value() -
+                        SubCacheEntry.CacheVMOffset;
+                }
+
+                auto SubCachePath = std::string();
+                auto ReturnOnSubCacheError = false;
+
+                if (!SubCacheProvidedPathMap.contains(SubCacheEntry.FileSuffix))
+                {
+                    SubCachePath =
+                        std::format("{}{}",
+                                    Path.c_str(),
+                                    SubCacheEntry.fileSuffix());
+                } else {
+                    const auto &Info =
+                        SubCacheProvidedPathMap.at(SubCacheEntry.FileSuffix);
+
+                    SubCachePath = Info.Path;
+                    ReturnOnSubCacheError = Info.ReturnOnSubCacheError;
+                }
+
+                auto Info =
+                    SubCacheInfo(
+                        SubCachePath,
+                        SingleCacheInfo(SubCacheEntry.CacheVMOffset,
+                                        MaxVmSize));
+
+                if (const auto Error =
+                        FillSubCacheInfo(Info, SubCachePath, Prot);
+                    Error.Kind != OpenError::None)
+                {
+                    if (ReturnOnSubCacheError) {
+                        return Error;
+                    }
+                }
+
+                SubCacheList.emplace(SubCacheEntry.fileSuffix(),
+                                     std::move(Info));
+            }
+        } else if (const auto ListOpt = this->subCacheEntryV1InfoList()) {
+            auto I = static_cast<uint32_t>(1);
+            const auto &List = ListOpt.value();
+
+            for (const auto &SubCacheEntry : List) {
+                auto MaxVmSize = uint64_t();
+                if (&SubCacheEntry != &List.back()) {
+                    const auto NextVmOffset = (&SubCacheEntry)[1].CacheVMOffset;
+                    if (NextVmOffset <= SubCacheEntry.CacheVMOffset) {
+                        return Error(OpenError::SubCacheListIsInvalid);
+                    }
+
+                    MaxVmSize = NextVmOffset - SubCacheEntry.CacheVMOffset;
+                } else {
+                    MaxVmSize =
+                        this->mappingInfoList()
+                            .back()
+                            .addressRange()
+                            .end()
+                            .value() -
+                        SubCacheEntry.CacheVMOffset;
+                }
+
+                const auto FileSuffix = std::format("{}", I);
+                auto SubCachePath = std::string();
+
+                if (!SubCacheProvidedPathMap.contains(FileSuffix)) {
+                    SubCachePath =
+                        std::filesystem::absolute(
+                            std::format("{}{}",
+                                        Path.filename().c_str(),
+                                        FileSuffix));
+                } else {
+                    SubCachePath =
+                        SubCacheProvidedPathMap.at(FileSuffix)
+                            .Path;
+                }
+
                 const auto FileMapOrErr =
                     ADT::FileMap::Open(SubCachePath.c_str(), Prot);
 
-                if (FileMapOrErr.hasError()) {
-                    return OpenError::FailedToOpenSubCaches;
+                if (!FileMapOrErr.has_value()) {
+                    return Error(OpenError::FailedToOpenSubCaches);
                 }
 
-                auto FileMap = FileMapOrErr.ptr();
+                auto FileMap = FileMapOrErr.value();
                 const auto Map = FileMap->map();
 
                 if (const auto Error = VerifySubCacheMap(Map);
-                    Error != OpenError::None)
+                    Error.Kind != OpenError::None)
                 {
                     return Error;
                 }
 
                 auto Info =
-                    SubCacheInfo(
-                        FileMap,
-                        SingleCacheInfo(Map, SubCacheEntry.CacheVMOffset));
+                    SingleCacheInfo(Map,
+                                    SubCacheEntry.CacheVMOffset,
+                                    MaxVmSize);
 
-                SubCacheList.emplace(FileSuffix, Info);
+                auto SubCache =
+                    SubCacheInfo(FileMap,
+                                 std::move(SubCachePath),
+                                 std::move(Info));
+
+                SubCacheList.emplace(FileSuffix, std::move(SubCache));
                 I++;
             }
         }
 
-        return OpenError::None;
+        return Error(OpenError::None);
     }
 
     auto
-    DyldSharedCache::Open(const ADT::MemoryMap &Map,
-                          const std::string_view Path,
-                          const ADT::FileMap::Prot SubCacheProt) noexcept
-        -> ADT::PointerOrError<DyldSharedCache, OpenError>
+    DyldSharedCache::Open(
+        const ADT::MemoryMap &Map,
+        const std::filesystem::path &Path,
+        const ADT::FileMap::Prot SubCacheProt,
+        const SubCacheProvidedPathMap &SubCacheProvidedPathMap) noexcept
+            -> std::expected<DyldSharedCache *, Error>
     {
         auto CpuKind = CpuKind::i386;
-        if (const auto Error = VerifyMap(Map, CpuKind);
-            Error != OpenError::None)
+        if (const auto Err = VerifyMap(Map, CpuKind);
+            Err != OpenError::None)
         {
-            return Error;
+            return std::unexpected(Error(Err));
         }
 
         const auto Result = new DyldSharedCache(Map, CpuKind, Path);
-        if (const auto Error = Result->CollectSubCaches(SubCacheProt);
-            Error != OpenError::None)
+        if (const auto Error =
+                Result->CollectSubCaches(SubCacheProt, SubCacheProvidedPathMap);
+            Error.Kind != OpenError::None)
         {
             delete Result;
-            return Error;
+            return std::unexpected(Error);
         }
 
         return Result;
     }
 
     auto DyldSharedCache::subCacheEntryV1InfoList() const noexcept
-        -> std::optional<ADT::List<::DyldSharedCache::SubCacheEntryV1>>
+        -> std::optional<std::span<::DyldSharedCache::SubCacheEntryV1>>
     {
-        if (!header().hasSubCacheV1Array()) {
+        if (!this->header().hasSubCacheV1Array()) {
             return std::nullopt;
         }
 
-        const auto &Header = headerV8();
+        const auto &Header = this->headerV8();
         const auto Array =
-            map().get<::DyldSharedCache::SubCacheEntryV1>(
+            this->map().get<::DyldSharedCache::SubCacheEntryV1>(
                 Header.SubCacheArrayOffset, Header.SubCacheArrayCount);
 
         if (Array == nullptr) {
             return std::nullopt;
         }
 
-        return ADT::List(Array, Header.SubCacheArrayCount);
+        return std::span(Array, Header.SubCacheArrayCount);
     }
 
     auto DyldSharedCache::subCacheEntryInfoList() const noexcept
-        -> std::optional<ADT::List<::DyldSharedCache::SubCacheEntry>>
+        -> std::optional<std::span<::DyldSharedCache::SubCacheEntry>>
     {
-        if (!header().hasSubCacheArray()) {
+        if (!this->header().hasSubCacheArray()) {
             return std::nullopt;
         }
 
-        const auto &Header = headerV9();
+        const auto &Header = this->headerV9();
         const auto Array =
-            map().get<::DyldSharedCache::SubCacheEntry>(
+            this->map().get<::DyldSharedCache::SubCacheEntry>(
                 Header.SubCacheArrayOffset, Header.SubCacheArrayCount);
 
         if (Array == nullptr) {
             return std::nullopt;
         }
 
-        return ADT::List(Array, Header.SubCacheArrayCount);
-    }
-
-    auto
-    DyldSharedCache::getImageObjectAtIndex(const uint32_t Index) const noexcept
-        -> Objects::OpenResult
-    {
-        assert(!Utils::IndexOutOfBounds(Index, imageCount()));
-
-        const auto ImageInfo = imageInfoList()[Index];
-        const auto ObjectOrErr = DscImage::Open(*this, ImageInfo);
-
-        if (const auto Ptr = ObjectOrErr.ptr()) {
-            return Ptr;
-        }
-
-        return Objects::OpenError(Kind::DscImage,
-                                  static_cast<uint32_t>(ObjectOrErr.error()));
+        return std::span(Array, Header.SubCacheArrayCount);
     }
 }

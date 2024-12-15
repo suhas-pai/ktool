@@ -21,7 +21,8 @@ namespace Operations {
     PrintObjcClassList::PrintObjcClassList(
         FILE *const OutFile,
         const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options) {}
+    : Base(Operations::Kind::PrintObjcClassList), OutFile(OutFile),
+      Opt(Options) {}
 
     bool
     PrintObjcClassList::supportsObjectKind(
@@ -46,7 +47,7 @@ namespace Operations {
     }
 
     static inline
-    void PrintFlagSeparator(FILE *const OutFile, bool &DidPrint) noexcept {
+    auto PrintFlagSeparator(FILE *const OutFile, bool &DidPrint) noexcept {
         Utils::PrintOnlyAfterFirst(OutFile, " - ", DidPrint);
     }
 
@@ -200,8 +201,8 @@ namespace Operations {
 
         for (const auto &Category : CategoryList) {
             fprintf(OutFile,
-                    "\t\tObjc-Class Category %" ZEROPAD_FMT PRIu64 ": ",
-                    ZEROPAD_FMT_ARGS(CategoryListSizeDigitLength),
+                    "\t\tObjc-Class Category %" LEFTPAD_FMT PRIu64 ": ",
+                    PAD_FMT_ARGS(CategoryListSizeDigitLength),
                     Index);
 
             Utils::PrintAddress(OutFile, Category->address(), Is64Bit);
@@ -359,8 +360,8 @@ namespace Operations {
                 }
 
                 fprintf(OutFile,
-                        "Objective-C Class %" ZEROPAD_FMT PRIu64 ": ",
-                        ZEROPAD_FMT_ARGS(MaxDigitLength),
+                        "Objective-C Class %" LEFTPAD_FMT PRIu64 ": ",
+                        PAD_FMT_ARGS(MaxDigitLength),
                         I);
 
                 if (Node->external()) {
@@ -394,84 +395,10 @@ namespace Operations {
         }
     }
 
-    static void
-    PrintBindParseError(const MachO::BindOpcodeParseError ParseError) noexcept {
-        switch (ParseError) {
-            case MachO::BindOpcodeParseError::None:
-                break;
-            case MachO::BindOpcodeParseError::InvalidLeb128:
-                fputs("Encountered invalid uleb128 when parsing bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::InvalidSegmentIndex:
-                fputs("Bind-Opcodes set segment-index to an invalid number\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::InvalidString:
-                fputs("Encountered invalid string in bind-opcodes\n", stderr);
-                break;
-            case MachO::BindOpcodeParseError::NotEnoughThreadedBinds:
-                fputs("Not enough threaded-binds in bind-opcodes\n", stderr);
-                break;
-            case MachO::BindOpcodeParseError::TooManyThreadedBinds:
-                fputs("Too many threaded-binds in bind-opcodes\n", stderr);
-                break;
-            case MachO::BindOpcodeParseError::InvalidThreadOrdinal:
-                fputs("Encountered invalid thread-ordinal in "
-                      "bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::EmptySymbol:
-                fputs("Encountered invalid thread-ordinal in "
-                      "bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::IllegalBindOpcode:
-                fputs("Encountered invalid bind-opcode when parsing\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::OutOfBoundsSegmentAddr:
-                fputs("Got out-of-bounds segment-address in bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::UnrecognizedBindWriteKind:
-                fputs("Encountered unknown write-kind in bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::UnrecognizedBindOpcode:
-                fputs("Encountered unknown bind-opcode when parsing\n", stderr);
-                break;
-            case MachO::BindOpcodeParseError::UnrecognizedBindSubOpcode:
-                fputs("Encountered unknown bind sub-opcode when parsing\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::
-                UnrecognizedSpecialDylibOrdinal:
-                fputs("Encountered unknown specialty dylib-ordinal in "
-                      "bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::NoDylibOrdinal:
-                fputs("No dylib-ordinal found when parsing bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::NoSegmentIndex:
-                fputs("No segment-index found when parsing bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::NoWriteKind:
-                fputs("No write-type found when parsing bind-opcodes\n",
-                      stderr);
-                break;
-        }
-    }
-
     auto
     PrintObjcClassList::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
-        auto Result = RunResult(Objects::Kind::MachO);
-
         const auto IsBigEndian = MachO.isBigEndian();
         const auto Is64Bit = MachO.is64Bit();
 
@@ -515,8 +442,17 @@ namespace Operations {
             }
         }
 
+        const auto ObjcSectionInfoOpt =
+            MachO::FindObjcClassListOrRefsSection(SegmentList);
+
+        if (!ObjcSectionInfoOpt.has_value()) {
+            return RunResult(RunResult::Error::NoObjcData);
+        }
+
+        const auto &ObjcSectionInfo = ObjcSectionInfoOpt.value();
+
         auto BindActionInfoList = MachO::BindActionList::UnorderedMap();
-        auto ParseError = MachO::BindOpcodeParseError::None;
+        auto ParseResult = MachO::BindOpcodeParseResult();
 
         if (MachO.map().range().contains(BindRange)) {
             const auto BindList =
@@ -525,10 +461,14 @@ namespace Operations {
                                       SegmentList,
                                       Is64Bit);
 
-            ParseError =
-                BindList.getAsUnorderedMap(SegmentList, BindActionInfoList);
+            ParseResult =
+                BindList.getMapForSection(ObjcSectionInfo.Segment,
+                                          ObjcSectionInfo.Section,
+                                          BindActionInfoList);
 
-            PrintBindParseError(ParseError);
+            if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
+                return RunResult(MachO::BindInfoKind::Normal, ParseResult);
+            }
         }
 
         if (MachO.map().range().contains(LazyBindRange)) {
@@ -538,10 +478,14 @@ namespace Operations {
                                           SegmentList,
                                           Is64Bit);
 
-            ParseError =
-                LazyBindList.getAsUnorderedMap(SegmentList, BindActionInfoList);
+            ParseResult =
+                LazyBindList.getMapForSection(ObjcSectionInfo.Segment,
+                                              ObjcSectionInfo.Section,
+                                              BindActionInfoList);
 
-            PrintBindParseError(ParseError);
+            if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
+                return RunResult(MachO::BindInfoKind::Lazy, ParseResult);
+            }
         }
 
         if (MachO.map().range().contains(WeakBindRange)) {
@@ -551,10 +495,14 @@ namespace Operations {
                                           SegmentList,
                                           Is64Bit);
 
-            ParseError =
-                WeakBindList.getAsUnorderedMap(SegmentList, BindActionInfoList);
+            ParseResult =
+                WeakBindList.getMapForSection(ObjcSectionInfo.Segment,
+                                              ObjcSectionInfo.Section,
+                                              BindActionInfoList);
 
-            PrintBindParseError(ParseError);
+            if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
+                return RunResult(MachO::BindInfoKind::Weak, ParseResult);
+            }
         }
 
         const auto DeVirtualizer =
@@ -563,6 +511,7 @@ namespace Operations {
         auto ObjcClassInfoList = MachO::ObjcClassInfoList();
         auto Error =
             ObjcClassInfoList.Parse(DeVirtualizer,
+                                    ObjcSectionInfo,
                                     SegmentList,
                                     BindActionInfoList,
                                     IsBigEndian,
@@ -572,11 +521,11 @@ namespace Operations {
             case MachO::ObjcParse::Error::None:
                 break;
             case MachO::ObjcParse::Error::NoObjcData:
-                return Result.set(RunError::NoObjcData);
+                return RunResult(RunResult::Error::NoObjcData);
             case MachO::ObjcParse::Error::UnalignedSection:
-                return Result.set(RunError::UnalignedSection);
+                return RunResult(RunResult::Error::UnalignedSection);
             case MachO::ObjcParse::Error::DataOutOfBounds:
-                return Result.set(RunError::ObjcDataOutOfBounds);
+                return RunResult(RunResult::Error::ObjcDataOutOfBounds);
         }
 
         if (Opt.PrintCategories) {
@@ -605,15 +554,13 @@ namespace Operations {
                                Is64Bit,
                                Opt);
 
-        return Result.set(RunError::None);
+        return RunResult(RunResult::Error::None);
     }
 
     auto
     PrintObjcClassList::run(const Objects::DscImage &Image) const noexcept
         -> RunResult
     {
-        auto Result = RunResult(Objects::Kind::MachO);
-
         const auto IsBigEndian = Image.isBigEndian();
         const auto Is64Bit = Image.is64Bit();
 
@@ -657,10 +604,19 @@ namespace Operations {
             }
         }
 
-        auto BindActionInfoList = MachO::BindActionList::UnorderedMap();
-        auto ParseError = MachO::BindOpcodeParseError::None;
-
         const auto Map = Image.dscMap();
+        const auto ObjcSectionInfoOpt =
+            MachO::FindObjcClassListOrRefsSection(SegmentList);
+
+        if (!ObjcSectionInfoOpt.has_value()) {
+            return RunResult(RunResult::Error::NoObjcData);
+        }
+
+        const auto &ObjcSectionInfo = ObjcSectionInfoOpt.value();
+
+        auto BindActionInfoList = MachO::BindActionList::UnorderedMap();
+        auto ParseResult = MachO::BindOpcodeParseResult();
+
         if (Map.range().contains(BindRange)) {
             const auto BindList =
                 MachO::BindActionList(Map,
@@ -668,10 +624,14 @@ namespace Operations {
                                       SegmentList,
                                       Is64Bit);
 
-            ParseError =
-                BindList.getAsUnorderedMap(SegmentList, BindActionInfoList);
+            ParseResult =
+                BindList.getMapForSection(ObjcSectionInfo.Segment,
+                                          ObjcSectionInfo.Section,
+                                          BindActionInfoList);
 
-            PrintBindParseError(ParseError);
+            if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
+                return RunResult(MachO::BindInfoKind::Normal, ParseResult);
+            }
         }
 
         if (Map.range().contains(LazyBindRange)) {
@@ -681,10 +641,14 @@ namespace Operations {
                                           SegmentList,
                                           Is64Bit);
 
-            ParseError =
-                LazyBindList.getAsUnorderedMap(SegmentList, BindActionInfoList);
+            ParseResult =
+                LazyBindList.getMapForSection(ObjcSectionInfo.Segment,
+                                              ObjcSectionInfo.Section,
+                                              BindActionInfoList);
 
-            PrintBindParseError(ParseError);
+            if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
+                return RunResult(MachO::BindInfoKind::Lazy, ParseResult);
+            }
         }
 
         if (Map.range().contains(WeakBindRange)) {
@@ -694,10 +658,14 @@ namespace Operations {
                                           SegmentList,
                                           Is64Bit);
 
-            ParseError =
-                WeakBindList.getAsUnorderedMap(SegmentList, BindActionInfoList);
+            ParseResult =
+                WeakBindList.getMapForSection(ObjcSectionInfo.Segment,
+                                              ObjcSectionInfo.Section,
+                                              BindActionInfoList);
 
-            PrintBindParseError(ParseError);
+            if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
+                return RunResult(MachO::BindInfoKind::Weak, ParseResult);
+            }
         }
 
         const auto DeVirtualizer = DyldSharedCache::DeVirtualizer(Image.dsc());
@@ -705,6 +673,7 @@ namespace Operations {
         auto ObjcClassInfoList = MachO::ObjcClassInfoList();
         auto Error =
             ObjcClassInfoList.Parse(DeVirtualizer,
+                                    ObjcSectionInfo,
                                     SegmentList,
                                     BindActionInfoList,
                                     IsBigEndian,
@@ -714,11 +683,11 @@ namespace Operations {
             case MachO::ObjcParse::Error::None:
                 break;
             case MachO::ObjcParse::Error::NoObjcData:
-                return Result.set(RunError::NoObjcData);
+                return RunResult(RunResult::Error::NoObjcData);
             case MachO::ObjcParse::Error::UnalignedSection:
-                return Result.set(RunError::UnalignedSection);
+                return RunResult(RunResult::Error::UnalignedSection);
             case MachO::ObjcParse::Error::DataOutOfBounds:
-                return Result.set(RunError::ObjcDataOutOfBounds);
+                return RunResult(RunResult::Error::ObjcDataOutOfBounds);
         }
 
         if (Opt.PrintCategories) {
@@ -747,7 +716,7 @@ namespace Operations {
                                Is64Bit,
                                Opt);
 
-        return Result.set(RunError::None);
+        return RunResult(RunResult::Error::None);
     }
 
     auto
@@ -764,7 +733,7 @@ namespace Operations {
                 return run(static_cast<const Objects::DscImage &>(Base));
             case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:
-                return RunResultUnsupported;
+                return RunResult(RunResult::Error::Unsupported);
         }
 
         assert(false &&

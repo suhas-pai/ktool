@@ -33,11 +33,11 @@ namespace MachO {
         uint32_t Reserved3;
 
         [[nodiscard]] constexpr auto fileRange() const noexcept {
-            return ADT::Range::FromSize(FileOffset, Size);
+            return ADT::Range::FromSize(this->FileOffset, this->Size);
         }
 
         [[nodiscard]] constexpr auto vmRange() const noexcept {
-            return ADT::Range::FromSize(Addr, Size);
+            return ADT::Range::FromSize(this->Addr, this->Size);
         }
     };
 
@@ -52,6 +52,8 @@ namespace MachO {
 
         MachO::SegmentCommand::FlagsStruct Flags;
         std::vector<SectionInfo> SectionList;
+
+        uint32_t Index;
 
         [[nodiscard]] constexpr auto
         findSectionWithName(const std::string_view Name) const noexcept
@@ -71,7 +73,7 @@ namespace MachO {
             -> const SectionInfo *
         {
             for (const auto &Section : SectionList) {
-                if (Section.fileRange().containsLoc(Offset)) {
+                if (Section.fileRange().hasLoc(Offset)) {
                     return &Section;
                 }
             }
@@ -84,7 +86,7 @@ namespace MachO {
             -> const SectionInfo *
         {
             for (const auto &Section : SectionList) {
-                if (Section.vmRange().containsLoc(VmAddr)) {
+                if (Section.vmRange().hasLoc(VmAddr)) {
                     return &Section;
                 }
             }
@@ -92,13 +94,13 @@ namespace MachO {
             return nullptr;
         }
 
-        [[nodiscard]] constexpr auto
+        [[nodiscard]] auto
         findSectionWithVmAddrIndex(
             const uint64_t AddrIndex,
             uint64_t *const AddrOut = nullptr) const noexcept
             -> const SectionInfo *
         {
-            assert(VmRange.containsIndex(AddrIndex));
+            assert(VmRange.hasIndex(AddrIndex));
 
             const auto FullAddr = VmRange.locForIndex(AddrIndex);
             if (AddrOut != nullptr) {
@@ -185,7 +187,7 @@ namespace MachO {
             -> const SegmentInfo *
         {
             for (const auto &Info : List) {
-                if (Info.FileRange.containsLoc(Offset)) {
+                if (Info.FileRange.hasLoc(Offset)) {
                     return &Info;
                 }
             }
@@ -198,7 +200,7 @@ namespace MachO {
             -> const SegmentInfo *
         {
             for (const auto &Info : List) {
-                if (Info.VmRange.containsLoc(Addr)) {
+                if (Info.VmRange.hasLoc(Addr)) {
                     return &Info;
                 }
             }
@@ -206,8 +208,8 @@ namespace MachO {
             return nullptr;
         }
 
-        [[nodiscard]] virtual auto
-        findSegmentContainingVmRange(const ADT::Range &Range) const noexcept
+        [[nodiscard]] virtual
+        auto findSegmentWithVmRange(const ADT::Range &Range) const noexcept
             -> const SegmentInfo *
         {
             for (const auto &Info : List) {
@@ -229,10 +231,11 @@ namespace MachO {
             const std::initializer_list<SegmentSectionNameListPair> &L)
                 const noexcept -> const SectionInfo *
         {
-            for (const auto &Pair : L) {
-                if (const auto Segment = findSegmentWithName(Pair.SegmentName))
-                {
-                    for (const auto &SectName : Pair.SectionNameList) {
+            for (const auto &[SegmentName, SectionNameList] : L) {
+                if (const auto Segment =
+                        this->findSegmentWithName(SegmentName)) {
+
+                    for (const auto &SectName : SectionNameList) {
                         if (const auto Section =
                                 Segment->findSectionWithName(SectName))
                         {
@@ -243,6 +246,30 @@ namespace MachO {
             }
 
             return nullptr;
+        }
+
+        [[nodiscard]] constexpr auto
+        findSectionWithNameAndSegment(
+            const std::initializer_list<SegmentSectionNameListPair> &L)
+                const noexcept
+                    -> std::optional<
+                        std::pair<const SegmentInfo &, const SectionInfo &>>
+        {
+            for (const auto &[SegmentName, SectionNameList] : L) {
+                if (const auto Segment =
+                        this->findSegmentWithName(SegmentName)) {
+
+                    for (const auto &SectName : SectionNameList) {
+                        if (const auto Section =
+                                Segment->findSectionWithName(SectName))
+                        {
+                            return std::pair(*Segment, *Section);
+                        }
+                    }
+                }
+            }
+
+            return std::nullopt;
         }
     };
 }

@@ -26,15 +26,21 @@ namespace Operations {
 
         ~PrintRebaseActionList() noexcept override {}
 
-        enum class RunError : uint32_t {
-            None,
-            NoDyldInfo,
-            NoActions
+        struct RunResult {
+            enum class Error : uint32_t {
+                None,
+                Unsupported,
+
+                NoDyldInfo,
+                NoActions
+            };
+
+            Error Error = Error::None;
         };
 
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
-        RunResult run(const Objects::Base &Base) const noexcept override;
+        RunResult run(const Objects::Base &Base) const noexcept;
         RunResult run(const Objects::MachO &MachO) const noexcept;
 
         [[nodiscard]] constexpr auto &options() const noexcept {

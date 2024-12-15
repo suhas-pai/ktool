@@ -36,14 +36,19 @@ namespace Operations {
 
         ~PrintImageList() noexcept override {}
 
-        enum class RunError : uint32_t {
-            None,
-            NoImages,
+        struct RunResult {
+            enum class Error : uint32_t {
+                None,
+                Unsupported,
+                NoImages,
+            };
+
+            Error Error;
         };
 
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
-        RunResult run(const Objects::Base &Base) const noexcept override;
+        RunResult run(const Objects::Base &Base) const noexcept;
         RunResult run(const Objects::DyldSharedCache &Image) const noexcept;
 
         [[nodiscard]] constexpr auto &options() const noexcept {

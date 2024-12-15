@@ -45,7 +45,8 @@ namespace MachO {
             .MaxProt = Segment.maxProt(IsBigEndian),
             .InitProt = Segment.initProt(IsBigEndian),
             .Flags = Segment.flags(IsBigEndian),
-            .SectionList = {}
+            .SectionList = {},
+            .Index = static_cast<uint32_t>(List.size())
         });
 
         for (const auto &Section : Segment.sectionList(IsBigEndian)) {
@@ -83,7 +84,8 @@ namespace MachO {
             .MaxProt = Segment.maxProt(IsBigEndian),
             .InitProt = Segment.initProt(IsBigEndian),
             .Flags = Segment.flags(IsBigEndian),
-            .SectionList = {}
+            .SectionList = {},
+            .Index = static_cast<uint32_t>(List.size())
         });
 
         for (const auto &Section : Segment.sectionList(IsBigEndian)) {
@@ -105,22 +107,22 @@ namespace MachO {
         return *this;
     }
 
-    [[nodiscard]] auto
+    auto
     SegmentList::getFileOffsetForVmAddr(const uint64_t VmAddr,
                                         const uint64_t Size) const noexcept
         -> std::optional<uint64_t>
     {
         for (const auto &SegInfo : List) {
-            if (!SegInfo.VmRange.containsLoc(VmAddr)) {
+            if (!SegInfo.VmRange.hasLoc(VmAddr)) {
                 continue;
             }
 
             const uint64_t VmIndex = SegInfo.VmRange.indexForLoc(VmAddr);
-            if (!SegInfo.FileRange.containsIndex(VmIndex)) {
+            if (!SegInfo.FileRange.hasIndex(VmIndex)) {
                 return std::nullopt;
             }
 
-            if (!SegInfo.FileRange.containsEndIndex(VmIndex + Size)) {
+            if (!SegInfo.FileRange.hasEndIndex(VmIndex + Size)) {
                 return std::nullopt;
             }
 

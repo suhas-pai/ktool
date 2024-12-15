@@ -57,31 +57,30 @@ namespace Objects {
     }
 
     auto MachO::Open(const ADT::MemoryMap &Map) noexcept
-        -> ADT::PointerOrError<MachO, OpenError>
+        -> std::expected<MachO *, Error>
     {
         const auto Header = Map.base<::MachO::Header>();
         if (Header == nullptr) {
             const auto Magic = Map.base<::MachO::Magic>();
             if (Magic == nullptr) {
-                return OpenError::SizeTooSmall;
+                return std::unexpected(Error(OpenError::SizeTooSmall));
             }
 
             const auto Result =
                 ::MachO::MagicIsThin(*Magic) ?
                     OpenError::SizeTooSmall : OpenError::WrongFormat;
 
-            return Result;
+            return std::unexpected(Error(Result));
         }
 
         if (!::MachO::MagicIsThin(Header->Magic)) {
-            return OpenError::WrongFormat;
+            return std::unexpected(Error(OpenError::WrongFormat));
         }
 
         return new MachO(Map);
     }
 
-    [[nodiscard]]
     auto MachO::getMapForFileOffsets() const noexcept -> ADT::MemoryMap {
-        return map();
+        return this->map();
     }
 }

@@ -6,10 +6,10 @@
 //
 
 #pragma once
+#include <expected>
 
 #include "FlagsBase.h"
 #include "MemoryMap.h"
-#include "PointerOrError.h"
 #include "Range.h"
 
 namespace ADT {
@@ -47,11 +47,9 @@ namespace ADT {
 
         static auto
         Open(const char *Path, Prot Prot) noexcept
-            -> PointerOrError<FileMap, OpenError>;
+            -> std::expected<FileMap *, OpenError>;
 
         explicit FileMap(const FileMap &FileMap) noexcept = delete;
-        FileMap(FileMap &&FileMap) noexcept = default;
-
         ~FileMap() noexcept;
 
         [[nodiscard]] constexpr auto size() const noexcept { return Size; }
@@ -60,9 +58,9 @@ namespace ADT {
                   uint64_t Size = sizeof(T),
                   bool Verify = true>
 
-        [[nodiscard]] constexpr auto base() const noexcept {
+        [[nodiscard]] constexpr auto base() const noexcept -> T* {
             if constexpr (Verify) {
-                if (size() < Size) {
+                if (this->size() < Size) {
                     return nullptr;
                 }
             }
@@ -71,11 +69,11 @@ namespace ADT {
         }
 
         [[nodiscard]] constexpr auto range() const noexcept {
-            return Range::FromSize(0, Size);
+            return Range::FromSize(0, this->size());
         }
 
         [[nodiscard]] constexpr auto map() const noexcept {
-            return MemoryMap(Base, Size);
+            return MemoryMap(this->base<void, 1>(), this->size());
         }
     };
 

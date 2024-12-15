@@ -11,7 +11,7 @@
 namespace Operations {
     PrintId::PrintId(FILE *const OutFile,
                      const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options) {}
+    : Base(Operations::Kind::PrintId), OutFile(OutFile), Opt(Options) {}
 
     bool
     PrintId::supportsObjectKind(const Objects::Kind Kind) const noexcept {
@@ -32,11 +32,10 @@ namespace Operations {
     }
 
     auto PrintId::run(const Objects::MachO &MachO) const noexcept -> RunResult {
-        auto Result = RunResult(Objects::Kind::MachO);
         if (MachO.fileKind() != MachO::FileKind::DynamicLibrary &&
             MachO.fileKind() != MachO::FileKind::DynamicLinker)
         {
-            return Result.set(RunError::NotADylib);
+            return RunResult(RunResult::Error::NotADylib);
         }
 
         const auto IsBigEndian = MachO.isBigEndian();
@@ -53,7 +52,7 @@ namespace Operations {
                     Name = NameOpt.value();
                 } else {
                     if (!Opt.Verbose) {
-                        return Result.set(RunError::BadIdString);
+                        return RunResult(RunResult::Error::BadIdString);
                     }
                 }
 
@@ -78,27 +77,27 @@ namespace Operations {
                             Timestamp);
                 }
 
-                return Result.set(RunError::None);
+                return RunResult();
             }
         }
 
-        return Result.set(RunError::IdNotFound);
+        return RunResult(RunResult::Error::IdNotFound);
     }
 
-    RunResult PrintId::run(const Objects::DscImage &Image) const noexcept {
+    auto PrintId::run(const Objects::DscImage &Image) const noexcept
+        -> RunResult
+    {
         if (Opt.Verbose) {
             return run(static_cast<const Objects::MachO &>(Image));
         }
 
-        auto Result = RunResult(Objects::Kind::DscImage);
         const auto PathOpt = Image.path();
-
         fprintf(OutFile,
                 "\"" STRING_VIEW_FMT "\"",
                 STRING_VIEW_FMT_ARGS(
                     PathOpt.has_value() ? PathOpt.value() : "<invalid>"));
 
-        return Result.set(RunError::None);
+        return RunResult();
     }
 
     auto PrintId::run(const Objects::Base &Base) const noexcept -> RunResult {
@@ -110,7 +109,7 @@ namespace Operations {
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::DyldSharedCache:
             case Objects::Kind::FatMachO:
-                return RunResultUnsupported;
+                return RunResult(RunResult::Error::Unsupported);
         }
 
         assert(false && "Got unrecognized Object-Kind in PrintId::run()");

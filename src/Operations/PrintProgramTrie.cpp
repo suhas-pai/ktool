@@ -14,7 +14,8 @@
 namespace Operations {
     PrintProgramTrie::PrintProgramTrie(FILE *const OutFile,
                      const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options) {}
+    : Base(Operations::Kind::PrintProgramTrie), OutFile(OutFile),
+      Opt(Options) {}
 
     bool
     PrintProgramTrie::supportsObjectKind(
@@ -56,7 +57,7 @@ namespace Operations {
         Utils::PrintAddress(OutFile,
                             Export.index(),
                             /*Is64Bit=*/false,
-                            /*Prefix=*/"> (Exported - Index = ",
+                            /*Prefix=*/"> (Exported - Index: ",
                             /*Suffix=*/")");
     }
 
@@ -85,16 +86,15 @@ namespace Operations {
 
     static auto
     HandleTreeOption(
-        RunResult &Result,
         FILE *const OutFile,
         ::DyldSharedCache::ProgramTrieEntryCollection &EntryCollection,
         const struct PrintProgramTrie::Options &Options) noexcept
-            -> RunResult &
+            -> PrintProgramTrie::RunResult
     {
-        using RunError = PrintProgramTrie::RunError;
+        using RunResult = PrintProgramTrie::RunResult;
         if (EntryCollection.empty()) {
             fputs("Provided file has an empty export-trie\n", OutFile);
-            return Result.set(RunError::None);
+            return RunResult(RunResult::Error::None);
         }
 
         auto Count = uint64_t();
@@ -107,7 +107,7 @@ namespace Operations {
             fprintf(OutFile,
                     "Provided file's program-trie has %" PRIu64 " nodes\n",
                     Count);
-            return Result.set(RunError::None);
+            return RunResult(RunResult::Error::None);
         }
 
         if (Options.Sort) {
@@ -145,7 +145,7 @@ namespace Operations {
         };
 
         EntryCollection.printHorizontal(OutFile, Options.TabLength, PrintNode);
-        return Result.set(RunError::None);
+        return RunResult(RunResult::Error::None);
     }
 
     struct SExportInfo {
@@ -154,13 +154,12 @@ namespace Operations {
     };
 
     static auto
-    PrintExportList(RunResult &Result,
-                    FILE *const OutFile,
+    PrintExportList(FILE *const OutFile,
                     const ::DyldSharedCache::ProgramTrieMap &ProgramTrieMap,
                     const PrintProgramTrie::Options &Opt) noexcept
-        -> RunResult &
+        -> PrintProgramTrie::RunResult
     {
-        using RunError = PrintProgramTrie::RunError;
+        using RunResult = PrintProgramTrie::RunResult;
 
         auto Count = uint64_t();
         auto ExportList = std::vector<SExportInfo>();
@@ -188,14 +187,14 @@ namespace Operations {
         }
 
         if (ExportList.empty()) {
-            return Result.set(RunError::NoExports);
+            return RunResult(RunResult::Error::NoExports);
         }
 
         if (Opt.OnlyCount) {
             fprintf(OutFile,
                     "Provided file's program-trie has %" PRIu64 " nodes\n",
                     Count);
-            return Result.set(RunError::None);
+            return RunResult(RunResult::Error::None);
         }
 
         if (Opt.Sort) {
@@ -218,8 +217,8 @@ namespace Operations {
 
             Utils::RightPadSpaces(OutFile,
                                   fprintf(OutFile,
-                                          "Program %" ZEROPAD_FMT PRIu32 ": ",
-                                          ZEROPAD_FMT_ARGS(SizeDigitLength),
+                                          "Program %" LEFTPAD_FMT PRIu32 ": ",
+                                          PAD_FMT_ARGS(SizeDigitLength),
                                           Counter),
                                   RightPadAmt);
 
@@ -231,28 +230,27 @@ namespace Operations {
             Counter++;
         }
 
-        return Result.set(RunError::None);
+        return RunResult(RunResult::Error::None);
     }
 
     auto
     PrintProgramTrie::run(const Objects::DyldSharedCache &Dsc) const noexcept
         -> RunResult
     {
-        auto Result = RunResult(Objects::Kind::DyldSharedCache);
-        if (!Dsc.isV8()) {
-            return Result.set(RunError::NoProgramTrie);
+        if (!Dsc.isAtleastV8()) {
+            return RunResult(RunResult::Error::NoProgramTrie);
         }
 
         const auto Header = Dsc.headerV8();
         if (Header.ProgramTrieAddr == 0 || Header.ProgramTrieSize == 0) {
-            return Result.set(RunError::NoProgramTrie);
+            return RunResult(RunResult::Error::NoProgramTrie);
         }
 
         const auto ProgramTrieMemMapOpt =
             Dsc.getMapForAddrRange(Header.programTrieRange());
 
         if (!ProgramTrieMemMapOpt.has_value()) {
-            return Result.set(RunError::OutOfBounds);
+            return RunResult(RunResult::Error::OutOfBounds);
         }
 
         const auto ProgramTriePair = ProgramTrieMemMapOpt.value();
@@ -279,26 +277,25 @@ namespace Operations {
                 case ADT::TrieParseError::InvalidUleb128:
                     fputs("Encountered an invalid uleb128 while parsing trie\n",
                           stderr);
-                    return Result.set(RunError::None);
+                    return RunResult(RunResult::Error::None);
                 case ADT::TrieParseError::InvalidFormat:
                     fputs("Trie is invalid\n",stderr);
-                    return Result.set(RunError::None);
+                    return RunResult(RunResult::Error::None);
                 case ADT::TrieParseError::OverlappingRanges:
                     fputs("At least two nodes in trie are overlapping\n",
                           stderr);
-                    return Result.set(RunError::None);
+                    return RunResult(RunResult::Error::None);
                 case ADT::TrieParseError::TooDeep:
                     fputs("Trie is too deep\n", stderr);
-                    return Result.set(RunError::None);
+                    return RunResult(RunResult::Error::None);
             }
 
-            return HandleTreeOption(Result,
-                                    OutFile,
+            return HandleTreeOption(OutFile,
                                     EntryCollection,
                                     Opt);
         }
 
-        return PrintExportList(Result, OutFile, ProgramTrieMap, Opt);
+        return PrintExportList(OutFile, ProgramTrieMap, Opt);
     }
 
     auto PrintProgramTrie::run(const Objects::Base &Base) const noexcept
@@ -313,7 +310,7 @@ namespace Operations {
             case Objects::Kind::DscImage:
             case Objects::Kind::MachO:
             case Objects::Kind::FatMachO:
-                return RunResultUnsupported;
+                return RunResult(RunResult::Error::Unsupported);
         }
 
         assert(false &&

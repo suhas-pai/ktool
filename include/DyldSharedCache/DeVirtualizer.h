@@ -24,7 +24,7 @@ namespace DyldSharedCache {
                          void **EndOut = nullptr) const noexcept override;
 
         [[nodiscard]] std::optional<ADT::MemoryMap>
-        getMapForRange(const ADT::Range &Range,
-                       bool IgnoreProtBounds = false) const noexcept override;
+        getMapForVmRange(const ADT::Range &Range,
+                         bool IgnoreProtBounds = false) const noexcept override;
     };
 }

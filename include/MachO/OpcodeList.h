@@ -42,7 +42,7 @@ namespace MachO {
             : Iter(Iter), End(End) {}
 
             [[nodiscard]] constexpr auto ptr() const noexcept {
-                return Iter;
+                return this->Iter;
             }
 
             template <typename T>
@@ -64,7 +64,7 @@ namespace MachO {
             auto ParseString() noexcept -> std::optional<std::string_view>;
 
             [[nodiscard]] constexpr auto isAtEnd() const noexcept {
-                return Iter >= End;
+                return this->Iter >= this->End;
             }
         };
 
@@ -78,53 +78,53 @@ namespace MachO {
             : Info(Iter, End) {}
 
             [[nodiscard]] constexpr auto ptr() const noexcept {
-                return Info.ptr();
+                return this->Info.ptr();
             }
 
             [[nodiscard]] constexpr auto &operator*() noexcept {
-                return Info;
+                return this->Info;
             }
 
             [[nodiscard]] constexpr auto operator->() noexcept {
-                return &Info;
+                return &this->Info;
             }
 
             [[nodiscard]] constexpr auto &operator*() const noexcept {
-                return Info;
+                return this->Info;
             }
 
             [[nodiscard]] constexpr auto operator->() const noexcept {
-                return &Info;
+                return &this->Info;
             }
 
             [[nodiscard]] constexpr auto isAtEnd() const noexcept {
-                return Info.isAtEnd();
+                return this->Info.isAtEnd();
             }
 
             [[nodiscard]]
             inline auto operator==(const EndIterator &) const noexcept {
-                return isAtEnd();
+                return this->isAtEnd();
             }
 
             [[nodiscard]]
             inline auto operator!=(const EndIterator &End) const noexcept {
-                return !operator==(End);
+                return !this->operator==(End);
             }
 
             constexpr auto operator++() noexcept -> decltype(*this) {
-                Info.Iter++;
+                this->Info.Iter++;
                 return *this;
             }
 
             inline auto operator++(int) noexcept -> decltype(*this) {
-                return operator++();
+                return this->operator++();
             }
 
             inline auto operator+=(const uint64_t Amt) noexcept
                 -> decltype(*this)
             {
                 for (auto I = uint64_t(); I != Amt; I++) {
-                    operator++();
+                    this->operator++();
                 }
 
                 return *this;
@@ -132,7 +132,7 @@ namespace MachO {
         };
 
         [[nodiscard]] inline auto begin() const noexcept {
-            return Iterator(Begin, End);
+            return Iterator(this->Begin, this->End);
         }
 
         [[nodiscard]] inline auto end() const noexcept {

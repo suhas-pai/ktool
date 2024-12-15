@@ -26,10 +26,6 @@ namespace Operations {
 
         ~PrintArchs() noexcept override {}
 
-        enum class RunError : uint32_t {
-            None,
-        };
-
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
         static void
@@ -50,7 +46,16 @@ namespace Operations {
                     bool IsBigEndian,
                     const std::string_view Prefix = "") noexcept;
 
-        RunResult run(const Objects::Base &Base) const noexcept override;
+        struct RunResult {
+            enum class Error : uint32_t {
+                None,
+                Unsupported,
+            };
+
+            Error Error = Error::None;
+        };
+
+        RunResult run(const Objects::Base &Base) const noexcept;
         RunResult run(const Objects::FatMachO &MachO) const noexcept;
 
         [[nodiscard]] constexpr auto &options() const noexcept {

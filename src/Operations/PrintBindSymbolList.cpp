@@ -19,7 +19,8 @@ namespace Operations {
     PrintBindSymbolList::PrintBindSymbolList(
         FILE *const OutFile,
         const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options) {}
+    : Base(Operations::Kind::PrintBindSymbolList), OutFile(OutFile),
+      Opt(Options) {}
 
     bool
     PrintBindSymbolList::supportsObjectKind(
@@ -97,9 +98,9 @@ namespace Operations {
                     const struct PrintBindSymbolList::Options &Options) noexcept
     {
         fprintf(OutFile,
-                "%s Symbol %" ZEROPAD_FMT PRIu64 ": ",
+                "%s Symbol %" LEFTPAD_FMT PRIu64 ": ",
                 Name,
-                ZEROPAD_FMT_ARGS(SizeDigitLength),
+                PAD_FMT_ARGS(SizeDigitLength),
                 Counter);
 
         const auto SegmentIndex = static_cast<uint64_t>(Action.SegmentIndex);
@@ -135,7 +136,7 @@ namespace Operations {
 
             fprintf(OutFile,
                     " %" RIGHTPAD_FMT "s",
-                    RIGHTPAD_FMT_ARGS(static_cast<int>(LongestDesc)),
+                    PAD_FMT_ARGS(static_cast<int>(LongestDesc)),
                     MachO::BindWriteKindGetDesc(Action.WriteKind).data());
         }
 
@@ -213,86 +214,9 @@ namespace Operations {
         }
     }
 
-    static void
-    PrintBindParseError(const MachO::BindOpcodeParseError ParseError) noexcept {
-        switch (ParseError) {
-            case MachO::BindOpcodeParseError::None:
-                break;
-            case MachO::BindOpcodeParseError::InvalidLeb128:
-                fputs("Encountered invalid uleb128 when parsing bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::InvalidSegmentIndex:
-                fputs("Bind-Opcodes set segment-index to an invalid number\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::InvalidString:
-                fputs("Encountered invalid string in bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::NotEnoughThreadedBinds:
-                fputs("Not enough threaded-binds in bind-opcodes\n", stderr);
-                break;
-            case MachO::BindOpcodeParseError::TooManyThreadedBinds:
-                fputs("Too many threaded-binds in bind-opcodes\n", stderr);
-                break;
-            case MachO::BindOpcodeParseError::InvalidThreadOrdinal:
-                fputs("Encountered invalid thread-ordinal in "
-                      "bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::EmptySymbol:
-                fputs("Encountered invalid thread-ordinal in "
-                      "bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::IllegalBindOpcode:
-                fputs("Encountered invalid bind-opcode when parsing\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::OutOfBoundsSegmentAddr:
-                fputs("Got out-of-bounds segment-address in bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::UnrecognizedBindWriteKind:
-                fputs("Encountered unknown write-kind in bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::UnrecognizedBindOpcode:
-                fputs("Encountered unknown bind-opcode when parsing\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::UnrecognizedBindSubOpcode:
-                fputs("Encountered unknown bind sub-opcode when parsing\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::
-                UnrecognizedSpecialDylibOrdinal:
-                fputs("Encountered unknown specialty dylib-ordinal in "
-                      "bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::NoDylibOrdinal:
-                fputs("No dylib-ordinal found when parsing bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::NoSegmentIndex:
-                fputs("No segment-index found when parsing bind-opcodes\n",
-                      stderr);
-                break;
-            case MachO::BindOpcodeParseError::NoWriteKind:
-                fputs("No write-type found when parsing bind-opcodes\n",
-                      stderr);
-                break;
-        }
-    }
-
-    auto
-    PrintBindSymbolList::run(const Objects::MachO &MachO) const noexcept
+    auto PrintBindSymbolList::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
-        auto Result = RunResult(Objects::Kind::MachO);
-
         const auto IsBigEndian = MachO.isBigEndian();
         const auto Is64Bit = MachO.is64Bit();
 
@@ -340,19 +264,19 @@ namespace Operations {
         }
 
         if (!FoundDyldInfo) {
-            return Result.set(RunError::NoDyldInfo);
+            return RunResult(RunResult::Error::NoDyldInfo);
         }
 
         if (BindRange.empty() && LazyBindRange.empty() && WeakBindRange.empty())
         {
-            return Result.set(RunError::NoSymbols);
+            return RunResult(RunResult::Error::NoSymbols);
         }
 
         auto BindActionInfoList = std::vector<MachO::BindActionInfo>();
         auto LazyBindActionInfoList = std::vector<MachO::BindActionInfo>();
         auto WeakBindActionInfoList = std::vector<MachO::BindActionInfo>();
-        auto ParseError = MachO::BindOpcodeParseError::None;
 
+        auto ParseResult = MachO::BindOpcodeParseResult();
         if (Opt.PrintNormal) {
             if (MachO.map().range().contains(BindRange)) {
                 const auto BindList =
@@ -361,8 +285,10 @@ namespace Operations {
                                           SegmentList,
                                           Is64Bit);
 
-                ParseError = BindList.getListOfSymbols(BindActionInfoList);
-                PrintBindParseError(ParseError);
+                ParseResult = BindList.getListOfSymbols(BindActionInfoList);
+                if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
+                    return RunResult(MachO::BindInfoKind::Normal, ParseResult);
+                }
             }
         }
 
@@ -374,10 +300,12 @@ namespace Operations {
                                               SegmentList,
                                               Is64Bit);
 
-                ParseError =
+                ParseResult =
                     LazyBindList.getListOfSymbols(LazyBindActionInfoList);
 
-                PrintBindParseError(ParseError);
+                if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
+                    return RunResult(MachO::BindInfoKind::Lazy, ParseResult);
+                }
             }
         }
 
@@ -393,10 +321,12 @@ namespace Operations {
                                               SegmentList,
                                               Is64Bit);
 
-                ParseError =
+                ParseResult =
                     WeakBindList.getListOfSymbols(WeakBindActionInfoList);
 
-                PrintBindParseError(ParseError);
+                if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
+                    return RunResult(MachO::BindInfoKind::Lazy, ParseResult);
+                }
             }
         }
 
@@ -483,7 +413,7 @@ namespace Operations {
             }
         }
 
-        return Result.set(RunError::None);
+        return RunResult();
     }
 
     auto PrintBindSymbolList::run(const Objects::Base &Base) const noexcept
@@ -498,7 +428,7 @@ namespace Operations {
             case Objects::Kind::DyldSharedCache:
             case Objects::Kind::DscImage:
             case Objects::Kind::FatMachO:
-                return RunResultUnsupported;
+                return RunResult(RunResult::Error::Unsupported);
         }
 
         assert(false &&

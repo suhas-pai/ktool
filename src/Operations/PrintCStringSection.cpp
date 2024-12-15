@@ -6,6 +6,7 @@
 //
 
 #include <algorithm>
+#include <vector>
 
 #include "ADT/Maximizer.h"
 #include "MachO/LoadCommands.h"
@@ -21,8 +22,8 @@ namespace Operations {
         const std::optional<std::string> &SegmentName,
         const std::string_view SectionName,
         const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options), SegmentName(SegmentName),
-      SectionName(SectionName) {}
+    : Base(Operations::Kind::PrintCStringSection), OutFile(OutFile),
+      Opt(Options), SegmentName(SegmentName), SectionName(SectionName) {}
 
     bool
     PrintCStringSection::supportsObjectKind(
@@ -135,9 +136,10 @@ namespace Operations {
     IterateSections(const T &Segment,
                     const std::string_view SectionName,
                     const bool IsBigEndian,
-                    RunResult &Result,
-                    const typename T::Section *&SectionOut) noexcept -> int
+                    const typename T::Section *&SectionOut) noexcept
+        -> PrintCStringSection::RunResult
     {
+        using RunResult = PrintCStringSection::RunResult;
         for (const auto &Section : Segment.sectionList(IsBigEndian)) {
             if (Section.sectionName() != SectionName) {
                 continue;
@@ -145,23 +147,21 @@ namespace Operations {
 
             if (Section.kind(IsBigEndian) != T::Section::Kind::CStringLiterals)
             {
-                Result.set(PrintCStringSection::RunError::NotCStringSection);
-                return 1;
+                return RunResult(RunResult::Error::NotCStringSection);
             }
 
             SectionOut = &Section;
-            return 0;
+            return RunResult();
         }
 
-        return 0;
+        return RunResult();
     }
 
     auto PrintCStringSection::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
-        auto Result = RunResult(Objects::Kind::MachO);
         if (SectionName.empty()) {
-            return Result.set(RunError::EmptySectionName);
+            return RunResult(RunResult::Error::EmptySectionName);
         }
 
         auto SectionData = static_cast<const char *>(nullptr);
@@ -185,7 +185,7 @@ namespace Operations {
                         }
 
                         if (Segment->isProtected(IsBigEndian)) {
-                            return Result.set(RunError::ProtectedSegment);
+                            return RunResult(RunResult::Error::ProtectedSegment);
                         }
                     }
 
@@ -197,11 +197,10 @@ namespace Operations {
                         IterateSections(*Segment,
                                         SectionName,
                                         IsBigEndian,
-                                        Result,
                                         Section);
 
-                    if (IterateResult != 0) {
-                        return Result;
+                    if (IterateResult.Error != RunResult::Error::None) {
+                        return IterateResult;
                     }
 
                     if (Section == nullptr) {
@@ -209,12 +208,12 @@ namespace Operations {
                     }
 
                     if (Segment->isProtected(IsBigEndian)) {
-                        return Result.set(RunError::ProtectedSegment);
+                        return RunResult(RunResult::Error::ProtectedSegment);
                     }
 
                     const auto SectionRange = Section->fileRange(IsBigEndian);
 
-                    SectionFileOff = SectionRange.begin();
+                    SectionFileOff = SectionRange.front();
                     SectionAddr = Section->addr(IsBigEndian);
                     SectionSize = SectionRange.size();
                     SectionData = Map.getFromRange<const char>(SectionRange);
@@ -234,7 +233,7 @@ namespace Operations {
                         }
 
                         if (Segment->isProtected(IsBigEndian)) {
-                            return Result.set(RunError::ProtectedSegment);
+                            return RunResult(RunResult::Error::ProtectedSegment);
                         }
                     }
 
@@ -245,11 +244,10 @@ namespace Operations {
                         IterateSections(*Segment,
                                         SectionName,
                                         IsBigEndian,
-                                        Result,
                                         Section);
 
-                    if (IterateResult != 0) {
-                        return Result;
+                    if (IterateResult.Error != RunResult::Error::None) {
+                        return IterateResult;
                     }
 
                     if (Section == nullptr) {
@@ -257,12 +255,12 @@ namespace Operations {
                     }
 
                     if (Segment->isProtected(IsBigEndian)) {
-                        return Result.set(RunError::ProtectedSegment);
+                        return RunResult(RunResult::Error::ProtectedSegment);
                     }
 
                     const auto SectionRange = Section->fileRange(IsBigEndian);
 
-                    SectionFileOff = SectionRange.begin();
+                    SectionFileOff = SectionRange.front();
                     SectionAddr = Section->addr(IsBigEndian);
                     SectionSize = SectionRange.size();
                     SectionData = Map.getFromRange<const char>(SectionRange);
@@ -273,7 +271,7 @@ namespace Operations {
         }
 
         if (SectionData == nullptr) {
-            return Result.set(RunError::SectionNotFound);
+            return RunResult(RunResult::Error::SectionNotFound);
         }
 
         auto LongestCStringLength = uint64_t();
@@ -286,7 +284,7 @@ namespace Operations {
                                  LongestCStringLength);
 
         if (CStringInfoList.empty()) {
-            return Result.set(RunError::HasNoStrings);
+            return RunResult(RunResult::Error::HasNoStrings);
         }
 
         if (Opt.Sort) {
@@ -303,8 +301,8 @@ namespace Operations {
         auto Counter = static_cast<uint64_t>(1);
         for (const auto &Info : CStringInfoList) {
             fprintf(OutFile,
-                    "C-String %" ZEROPAD_FMT PRIu64 ": ",
-                    ZEROPAD_FMT_ARGS(CStringListSizeDigitCount),
+                    "C-String %" LEFTPAD_FMT PRIu64 ": ",
+                    PAD_FMT_ARGS(CStringListSizeDigitCount),
                     Counter);
 
             Utils::PrintAddress(OutFile, Info.Address, Is64Bit);
@@ -323,8 +321,8 @@ namespace Operations {
                                       RightPadLength);
 
                 fprintf(OutFile,
-                        " (Length: %" ZEROPAD_FMT PRIuPTR ", File Offset: ",
-                        ZEROPAD_FMT_ARGS(CStringListSizeDigitCount),
+                        " (Length: %" LEFTPAD_FMT PRIuPTR ", File Offset: ",
+                        PAD_FMT_ARGS(CStringListSizeDigitCount),
                         Info.String.length());
 
                 Utils::PrintAddress(OutFile, Info.FileOffset, Is64Bit, "", ")");
@@ -334,7 +332,7 @@ namespace Operations {
             Counter++;
         }
 
-        return Result.set(RunError::None);
+        return RunResult();
     }
 
     auto PrintCStringSection::run(const Objects::Base &Base) const noexcept
@@ -349,7 +347,7 @@ namespace Operations {
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:
-                return RunResultUnsupported;
+                return RunResult(RunResult::Error::Unsupported);
         }
 
         assert(false &&

@@ -15,7 +15,7 @@
 namespace Operations {
     PrintLibraries::PrintLibraries(FILE *const OutFile,
                                    const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options) {}
+    : Base(Operations::Kind::PrintLibraries), OutFile(OutFile), Opt(Options) {}
 
     bool
     PrintLibraries::supportsObjectKind(const Objects::Kind Kind) const noexcept
@@ -104,8 +104,6 @@ namespace Operations {
     PrintLibraries::run(const Objects::MachO &MachO) const noexcept ->
         RunResult
     {
-        auto Result = RunResult(Objects::Kind::MachO);
-
         const auto IsBigEndian = MachO.isBigEndian();
         constexpr auto Malformed = std::string_view("<malformed>");
 
@@ -166,16 +164,15 @@ namespace Operations {
                 Utils::GetHumanReadableTimestamp(DylibInfo.Timestamp);
 
             fprintf(OutFile,
-                    "%" PRIu32 ". LC %" ZEROPAD_FMT PRIu32 ": "
+                    "%" PRIu32 ". LC %" LEFTPAD_FMT PRIu32 ": "
                         "%" RIGHTPAD_FMT "s \"%s\"\n"
                     "\tCurrent Version: " DYLD3_PACKED_VERSION_FMT "\n"
                     "\tCompat Version:  " DYLD3_PACKED_VERSION_FMT "\n"
                     "\tTimestamp:       %s (Value: %" PRIu32 ")\n",
                     Counter,
-                    ZEROPAD_FMT_ARGS(NcmdsDigitCount),
+                    PAD_FMT_ARGS(NcmdsDigitCount),
                     DylibInfo.Index,
-                    RIGHTPAD_FMT_ARGS(
-                        static_cast<int>(LongestLCDylibKindLength)),
+                    PAD_FMT_ARGS(static_cast<int>(LongestLCDylibKindLength)),
                     MachO::LoadCommandKindGetString(DylibInfo.Kind).data(),
                     DylibInfo.Name.data(),
                     DYLD3_PACKED_VERSION_FMT_ARGS(DylibInfo.CurrentVersion),
@@ -186,7 +183,7 @@ namespace Operations {
             Counter++;
         }
 
-        return Result.set(RunError::None);
+        return RunResult();
     }
 
     auto PrintLibraries::run(const Objects::Base &Base) const noexcept ->
@@ -201,7 +198,7 @@ namespace Operations {
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:
-                return RunResultUnsupported;
+                return RunResult(RunResult::Error::Unsupported);
         }
 
         assert(false && "Got unrecognized Object-Kind in PrintLibraries::run");

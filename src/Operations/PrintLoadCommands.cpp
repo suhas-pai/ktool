@@ -17,7 +17,8 @@
 namespace Operations {
     PrintLoadCommands::PrintLoadCommands(FILE *const OutFile,
                                          const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options) {}
+    : Base(Operations::Kind::PrintLoadCommands), OutFile(OutFile),
+      Opt(Options) {}
 
     bool
     PrintLoadCommands::supportsObjectKind(
@@ -135,7 +136,7 @@ namespace Operations {
                         fprintf(OutFile,
                                 "\t%s%" LEFTPAD_FMT PRIu32 ". ",
                                 Prefix,
-                                LEFTPAD_FMT_ARGS(SectionCountDigitCount),
+                                PAD_FMT_ARGS(SectionCountDigitCount),
                                 I + 1);
                     } else {
                         fprintf(OutFile,
@@ -144,7 +145,7 @@ namespace Operations {
                                 "\tMem: " ADDR_RANGE_32_FMT
                                 "\tAlign: ",
                                 Prefix,
-                                LEFTPAD_FMT_ARGS(SectionCountDigitCount),
+                                PAD_FMT_ARGS(SectionCountDigitCount),
                                 I + 1,
                                 ADDR_RANGE_FMT_ARGS(FileOffset,
                                                     FileOffset + Size),
@@ -346,7 +347,7 @@ namespace Operations {
                         fprintf(OutFile,
                                 "\t%s%" LEFTPAD_FMT PRIu32 ". ",
                                 Prefix,
-                                LEFTPAD_FMT_ARGS(SectionCountDigitCount),
+                                PAD_FMT_ARGS(SectionCountDigitCount),
                                 I + 1);
                     } else {
                         fprintf(OutFile,
@@ -355,7 +356,7 @@ namespace Operations {
                                 "\tMem: " ADDR_RANGE_64_FMT
                                 "\tAlign: ",
                                 Prefix,
-                                LEFTPAD_FMT_ARGS(SectionCountDigitCount),
+                                PAD_FMT_ARGS(SectionCountDigitCount),
                                 I + 1,
                                 ADDR_RANGE_FMT_ARGS(FileOffset,
                                                     FileOffset + Size),
@@ -1189,7 +1190,6 @@ namespace Operations {
     PrintLoadCommands::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
-        auto Result = RunResult(Objects::Kind::MachO);
         auto Counter = static_cast<uint32_t>(1);
         auto DylibIndex = uint32_t();
 
@@ -1217,18 +1217,17 @@ namespace Operations {
             const auto Kind = LoadCommand.kind(IsBigEndian);
             if (MachO::LoadCommandKindIsValid(Kind)) {
                 fprintf(OutFile,
-                        "LC %" ZEROPAD_FMT PRIu32 ": %" RIGHTPAD_FMT "s",
-                        ZEROPAD_FMT_ARGS(NcmdsDigitCount),
+                        "LC %" LEFTPAD_FMT PRIu32 ": %" RIGHTPAD_FMT "s",
+                        PAD_FMT_ARGS(NcmdsDigitCount),
                         Counter,
-                        RIGHTPAD_FMT_ARGS(
-                            static_cast<int>(LongestLCKindLength)),
+                        PAD_FMT_ARGS(static_cast<int>(LongestLCKindLength)),
                         MachO::LoadCommandKindGetString(Kind).data());
             } else {
                 fprintf(OutFile,
-                        "LC %" ZEROPAD_FMT PRIu32 ": <unknown> (Value: "
+                        "LC %" LEFTPAD_FMT PRIu32 ": <unknown> (Value: "
                         "%" PRIu32 ")\n"
                         "\tCmdSize: %" PRIu32 "\n",
-                        ZEROPAD_FMT_ARGS(NcmdsDigitCount),
+                        PAD_FMT_ARGS(NcmdsDigitCount),
                         Counter,
                         static_cast<uint32_t>(Kind),
                         LoadCommand.cmdsize(IsBigEndian));
@@ -1244,7 +1243,7 @@ namespace Operations {
             Counter++;
         }
 
-        return Result.set(RunError::None);
+        return RunResult();
     }
 
     auto PrintLoadCommands::run(const Objects::Base &Base) const noexcept ->
@@ -1259,7 +1258,7 @@ namespace Operations {
                 return run(static_cast<const Objects::MachO &>(Base));
             case Objects::Kind::FatMachO:
             case Objects::Kind::DyldSharedCache:
-                return RunResultUnsupported;
+                return RunResult(RunResult::Error::Unsupported);
         }
 
         assert(false && "Got unrecognized Object-Kind in PrintHeader::run");

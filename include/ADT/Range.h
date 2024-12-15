@@ -36,113 +36,117 @@ namespace ADT {
             return Range(Begin, (End - Begin));
         }
 
-        [[nodiscard]] constexpr auto begin() const noexcept { return Begin; }
-        [[nodiscard]] constexpr auto size() const noexcept { return Size; }
+        [[nodiscard]] constexpr auto front() const noexcept {
+            return this->Begin;
+        }
+
+        [[nodiscard]] constexpr auto size() const noexcept {
+            return this->Size;
+        }
+
         [[nodiscard]] constexpr auto end() const noexcept {
-            return Utils::AddAndCheckOverflow(Begin, Size);
+            return Utils::AddAndCheckOverflow(this->front(), this->size());
         }
 
         template <std::integral T>
         [[nodiscard]] constexpr auto canRepresentIn() const noexcept {
-            return (Begin <= std::numeric_limits<T>::max() &&
-                    size() <= (std::numeric_limits<T>::max() - Begin));
+            return this->front() <= std::numeric_limits<T>::max() &&
+                   this->size() <=
+                    std::numeric_limits<T>::max() - this->front();
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {
-            return size() == 0;
+            return this->size() == 0;
         }
 
         [[nodiscard]]
-        constexpr auto containsLoc(const uint64_t Loc) const noexcept {
-            return Loc >= Begin && (Loc - Begin) < Size;
+        constexpr auto hasLoc(const uint64_t Loc) const noexcept {
+            return Loc >= this->front() && (Loc - this->front()) < this->size();
         }
 
         template <typename T, uint64_t Size = sizeof(T)>
         [[nodiscard]] constexpr auto
-        containsLoc(const uint64_t Loc,
-                    const uint64_t Count = 1) const noexcept
-        {
+        hasLoc(const uint64_t Loc, const uint64_t Count = 1) const noexcept {
             const auto TotalOpt = Utils::MulAndCheckOverflow(Size, Count);
             if (!TotalOpt.has_value()) {
                 return false;
             }
 
             const auto OffsetOpt =
-                Utils::AddAndCheckOverflow(Loc - Begin, TotalOpt.value());
+                Utils::AddAndCheckOverflow(Loc - this->front(),
+                                           TotalOpt.value());
 
             if (!OffsetOpt.has_value()) {
                 return false;
             }
 
-            return Loc >= Begin && OffsetOpt.value() < this->Size;
+            return Loc >= this->front() && OffsetOpt.value() < this->size();
         }
 
         [[nodiscard]]
-        constexpr auto containsEnd(const uint64_t Loc) const noexcept {
-            return Loc > Begin && (Loc - Begin) <= Size;
+        constexpr auto hasEnd(const uint64_t Loc) const noexcept {
+            return Loc > this->front() && (Loc - this->front()) <= this->size();
         }
 
         [[nodiscard]]
-        constexpr auto containsIndex(const uint64_t Idx) const noexcept {
-            return Idx < Size;
+        constexpr auto hasIndex(const uint64_t Idx) const noexcept {
+            return Idx < this->size();
         }
 
         [[nodiscard]]
-        constexpr auto containsEndIndex(const uint64_t Idx) const noexcept {
-            return Idx != 0 && Idx <= Size;
-        }
-
-        [[nodiscard]]
-        constexpr auto isBelow(const Range &Range) const noexcept {
-            if (empty()) {
-                return true;
-            }
-
-            if (Range.begin() < Begin) {
-                return false;
-            }
-
-            const auto BeginIndex = Begin - Range.begin();
-            return BeginIndex >= Range.size();
-        }
-
-        [[nodiscard]]
-        constexpr auto isAbove(const Range &Range) const noexcept {
-            if (empty()) {
-                return true;
-            }
-
-            if (Begin < Range.begin()) {
-                return false;
-            }
-
-            const auto BeginIndex = Range.begin() - Begin;
-            return BeginIndex >= size();
+        constexpr auto hasEndIndex(const uint64_t Idx) const noexcept {
+            return Idx != 0 && Idx <= this->size();
         }
 
         template <typename T, uint64_t Size = sizeof(T)>
         [[nodiscard]] constexpr auto
-        containsIndex(const uint64_t Idx,
-                      const uint64_t Count = 1) const noexcept
-        {
+        hasIndex(const uint64_t Idx, const uint64_t Count = 1) const noexcept {
             if (const auto TotalOpt = Utils::MulAndCheckOverflow(Size, Count)) {
                 if (const auto EndOpt =
                         Utils::AddAndCheckOverflow(Idx, TotalOpt.value()))
                 {
-                    return containsEndIndex(EndOpt.value());
+                    return hasEndIndex(EndOpt.value());
                 }
             }
 
             return false;
         }
 
+        [[nodiscard]]
+        constexpr auto isBelow(const Range &Range) const noexcept {
+            if (this->empty()) {
+                return true;
+            }
+
+            if (Range.front() < this->front()) {
+                return false;
+            }
+
+            const auto BeginIndex = this->front() - Range.front();
+            return BeginIndex >= Range.size();
+        }
+
+        [[nodiscard]]
+        constexpr auto isAbove(const Range &Range) const noexcept {
+            if (this->empty()) {
+                return true;
+            }
+
+            if (this->front() < Range.front()) {
+                return false;
+            }
+
+            const auto BeginIndex = Range.front() - this->front();
+            return BeginIndex >= this->size();
+        }
+
         [[nodiscard]] constexpr auto
         indexForLoc(const uint64_t Loc,
                     uint64_t *const MaxSizeOut = nullptr) const noexcept
         {
-            assert(containsLoc(Loc));
+            assert(hasLoc(Loc));
 
-            const auto Index = Loc - Begin;
+            const auto Index = Loc - this->front();
             if (MaxSizeOut != nullptr) {
                 *MaxSizeOut = size() - Index;
             }
@@ -152,8 +156,8 @@ namespace ADT {
 
         [[nodiscard]]
         constexpr auto locForIndex(const uint64_t Index) const noexcept {
-            assert(containsIndex(Index));
-            return Begin + Index;
+            assert(this->hasIndex(Index));
+            return this->front() + Index;
         }
 
         [[nodiscard]]
@@ -162,19 +166,19 @@ namespace ADT {
                 return true;
             }
 
-            if (Other.Begin < Begin) {
+            if (Other.front() < this->front()) {
                 return false;
             }
 
-            const auto MinSize = (Other.Size + (Other.Begin - Begin));
-            return Begin <= Other.Begin && size() >= MinSize;
+            const auto MinSize = Other.size() + (Other.front() - this->front());
+            return this->front() <= Other.front() && this->size() >= MinSize;
         }
 
         template <typename T, uint64_t Size = sizeof(T)>
         [[nodiscard]]
         constexpr auto canContain(const uint64_t Count = 1) const noexcept {
             if (const auto TotalOpt = Utils::MulAndCheckOverflow(Size, Count)) {
-                return size() >= TotalOpt.value();
+                return this->size() >= TotalOpt.value();
             }
 
             return false;
@@ -182,57 +186,58 @@ namespace ADT {
 
         [[nodiscard]]
         constexpr auto canContainSize(const uint64_t Size) const noexcept {
-            return Size < size();
+            return Size < this->size();
         }
 
         [[nodiscard]]
         constexpr auto overlaps(const Range &Other) const noexcept {
-            if (empty() || Other.empty()) {
+            if (this->empty() || Other.empty()) {
                 return false;
             }
 
             if (const auto OtherEnd = Other.end()) {
-                if (containsEnd(OtherEnd.value())) {
+                if (this->hasEnd(OtherEnd.value())) {
                     return true;
                 }
             }
 
-            return containsLoc(Other.Begin) || Other.contains(*this);
+            return this->hasLoc(Other.front()) || Other.contains(*this);
         }
 
         [[nodiscard]]
         constexpr auto containsAsIndex(const Range &Other) const noexcept {
-            const auto MinSize = (Other.Size + (Other.Begin - Begin));
-            return containsIndex(Other.Begin) && size() >= MinSize;
+            const auto MinSize = Other.size() - Other.front();
+            return hasIndex(Other.front()) && this->size() >= MinSize;
         }
 
         [[nodiscard]]
         constexpr auto indexForLocRange(const Range &Range) const noexcept {
-            assert(contains(Range));
-            return Range::FromSize(Range.begin() - Begin, Range.size());
+            assert(this->contains(Range));
+            return Range::FromSize(Range.front() - this->front(), Range.size());
         }
 
         [[nodiscard]]
         constexpr auto locForIndexRange(const Range &Range) const noexcept {
-            assert(containsAsIndex(Range));
-            return Range::FromSize(Begin + Range.begin(), Range.size());
+            assert(this->containsAsIndex(Range));
+            return Range::FromSize(this->front() + Range.front(), Range.size());
         }
 
         [[nodiscard]]
         constexpr auto fromIndex(const uint64_t Index) const noexcept {
-            assert(containsIndex(Index));
-            return Range::FromSize(Index, size() - Index);
+            assert(this->hasIndex(Index));
+            return Range::FromSize(Index, this->size() - Index);
         }
 
         [[nodiscard]]
         constexpr auto toIndex(const uint64_t Index) const noexcept {
-            assert(containsIndex(Index));
+            assert(this->hasIndex(Index));
             return Range::FromSize(0, Index);
         }
 
         [[nodiscard]]
         constexpr auto operator==(const Range &Range) const noexcept {
-            return Begin == Range.Begin && size() == Range.Size;
+            return this->front() == Range.front() &&
+                   this->size() == Range.size();
         }
 
         [[nodiscard]]

@@ -9,7 +9,7 @@ namespace  MachO {
     template <MachO::LoadCommandKind Kind>
     using A = LoadCommandTypeFromKindType<Kind>;
 
-    [[nodiscard]] auto
+    auto
     ValidateCmdsize(const LoadCommand *const LC,
                     const bool IsBigEndian) noexcept -> CmdSizeInvalidKind
     {

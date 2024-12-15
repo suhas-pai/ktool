@@ -54,20 +54,20 @@ namespace Objects {
     }
 
     auto FatMachO::Open(const ADT::MemoryMap &Map) noexcept
-        -> ADT::PointerOrError<FatMachO, OpenError>
+        -> std::expected<FatMachO *, Error>
     {
-        if (const auto Error = ValidateHeader(Map); Error != OpenError::None) {
-            return Error;
+        if (const auto Err = ValidateHeader(Map); Err != OpenError::None) {
+            return std::unexpected(Error(Err));
         }
 
         return new FatMachO(Map);
     }
 
     auto FatMachO::OpenAndValidateArchs(const ADT::MemoryMap &Map) noexcept
-        -> ADT::PointerOrError<FatMachO, OpenError>
+        -> std::expected<FatMachO *, Error>
     {
-        if (const auto Error = ValidateHeader(Map); Error != OpenError::None) {
-            return Error;
+        if (const auto Err = ValidateHeader(Map); Err != OpenError::None) {
+            return std::unexpected(Error(Err));
         }
 
         const auto Header = *Map.base<::MachO::FatHeader, false>();
@@ -89,7 +89,7 @@ namespace Objects {
                 const auto ArchRange = Arch.range(Header.isBigEndian());
 
                 if (!Map.range().contains(ArchRange)) {
-                    return OpenError::ArchOutOfBounds;
+                    return std::unexpected(Error(OpenError::ArchOutOfBounds));
                 }
 
                 for (auto J = uint32_t(); J != I; J++) {
@@ -97,13 +97,15 @@ namespace Objects {
                     const auto InnerRange = Inner.range(Header.isBigEndian());
 
                     if (InnerRange.overlaps(ArchRange)) {
-                        return OpenError::OverlappingArchs;
+                        return std::unexpected(
+                            Error(OpenError::OverlappingArchs));
                     }
 
                     if (Inner.CpuKind == Arch.CpuKind &&
                         Inner.CpuSubKind == Arch.CpuSubKind)
                     {
-                        return OpenError::ArchsForSameCpu;
+                        return std::unexpected(
+                            Error(OpenError::ArchsForSameCpu));
                     }
                 }
             }
@@ -120,7 +122,7 @@ namespace Objects {
                 const auto ArchRange = Arch.range(Header.isBigEndian());
 
                 if (!Map.range().contains(ArchRange)) {
-                    return OpenError::ArchOutOfBounds;
+                    return std::unexpected(Error(OpenError::ArchOutOfBounds));
                 }
 
                 for (auto J = uint32_t(); J != I; J++) {
@@ -128,71 +130,20 @@ namespace Objects {
                     const auto InnerRange = Inner.range(Header.isBigEndian());
 
                     if (InnerRange.overlaps(ArchRange)) {
-                        return OpenError::OverlappingArchs;
+                        return std::unexpected(
+                            Error(OpenError::OverlappingArchs));
                     }
 
                     if (Inner.CpuKind == Arch.CpuKind &&
                         Inner.CpuSubKind == Arch.CpuSubKind)
                     {
-                        return OpenError::ArchsForSameCpu;
+                        return std::unexpected(
+                            Error(OpenError::ArchsForSameCpu));
                     }
                 }
             }
         }
 
         return new FatMachO(Map);
-    }
-
-    [[nodiscard]] auto
-    FatMachO::getArchObjectForCpu(const Mach::CpuKind CpuKind,
-                                  const int32_t SubKind) const noexcept
-        -> Objects::OpenResult
-    {
-        const auto IsBigEndian = this->isBigEndian();
-        if (is64Bit()) {
-            for (const auto &Arch : arch64List()) {
-                if (Arch.cpuKind(IsBigEndian) == CpuKind &&
-                    Arch.cpuSubKind(IsBigEndian) == SubKind)
-                {
-                    const auto ArchRange = Arch.range(isBigEndian());
-                    const auto ObjectMap = ADT::MemoryMap(Map, ArchRange);
-
-                    return Objects::OpenFrom(ObjectMap, Kind::FatMachO);
-                }
-            }
-        } else {
-            for (const auto &Arch : archList()) {
-                if (Arch.cpuKind(IsBigEndian) == CpuKind &&
-                    Arch.cpuSubKind(IsBigEndian) == SubKind)
-                {
-                    const auto ArchRange = Arch.range(isBigEndian());
-                    const auto ObjectMap = ADT::MemoryMap(Map, ArchRange);
-
-                    return Objects::OpenFrom(ObjectMap, Kind::FatMachO);
-                }
-            }
-        }
-
-        return OpenErrorNone;
-    }
-
-    [[nodiscard]]
-    auto FatMachO::getArchObjectAtIndex(const uint32_t Index) const noexcept
-        -> Objects::OpenResult
-    {
-        assert(!Utils::IndexOutOfBounds(Index, archCount()));
-        if (is64Bit()) {
-            const auto ArchList = archs64();
-            const auto ArchRange = ArchList[Index].range(isBigEndian());
-
-            return Objects::OpenFrom(ADT::MemoryMap(Map, ArchRange),
-                                     Kind::FatMachO);
-        }
-
-        const auto ArchList = archs();
-        const auto ArchRange = ArchList[Index].range(isBigEndian());
-
-        return Objects::OpenFrom(ADT::MemoryMap(Map, ArchRange),
-                                 Kind::FatMachO);
     }
 }

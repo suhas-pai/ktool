@@ -191,17 +191,14 @@ namespace MachO {
             return *this;
         }
 
-        constexpr auto setAddr(const uint64_t Value) noexcept -> decltype(*this)
-        {
+        auto setAddr(const uint64_t Value) noexcept -> decltype(*this) {
             assert(!this->external());
 
             this->Addr = Value;
             return *this;
         }
 
-        constexpr auto setBindAddr(const uint64_t Value) noexcept
-            -> decltype(*this)
-        {
+        auto setBindAddr(const uint64_t Value) noexcept -> decltype(*this) {
             assert(this->external());
 
             this->BindAddr = Value;
@@ -209,13 +206,8 @@ namespace MachO {
         }
 
         [[nodiscard]]
-        constexpr auto operator==(const ObjcClassInfo &Rhs) const noexcept {
-            return Addr == Rhs.Addr;
-        }
-
-        [[nodiscard]]
-        constexpr auto operator!=(const ObjcClassInfo &Rhs) const noexcept {
-            return !operator==(Rhs);
+        constexpr auto operator<=>(const ObjcClassInfo &Rhs) const noexcept {
+            return Addr <=> Rhs.Addr;
         }
     };
 
@@ -226,7 +218,8 @@ namespace MachO {
         uint64_t Address = 0;
         bool sIsNull : 1 = false;
     public:
-        explicit ObjcClassCategoryInfo() {}
+        explicit ObjcClassCategoryInfo() = default;
+
         [[nodiscard]] constexpr auto name() const noexcept -> std::string_view {
             return Name;
         }
@@ -376,7 +369,7 @@ namespace MachO {
             SuperInfo.setIsExternal();
             SuperInfo.setBindAddr(Address);
             SuperInfo.setDylibOrdinal(
-                Action.DylibOrdinal >= 0 ?
+                Action.DylibOrdinal > 0 ?
                     static_cast<uint64_t>(Action.DylibOrdinal) : 0);
 
             const auto Ptr =
@@ -578,7 +571,7 @@ namespace MachO {
         {
             using PtrAddrType = Utils::PointerAddrConstType<Is64Bit>;
             const auto SectionMapOpt =
-                DeVirtualizer.getMapForRange(SectionInfo.vmRange());
+                DeVirtualizer.getMapForVmRange(SectionInfo.vmRange());
 
             if (!SectionMapOpt.has_value()) {
                 return Error::DataOutOfBounds;
@@ -639,7 +632,7 @@ namespace MachO {
         {
             using PointerAddrType = Utils::PointerAddrConstType<Is64Bit>;
             const auto SectionMapOpt =
-                DeVirtualizer.getMapForRange(SectionInfo.vmRange());
+                DeVirtualizer.getMapForVmRange(SectionInfo.vmRange());
 
             if (!SectionMapOpt.has_value()) {
                 return Error::DataOutOfBounds;
@@ -655,7 +648,7 @@ namespace MachO {
                 return Error::DataOutOfBounds;
             }
 
-            auto ListAddr = SectionInfo.vmRange().begin();
+            auto ListAddr = SectionInfo.vmRange().front();
             for (const auto &Addr : ListOpt.value()) {
                 if (const auto Iter = BindCollection.find(ListAddr);
                     Iter != BindCollection.end())
@@ -694,8 +687,7 @@ namespace MachO {
             return Error::None;
         }
 
-        static const auto ObjcClassRefsSegmentSectionNamePairList =
-            std::initializer_list<SegmentList::SegmentSectionNameListPair>{
+        static const auto ObjcClassRefsSegmentSectionNamePairList = {
                 SegmentList::SegmentSectionNameListPair {
                     "__OBJC2", { "__class_refs" }
                 },
@@ -704,32 +696,46 @@ namespace MachO {
                 }
             };
 
-        static const auto ObjcClassListSegmentSectionNamePairList =
-            std::initializer_list<SegmentList::SegmentSectionNameListPair>{
-                SegmentList::SegmentSectionNameListPair{
-                    "__OBJC2",  { "__class_list"     }
-                },
-                SegmentList::SegmentSectionNameListPair{
-                    "__DATA_CONST", { "__objc_classlist" }
-                },
-                SegmentList::SegmentSectionNameListPair{
-                    "__DATA", { "__objc_classlist" }
-                },
-                SegmentList::SegmentSectionNameListPair{
-                    "__DATA_DIRTY", { "__objc_classlist" }
-                },
-            };
+        static const auto ObjcClassListSegmentSectionNamePairList = {
+            SegmentList::SegmentSectionNameListPair {
+                "__OBJC2",  { "__class_list" }
+            },
+            SegmentList::SegmentSectionNameListPair {
+                "__DATA_CONST", { "__objc_classlist" }
+            },
+            SegmentList::SegmentSectionNameListPair {
+                "__DATA", { "__objc_classlist" }
+            },
+            SegmentList::SegmentSectionNameListPair {
+                "__DATA_DIRTY", { "__objc_classlist" }
+            },
+        };
 
-        static const auto ObjcClassCategoryListSegmentSectionNamePairList =
-            std::initializer_list<SegmentList::SegmentSectionNameListPair>{
-                SegmentList::SegmentSectionNameListPair{
-                    "__DATA_CONST", { "__objc_catlist" }
-                },
-                SegmentList::SegmentSectionNameListPair{
-                    "__DATA", { "__objc_catlist" }
-                },
-            };
+        static const auto ObjcClassCategoryListSegmentSectionNamePairList = {
+            SegmentList::SegmentSectionNameListPair {
+                "__DATA_CONST", { "__objc_catlist" }
+            },
+            SegmentList::SegmentSectionNameListPair {
+                "__DATA", { "__objc_catlist" }
+            },
+        };
     }
+
+    struct ObjcClassInfoSection {
+        enum class Kind {
+            ClassList,
+            ClassRefs,
+        };
+
+        Kind Kind;
+
+        const SegmentInfo &Segment;
+        const SectionInfo &Section;
+    };
+
+    [[nodiscard]]
+    auto FindObjcClassListOrRefsSection(const SegmentList &SegmentList) noexcept
+        -> std::optional<ObjcClassInfoSection>;
 
     struct ObjcClassInfoList : public ADT::Tree {
         friend struct ObjcClassCategoryInfoList;
@@ -750,11 +756,21 @@ namespace MachO {
               bool IsBigEndian,
               bool Is64Bit) noexcept -> ObjcParse::Error;
 
-        [[nodiscard]] inline ADT::TreeNode *root() const noexcept {
-            return Root;
+        auto
+        Parse(const ADT::DeVirtualizer &DeVirtualizer,
+              const ObjcClassInfoSection &Section,
+              const SegmentList &SegmentList,
+              const BindActionList::UnorderedMap &BindList,
+              bool IsBigEndian,
+              bool Is64Bit) noexcept -> ObjcParse::Error;
+
+        [[nodiscard]] inline auto root() const noexcept -> ADT::TreeNode * {
+            return this->Root;
         }
 
-        inline ADT::Tree &setRoot(ADT::TreeNode *const Root) noexcept {
+        inline auto setRoot(ADT::TreeNode *const Root) noexcept
+            -> decltype(*this)
+        {
             this->Root = static_cast<Info *>(Root);
             return *this;
         }
@@ -777,11 +793,11 @@ namespace MachO {
             -> ObjcClassInfo *;
 
         [[nodiscard]] inline auto &list() const noexcept {
-            return List;
+            return this->List;
         }
 
         [[nodiscard]] inline auto &list() noexcept {
-            return List;
+            return this->List;
         }
     };
 

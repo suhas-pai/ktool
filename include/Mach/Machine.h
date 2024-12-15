@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <assert.h>
 #include <string_view>
+#include "Utils/Assert.h"
 
 namespace Mach {
     constexpr static auto CpuABI64 = 0x01000000;

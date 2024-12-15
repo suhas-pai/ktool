@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstring>
+#include <errno.h>
 #include <string>
 #include <unistd.h>
 
@@ -37,6 +38,8 @@
 
 #define TO_STRING_IMPL(Tok) #Tok
 #define TO_STRING(Tok) TO_STRING_IMPL(Tok)
+
+#define CARR_TO_SV(carr) std::string_view(carr, strnlen(carr, sizeof(carr)))
 
 namespace Utils {
     [[nodiscard]]

@@ -31,16 +31,22 @@ namespace Operations {
 
         ~PrintProgramTrie() noexcept override {}
 
-        enum class RunError : uint32_t {
-            None,
-            NoProgramTrie,
-            OutOfBounds,
-            NoExports
+        struct RunResult {
+            enum class Error : uint32_t {
+                None,
+                Unsupported,
+
+                NoProgramTrie,
+                OutOfBounds,
+                NoExports
+            };
+
+            Error Error = Error::None;
         };
 
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
-        RunResult run(const Objects::Base &Base) const noexcept override;
+        RunResult run(const Objects::Base &Base) const noexcept;
         RunResult run(const Objects::DyldSharedCache &MachO) const noexcept;
 
         [[nodiscard]] constexpr auto &options() const noexcept {

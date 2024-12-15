@@ -16,7 +16,8 @@ namespace Operations {
     PrintRebaseActionList::PrintRebaseActionList(
         FILE *const OutFile,
         const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options) {}
+    : Base(Operations::Kind::PrintRebaseActionList), OutFile(OutFile),
+      Opt(Options) {}
 
     bool
     PrintRebaseActionList::supportsObjectKind(
@@ -49,9 +50,9 @@ namespace Operations {
                       const bool Is64Bit) noexcept
     {
         fprintf(OutFile,
-                "Rebase Action %" ZEROPAD_FMT PRIu64 ": ",
-                ZEROPAD_FMT_ARGS(SizeDigitLength),
-                Counter);
+                "Rebase-Action %" LEFTPAD_FMT "s: ",
+                PAD_FMT_ARGS(SizeDigitLength),
+                Utils::GetFormattedNumber(Counter).c_str());
 
         constexpr auto RebaseWriteKindLongestDescLength =
             MachO::RebaseWriteKindGetDesc(
@@ -59,7 +60,7 @@ namespace Operations {
 
         fprintf(OutFile,
                 " %" RIGHTPAD_FMT "s",
-                RIGHTPAD_FMT_ARGS(
+                PAD_FMT_ARGS(
                     static_cast<int>(RebaseWriteKindLongestDescLength)),
                 MachO::RebaseWriteKindGetDesc(Action.Kind).data());
 
@@ -89,8 +90,6 @@ namespace Operations {
     PrintRebaseActionList::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
-        auto Result = RunResult(Objects::Kind::MachO);
-
         const auto IsBigEndian = MachO.isBigEndian();
         const auto Is64Bit = MachO.is64Bit();
 
@@ -125,11 +124,11 @@ namespace Operations {
         }
 
         if (!FoundDyldInfo) {
-            return Result.set(RunError::NoDyldInfo);
+            return RunResult(RunResult::Error::NoDyldInfo);
         }
 
         if (RebaseRange.empty()) {
-            return Result.set(RunError::NoActions);
+            return RunResult(RunResult::Error::NoActions);
         }
 
         auto RebaseActionList = std::vector<MachO::RebaseActionInfo>();
@@ -142,7 +141,7 @@ namespace Operations {
         }
 
         if (RebaseActionList.empty()) {
-            return Result.set(RunError::NoActions);
+            return RunResult(RunResult::Error::NoActions);
         }
 
         auto Counter = uint64_t();
@@ -159,7 +158,7 @@ namespace Operations {
             Counter++;
         }
 
-        return Result.set(RunError::None);
+        return RunResult(RunResult::Error::None);
     }
 
     auto PrintRebaseActionList::run(const Objects::Base &Base) const noexcept
@@ -175,7 +174,7 @@ namespace Operations {
             case Objects::Kind::FatMachO:
             case Objects::Kind::DscImage:
             case Objects::Kind::DyldSharedCache:
-                return RunResultUnsupported;
+                return RunResult(RunResult::Error::Unsupported);
         }
 
         assert(false &&

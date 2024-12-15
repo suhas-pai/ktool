@@ -18,8 +18,8 @@ namespace ADT {
                          void **EndOut = nullptr) const noexcept -> void * = 0;
 
         [[nodiscard]] virtual auto
-        getMapForRange(const ADT::Range &Range,
-                       bool IgnoreSectionBounds = false) const noexcept
+        getMapForVmRange(const ADT::Range &Range,
+                         bool IgnoreSectionBounds = false) const noexcept
             -> std::optional<ADT::MemoryMap> = 0;
 
         template <typename T>
@@ -29,7 +29,7 @@ namespace ADT {
                          T **const EndOut = nullptr) const noexcept
         {
             return static_cast<T *>(
-                getPtrForAddress(
+                this->getPtrForAddress(
                     Address,
                     IgnoreSectionBounds,
                     reinterpret_cast<void **>(
@@ -40,13 +40,13 @@ namespace ADT {
         getStringAtAddress(
             const uint64_t Address,
             const bool IgnoreSectionBounds = false) const noexcept
-            -> std::optional<std::string_view>
+                -> std::optional<std::string_view>
         {
             auto End = static_cast<const char *>(nullptr);
             const auto Ptr =
-                getDataAtAddress<const char>(Address,
-                                             IgnoreSectionBounds,
-                                             &End);
+                this->getDataAtAddress<const char>(Address,
+                                                   IgnoreSectionBounds,
+                                                   &End);
 
             if (Ptr == nullptr) {
                 return std::nullopt;

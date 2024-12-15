@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "ADT/List.h"
+#include <span>
 #include "ADT/Range.h"
 
 #include "Dyld3/PackedVersion.h"
@@ -61,13 +61,15 @@ namespace DyldSharedCache {
             uint64_t *const MaxSizeOut = nullptr) const noexcept
                 -> std::optional<uint64_t>
         {
-            if (!addressRange().containsLoc(Addr)) {
+            if (!this->addressRange().hasLoc(Addr)) {
                 return std::nullopt;
             }
 
-            const auto AddrIndex = addressRange().indexForLoc(Addr, MaxSizeOut);
-            if (fileRange().containsIndex(AddrIndex)) {
-                return fileRange().locForIndex(AddrIndex);
+            const auto AddrIndex =
+                this->addressRange().indexForLoc(Addr, MaxSizeOut);
+
+            if (this->fileRange().hasIndex(AddrIndex)) {
+                return this->fileRange().locForIndex(AddrIndex);
             }
 
             return std::nullopt;
@@ -86,38 +88,38 @@ namespace DyldSharedCache {
             };
 
             [[nodiscard]] inline bool isAuthData() const noexcept {
-                return has(Masks::AuthData);
+                return this->has(Masks::AuthData);
             }
 
             [[nodiscard]] inline bool isDirtyData() const noexcept {
-                return has(Masks::DirtyData);
+                return this->has(Masks::DirtyData);
             }
 
             [[nodiscard]] inline bool isConstData() const noexcept {
-                return has(Masks::ConstData);
+                return this->has(Masks::ConstData);
             }
 
             constexpr auto setAuthData(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                setValueForMask(Masks::AuthData, 0, Value);
+                this->setValueForMask(Masks::AuthData, 0, Value);
                 return *this;
             }
 
             constexpr auto setDirtyData(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                setValueForMask(Masks::DirtyData, 0, Value);
+                this->setValueForMask(Masks::DirtyData, 0, Value);
                 return *this;
             }
 
             constexpr auto setConstData(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                setValueForMask(Masks::ConstData, 0, Value);
+                this->setValueForMask(Masks::ConstData, 0, Value);
                 return *this;
             }
-         };
+        };
 
         uint64_t Address;
         uint64_t Size;
@@ -161,7 +163,7 @@ namespace DyldSharedCache {
             const uint64_t Addr,
             uint64_t *const MaxSizeOut = nullptr) const noexcept -> uint64_t
         {
-            if (!addressRange().containsLoc(Addr)) {
+            if (!this->addressRange().hasLoc(Addr)) {
                 return 0;
             }
 
@@ -385,15 +387,15 @@ namespace DyldSharedCache {
             return std::string_view(Magic, strnlen(Magic, sizeof(Magic)));
         }
 
-        [[nodiscard]] constexpr auto isV1() const noexcept -> bool;
-        [[nodiscard]] constexpr auto isV2() const noexcept -> bool;
-        [[nodiscard]] constexpr auto isV3() const noexcept -> bool;
-        [[nodiscard]] constexpr auto isV4() const noexcept -> bool;
-        [[nodiscard]] constexpr auto isV5() const noexcept -> bool;
-        [[nodiscard]] constexpr auto isV6() const noexcept -> bool;
-        [[nodiscard]] constexpr auto isV7() const noexcept -> bool;
-        [[nodiscard]] constexpr auto isV8() const noexcept -> bool;
-        [[nodiscard]] constexpr auto isV9() const noexcept -> bool;
+        [[nodiscard]] constexpr auto isAtleastV1() const noexcept -> bool;
+        [[nodiscard]] constexpr auto isAtleastV2() const noexcept -> bool;
+        [[nodiscard]] constexpr auto isAtleastV3() const noexcept -> bool;
+        [[nodiscard]] constexpr auto isAtleastV4() const noexcept -> bool;
+        [[nodiscard]] constexpr auto isAtleastV5() const noexcept -> bool;
+        [[nodiscard]] constexpr auto isAtleastV6() const noexcept -> bool;
+        [[nodiscard]] constexpr auto isAtleastV7() const noexcept -> bool;
+        [[nodiscard]] constexpr auto isAtleastV8() const noexcept -> bool;
+        [[nodiscard]] constexpr auto isAtleastV9() const noexcept -> bool;
 
         [[nodiscard]]
         constexpr auto getVersion() const noexcept -> HeaderVersion;
@@ -511,7 +513,7 @@ namespace DyldSharedCache {
             const auto Ptr =
                 reinterpret_cast<ImageTextInfo *>(Map + ImagesTextOffset);
 
-            return ADT::List(Ptr, ImagesTextCount);
+            return std::span(Ptr, ImagesTextCount);
         }
 
         [[nodiscard]] inline auto imageTextInfoList() const noexcept {
@@ -519,7 +521,7 @@ namespace DyldSharedCache {
             const auto Ptr =
                 reinterpret_cast<const ImageTextInfo *>(Map + ImagesTextOffset);
 
-            return ADT::List(Ptr, ImagesTextCount);
+            return std::span(Ptr, ImagesTextCount);
         }
     };
 
@@ -580,7 +582,7 @@ namespace DyldSharedCache {
         constexpr auto isLocallyBuiltCache() const noexcept
             -> std::optional<bool>
         {
-            return isV6() ?
+            return isAtleastV6() ?
                 std::optional(LocallyBuiltCache != 0) : std::nullopt;
         }
     };
@@ -636,7 +638,7 @@ namespace DyldSharedCache {
                 reinterpret_cast<MappingWithSlideInfo *>(
                     Map + MappingWithSlideOffset);
 
-            return ADT::List(Ptr, MappingWithSlideCount);
+            return std::span(Ptr, MappingWithSlideCount);
         }
 
         [[nodiscard]] inline auto mappingWithSlideInfoList() const noexcept {
@@ -645,7 +647,7 @@ namespace DyldSharedCache {
                 reinterpret_cast<const MappingWithSlideInfo *>(
                     Map + MappingWithSlideOffset);
 
-            return ADT::List(Ptr, MappingWithSlideCount);
+            return std::span(Ptr, MappingWithSlideCount);
         }
     };
 
@@ -799,58 +801,58 @@ namespace DyldSharedCache {
 
     [[nodiscard]]
     constexpr auto HeaderV0::imageOffset() const noexcept -> uint32_t {
-        return isV8() ?
+        return isAtleastV8() ?
             static_cast<const HeaderV8 &>(*this).ImagesOffset : ImagesOffsetOld;
     }
 
     [[nodiscard]]
     constexpr auto HeaderV0::imageCount() const noexcept -> uint32_t {
-        return isV8() ?
+        return isAtleastV8() ?
             static_cast<const HeaderV8 &>(*this).ImagesCount : ImagesCountOld;
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isV1() const noexcept -> bool {
+    [[nodiscard]] constexpr auto HeaderV0::isAtleastV1() const noexcept -> bool {
         return MappingOffset >= sizeof(DyldSharedCache::HeaderV1);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isV2() const noexcept -> bool {
+    [[nodiscard]] constexpr auto HeaderV0::isAtleastV2() const noexcept -> bool {
         return MappingOffset >= sizeof(DyldSharedCache::HeaderV2);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isV3() const noexcept -> bool {
+    [[nodiscard]] constexpr auto HeaderV0::isAtleastV3() const noexcept -> bool {
         return MappingOffset >= sizeof(DyldSharedCache::HeaderV3);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isV4() const noexcept -> bool {
+    [[nodiscard]] constexpr auto HeaderV0::isAtleastV4() const noexcept -> bool {
         return MappingOffset >= sizeof(DyldSharedCache::HeaderV4);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isV5() const noexcept -> bool {
+    [[nodiscard]] constexpr auto HeaderV0::isAtleastV5() const noexcept -> bool {
         return MappingOffset >= sizeof(DyldSharedCache::HeaderV5);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isV6() const noexcept -> bool {
+    [[nodiscard]] constexpr auto HeaderV0::isAtleastV6() const noexcept -> bool {
         return MappingOffset >= sizeof(DyldSharedCache::HeaderV6);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isV7() const noexcept -> bool {
+    [[nodiscard]] constexpr auto HeaderV0::isAtleastV7() const noexcept -> bool {
         return MappingOffset >= sizeof(DyldSharedCache::HeaderV7);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isV8() const noexcept -> bool {
+    [[nodiscard]] constexpr auto HeaderV0::isAtleastV8() const noexcept -> bool {
         return MappingOffset >= sizeof(DyldSharedCache::HeaderV8);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isV9() const noexcept -> bool {
+    [[nodiscard]] constexpr auto HeaderV0::isAtleastV9() const noexcept -> bool {
         return MappingOffset >= sizeof(DyldSharedCache::HeaderV9);
     }
 
     [[nodiscard]] constexpr auto HeaderV0::hasSubCacheV1Array() const noexcept {
-        return isV8();
+        return isAtleastV8();
     }
 
     [[nodiscard]] constexpr auto HeaderV0::hasSubCacheArray() const noexcept {
-        return isV9();
+        return isAtleastV9();
     }
 
     using Header = HeaderV9;

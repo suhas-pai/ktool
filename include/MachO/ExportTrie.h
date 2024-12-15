@@ -349,56 +349,56 @@ namespace MachO {
         ExportTrieFlags Flags;
     public:
         [[nodiscard]] constexpr auto flags() const noexcept {
-            return Flags;
+            return this->Flags;
         }
 
         [[nodiscard]] constexpr auto kind() const noexcept {
-            return flags().kind();
+            return this->flags().kind();
         }
 
         [[nodiscard]] constexpr auto regular() const noexcept {
-            return flags().regular();
+            return this->flags().regular();
         }
 
         [[nodiscard]] constexpr auto absolute() const noexcept {
-            return flags().absolute();
+            return this->flags().absolute();
         }
 
         [[nodiscard]] constexpr auto threadLocal() const noexcept {
-            return flags().threadLocal();
+            return this->flags().threadLocal();
         }
 
         [[nodiscard]] constexpr auto weak() const noexcept {
-            return flags().isWeak();
+            return this->flags().isWeak();
         }
 
         [[nodiscard]] constexpr auto isReexport() const noexcept {
-            return flags().isReexport();
+            return this->flags().isReexport();
         }
 
         [[nodiscard]] constexpr auto stubAndResolver() const noexcept {
-            return flags().stubAndResolver();
+            return this->flags().stubAndResolver();
         }
 
         [[nodiscard]]
-        constexpr auto reexportImportName() const noexcept -> std::string_view {
-            assert(isReexport());
-            return ReexportImportName;
+        auto reexportImportName() const noexcept -> std::string_view {
+            assert(this->isReexport());
+            return this->ReexportImportName;
         }
 
         [[nodiscard]] constexpr auto reexportDylibOrdinal() const noexcept {
-            assert(isReexport());
-            return Info.ReexportDylibOrdinal;
+            assert(this->isReexport());
+            return this->Info.ReexportDylibOrdinal;
         }
 
         [[nodiscard]] constexpr auto resolverStubAddress() const noexcept {
-            assert(stubAndResolver());
-            return Info.Loc.ResolverStubAddress;
+            assert(this->stubAndResolver());
+            return this->Info.Loc.ResolverStubAddress;
         }
 
         [[nodiscard]] constexpr auto imageOffset() const noexcept {
-            assert(!isReexport());
-            return Info.Loc.ImageOffset;
+            assert(!this->isReexport());
+            return this->Info.Loc.ImageOffset;
         }
 
         constexpr
@@ -423,10 +423,10 @@ namespace MachO {
             return *this;
         }
 
-        constexpr auto setReexportDylibOrdinal(const uint32_t Value) noexcept
+        auto setReexportDylibOrdinal(const uint32_t Value) noexcept
             -> decltype(*this)
         {
-            assert(isReexport());
+            assert(this->isReexport());
 
             this->Info.ReexportDylibOrdinal = Value;
             return *this;
@@ -435,7 +435,7 @@ namespace MachO {
         constexpr auto setResolverStubAddress(const uint32_t Value) noexcept
             -> decltype(*this)
         {
-            assert(stubAndResolver());
+            assert(this->stubAndResolver());
 
             this->Info.Loc.ResolverStubAddress = Value;
             return *this;

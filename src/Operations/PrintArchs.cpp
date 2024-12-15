@@ -5,13 +5,18 @@
 //  Created by suhaspai on 11/22/22.
 //
 
+#include <format>
+#include <memory>
+#include <sys/stat.h>
+
+#include "Objects/Open.h"
 #include "Operations/PrintArchs.h"
 #include "Utils/Print.h"
 
 namespace Operations {
     PrintArchs::PrintArchs(FILE *const OutFile,
                            const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options) {}
+    : Base(Operations::Kind::PrintArchs), OutFile(OutFile), Opt(Options) {}
 
     bool
     PrintArchs::supportsObjectKind(const Objects::Kind Kind) const noexcept {
@@ -32,6 +37,32 @@ namespace Operations {
                "Got unknown Object-Kind in PrintArchs::supportsObjectKind()");
     }
 
+    static auto
+    StringForCpuKind(const Mach::CpuKind CpuKind,
+                     const bool Verbose) noexcept -> std::string
+    {
+        return Mach::CpuKindIsValid(CpuKind) ?
+            Verbose ?
+                std::string(Mach::CpuKindGetString(CpuKind)) :
+                std::string(Mach::CpuKindGetDesc(CpuKind))
+            : std::format("<Unknown: 0x{:02x}>",
+                          static_cast<int32_t>(CpuKind));
+    }
+
+    static auto
+    StringForSubKind(const Mach::CpuKind CpuKind,
+                     const int32_t SubKind,
+                     const bool Verbose) noexcept -> std::string
+    {
+        return Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind) ?
+            Verbose ?
+                std::string(
+                        Mach::CpuKindAndSubKindGetString(CpuKind, SubKind)) :
+                    std::string(
+                        Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind))
+            : std::format("<Unknown: 0x{:02x}>", SubKind);
+    }
+
     void
     PrintArchs::PrintArch(FILE *const OutFile,
                           const MachO::FatArch &Arch,
@@ -49,12 +80,8 @@ namespace Operations {
         const auto CpuKind = Arch.cpuKind(IsBigEndian);
         const auto SubKind = Arch.cpuSubKind(IsBigEndian);
 
-        const auto SubKindString =
-            Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind) ?
-                Verbose ?
-                    Mach::CpuKindAndSubKindGetString(CpuKind, SubKind).data() :
-                    Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind).data()
-                : "Unrecognized";
+        const auto CpuKindString = StringForCpuKind(CpuKind, Verbose);
+        const auto SubKindString = StringForSubKind(CpuKind, SubKind, Verbose);
 
         const auto Offset = Arch.offset(IsBigEndian);
         const auto Size = Arch.size(IsBigEndian);
@@ -69,13 +96,8 @@ namespace Operations {
                 STRING_VIEW_FMT "\tSize:       %s\n"
                 STRING_VIEW_FMT "\tAlign:      %" PRIu32 " (%s)\n",
                 STRING_VIEW_FMT_ARGS(Prefix), Ordinal, ObjectDesc.data(),
-                STRING_VIEW_FMT_ARGS(Prefix),
-                    Mach::CpuKindIsValid(CpuKind) ?
-                        Verbose ?
-                            Mach::CpuKindGetString(CpuKind).data() :
-                            Mach::CpuKindGetDesc(CpuKind).data()
-                        : "Unrecognized",
-                STRING_VIEW_FMT_ARGS(Prefix), SubKindString,
+                STRING_VIEW_FMT_ARGS(Prefix), CpuKindString.c_str(),
+                STRING_VIEW_FMT_ARGS(Prefix), SubKindString.c_str(),
                 STRING_VIEW_FMT_ARGS(Prefix), Offset,
                     ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
                 STRING_VIEW_FMT_ARGS(Prefix),
@@ -101,12 +123,8 @@ namespace Operations {
         const auto CpuKind = Arch.cpuKind(IsBigEndian);
         const auto SubKind = Arch.cpuSubKind(IsBigEndian);
 
-        const auto SubKindString =
-            Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind) ?
-                Verbose ?
-                    Mach::CpuKindAndSubKindGetString(CpuKind, SubKind).data() :
-                    Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind).data()
-                : "Unrecognized";
+        const auto CpuKindString = StringForCpuKind(CpuKind, Verbose);
+        const auto SubKindString = StringForSubKind(CpuKind, SubKind, Verbose);
 
         const auto Offset = Arch.offset(IsBigEndian);
         const auto Size = Arch.size(IsBigEndian);
@@ -121,13 +139,8 @@ namespace Operations {
                 STRING_VIEW_FMT "\tSize:       %s\n"
                 STRING_VIEW_FMT "\tAlign:      %" PRIu32 " (%s)\n",
                 STRING_VIEW_FMT_ARGS(Prefix), Ordinal, ObjectDesc.data(),
-                STRING_VIEW_FMT_ARGS(Prefix),
-                    Mach::CpuKindIsValid(CpuKind) ?
-                        Verbose ?
-                            Mach::CpuKindGetString(CpuKind).data() :
-                            Mach::CpuKindGetDesc(CpuKind).data()
-                        : "Unrecognized",
-                STRING_VIEW_FMT_ARGS(Prefix), SubKindString,
+                STRING_VIEW_FMT_ARGS(Prefix), CpuKindString.c_str(),
+                STRING_VIEW_FMT_ARGS(Prefix), SubKindString.c_str(),
                 STRING_VIEW_FMT_ARGS(Prefix), Offset,
                     ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
                 STRING_VIEW_FMT_ARGS(Prefix),
@@ -140,15 +153,13 @@ namespace Operations {
         -> RunResult
     {
         const auto IsBigEndian = Fat.isBigEndian();
-
         auto I = uint32_t();
-        auto Result = RunResult(Objects::Kind::FatMachO);
 
         if (Fat.is64Bit()) {
             for (const auto &Arch : Fat.arch64List()) {
                 const auto Object =
                     std::unique_ptr<Objects::Base>(
-                        Fat.getArchObjectAtIndex(I).ptr());
+                       Objects::OpenArch(Fat, I).value());
 
                 PrintArch64(OutFile,
                             Arch,
@@ -162,7 +173,7 @@ namespace Operations {
             for (const auto &Arch : Fat.archList()) {
                 const auto Object =
                     std::unique_ptr<Objects::Base>(
-                       Fat.getArchObjectAtIndex(I).ptr());
+                       Objects::OpenArch(Fat, I).value());
 
                 PrintArch(OutFile,
                           Arch,
@@ -175,7 +186,7 @@ namespace Operations {
             }
         }
 
-        return Result.set(RunError::None);
+        return RunResult();
     }
 
     auto PrintArchs::run(const Objects::Base &Base) const noexcept -> RunResult
@@ -186,7 +197,7 @@ namespace Operations {
             case Objects::Kind::DyldSharedCache:
             case Objects::Kind::MachO:
             case Objects::Kind::DscImage:
-                return RunResultUnsupported;
+                return RunResult(RunResult::Error::Unsupported);
             case Objects::Kind::FatMachO:
                 return run(static_cast<const Objects::FatMachO &>(Base));
         }

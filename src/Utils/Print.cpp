@@ -6,11 +6,14 @@
 //
 
 #include <array>
-#include <assert.h>
+#include <cmath>
+#include <format>
 #include <sstream>
 #include <string>
 
 #include "MachO/LoadCommands.h"
+
+#include "Utils/Assert.h"
 #include "Utils/Print.h"
 
 namespace Utils {
@@ -37,13 +40,7 @@ namespace Utils {
     auto FormattedSize(const uint64_t Size) -> std::string {
         constexpr auto Base = 1024;
         if (Size < Base) {
-            auto Result = std::string();
-
-            Result.reserve(STR_LENGTH("1,023") + STR_LENGTH(" bytes"));
-            Result.append(GetFormattedNumber(Size));
-            Result.append(" Bytes");
-
-            return Result;
+            return std::format("{} bytes", GetFormattedNumber(Size));
         }
 
         auto Index = uint32_t();
@@ -58,21 +55,14 @@ namespace Utils {
         assert(Index < FormatSizeNames.size());
 
         const auto &Name = FormatSizeNames[Index];
-        auto Result = std::string();
-
         if (floor(ResultAmount) == ResultAmount) {
-            Result.reserve(STR_LENGTH("1,023 ") + 1 + Name.length());
-            Result.append(
-                GetFormattedNumber(static_cast<uint64_t>(ResultAmount)));
-        } else {
-            Result.reserve(STR_LENGTH("1023.999 ") + 1 + Name.length());
-            Result.append(ToStringWithPrecision(ResultAmount));
+            return std::format("{} {}",
+                               GetFormattedNumber(
+                                static_cast<uint64_t>(ResultAmount)),
+                               Name);
         }
 
-        Result.append(1, ' ');
-        Result.append(Name);
-
-        return Result;
+        return std::format("{:.3f} {}", ResultAmount, Name);
     }
 
     auto FormattedSizeForOutput(const uint64_t Size) -> std::string {
@@ -81,23 +71,14 @@ namespace Utils {
             return SizeString;
         }
 
-        auto Formatted = FormattedSize(Size);
-        const auto ResultLength =
-            Formatted.length() + SizeString.length() + STR_LENGTH(" ()");
-
-        Formatted.reserve(ResultLength);
-        Formatted.insert(0, SizeString);
-        Formatted.insert(SizeString.length(), " (");
-        Formatted.append(")");
-
-        return Formatted;
+        return std::format("{} bytes ({})", SizeString, FormattedSize(Size));
     }
 
     auto
     PadSpaces(FILE *const OutFile, const uint32_t SpaceAmount) noexcept -> int {
         return fprintf(OutFile,
                        "%" RIGHTPAD_FMT "s",
-                       RIGHTPAD_FMT_ARGS(static_cast<int>(SpaceAmount)),
+                       PAD_FMT_ARGS(static_cast<int>(SpaceAmount)),
                        "");
     }
 
@@ -178,7 +159,7 @@ namespace Utils {
             return 0;
         }
 
-        const auto Begin = Range.begin();
+        const auto Begin = Range.front();
         const auto End = Range.end().value();
 
         auto WrittenOut = int();

@@ -6,10 +6,9 @@
 //
 
 #pragma once
+#include <expected>
 
-#include "ADT/PointerOrError.h"
 #include "MachO/Fat.h"
-
 #include "Base.h"
 
 namespace Objects {
@@ -31,65 +30,61 @@ namespace Objects {
             ArchsForSameCpu
         };
 
+        struct Error {
+            OpenError Kind;
+        };
+
         ~FatMachO() noexcept override {}
 
         static auto Open(const ADT::MemoryMap &Map) noexcept
-            -> ADT::PointerOrError<FatMachO, OpenError>;
+            -> std::expected<FatMachO *, Error>;
 
         static auto OpenAndValidateArchs(const ADT::MemoryMap &Map) noexcept
-            -> ADT::PointerOrError<FatMachO, OpenError>;
-
-        [[nodiscard]] auto
-        getArchObjectForCpu(Mach::CpuKind CpuKind,
-                            int32_t SubKind) const noexcept
-            -> Objects::OpenResult;
-
-        [[nodiscard]]
-        auto getArchObjectAtIndex(const uint32_t Index) const noexcept
-            -> Objects::OpenResult;
+            -> std::expected<FatMachO *, Error>;
 
         [[nodiscard]] constexpr auto map() const noexcept {
-            return Map;
+            return this->Map;
         }
 
         [[nodiscard]] inline auto header() const noexcept {
-            return *map().base<::MachO::FatHeader, false>();
+            return *this->map().base<::MachO::FatHeader, false>();
         }
 
         [[nodiscard]] inline auto isBigEndian() const noexcept {
-            return header().isBigEndian();
+            return this->header().isBigEndian();
         }
 
         [[nodiscard]] inline auto is64Bit() const noexcept {
-            return header().is64Bit();
+            return this->header().is64Bit();
         }
 
         [[nodiscard]] inline auto archCount() const noexcept {
-            return header().archCount();
+            return this->header().archCount();
         }
 
         [[nodiscard]] inline auto archs() const noexcept {
-            assert(!is64Bit());
+            assert(!this->is64Bit());
             return
-                map().get<::MachO::FatArch, false>(sizeof(header()),
-                                                   archCount());
+                this->map().get<::MachO::FatArch, false>(sizeof(this->header()),
+                                                         this->archCount());
         }
 
         [[nodiscard]] inline auto archList() const noexcept {
-            assert(!is64Bit());
-            return ADT::List(archs(), archCount());
+            assert(!this->is64Bit());
+            return std::span(this->archs(), this->archCount());
         }
 
         [[nodiscard]] inline auto archs64() const noexcept {
             assert(is64Bit());
             return
-                map().get<::MachO::FatArch64, false>(sizeof(header()),
-                                                     archCount());
+                this->map().get<::MachO::FatArch64, false>(
+                    sizeof(this->header()),
+                    this->archCount());
         }
 
         [[nodiscard]] inline auto arch64List() const noexcept {
-            assert(is64Bit());
-            return ADT::List(archs64(), archCount());
+            assert(this->is64Bit());
+            return std::span(this->archs64(), this->archCount());
         }
     };
 }

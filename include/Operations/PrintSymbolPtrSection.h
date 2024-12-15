@@ -45,26 +45,32 @@ namespace Operations {
 
         ~PrintSymbolPtrSection() noexcept override {}
 
-        enum class RunError : uint32_t {
-            None,
-            EmptySectionName,
-            SectionNotFound,
-            ProtectedSegment,
-            NotSymbolPointerSection,
-            InvalidSectionRange,
-            SymTabNotFound,
-            DynamicSymTabNotFound,
-            MultipleSymTabCommands,
-            MultipleDynamicSymTabCommands,
-            IndexListOutOfBounds,
-            SymbolTableOutOfBounds,
-            StringTableOutOfBounds,
-            IndexOutOfBounds,
+        struct RunResult {
+            enum class Error : uint32_t {
+                None,
+                Unsupported,
+
+                EmptySectionName,
+                SectionNotFound,
+                ProtectedSegment,
+                NotSymbolPointerSection,
+                InvalidSectionRange,
+                SymTabNotFound,
+                DynamicSymTabNotFound,
+                MultipleSymTabCommands,
+                MultipleDynamicSymTabCommands,
+                IndexListOutOfBounds,
+                SymbolTableOutOfBounds,
+                StringTableOutOfBounds,
+                IndexOutOfBounds,
+            };
+
+            Error Error = Error::None;
         };
 
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
-        RunResult run(const Objects::Base &Base) const noexcept override;
+        RunResult run(const Objects::Base &Base) const noexcept;
         RunResult run(const Objects::MachO &MachO) const noexcept;
 
         [[nodiscard]] constexpr auto &options() const noexcept {

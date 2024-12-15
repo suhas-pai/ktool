@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "MachO/BindInfo.h"
 #include "Operations/PrintHeader.h"
 #include "Operations/PrintId.h"
 #include "Operations/PrintImageList.h"
@@ -23,6 +24,8 @@
 #include "Operations/PrintRebaseActionList.h"
 #include "Operations/PrintObjcClassList.h"
 #include "Operations/PrintProgramTrie.h"
+
+#include "Operations/Run.h"
 
 struct OperationInfo {
     std::string Path;
@@ -74,6 +77,125 @@ ParseSegmentSectionPair(std::string_view SegmentSectionPair,
     return 0;
 }
 
+static void
+PrintBindOpcodeParseError(
+    const MachO::BindInfoKind BindKind,
+    const MachO::BindOpcodeParseResult ParseResult,
+    const char *const Prefix = "") noexcept
+{
+    const auto BindKindString =
+        BindKind == MachO::BindInfoKind::Normal ? "normal" :
+        BindKind == MachO::BindInfoKind::Lazy ? "lazy" :
+        BindKind == MachO::BindInfoKind::Weak ? "weak" : "<unknown>";
+
+    switch (ParseResult.Error) {
+        case MachO::BindOpcodeParseError::None:
+            break;
+        case MachO::BindOpcodeParseError::InvalidLeb128:
+            fprintf(stderr,
+                    "%sEncountered invalid uleb128 when parsing %s "
+                    "bind-opcodes\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::InvalidSegmentIndex:
+            fprintf(stderr,
+                    "%s%s Bind-Opcodes set segment-index to an invalid "
+                    "number\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::InvalidString:
+            fprintf(stderr,
+                    "%sEncountered invalid string in %s bind-opcodes\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::NotEnoughThreadedBinds:
+            fprintf(stderr,
+                    "%sNot enough threaded-binds in %s bind-opcodes\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::TooManyThreadedBinds:
+            fprintf(stderr,
+                    "%sToo many threaded-binds in %s bind-opcodes\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::InvalidThreadOrdinal:
+            fprintf(stderr,
+                    "%sEncountered invalid thread-ordinal in "
+                    "%s bind-opcodes\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::EmptySymbol:
+            fprintf(stderr,
+                    "%sEncountered invalid thread-ordinal in "
+                    "%s bind-opcodes\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::IllegalBindOpcode:
+            fprintf(stderr,
+                    "%sEncountered invalid %s bind-opcode when parsing\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::OutOfBoundsSegmentAddr:
+            fprintf(stderr,
+                    "%sGot out-of-bounds segment-address in %s bind-opcodes\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::UnrecognizedBindWriteKind:
+            fprintf(stderr,
+                    "%sEncountered unknown write-kind in %s bind-opcodes\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::UnrecognizedBindOpcode:
+            fprintf(stderr,
+                    "%sEncountered unknown %s bind-opcode when parsing\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::UnrecognizedBindSubOpcode:
+            fprintf(stderr,
+                    "%sEncountered unknown %s bind sub-opcode when parsing\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::
+            UnrecognizedSpecialDylibOrdinal:
+            fprintf(stderr,
+                    "%sEncountered unknown specialty dylib-ordinal in "
+                    "%s bind-opcodes\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::NoDylibOrdinal:
+            fprintf(stderr,
+                    "%sNo dylib-ordinal found when parsing %s bind-opcodes\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::NoSegmentIndex:
+            fprintf(stderr,
+                    "%sNo segment-index found when parsing %s bind-opcodes\n",
+                    Prefix,
+                    BindKindString);
+            break;
+        case MachO::BindOpcodeParseError::NoWriteKind:
+            fprintf(stderr,
+                    "%sNo write-type found when parsing %s bind-opcodes\n",
+                    Prefix,
+                    BindKindString);
+            break;
+    }
+}
+
 auto main(const int argc, const char *const argv[]) noexcept -> int {
     if (argc < 2) {
         fprintf(stderr, "Help Menu:\n");
@@ -92,7 +214,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
     }
 
     auto Operation = OperationInfo();
-    auto FileOptions = Operations::Base::HandleFileOptions();
+    auto FileOptions = Operations::HandleFileOptions();
 
     if (OperationString == "-h" || OperationString == "--header") {
         auto Options = Operations::PrintHeader::Options();
@@ -115,7 +237,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintHeader>(
                 new Operations::PrintHeader(stdout, Options));
-    } else if (OperationString == "--id") {
+    } else if (OperationString == "-id" || OperationString == "--identity") {
         auto Options = Operations::PrintId::Options();
         auto Path = std::string();
 
@@ -186,7 +308,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintLibraries>(
                 new Operations::PrintLibraries(stdout, Options));
-    } else if (OperationString == "--archs") {
+    } else if (OperationString == "--list-archs") {
         auto Options = Operations::PrintArchs::Options();
         for (; I != argc; I++) {
             const auto Arg = std::string_view(argv[I]);
@@ -780,7 +902,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintProgramTrie>(
                 new Operations::PrintProgramTrie(stdout, Options));
-    } else if (OperationString == "--image-list") {
+    } else if (OperationString == "--list-images") {
         auto Options = Operations::PrintImageList::Options();
         auto Path = std::string();
 
@@ -845,12 +967,12 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
 
     for (I++; I != argc; I++) {
         const auto Arg = std::string_view(argv[I]);
-        if (Arg == "--arch-index") {
+        if (Arg == "-arch") {
             I++;
             if (I == argc) {
                 fprintf(stderr,
                         "Option %s expects an index to an architecture.\n"
-                        "Use option --archs to see a list of available "
+                        "Use option --list-archs to see a list of available "
                         "architectures\n",
                         Arg.data());
                 return 1;
@@ -867,13 +989,13 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             }
 
             FileOptions.ArchIndex = ArchIndexOpt.value();
-        } else if (Arg == "--image-index") {
+        } else if (Arg == "-image") {
             I++;
             if (I == argc) {
                 fprintf(stderr,
                         "Option %s expects an index to an image.\n"
-                        "Use option --images to see a list of available "
-                        "architectures\n",
+                        "Use option --list-images to see a list of available "
+                        "images\n",
                         Arg.data());
                 return 1;
             }
@@ -889,37 +1011,89 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             }
 
             FileOptions.ImageIndex = ImageIndexOpt.value();
+        } else if (Arg == "-subcache") {
+            if (I + 2 >= argc) {
+                fprintf(stderr,
+                        "Option %s expects an file-suffix and a path to a "
+                        "sub-cache.\n"
+                        "Use option --list-subcache-suffixes to see a list of "
+                        "file-suffixes expected for the associated dyld "
+                        "shared-cache\n",
+                        Arg.data());
+                return 1;
+            }
+
+            const auto FileSuffix = std::string(argv[I + 1]);
+            if (FileSuffix.front() == '-') {
+                fprintf(stderr,
+                        "Expected path to a file, got option %s instead\n",
+                        PathArg.data());
+                return 1;
+            }
+
+            if (FileSuffix.length() >
+                    sizeof(DyldSharedCache::SubCacheEntry::FileSuffix))
+            {
+                fprintf(stderr,
+                        "File-suffix %sis too long, maximum length is %zu\n",
+                        FileSuffix.c_str(),
+                        sizeof(DyldSharedCache::SubCacheEntry::FileSuffix));
+                return 1;
+            }
+
+            const auto PathArg = std::string_view(argv[I + 2]);
+            if (PathArg.front() == '-') {
+                fprintf(stderr,
+                        "Expected path to a file, got option %s instead\n",
+                        PathArg.data());
+                return 1;
+            }
+
+            auto SubCacheProvidedPathInfo =
+                Objects::DyldSharedCache::SubCacheProvidedPathInfo{
+                    .Path = std::filesystem::absolute(PathArg),
+                    .ReturnOnSubCacheError = true,
+                };
+
+            FileOptions.SubCacheProvidedPathMap.emplace(
+                FileSuffix, std::move(SubCacheProvidedPathInfo));
         } else {
             fprintf(stderr, "Unrecognized option: \"%s\"\n", Arg.data());
             return 1;
         }
     }
 
-    const auto Result = Operation.Op->runAndHandleFile(FileOptions);
+    const auto Result =
+        Operations::RunAndHandleFile(*Operation.Op, FileOptions);
+
     assert(!Result.isUnsupportedError() &&
            "Internal Error: Operation is unsupported for object, but "
            "marked as supported in supportsObjectKind()");
 
-    switch (Operation.Kind) {
+    switch (Result.Kind) {
         case Operations::Kind::PrintHeader: {
-            switch (Operations::PrintHeader::RunError(Result.Error)) {
-                case Operations::PrintHeader::RunError::None:
+            using RunResult = Operations::PrintHeader::RunResult;
+            switch (Result.PrintHeaderResult.Error) {
+                case RunResult::Error::None:
                     break;
             }
 
             break;
         }
         case Operations::Kind::PrintId: {
-            switch (Operations::PrintId::RunError(Result.Error)) {
-                case Operations::PrintId::RunError::None:
+            using RunResult = Operations::PrintId::RunResult;
+            switch (Result.PrintIdResult.Error) {
+                case RunResult::Error::None:
                     break;
-                case Operations::PrintId::RunError::NotADylib:
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
+                case RunResult::Error::NotADylib:
                     fputs("Id string not available - not a dylib\n", stderr);
                     return 1;
-                case Operations::PrintId::RunError::BadIdString:
+                case RunResult::Error::BadIdString:
                     fputs("Id String is malformed\n", stderr);
                     return 1;
-                case Operations::PrintId::RunError::IdNotFound:
+                case RunResult::Error::IdNotFound:
                     fputs("Id String not found\n", stderr);
                     return 1;
             }
@@ -927,51 +1101,66 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             break;
         }
         case Operations::Kind::PrintLoadCommands: {
-            switch (Operations::PrintLoadCommands::RunError(Result.Error)) {
-                case Operations::PrintLoadCommands::RunError::None:
+            using RunResult = Operations::PrintLoadCommands::RunResult;
+            switch (Result.PrintLoadCommandsResult.Error) {
+                case RunResult::Error::None:
                     break;
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
+                case RunResult::Error::NoLoadCommands:
+                    fprintf(stderr,
+                            "File does not contain any load commands\n");
+                    return 1;
             }
 
             break;
         }
         case Operations::Kind::PrintLibraries: {
-            switch (Operations::PrintLibraries::RunError(Result.Error)) {
-                case Operations::PrintLibraries::RunError::None:
+            using RunResult = Operations::PrintLibraries::RunResult;
+            switch (Result.PrintLibrariesResult.Error) {
+                case RunResult::Error::None:
                     break;
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
             }
 
             break;
         }
         case Operations::Kind::PrintArchs: {
-            switch (Operations::PrintArchs::RunError(Result.Error)) {
-                case Operations::PrintArchs::RunError::None:
+            using RunResult = Operations::PrintArchs::RunResult;
+            switch (Result.PrintArchsResult.Error) {
+                case RunResult::Error::None:
                     break;
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
             }
 
             break;
         }
         case Operations::Kind::PrintCStringSection: {
-            switch (Operations::PrintCStringSection::RunError(Result.Error)) {
-                using RunError = Operations::PrintCStringSection::RunError;
-                case RunError::None:
+            using RunResult = Operations::PrintCStringSection::RunResult;
+            switch (Result.PrintCStringSectionResult.Error) {
+                case RunResult::Error::None:
                     break;
-                case RunError::EmptySectionName:
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
+                case RunResult::Error::EmptySectionName:
                     assert(false && "Internal Error: Empty Section Name");
-                case RunError::SectionNotFound:
+                case RunResult::Error::SectionNotFound:
                     fputs("Provided section was not found\n"
                           "This may be because found sections were in a "
                           "protected segment\n",
                           stderr);
                     return 1;
-                case RunError::NotCStringSection:
+                case RunResult::Error::NotCStringSection:
                     fputs("Provided section is not a c-string section\n",
                           stderr);
                     return 1;
-                case RunError::HasNoStrings:
+                case RunResult::Error::HasNoStrings:
                     fputs("Provided section has no (printable) c-strings\n",
                           stderr);
                     return 1;
-                case RunError::ProtectedSegment:
+                case RunResult::Error::ProtectedSegment:
                     fputs("Provided section is in a protected segment\n",
                           stderr);
                     break;
@@ -980,191 +1169,257 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             break;
         }
         case Operations::Kind::PrintSymbolPtrSection: {
-            switch (Operations::PrintSymbolPtrSection::RunError(Result.Error)) {
-                using RunError = Operations::PrintSymbolPtrSection::RunError;
-                case RunError::None:
+            using RunResult = Operations::PrintSymbolPtrSection::RunResult;
+            switch (Result.PrintSymbolPtrSectionResult.Error) {
+                case RunResult::Error::None:
                     break;
-                case RunError::EmptySectionName:
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
+                case RunResult::Error::EmptySectionName:
                     assert(false && "Internal Error: Empty Section Name");
-                case RunError::SectionNotFound:
+                case RunResult::Error::SectionNotFound:
                     fputs("Provided section was not found\n"
                           "This may be because found sections were in a "
                           "protected segment\n",
                           stderr);
                     return 1;
-                case RunError::NotSymbolPointerSection:
+                case RunResult::Error::NotSymbolPointerSection:
                     fputs("Provided section is not a symbol pointer section\n",
                           stderr);
                     return 1;
-                case RunError::ProtectedSegment:
+                case RunResult::Error::ProtectedSegment:
                     fputs("Provided section is in a protected segment\n",
                           stderr);
                     return 1;
-                case RunError::InvalidSectionRange:
+                case RunResult::Error::InvalidSectionRange:
                     fputs("Provided section has an invalid file-range\n",
                           stderr);
                     return 1;
-                case RunError::SymTabNotFound:
+                case RunResult::Error::SymTabNotFound:
                     fputs("Couldn't find symtab_command\n", stderr);
                     return 1;
-                case RunError::DynamicSymTabNotFound:
+                case RunResult::Error::DynamicSymTabNotFound:
                     fputs("Couldn't find dysymtab_command\n", stderr);
                     return 1;
-                case RunError::MultipleSymTabCommands:
+                case RunResult::Error::MultipleSymTabCommands:
                     fputs("Found multiple symtab_commands\n", stderr);
                     return 1;
-                case RunError::MultipleDynamicSymTabCommands:
+                case RunResult::Error::MultipleDynamicSymTabCommands:
                     fputs("Found multiple dysymtab_commands\n", stderr);
                     return 1;
-                case RunError::IndexListOutOfBounds:
+                case RunResult::Error::IndexListOutOfBounds:
                     fputs("Index-List is out-of-bounds of mach-o\n", stderr);
                     return 1;
-                case RunError::IndexOutOfBounds:
+                case RunResult::Error::IndexOutOfBounds:
                     fputs("Index is out-of-bounds of mach-o\n", stderr);
                     return 1;
-                case RunError::SymbolTableOutOfBounds:
+                case RunResult::Error::SymbolTableOutOfBounds:
                     fputs("Symbol-Table is out-of-bounds of mach-o\n", stderr);
                     return 1;
-                case RunError::StringTableOutOfBounds:
+                case RunResult::Error::StringTableOutOfBounds:
                     fputs("String-Table is out-of-bounds of mach-o\n", stderr);
                     return 1;
                 }
 
             break;
         }
-        case Operations::Kind::PrintExportTrie:
-            switch (Operations::PrintExportTrie::RunError(Result.Error)) {
-                using RunError = Operations::PrintExportTrie::RunError;
-
-                case RunError::None:
+        case Operations::Kind::PrintExportTrie: {
+            using RunResult = Operations::PrintExportTrie::RunResult;
+            switch (Result.PrintExportTrieResult.Error) {
+                case RunResult::Error::None:
                     break;
-                case RunError::MultipleExportTries:
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
+                case RunResult::Error::MultipleExportTries:
                     fputs("Multiple different export-tries found\n", stderr);
                     return 1;
-                case RunError::NoExportTrieFound:
+                case RunResult::Error::NoExportTrieFound:
                     fputs("Failed to find export-trie\n", stderr);
                     return 1;
-                case RunError::ExportTrieOutOfBounds:
+                case RunResult::Error::ExportTrieOutOfBounds:
                     fputs("Export-trie is out-of-bounds\n", stderr);
                     return 1;
-                case RunError::NoExports:
+                case RunResult::Error::NoExports:
                     fputs("Export-trie has no exported symbols\n", stderr);
                     return 1;
             }
 
             break;
-        case Operations::Kind::PrintBindOpcodeList:
-            switch (Operations::PrintBindOpcodeList::RunError(Result.Error)) {
-                case Operations::PrintBindOpcodeList::RunError::None:
+        }
+        case Operations::Kind::PrintBindOpcodeList: {
+            using RunResult = Operations::PrintBindOpcodeList::RunResult;
+            switch (Result.PrintBindOpcodeListResult.Error) {
+                case RunResult::Error::None:
                     break;
-                case Operations::PrintBindOpcodeList::RunError::NoDyldInfo:
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
+                case RunResult::Error::NoDyldInfo:
                     fputs("No dyld-info load command was found\n", stderr);
                     return 1;
-                case Operations::PrintBindOpcodeList::RunError::NoOpcodes:
+                case RunResult::Error::NoOpcodes:
                     fputs("No bind-opcodes found within table\n", stderr);
                     return 1;
             }
 
             break;
-        case Operations::Kind::PrintBindActionList:
-            switch (Operations::PrintBindActionList::RunError(Result.Error)) {
-                case Operations::PrintBindActionList::RunError::None:
+        }
+        case Operations::Kind::PrintBindActionList: {
+            using RunResult = Operations::PrintBindActionList::RunResult;
+            switch (Result.PrintBindActionListResult.Error) {
+                case RunResult::Error::None:
                     break;
-                case Operations::PrintBindActionList::RunError::NoDyldInfo:
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
+                case RunResult::Error::NoDyldInfo:
                     fputs("No dyld-info load command was found\n", stderr);
                     return 1;
-                case Operations::PrintBindActionList::RunError::NoActions:
+                case RunResult::Error::NoActions:
                     fputs("No bind-actions found within table\n", stderr);
                     return 1;
+                case RunResult::Error::BindOpcodeParseError: {
+                    const auto &ParseResult =
+                        Result.PrintBindActionListResult.BindOpcodeParseResult;
+
+                    fputs("Error parsing bind-opcode:\n", stderr);
+                    PrintBindOpcodeParseError(ParseResult.BindKind,
+                                              ParseResult.ParseResult,
+                                              "\t");
+                    break;
+                }
             }
 
             break;
-        case Operations::Kind::PrintBindSymbolList:
-            switch (Operations::PrintBindSymbolList::RunError(Result.Error)) {
-                case Operations::PrintBindSymbolList::RunError::None:
+        }
+        case Operations::Kind::PrintBindSymbolList: {
+            using RunResult = Operations::PrintBindSymbolList::RunResult;
+            switch (Result.PrintBindSymbolListResult.Error) {
+                case RunResult::Error::None:
                     break;
-                case Operations::PrintBindSymbolList::RunError::NoDyldInfo:
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
+                case RunResult::Error::NoDyldInfo:
                     fputs("No dyld-info load command was found\n", stderr);
                     return 1;
-                case Operations::PrintBindSymbolList::RunError::NoSymbols:
+                case RunResult::Error::NoSymbols:
                     fputs("No bind-symbols found within table\n", stderr);
                     return 1;
+                case RunResult::Error::BindOpcodeParseError: {
+                    const auto &ParseResult =
+                        Result.PrintBindSymbolListResult.BindOpcodeParseResult;
+
+                    fputs("Error parsing bind-opcode:\n", stderr);
+                    PrintBindOpcodeParseError(ParseResult.BindKind,
+                                              ParseResult.ParseResult,
+                                              "\t");
+                    break;
+                }
             }
 
             break;
-        case Operations::Kind::PrintRebaseOpcodeList:
-            switch (Operations::PrintRebaseOpcodeList::RunError(Result.Error)) {
-                case Operations::PrintRebaseOpcodeList::RunError::None:
+        }
+        case Operations::Kind::PrintRebaseOpcodeList: {
+            using RunResult = Operations::PrintRebaseOpcodeList::RunResult;
+            switch (Result.PrintRebaseOpcodeListResult.Error) {
+                case RunResult::Error::None:
                     break;
-                case Operations::PrintRebaseOpcodeList::RunError::NoDyldInfo:
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
+                case RunResult::Error::NoDyldInfo:
                     fputs("No dyld-info load command was found\n", stderr);
                     return 1;
-                case Operations::PrintRebaseOpcodeList::RunError::NoOpcodes:
+                case RunResult::Error::NoOpcodes:
                     fputs("No rebase-opcodes found within table\n", stderr);
                     return 1;
             }
 
             break;
-        case Operations::Kind::PrintRebaseActionList:
-            switch (Operations::PrintRebaseActionList::RunError(Result.Error)) {
-                case Operations::PrintRebaseActionList::RunError::None:
+        }
+        case Operations::Kind::PrintRebaseActionList: {
+            using RunResult = Operations::PrintRebaseActionList::RunResult;
+            switch (Result.PrintRebaseActionListResult.Error) {
+                case RunResult::Error::None:
                     break;
-                case Operations::PrintRebaseActionList::RunError::NoDyldInfo:
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
+                case RunResult::Error::NoDyldInfo:
                     fputs("No dyld-info load command was found\n", stderr);
                     return 1;
-                case Operations::PrintRebaseActionList::RunError::NoActions:
+                case RunResult::Error::NoActions:
                     fputs("No rebase-actions found within table\n", stderr);
                     return 1;
             }
 
             break;
-        case Operations::Kind::PrintObjcClassList:
-            switch (Operations::PrintObjcClassList::RunError(Result.Error)) {
-                using RunError = Operations::PrintObjcClassList::RunError;
-                case RunError::None:
+        }
+        case Operations::Kind::PrintObjcClassList: {
+            using RunResult = Operations::PrintObjcClassList::RunResult;
+            switch (Result.PrintObjcClassListResult.Error) {
+                case RunResult::Error::None:
                     break;
-                case RunError::NoDyldInfo:
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
+                case RunResult::Error::NoDyldInfo:
                     fputs("No dyld-info load command was found\n", stderr);
                     return 1;
-                case RunError::NoObjcData:
+                case RunResult::Error::NoObjcData:
                     fputs("No objc class-list data was found\n", stderr);
                     return 1;
-                case RunError::UnalignedSection:
+                case RunResult::Error::UnalignedSection:
                     fputs("Objc class-list section is mis-aligned\n", stderr);
                     return 1;
-                case RunError::ObjcDataOutOfBounds:
+                case RunResult::Error::ObjcDataOutOfBounds:
                     fputs("Objc class-list data is out-of-bounds of file\n",
                           stderr);
                     return 1;
+                case RunResult::Error::BindOpcodeParseError: {
+                    const auto &ParseResult =
+                        Result.PrintObjcClassListResult;
+
+                    PrintBindOpcodeParseError(
+                        ParseResult.BindOpcodeParseResult.BindKind,
+                        ParseResult.BindOpcodeParseResult.ParseResult,
+                        "\t");
+
+                    break;
+                }
             }
 
             break;
-        case Operations::Kind::PrintProgramTrie:
-            switch (Operations::PrintProgramTrie::RunError(Result.Error)) {
-                case Operations::PrintProgramTrie::RunError::None:
+        }
+        case Operations::Kind::PrintProgramTrie: {
+            using RunResult = Operations::PrintProgramTrie::RunResult;
+            switch (Result.PrintProgramTrieResult.Error) {
+                case RunResult::Error::None:
                     break;
-                case Operations::PrintProgramTrie::RunError::NoProgramTrie:
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
+                case RunResult::Error::NoProgramTrie:
                     fputs("File has no program-trie\n", stderr);
                     return 1;
-                case Operations::PrintProgramTrie::RunError::OutOfBounds:
+                case RunResult::Error::OutOfBounds:
                     fputs("Program-trie is out-of-bounds of file\n", stderr);
                     return 1;
-                case Operations::PrintProgramTrie::RunError::NoExports:
+                case RunResult::Error::NoExports:
                     fputs("Program-trie has no exported nodes\n", stderr);
                     return 1;
             }
 
             break;
-        case Operations::Kind::PrintImageList:
-            switch (Operations::PrintImageList::RunError(Result.Error)) {
-                case Operations::PrintImageList::RunError::None:
+        }
+        case Operations::Kind::PrintImageList: {
+            using RunResult = Operations::PrintImageList::RunResult;
+            switch (Result.PrintImageListResult.Error) {
+                case RunResult::Error::None:
                     break;
-                case Operations::PrintImageList::RunError::NoImages:
+                case RunResult::Error::Unsupported:
+                    assert(0 && "got unexpected unsupported error");
+                case RunResult::Error::NoImages:
                     fputs("File has no images\n", stderr);
                     return 1;
             }
 
             break;
+        }
     }
 
     return 0;

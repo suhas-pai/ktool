@@ -32,6 +32,8 @@ namespace Objects {
             None,
 
             InvalidAddress,
+            FailedToOpenDscSubCache,
+
             WrongFormat,
             WrongCpuInfo,
 
@@ -44,31 +46,54 @@ namespace Objects {
             OutOfBoundsSegment,
         };
 
+        struct Error {
+            OpenError Kind;
+
+            #pragma clang diagnostic push
+            #pragma clang diagnostic ignored "-Wnested-anon-types"
+
+            union {
+                struct {
+                    uint64_t Address;
+                } InvalidAddress;
+            };
+
+            #pragma clang diagnostic pop
+            explicit Error(const OpenError Kind) noexcept : Kind(Kind) {}
+
+            static inline auto invalidAddress(const uint64_t Address) noexcept {
+                auto Result = Error(OpenError::InvalidAddress);
+                Result.InvalidAddress.Address = Address;
+
+                return Result;
+            }
+        };
+
         ~DscImage() noexcept override {}
 
         static auto
         Open(const DyldSharedCache &Dsc,
              const ::DyldSharedCache::ImageInfo &ImageInfo) noexcept
-             -> ADT::PointerOrError<DscImage, OpenError>;
+                -> std::expected<DscImage *, Error>;
 
         [[nodiscard]] constexpr auto &dsc() const noexcept {
-            return Dsc;
+            return this->Dsc;
         }
 
-        [[nodiscard]] constexpr auto info() const noexcept {
-            return ImageInfo;
+        [[nodiscard]] constexpr auto &info() const noexcept {
+            return this->ImageInfo;
         }
 
         [[nodiscard]] constexpr auto address() const noexcept {
-            return info().Address;
+            return this->info().Address;
         }
 
         [[nodiscard]] inline auto path() const noexcept {
-            return Map.string(ImageInfo.PathFileOffset);
+            return this->Map.string(ImageInfo.PathFileOffset);
         }
 
         [[nodiscard]] constexpr auto dscMap() const noexcept {
-            return DscInfo.map();
+            return this->DscInfo.map();
         }
 
         [[nodiscard]]
@@ -81,7 +106,8 @@ namespace Objects {
             -> std::optional<
                 std::pair<DyldSharedSingleCacheInfo, ADT::MemoryMap>>
         {
-            return dsc().getMapForAddrRange<T, Size>(AddrRange, InsideMappings);
+            return this->dsc().getMapForAddrRange<T, Size>(AddrRange,
+                                                           InsideMappings);
         }
 
         template <typename T, uint64_t Size = sizeof(T)>
@@ -90,7 +116,8 @@ namespace Objects {
                            const bool InsideMappings = true) const noexcept
             -> T *
         {
-            return dsc().getForFileRange<T, Size>(FileRange, InsideMappings);
+            return this->dsc().getForFileRange<T, Size>(FileRange,
+                                                        InsideMappings);
         }
 
         template <typename T = uint8_t, uint64_t Size = sizeof(T)>
@@ -102,10 +129,10 @@ namespace Objects {
             -> std::optional<std::pair<const DyldSharedSingleCacheInfo &, T *>>
         {
             return
-                dsc().getPtrForAddress<T, Size>(Address,
-                                                InsideMappings,
-                                                TotalAvailSize,
-                                                FileOffsetOut);
+                this->dsc().getPtrForAddress<T, Size>(Address,
+                                                      InsideMappings,
+                                                      TotalAvailSize,
+                                                      FileOffsetOut);
         }
     };
 }

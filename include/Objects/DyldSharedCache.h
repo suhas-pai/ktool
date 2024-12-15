@@ -4,7 +4,12 @@
  */
 
 #pragma once
+
+#include <filesystem>
+#include <expected>
 #include <unordered_map>
+
+#include "ADT/FileMap.h"
 
 #include "DyldSharedCache/CacheInfo.h"
 #include "DyldSharedCache/Headers.h"
@@ -41,60 +46,141 @@ namespace Objects {
             MappingsOutOfBounds,
 
             FirstMappingFileOffNotZero,
+
+            SubCacheFileDoesNotExist,
             FailedToOpenSubCaches,
 
+            SubCacheListIsInvalid,
             SubCacheHasDiffCpuKind,
             SubCacheHasDiffVersion,
 
             RecursiveSubCache,
         };
 
+        struct Error {
+            OpenError Kind;
+
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wnested-anon-types"
+            union {
+                struct {
+                } SubCacheFileDoesNotExist;
+            };
+        #pragma GCC diagnostic pop
+
+            explicit Error() noexcept = default;
+            explicit Error(const OpenError Kind) noexcept : Kind(Kind) {}
+        };
+
+        struct SubCacheProvidedPathInfo {
+            std::filesystem::path Path;
+            bool ReturnOnSubCacheError : 1 = false;
+        };
+
         using SingleCacheInfo = DyldSharedSingleCacheInfo;
+        using SubCacheProvidedPathMap =
+            std::unordered_map<std::string, SubCacheProvidedPathInfo>;
     protected:
         SingleCacheInfo Info;
         CpuKind CpuKind;
 
         struct SubCacheInfo {
             ADT::FileMap *FileMap;
+            ADT::FileMap::Prot Prot;
+
+            std::filesystem::path Path;
             SingleCacheInfo Info;
+
+            Error Error;
+
+            explicit
+            SubCacheInfo(const std::filesystem::path &Path,
+                         const SingleCacheInfo &Info) noexcept
+            : FileMap(nullptr), Path(Path), Info(Info) {}
 
             explicit
             SubCacheInfo(ADT::FileMap *const FileMap,
+                         const std::filesystem::path &Path,
                          const SingleCacheInfo &Info) noexcept
-            : FileMap(FileMap), Info(Info) {}
+            : FileMap(FileMap), Path(Path), Info(Info) {}
+
+            explicit
+            SubCacheInfo(ADT::FileMap *const FileMap,
+                         std::filesystem::path &&Path,
+                         const SingleCacheInfo &Info) noexcept
+            : FileMap(FileMap), Path(std::move(Path)), Info(Info) {}
+
+            inline ~SubCacheInfo() noexcept {
+                if (FileMap != nullptr) {
+                    delete FileMap;
+                }
+            }
         };
 
-        std::string Path;
-        std::unordered_map<std::string_view, SubCacheInfo> SubCacheList;
+        std::filesystem::path Path;
+        mutable std::unordered_map<std::string_view, SubCacheInfo> SubCacheList;
 
-        auto CollectSubCaches(ADT::FileMap::Prot Prot) noexcept -> OpenError;
-        auto VerifySubCacheMap(const ADT::MemoryMap &Map) noexcept -> OpenError;
+        auto
+        FillSubCacheInfo(SubCacheInfo &Info,
+                         const std::filesystem::path &Path,
+                         ADT::FileMap::Prot Prot) noexcept
+            -> Error;
+
+        auto
+        CollectSubCaches(
+            ADT::FileMap::Prot Prot,
+            const SubCacheProvidedPathMap &SubCachePathMap) noexcept
+                -> Error;
+
+        auto OpenSubCacheFileMap(const SubCacheInfo &Info) const noexcept
+            -> Error;
+        auto VerifySubCacheMap(const ADT::MemoryMap &Map) const noexcept
+            -> Error;
 
         explicit
-        DyldSharedCache(const ADT::MemoryMap &Map,
-                        const enum CpuKind CpuKind,
-                        const std::string_view Path) noexcept
-        : Base(Kind::DyldSharedCache), Info(Map, /*VmOffset=*/0),
+        DyldSharedCache(
+            const ADT::MemoryMap &Map,
+            const enum CpuKind CpuKind,
+            const std::filesystem::path &Path) noexcept
+        : Base(Kind::DyldSharedCache), Info(Map, /*VmOffset=*/0, UINT64_MAX),
           CpuKind(CpuKind), Path(Path) {}
+
+        [[nodiscard]]
+        auto
+        subCacheHasAddress(const SubCacheInfo &SubCacheInfo,
+                           const uint64_t Address) const
+        {
+            const auto &SubCache = SubCacheInfo.Info;
+            if (Address < SubCache.FirstAddr) {
+                return false;
+            }
+
+            if (Address - SubCache.FirstAddr >= SubCache.MaxVmSize) {
+                return false;
+            }
+
+            return true;
+        }
     public:
         static auto
         Open(const ADT::MemoryMap &Map,
-             std::string_view Path,
-             ADT::FileMap::Prot SubCacheProt) noexcept
-                -> ADT::PointerOrError<DyldSharedCache, OpenError>;
+             const std::filesystem::path &Path,
+             ADT::FileMap::Prot SubCacheProt,
+             const SubCacheProvidedPathMap &SubCachePathMap = {}) noexcept
+                -> std::expected<DyldSharedCache *, Error>;
 
         ~DyldSharedCache() noexcept override {}
 
         [[nodiscard]] constexpr auto map() const noexcept {
-            return Info.map();
+            return this->Info.map();
         }
 
         [[nodiscard]] constexpr auto range() const noexcept {
-            return Info.range();
+            return this->Info.range();
         }
 
         [[nodiscard]] constexpr auto cpuKind() const noexcept {
-            return CpuKind;
+            return this->CpuKind;
         }
 
         [[nodiscard]] constexpr auto getMachCpuKindAndSubKind() const noexcept {
@@ -214,57 +300,57 @@ namespace Objects {
         }
 
         [[nodiscard]] inline auto &header() const noexcept {
-            return Info.header();
+            return this->Info.header();
         }
 
-        [[nodiscard]] inline auto isV1() const noexcept {
-            return Info.isV1();
+        [[nodiscard]] inline auto isAtleastV1() const noexcept {
+            return this->Info.isAtleastV1();
         }
 
-        [[nodiscard]] inline auto isV2() const noexcept {
-            return Info.isV2();
+        [[nodiscard]] inline auto isAtleastV2() const noexcept {
+            return this->Info.isAtleastV2();
         }
 
-        [[nodiscard]] inline auto isV3() const noexcept {
-            return Info.isV3();
+        [[nodiscard]] inline auto isAtleastV3() const noexcept {
+            return this->Info.isAtleastV3();
         }
 
-        [[nodiscard]] inline auto isV4() const noexcept {
-            return Info.isV4();
+        [[nodiscard]] inline auto isAtleastV4() const noexcept {
+            return this->Info.isAtleastV4();
         }
 
-        [[nodiscard]] inline auto isV5() const noexcept {
-            return Info.isV5();
+        [[nodiscard]] inline auto isAtleastV5() const noexcept {
+            return this->Info.isAtleastV5();
         }
 
-        [[nodiscard]] inline auto isV6() const noexcept {
-            return Info.isV6();
+        [[nodiscard]] inline auto isAtleastV6() const noexcept {
+            return this->Info.isAtleastV6();
         }
 
-        [[nodiscard]] inline auto isV7() const noexcept {
-            return Info.isV7();
+        [[nodiscard]] inline auto isAtleastV7() const noexcept {
+            return this->Info.isAtleastV7();
         }
 
-        [[nodiscard]] inline auto isV8() const noexcept {
-            return Info.isV8();
+        [[nodiscard]] inline auto isAtleastV8() const noexcept {
+            return this->Info.isAtleastV8();
         }
 
-        [[nodiscard]] inline auto isV9() const noexcept {
-            return Info.isV9();
+        [[nodiscard]] inline auto isAtleastV9() const noexcept {
+            return this->Info.isAtleastV9();
         }
 
         [[nodiscard]] inline auto getVersion() const noexcept {
-            return Info.getVersion();
+            return this->Info.getVersion();
         }
 
         [[nodiscard]]
         inline auto headerV0() const noexcept -> ::DyldSharedCache::HeaderV0 & {
-            return Info.headerV0();
+            return this->Info.headerV0();
         }
 
         [[nodiscard]]
         inline auto headerV1() const noexcept -> ::DyldSharedCache::HeaderV1 & {
-            return Info.headerV1();
+            return this->Info.headerV1();
         }
 
         [[nodiscard]]
@@ -274,82 +360,94 @@ namespace Objects {
 
         [[nodiscard]]
         inline auto headerV3() const noexcept -> ::DyldSharedCache::HeaderV3 & {
-            return Info.headerV3();
+            return this->Info.headerV3();
         }
 
         [[nodiscard]]
         inline auto headerV4() const noexcept -> ::DyldSharedCache::HeaderV4 & {
-            return Info.headerV4();
+            return this->Info.headerV4();
         }
 
         [[nodiscard]]
         inline auto headerV5() const noexcept -> ::DyldSharedCache::HeaderV5 & {
-            return Info.headerV5();
+            return this->Info.headerV5();
         }
 
         [[nodiscard]]
         inline auto headerV6() const noexcept -> ::DyldSharedCache::HeaderV6 & {
-            return Info.headerV6();
+            return this->Info.headerV6();
         }
 
         [[nodiscard]]
         inline auto headerV7() const noexcept -> ::DyldSharedCache::HeaderV7 & {
-            return Info.headerV7();
+            return this->Info.headerV7();
         }
 
         [[nodiscard]]
         inline auto headerV8() const noexcept -> ::DyldSharedCache::HeaderV8 & {
-            return Info.headerV8();
+            return this->Info.headerV8();
         }
 
         [[nodiscard]]
         inline auto headerV9() const noexcept -> ::DyldSharedCache::HeaderV9 & {
-            return Info.headerV9();
+            return this->Info.headerV9();
         }
 
         [[nodiscard]] inline auto mappingCount() const noexcept {
-            return Info.mappingCount();
+            return this->Info.mappingCount();
         }
 
         [[nodiscard]] inline auto imageCount() const noexcept {
-            return Info.imageCount();
+            return this->Info.imageCount();
         }
 
         [[nodiscard]] inline auto mappingInfoList() const noexcept {
-            return Info.mappingInfoList();
+            return this->Info.mappingInfoList();
         }
 
         [[nodiscard]] inline auto imageInfoList() const noexcept {
-            return Info.imageInfoList();
+            return this->Info.imageInfoList();
         }
 
         template <typename T = uint8_t, uint64_t Size = sizeof(T)>
         [[nodiscard]] inline auto
         getMapForAddrRange(const ADT::Range &AddrRange,
                            const bool InsideMappings = true) const noexcept
-            -> std::optional<std::pair<SingleCacheInfo, ADT::MemoryMap>>
+            -> std::expected<std::pair<SingleCacheInfo, ADT::MemoryMap>,
+                             Error>
         {
-            const uint64_t BaseAddr = AddrRange.begin();
+            const uint64_t BaseAddr = AddrRange.front();
             if (AddrRange.empty() || BaseAddr == 0) {
-                return std::nullopt;
+                return std::unexpected(Error(OpenError::None));
             }
 
             if (const auto Result =
-                    Info.getMapForAddrRange(AddrRange, InsideMappings))
+                    this->Info.getMapForAddrRange(AddrRange, InsideMappings))
             {
-                return Result;
+                return Result.value();
             }
 
-            for (const auto &SubCachePair : SubCacheList) {
-                const auto &SubCache = SubCachePair.second.Info;
-                if (const auto Result =
-                        SubCache.getMapForAddrRange(AddrRange, InsideMappings))
+            for (const auto &[Name, SubCache] : this->SubCacheList) {
+                if (!subCacheHasAddress(SubCache, AddrRange.front())) {
+                    continue;
+                }
+
+                if (const auto Error = OpenSubCacheFileMap(SubCache);
+                    Error.Kind != OpenError::None)
                 {
-                    return Result;
+                    return std::unexpected(Error);
+                }
+
+                const auto &SubCacheInfo = SubCache.Info;
+                if (const auto Result =
+                        SubCacheInfo.getMapForAddrRange(AddrRange,
+                                                        InsideMappings))
+                {
+                    return Result.value();
                 }
             }
 
-            return std::nullopt;
+            return std::unexpected(Error(OpenError::None));
         }
 
         template <typename T, uint64_t Size = sizeof(T)>
@@ -357,12 +455,12 @@ namespace Objects {
         getForFileRange(ADT::Range FileRange,
                         const bool InsideMappings = true) const noexcept -> T *
         {
-            const uint64_t BaseFile = FileRange.begin();
+            const uint64_t BaseFile = FileRange.front();
             if (FileRange.empty() || BaseFile == 0) {
                 return nullptr;
             }
 
-            if (!range().contains(FileRange)) {
+            if (!this->range().contains(FileRange)) {
                 return nullptr;
             }
 
@@ -370,15 +468,16 @@ namespace Objects {
                 for (const auto &Mapping : mappingInfoList()) {
                     if (Mapping.fileRange().contains(FileRange)) {
                         return
-                            map().get<T, /*Verify=*/false, Size>(
-                                FileRange.begin());
+                            this->map().get<T, /*Verify=*/false, Size>(
+                                FileRange.front());
                     }
                 }
 
                 return nullptr;
             }
 
-            return map().get<T, /*Verify=*/false, Size>(FileRange.begin());
+            return this->map().get<T, /*Verify=*/false, Size>(
+                FileRange.front());
         }
 
         template <typename T = uint8_t, uint64_t Size = sizeof(T)>
@@ -387,19 +486,29 @@ namespace Objects {
                          const bool InsideMappings = true,
                          uint64_t *const TotalAvailSize = nullptr,
                          uint64_t *const FileOffsetOut = nullptr) const noexcept
-            -> std::optional<std::pair<SingleCacheInfo, T *>>
+            -> std::expected<std::pair<SingleCacheInfo, T *>, Error>
         {
             if (const auto Result =
-                    Info.getPtrForAddress<T, Size>(Address,
-                                                   InsideMappings,
-                                                   TotalAvailSize,
-                                                   FileOffsetOut))
+                    this->Info.getPtrForAddress<T, Size>(Address,
+                                                         InsideMappings,
+                                                         TotalAvailSize,
+                                                         FileOffsetOut))
             {
                 return std::make_pair(Info, Result);
             }
 
-            for (const auto &SubCachePair : SubCacheList) {
-                const auto &SubCache = SubCachePair.second.Info;
+            for (const auto &[Name, SubCacheInfo] : this->SubCacheList) {
+                if (!this->subCacheHasAddress(SubCacheInfo, Address)) {
+                    continue;
+                }
+
+                if (const auto Error = this->OpenSubCacheFileMap(SubCacheInfo);
+                    Error.Kind != OpenError::None)
+                {
+                    return std::unexpected(Error);
+                }
+
+                const auto &SubCache = SubCacheInfo.Info;
                 if (const auto Result =
                         SubCache.getPtrForAddress<T, Size>(Address,
                                                            InsideMappings,
@@ -410,17 +519,13 @@ namespace Objects {
                 }
             }
 
-            return std::nullopt;
+            return std::unexpected(Error(OpenError::None));
         }
 
         [[nodiscard]] auto subCacheEntryV1InfoList() const noexcept
-            -> std::optional<ADT::List<::DyldSharedCache::SubCacheEntryV1>>;
+            -> std::optional<std::span<::DyldSharedCache::SubCacheEntryV1>>;
 
         [[nodiscard]] auto subCacheEntryInfoList() const noexcept
-            -> std::optional<ADT::List<::DyldSharedCache::SubCacheEntry>>;
-
-        [[nodiscard]]
-        auto getImageObjectAtIndex(uint32_t Index) const noexcept
-            -> Objects::OpenResult;
+            -> std::optional<std::span<::DyldSharedCache::SubCacheEntry>>;
     };
 }

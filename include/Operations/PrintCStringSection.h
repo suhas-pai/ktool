@@ -6,10 +6,7 @@
 //
 
 #pragma once
-
 #include <limits>
-
-#include "ADT/MemoryMap.h"
 
 #include "Objects/MachO.h"
 #include "Base.h"
@@ -28,12 +25,6 @@ namespace Operations {
 
         std::optional<std::string> SegmentName;
         std::string SectionName;
-
-        auto
-        CollectAndPrintCStringList(RunResult &Result,
-                                   const ADT::MemoryMap &Map,
-                                   const Objects::MachO &MachO) const noexcept
-            -> RunResult &;
     public:
         constexpr static auto Kind = Operations::Kind::PrintCStringSection;
 
@@ -45,18 +36,24 @@ namespace Operations {
 
         ~PrintCStringSection() noexcept override {}
 
-        enum class RunError : uint32_t {
-            None,
-            EmptySectionName,
-            SectionNotFound,
-            ProtectedSegment,
-            NotCStringSection,
-            HasNoStrings
+        struct RunResult {
+            enum class Error : uint32_t {
+                None,
+                Unsupported,
+
+                EmptySectionName,
+                SectionNotFound,
+                ProtectedSegment,
+                NotCStringSection,
+                HasNoStrings
+            };
+
+            Error Error = Error::None;
         };
 
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
-        RunResult run(const Objects::Base &Base) const noexcept override;
+        RunResult run(const Objects::Base &Base) const noexcept;
         RunResult run(const Objects::MachO &MachO) const noexcept;
 
         [[nodiscard]] constexpr auto &options() const noexcept {

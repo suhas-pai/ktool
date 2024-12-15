@@ -19,7 +19,7 @@
 namespace Operations {
     PrintExportTrie::PrintExportTrie(FILE *const OutFile,
                                      const struct Options &Options) noexcept
-    : OutFile(OutFile), Opt(Options) {}
+    : Base(Operations::Kind::PrintExportTrie), OutFile(OutFile), Opt(Options) {}
 
     bool
     PrintExportTrie::supportsObjectKind(const Objects::Kind Kind) const noexcept
@@ -150,8 +150,7 @@ namespace Operations {
         if (Options.Verbose) {
             fprintf(OutFile,
                     "%" RIGHTPAD_FMT "s",
-                    RIGHTPAD_FMT_ARGS(
-                        static_cast<int>(STR_LENGTH("Re-Export"))),
+                    PAD_FMT_ARGS(static_cast<int>(STR_LENGTH("Re-Export"))),
                     KindDesc.data());
 
             if (!Export.isReexport()) {
@@ -190,18 +189,17 @@ namespace Operations {
     }
 
     static auto
-    HandleTreeOption(RunResult &Result,
-                     FILE *const OutFile,
+    HandleTreeOption(FILE *const OutFile,
                      MachO::ExportTrieEntryCollection &EntryCollection,
                      const MachO::LibraryList &LibraryList,
                      const bool Is64Bit,
                      const struct PrintExportTrie::Options &Options) noexcept
-        -> RunResult &
+        -> PrintExportTrie::RunResult
     {
-        using RunError = PrintExportTrie::RunError;
+        using RunResult = PrintExportTrie::RunResult;
         if (EntryCollection.empty()) {
             fputs("Provided file has an empty export-trie\n", OutFile);
-            return Result.set(RunError::None);
+            return RunResult();
         }
 
         if (!Options.SectionRequirements.empty()) {
@@ -242,7 +240,7 @@ namespace Operations {
                 fputs("Provided file has no export-trie after filtering with "
                       "provided requirements\n",
                       OutFile);
-                return Result.set(RunError::None);
+                return RunResult();
             }
         }
 
@@ -256,7 +254,7 @@ namespace Operations {
             fprintf(OutFile,
                     "Provided file's export-trie has %" PRIu64 " nodes\n",
                     Count);
-            return Result.set(RunError::None);
+            return RunResult();
         }
 
         if (Options.Sort) {
@@ -294,7 +292,7 @@ namespace Operations {
         };
 
         EntryCollection.printHorizontal(OutFile, Options.TabLength, PrintNode);
-        return Result.set(RunError::None);
+        return RunResult();
     }
 
     static auto
@@ -302,11 +300,11 @@ namespace Operations {
                         MachO::LibraryList &LibraryList,
                         MachO::SegmentList &SegmentList,
                         std::optional<ADT::Range> &ExportTrieRangeOpt,
-                        RunResult &Result,
                         const bool Is64Bit,
                         const bool IsBigEndian) noexcept
+        -> PrintExportTrie::RunResult
     {
-        using RunError = PrintExportTrie::RunError;
+        using RunResult = PrintExportTrie::RunResult;
         for (const auto &LC : MachO.loadCommandsMap()) {
             using Kind = MachO::LoadCommandKind;
             switch (LC.kind(IsBigEndian)) {
@@ -337,7 +335,7 @@ namespace Operations {
 
                     if (ExportTrieRangeOpt.has_value()) {
                         if (DyldInfoTrieRange != ExportTrieRangeOpt.value()) {
-                            return Result.set(RunError::MultipleExportTries);
+                            return RunResult(RunResult::Error::MultipleExportTries);
                         }
 
                         continue;
@@ -353,7 +351,7 @@ namespace Operations {
                     const auto TrieRange = ET.dataRange(IsBigEndian);
                     if (ExportTrieRangeOpt.has_value()) {
                         if (TrieRange != ExportTrieRangeOpt.value()) {
-                            return Result.set(RunError::MultipleExportTries);
+                            return RunResult(RunResult::Error::MultipleExportTries);
                         }
 
                         continue;
@@ -418,20 +416,20 @@ namespace Operations {
             }
         }
 
-        return Result.set(RunError::None);
+        return RunResult();
     }
 
     static auto
-    PrintExportList(RunResult &Result,
-                    FILE *const OutFile,
+    PrintExportList(FILE *const OutFile,
                     const uint64_t BaseAddress,
                     const MachO::ExportTrieMap &ExportTrieMap,
                     const ::MachO::LibraryList &LibraryList,
                     const ::MachO::SegmentList &SegmentList,
                     const PrintExportTrie::Options &Opt,
-                    const bool Is64Bit) noexcept -> RunResult &
+                    const bool Is64Bit) noexcept
+        -> PrintExportTrie::RunResult
     {
-        using RunError = PrintExportTrie::RunError;
+        using RunResult = PrintExportTrie::RunResult;
 
         auto Count = uint64_t();
         auto ExportList = std::vector<ExportInfo>();
@@ -499,14 +497,14 @@ namespace Operations {
         }
 
         if (ExportList.empty()) {
-            return Result.set(RunError::NoExports);
+            return RunResult(RunResult::Error::NoExports);
         }
 
         if (Opt.OnlyCount) {
             fprintf(OutFile,
                     "Provided file's export-trie has %" PRIu64 " nodes\n",
                     Count);
-            return Result.set(RunError::None);
+            return RunResult();
         }
 
         if (Opt.Sort) {
@@ -533,8 +531,8 @@ namespace Operations {
 
             Utils::RightPadSpaces(OutFile,
                                     fprintf(OutFile,
-                                            "Export %" ZEROPAD_FMT PRIu32 ": ",
-                                            ZEROPAD_FMT_ARGS(SizeDigitLength),
+                                            "Export %" LEFTPAD_FMT PRIu32 ": ",
+                                            PAD_FMT_ARGS(SizeDigitLength),
                                             Counter),
                                     RightPadAmt);
 
@@ -564,7 +562,7 @@ namespace Operations {
 
             fprintf(OutFile,
                     "\t%" RIGHTPAD_FMT "s",
-                    RIGHTPAD_FMT_ARGS(static_cast<int>(LongestDescLength)),
+                    PAD_FMT_ARGS(static_cast<int>(LongestDescLength)),
                     KindDesc.data());
 
             const auto RightPad =
@@ -601,7 +599,7 @@ namespace Operations {
             Counter++;
         }
 
-        return Result.set(RunError::None);
+        return RunResult();
     }
 
     auto PrintExportTrie::run(const Objects::MachO &MachO) const noexcept
@@ -610,33 +608,32 @@ namespace Operations {
         const auto IsBigEndian = MachO.isBigEndian();
         const auto Is64Bit = MachO.is64Bit();
 
-        auto Result = RunResult(Objects::Kind::MachO);
         auto ExportTrieRangeOpt = std::optional<ADT::Range>(std::nullopt);
 
         auto LibraryList = MachO::LibraryList();
         auto SegmentList = MachO::SegmentList();
 
-        CollectLoadCommands(MachO,
-                            LibraryList,
-                            SegmentList,
-                            ExportTrieRangeOpt,
-                            Result,
-                            Is64Bit,
-                            IsBigEndian);
+        const auto CollectResult =
+            CollectLoadCommands(MachO,
+                                LibraryList,
+                                SegmentList,
+                                ExportTrieRangeOpt,
+                                Is64Bit,
+                                IsBigEndian);
 
-        if (Result.get<RunError>() != RunError::None) {
-            return Result;
+        if (CollectResult.Error != RunResult::Error::None) {
+            return CollectResult;
         }
 
         if (!ExportTrieRangeOpt.has_value()) {
-            return Result.set(RunError::NoExportTrieFound);
+            return RunResult(RunResult::Error::NoExportTrieFound);
         }
 
         const auto Map = MachO.map();
         const auto &ExportTrieRange = ExportTrieRangeOpt.value();
 
         if (!Map.range().contains(ExportTrieRange)) {
-            return Result.set(RunError::ExportTrieOutOfBounds);
+            return RunResult(RunResult::Error::ExportTrieOutOfBounds);
         }
 
         auto TrieParser = ADT::TrieParser();
@@ -652,16 +649,14 @@ namespace Operations {
                                                        &SegmentList,
                                                        Options,
                                                        &Error);
-            return HandleTreeOption(Result,
-                                    OutFile,
+            return HandleTreeOption(OutFile,
                                     EntryCollection,
                                     LibraryList,
                                     Is64Bit,
                                     Opt);
         }
 
-        return PrintExportList(Result,
-                               OutFile,
+        return PrintExportList(OutFile,
                                /*BaseAddress=*/0,
                                ExportTrieMap,
                                LibraryList,
@@ -676,37 +671,36 @@ namespace Operations {
         const auto IsBigEndian = Image.isBigEndian();
         const auto Is64Bit = Image.is64Bit();
 
-        auto Result = RunResult(Objects::Kind::MachO);
         auto ExportTrieRangeOpt = std::optional<ADT::Range>(std::nullopt);
 
         auto LibraryList = MachO::LibraryList();
         auto SegmentList = MachO::SegmentList();
 
-        CollectLoadCommands(Image,
-                            LibraryList,
-                            SegmentList,
-                            ExportTrieRangeOpt,
-                            Result,
-                            Is64Bit,
-                            IsBigEndian);
+        const auto CollectResult =
+            CollectLoadCommands(Image,
+                                LibraryList,
+                                SegmentList,
+                                ExportTrieRangeOpt,
+                                Is64Bit,
+                                IsBigEndian);
 
-        if (Result.get<RunError>() != RunError::None) {
-            return Result;
+        if (CollectResult.Error != RunResult::Error::None) {
+            return CollectResult;
         }
 
         if (!ExportTrieRangeOpt.has_value()) {
-            return Result.set(RunError::NoExportTrieFound);
+            return RunResult(RunResult::Error::NoExportTrieFound);
         }
 
         const auto Map = Image.getMapForFileOffsets();
         const auto &ExportTrieRange = ExportTrieRangeOpt.value();
 
         if (ExportTrieRange.empty()) {
-            return Result.set(RunError::NoExports);
+            return RunResult(RunResult::Error::NoExports);
         }
 
         if (!Map.range().contains(ExportTrieRange)) {
-            return Result.set(RunError::ExportTrieOutOfBounds);
+            return RunResult(RunResult::Error::ExportTrieOutOfBounds);
         }
 
         auto TrieParser = ADT::TrieParser();
@@ -723,16 +717,14 @@ namespace Operations {
                                                           Image.address(),
                                                           Options,
                                                           &Error);
-            return HandleTreeOption(Result,
-                                    OutFile,
+            return HandleTreeOption(OutFile,
                                     EntryCollection,
                                     LibraryList,
                                     Is64Bit,
                                     Opt);
         }
 
-        return PrintExportList(Result,
-                               OutFile,
+        return PrintExportList(OutFile,
                                Image.address(),
                                ExportTrieMap,
                                LibraryList,
@@ -754,7 +746,7 @@ namespace Operations {
                 return run(static_cast<const Objects::DscImage &>(Base));
             case Objects::Kind::DyldSharedCache:
             case Objects::Kind::FatMachO:
-                return RunResultUnsupported;
+                return RunResult(RunResult::Error::Unsupported);
         }
 
         assert(false &&

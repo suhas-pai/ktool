@@ -24,24 +24,24 @@ namespace ADT {
         explicit TrieNodeInfo() noexcept = default;
 
         [[nodiscard]] constexpr auto offset() const noexcept {
-            return Offset;
+            return this->Offset;
         }
 
         [[nodiscard]] constexpr auto &offsetRef() noexcept {
-            return Offset;
+            return this->Offset;
         }
 
         [[nodiscard]] constexpr auto size() const noexcept {
-            return Size;
+            return this->Size;
         }
 
         [[nodiscard]] constexpr auto childCount() const noexcept {
-            return ChildCount;
+            return this->ChildCount;
         }
 
         [[nodiscard]]
         constexpr auto prefix() const noexcept -> std::string_view {
-            return Prefix;
+            return this->Prefix;
         }
 
         constexpr auto setOffset(const uint64_t Value) noexcept
@@ -73,7 +73,7 @@ namespace ADT {
         }
 
         [[nodiscard]] constexpr auto isExport() const noexcept {
-            return Size != 0;
+            return this->size() != 0;
         }
     };
 
@@ -119,23 +119,23 @@ namespace ADT {
         explicit TrieStackInfo(const NodeInfo &Node) noexcept : Node(Node) {}
 
         [[nodiscard]] constexpr const auto &node() const noexcept {
-            return Node;
+            return this->Node;
         }
 
         [[nodiscard]] constexpr auto &node() noexcept {
-            return Node;
+            return this->Node;
         }
 
         [[nodiscard]] constexpr auto childOrdinal() const noexcept {
-            return ChildOrdinal;
+            return this->ChildOrdinal;
         }
 
         [[nodiscard]] constexpr auto &childOrdinalRef() noexcept {
-            return ChildOrdinal;
+            return this->ChildOrdinal;
         }
 
         [[nodiscard]] constexpr auto rangeListSize() const noexcept {
-            return RangeListSize;
+            return this->RangeListSize;
         }
 
         constexpr auto setChildOrdinal(const uint16_t Value) noexcept
@@ -199,75 +199,75 @@ namespace ADT {
             std::vector<StackInfo> StackList;
 
             T &ExportInfo;
-            bool IsExport;
+            bool IsExport = false;
         public:
             explicit IterateInfo(T &ExportInfo) noexcept
             : ExportInfo(ExportInfo) {}
 
             [[nodiscard]] constexpr auto maxDepth() const noexcept {
-                return MaxDepth;
+                return this->MaxDepth;
             }
 
             [[nodiscard]]
             constexpr auto string() const noexcept -> std::string_view {
-                return String;
+                return this->String;
             }
 
             [[nodiscard]] constexpr auto &stringRef() noexcept {
-                return String;
+                return this->String;
             }
 
             [[nodiscard]] constexpr auto &rangeList() const noexcept {
-                return RangeList;
+                return this->RangeList;
             }
 
             [[nodiscard]] constexpr auto &rangeListRef() noexcept {
-                return RangeList;
+                return this->RangeList;
             }
 
             [[nodiscard]] constexpr auto &stackList() const noexcept {
-                return StackList;
+                return this->StackList;
             }
 
             [[nodiscard]] constexpr auto &stackListRef() noexcept {
-                return StackList;
+                return this->StackList;
             }
 
             [[nodiscard]] inline auto &stack() noexcept {
-                assert(!stackListRef().empty());
-                return stackListRef().back();
+                assert(!this->stackListRef().empty());
+                return this->stackListRef().back();
             }
 
             [[nodiscard]] inline auto &stack() const noexcept {
-                assert(!stackList().empty());
-                return stackList().back();
+                assert(!this->stackList().empty());
+                return this->stackList().back();
             }
 
             [[nodiscard]] inline auto &node() noexcept {
-                return stack().node();
+                return this->stack().node();
             }
 
             [[nodiscard]] inline auto &node() const noexcept {
-                return stack().node();
+                return this->stack().node();
             }
 
             [[nodiscard]] constexpr auto isExport() const noexcept {
-                return  IsExport;
+                return this->IsExport;
             }
 
             [[nodiscard]] inline auto &exportInfo() const noexcept {
-                assert(isExport());
-                return ExportInfo;
+                assert(this->isExport());
+                return this->ExportInfo;
             }
 
             [[nodiscard]] inline auto &exportInfo() noexcept {
-                assert(isExport());
-                return ExportInfo;
+                assert(this->isExport());
+                return this->ExportInfo;
             }
 
             [[nodiscard]] inline auto depthLevel() const noexcept {
-                assert(!stackList().empty());
-                return stackList().size();
+                assert(!this->stackList().empty());
+                return this->stackList().size();
             }
 
             constexpr auto setMaxDepth(const uint64_t Value) noexcept
@@ -308,18 +308,18 @@ namespace ADT {
             TrieParser &Parser;
 
             void SetupInfoForNewStack() noexcept {
-                Info->stringRef().append(NextStack->node().prefix());
-                Info->stackListRef().emplace_back(std::move(*NextStack));
+                this->Info->stringRef().append(NextStack->node().prefix());
+                this->Info->stackListRef().emplace_back(std::move(*NextStack));
             }
 
             [[nodiscard]] auto MoveUptoParentNode() noexcept -> bool {
-                auto &StackList = Info->stackListRef();
+                auto &StackList = this->Info->stackListRef();
                 if (StackList.size() == 1) {
                     StackList.clear();
                     return false;
                 }
 
-                auto &String = Info->stringRef();
+                auto &String = this->Info->stringRef();
                 auto &Top = StackList.back();
 
                 const auto EraseSuffixLength =
@@ -327,7 +327,7 @@ namespace ADT {
 
                 String.erase(EraseSuffixLength);
                 if (Top.rangeListSize() != 0) {
-                    auto &RangeList = Info->rangeListRef();
+                    auto &RangeList = this->Info->rangeListRef();
                     RangeList.erase(RangeList.cbegin() +
                                         static_cast<long>(Top.rangeListSize()),
                                     RangeList.cend());
@@ -340,28 +340,28 @@ namespace ADT {
             }
 
             [[nodiscard]] auto Advance() noexcept -> Error {
-                auto &StackList = Info->stackListRef();
-                const auto MaxDepth = Info->maxDepth();
+                auto &StackList = this->Info->stackListRef();
+                const auto MaxDepth = this->Info->maxDepth();
 
                 if (!StackList.empty()) {
                     auto &PrevStack = StackList.back();
                     const auto &PrevNode = PrevStack.node();
 
                     if (PrevNode.isExport()) {
-                        Info->exportInfo().clearExclusiveInfo();
-                        Info->setIsExport(false);
+                        this->Info->exportInfo().clearExclusiveInfo();
+                        this->Info->setIsExport(false);
 
                         if (PrevNode.childCount() == 0) {
-                            if (!MoveUptoParentNode()) {
+                            if (!this->MoveUptoParentNode()) {
                                 return Error::None;
                             }
                         } else {
                             if (StackList.size() == MaxDepth) {
                                 return Error::TooDeep;
                             }
-                        }
 
-                        PrevStack.setChildOrdinal(1);
+                            PrevStack.setChildOrdinal(1);
+                        }
                     } else {
                         if (StackList.size() == MaxDepth) {
                             return Error::TooDeep;
@@ -370,11 +370,11 @@ namespace ADT {
                         switch (Direction) {
                             case Direction::Normal:
                                 PrevStack.childOrdinalRef() += 1;
-                                SetupInfoForNewStack();
+                                this->SetupInfoForNewStack();
 
                                 break;
                             case Direction::MoveUptoParentNode:
-                                if (MoveUptoParentNode()) {}
+                                if (this->MoveUptoParentNode()) {}
                                 break;
                         }
                     }
@@ -387,7 +387,7 @@ namespace ADT {
                             return Error::None;
                     }
                 } else {
-                    SetupInfoForNewStack();
+                    this->SetupInfoForNewStack();
                 }
 
                 this->Direction = Direction::Normal;
@@ -411,12 +411,12 @@ namespace ADT {
                         if (IsExportInfo) {
                             Info->setIsExport(true);
                             const auto Error =
-                                Info->exportInfo().ParseExportData(
+                                this->Info->exportInfo().ParseExportData(
                                     Ptr,
                                     ExpectedEnd,
-                                    End,
-                                    Info->string(),
-                                    Info->rangeListRef(),
+                                    this->End,
+                                    this->Info->string(),
+                                    this->Info->rangeListRef(),
                                     StackList);
 
                             UpdateOffset();
@@ -438,7 +438,7 @@ namespace ADT {
                                 break;
                             }
 
-                            if (MoveUptoParentNode()) {
+                            if (this->MoveUptoParentNode()) {
                                 continue;
                             }
 
@@ -456,7 +456,7 @@ namespace ADT {
                         // We've finished with this node if ChildOrdinal is past
                         // ChildCount.
 
-                        if (MoveUptoParentNode()) {
+                        if (this->MoveUptoParentNode()) {
                             continue;
                         }
 
@@ -465,18 +465,19 @@ namespace ADT {
 
                     // Prepare the next-stack before returning.
                     const auto Error =
-                        Parser.ParseNextNode(Begin,
+                        Parser.ParseNextNode(this->Begin,
                                              Ptr,
-                                             End,
-                                             Info->rangeListRef(),
-                                             &NextStack->node());
+                                             this->End,
+                                             this->Info->rangeListRef(),
+                                             &this->NextStack->node());
 
                     UpdateOffset();
                     if (Error != Error::None) {
                         return Error;
                     }
 
-                    NextStack->setRangeListSize(Info->rangeList().size());
+                    this->NextStack->setRangeListSize(
+                        this->Info->rangeList().size());
 
                     // We've already returned this node once if our
                     // Child-Ordinal is not zero.
@@ -489,7 +490,7 @@ namespace ADT {
                         return Error::TooDeep;
                     }
 
-                    SetupInfoForNewStack();
+                    this->SetupInfoForNewStack();
                 } while (true);
 
                 return Error::None;
@@ -524,29 +525,29 @@ namespace ADT {
                 }
 
                 if (Node.childCount() != 0) {
-                    NextStack = std::make_unique<StackInfo>(Node);
-                    this->ParseError = Advance();
+                    this->NextStack = std::make_unique<StackInfo>(Node);
+                    this->ParseError = this->Advance();
                 }
             }
 
             [[nodiscard]] inline auto &info() noexcept {
-                return *Info;
+                return *this->Info;
             }
 
             [[nodiscard]] inline auto &info() const noexcept {
-                return *Info;
+                return *this->Info;
             }
 
             [[nodiscard]] inline auto isAtEnd() const noexcept {
-                return info().stackListRef().empty();
+                return this->info().stackListRef().empty();
             }
 
             [[nodiscard]] constexpr auto hasError() const noexcept {
-                return ParseError != Error::None;
+                return this->ParseError != Error::None;
             }
 
             [[nodiscard]] constexpr auto getError() const noexcept {
-                return ParseError;
+                return this->ParseError;
             }
 
             constexpr auto setDirection(const enum Direction Direction) noexcept
@@ -557,45 +558,45 @@ namespace ADT {
             }
 
             inline auto operator++() noexcept -> decltype(*this) {
-                assert(!hasError());
-                ParseError = Advance();
+                assert(!this->hasError());
+                this->ParseError = this->Advance();
 
                 return *this;
             }
 
             inline auto operator++(int) noexcept -> decltype(*this) {
-                return operator++();
+                return this->operator++();
             }
 
             inline auto operator+=(const uint64_t Amt) noexcept
                 -> decltype(*this)
             {
                 for (auto I = uint64_t(); I != Amt; I++) {
-                    operator++();
+                    this->operator++();
                 }
 
                 return *this;
             }
 
             [[nodiscard]] inline auto &operator*() noexcept {
-                return *Info;
+                return *this->Info;
             }
 
             [[nodiscard]] inline auto &operator*() const noexcept {
-                return *Info;
+                return *this->Info;
             }
 
             [[nodiscard]] inline auto *operator->() noexcept {
-                return Info.get();
+                return this->Info.get();
             }
 
             [[nodiscard]] inline const auto *operator->() const noexcept {
-                return Info.get();
+                return this->Info.get();
             }
 
             [[nodiscard]]
             inline auto operator==(const IteratorEnd &) const noexcept {
-                return isAtEnd();
+                return this->isAtEnd();
             }
 
             [[nodiscard]]
@@ -611,16 +612,16 @@ namespace ADT {
             Iterator Iter;
             inline auto Advance() noexcept -> decltype(*this) {
                 do {
-                    Iter++;
-                    if (Iter.hasError()) {
+                    this->Iter++;
+                    if (this->Iter.hasError()) {
                         break;
                     }
 
-                    if (Iter.isAtEnd()) {
+                    if (this->Iter.isAtEnd()) {
                         break;
                     }
 
-                    if (Iter.info().node().isExport()) {
+                    if (this->Iter.info().node().isExport()) {
                         break;
                     }
                 } while (true);
@@ -636,11 +637,11 @@ namespace ADT {
                 T &ExportInfoParser,
                 const ParseOptions &Options = ParseOptions()) noexcept
             : Iter(Begin, End, TrieParser, ExportInfoParser, Options) {
-                if (!Iter.hasError() &&
-                    !Iter.isAtEnd() &&
-                    !Iter.info().node().isExport())
+                if (!this->Iter.hasError() &&
+                    !this->Iter.isAtEnd() &&
+                    !this->Iter.info().node().isExport())
                 {
-                    Advance();
+                    this->Advance();
                 }
             }
 
@@ -651,77 +652,77 @@ namespace ADT {
                 T &ExportInfoParser,
                 const ParseOptions &Options = ParseOptions()) noexcept
             : Iter(Map, TrieParser, ExportInfoParser, Options) {
-                if (!Iter.hasError() &&
-                    !Iter.isAtEnd() &&
-                    !Iter.info().node().isExport())
+                if (!this->Iter.hasError() &&
+                    !this->Iter.isAtEnd() &&
+                    !this->Iter.info().node().isExport())
                 {
-                    Advance();
+                    this->Advance();
                 }
             }
 
             [[nodiscard]] inline auto &info() noexcept {
-                return Iter.info();
+                return this->Iter.info();
             }
 
             [[nodiscard]] inline auto &info() const noexcept {
-                return Iter.info();
+                return this->Iter.info();
             }
 
             [[nodiscard]] inline auto isAtEnd() const noexcept {
-                return Iter.isAtEnd();
+                return this->Iter.isAtEnd();
             }
 
             [[nodiscard]] inline auto hasError() const noexcept {
-                return Iter.hasError();
+                return this->Iter.hasError();
             }
 
             [[nodiscard]] inline auto getError() const noexcept {
-                return Iter.getError();
+                return this->Iter.getError();
             }
 
             inline auto operator++() noexcept -> decltype(*this) {
-                Advance();
+                this->Advance();
                 return *this;
             }
 
             inline auto operator++(int) noexcept -> decltype(*this) {
-                return operator++();
+                return this->operator++();
             }
 
             inline auto operator+=(const uint64_t Amt) noexcept
                 -> decltype(*this)
             {
                 for (auto I = uint64_t(); I != Amt; I++) {
-                    operator++();
+                    this->operator++();
                 }
 
                 return *this;
             }
 
             [[nodiscard]] inline auto &operator*() noexcept {
-                return Iter.info();
+                return this->Iter.info();
             }
 
             [[nodiscard]] inline const auto &operator*() const noexcept {
-                return Iter.info();
+                return this->Iter.info();
             }
 
             [[nodiscard]] inline auto operator->() noexcept {
-                return &Iter.info();
+                return &this->Iter.info();
             }
 
             [[nodiscard]] inline auto operator->() const noexcept {
-                return &Iter.info();
+                return &this->Iter.info();
             }
 
             [[nodiscard]]
             inline auto operator==(const IteratorEnd &End) const noexcept {
-                return Iter== End;
+                return this->Iter== End;
             }
 
             [[nodiscard]]
             inline auto operator!=(const IteratorEnd &End) const noexcept {
-                return !operator==(End);
+                return !this->operator==(End);
             }
         };
     protected:
@@ -748,21 +749,33 @@ namespace ADT {
           Parser(TrieParser), ExportInfoParser(ExportInfoParser) {};
 
         [[nodiscard]] inline auto begin() const noexcept {
-            return Iterator(Begin, End, Parser, ExportInfoParser);
+            return Iterator(this->Begin,
+                            this->End,
+                            this->Parser,
+                            this->ExportInfoParser);
         }
 
         [[nodiscard]] inline auto cbegin() const noexcept {
-            return Iterator(Begin, End, Parser, ExportInfoParser);
+            return Iterator(this->Begin,
+                            this->End,
+                            this->Parser,
+                            this->ExportInfoParser);
         }
 
         [[nodiscard]]
         inline auto begin(const ParseOptions &Options) const noexcept {
-            return Iterator(Begin, End, Parser, ExportInfoParser, Options);
+            return Iterator(this->Begin,
+                            this->End,
+                            this->Parser,
+                            this->ExportInfoParser, Options);
         }
 
         [[nodiscard]]
         inline auto cbegin(const ParseOptions &Options) const noexcept {
-            return Iterator(Begin, End, Parser, ExportInfoParser, Options);
+            return Iterator(this->Begin,
+                            this->End,
+                            this->Parser,
+                            this->ExportInfoParser, Options);
         }
 
         [[nodiscard]] inline auto end() const noexcept {
@@ -800,21 +813,35 @@ namespace ADT {
             using Iterator = ExportIterator;
 
             [[nodiscard]] inline auto begin() const noexcept {
-                return Iterator(Begin, End, Parser, ExportInfoParser);
+                return Iterator(this->Begin,
+                                this->End,
+                                this->Parser,
+                                this->ExportInfoParser);
             }
 
             [[nodiscard]] inline auto cbegin() const noexcept {
-                return Iterator(Begin, End, Parser, ExportInfoParser);
+                return Iterator(this->Begin,
+                                this->End,
+                                this->Parser,
+                                this->ExportInfoParser);
             }
 
             [[nodiscard]]
             inline auto begin(const ParseOptions &Options) const noexcept {
-                return Iterator(Begin, End, Parser, ExportInfoParser, Options);
+                return Iterator(this->Begin,
+                                this->End,
+                                this->Parser,
+                                this->ExportInfoParser,
+                                Options);
             }
 
             [[nodiscard]]
             inline auto cbegin(const ParseOptions &Options) const noexcept {
-                return Iterator(Begin, End, Parser, ExportInfoParser, Options);
+                return Iterator(this->Begin,
+                                this->End,
+                                this->Parser,
+                                this->ExportInfoParser,
+                                Options);
             }
 
             [[nodiscard]] inline auto end() const noexcept {
@@ -827,7 +854,10 @@ namespace ADT {
         };
 
         [[nodiscard]] inline auto exportMap() const noexcept {
-            return ExportMap(Begin, End, Parser, ExportInfoParser);
+            return ExportMap(this->Begin,
+                             this->End,
+                             this->Parser,
+                             this->ExportInfoParser);
         }
     };
 

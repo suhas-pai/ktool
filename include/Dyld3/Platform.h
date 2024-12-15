@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <assert.h>
 #include <string_view>
+#include "Utils/Assert.h"
 
 namespace Dyld3 {
     enum class Platform : uint32_t {

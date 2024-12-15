@@ -8,9 +8,9 @@
 #pragma once
 
 #include <optional>
+#include <span>
 #include <string_view>
 
-#include "List.h"
 #include "Range.h"
 
 #include "Utils/Misc.h"
@@ -28,24 +28,24 @@ namespace ADT {
         explicit MemoryMap(void *const Base, const uint64_t Size) noexcept
         : Base(Base), Size(Size) {}
 
-        [[nodiscard]] inline auto range() const noexcept {
-            return Range::FromSize(0, Size);
-        }
-
-        explicit MemoryMap(const MemoryMap &Map, const Range &Range)
-        : Base(reinterpret_cast<void *>(reinterpret_cast<uint64_t>(Map.Base) +
-               Range.begin())),
-          Size(Range.size())
-        {
-            assert(Map.range().contains(Range));
-        }
-
         [[nodiscard]] constexpr auto size() const noexcept {
             return Size;
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {
-            return size() == 0;
+            return this->size() == 0;
+        }
+
+        [[nodiscard]] inline auto range() const noexcept {
+            return Range::FromSize(0, this->size());
+        }
+
+        explicit MemoryMap(const MemoryMap &Map, const Range &Range)
+        : Base(reinterpret_cast<void *>(reinterpret_cast<uint64_t>(Map.Base) +
+               Range.front())),
+          Size(Range.size())
+        {
+            assert(Map.range().contains(Range));
         }
 
         template <typename T = uint8_t,
@@ -62,7 +62,7 @@ namespace ADT {
                     return nullptr;
                 }
 
-                if (!range().canContainSize(TotalSizeOpt.value())) {
+                if (!this->range().canContainSize(TotalSizeOpt.value())) {
                     return nullptr;
                 }
             }
@@ -90,7 +90,7 @@ namespace ADT {
                 const auto EndOpt =
                     Utils::AddMulAndCheckOverflow(Offset, Size, Count);
 
-                if (!EndOpt.has_value() || size() < EndOpt.value()) {
+                if (!EndOpt.has_value() || this->size() < EndOpt.value()) {
                     return nullptr;
                 }
             }
@@ -105,13 +105,13 @@ namespace ADT {
                      T **const EndOut = nullptr) const noexcept -> T *
         {
             if constexpr (Verify) {
-                if (!range().contains(Range)) {
+                if (!this->range().contains(Range)) {
                     return nullptr;
                 }
             }
 
             const auto AdjBase =
-                reinterpret_cast<uint64_t>(Base) + Range.begin();
+                reinterpret_cast<uint64_t>(Base) + Range.front();
 
             if (EndOut != nullptr) {
                 *EndOut = reinterpret_cast<T *>(AdjBase + Range.size());
@@ -122,30 +122,30 @@ namespace ADT {
 
         template <typename T, uint64_t Size = sizeof(T), bool Verify = true>
         [[nodiscard]] constexpr auto list() const noexcept
-            -> std::optional<ADT::List<T>>
+            -> std::optional<std::span<T>>
         {
-            const auto Base = base<T, Verify>();
+            const auto Base = this->base<T, Verify>();
             if (Base == nullptr) {
                 return std::nullopt;
             }
 
-            if (size() < Size) {
+            if (this->size() < Size) {
                 return std::nullopt;
             }
 
-            return ADT::List<T>(Base, size() / Size);
+            return std::span<T>(Base, this->size() / Size);
         }
 
         [[nodiscard]]
         inline auto string(const uint64_t Offset) const noexcept
             -> std::optional<std::string_view>
         {
-            const auto Ptr = get<const char>(Offset);
+            const auto Ptr = this->get<const char>(Offset);
             if (Ptr == nullptr) {
                 return std::nullopt;
             }
 
-            const auto Length = strnlen(Ptr, size() - Offset);
+            const auto Length = strnlen(Ptr, this->size() - Offset);
             if (Length == 0) {
                 return std::nullopt;
             }
@@ -159,9 +159,10 @@ namespace ADT {
         {
             const auto Result =
                 static_cast<uint64_t>(
-                    reinterpret_cast<const uint8_t *>(Ptr) - base<uint8_t>());
+                    reinterpret_cast<const uint8_t *>(Ptr) -
+                    this->base<uint8_t>());
 
-            if (Utils::IndexOutOfBounds(Result, size())) {
+            if (Utils::IndexOutOfBounds(Result, this->size())) {
                 return std::nullopt;
             }
 

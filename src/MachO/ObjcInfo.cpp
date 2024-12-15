@@ -4,6 +4,7 @@
  */
 
 #include "MachO/ObjcInfo.h"
+#include "MachO/SegmentList.h"
 
 namespace MachO {
     void
@@ -29,6 +30,34 @@ namespace MachO {
         }
     }
 
+    auto FindObjcClassListOrRefsSection(const SegmentList &SegmentList) noexcept
+        -> std::optional<ObjcClassInfoSection>
+    {
+        const auto ObjcClassListSectionOpt =
+            SegmentList.findSectionWithNameAndSegment(
+                ObjcParse::ObjcClassListSegmentSectionNamePairList);
+
+        if (ObjcClassListSectionOpt.has_value()) {
+            const auto &[Segment, Section] = ObjcClassListSectionOpt.value();
+            return ObjcClassInfoSection(ObjcClassInfoSection::Kind::ClassList,
+                                        Segment,
+                                        Section);
+        }
+
+        const auto ObjcClassRefsSectionOpt =
+            SegmentList.findSectionWithNameAndSegment(
+                ObjcParse::ObjcClassRefsSegmentSectionNamePairList);
+
+        if (ObjcClassRefsSectionOpt.has_value()) {
+            const auto &[Segment, Section] = ObjcClassRefsSectionOpt.value();
+            return ObjcClassInfoSection(ObjcClassInfoSection::Kind::ClassList,
+                                        Segment,
+                                        Section);
+        }
+
+        return std::nullopt;
+    }
+
     auto
     ObjcClassInfoList::Parse(const ADT::DeVirtualizer &DeVirtualizer,
                              const SegmentList &SegmentList,
@@ -40,12 +69,8 @@ namespace MachO {
         auto Error = ObjcParse::Error::None;
 
         const auto ObjcClassListSection =
-            SegmentList.findSectionWithName({
-                { "__OBJC2",      { "__class_list"     } },
-                { "__DATA_CONST", { "__objc_classlist" } },
-                { "__DATA",       { "__objc_classlist" } },
-                { "__DATA_DIRTY", { "__objc_classlist" } },
-            });
+            SegmentList.findSectionWithName(
+                ObjcParse::ObjcClassListSegmentSectionNamePairList);
 
         if (ObjcClassListSection != nullptr) {
             if (Is64Bit) {
@@ -70,7 +95,7 @@ namespace MachO {
                         IsBigEndian);
             }
 
-            AdjustExternalAndRootClassList(ExternalAndRootClassList);
+            this->AdjustExternalAndRootClassList(ExternalAndRootClassList);
             return Error;
         }
 
@@ -105,7 +130,7 @@ namespace MachO {
                 return Error;
             }
 
-            AdjustExternalAndRootClassList(ExternalAndRootClassList);
+            this->AdjustExternalAndRootClassList(ExternalAndRootClassList);
             return Error;
         }
 
@@ -113,7 +138,77 @@ namespace MachO {
     }
 
     auto
-    ObjcClassInfoList::getAsList() const noexcept -> std::vector<Info *> {
+    ObjcClassInfoList::Parse(const ADT::DeVirtualizer &DeVirtualizer,
+                             const ObjcClassInfoSection &ObjcSectionInfo,
+                             const SegmentList &SegmentList,
+                             const BindActionList::UnorderedMap &BindList,
+                             const bool IsBigEndian,
+                             const bool Is64Bit) noexcept
+        -> ObjcParse::Error
+    {
+        auto ExternalAndRootClassList = std::vector<Info *>();
+        auto Error = ObjcParse::Error::None;
+
+        switch (ObjcSectionInfo.Kind) {
+            case ObjcClassInfoSection::Kind::ClassList:
+                if (Is64Bit) {
+                    Error =
+                        ObjcParse::ParseObjcClassRefsSection<true>(
+                            ObjcSectionInfo.Section,
+                            DeVirtualizer,
+                            SegmentList,
+                            BindList,
+                            List,
+                            ExternalAndRootClassList,
+                            IsBigEndian);
+                } else {
+                    Error =
+                        ObjcParse::ParseObjcClassRefsSection<false>(
+                            ObjcSectionInfo.Section,
+                            DeVirtualizer,
+                            SegmentList,
+                            BindList,
+                            List,
+                            ExternalAndRootClassList,
+                            IsBigEndian);
+                }
+
+                break;
+            case ObjcClassInfoSection::Kind::ClassRefs:
+                if (Is64Bit) {
+                    Error =
+                        ObjcParse::ParseObjcClassRefsSection<true>(
+                            ObjcSectionInfo.Section,
+                            DeVirtualizer,
+                            SegmentList,
+                            BindList,
+                            List,
+                            ExternalAndRootClassList,
+                            IsBigEndian);
+                } else {
+                    Error =
+                        ObjcParse::ParseObjcClassRefsSection<false>(
+                            ObjcSectionInfo.Section,
+                            DeVirtualizer,
+                            SegmentList,
+                            BindList,
+                            List,
+                            ExternalAndRootClassList,
+                            IsBigEndian);
+                }
+
+                break;
+        }
+
+        if (Error != ObjcParse::Error::None) {
+            return Error;
+        }
+
+        this->AdjustExternalAndRootClassList(ExternalAndRootClassList);
+        return Error;
+    }
+
+    auto ObjcClassInfoList::getAsList() const noexcept -> std::vector<Info *> {
         auto Vector = std::vector<Info *>();
         Vector.reserve(List.size());
 
@@ -124,8 +219,7 @@ namespace MachO {
         return Vector;
     }
 
-    auto
-    ObjcClassInfoList::addNullClass(const uint64_t BindAddress) noexcept
+    auto ObjcClassInfoList::addNullClass(const uint64_t BindAddress) noexcept
         -> ObjcClassInfo *
     {
         auto NewInfo = Info();
@@ -152,7 +246,7 @@ namespace MachO {
                                                       BindAddress);
     }
 
-    [[nodiscard]] auto
+    auto
     ObjcClassInfoList::getInfoForAddress(const uint64_t Address) const noexcept
         -> ObjcClassInfo *
     {
@@ -163,8 +257,7 @@ namespace MachO {
         return nullptr;
     }
 
-    [[nodiscard]] auto
-    ObjcClassInfoList::getInfoForClassName(
+    auto ObjcClassInfoList::getInfoForClassName(
         const std::string_view Name) const noexcept -> ObjcClassInfo *
     {
         for (const auto &Info : List) {
@@ -194,8 +287,8 @@ namespace MachO {
         auto End = static_cast<PtrAddrType *>(nullptr);
         auto Begin = Map.getFromRange<PtrAddrType>(SectInfo.fileRange(), &End);
 
-        const auto List = ADT::List<PtrAddrType>(Begin, End);
-        auto ListAddr = SectInfo.vmRange().begin();
+        const auto List = std::span<PtrAddrType>(Begin, End);
+        auto ListAddr = SectInfo.vmRange().front();
 
         if (ClassInfoTree != nullptr) {
             const auto BindEnd = BindList.end();

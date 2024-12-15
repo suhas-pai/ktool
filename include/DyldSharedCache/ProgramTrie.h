@@ -119,17 +119,17 @@ namespace DyldSharedCache {
             return get(LastChild);
         }
 
-        [[nodiscard]] inline uint64_t getLength() const noexcept override {
-            return String.length();
-        }
-
         [[nodiscard]]
         constexpr auto string() const noexcept -> std::string_view {
-            return String;
+            return this->String;
+        }
+
+        [[nodiscard]] inline uint64_t getLength() const noexcept override {
+            return this->string().length();
         }
 
         [[nodiscard]] constexpr auto isExport() const noexcept {
-            return Ordinal != 0;
+            return this->Ordinal != 0;
         }
 
         [[nodiscard]]
@@ -175,15 +175,17 @@ namespace DyldSharedCache {
             return new ProgramTrieExportChildNode;
         }
 
-        [[nodiscard]] constexpr auto index() const noexcept {
-            assert(isExport());
-            return Ordinal - 1;
+        [[nodiscard]] auto index() const noexcept {
+            assert(this->Ordinal != 0);
+            return this->Ordinal - 1;
         }
 
         constexpr auto setIndex(const uint32_t Index) noexcept
             -> decltype(*this)
         {
-            this->Ordinal = Utils::AddAndCheckOverflow<uint32_t>(Index, 1).value();
+            this->Ordinal =
+                Utils::AddAndCheckOverflow<uint32_t>(Index, 1).value();
+
             return *this;
         }
     };
@@ -232,7 +234,7 @@ namespace DyldSharedCache {
                       Error *ErrorOut = nullptr) noexcept;
 
         [[nodiscard]] inline ADT::TreeNode *root() const noexcept override {
-            return Root;
+            return this->Root;
         }
 
         inline ADT::Tree &setRoot(ADT::TreeNode *const Root) noexcept override {
@@ -260,7 +262,7 @@ namespace DyldSharedCache {
         }
 
         [[nodiscard]] inline auto cbegin() const noexcept {
-            return ConstIterator(Root);
+            return ConstIterator(this->Root);
         }
 
         [[nodiscard]] constexpr auto cend() const noexcept {

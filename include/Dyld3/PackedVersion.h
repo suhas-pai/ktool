@@ -34,35 +34,35 @@ namespace Dyld3 {
         }
     public:
         [[nodiscard]] constexpr auto revision() const noexcept -> uint8_t {
-            return getForMaskShift(Masks::Revision, Shifts::Revision);
+            return this->getForMaskShift(Masks::Revision, Shifts::Revision);
         }
 
         [[nodiscard]] constexpr auto minor() const noexcept -> uint8_t {
-            return getForMaskShift(Masks::Minor, Shifts::Minor);
+            return this->getForMaskShift(Masks::Minor, Shifts::Minor);
         }
 
         [[nodiscard]] constexpr auto major() const noexcept -> uint16_t {
-            return getForMaskShift(Masks::Major, Shifts::Major);
+            return this->getForMaskShift(Masks::Major, Shifts::Major);
         }
 
         constexpr auto setRevision(const uint8_t Value) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::Revision, Shifts::Revision, Value);
+            this->setValueForMask(Masks::Revision, Shifts::Revision, Value);
             return *this;
         }
 
         constexpr auto setMinor(const uint8_t Value) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::Minor, Shifts::Minor, Value);
+            this->setValueForMask(Masks::Minor, Shifts::Minor, Value);
             return *this;
         }
 
         constexpr auto setMajor(const uint16_t Value) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::Major, Shifts::Major, Value);
+            this->setValueForMask(Masks::Major, Shifts::Major, Value);
             return *this;
         }
 
@@ -90,7 +90,7 @@ namespace Dyld3 {
     protected:
         [[nodiscard]] constexpr auto
         getForMaskShift(const Masks Mask, const Shifts Shift) const noexcept {
-            const auto Value = (Flags & static_cast<uint64_t>(Mask));
+            const auto Value = Flags & static_cast<uint64_t>(Mask);
             return Value >> static_cast<uint8_t>(Shift);
         }
 
@@ -108,56 +108,57 @@ namespace Dyld3 {
         using ADT::FlagsBase<uint64_t>::FlagsBase;
 
         [[nodiscard]] constexpr auto revision3() const noexcept -> uint16_t {
-            return getForMaskShift(Masks::Revision3, Shifts::Revision3);
+            return this->getForMaskShift(Masks::Revision3, Shifts::Revision3);
         }
 
         [[nodiscard]] constexpr auto revision2() const noexcept -> uint16_t {
-            return getForMaskShift(Masks::Revision2, Shifts::Revision2);
+            return this->getForMaskShift(Masks::Revision2, Shifts::Revision2);
         }
 
         [[nodiscard]] constexpr auto revision1() const noexcept -> uint16_t {
-            return getForMaskShift(Masks::Revision1, Shifts::Revision1);
+            return this->getForMaskShift(Masks::Revision1, Shifts::Revision1);
         }
 
         [[nodiscard]] constexpr auto minor() const noexcept -> uint16_t {
-            return getForMaskShift(Masks::Minor, Shifts::Minor);
+            return this->getForMaskShift(Masks::Minor, Shifts::Minor);
         }
 
         [[nodiscard]] constexpr auto major() const noexcept -> uint32_t {
-            return static_cast<uint32_t>(getForMaskShift(Masks::Major, Shifts::Major));
+            return static_cast<uint32_t>(
+                this->getForMaskShift(Masks::Major, Shifts::Major));
         }
 
         constexpr auto setRevision3(const uint16_t Value) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::Revision3, Shifts::Revision3, Value);
+            this->setValueForMask(Masks::Revision3, Shifts::Revision3, Value);
             return *this;
         }
 
         constexpr auto setRevision2(const uint16_t Value) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::Revision2, Shifts::Revision2, Value);
+            this->setValueForMask(Masks::Revision2, Shifts::Revision2, Value);
             return *this;
         }
 
         constexpr auto setRevision1(const uint8_t Value) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::Revision1, Shifts::Revision1, Value);
+            this->setValueForMask(Masks::Revision1, Shifts::Revision1, Value);
             return *this;
         }
 
         constexpr auto setMinor(const uint8_t Value) noexcept -> decltype(*this)
         {
-            setValueForMask(Masks::Minor, Shifts::Minor, Value);
+            this->setValueForMask(Masks::Minor, Shifts::Minor, Value);
             return *this;
         }
 
         constexpr auto setMajor(const uint16_t Value) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::Major, Shifts::Major, Value);
+            this->setValueForMask(Masks::Major, Shifts::Major, Value);
             return *this;
         }
 
