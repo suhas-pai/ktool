@@ -134,9 +134,9 @@ namespace Operations {
                    const uint64_t Limit,
                    const bool IsBigEndian,
                    std::vector<SymbolInfo> &SymbolInfoList,
-                   uint32_t &LongestSymbolLength,
-                   uint64_t &LargestIndex,
-                   uint8_t &LongestKindLength) noexcept
+                   uint32_t &LongestSymbolLengthOut,
+                   uint64_t &LargestIndexOut,
+                   uint8_t &LongestKindLengthOut) noexcept
         -> PrintSymbolPtrSection::RunResult
     {
         using RunResult = PrintSymbolPtrSection::RunResult;
@@ -164,11 +164,10 @@ namespace Operations {
                                SymTabCommand::Entry>;
 
         const auto SymbolCount = SymTab.symCount(IsBigEndian);
-        const auto SymbolTable =
-            Map.getFromRange<SymTabEntry>(
-                SymTab.symRange(IsBigEndian, Is64Bit));
+        const auto SymbolTableOpt =
+            Map.getRange<SymTabEntry>(SymTab.symRange(IsBigEndian, Is64Bit));
 
-        if (SymbolTable == nullptr) {
+        if (!SymbolTableOpt.has_value()) {
             return RunResult(RunResult::Error::SymbolTableOutOfBounds);
         }
 
@@ -176,12 +175,15 @@ namespace Operations {
         auto SymbolLengthMaximizer = ADT::Maximizer<uint32_t>();
         auto KindLengthMaximizer = ADT::Maximizer<uint8_t>();
 
-        const auto StringTable =
-            Map.getFromRange<const char>(SymTab.strRange(IsBigEndian));
+        const auto StringTableOpt =
+            Map.getRange<const char>(SymTab.strRange(IsBigEndian));
 
-        if (StringTable == nullptr) {
+        if (!StringTableOpt.has_value()) {
             return RunResult(RunResult::Error::StringTableOutOfBounds);
         }
+
+        const auto &SymbolTable = SymbolTableOpt.value();
+        const auto &StringTable = StringTableOpt.value();
 
         auto SymbolsAdded = uint64_t();
         SymbolInfoList.reserve(IndirectSymbolCount - Reserved1);
@@ -205,7 +207,7 @@ namespace Operations {
 
             const auto &Entry = SymbolTable[Index];
             const auto Info = SymbolInfo {
-                .String = StringTable + Entry.index(IsBigEndian),
+                .String = StringTable.data() + Entry.index(IsBigEndian),
                 .Index = Index,
                 .Kind = Entry.kind(),
                 .Section = Entry.Section,
@@ -229,9 +231,9 @@ namespace Operations {
             SymbolsAdded++;
         }
 
-        LargestIndex = IndexMaximizer.value();
-        LongestSymbolLength = SymbolLengthMaximizer.value();
-        LongestKindLength = KindLengthMaximizer.value();
+        LargestIndexOut = IndexMaximizer.value();
+        LongestSymbolLengthOut = SymbolLengthMaximizer.value();
+        LongestKindLengthOut = KindLengthMaximizer.value();
 
         return RunResult();
     }
@@ -299,7 +301,6 @@ namespace Operations {
             return RunResult(RunResult::Error::EmptySectionName);
         }
 
-        auto SectionData = static_cast<const char *>(nullptr);
         auto SectionReserved1 = uint32_t();
 
         const auto IsBigEndian = MachO.isBigEndian();
@@ -353,16 +354,9 @@ namespace Operations {
                         return RunResult(RunResult::Error::ProtectedSegment);
                     }
 
-                    const auto SectionRange = Section->fileRange(IsBigEndian);
-
-                    SectionData = Map.getFromRange<const char>(SectionRange);
                     SectionReserved1 = Section->reserved1(IsBigEndian);
-
-                    if (SectionData == nullptr) {
-                        return RunResult(RunResult::Error::InvalidSectionRange);
-                    }
-
                     SegmentList.emplace_back(std::move(SegmentInfo));
+
                     break;
                 }
                 case Kind::Segment64: {
@@ -401,21 +395,15 @@ namespace Operations {
                         return RunResult(RunResult::Error::ProtectedSegment);
                     }
 
-                    const auto SectionRange = Section->fileRange(IsBigEndian);
-
-                    SectionData = Map.getFromRange<const char>(SectionRange);
                     SectionReserved1 = Section->reserved1(IsBigEndian);
-
-                    if (SectionData == nullptr) {
-                        return RunResult(RunResult::Error::InvalidSectionRange);
-                    }
-
                     SegmentList.emplace_back(std::move(SegmentInfo));
+
                     break;
                 }
                 case Kind::SymbolTable: {
                     if (SymTabCmd != nullptr) {
-                        return RunResult(RunResult::Error::MultipleSymTabCommands);
+                        return RunResult(
+                            RunResult::Error::MultipleSymTabCommands);
                     }
 
                     SymTabCmd = cast<SymTabCommand>(&LC, IsBigEndian);
@@ -502,10 +490,6 @@ namespace Operations {
             }
         }
 
-        if (SectionData == nullptr) {
-            return RunResult(RunResult::Error::SectionNotFound);
-        }
-
         if (SymTabCmd == nullptr) {
             return RunResult(RunResult::Error::SymTabNotFound);
         }
@@ -578,13 +562,14 @@ namespace Operations {
 
         auto Counter = uint64_t();
         for (const auto &SymbolInfo : SymbolInfoList) {
-            fprintf(OutFile,
-                    "Indirect-Symbol %" LEFTPAD_FMT PRIu64 ": ",
-                    PAD_FMT_ARGS(SymbolInfoListSizeDigitCount),
-                    Counter + 1);
+            std::print(OutFile,
+                       "Indirect-Symbol {:0{}}: ",
+                       Counter + 1,
+                       SymbolInfoListSizeDigitCount);
 
+            std::print(OutFile, "\"{}\"", SymbolInfo.String.data());
             const auto PrintLength =
-                fprintf(OutFile, "\"%s\"", SymbolInfo.String.data());
+                STR_LENGTH("\"\"") + SymbolInfo.String.length();
 
             if (Opt.Verbose) {
                 const auto RightPad =
@@ -602,26 +587,22 @@ namespace Operations {
                     static_cast<int>(LongestKindLength +
                                      STR_LENGTH(" <Kind: , "));
 
-                Utils::RightPadSpaces(OutFile,
-                                      fprintf(OutFile,
-                                              " <Kind: %s, ",
-                                              SymbolKindDescription.data()),
-                                      KindRightPad);
-
-                fprintf(OutFile,
-                        "Index: %" ZEROPAD_FMT PRIu64,
-                        PAD_FMT_ARGS(MaxIndexDigitCount),
-                        SymbolInfo.Index);
+                std::print(OutFile,
+                           "{:<{}}Index: {:0{}}",
+                           std::format(" <Kind: {}, ", SymbolKindDescription),
+                           KindRightPad,
+                           SymbolInfo.Index,
+                           MaxIndexDigitCount);
 
                 if (SymbolInfo.PrivateExternal) {
-                    fputs(", Private-External", OutFile);
+                    std::print(OutFile, ", Private-External");
                 }
 
                 if (SymbolInfo.DebugSymbol) {
-                    fputs(", Debug-Symbol", OutFile);
+                    std::print(OutFile, ", Debug-Symbol");
                 }
 
-                fputs(", Section: ", OutFile);
+                std::print(OutFile, ", Section: ");
 
                 const auto SectionOrdinal = SymbolInfo.Section;
                 if (SymbolInfo.Kind == SymTabCommand::Entry::Kind::Section &&
@@ -634,16 +615,16 @@ namespace Operations {
                                             SegmentName);
 
                     if (const auto SectionName = SectionOpt) {
-                        Utils::PrintSegmentSectionPair(OutFile,
-                                                       SegmentName,
-                                                       *SectionName,
-                                                       /*PadSegments=*/true,
-                                                       /*PadSections=*/true,
-                                                       /*Prefix=*/"",
-                                                       /*Suffix=*/", ");
+                        std::print(OutFile,
+                                   "{}, ",
+                                   Utils::SegmentSectionPair(
+                                    SegmentName,
+                                    *SectionName,
+                                    /*PadSegments=*/true,
+                                    /*PadSections=*/true));
                     }
                 } else {
-                    fputs("No-Section, ", OutFile);
+                    std::print(OutFile, "No-Section, ");
                 }
 
                 if (SymbolInfo.DylibOrdinal <= DylibList.size()) {
@@ -663,10 +644,10 @@ namespace Operations {
                                                  /*IsOutOfBounds=*/true);
                 }
 
-                fputc('>', OutFile);
+                std::print(OutFile, ">");
             }
 
-            fputc('\n', OutFile);
+            std::print(OutFile, "\n");
             Counter++;
         }
 

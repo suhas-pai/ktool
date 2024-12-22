@@ -22,6 +22,9 @@ namespace ADT {
                          bool IgnoreSectionBounds = false) const noexcept
             -> std::optional<ADT::MemoryMap> = 0;
 
+        [[nodiscard]] virtual auto getBaseAddress() const noexcept
+            -> uint64_t = 0;
+
         template <typename T>
         [[nodiscard]] inline auto
         getDataAtAddress(const uint64_t Address,

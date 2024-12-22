@@ -15,7 +15,7 @@ namespace MachO {
                 if (const auto Segment =
                         dyn_cast<SegmentCommand64>(&LC, IsBigEndian))
                 {
-                    addSegment(*Segment, IsBigEndian);
+                    this->addSegment(*Segment, IsBigEndian);
                 }
             }
         } else {
@@ -23,7 +23,7 @@ namespace MachO {
                 if (const auto Segment =
                         dyn_cast<SegmentCommand>(&LC, IsBigEndian))
                 {
-                    addSegment(*Segment, IsBigEndian);
+                    this->addSegment(*Segment, IsBigEndian);
                 }
             }
         }

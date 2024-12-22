@@ -47,18 +47,17 @@ namespace Operations {
         const auto RightPad =
             static_cast<int>(LongestLength + STR_LENGTH("\"\" -"));
 
-        fputc(' ', OutFile);
+        std::print(OutFile, " ");
 
         const auto PadLength = RightPad - WrittenOut - 1;
         Utils::PrintMultTimes(OutFile,
                               "-",
                               static_cast<uint64_t>(PadLength));
 
-        Utils::PrintAddress(OutFile,
-                            Export.index(),
-                            /*Is64Bit=*/false,
-                            /*Prefix=*/"> (Exported - Index: ",
-                            /*Suffix=*/")");
+        std::print(OutFile,
+                   "> (Exported - Index: {})",
+                   Utils::NumberWithCommas(Export.index()),
+                   /*Is64Bit=*/false);
     }
 
     [[nodiscard]] static auto
@@ -93,7 +92,7 @@ namespace Operations {
     {
         using RunResult = PrintProgramTrie::RunResult;
         if (EntryCollection.empty()) {
-            fputs("Provided file has an empty export-trie\n", OutFile);
+            std::print(OutFile, "Provided file has an empty export-trie\n");
             return RunResult(RunResult::Error::None);
         }
 
@@ -104,9 +103,9 @@ namespace Operations {
                                                          Options);
 
         if (Options.OnlyCount) {
-            fprintf(OutFile,
-                    "Provided file's program-trie has %" PRIu64 " nodes\n",
-                    Count);
+            std::print(OutFile,
+                       "Provided file's program-trie has {} nodes\n",
+                       Count);
             return RunResult(RunResult::Error::None);
         }
 
@@ -133,7 +132,9 @@ namespace Operations {
                 reinterpret_cast<
                     const ::DyldSharedCache::ProgramTrieChildNode &>(Node);
 
-            WrittenOut += fprintf(OutFile, "\"%s\"", Info.string().data());
+            std::print(OutFile, "\"{}\"", Info.string());
+            WrittenOut += STR_LENGTH("\"\"") + Info.string().length();
+
             if (const auto ExportInfo = Info.getIfExportNode()) {
                 PrintTreeExportInfo(OutFile,
                                     *ExportInfo,
@@ -191,9 +192,9 @@ namespace Operations {
         }
 
         if (Opt.OnlyCount) {
-            fprintf(OutFile,
-                    "Provided file's program-trie has %" PRIu64 " nodes\n",
-                    Count);
+            std::print(OutFile,
+                       "Provided file's program-trie has {} nodes\n",
+                       Count);
             return RunResult(RunResult::Error::None);
         }
 
@@ -215,17 +216,14 @@ namespace Operations {
             const auto RightPadAmt =
                 static_cast<int>(STR_LENGTH("Program : ") + SizeDigitLength);
 
-            Utils::RightPadSpaces(OutFile,
-                                  fprintf(OutFile,
-                                          "Program %" LEFTPAD_FMT PRIu32 ": ",
-                                          PAD_FMT_ARGS(SizeDigitLength),
-                                          Counter),
-                                  RightPadAmt);
-
-            fprintf(OutFile,
-                    "\t" ADDRESS_32_FMT "\t%s\"\n",
-                    Export.Index,
-                    Export.String.c_str());
+            std::print(OutFile,
+                       "{:<{}}\t{}\t{}\"\n",
+                       std::format("Program {:>{}}: ",
+                                   Counter,
+                                   SizeDigitLength),
+                       RightPadAmt,
+                       Utils::Address<uint32_t>(Export.Index),
+                       Export.String);
 
             Counter++;
         }
@@ -275,18 +273,18 @@ namespace Operations {
                 case ADT::TrieParseError::None:
                     break;
                 case ADT::TrieParseError::InvalidUleb128:
-                    fputs("Encountered an invalid uleb128 while parsing trie\n",
-                          stderr);
+                    std::print(stderr,
+                               "Encountered an invalid uleb128 while parsing "
+                               "trie\n");
                     return RunResult(RunResult::Error::None);
                 case ADT::TrieParseError::InvalidFormat:
-                    fputs("Trie is invalid\n",stderr);
-                    return RunResult(RunResult::Error::None);
+                    std::print(stderr, "Trie is invalid\n");
                 case ADT::TrieParseError::OverlappingRanges:
-                    fputs("At least two nodes in trie are overlapping\n",
-                          stderr);
+                    std::print(stderr,
+                               "At least two nodes in trie are overlapping\n");
                     return RunResult(RunResult::Error::None);
                 case ADT::TrieParseError::TooDeep:
-                    fputs("Trie is too deep\n", stderr);
+                    std::print(stderr, "Trie is too deep\n");
                     return RunResult(RunResult::Error::None);
             }
 

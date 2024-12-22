@@ -93,11 +93,11 @@ namespace Operations {
                     const bool Is64Bit,
                     const struct PrintBindActionList::Options &Options) noexcept
     {
-        fprintf(OutFile,
-                "%s Action %" LEFTPAD_FMT PRIu64 ": ",
-                Name,
-                PAD_FMT_ARGS(SizeDigitLength),
-                Counter);
+        std::print(OutFile,
+                   "{} Action {:>{}}: ",
+                   Name,
+                   Counter,
+                   SizeDigitLength);
 
         if (const auto *const Segment =
                 SegmentList.atOrNull(
@@ -108,23 +108,25 @@ namespace Operations {
                 Segment->findSectionWithVmAddrIndex(Action.AddrInSeg,
                                                     &FullAddr);
 
-            Utils::PrintSegmentSectionPair(OutFile,
-                                           Segment ? Segment->Name : "",
-                                           Section ? Section->Name : "",
-                                           /*PadSegment=*/true,
-                                           /*PadSection=*/true);
+            std::print(OutFile,
+                       "{} {}",
+                       Utils::SegmentSectionPair(Segment ? Segment->Name : "",
+                                                 Section ? Section->Name : "",
+                                                 /*PadSegment=*/true,
+                                                 /*PadSection=*/true),
+                       Utils::CustomAddress(FullAddr, Is64Bit));
 
-            Utils::PrintAddress(OutFile, FullAddr, Is64Bit, " ");
             if (Action.Addend != 0) {
-                Utils::PrintAddress(OutFile,
-                                    static_cast<uint64_t>(Action.Addend),
-                                    Is64Bit,
-                                    " + ");
+                std::print(OutFile,
+                           " + {}",
+                           Utils::CustomAddress(
+                            static_cast<uint64_t>(Action.Addend), Is64Bit));
             }
         } else {
-            Utils::RightPadSpaces(OutFile,
-                                  fputs("<out-of-bounds>", OutFile),
-                                  Utils::SegmentSectionPairMaxLen);
+            std::print(OutFile,
+                       "{:<{}}",
+                       "<out-of-bounds>",
+                       Utils::SegmentSectionPairMaxLen);
         }
 
         if constexpr (BindKind != MachO::BindInfoKind::Lazy) {
@@ -132,20 +134,15 @@ namespace Operations {
                 MachO::BindWriteKindGetDesc(
                     MachO::BindWriteKind::TextAbsolute32).length();
 
-            fprintf(OutFile,
-                    " %" RIGHTPAD_FMT "s",
-                    PAD_FMT_ARGS(static_cast<int>(LongestDesc)),
-                    MachO::BindWriteKindGetDesc(Action.WriteKind).data());
+            std::print(OutFile,
+                       " {:<{}}",
+                       MachO::BindWriteKindGetDesc(Action.WriteKind),
+                       static_cast<int>(LongestDesc));
         }
 
-        const auto RightPad =
-            static_cast<int>(LongestBindSymbolLength + STR_LENGTH(" \"\""));
-
-        Utils::RightPadSpaces(OutFile,
-                              fprintf(OutFile,
-                                      " \"%s\"",
-                                      Action.SymbolName.data()),
-                              RightPad);
+        std::print(OutFile, " \"{}\"", Action.SymbolName);
+        Utils::PadSpaces(OutFile,
+                         LongestBindSymbolLength - Action.SymbolName.length());
 
         if constexpr (BindKind != MachO::BindInfoKind::Weak) {
             Operations::PrintDylibOrdinalInfo(OutFile,
@@ -155,7 +152,7 @@ namespace Operations {
                                               " ");
         }
 
-        fputc('\n', OutFile);
+        std::print(OutFile, "\n");
     }
 
     template <MachO::BindInfoKind BindKind>
@@ -170,7 +167,7 @@ namespace Operations {
         const struct PrintBindActionList::Options &Options) noexcept
     {
         if (List.empty()) {
-            fprintf(OutFile, "No %s Info\n", Name);
+            std::print(OutFile, "No {} Info\n", Name);
             return;
         }
 
@@ -185,13 +182,10 @@ namespace Operations {
                        "MachO::BindActionList shouldn't be empty at this "
                        "point");
             case 1:
-                fprintf(OutFile, "1 %s Action:\n", Name);
+                std::print(OutFile, "1 {} Action:\n", Name);
                 break;
             default:
-                fprintf(OutFile,
-                        "%" PRIuPTR " %s Actions:\n",
-                        List.size(),
-                        Name);
+                std::print(OutFile, "{} {} Actions:\n", List.size(), Name);
                 break;
         }
 
@@ -238,14 +232,14 @@ namespace Operations {
             using Kind = MachO::LoadCommandKind;
             if (Is64Bit) {
                 if (const auto Segment =
-                        MachO::dyn_cast<Kind::Segment64>(&LC, IsBigEndian))
+                        dyn_cast<Kind::Segment64>(&LC, IsBigEndian))
                 {
                     SegmentList.addSegment(*Segment, IsBigEndian);
                     continue;
                 }
             } else {
                 if (const auto Segment =
-                        MachO::dyn_cast<Kind::Segment>(&LC, IsBigEndian))
+                        dyn_cast<Kind::Segment>(&LC, IsBigEndian))
                 {
                     SegmentList.addSegment(*Segment, IsBigEndian);
                     continue;
@@ -253,7 +247,7 @@ namespace Operations {
             }
 
             if (const auto DyldInfo =
-                    MachO::dyn_cast<MachO::DyldInfoCommand>(&LC, IsBigEndian))
+                    dyn_cast<MachO::DyldInfoCommand>(&LC, IsBigEndian))
             {
                 BindRange = DyldInfo->bindRange(IsBigEndian);
                 LazyBindRange = DyldInfo->lazyBindRange(IsBigEndian);
@@ -310,7 +304,7 @@ namespace Operations {
         if (Opt.PrintWeak) {
             if (MachO.map().range().contains(WeakBindRange)) {
                 if (Opt.PrintNormal || Opt.PrintLazy) {
-                    fputc('\n', OutFile);
+                    std::print(OutFile, "\n");
                 }
 
                 const auto WeakBindList =
@@ -366,13 +360,13 @@ namespace Operations {
                     Is64Bit,
                     Opt);
             } else {
-                fputs("No Bind-Actions were found\n", OutFile);
+                std::print(OutFile, "No Bind-Actions were found\n");
             }
         }
 
         if (Opt.PrintLazy) {
             if (Opt.PrintNormal) {
-                fputc('\n', OutFile);
+                std::print(OutFile, "\n");
             }
 
             if (!LazyBindActionInfoList.empty()) {
@@ -385,13 +379,13 @@ namespace Operations {
                     Is64Bit,
                     Opt);
             } else {
-                fputs("No Lazy-Bind Actions were found\n", OutFile);
+                std::print(OutFile, "No Lazy-Bind Actions were found\n");
             }
         }
 
         if (Opt.PrintWeak) {
             if (Opt.PrintNormal || Opt.PrintLazy) {
-                fputc('\n', OutFile);
+                std::print(OutFile, "\n");
             }
 
             if (!WeakBindActionInfoList.empty()) {
@@ -404,7 +398,7 @@ namespace Operations {
                     Is64Bit,
                     Opt);
             } else {
-                fputs("No Weak-Bind Actions were found\n", OutFile);
+                std::print(OutFile, "No Weak-Bind Actions were found\n");
             }
         }
 

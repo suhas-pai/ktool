@@ -55,13 +55,21 @@ namespace Mach {
         }
     };
 
-#define MACH_VMPROT_FMT "%c%c%c"
-#define MACH_VMPROT_FMT_ARGS(VMPROT) \
-    (VMPROT).readable() ? 'R' : '-', \
-    (VMPROT).writable() ? 'W' : '-', \
-    (VMPROT).executable() ? 'X' : '-'
-}
+    struct VmProtInitMax {
+    protected:
+        VmProt Init;
+        VmProt Max;
+    public:
+        constexpr explicit
+        VmProtInitMax(const VmProt Init, const VmProt Max) noexcept
+        : Init(Init), Max(Max) {}
 
-#define MACH_VMPROT_INIT_MAX_FMT MACH_VMPROT_FMT "/" MACH_VMPROT_FMT
-#define MACH_VMPROT_INIT_MAX_FMT_ARGS(INIT, MAX)                               \
-    MACH_VMPROT_FMT_ARGS(INIT), MACH_VMPROT_FMT_ARGS(MAX)
+        [[nodiscard]] constexpr auto getInit() const noexcept {
+            return this->Init;
+        }
+
+        [[nodiscard]] constexpr auto getMax() const noexcept {
+            return this->Max;
+        }
+    };
+}

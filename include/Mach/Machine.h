@@ -37,6 +37,11 @@ namespace Mach {
         PowerPC64 = static_cast<int32_t>(PowerPC) | CpuABI64,
     };
 
+    constexpr static auto CpuSubtypeMask = 0x00ffffff;
+    constexpr static auto CpuSubtypeFeaturesMask = 0xff000000;
+    constexpr static auto CpuSubtypeLib64 = 0x80000000;
+    constexpr static auto CpuSubtypePtrauthABI = 0x80000000;
+
     enum class Vax : int32_t {
         All,
         v780,

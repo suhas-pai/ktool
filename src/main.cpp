@@ -6,25 +6,6 @@
 //
 
 #include <memory>
-
-#include "MachO/BindInfo.h"
-#include "Operations/PrintHeader.h"
-#include "Operations/PrintId.h"
-#include "Operations/PrintImageList.h"
-#include "Operations/PrintLoadCommands.h"
-#include "Operations/PrintLibraries.h"
-#include "Operations/PrintArchs.h"
-#include "Operations/PrintCStringSection.h"
-#include "Operations/PrintSymbolPtrSection.h"
-#include "Operations/PrintExportTrie.h"
-#include "Operations/PrintBindOpcodeList.h"
-#include "Operations/PrintBindActionList.h"
-#include "Operations/PrintBindSymbolList.h"
-#include "Operations/PrintRebaseOpcodeList.h"
-#include "Operations/PrintRebaseActionList.h"
-#include "Operations/PrintObjcClassList.h"
-#include "Operations/PrintProgramTrie.h"
-
 #include "Operations/Run.h"
 
 struct OperationInfo {
@@ -43,22 +24,22 @@ ParseSegmentSectionPair(std::string_view SegmentSectionPair,
         CommaPos != std::string::npos)
     {
         if (CommaPos == 0) {
-            fputs("Please provide section-name by itself if segment-name "
-                  "won't be provided\n",
-                  stderr);
+            std::print(stderr,
+                       "Please provide section-name by itself if segment-name "
+                       "won't be provided\n");
             return 1;
         }
 
         if (CommaPos == SegmentSectionPair.length() - 1) {
-            fputs("Please provide a section-name\n", stderr);
+            std::print(stderr, "Please provide a section-name\n");
             return 1;
         }
 
         SegmentName = SegmentSectionPair.substr(0, CommaPos);
         if (SegmentName->length() > MachO::SegmentSectionMaxNameLength) {
-            fprintf(stderr,
-                    "Segment Name exceeds max length allowed (%" PRIu32 ")\n",
-                    MachO::SegmentSectionMaxNameLength);
+            std::print(stderr,
+                       "Segment Name exceeds max length allowed ({})\n",
+                       MachO::SegmentSectionMaxNameLength);
             return 1;
         }
 
@@ -68,9 +49,9 @@ ParseSegmentSectionPair(std::string_view SegmentSectionPair,
     }
 
     if (SectionName.length() > MachO::SegmentSectionMaxNameLength) {
-        fprintf(stderr,
-                "Section Name exceeds max length allowed (%" PRIu32 ")\n",
-                MachO::SegmentSectionMaxNameLength);
+        std::print(stderr,
+                   "Section Name exceeds max length allowed ({})\n",
+                   MachO::SegmentSectionMaxNameLength);
         return 1;
     }
 
@@ -92,113 +73,159 @@ PrintBindOpcodeParseError(
         case MachO::BindOpcodeParseError::None:
             break;
         case MachO::BindOpcodeParseError::InvalidLeb128:
-            fprintf(stderr,
-                    "%sEncountered invalid uleb128 when parsing %s "
-                    "bind-opcodes\n",
-                    Prefix,
-                    BindKindString);
+            std::print(stderr,
+                       "{}Encountered invalid uleb128 when parsing {} "
+                       "bind-opcodes\n",
+                       Prefix,
+                       BindKindString);
             break;
         case MachO::BindOpcodeParseError::InvalidSegmentIndex:
-            fprintf(stderr,
-                    "%s%s Bind-Opcodes set segment-index to an invalid "
-                    "number\n",
-                    Prefix,
-                    BindKindString);
+            std::print(stderr,
+                       "{}{} Bind-Opcodes set segment-index to an invalid "
+                       "number\n",
+                       Prefix,
+                       BindKindString);
             break;
         case MachO::BindOpcodeParseError::InvalidString:
-            fprintf(stderr,
-                    "%sEncountered invalid string in %s bind-opcodes\n",
-                    Prefix,
-                    BindKindString);
-            break;
+            std::print(stderr,
+                       "{}Encountered invalid string in {} bind-opcodes\n",
+                       Prefix,
+                       BindKindString);
+            break  ;
         case MachO::BindOpcodeParseError::NotEnoughThreadedBinds:
-            fprintf(stderr,
-                    "%sNot enough threaded-binds in %s bind-opcodes\n",
-                    Prefix,
-                    BindKindString);
-            break;
+            std::print(stderr,
+                       "{}Not enough threaded-binds in {} bind-opcodes\n",
+                       Prefix,
+                       BindKindString);
+            break  ;
         case MachO::BindOpcodeParseError::TooManyThreadedBinds:
-            fprintf(stderr,
-                    "%sToo many threaded-binds in %s bind-opcodes\n",
-                    Prefix,
-                    BindKindString);
-            break;
+            std::print(stderr,
+                       "{}Too many threaded-binds in {} bind-opcodes\n",
+                       Prefix,
+                       BindKindString);
+            break  ;
         case MachO::BindOpcodeParseError::InvalidThreadOrdinal:
-            fprintf(stderr,
-                    "%sEncountered invalid thread-ordinal in "
-                    "%s bind-opcodes\n",
-                    Prefix,
-                    BindKindString);
+            std::print(stderr,
+                       "{}Encountered invalid thread-ordinal in "
+                       "{} bind-opcodes\n",
+                       Prefix,
+                       BindKindString);
             break;
         case MachO::BindOpcodeParseError::EmptySymbol:
-            fprintf(stderr,
-                    "%sEncountered invalid thread-ordinal in "
-                    "%s bind-opcodes\n",
-                    Prefix,
-                    BindKindString);
+            std::print(stderr,
+                       "{}Encountered invalid thread-ordinal in "
+                       "{} bind-opcodes\n",
+                       Prefix,
+                       BindKindString);
             break;
         case MachO::BindOpcodeParseError::IllegalBindOpcode:
-            fprintf(stderr,
-                    "%sEncountered invalid %s bind-opcode when parsing\n",
-                    Prefix,
-                    BindKindString);
-            break;
+            std::print(stderr,
+                       "{}Encountered invalid {} bind-opcode when parsing\n",
+                       Prefix,
+                       BindKindString);
+            break  ;
         case MachO::BindOpcodeParseError::OutOfBoundsSegmentAddr:
-            fprintf(stderr,
-                    "%sGot out-of-bounds segment-address in %s bind-opcodes\n",
-                    Prefix,
-                    BindKindString);
-            break;
+            std::print(stderr,
+                       "{}Got out-of-bounds segment-address in {} bind-opcodes\n",
+                       Prefix,
+                       BindKindString);
+            break  ;
         case MachO::BindOpcodeParseError::UnrecognizedBindWriteKind:
-            fprintf(stderr,
-                    "%sEncountered unknown write-kind in %s bind-opcodes\n",
-                    Prefix,
-                    BindKindString);
-            break;
+            std::print(stderr,
+                       "{}Encountered unknown write-kind in {} bind-opcodes\n",
+                       Prefix,
+                       BindKindString);
+            break  ;
         case MachO::BindOpcodeParseError::UnrecognizedBindOpcode:
-            fprintf(stderr,
-                    "%sEncountered unknown %s bind-opcode when parsing\n",
-                    Prefix,
-                    BindKindString);
-            break;
+            std::print(stderr,
+                       "{}Encountered unknown {} bind-opcode when parsing\n",
+                       Prefix,
+                       BindKindString);
+            break  ;
         case MachO::BindOpcodeParseError::UnrecognizedBindSubOpcode:
-            fprintf(stderr,
-                    "%sEncountered unknown %s bind sub-opcode when parsing\n",
-                    Prefix,
-                    BindKindString);
-            break;
+            std::print(stderr,
+                       "{}Encountered unknown {} bind sub-opcode when parsing\n",
+                       Prefix,
+                       BindKindString);
+            break  ;
         case MachO::BindOpcodeParseError::
             UnrecognizedSpecialDylibOrdinal:
-            fprintf(stderr,
-                    "%sEncountered unknown specialty dylib-ordinal in "
-                    "%s bind-opcodes\n",
-                    Prefix,
-                    BindKindString);
+            std::print(stderr,
+                       "{}Encountered unknown specialty dylib-ordinal in "
+                       "{} bind-opcodes\n",
+                       Prefix,
+                       BindKindString);
             break;
         case MachO::BindOpcodeParseError::NoDylibOrdinal:
-            fprintf(stderr,
-                    "%sNo dylib-ordinal found when parsing %s bind-opcodes\n",
-                    Prefix,
-                    BindKindString);
-            break;
+            std::print(stderr,
+                       "{}No dylib-ordinal found when parsing {} bind-opcodes\n",
+                       Prefix,
+                       BindKindString);
+            break  ;
         case MachO::BindOpcodeParseError::NoSegmentIndex:
-            fprintf(stderr,
-                    "%sNo segment-index found when parsing %s bind-opcodes\n",
-                    Prefix,
-                    BindKindString);
-            break;
+            std::print(stderr,
+                       "{}No segment-index found when parsing {} bind-opcodes\n",
+                       Prefix,
+                       BindKindString);
+            break  ;
         case MachO::BindOpcodeParseError::NoWriteKind:
-            fprintf(stderr,
-                    "%sNo write-type found when parsing %s bind-opcodes\n",
-                    Prefix,
-                    BindKindString);
+            std::print(stderr,
+                       "{}No write-type found when parsing {} bind-opcodes\n",
+                       Prefix,
+                       BindKindString);
+            break  ;
+    }
+}
+
+static void
+PrintRebaseOpcodeParseError(
+    const MachO::RebaseOpcodeParseResult &ParseResult,
+    const char *const Prefix = "") noexcept
+{
+    switch (ParseResult.Error) {
+        case MachO::RebaseOpcodeParseError::None:
+            break;
+        case MachO::RebaseOpcodeParseError::InvalidLeb128:
+            std::print(stderr,
+                       "{}Encountered invalid uleb128 when rebase-opcodes\n",
+                       Prefix);
+            break;
+        case MachO::RebaseOpcodeParseError::IllegalRebaseOpcode:
+            std::print(stderr,
+                       "{}Encountered invalid rebase-opcode when parsing\n",
+                       Prefix);
+            break;
+        case MachO::RebaseOpcodeParseError::OutOfBoundsSegmentAddr:
+            std::print(stderr,
+                       "{}Got out-of-bounds segment-address in rebase-opcodes\n",
+                       Prefix);
+            break;
+        case MachO::RebaseOpcodeParseError::UnrecognizedRebaseWriteKind:
+            std::print(stderr,
+                       "{}Encountered unknown write-kind in rebase-opcodes\n",
+                       Prefix);
+            break;
+        case MachO::RebaseOpcodeParseError::UnrecognizedRebaseOpcode:
+            std::print(stderr,
+                       "{}Encountered unknown rebase-opcode when parsing\n",
+                       Prefix);
+            break;
+        case MachO::RebaseOpcodeParseError::NoSegmentIndex:
+            std::print(stderr,
+                       "{}No segment-index found when rebase-opcodes\n",
+                       Prefix);
+            break;
+        case MachO::RebaseOpcodeParseError::NoWriteKind:
+            std::print(stderr,
+                       "{}No write-type found when rebase-opcodes\n",
+                       Prefix);
             break;
     }
 }
 
 auto main(const int argc, const char *const argv[]) noexcept -> int {
     if (argc < 2) {
-        fprintf(stderr, "Help Menu:\n");
+        std::print("Help Menu:\n");
         return 0;
     }
 
@@ -207,9 +234,9 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
 
     I++;
     if (OperationString.front() != '-') {
-        fprintf(stderr,
-                "Expected option, found %s instead\n",
-                OperationString.data());
+        std::print(stderr,
+                   "Expected option, found {} instead\n",
+                   OperationString);
         return 1;
     }
 
@@ -223,10 +250,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
             } else if (Arg.front() == '-') {
-                fprintf(stderr,
-                        "Got unrecognized argument \"%s\" for option %s\n",
-                        Arg.data(),
-                        OperationString.data());
+                std::print(stderr,
+                           "Got unrecognized argument \"{}\" for option {}\n",
+                           Arg,
+                           OperationString);
                 return 1;
             } else {
                 break;
@@ -246,10 +273,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
             } else if (Arg.front() == '-') {
-                fprintf(stderr,
-                        "Got unrecognized argument \"%s\" for option %s\n",
-                        Arg.data(),
-                        OperationString.data());
+                std::print(stderr,
+                           "Got unrecognized argument \"{}\" for option {}\n",
+                           Arg,
+                           OperationString);
                 return 1;
             } else {
                 break;
@@ -294,10 +321,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--sort-by-timestamp") {
                 Options.SortKindList.emplace_back(SortKind::ByTimeStamp);
             } else if (Arg.front() == '-') {
-                fprintf(stderr,
-                        "Got unrecognized argument \"%s\" for option %s\n",
-                        Arg.data(),
-                        OperationString.data());
+                std::print(stderr,
+                           "Got unrecognized argument \"{}\" for option {}\n",
+                           Arg,
+                           OperationString);
                 return 1;
             } else {
                 break;
@@ -334,23 +361,23 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--limit") {
                 I++;
                 if (I == argc) {
-                    fputs("Option --limit expects a limit-number to be "
-                          "provided\n",
-                          stderr);
+                    std::print(stderr,
+                               "Option --limit expects a limit-number to be "
+                               "provided\n");
                     return 1;
                 }
 
                 const auto LimitArgOpt = Utils::to_uint<uint32_t>(argv[I]);
                 if (!LimitArgOpt.has_value()) {
-                    fprintf(stderr,
-                            "%s is not a valid limit-number\n",
-                            argv[I]);
+                    std::print(stderr,
+                               "{} is not a valid limit-number\n",
+                               argv[I]);
                     return 1;
                 }
 
                 const auto Limit = LimitArgOpt.value();
                 if (Limit == 0) {
-                    fputs("A limit of 0 is invalid\n", stderr);
+                    std::print(stderr, "A limit of 0 is invalid\n");
                     return 1;
                 }
 
@@ -358,10 +385,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--sort") {
                 Options.Sort = true;
             } else if (Arg.front() == '-') {
-                fprintf(stderr,
-                        "Got unrecognized argument \"%s\" for option %s\n",
-                        Arg.data(),
-                        OperationString.data());
+                std::print(stderr,
+                           "Got unrecognized argument \"{}\" for option {}\n",
+                           Arg,
+                           OperationString);
                 return 1;
             } else {
                 SegmentSectionPair = std::move(Arg.data());
@@ -404,23 +431,23 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--limit") {
                 I++;
                 if (I == argc) {
-                    fputs("Option --limit expects a limit-number to be "
-                          "provided\n",
-                          stderr);
+                    std::print(stderr,
+                               "Option --limit expects a limit-number to be "
+                               "provided\n");
                     return 1;
                 }
 
                 const auto LimitArgOpt = Utils::to_uint<uint32_t>(argv[I]);
                 if (!LimitArgOpt) {
-                    fprintf(stderr,
-                            "%s is not a valid limit-number\n",
-                            argv[I]);
+                    std::print(stderr,
+                               "{} is not a valid limit-number\n",
+                               argv[I]);
                     return 1;
                 }
 
                 const auto Limit = LimitArgOpt.value();
                 if (Limit == 0) {
-                    fputs("A limit of 0 is invalid\n", stderr);
+                    std::print(stderr, "A limit of 0 is invalid\n");
                     return 1;
                 }
 
@@ -434,10 +461,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--sort-by-string") {
                 Options.SortKindList.emplace_back(SortKind::ByString);
             } else if (Arg.front() == '-') {
-                fprintf(stderr,
-                        "Got unrecognized argument \"%s\" for option %s\n",
-                        Arg.data(),
-                        OperationString.data());
+                std::print(stderr,
+                           "Got unrecognized argument \"{}\" for option {}\n",
+                           Arg,
+                           OperationString);
                 return 1;
             } else {
                 SegmentSectionPair = std::move(Arg.data());
@@ -474,21 +501,20 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--tab-length") {
                 I++;
                 if (I == argc) {
-                    fputs("Option --tab-length expects a number to be "
-                          "provided\n",
-                          stderr);
+                    std::print("Option --tab-length expects a number to be "
+                               "provided\n");
                     return 1;
                 }
 
                 const auto TabLengthArgOpt = Utils::to_uint<uint32_t>(argv[I]);
                 if (!TabLengthArgOpt.has_value()) {
-                    fprintf(stderr, "%s is not a valid number\n", argv[I]);
+                    std::print(stderr, "{} is not a valid number\n", argv[I]);
                     return 1;
                 }
 
                 const auto TabLength = TabLengthArgOpt.value();
                 if (TabLength == 0) {
-                    fputs("A tab-length of 0 is invalid\n", stderr);
+                    std::print(stderr, "A tab-length of 0 is invalid\n");
                     return 1;
                 }
 
@@ -496,9 +522,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--require-kind") {
                 I++;
                 if (I == argc) {
-                    fprintf(stderr,
-                            "Option %s needs to be provided an export-kind\n",
-                            Arg.data());
+                    std::print(stderr,
+                               "Option {} needs to be provided an "
+                               "export-kind\n",
+                               Arg);
                     return 1;
                 }
 
@@ -507,9 +534,9 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     MachO::ExportTrieExportKindGetFromString(KindArg);
 
                 if (!KindOpt.has_value()) {
-                    fprintf(stderr,
-                            "%s is not a valid export-kind\n",
-                            KindArg.data());
+                    std::print(stderr,
+                               "{} is not a valid export-kind\n",
+                               KindArg);
                     return 1;
                 }
 
@@ -517,9 +544,9 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--require-section") {
                 I++;
                 if (I == argc) {
-                    fprintf(stderr,
-                            "Option %s needs to be provided a section\n",
-                            Arg.data());
+                    std::print(stderr,
+                               "Option {} needs to be provided a section\n",
+                               Arg);
                     return 1;
                 }
 
@@ -540,17 +567,17 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--require-segment") {
                 I++;
                 if (I == argc) {
-                    fprintf(stderr,
-                            "Option %s needs to be provided a section\n",
-                            Arg.data());
+                    std::print(stderr,
+                               "Option {} needs to be provided a section\n",
+                               Arg);
                     return 1;
                 }
 
                 const auto SegmentArg = std::string_view(argv[I]);
                 if (SegmentArg.length() > MachO::SegmentMaxNameLength) {
-                    fprintf(stderr,
-                            "Segment-Name of \"%s\" is too long to be valid\n",
-                            SegmentArg.data());
+                    std::print(stderr,
+                               "Segment-Name of \"{}\" is too long to be valid\n",
+                               SegmentArg);
                     return 1;
                 }
 
@@ -561,10 +588,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     }
                 );
             } else if (Arg.front() == '-') {
-                fprintf(stderr,
-                        "Got unrecognized argument \"%s\" for option %s\n",
-                        Arg.data(),
-                        OperationString.data());
+                std::print(stderr,
+                           "Got unrecognized argument \"{}\" for option {}\n",
+                           Arg,
+                           OperationString);
                 return 1;
             } else {
                 break;
@@ -615,10 +642,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
 
                 Options.PrintWeak = true;
             } else if (Arg.front() == '-') {
-                fprintf(stderr,
-                        "Got unrecognized argument \"%s\" for option %s\n",
-                        Arg.data(),
-                        OperationString.data());
+                std::print(stderr,
+                           "Got unrecognized argument \"{}\" for option {}\n",
+                           Arg,
+                           OperationString);
                 return 1;
             } else {
                 break;
@@ -678,10 +705,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--sort-by-kind") {
                 Options.SortKindList.emplace_back(SortKind::ByKind);
             } else if (Arg.front() == '-') {
-                fprintf(stderr,
-                        "Got unrecognized argument \"%s\" for option %s\n",
-                        Arg.data(),
-                        OperationString.data());
+                std::print(stderr,
+                           "Got unrecognized argument \"{}\" for option {}\n",
+                           Arg,
+                           OperationString);
                 return 1;
             } else {
                 break;
@@ -741,10 +768,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--sort-by-kind") {
                 Options.SortKindList.emplace_back(SortKind::ByKind);
             } else if (Arg.front() == '-') {
-                fprintf(stderr,
-                        "Got unrecognized argument \"%s\" for option %s\n",
-                        Arg.data(),
-                        OperationString.data());
+                std::print(stderr,
+                           "Got unrecognized argument \"{}\" for option {}\n",
+                           Arg,
+                           OperationString);
                 return 1;
             } else {
                 break;
@@ -783,10 +810,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--sort") {
                 Options.Sort = true;
             } else if (Arg.front() == '-') {
-                fprintf(stderr,
-                        "Got unrecognized argument \"%s\" for option %s\n",
-                        Arg.data(),
-                        OperationString.data());
+                std::print(stderr,
+                           "Got unrecognized argument \"{}\" for option {}\n",
+                           Arg,
+                           OperationString);
                 return 1;
             } else {
                 break;
@@ -811,21 +838,21 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--tab-length") {
                 I++;
                 if (I == argc) {
-                    fputs("Option --tab-length expects a number to be "
-                          "provided\n",
-                          stderr);
+                    std::print(stderr,
+                               "Option --tab-length expects a number to be "
+                               "provided\n");
                     return 1;
                 }
 
                 const auto TabLengthArgOpt = Utils::to_uint<uint32_t>(argv[I]);
                 if (!TabLengthArgOpt.has_value()) {
-                    fprintf(stderr, "%s is not a valid number\n", argv[I]);
+                    std::print(stderr, "{} is not a valid number\n", argv[I]);
                     return 1;
                 }
 
                 const auto TabLength = TabLengthArgOpt.value();
                 if (TabLength == 0) {
-                    fputs("A tab-length of 0 is invalid\n", stderr);
+                    std::print(stderr, "A tab-length of 0 is invalid\n");
                     return 1;
                 }
 
@@ -839,10 +866,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--sort-by-kind") {
                 Options.SortKindList.emplace_back(SortKind::ByKind);
             } else if (Arg.front() == '-') {
-                fprintf(stderr,
-                        "Got unrecognized argument \"%s\" for option %s\n",
-                        Arg.data(),
-                        OperationString.data());
+                std::print(stderr,
+                           "Got unrecognized argument \"{}\" for option {}\n",
+                           Arg,
+                           OperationString);
                 return 1;
             } else {
                 break;
@@ -868,30 +895,30 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--tab-length") {
                 I++;
                 if (I == argc) {
-                    fputs("Option --tab-length expects a number to be "
-                          "provided\n",
-                          stderr);
+                    std::print(stderr,
+                               "Option --tab-length expects a number to be "
+                               "provided\n");
                     return 1;
                 }
 
                 const auto TabLengthArgOpt = Utils::to_uint<uint32_t>(argv[I]);
                 if (!TabLengthArgOpt.has_value()) {
-                    fprintf(stderr, "%s is not a valid number\n", argv[I]);
+                    std::print(stderr, "{} is not a valid number\n", argv[I]);
                     return 1;
                 }
 
                 const auto TabLength = TabLengthArgOpt.value();
                 if (TabLength == 0) {
-                    fputs("A tab-length of 0 is invalid\n", stderr);
+                    std::print(stderr, "A tab-length of 0 is invalid\n");
                     return 1;
                 }
 
                 Options.TabLength = TabLength;
             } else if (Arg.front() == '-') {
-                fprintf(stderr,
-                        "Got unrecognized argument \"%s\" for option %s\n",
-                        Arg.data(),
-                        OperationString.data());
+                std::print(stderr,
+                           "Got unrecognized argument \"{}\" for option {}\n",
+                           Arg,
+                           OperationString);
                 return 1;
             } else {
                 break;
@@ -922,10 +949,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             } else if (Arg == "--sort-by-modtime") {
                 Options.SortKindList.emplace_back(SortKind::ByModTime);
             } else if (Arg.front() == '-') {
-                fprintf(stderr,
-                        "Got unrecognized argument \"%s\" for option %s\n",
-                        Arg.data(),
-                        OperationString.data());
+                std::print(stderr,
+                           "Got unrecognized argument \"{}\" for option {}\n",
+                           Arg,
+                           OperationString);
                 return 1;
             } else {
                 break;
@@ -937,28 +964,28 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             std::unique_ptr<Operations::PrintImageList>(
                 new Operations::PrintImageList(stdout, Options));
     } else if (OperationString.front() == '-') {
-        fprintf(stderr,
-                "Unrecognized operation: \"%s\"\n",
-                OperationString.data());
+        std::print(stderr,
+                   "Unrecognized operation: \"{}\"\n",
+                   OperationString);
         return 1;
     } else {
-        fprintf(stderr,
-                "Expected operation, got \"%s\" instead\n",
-                OperationString.data());
+        std::print(stderr,
+                   "Expected operation, got \"{}\" instead\n",
+                   OperationString);
         return 1;
     }
 
     assert(I <= argc);
     if (I == argc) {
-        fputs("Provided operation needs a path to a file\n", stderr);
+        std::print(stderr, "Provided operation needs a path to a file\n");
         return 1;
     }
 
     const auto PathArg = std::string_view(argv[I]);
     if (PathArg.front() == '-') {
-        fprintf(stderr,
-                "Expected path to a file, got option %s instead\n",
-                PathArg.data());
+        std::print(stderr,
+                   "Expected path to a file, got option {} instead\n",
+                   PathArg);
         return 1;
     }
 
@@ -970,82 +997,93 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         if (Arg == "-arch") {
             I++;
             if (I == argc) {
-                fprintf(stderr,
-                        "Option %s expects an index to an architecture.\n"
-                        "Use option --list-archs to see a list of available "
-                        "architectures\n",
-                        Arg.data());
+                std::print(stderr,
+                           "Option {} expects an ordinal (number) to an "
+                           "architecture.\nUse option --list-archs to see a "
+                           "list of available architectures\n",
+                           Arg);
                 return 1;
             }
 
-            const auto IndexArg = std::string_view(argv[I]);
-            const auto ArchIndexOpt = Utils::to_uint<uint32_t>(IndexArg);
+            const auto Arg = std::string_view(argv[I]);
+            const auto ArchOrdinalOpt = Utils::to_uint<uint32_t>(Arg);
 
-            if (!ArchIndexOpt.has_value()) {
-                fprintf(stderr,
-                        "%s is not a valid index-number\n",
-                        argv[I]);
+            if (!ArchOrdinalOpt.has_value()) {
+                std::print(stderr, "{} is not a valid integer\n", argv[I]);
                 return 1;
             }
 
-            FileOptions.ArchIndex = ArchIndexOpt.value();
+            if (ArchOrdinalOpt.value() == 0) {
+                std::print(stderr,
+                           "0 is not a valid ordinal. For the first "
+                           "image, use -arch 1\n",
+                           argv[I]);
+                return 1;
+            }
+
+            FileOptions.ArchIndex = ArchOrdinalOpt.value();
         } else if (Arg == "-image") {
             I++;
             if (I == argc) {
-                fprintf(stderr,
-                        "Option %s expects an index to an image.\n"
-                        "Use option --list-images to see a list of available "
-                        "images\n",
-                        Arg.data());
+                std::print(stderr,
+                           "Option {} expects an ordinal (number) to an "
+                           "image.\nUse option --list-images to see a list of "
+                           "available images\n",
+                           Arg);
                 return 1;
             }
 
             const auto IndexArg = std::string_view(argv[I]);
             const auto ImageIndexOpt = Utils::to_uint<uint32_t>(IndexArg);
 
-            if (!ImageIndexOpt) {
-                fprintf(stderr,
-                        "%s is not a valid index-number\n",
-                        argv[I]);
+            if (!ImageIndexOpt.has_value()) {
+                std::print(stderr, "{} is not a valid number\n", argv[I]);
                 return 1;
             }
 
-            FileOptions.ImageIndex = ImageIndexOpt.value();
+            if (ImageIndexOpt.value() == 0) {
+                std::print(stderr,
+                           "An image number of 0 is invalid. For the first "
+                           "image use -image 1\n");
+                return 1;
+            }
+
+            FileOptions.ImageOrdinal = ImageIndexOpt.value();
         } else if (Arg == "-subcache") {
             if (I + 2 >= argc) {
-                fprintf(stderr,
-                        "Option %s expects an file-suffix and a path to a "
-                        "sub-cache.\n"
-                        "Use option --list-subcache-suffixes to see a list of "
-                        "file-suffixes expected for the associated dyld "
-                        "shared-cache\n",
-                        Arg.data());
+                std::print(stderr,
+                           "Option {} expects an file-suffix and a path to a "
+                           "sub-cache.\n"
+                           "Use option --list-subcache-suffixes to see a list "
+                           "of file-suffixes expected for the associated dyld "
+                           "shared-cache\n",
+                           Arg);
                 return 1;
             }
 
             const auto FileSuffix = std::string(argv[I + 1]);
             if (FileSuffix.front() == '-') {
-                fprintf(stderr,
-                        "Expected path to a file, got option %s instead\n",
-                        PathArg.data());
+                std::print(stderr,
+                           "Expected path to a file, got option {} instead\n",
+                           PathArg.data());
                 return 1;
             }
 
             if (FileSuffix.length() >
                     sizeof(DyldSharedCache::SubCacheEntry::FileSuffix))
             {
-                fprintf(stderr,
-                        "File-suffix %sis too long, maximum length is %zu\n",
-                        FileSuffix.c_str(),
-                        sizeof(DyldSharedCache::SubCacheEntry::FileSuffix));
+                std::print(stderr,
+                           "File-suffix {}is too long, maximum length is %zu\n",
+                           FileSuffix.c_str(),
+                           sizeof(DyldSharedCache::SubCacheEntry::FileSuffix));
                 return 1;
             }
 
             const auto PathArg = std::string_view(argv[I + 2]);
             if (PathArg.front() == '-') {
-                fprintf(stderr,
-                        "Expected path to a file, got option %s instead\n",
-                        PathArg.data());
+                std::print(stderr,
+                           "Expected path to a file, got option {} instead\n",
+                           PathArg.data());
                 return 1;
             }
 
@@ -1058,7 +1096,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             FileOptions.SubCacheProvidedPathMap.emplace(
                 FileSuffix, std::move(SubCacheProvidedPathInfo));
         } else {
-            fprintf(stderr, "Unrecognized option: \"%s\"\n", Arg.data());
+            std::print(stderr, "Unrecognized option: \"{}\"\n", Arg.data());
             return 1;
         }
     }
@@ -1088,13 +1126,14 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case RunResult::Error::Unsupported:
                     assert(0 && "got unexpected unsupported error");
                 case RunResult::Error::NotADylib:
-                    fputs("Id string not available - not a dylib\n", stderr);
+                    std::print(stderr,
+                               "Id string not available - not a dylib\n");
                     return 1;
                 case RunResult::Error::BadIdString:
-                    fputs("Id String is malformed\n", stderr);
+                    std::print(stderr, "Id String is malformed\n");
                     return 1;
                 case RunResult::Error::IdNotFound:
-                    fputs("Id String not found\n", stderr);
+                    std::print(stderr, "Id String not found\n");
                     return 1;
             }
 
@@ -1108,8 +1147,8 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case RunResult::Error::Unsupported:
                     assert(0 && "got unexpected unsupported error");
                 case RunResult::Error::NoLoadCommands:
-                    fprintf(stderr,
-                            "File does not contain any load commands\n");
+                    std::print(stderr,
+                               "File does not contain any load commands\n");
                     return 1;
             }
 
@@ -1147,22 +1186,23 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case RunResult::Error::EmptySectionName:
                     assert(false && "Internal Error: Empty Section Name");
                 case RunResult::Error::SectionNotFound:
-                    fputs("Provided section was not found\n"
-                          "This may be because found sections were in a "
-                          "protected segment\n",
-                          stderr);
+                    std::print(stderr,
+                               "Provided section was not found\n"
+                               "This may be because found sections were in a "
+                               "protected segment\n");
                     return 1;
                 case RunResult::Error::NotCStringSection:
-                    fputs("Provided section is not a c-string section\n",
-                          stderr);
+                    std::print(stderr,
+                               "Provided section is not a c-string section\n");
                     return 1;
                 case RunResult::Error::HasNoStrings:
-                    fputs("Provided section has no (printable) c-strings\n",
-                          stderr);
+                    std::print(stderr,
+                               "Provided section has no (printable) "
+                               "c-strings\n");
                     return 1;
                 case RunResult::Error::ProtectedSegment:
-                    fputs("Provided section is in a protected segment\n",
-                          stderr);
+                    std::print(stderr,
+                               "Provided section is in a protected segment\n");
                     break;
                 }
 
@@ -1178,46 +1218,49 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case RunResult::Error::EmptySectionName:
                     assert(false && "Internal Error: Empty Section Name");
                 case RunResult::Error::SectionNotFound:
-                    fputs("Provided section was not found\n"
+                    std::print(stderr, "Provided section was not found\n"
                           "This may be because found sections were in a "
-                          "protected segment\n",
-                          stderr);
+                          "protected segment\n");
                     return 1;
                 case RunResult::Error::NotSymbolPointerSection:
-                    fputs("Provided section is not a symbol pointer section\n",
-                          stderr);
+                    std::print(stderr,
+                               "Provided section is not a symbol pointer "
+                               "section\n");
                     return 1;
                 case RunResult::Error::ProtectedSegment:
-                    fputs("Provided section is in a protected segment\n",
-                          stderr);
+                    std::print(stderr,
+                               "Provided section is in a protected segment\n");
                     return 1;
                 case RunResult::Error::InvalidSectionRange:
-                    fputs("Provided section has an invalid file-range\n",
-                          stderr);
+                    std::print(stderr,
+                               "Provided section has an invalid file-range\n");
                     return 1;
                 case RunResult::Error::SymTabNotFound:
-                    fputs("Couldn't find symtab_command\n", stderr);
+                    std::print(stderr, "Couldn't find symtab_command\n");
                     return 1;
                 case RunResult::Error::DynamicSymTabNotFound:
-                    fputs("Couldn't find dysymtab_command\n", stderr);
+                    std::print(stderr, "Couldn't find dysymtab_command\n");
                     return 1;
                 case RunResult::Error::MultipleSymTabCommands:
-                    fputs("Found multiple symtab_commands\n", stderr);
+                    std::print(stderr, "Found multiple symtab_commands\n");
                     return 1;
                 case RunResult::Error::MultipleDynamicSymTabCommands:
-                    fputs("Found multiple dysymtab_commands\n", stderr);
+                    std::print(stderr, "Found multiple dysymtab_commands\n");
                     return 1;
                 case RunResult::Error::IndexListOutOfBounds:
-                    fputs("Index-List is out-of-bounds of mach-o\n", stderr);
+                    std::print(stderr,
+                               "Index-List is out-of-bounds of mach-o\n");
                     return 1;
                 case RunResult::Error::IndexOutOfBounds:
-                    fputs("Index is out-of-bounds of mach-o\n", stderr);
+                    std::print(stderr, "Index is out-of-bounds of mach-o\n");
                     return 1;
                 case RunResult::Error::SymbolTableOutOfBounds:
-                    fputs("Symbol-Table is out-of-bounds of mach-o\n", stderr);
+                    std::print(stderr,
+                               "Symbol-Table is out-of-bounds of mach-o\n");
                     return 1;
                 case RunResult::Error::StringTableOutOfBounds:
-                    fputs("String-Table is out-of-bounds of mach-o\n", stderr);
+                    std::print(stderr,
+                               "String-Table is out-of-bounds of mach-o\n");
                     return 1;
                 }
 
@@ -1231,16 +1274,17 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case RunResult::Error::Unsupported:
                     assert(0 && "got unexpected unsupported error");
                 case RunResult::Error::MultipleExportTries:
-                    fputs("Multiple different export-tries found\n", stderr);
+                    std::print(stderr,
+                               "Multiple different export-tries found\n");
                     return 1;
                 case RunResult::Error::NoExportTrieFound:
-                    fputs("Failed to find export-trie\n", stderr);
+                    std::print(stderr, "Failed to find export-trie\n");
                     return 1;
                 case RunResult::Error::ExportTrieOutOfBounds:
-                    fputs("Export-trie is out-of-bounds\n", stderr);
+                    std::print(stderr, "Export-trie is out-of-bounds\n");
                     return 1;
                 case RunResult::Error::NoExports:
-                    fputs("Export-trie has no exported symbols\n", stderr);
+                    std::print(stderr, "Export-trie has no exported symbols\n");
                     return 1;
             }
 
@@ -1254,10 +1298,10 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case RunResult::Error::Unsupported:
                     assert(0 && "got unexpected unsupported error");
                 case RunResult::Error::NoDyldInfo:
-                    fputs("No dyld-info load command was found\n", stderr);
+                    std::print(stderr, "No dyld-info load command was found\n");
                     return 1;
                 case RunResult::Error::NoOpcodes:
-                    fputs("No bind-opcodes found within table\n", stderr);
+                    std::print(stderr, "No bind-opcodes found within table\n");
                     return 1;
             }
 
@@ -1271,16 +1315,16 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case RunResult::Error::Unsupported:
                     assert(0 && "got unexpected unsupported error");
                 case RunResult::Error::NoDyldInfo:
-                    fputs("No dyld-info load command was found\n", stderr);
+                    std::print(stderr, "No dyld-info load command was found\n");
                     return 1;
                 case RunResult::Error::NoActions:
-                    fputs("No bind-actions found within table\n", stderr);
+                    std::print(stderr, "No bind-actions found within table\n");
                     return 1;
                 case RunResult::Error::BindOpcodeParseError: {
                     const auto &ParseResult =
                         Result.PrintBindActionListResult.BindOpcodeParseResult;
 
-                    fputs("Error parsing bind-opcode:\n", stderr);
+                    std::print(stderr, "Error parsing bind-opcode:\n");
                     PrintBindOpcodeParseError(ParseResult.BindKind,
                                               ParseResult.ParseResult,
                                               "\t");
@@ -1298,16 +1342,16 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case RunResult::Error::Unsupported:
                     assert(0 && "got unexpected unsupported error");
                 case RunResult::Error::NoDyldInfo:
-                    fputs("No dyld-info load command was found\n", stderr);
+                    std::print(stderr, "No dyld-info load command was found\n");
                     return 1;
                 case RunResult::Error::NoSymbols:
-                    fputs("No bind-symbols found within table\n", stderr);
+                    std::print(stderr, "No bind-symbols found within table\n");
                     return 1;
                 case RunResult::Error::BindOpcodeParseError: {
                     const auto &ParseResult =
                         Result.PrintBindSymbolListResult.BindOpcodeParseResult;
 
-                    fputs("Error parsing bind-opcode:\n", stderr);
+                    std::print(stderr, "Error parsing bind-opcode:\n");
                     PrintBindOpcodeParseError(ParseResult.BindKind,
                                               ParseResult.ParseResult,
                                               "\t");
@@ -1325,10 +1369,11 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case RunResult::Error::Unsupported:
                     assert(0 && "got unexpected unsupported error");
                 case RunResult::Error::NoDyldInfo:
-                    fputs("No dyld-info load command was found\n", stderr);
+                    std::print(stderr, "No dyld-info load command was found\n");
                     return 1;
                 case RunResult::Error::NoOpcodes:
-                    fputs("No rebase-opcodes found within table\n", stderr);
+                    std::print(stderr,
+                               "No rebase-opcodes found within table\n");
                     return 1;
             }
 
@@ -1342,10 +1387,11 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case RunResult::Error::Unsupported:
                     assert(0 && "got unexpected unsupported error");
                 case RunResult::Error::NoDyldInfo:
-                    fputs("No dyld-info load command was found\n", stderr);
+                    std::print(stderr, "No dyld-info load command was found\n");
                     return 1;
                 case RunResult::Error::NoActions:
-                    fputs("No rebase-actions found within table\n", stderr);
+                    std::print(stderr,
+                               "No rebase-actions found within table\n");
                     return 1;
             }
 
@@ -1359,17 +1405,18 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case RunResult::Error::Unsupported:
                     assert(0 && "got unexpected unsupported error");
                 case RunResult::Error::NoDyldInfo:
-                    fputs("No dyld-info load command was found\n", stderr);
+                    std::print(stderr, "No dyld-info load command was found\n");
                     return 1;
                 case RunResult::Error::NoObjcData:
-                    fputs("No objc class-list data was found\n", stderr);
+                    std::print(stderr, "No objc class-list data was found\n");
                     return 1;
                 case RunResult::Error::UnalignedSection:
-                    fputs("Objc class-list section is mis-aligned\n", stderr);
+                    std::print(stderr, "Objc class-list section is mis-aligned\n");
                     return 1;
                 case RunResult::Error::ObjcDataOutOfBounds:
-                    fputs("Objc class-list data is out-of-bounds of file\n",
-                          stderr);
+                    std::print(stderr,
+                               "Objc class-list data is out-of-bounds of "
+                               "file\n");
                     return 1;
                 case RunResult::Error::BindOpcodeParseError: {
                     const auto &ParseResult =
@@ -1382,6 +1429,12 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
 
                     break;
                 }
+                case RunResult::Error::RebaseOpcodeParseError:
+                    PrintRebaseOpcodeParseError(
+                        Result.PrintObjcClassListResult
+                            .RebaseOpcodeParseResult.ParseResult,
+                        "\t");
+                    break;
             }
 
             break;
@@ -1394,13 +1447,14 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case RunResult::Error::Unsupported:
                     assert(0 && "got unexpected unsupported error");
                 case RunResult::Error::NoProgramTrie:
-                    fputs("File has no program-trie\n", stderr);
+                    std::print(stderr, "File has no program-trie\n");
                     return 1;
                 case RunResult::Error::OutOfBounds:
-                    fputs("Program-trie is out-of-bounds of file\n", stderr);
+                    std::print(stderr,
+                               "Program-trie is out-of-bounds of file\n");
                     return 1;
                 case RunResult::Error::NoExports:
-                    fputs("Program-trie has no exported nodes\n", stderr);
+                    std::print(stderr, "Program-trie has no exported nodes\n");
                     return 1;
             }
 
@@ -1414,7 +1468,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 case RunResult::Error::Unsupported:
                     assert(0 && "got unexpected unsupported error");
                 case RunResult::Error::NoImages:
-                    fputs("File has no images\n", stderr);
+                    std::print(stderr, "File has no images\n");
                     return 1;
             }
 

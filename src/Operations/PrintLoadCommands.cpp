@@ -66,25 +66,21 @@ namespace Operations {
                 const auto SectionCount = Segment.sectionCount(IsBigEndian);
                 const auto Flags = Segment.flags(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\t\"" STRING_VIEW_FMT "\""
-                        "\t" MACH_VMPROT_INIT_MAX_FMT "\n"
-                        "%sFile:          " ADDR_RANGE_32_FMT "\n"
-                        "%sMem:           " ADDR_RANGE_32_FMT "\n"
-                        "%sFile Size:     %s\n"
-                        "%sMem Size:      %s\n"
-                        "%sFlags:         0x%" PRIx32 "\n",
-                        STRING_VIEW_FMT_ARGS(Segment.segmentName()),
-                        MACH_VMPROT_INIT_MAX_FMT_ARGS(
-                            Segment.initProt(IsBigEndian),
-                            Segment.maxProt(IsBigEndian)),
-                        Prefix,
-                        ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
-                        Prefix,
-                        ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
-                        Prefix, Utils::FormattedSizeForOutput(FileSize).c_str(),
-                        Prefix, Utils::FormattedSizeForOutput(VmSize).c_str(),
-                        Prefix, Flags.value());
+                std::print(OutFile,
+                           "\t\"{}\"\t{}\n"
+                           "{}File:          {}\n"
+                           "{}Mem:           {}\n"
+                           "{}File Size:     {}\n"
+                           "{}Mem Size:      {}\n"
+                           "{}Flags:         0x{:x}\n",
+                           Segment.segmentName(),
+                           Mach::VmProtInitMax(Segment.initProt(IsBigEndian),
+                                               Segment.maxProt(IsBigEndian)),
+                           Prefix, ADT::Range::FromSize(FileOffset, FileSize),
+                           Prefix, ADT::Range::FromSize(VmAddr, VmSize),
+                           Prefix, Utils::ByteSize(FileSize),
+                           Prefix, Utils::ByteSize(VmSize),
+                           Prefix, Flags.value());
 
                 if (!Flags.empty()) {
                     using FlagsStruct = SegmentCommand::FlagsStruct;
@@ -94,23 +90,23 @@ namespace Operations {
                         const auto Flag =
                             static_cast<FlagsStruct::Kind>(1ull << Bit);
 
-                        fprintf(OutFile,
-                                "\t%s%" PRIu32 ". Bit %" PRIu32 ": %s\n",
-                                Prefix,
-                                Counter + 1,
-                                Bit,
-                                FlagsStruct::KindIsValid(Flag) ?
-                                    FlagsStruct::KindGetString(Flag).data() :
-                                    "<unknown>");
+                        std::print(OutFile,
+                                   "\t{}{}. Bit {}: {}\n",
+                                   Prefix,
+                                   Counter + 1,
+                                   Bit,
+                                   FlagsStruct::KindIsValid(Flag) ?
+                                       FlagsStruct::KindGetString(Flag).data() :
+                                       "<unknown>");
 
                         Counter++;
                     }
                 }
 
-                fprintf(OutFile,
-                        "%sSection Count: %" PRIu32 "\n",
-                        Prefix,
-                        SectionCount);
+                std::print(OutFile,
+                           "{}Section Count: {}\n",
+                           Prefix,
+                           SectionCount);
 
                 if (SectionCount == 0) {
                     break;
@@ -124,44 +120,41 @@ namespace Operations {
                     const auto Addr = Section.addr(IsBigEndian);
                     const auto Size = Section.size(IsBigEndian);
                     const auto FileOffset = Section.fileOffset(IsBigEndian);
-                    const auto FormattedSize = Utils::FormattedSize(Size);
 
                     const auto Align = Section.align(IsBigEndian);
-                    const auto AlignDesc = Utils::FormattedSize(1ull << Align);
+                    const auto AlignDesc = Utils::ByteSize(1ull << Align);
 
                     constexpr auto LongestAlignDescLength =
                         std::string_view("512 Bytes").length();
 
                     if (Verbose) {
-                        fprintf(OutFile,
-                                "\t%s%" LEFTPAD_FMT PRIu32 ". ",
-                                Prefix,
-                                PAD_FMT_ARGS(SectionCountDigitCount),
-                                I + 1);
+                        std::print(OutFile,
+                                   "\t{}{:>{}}. ",
+                                   Prefix,
+                                   I + 1,
+                                   SectionCountDigitCount);
                     } else {
-                        fprintf(OutFile,
-                                "\t%s%" LEFTPAD_FMT PRIu32 ". "
-                                "File: " ADDR_RANGE_32_FMT
-                                "\tMem: " ADDR_RANGE_32_FMT
-                                "\tAlign: ",
-                                Prefix,
-                                PAD_FMT_ARGS(SectionCountDigitCount),
-                                I + 1,
-                                ADDR_RANGE_FMT_ARGS(FileOffset,
-                                                    FileOffset + Size),
-                                ADDR_RANGE_FMT_ARGS(Addr, Addr + Size));
+                        std::print(OutFile,
+                                   "\t{}{:>{}}. File: {:<}\tMem: {:<}\tAlign: ",
+                                   Prefix,
+                                   I + 1,
+                                   SectionCountDigitCount,
+                                   Utils::PrintRange(FileOffset, Size),
+                                   Utils::PrintRange(Addr, Size));
 
-                        Utils::RightPadSpaces(
-                            OutFile,
-                            fprintf(OutFile, "%s", AlignDesc.c_str()),
-                            LongestAlignDescLength);
+                        std::print(OutFile,
+                                   "{:<{}}",
+                                   AlignDesc,
+                                   LongestAlignDescLength);
                     }
 
-                    Utils::PrintSegmentSectionPair(OutFile,
-                                                   Section.segmentName(),
-                                                   Section.sectionName(),
-                                                   /*PadSegment=*/!Verbose,
-                                                   /*PadSection=*/!Verbose);
+                    std::print(OutFile,
+                               "{}",
+                               Utils::SegmentSectionPair(
+                                Section.segmentName(),
+                                Section.sectionName(),
+                                /*PadSegment=*/!Verbose,
+                                /*PadSection=*/!Verbose));
 
                     using SectionT = SegmentCommand::Section;
 
@@ -174,40 +167,40 @@ namespace Operations {
                                 SectionT::KindGetDesc(SectionKind) :
                                 "<unknown>";
 
-                        fprintf(OutFile, " (%s", SectionKindDesc.data());
+                        std::print(OutFile, " ({}", SectionKindDesc);
                         if (!Flags.attributes().empty()) {
-                            fputc(';', OutFile);
+                            std::print(OutFile, ";");
                         } else {
-                            fputc(')', OutFile);
+                            std::print(OutFile, ")");
                         }
                     }
 
                     if (Verbose) {
-                        fprintf(OutFile,
-                                "\n\t\t%sFile:              "
-                                    ADDR_RANGE_32_FMT "\n"
-                                "\t\t%sMem:               "
-                                    ADDR_RANGE_32_FMT "\n"
-                                "\t\t%sSize:              %s\n"
-                                "\t\t%sAlign:             %" PRIu32 " (%s)\n"
-                                "\t\t%sReloc File Offset: " ADDRESS_32_FMT "\n"
-                                "\t\t%sReloc Count:       %" PRIu32 "\n"
-                                "\t\t%sReserved 1:        %" PRIu32 "\n"
-                                "\t\t%sReserved 2:        %" PRIu32 "\n"
-                                "\t\t%sFlags:             0x%" PRIx32 "\n",
-                                Prefix,
-                                ADDR_RANGE_FMT_ARGS(FileOffset,
-                                                    FileOffset + Size),
-                                Prefix,
-                                ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
-                                Prefix,
-                                Utils::FormattedSizeForOutput(Size).c_str(),
-                                Prefix, Align, AlignDesc.data(),
-                                Prefix, Section.relocFileOffset(IsBigEndian),
-                                Prefix, Section.relocsCount(IsBigEndian),
-                                Prefix, Section.reserved1(IsBigEndian),
-                                Prefix, Section.reserved2(IsBigEndian),
-                                Prefix, Flags.value());
+                       std::print(OutFile,
+                                  "\n"
+                                  "\t\t{}File:              {}\n"
+                                  "\t\t{}Mem:               {}\n"
+                                  "\t\t{}Size:              {}\n"
+                                  "\t\t{}Align:             {} ({})\n"
+                                  "\t\t{}Reloc File Offset: {}\n"
+                                  "\t\t{}Reloc Count:       {}\n"
+                                  "\t\t{}Reserved 1:        {}\n"
+                                  "\t\t{}Reserved 2:        {}\n"
+                                  "\t\t{}Flags:             0x{:x}\n",
+                                  Prefix,
+                                    ADT::Range::FromSize(FileOffset, Size),
+                                  Prefix, ADT::Range::FromSize(Addr, Size),
+                                  Prefix, Utils::ByteSize(Size),
+                                  Prefix, Align, AlignDesc,
+                                  Prefix,
+                                    Utils::Address(
+                                        Section.relocFileOffset(IsBigEndian)),
+                                  Prefix,
+                                    Utils::NumberWithCommas(
+                                        Section.relocsCount(IsBigEndian)),
+                                  Prefix, Section.reserved1(IsBigEndian),
+                                  Prefix, Section.reserved2(IsBigEndian),
+                                  Prefix, Flags.value());
 
                             auto FlagNumber = uint32_t();
                             for (const auto Bit :
@@ -220,17 +213,18 @@ namespace Operations {
                                         SectionT::AttributeGetString(Attr) :
                                         "<unknown>";
 
-                                fprintf(OutFile,
-                                        "\t\t\t%s%" PRIu32 ". Bit %" PRIu32
-                                        ": %s\n",
-                                        Prefix, FlagNumber + 1, Bit,
-                                        AttrString.data());
+                                std::print(OutFile,
+                                           "\t\t\t{}{}. Bit {}: {}\n",
+                                           Prefix,
+                                           FlagNumber + 1,
+                                           Bit,
+                                           AttrString);
 
                                 FlagNumber++;
                             }
                     } else if (!Flags.attributes().empty()) {
                         if (SectionKind == SectionT::Kind::Regular) {
-                            fputs(" (Regular;", OutFile);
+                            std::print(OutFile, " (Regular;");
                         }
 
                         auto Iterator = ADT::FlagsIterator(Flags.attributes());
@@ -242,11 +236,9 @@ namespace Operations {
                                 const auto AttrDesc =
                                     SectionT::AttributeGetDesc(Attr);
 
-                                fprintf(OutFile, " %s", AttrDesc.data());
+                                std::print(OutFile, " {}", AttrDesc);
                             } else {
-                                fprintf(OutFile,
-                                        " <unknown: Bit %" PRIu32 ">",
-                                        Bit);
+                                std::print(OutFile, " <unknown: Bit {}>", Bit);
                             }
 
                             Iter++;
@@ -254,12 +246,12 @@ namespace Operations {
                                 break;
                             }
 
-                            fputc(',', OutFile);
+                            std::print(OutFile, ",");
                         }
 
-                        fputs(")\n", OutFile);
+                        std::print(OutFile, ")\n");
                     } else {
-                        fputc('\n', OutFile);
+                        std::print(OutFile, "\n");
                     }
 
                     I++;
@@ -277,25 +269,21 @@ namespace Operations {
                 const auto SectionCount = Segment.sectionCount(IsBigEndian);
                 const auto Flags = Segment.flags(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\t\"" STRING_VIEW_FMT "\""
-                        "\t" MACH_VMPROT_INIT_MAX_FMT "\n"
-                        "%sFile:          " ADDR_RANGE_64_FMT "\n"
-                        "%sMem:           " ADDR_RANGE_64_FMT "\n"
-                        "%sFile Size:     %s\n"
-                        "%sMem Size:      %s\n"
-                        "%sFlags:         0x%" PRIx32 "\n",
-                        STRING_VIEW_FMT_ARGS(Segment.segmentName()),
-                        MACH_VMPROT_INIT_MAX_FMT_ARGS(
-                            Segment.initProt(IsBigEndian),
-                            Segment.maxProt(IsBigEndian)),
-                        Prefix,
-                        ADDR_RANGE_FMT_ARGS(FileOffset, FileOffset + FileSize),
-                        Prefix,
-                        ADDR_RANGE_FMT_ARGS(VmAddr, VmAddr + VmSize),
-                        Prefix, Utils::FormattedSizeForOutput(FileSize).c_str(),
-                        Prefix, Utils::FormattedSizeForOutput(VmSize).c_str(),
-                        Prefix, Flags.value());
+                std::print(OutFile,
+                           "\t\"{}\"\t{}\n"
+                           "{}File:          {}\n"
+                           "{}Mem:           {}\n"
+                           "{}File Size:     {}\n"
+                           "{}Mem Size:      {}\n"
+                           "{}Flags:         0x{:x}\n",
+                           Segment.segmentName(),
+                           Mach::VmProtInitMax(Segment.initProt(IsBigEndian),
+                                               Segment.maxProt(IsBigEndian)),
+                           Prefix, ADT::Range::FromSize(FileOffset, FileSize),
+                           Prefix, ADT::Range::FromSize(VmAddr, VmSize),
+                           Prefix, Utils::ByteSize(FileSize),
+                           Prefix, Utils::ByteSize(VmSize),
+                           Prefix, Flags.value());
 
                 if (!Flags.empty()) {
                     using FlagsStruct = SegmentCommand64::FlagsStruct;
@@ -305,23 +293,23 @@ namespace Operations {
                         const auto Flag =
                             static_cast<FlagsStruct::Kind>(1ull << Bit);
 
-                        fprintf(OutFile,
-                                "\t%s%" PRIu32 ". Bit %" PRIu32 ": %s\n",
-                                Prefix,
-                                Counter + 1,
-                                Bit,
-                                FlagsStruct::KindIsValid(Flag) ?
-                                    FlagsStruct::KindGetString(Flag).data() :
-                                    "<unknown>");
+                        std::print(OutFile,
+                                   "\t{}{}. Bit {}: {}\n",
+                                   Prefix,
+                                   Counter + 1,
+                                   Bit,
+                                   FlagsStruct::KindIsValid(Flag) ?
+                                       FlagsStruct::KindGetString(Flag).data() :
+                                       "<unknown>");
 
                         Counter++;
                     }
                 }
 
-                fprintf(OutFile,
-                        "%sSection Count: %" PRIu32 "\n",
-                        Prefix,
-                        SectionCount);
+                std::print(OutFile,
+                           "{}Section Count: {}\n",
+                           Prefix,
+                           SectionCount);
 
                 if (SectionCount == 0) {
                     break;
@@ -335,44 +323,39 @@ namespace Operations {
                     const auto Addr = Section.addr(IsBigEndian);
                     const auto Size = Section.size(IsBigEndian);
                     const auto FileOffset = Section.fileOffset(IsBigEndian);
-                    const auto FormattedSize = Utils::FormattedSize(Size);
 
                     const auto Align = Section.align(IsBigEndian);
-                    const auto AlignDesc = Utils::FormattedSize(1ull << Align);
+                    const auto AlignDesc = Utils::ByteSize(1ull << Align);
 
                     constexpr auto LongestAlignDescLength =
                         std::string_view("512 Bytes").length();
 
                     if (Verbose) {
-                        fprintf(OutFile,
-                                "\t%s%" LEFTPAD_FMT PRIu32 ". ",
-                                Prefix,
-                                PAD_FMT_ARGS(SectionCountDigitCount),
-                                I + 1);
+                        std::print(OutFile,
+                                   "\t{}{:>{}}. ",
+                                   Prefix,
+                                   I + 1,
+                                   SectionCountDigitCount);
                     } else {
-                        fprintf(OutFile,
-                                "\t%s%" LEFTPAD_FMT PRIu32 ". "
-                                "File: " ADDR_RANGE_32_64_FMT
-                                "\tMem: " ADDR_RANGE_64_FMT
-                                "\tAlign: ",
-                                Prefix,
-                                PAD_FMT_ARGS(SectionCountDigitCount),
-                                I + 1,
-                                ADDR_RANGE_FMT_ARGS(FileOffset,
-                                                    FileOffset + Size),
-                                ADDR_RANGE_FMT_ARGS(Addr, Addr + Size));
-
-                        Utils::RightPadSpaces(
-                            OutFile,
-                            fprintf(OutFile, "%s", AlignDesc.c_str()),
-                            LongestAlignDescLength);
+                        std::print(OutFile,
+                                   "\t{}{:>{}}. File: {:<}\tMem: {:<}"
+                                   "\tAlign: {:>{}}",
+                                   Prefix,
+                                   I + 1,
+                                   SectionCountDigitCount,
+                                   Utils::PrintRange<uint64_t>(FileOffset,
+                                                               Size),
+                                   Utils::PrintRange(Addr, Size),
+                                   AlignDesc, LongestAlignDescLength);
                     }
 
-                    Utils::PrintSegmentSectionPair(OutFile,
-                                                   Section.segmentName(),
-                                                   Section.sectionName(),
-                                                   /*PadSegment=*/!Verbose,
-                                                   /*PadSection=*/!Verbose);
+                    std::print(OutFile,
+                               "{}",
+                               Utils::SegmentSectionPair(
+                                Section.segmentName(),
+                                Section.sectionName(),
+                                /*PadSegment=*/!Verbose,
+                                /*PadSection=*/!Verbose));
 
                     using SectionT = SegmentCommand::Section;
 
@@ -385,44 +368,43 @@ namespace Operations {
                                 SectionT::KindGetDesc(SectionKind) :
                                 "<unknown>";
 
-                        fprintf(OutFile, " (%s", SectionKindDesc.data());
+                        std::print(OutFile, " ({}", SectionKindDesc);
                         if (!Flags.attributes().empty()) {
-                            fputc(';', OutFile);
+                            std::print(OutFile, ";");
                         } else {
-                            fputc(')', OutFile);
+                            std::print(OutFile, ")");
                         }
                     }
 
                     if (Verbose) {
                         const auto Align = Section.align(IsBigEndian);
-                        const auto AlignDesc =
-                            Utils::FormattedSize(1ull << Align);
+                        const auto AlignDesc = Utils::ByteSize(1ull << Align);
 
-                        fprintf(OutFile,
-                                "\n\t\t%sFile:              "
-                                    ADDR_RANGE_32_64_FMT "\n"
-                                "\t\t%sMem:               "
-                                    ADDR_RANGE_64_FMT "\n"
-                                "\t\t%sSize:              %s\n"
-                                "\t\t%sAlign:             %" PRIu32 " (%s)\n"
-                                "\t\t%sReloc File Offset: " ADDRESS_32_FMT "\n"
-                                "\t\t%sReloc Count:       %" PRIu32 "\n"
-                                "\t\t%sReserved 1:        %" PRIu32 "\n"
-                                "\t\t%sReserved 2:        %" PRIu32 "\n"
-                                "\t\t%sFlags:             0x%" PRIx32 "\n",
-                                Prefix,
-                                ADDR_RANGE_FMT_ARGS(FileOffset,
-                                                    FileOffset + Size),
-                                Prefix,
-                                ADDR_RANGE_FMT_ARGS(Addr, Addr + Size),
-                                Prefix,
-                                    Utils::FormattedSizeForOutput(Size).c_str(),
-                                Prefix, Align, AlignDesc.data(),
-                                Prefix, Section.relocFileOffset(IsBigEndian),
-                                Prefix, Section.relocsCount(IsBigEndian),
-                                Prefix, Section.reserved1(IsBigEndian),
-                                Prefix, Section.reserved2(IsBigEndian),
-                                Prefix, Flags.value());
+                        std::print(OutFile,
+                                   "\n"
+                                   "\t\t{}File:              {}\n"
+                                   "\t\t{}Mem:               {}\n"
+                                   "\t\t{}Size:              {}\n"
+                                   "\t\t{}Align:             {} ({})\n"
+                                   "\t\t{}Reloc File Offset: {}\n"
+                                   "\t\t{}Reloc Count:       {}\n"
+                                   "\t\t{}Reserved 1:        {}\n"
+                                   "\t\t{}Reserved 2:        {}\n"
+                                   "\t\t{}Flags:             0x{:x}\n",
+                                   Prefix,
+                                    ADT::Range::FromSize(FileOffset, Size),
+                                   Prefix, ADT::Range::FromSize(Addr, Size),
+                                   Prefix, Utils::ByteSize(Size),
+                                   Prefix, Align, AlignDesc,
+                                   Prefix,
+                                       Utils::Address(
+                                           Section.relocFileOffset(IsBigEndian)),
+                                   Prefix,
+                                       Utils::NumberWithCommas(
+                                           Section.relocsCount(IsBigEndian)),
+                                   Prefix, Section.reserved1(IsBigEndian),
+                                   Prefix, Section.reserved2(IsBigEndian),
+                                   Prefix, Flags.value());
 
                             auto FlagNumber = uint32_t();
                             for (const auto Bit :
@@ -435,17 +417,18 @@ namespace Operations {
                                         SectionT::AttributeGetString(Attr) :
                                         "<unknown>";
 
-                                fprintf(OutFile,
-                                        "\t\t\t%s%" PRIu32 ". Bit %" PRIu32
-                                        ": %s\n",
-                                        Prefix, FlagNumber + 1, Bit,
-                                        AttrString.data());
+                                std::print(OutFile,
+                                           "\t\t\t{}{}. Bit {}: {}\n",
+                                           Prefix,
+                                           FlagNumber + 1,
+                                           Bit,
+                                           AttrString);
 
                                 FlagNumber++;
                             }
                     } else if (!Flags.attributes().empty()) {
                         if (SectionKind == SectionT::Kind::Regular) {
-                            fputs(" (Regular;", OutFile);
+                            std::print(OutFile, " (Regular;");
                         }
 
                         auto Iterator = ADT::FlagsIterator(Flags.attributes());
@@ -457,11 +440,9 @@ namespace Operations {
                                 const auto AttrDesc =
                                     SectionT::AttributeGetDesc(Attr);
 
-                                fprintf(OutFile, " %s", AttrDesc.data());
+                                std::print(OutFile, " {}", AttrDesc.data());
                             } else {
-                                fprintf(OutFile,
-                                        " <unknown: Bit %" PRIu32 ">",
-                                        Bit);
+                                std::print(OutFile, " <unknown: Bit {}>", Bit);
                             }
 
                             Iter++;
@@ -469,12 +450,12 @@ namespace Operations {
                                 break;
                             }
 
-                            fputc(',', OutFile);
+                            std::print(OutFile, ",");
                         }
 
-                        fputs(")\n", OutFile);
+                        std::print(OutFile, ")\n");
                     } else {
-                        fputc('\n', OutFile);
+                        std::print(OutFile, "\n");
                     }
 
                     I++;
@@ -484,6 +465,7 @@ namespace Operations {
             }
             case LoadCommandKind::Thread:
             case LoadCommandKind::UnixThread:
+                std::print(OutFile, "\n");
                 break;
             case LoadCommandKind::LoadFixedVMSharedLib:
             case LoadCommandKind::IdFixedVMSharedLib: {
@@ -495,17 +477,15 @@ namespace Operations {
                 const auto HeaderAddress =
                     FvmLib.Library.headerAddress(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sName:           \"" STRING_VIEW_FMT "\"\n"
-                        "%sMinor Version:  " DYLD3_PACKED_VERSION_FMT "\n"
-                        "%sHeader Address: " ADDRESS_32_FMT "\n",
-                        Prefix,
-                        STRING_VIEW_FMT_ARGS(
-                            NameOpt.has_value() ?
-                                NameOpt.value() : Malformed),
-                        Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(MinorVersion),
-                        Prefix, HeaderAddress);
+                std::print(OutFile,
+                           "\n"
+                           "{}Name:           \"{}\"\n"
+                           "{}Minor Version:  {}\n"
+                           "{}Header Address: {}\n",
+                           Prefix,
+                            NameOpt.has_value() ? NameOpt.value() : Malformed,
+                           Prefix, MinorVersion,
+                           Prefix, HeaderAddress);
 
                 break;
             }
@@ -520,10 +500,9 @@ namespace Operations {
                 const auto &DylibCmd = cast<DylibCommand>(LC, IsBigEndian);
                 const auto NameOpt = DylibCmd.name(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\t\"" STRING_VIEW_FMT "\"",
-                        STRING_VIEW_FMT_ARGS(
-                            NameOpt.has_value() ? NameOpt.value() : Malformed));
+                std::print(OutFile,
+                           "\t\"{}\"",
+                           NameOpt.has_value() ? NameOpt.value() : Malformed);
 
                 if (Kind != MachO::LoadCommandKind::IdDylib) {
                     const auto PadLength =
@@ -543,14 +522,14 @@ namespace Operations {
                 const auto TimestampString =
                     Utils::GetHumanReadableTimestamp(Timestamp);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sCurrent Version: " DYLD3_PACKED_VERSION_FMT "\n"
-                        "%sCompat Version:  " DYLD3_PACKED_VERSION_FMT "\n"
-                        "%sTimestamp:       %s (Value: %" PRIu32 ")\n",
-                        Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(CurrentVersion),
-                        Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(CompatVersion),
-                        Prefix, TimestampString.c_str(), Timestamp);
+                std::print(OutFile,
+                           "\n"
+                           "{}Current Version: {}\n"
+                           "{}Compat Version:  {}\n"
+                           "{}Timestamp:       {} (Value: {})\n",
+                           Prefix, CurrentVersion,
+                           Prefix, CompatVersion,
+                           Prefix, TimestampString, Timestamp);
 
                 break;
             }
@@ -559,11 +538,10 @@ namespace Operations {
                     cast<SubFrameworkCommand>(LC, IsBigEndian);
 
                 const auto UmbrellaOpt = SubFramework.umbrella(IsBigEndian);
-                fprintf(OutFile,
-                        "\t\"" STRING_VIEW_FMT "\"\n",
-                        STRING_VIEW_FMT_ARGS(
+                std::print(OutFile,
+                           "\t\"{}\"\n",
                             UmbrellaOpt.has_value() ?
-                                UmbrellaOpt.value() : Malformed));
+                                UmbrellaOpt.value() : Malformed);
 
                 break;
             }
@@ -571,11 +549,10 @@ namespace Operations {
                 const auto &SubClient = cast<SubClientCommand>(LC, IsBigEndian);
                 const auto ClientOpt = SubClient.client(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\t\"" STRING_VIEW_FMT "\"\n",
-                        STRING_VIEW_FMT_ARGS(
+                std::print(OutFile,
+                           "\t\"{}\"\n",
                             ClientOpt.has_value() ?
-                                ClientOpt.value() : Malformed));
+                                ClientOpt.value() : Malformed);
 
                 break;
             }
@@ -585,11 +562,10 @@ namespace Operations {
                 const auto SubUmbrellaOpt =
                     SubUmbrella.subUmbrella(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\t\"" STRING_VIEW_FMT "\"\n",
-                        STRING_VIEW_FMT_ARGS(
-                            SubUmbrellaOpt.has_value() ?
-                                SubUmbrellaOpt.value() : Malformed));
+                std::print(OutFile,
+                           "\t\"{}\"\n",
+                           SubUmbrellaOpt.has_value() ?
+                                SubUmbrellaOpt.value() : Malformed);
 
                 break;
             }
@@ -598,11 +574,10 @@ namespace Operations {
                     cast<SubLibraryCommand>(LC, IsBigEndian);
 
                 const auto SubLibraryOpt = SubLibrary.subLibrary(IsBigEndian);
-                fprintf(OutFile,
-                        "\t\"" STRING_VIEW_FMT "\"\n",
-                        STRING_VIEW_FMT_ARGS(
+                std::print(OutFile,
+                           "\t\"{}\"\n",
                             SubLibraryOpt.has_value() ?
-                                SubLibraryOpt.value() : Malformed));
+                                SubLibraryOpt.value() : Malformed);
 
                 break;
             }
@@ -611,11 +586,9 @@ namespace Operations {
                     cast<PreboundDylibCommand>(LC, IsBigEndian);
 
                 const auto NameOpt = PreboundDylibCmd.name(IsBigEndian);
-                fprintf(OutFile,
-                        "\t\"" STRING_VIEW_FMT "\"\n",
-                        STRING_VIEW_FMT_ARGS(
-                            NameOpt.has_value() ?
-                                NameOpt.value() : Malformed));
+                std::print(OutFile,
+                           "\t\"{}\"\n",
+                           NameOpt.has_value() ? NameOpt.value() : Malformed);
 
                 break;
             }
@@ -625,11 +598,9 @@ namespace Operations {
                     cast<DylinkerCommand>(LC, IsBigEndian);
 
                 const auto NameOpt = DylinkerCmd.name(IsBigEndian);
-                fprintf(OutFile,
-                        "\t\"" STRING_VIEW_FMT "\"\n",
-                        STRING_VIEW_FMT_ARGS(
-                            NameOpt.has_value() ?
-                                NameOpt.value() : Malformed));
+                std::print(OutFile,
+                           "\t\"{}\"\n",
+                           NameOpt.has_value() ? NameOpt.value() : Malformed);
 
                 break;
             }
@@ -647,24 +618,24 @@ namespace Operations {
                 const auto Reserved5 = RoutinesCmd.reserved5(IsBigEndian);
                 const auto Reserved6 = RoutinesCmd.reserved6(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sInit Address: " ADDRESS_32_FMT "\n"
-                        "%sInit Module:  %" PRIu32 "\n"
-                        "%sReserved 1:   %" PRIu32 "\n"
-                        "%sReserved 2:   %" PRIu32 "\n"
-                        "%sReserved 3:   %" PRIu32 "\n"
-                        "%sReserved 4:   %" PRIu32 "\n"
-                        "%sReserved 5:   %" PRIu32 "\n"
-                        "%sReserved 6:   %" PRIu32 "\n",
-                        Prefix, InitAddress,
-                        Prefix, InitModule,
-                        Prefix, Reserved1,
-                        Prefix, Reserved2,
-                        Prefix, Reserved3,
-                        Prefix, Reserved4,
-                        Prefix, Reserved5,
-                        Prefix, Reserved6);
+                std::print(OutFile,
+                           "\n"
+                           "{}Init Address: {}\n"
+                           "{}Init Module:  {}\n"
+                           "{}Reserved 1:   {}\n"
+                           "{}Reserved 2:   {}\n"
+                           "{}Reserved 3:   {}\n"
+                           "{}Reserved 4:   {}\n"
+                           "{}Reserved 5:   {}\n"
+                           "{}Reserved 6:   {}\n",
+                           Prefix, Utils::Address(InitAddress),
+                           Prefix, InitModule,
+                           Prefix, Reserved1,
+                           Prefix, Reserved2,
+                           Prefix, Reserved3,
+                           Prefix, Reserved4,
+                           Prefix, Reserved5,
+                           Prefix, Reserved6);
                 break;
             }
             case LoadCommandKind::Routines64: {
@@ -681,24 +652,24 @@ namespace Operations {
                 const auto Reserved5 = RoutinesCmd.reserved5(IsBigEndian);
                 const auto Reserved6 = RoutinesCmd.reserved6(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sInit Address: " ADDRESS_64_FMT "\n"
-                        "%sInit Module:  %" PRIu64 "\n"
-                        "%sReserved 1:   %" PRIu64 "\n"
-                        "%sReserved 2:   %" PRIu64 "\n"
-                        "%sReserved 3:   %" PRIu64 "\n"
-                        "%sReserved 4:   %" PRIu64 "\n"
-                        "%sReserved 5:   %" PRIu64 "\n"
-                        "%sReserved 6:   %" PRIu64 "\n",
-                        Prefix, InitAddress,
-                        Prefix, InitModule,
-                        Prefix, Reserved1,
-                        Prefix, Reserved2,
-                        Prefix, Reserved3,
-                        Prefix, Reserved4,
-                        Prefix, Reserved5,
-                        Prefix, Reserved6);
+                std::print(OutFile,
+                           "\n"
+                           "{}Init Address: {}\n"
+                           "{}Init Module:  {}\n"
+                           "{}Reserved 1:   {}\n"
+                           "{}Reserved 2:   {}\n"
+                           "{}Reserved 3:   {}\n"
+                           "{}Reserved 4:   {}\n"
+                           "{}Reserved 5:   {}\n"
+                           "{}Reserved 6:   {}\n",
+                           Prefix, Utils::Address(InitAddress),
+                           Prefix, InitModule,
+                           Prefix, Reserved1,
+                           Prefix, Reserved2,
+                           Prefix, Reserved3,
+                           Prefix, Reserved4,
+                           Prefix, Reserved5,
+                           Prefix, Reserved6);
                 break;
             }
             case LoadCommandKind::SymbolTable: {
@@ -710,18 +681,17 @@ namespace Operations {
                 const auto StrOff = SymTabCmd.strOffset(IsBigEndian);
                 const auto StrSize = SymTabCmd.strSize(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sSymbol Table Offset: " ADDRESS_32_FMT "\n"
-                        "%sSymbol Count:        %" PRIu32 "\n"
-                        "%sString Table Offset: " ADDRESS_32_FMT " ("
-                            ADDR_RANGE_32_FMT ")\n"
-                        "%sString Table Size:   %s\n",
-                        Prefix, SymOff,
-                        Prefix, SymCount,
-                        Prefix, StrOff,
-                        ADDR_RANGE_FMT_ARGS(StrOff, StrOff + StrSize),
-                        Prefix, Utils::FormattedSizeForOutput(StrSize).c_str());
+                std::print(OutFile,
+                           "\n"
+                           "{}Symbol Table Offset: {}\n"
+                           "{}Symbol Count:        {}\n"
+                           "{}String Table Offset: ({})\n"
+                           "{}String Table Size:   {}\n",
+                           Prefix, SymOff,
+                           Prefix, SymCount,
+                           Prefix, StrOff,
+                           ADT::Range::FromSize(StrOff, StrSize),
+                           Prefix, Utils::ByteSize(StrSize));
 
                 break;
             }
@@ -766,44 +736,49 @@ namespace Operations {
                 const auto LocalRelCount =
                     DySymTabCmd.localRelCount(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sLocal Symbols Index:       %" PRIu32 "\n"
-                        "%sLocal Symbols Count:       %" PRIu32 "\n"
-                        "%sExtern Def Symbols Index:  %" PRIu32 "\n"
-                        "%sExtern Def Symbols Count:  %" PRIu32 "\n"
-                        "%sUnDef Symbols Index:       %" PRIu32 "\n"
-                        "%sUnDef Symbols Count:       %" PRIu32 "\n"
-                        "%sTable Of Contents Offset:  " ADDRESS_32_FMT "\n"
-                        "%sTable Of Contents Count:   %" PRIu32 "\n"
-                        "%sModules Tab Offset:        " ADDRESS_32_FMT "\n"
-                        "%sModules Tab Count:         %" PRIu32 "\n"
-                        "%sExtern Ref Symbols Offset: " ADDRESS_32_FMT "\n"
-                        "%sExtern Ref Symbols Count:  %" PRIu32 "\n"
-                        "%sIndirect Symbols Offset:   " ADDRESS_32_FMT "\n"
-                        "%sIndirect Symbols Count:    %" PRIu32 "\n"
-                        "%sExtern Relocations Offset: " ADDRESS_32_FMT "\n"
-                        "%sExtern Relocations Count:  %" PRIu32 "\n"
-                        "%sLocal Relocations Offset:  " ADDRESS_32_FMT "\n"
-                        "%sLocal Relocations Count:   %" PRIu32 "\n",
-                        Prefix, LocalSymbolsIndex,
-                        Prefix, LocalSymbolsCount,
-                        Prefix, ExternDefSymbolsIndex,
-                        Prefix, ExternDefSymbolsCount,
-                        Prefix, UndefSymbolsIndex,
-                        Prefix, UndefSymbolsCount,
-                        Prefix, TableOfContentsOffset,
-                        Prefix, TableOfContentsCount,
-                        Prefix, ModulesTabOffset,
-                        Prefix, ModulesTabCount,
-                        Prefix, ExternRefSymbolsOffset,
-                        Prefix, ExternRefSymbolsCount,
-                        Prefix, IndirectSymbolsOffset,
-                        Prefix, IndirectSymbolsCount,
-                        Prefix, ExternRelOffset,
-                        Prefix, ExternRelCount,
-                        Prefix, LocalRelOffset,
-                        Prefix, LocalRelCount);
+                std::print(OutFile,
+                           "\n"
+                           "{}Local Symbols Index:       {}\n"
+                           "{}Local Symbols Count:       {}\n"
+                           "{}Extern Def Symbols Index:  {}\n"
+                           "{}Extern Def Symbols Count:  {}\n"
+                           "{}UnDef Symbols Index:       {}\n"
+                           "{}UnDef Symbols Count:       {}\n"
+                           "{}Table Of Contents Offset:  {}\n"
+                           "{}Table Of Contents Count:   {}\n"
+                           "{}Modules Tab Offset:        {}\n"
+                           "{}Modules Tab Count:         {}\n"
+                           "{}Extern Ref Symbols Offset: {}\n"
+                           "{}Extern Ref Symbols Count:  {}\n"
+                           "{}Indirect Symbols Offset:   {}\n"
+                           "{}Indirect Symbols Count:    {}\n"
+                           "{}Extern Relocations Offset: {}\n"
+                           "{}Extern Relocations Count:  {}\n"
+                           "{}Local Relocations Offset:  {}\n"
+                           "{}Local Relocations Count:   {}\n",
+                           Prefix, Utils::NumberWithCommas(LocalSymbolsIndex),
+                           Prefix, Utils::NumberWithCommas(LocalSymbolsCount),
+                           Prefix,
+                            Utils::NumberWithCommas(ExternDefSymbolsIndex),
+                           Prefix,
+                            Utils::NumberWithCommas(ExternDefSymbolsCount),
+                           Prefix, Utils::NumberWithCommas(UndefSymbolsIndex),
+                           Prefix, Utils::NumberWithCommas(UndefSymbolsCount),
+                           Prefix, Utils::Address(TableOfContentsOffset),
+                           Prefix,
+                            Utils::NumberWithCommas(TableOfContentsCount),
+                           Prefix, Utils::Address(ModulesTabOffset),
+                           Prefix, Utils::NumberWithCommas(ModulesTabCount),
+                           Prefix, Utils::Address(ExternRefSymbolsOffset),
+                           Prefix,
+                            Utils::NumberWithCommas(ExternRefSymbolsCount),
+                           Prefix, Utils::Address(IndirectSymbolsOffset),
+                           Prefix,
+                            Utils::NumberWithCommas(IndirectSymbolsCount),
+                           Prefix, Utils::Address(ExternRelOffset),
+                           Prefix, Utils::NumberWithCommas(ExternRelCount),
+                           Prefix, Utils::Address(LocalRelOffset),
+                           Prefix, Utils::NumberWithCommas(LocalRelCount));
                 break;
             }
             case LoadCommandKind::TwoLevelHints: {
@@ -814,12 +789,12 @@ namespace Operations {
                 const auto HintsCount =
                     TwoLevelHintsCmd.hintsCount(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sOffset:      " ADDRESS_32_FMT
-                        "%sHints Count: %" PRIu32 "\n",
-                        Prefix, Offset,
-                        Prefix, HintsCount);
+                std::print(OutFile,
+                           "\n"
+                           "{}Offset:      {}\n"
+                           "{}Hints Count: {}\n",
+                           Prefix, Utils::Address(Offset),
+                           Prefix, Utils::NumberWithCommas(HintsCount));
                 break;
             }
             case LoadCommandKind::PreBindChecksum: {
@@ -827,26 +802,24 @@ namespace Operations {
                     cast<PrebindChecksumCommand>(LC, IsBigEndian);
 
                 const auto Checksum = PrebindChecksumCmd.checksum(IsBigEndian);
-                fprintf(OutFile, "\t%" PRIu32 "\n", Checksum);
+                std::print(OutFile, "\t{}\n", Checksum);
 
                 break;
             }
             case LoadCommandKind::Uuid: {
                 const auto UuidCmd = cast<UuidCommand>(LC, IsBigEndian);
-                fprintf(OutFile,
-                        "\t\"" UUID_FMT "\"\n",
-                        UUID_FMT_ARGS(UuidCmd.Uuid));
+                std::print(OutFile,
+                           "\t\"{}\"\n",
+                           Utils::Uuid(UuidCmd.Uuid));
                 break;
             }
             case LoadCommandKind::Rpath: {
                 const auto &RpathCmd = cast<RpathCommand>(LC, IsBigEndian);
                 const auto PathOpt = RpathCmd.path(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\t\"" STRING_VIEW_FMT "\"\n",
-                        STRING_VIEW_FMT_ARGS(
-                            PathOpt.has_value() ?
-                                PathOpt.value() : Malformed));
+                std::print(OutFile,
+                           "\t\"{}\"\n",
+                           PathOpt.has_value() ? PathOpt.value() : Malformed);
                 break;
             }
             case LoadCommandKind::CodeSignature:
@@ -863,15 +836,13 @@ namespace Operations {
                 const auto DataOff = LinkeditDataCmd.dataOff(IsBigEndian);
                 const auto DataSize = LinkeditDataCmd.dataSize(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sData Offset: " ADDRESS_32_FMT " ("
-                            ADDR_RANGE_32_FMT ")\n"
-                        "%sData Size:   %s\n",
-                        Prefix, DataOff,
-                        ADDR_RANGE_FMT_ARGS(DataOff, DataOff + DataSize),
-                        Prefix,
-                            Utils::FormattedSizeForOutput(DataSize).c_str());
+                std::print(OutFile,
+                           "\n"
+                           "{}Data Offset: {} ({})\n"
+                           "{}Data Size:   {}\n",
+                           Prefix, Utils::Address(DataOff),
+                            ADT::Range::FromSize(DataOff, DataSize),
+                           Prefix, Utils::ByteSize(DataSize));
                 break;
             }
             case LoadCommandKind::FileSetEntry: {
@@ -883,19 +854,18 @@ namespace Operations {
                 const auto EntryIdOpt = FileSetEntryCmd.entryId(IsBigEndian);
                 const auto Reserved = FileSetEntryCmd.reserved(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sVm Address:  " ADDRESS_64_FMT "\n"
-                        "%sFile Offset: %" PRIu64 "\n"
-                        "%sEntry Id:    " STRING_VIEW_FMT "\n"
-                        "%sReserved:    %" PRIu32 "\n",
-                        Prefix, VmAddress,
-                        Prefix, FileOffset,
-                        Prefix,
-                            STRING_VIEW_FMT_ARGS(
+                std::print(OutFile,
+                           "\n"
+                           "{}Vm Address:  {}\n"
+                           "{}File Offset: {}\n"
+                           "{}Entry Id:    {}\n"
+                           "{}Reserved:    {}\n",
+                           Prefix, Utils::Address(VmAddress),
+                           Prefix, Utils::Address(FileOffset),
+                           Prefix,
                                 EntryIdOpt.has_value() ?
-                                    EntryIdOpt.value() : Malformed),
-                        Prefix, Reserved);
+                                    EntryIdOpt.value() : Malformed,
+                           Prefix, Reserved);
                 break;
             }
             case LoadCommandKind::EncryptionInfo: {
@@ -907,18 +877,15 @@ namespace Operations {
                 const auto CryptOffset =
                     EncryptionInfoCmd.cryptOffset(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sCrypt Offset: " ADDRESS_32_FMT " ("
-                            ADDR_RANGE_32_FMT ")\n"
-                        "%sCrypt Size:   %s\n"
-                        "%sCrypt Id:     %" PRIu32 "\n",
-                        Prefix, CryptOffset,
-                        ADDR_RANGE_FMT_ARGS(CryptOffset,
-                                            CryptOffset + CryptSize),
-                        Prefix,
-                            Utils::FormattedSizeForOutput(CryptSize).c_str(),
-                        Prefix, CryptId);
+                std::print(OutFile,
+                           "\n"
+                           "{}Crypt Offset: {} ({})\n"
+                           "{}Crypt Size:   {}\n"
+                           "{}Crypt Id:     {}\n",
+                           Prefix, CryptOffset,
+                           ADT::Range::FromSize(CryptOffset, CryptSize),
+                           Prefix, Utils::ByteSize(CryptSize),
+                           Prefix, CryptId);
                 break;
             }
             case LoadCommandKind::EncryptionInfo64: {
@@ -931,20 +898,17 @@ namespace Operations {
                 const auto CryptOffset =
                     EncryptionInfoCmd.cryptOffset(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sCrypt Offset: " ADDRESS_32_FMT " ("
-                            ADDR_RANGE_32_FMT ")\n"
-                        "%sCrypt Size:   %s\n"
-                        "%sCrypt Id:     %" PRIu32 "\n"
-                        "%sPad:          %" PRIu32 "\n",
-                        Prefix, CryptOffset,
-                        ADDR_RANGE_FMT_ARGS(CryptOffset,
-                                            CryptOffset + CryptSize),
-                        Prefix,
-                            Utils::FormattedSizeForOutput(CryptSize).c_str(),
-                        Prefix, CryptId,
-                        Prefix, Pad);
+                std::print(OutFile,
+                           "\n"
+                           "{}Crypt Offset: {} ({})\n"
+                           "{}Crypt Size:   {}\n"
+                           "{}Crypt Id:     {}\n"
+                           "{}Pad:          {}\n",
+                           Prefix, CryptOffset,
+                            ADT::Range::FromSize(CryptOffset, CryptSize),
+                           Prefix, Utils::ByteSize(CryptSize),
+                           Prefix, CryptId,
+                           Prefix, Pad);
                 break;
             }
             case LoadCommandKind::VersionMinMacOS:
@@ -957,12 +921,12 @@ namespace Operations {
                 const auto Version = VersionMinCmd.version(IsBigEndian);
                 const auto Sdk = VersionMinCmd.sdk(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sVersion: " DYLD3_PACKED_VERSION_FMT "\n"
-                        "%sSDK:     " DYLD3_PACKED_VERSION_FMT "\n",
-                        Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(Version),
-                        Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(Sdk));
+                std::print(OutFile,
+                           "\n"
+                           "{}Version: {}\n"
+                           "{}SDK:     {}\n",
+                           Prefix, Version,
+                           Prefix, Sdk);
                 break;
             }
             case LoadCommandKind::BuildVersion: {
@@ -976,30 +940,30 @@ namespace Operations {
                             Dyld3::PlatformGetString(Platform) :
                             Dyld3::PlatformGetDesc(Platform);
 
-                    fprintf(OutFile,
-                            "\n"
-                            "%sPlatform:    %s\n",
-                            Prefix,
-                            PlatformString.data());
+                    std::print(OutFile,
+                               "\n"
+                               "{}Platform:    {}\n",
+                               Prefix,
+                               PlatformString);
                 } else {
-                    fprintf(OutFile,
-                            "\n"
-                            "%sPlatform:    <Unknown> (Value: %" PRIu32 "\n",
-                            Prefix,
-                            static_cast<uint32_t>(Platform));
+                    std::print(OutFile,
+                               "\n"
+                               "{}Platform:    <Unknown> (Value: {}\n",
+                               Prefix,
+                               static_cast<uint32_t>(Platform));
                 }
 
                 const auto MinOS = BuildVersionCmd.minOS(IsBigEndian);
                 const auto Sdk = BuildVersionCmd.sdk(IsBigEndian);
                 const auto ToolsCount = BuildVersionCmd.toolsCount(IsBigEndian);
 
-                fprintf(OutFile,
-                        "%sMinimum OS:  " DYLD3_PACKED_VERSION_FMT "\n"
-                        "%sSDK:         " DYLD3_PACKED_VERSION_FMT "\n"
-                        "%sTools Count: %" PRIu32 "\n",
-                        Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(MinOS),
-                        Prefix, DYLD3_PACKED_VERSION_FMT_ARGS(Sdk),
-                        Prefix, ToolsCount);
+                std::print(OutFile,
+                           "{}Minimum OS:  {}\n"
+                           "{}SDK:         {}\n"
+                           "{}Tools Count: {}\n",
+                           Prefix, MinOS,
+                           Prefix, Sdk,
+                           Prefix, ToolsCount);
 
                 if (ToolsCount == 0) {
                     break;
@@ -1016,11 +980,11 @@ namespace Operations {
                                 BuildToolGetDesc(ToolValue) :
                             "<unknown>";
 
-                    fprintf(OutFile,
-                            "%s\t%" PRIu32 ". Tool: %s "
-                            "Version: " DYLD3_PACKED_VERSION_FMT "\n",
-                            Prefix, Counter + 1, ToolValueString.data(),
-                            DYLD3_PACKED_VERSION_FMT_ARGS(Version));
+                    std::print(OutFile,
+                               "{}\t{}. Tool: {}\n"
+                               "{}\t\tVersion: {}\n",
+                               Prefix, Counter + 1, ToolValueString,
+                               Prefix, Version);
 
                     Counter++;
                 }
@@ -1048,48 +1012,38 @@ namespace Operations {
                 const auto ExportTrieSize =
                     DyldInfoCmd.exportTrieSize(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sRebase Offset:      " ADDRESS_32_FMT " ("
-                            ADDR_RANGE_32_FMT ")\n"
-                        "%sRebase Size:        %s\n"
-                        "%sBind Offset:        " ADDRESS_32_FMT " ("
-                            ADDR_RANGE_32_FMT ")\n"
-                        "%sBind Size:          %s\n"
-                        "%sWeak Bind Offset:   " ADDRESS_32_FMT " ("
-                            ADDR_RANGE_32_FMT ")\n"
-                        "%sWeak Bind Size:     %s\n"
-                        "%sLazy Bind Offset:   " ADDRESS_32_FMT " ("
-                            ADDR_RANGE_32_FMT ")\n"
-                        "%sLazy Bind Size:     %s\n"
-                        "%sExport Trie Offset: " ADDRESS_32_FMT " ("
-                            ADDR_RANGE_32_FMT ")\n"
-                        "%sExport Trie Size:   %s\n",
-                        Prefix, RebaseOffset,
-                        ADDR_RANGE_FMT_ARGS(RebaseOffset,
-                                            RebaseOffset + RebaseSize),
-                        Prefix,
-                            Utils::FormattedSizeForOutput(RebaseSize).c_str(),
-                        Prefix, BindOffset,
-                        ADDR_RANGE_FMT_ARGS(BindOffset, BindOffset + BindSize),
-                        Prefix,
-                            Utils::FormattedSizeForOutput(BindSize).c_str(),
-                        Prefix, WeakBindOffset,
-                        ADDR_RANGE_FMT_ARGS(WeakBindOffset,
-                                            WeakBindOffset + WeakBindSize),
-                        Prefix,
-                            Utils::FormattedSizeForOutput(WeakBindSize).c_str(),
-                        Prefix, LazyBindOffset,
-                        ADDR_RANGE_FMT_ARGS(LazyBindOffset,
-                                            LazyBindOffset + LazyBindSize),
-                        Prefix,
-                            Utils::FormattedSizeForOutput(LazyBindSize).c_str(),
-                        Prefix, ExportTrieOffset,
-                        ADDR_RANGE_FMT_ARGS(ExportTrieOffset,
-                                            ExportTrieOffset + ExportTrieSize),
-                        Prefix,
-                            Utils::FormattedSizeForOutput(
-                                ExportTrieSize).c_str());
+                std::print(OutFile,
+                           "\n"
+                           "{}Rebase Offset:      {} ({})\n"
+                           "{}Rebase Size:        {}\n"
+                           "{}Bind Offset:        {} ({})\n"
+                           "{}Bind Size:          {}\n"
+                           "{}Weak Bind Offset:   {} ({})\n"
+                           "{}Bind Size:          {}\n"
+                           "{}Bind Offset:        {} ({})\n"
+                           "{}Lazy Bind Size:     {}\n"
+                           "{}Export Trie Offset: {} ({})\n"
+                           "{}Export Trie Size:   {}\n",
+                           Prefix, Utils::Address(RebaseOffset),
+                            ADT::Range::FromSize(RebaseOffset, RebaseSize),
+                           Prefix,
+                               Utils::ByteSize(RebaseSize),
+                           Prefix, Utils::Address(BindOffset),
+                            ADT::Range::FromSize(BindOffset, BindSize),
+                           Prefix,
+                               Utils::ByteSize(BindSize),
+                           Prefix, Utils::Address(WeakBindOffset),
+                            ADT::Range::FromSize(WeakBindOffset, WeakBindSize),
+                           Prefix,
+                               Utils::ByteSize(WeakBindSize),
+                           Prefix, Utils::Address(LazyBindOffset),
+                            ADT::Range::FromSize(LazyBindOffset, LazyBindSize),
+                           Prefix,
+                               Utils::ByteSize(LazyBindSize),
+                           Prefix, Utils::Address(ExportTrieOffset),
+                            ADT::Range::FromSize(ExportTrieOffset,
+                                                 ExportTrieSize),
+                           Prefix, Utils::ByteSize(ExportTrieSize));
                 break;
             }
             case LoadCommandKind::LinkerOption: {
@@ -1097,7 +1051,7 @@ namespace Operations {
                     cast<LinkerOptionCommand>(LC, IsBigEndian);
 
                 const auto Count = LinkerOptionCmd.count(IsBigEndian);
-                fprintf(OutFile, "\n%sCount: %" PRIu32 "\n", Prefix, Count);
+                std::print(OutFile, "\n{}Count: {}\n", Prefix, Count);
 
                 break;
             }
@@ -1108,13 +1062,12 @@ namespace Operations {
                 const auto Offset = SymbolSegmentCmd.offset(IsBigEndian);
                 const auto Size = SymbolSegmentCmd.size(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sOffset: " ADDRESS_32_FMT " (" ADDR_RANGE_32_FMT ")\n"
-                        "%sSize:   %s\n",
-                        Prefix, Offset,
-                        ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
-                        Prefix, Utils::FormattedSizeForOutput(Size).c_str());
+                std::print(OutFile,
+                           "\n"
+                           "{}Offset: {} ({})\n"
+                           "{}Size:   {}\n",
+                           Prefix, Offset, ADT::Range::FromSize(Offset, Size),
+                           Prefix, Utils::ByteSize(Size));
                 break;
             }
             case LoadCommandKind::FixedVMFile: {
@@ -1124,15 +1077,13 @@ namespace Operations {
                 const auto HeaderAddress =
                     FvmFileCmd.headerAddress(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sName:           \"" STRING_VIEW_FMT "\"\n"
-                        "%sHeader Address: " ADDRESS_32_FMT "\n",
-                        Prefix,
-                        STRING_VIEW_FMT_ARGS(
-                            NameOpt.has_value() ?
-                                NameOpt.value() : Malformed),
-                        Prefix, HeaderAddress);
+                std::print(OutFile,
+                           "\n"
+                           "{}Name:           \"{}\"\n"
+                           "{}Header Address: {}\n",
+                           Prefix,
+                            NameOpt.has_value() ? NameOpt.value() : Malformed,
+                           Prefix, HeaderAddress);
                 break;
             }
             case LoadCommandKind::Main: {
@@ -1142,13 +1093,12 @@ namespace Operations {
                 const auto EntryOffset = EntryPointCmd.entryOffset(IsBigEndian);
                 const auto StackSize = EntryPointCmd.stackSize(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sEntry Offset: " ADDRESS_64_FMT "\n"
-                        "%sStack Size:   %s\n",
-                        Prefix, EntryOffset,
-                        Prefix,
-                        Utils::FormattedSizeForOutput(StackSize).c_str());
+                std::print(OutFile,
+                           "\n"
+                           "{}Entry Offset: {}\n"
+                           "{}Stack Size:   {}\n",
+                           Prefix, EntryOffset,
+                           Prefix, Utils::ByteSize(StackSize));
                 break;
             }
             case LoadCommandKind::SourceVersion: {
@@ -1156,9 +1106,7 @@ namespace Operations {
                     cast<SourceVersionCommand>(LC, IsBigEndian);
 
                 const auto Version = SourceVersionCmd.version(IsBigEndian);
-                fprintf(OutFile,
-                        "\t" DYLD3_PACKED_VERSION_64_FMT "\n",
-                        DYLD3_PACKED_VERSION_64_FMT_ARGS(Version));
+                std::print(OutFile, "\t{}\n", Version);
 
                 break;
             }
@@ -1170,16 +1118,14 @@ namespace Operations {
                 const auto Offset = NoteCmd.offset(IsBigEndian);
                 const auto Size = NoteCmd.size(IsBigEndian);
 
-                fprintf(OutFile,
-                        "\n"
-                        "%sData Owner: \"" STRING_VIEW_FMT "\"\n"
-                        "%sOffset: " ADDRESS_64_FMT " ("
-                            ADDR_RANGE_64_FMT ")\n"
-                        "%sSize:   %s\n",
-                        Prefix, STRING_VIEW_FMT_ARGS(DataOwner),
-                        Prefix, Offset,
-                        ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
-                        Prefix, Utils::FormattedSizeForOutput(Size).c_str());
+                std::print(OutFile,
+                           "\n"
+                           "{}Data Owner: \"{}\"\n"
+                           "{}Offset: {} ({})\n"
+                           "{}Size:   {}\n",
+                           Prefix, DataOwner,
+                           Prefix, Offset, ADT::Range::FromSize(Offset, Size),
+                           Prefix, Utils::ByteSize(Size));
 
                 break;
             }
@@ -1205,7 +1151,8 @@ namespace Operations {
                     MachO::cast<MachO::DylibCommand>(LC, IsBigEndian);
 
                 if (const auto NameOpt = DylibCmd.name(IsBigEndian)) {
-                    MaxDylibPathLength.set(static_cast<uint32_t>(NameOpt->length()));
+                    MaxDylibPathLength.set(
+                        static_cast<uint32_t>(NameOpt->length()));
                 }
             }
         }
@@ -1216,21 +1163,20 @@ namespace Operations {
         for (const auto &LoadCommand : MachO.loadCommandsMap()) {
             const auto Kind = LoadCommand.kind(IsBigEndian);
             if (MachO::LoadCommandKindIsValid(Kind)) {
-                fprintf(OutFile,
-                        "LC %" LEFTPAD_FMT PRIu32 ": %" RIGHTPAD_FMT "s",
-                        PAD_FMT_ARGS(NcmdsDigitCount),
-                        Counter,
-                        PAD_FMT_ARGS(static_cast<int>(LongestLCKindLength)),
-                        MachO::LoadCommandKindGetString(Kind).data());
+                std::print(OutFile,
+                           "LC {:>{}}: {:<{}}",
+                           Counter,
+                           NcmdsDigitCount,
+                           MachO::LoadCommandKindGetString(Kind),
+                           LongestLCKindLength);
             } else {
-                fprintf(OutFile,
-                        "LC %" LEFTPAD_FMT PRIu32 ": <unknown> (Value: "
-                        "%" PRIu32 ")\n"
-                        "\tCmdSize: %" PRIu32 "\n",
-                        PAD_FMT_ARGS(NcmdsDigitCount),
-                        Counter,
-                        static_cast<uint32_t>(Kind),
-                        LoadCommand.cmdsize(IsBigEndian));
+                std::print(OutFile,
+                           "LC {:>{}}: <unknown> (Value: {})\n"
+                           "\tCmdSize: {}\n",
+                           Counter,
+                           NcmdsDigitCount,
+                           static_cast<uint32_t>(Kind),
+                           LoadCommand.cmdsize(IsBigEndian));
             }
 
             PrintLoadCommand(OutFile,

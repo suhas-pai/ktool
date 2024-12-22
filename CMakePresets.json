@@ -2,7 +2,7 @@
   "version": 2,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 5,
+    "minor": 10,
     "patch": 0
   },
   "configurePresets": [
@@ -18,8 +18,9 @@
       "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CMAKE_CXX_FLAGS_INIT": "$env{CXX_FLAGS}"
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       },
       "inherits": ["base"]
     },
@@ -30,7 +31,9 @@
       "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_FLAGS_INIT": "$env{CXX_FLAGS} -O3 -Wno-unused-parameter -Wunused-variable"
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_CXX_FLAGS_INIT": "-O3 -Wno-unused-parameter -Wunused-variable"
       },
       "inherits": ["base"]
     }

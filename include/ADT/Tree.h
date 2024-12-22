@@ -567,7 +567,7 @@ namespace ADT {
     {
         const auto RootDepthLevel = uint64_t(1);
         if (NodePrinterFunc(OutFile, 0, RootDepthLevel, *this)) {
-            fputc('\n', OutFile);
+            std::print(OutFile, "\n");
         }
 
         auto Iter = TreeDFSIterator<const TreeNode>(this);
@@ -580,7 +580,7 @@ namespace ADT {
 
             for (auto I = RootDepthLevel; I != End; I++) {
                 if (Iter.getParentAtIndex(I)->nextSibling() != nullptr) {
-                    fputs("│", OutFile);
+                    std::print(OutFile, "│");
                     WrittenOut += Utils::PadSpaces(OutFile, TabLength) + 1;
                 } else {
                     WrittenOut += Utils::PadSpaces(OutFile, TabLength + 1);
@@ -589,9 +589,9 @@ namespace ADT {
 
             WrittenOut += 1;
             if (Iter->nextSibling() != nullptr) {
-                fputs("├", OutFile);
+                std::print(OutFile, "├");
             } else {
-                fputs("└", OutFile);
+                std::print(OutFile, "└");
             }
 
             // Add 1 for the ├ or └ character, and 1 for the space after the
@@ -600,11 +600,11 @@ namespace ADT {
             WrittenOut += static_cast<int>(TabLength) + 2;
             Utils::PrintMultTimes(OutFile, "─", TabLength);
 
-            fputc(' ', OutFile);
+            std::print(OutFile, " ");
             WrittenOut += 1;
 
             NodePrinterFunc(OutFile, WrittenOut, DepthLevel, Info);
-            fputc('\n', OutFile);
+            std::print(OutFile, "\n");
         }
 
         return *this;

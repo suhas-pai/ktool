@@ -138,7 +138,7 @@ namespace Operations {
             ExportTrieExportKindIsValid(Export.kind()) ?
                 ExportTrieExportKindGetDesc(Export.kind()) : "<unrecognized>";
 
-        fputc(' ', OutFile);
+        std::print(OutFile, " ");
 
         /* Add 1 as at least 1 '-' that should be printed */
         const auto PadLength = RightPad - WrittenOut + 1;
@@ -146,31 +146,25 @@ namespace Operations {
                               "-",
                               static_cast<uint64_t>(PadLength));
 
-        fputs("> (Exported - ", OutFile);
+        std::print(OutFile, "> (Exported - ");
         if (Options.Verbose) {
-            fprintf(OutFile,
-                    "%" RIGHTPAD_FMT "s",
-                    PAD_FMT_ARGS(static_cast<int>(STR_LENGTH("Re-Export"))),
-                    KindDesc.data());
-
+            std::print(OutFile, "{:<{}}", KindDesc, STR_LENGTH("Re-Export"));
             if (!Export.isReexport()) {
-                Utils::PrintSegmentSectionPair(
-                    OutFile,
-                    Export.segment() ? Export.segment()->Name : "",
-                    Export.section() ? Export.section()->Name : "",
-                    /*PadSegment=*/true,
-                    /*PadSection=*/true,
-                    /*Prefix=*/" - ",
-                    /*Suffix=*/" - ");
-
                 const auto ImageOffset = Export.info().imageOffset();
-                Utils::PrintAddress(OutFile, ImageOffset, Is64Bit);
+                std::print(OutFile,
+                           " - {} - {}",
+                           Utils::SegmentSectionPair(
+                            Export.segment() ? Export.segment()->Name : "",
+                            Export.section() ? Export.section()->Name : "",
+                            /*PadSegment=*/true,
+                            /*PadSection=*/true),
+                           Utils::CustomAddress(ImageOffset, Is64Bit));
             } else {
-                fputs(" - ", OutFile);
+                std::print(OutFile, " - ");
                 if (!Export.info().reexportImportName().empty()) {
-                    fprintf(OutFile,
-                            "As \"%s\" - ",
-                            Export.info().reexportImportName().data());
+                    std::print(OutFile,
+                               "As \"{}\" - ",
+                               Export.info().reexportImportName());
                 }
 
                 const auto DylibOrdinal = Export.info().reexportDylibOrdinal();
@@ -182,10 +176,10 @@ namespace Operations {
                                       /*Suffix=*/")");
             }
         } else {
-            fprintf(OutFile, "%s", KindDesc.data());
+            std::print(OutFile, "{}", KindDesc.data());
         }
 
-        fputc(')', OutFile);
+        std::print(OutFile, ")");
     }
 
     static auto
@@ -198,7 +192,7 @@ namespace Operations {
     {
         using RunResult = PrintExportTrie::RunResult;
         if (EntryCollection.empty()) {
-            fputs("Provided file has an empty export-trie\n", OutFile);
+            std::print(OutFile, "Provided file has an empty export-trie\n");
             return RunResult();
         }
 
@@ -237,9 +231,9 @@ namespace Operations {
             }
 
             if (EntryCollection.empty()) {
-                fputs("Provided file has no export-trie after filtering with "
-                      "provided requirements\n",
-                      OutFile);
+                std::print(OutFile,
+                           "Provided file has no export-trie after filtering "
+                           "with provided requirements\n");
                 return RunResult();
             }
         }
@@ -251,9 +245,9 @@ namespace Operations {
                                                          Options);
 
         if (Options.OnlyCount) {
-            fprintf(OutFile,
-                    "Provided file's export-trie has %" PRIu64 " nodes\n",
-                    Count);
+            std::print(OutFile,
+                       "Provided file's export-trie has {} nodes\n",
+                       Count);
             return RunResult();
         }
 
@@ -277,7 +271,8 @@ namespace Operations {
             const auto &Info =
                 reinterpret_cast<const MachO::ExportTrieChildNode &>(Node);
 
-            WrittenOut += fprintf(OutFile, "\"%s\"", Info.string().data());
+            std::print(OutFile, "\"{}\"", Info.string());
+            WrittenOut += STR_LENGTH("\"\"") + Info.string().length();
             if (const auto ExportInfo = Info.getIfExportNode()) {
                 PrintTreeExportInfo(OutFile,
                                     *ExportInfo,
@@ -501,9 +496,9 @@ namespace Operations {
         }
 
         if (Opt.OnlyCount) {
-            fprintf(OutFile,
-                    "Provided file's export-trie has %" PRIu64 " nodes\n",
-                    Count);
+            std::print(OutFile,
+                       "Provided file's export-trie has {} nodes\n",
+                       Count);
             return RunResult();
         }
 
@@ -529,24 +524,20 @@ namespace Operations {
             const auto RightPadAmt =
                 static_cast<int>(STR_LENGTH("Export : ") + SizeDigitLength);
 
-            Utils::RightPadSpaces(OutFile,
-                                    fprintf(OutFile,
-                                            "Export %" LEFTPAD_FMT PRIu32 ": ",
-                                            PAD_FMT_ARGS(SizeDigitLength),
-                                            Counter),
-                                    RightPadAmt);
+            std::print(OutFile,
+                       "{:<{}}",
+                       std::format("Export {:>{}}: ", Counter, SizeDigitLength),
+                       RightPadAmt);
 
             if (!Export.Info.isReexport()) {
-                Utils::PrintSegmentSectionPair(OutFile,
-                                               Export.SegmentName,
-                                               Export.SectionName,
-                                               /*PadSegment=*/true,
-                                               /*PadSection=*/true,
-                                               /*Prefix=*/"",
-                                               /*Suffix=*/" ");
-
                 const auto ImageOffset = Export.Info.imageOffset();
-                Utils::PrintAddress(OutFile, ImageOffset, Is64Bit);
+                std::print(OutFile,
+                           "{} {}",
+                           Utils::SegmentSectionPair(Export.SegmentName,
+                                                     Export.SectionName,
+                                                     /*PadSegment=*/true,
+                                                     /*PadSection=*/true),
+                           Utils::CustomAddress(ImageOffset, Is64Bit));
             } else {
                 const auto OffsetLength =
                     Is64Bit ?
@@ -560,31 +551,25 @@ namespace Operations {
             const auto KindDesc =
                 MachO::ExportTrieExportKindGetDesc(Export.Kind);
 
-            fprintf(OutFile,
-                    "\t%" RIGHTPAD_FMT "s",
-                    PAD_FMT_ARGS(static_cast<int>(LongestDescLength)),
-                    KindDesc.data());
+            std::print(OutFile, "\t{:<{}}", KindDesc, LongestDescLength);
 
             const auto RightPad =
                 static_cast<int>(LongestExportLength.value() +
                                  STR_LENGTH("\"\""));
 
-            Utils::RightPadSpaces(OutFile,
-                                    fprintf(OutFile,
-                                            "\"%s\"",
-                                            Export.String.data()),
-                                    RightPad);
+            std::print(OutFile,
+                       "{:<{}}",
+                       std::format("\"{}\"", Export.String),
+                       RightPad);
 
             if (Export.Info.isReexport()) {
                 const auto ImportName = Export.Info.reexportImportName();
                 const auto DylibOrdinal = Export.Info.reexportDylibOrdinal();
 
                 if (!ImportName.empty()) {
-                    fprintf(OutFile,
-                            " (Re-exported as %s, ",
-                            ImportName.data());
+                    std::print(OutFile, " (Re-exported as {}, ", ImportName);
                 } else {
-                    fputs(" (Re-exported from ", OutFile);
+                    std::print(OutFile, " (Re-exported from ");
                 }
 
                 Operations::PrintDylibOrdinalInfo(OutFile,
@@ -595,7 +580,7 @@ namespace Operations {
                                                   ")");
             }
 
-            fputc('\n', OutFile);
+            std::print(OutFile, "\n");
             Counter++;
         }
 

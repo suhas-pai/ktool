@@ -165,19 +165,4 @@ namespace Dyld3 {
         [[nodiscard]] constexpr auto
         operator<=>(const Dyld3::PackedVersion64 &Rhs) const noexcept = default;
     };
-
-#define DYLD3_PACKED_VERSION_FMT "%" PRIu16 ".%" PRIu8 ".%" PRIu8
-#define DYLD3_PACKED_VERSION_FMT_ARGS(VERSION) \
-    (VERSION).major(), \
-    (VERSION).minor(), \
-    (VERSION).revision()
-
-#define DYLD3_PACKED_VERSION_64_FMT \
-    "%" PRIu32 ".%" PRIu16 ".%" PRIu16 ".%" PRIu16 ".%" PRIu16
-#define DYLD3_PACKED_VERSION_64_FMT_ARGS(VERSION) \
-    (VERSION).major(), \
-    (VERSION).minor(), \
-    (VERSION).revision1(), \
-    (VERSION).revision2(), \
-    (VERSION).revision3()
 }

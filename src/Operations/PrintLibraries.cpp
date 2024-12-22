@@ -148,9 +148,9 @@ namespace Operations {
             std::sort(DylibList.begin(), DylibList.end(), Lambda);
         }
 
-        fprintf(OutFile,
-                "Provided file has %" PRIuPTR " Shared Libraries:\n",
-                DylibList.size());
+        std::print(OutFile,
+                   "Provided file has {} Shared Libraries:\n",
+                   DylibList.size());
 
         const auto NcmdsDigitCount =
             Utils::GetIntegerDigitCount(MachO.header().ncmds());
@@ -163,22 +163,21 @@ namespace Operations {
             const auto TimestampString =
                 Utils::GetHumanReadableTimestamp(DylibInfo.Timestamp);
 
-            fprintf(OutFile,
-                    "%" PRIu32 ". LC %" LEFTPAD_FMT PRIu32 ": "
-                        "%" RIGHTPAD_FMT "s \"%s\"\n"
-                    "\tCurrent Version: " DYLD3_PACKED_VERSION_FMT "\n"
-                    "\tCompat Version:  " DYLD3_PACKED_VERSION_FMT "\n"
-                    "\tTimestamp:       %s (Value: %" PRIu32 ")\n",
-                    Counter,
-                    PAD_FMT_ARGS(NcmdsDigitCount),
-                    DylibInfo.Index,
-                    PAD_FMT_ARGS(static_cast<int>(LongestLCDylibKindLength)),
-                    MachO::LoadCommandKindGetString(DylibInfo.Kind).data(),
-                    DylibInfo.Name.data(),
-                    DYLD3_PACKED_VERSION_FMT_ARGS(DylibInfo.CurrentVersion),
-                    DYLD3_PACKED_VERSION_FMT_ARGS(DylibInfo.CompatVersion),
-                    TimestampString.c_str(),
-                    DylibInfo.Timestamp);
+            std::print(OutFile,
+                       "{}. LC {:>{}}: {:<{}} \"{}\"\n"
+                       "\tCurrent Version: {}\n"
+                       "\tCompat Version:  {}\n"
+                       "\tTimestamp:       {} (Value: {})\n",
+                       Counter,
+                       DylibInfo.Index,
+                       NcmdsDigitCount,
+                       MachO::LoadCommandKindGetString(DylibInfo.Kind),
+                       LongestLCDylibKindLength,
+                       DylibInfo.Name,
+                       DylibInfo.CurrentVersion,
+                       DylibInfo.CompatVersion,
+                       TimestampString,
+                       DylibInfo.Timestamp);
 
             Counter++;
         }

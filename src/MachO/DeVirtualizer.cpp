@@ -6,13 +6,25 @@
 #include "MachO/DeVirtualizer.h"
 
 namespace MachO {
+    [[nodiscard]] uint64_t DeVirtualizer::getBaseAddress() const noexcept {
+        const auto Segment = this->segmentList().findSegmentWithName("__TEXT");
+        if (Segment == nullptr) {
+            // FIXME: This is an invalid state
+            return 0;
+        }
+
+        return Segment->VmRange.front();
+    }
+
     auto
     DeVirtualizer::getPtrForAddress(const uint64_t VmAddr,
                                     const bool IgnoreSectionBounds,
                                     void **const EndOut) const noexcept
         -> void *
     {
-        if (const auto Segment = segmentList().findSegmentWithVmAddr(VmAddr)) {
+        if (const auto Segment =
+                this->segmentList().findSegmentWithVmAddr(VmAddr))
+        {
             auto FileRange = ADT::Range();
             auto VmRange = ADT::Range();
 
@@ -35,10 +47,10 @@ namespace MachO {
             }
 
             if (EndOut != nullptr) {
-                *EndOut = Map.get(FileRange.end().value());
+                *EndOut = this->Map.get(FileRange.end().value());
             }
 
-            return Map.get(FileRange.locForIndex(VmIndex));
+            return this->Map.get(FileRange.locForIndex(VmIndex));
         }
 
         return nullptr;

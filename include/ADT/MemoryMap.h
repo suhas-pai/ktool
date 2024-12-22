@@ -28,8 +28,13 @@ namespace ADT {
         explicit MemoryMap(void *const Base, const uint64_t Size) noexcept
         : Base(Base), Size(Size) {}
 
+        template <typename T>
+        constexpr explicit MemoryMap(const std::span<T> Span) noexcept
+        : Base(Span.begin()),
+          Size(Utils::MulAndCheckOverflow(Span.size(), sizeof(T)).value()) {}
+
         [[nodiscard]] constexpr auto size() const noexcept {
-            return Size;
+            return this->Size;
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {
@@ -99,29 +104,53 @@ namespace ADT {
             return reinterpret_cast<T *>(AdjBase);
         }
 
+        template <typename T = uint8_t,
+                  bool Verify = true,
+                  uint64_t Size = sizeof(T)>
+
+        [[nodiscard]] inline
+        auto get(const Range &Range, const uint64_t Count = 1) const noexcept
+            -> T *
+        {
+            if constexpr (Verify) {
+                const auto FullRangeOpt = Range.multiply(Count);
+                if (!FullRangeOpt.has_value()) {
+                    return nullptr;
+                }
+
+                const auto FullRange = FullRangeOpt.value();
+                if (!this->range().contains(FullRange)) {
+                    return nullptr;
+                }
+            }
+
+            const auto AdjBase =
+                reinterpret_cast<uint8_t *>(Base) + Range.front();
+
+            return reinterpret_cast<T *>(AdjBase);
+        }
+
         template <typename T = uint8_t, bool Verify = true>
-        [[nodiscard]] inline auto
-        getFromRange(const Range &Range,
-                     T **const EndOut = nullptr) const noexcept -> T *
+        [[nodiscard]]
+        inline auto getRange(const Range &Range) const noexcept
+            -> std::optional<std::span<T>>
         {
             if constexpr (Verify) {
                 if (!this->range().contains(Range)) {
-                    return nullptr;
+                    return std::nullopt;
                 }
             }
 
             const auto AdjBase =
                 reinterpret_cast<uint64_t>(Base) + Range.front();
 
-            if (EndOut != nullptr) {
-                *EndOut = reinterpret_cast<T *>(AdjBase + Range.size());
-            }
-
-            return reinterpret_cast<T *>(AdjBase);
+            return std::span(reinterpret_cast<T *>(AdjBase),
+                             Range.size() / sizeof(T));
         }
 
-        template <typename T, uint64_t Size = sizeof(T), bool Verify = true>
-        [[nodiscard]] constexpr auto list() const noexcept
+        template <typename T = uint8_t, uint64_t Size = sizeof(T),
+                  bool Verify = true>
+        [[nodiscard]] constexpr auto span() const noexcept
             -> std::optional<std::span<T>>
         {
             const auto Base = this->base<T, Verify>();

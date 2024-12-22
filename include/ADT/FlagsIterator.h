@@ -40,36 +40,36 @@ namespace ADT {
         auto operator<=>(const FlagsIterator<T> &Rhs) const noexcept = default;
 
         constexpr auto operator++() noexcept -> decltype(*this) {
-            BitIndex++;
-            if (BitIndex < bit_sizeof(T)) {
-                BitIndex = Value.getFirstSet(BitIndex);
+            if (this->BitIndex < bit_sizeof(T) - 1) {
+                this->BitIndex++;
+                this->BitIndex = this->Value.getFirstSet(this->BitIndex);
             } else {
-                BitIndex = bit_sizeof(T);
+                this->BitIndex = bit_sizeof(T);
             }
 
             return *this;
         }
 
         constexpr auto operator++(int) noexcept {
-            return operator++();
+            return this->operator++();
         }
 
         [[nodiscard]] constexpr auto operator*() const noexcept {
-            return BitIndex;
+            return this->BitIndex;
         }
 
         [[nodiscard]] constexpr auto mask() const noexcept {
-            return T(1) << BitIndex;
+            return T(1) << this->BitIndex;
         }
 
         [[nodiscard]] constexpr
         auto operator==([[maybe_unused]] const EndValue &End) const noexcept {
-            return BitIndex == bit_sizeof(T);
+            return this->BitIndex == bit_sizeof(T);
         }
 
         [[nodiscard]] constexpr
         auto operator!=([[maybe_unused]] const EndValue &End) const noexcept {
-            return !operator==(End);
+            return !this->operator==(End);
         }
     };
 }

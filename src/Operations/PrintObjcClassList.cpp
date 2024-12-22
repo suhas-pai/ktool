@@ -6,7 +6,7 @@
 #include "ADT/Maximizer.h"
 #include "DyldSharedCache/DeVirtualizer.h"
 
-#include "MachO/BindInfo.h"
+#include "DyldSharedCache/PatchInfo.h"
 #include "MachO/DeVirtualizer.h"
 #include "MachO/LibraryList.h"
 #include "MachO/ObjcInfo.h"
@@ -59,63 +59,63 @@ namespace Operations {
             return;
         }
 
-        fputc('<', OutFile);
+        std::print(OutFile, "<");
 
         auto DidPrint = false;
         if (Flags.root()) {
-            fputs("Root", OutFile);
+            std::print(OutFile, "Root");
             DidPrint = true;
         }
 
         if (Flags.meta()) {
             PrintFlagSeparator(OutFile, DidPrint);
-            fputs("Meta", OutFile);
+            std::print(OutFile, "Meta");
         }
 
         if (Flags.hidden()) {
             PrintFlagSeparator(OutFile, DidPrint);
-            fputs("Hidden", OutFile);
+            std::print(OutFile, "Hidden");
         }
 
         if (Flags.arc()) {
             PrintFlagSeparator(OutFile, DidPrint);
-            fputs("ARC", OutFile);
+            std::print(OutFile, "ARC");
         }
 
         if (Flags.exception()) {
             PrintFlagSeparator(OutFile, DidPrint);
-            fputs("Exception", OutFile);
+            std::print(OutFile, "Exception");
         }
 
         if (Flags.hasSwiftInitializer()) {
             PrintFlagSeparator(OutFile, DidPrint);
-            fputs("Swift-Initializer", OutFile);
+            std::print(OutFile, "Swift-Initializer");
         }
 
         if (Flags.fromBundle()) {
             PrintFlagSeparator(OutFile, DidPrint);
-            fputs("From Bundle", OutFile);
+            std::print(OutFile, "From Bundle");
         }
 
         if (Flags.hasWeakWithoutARC()) {
             PrintFlagSeparator(OutFile, DidPrint);
-            fputs("Non-ARC Weak", OutFile);
+            std::print(OutFile, "Non-ARC Weak");
         }
 
         if (Flags.hasCxxDestructorOnly()) {
             PrintFlagSeparator(OutFile, DidPrint);
-            fputs("Has C++ Destructor", OutFile);
+            std::print(OutFile, "Has C++ Destructor");
         } else if (Flags.hasCxxStructors()) {
             PrintFlagSeparator(OutFile, DidPrint);
-            fputs("Has C++ Constructor & Destructor", OutFile);
+            std::print(OutFile, "Has C++ Constructor & Destructor");
         }
 
         if (Flags.forbidsAssociatedObjects()) {
             PrintFlagSeparator(OutFile, DidPrint);
-            fputs("Forbids Associated-Objects", OutFile);
+            std::print(OutFile, "Forbids Associated-Objects");
         }
 
-        fputc('>', OutFile);
+        std::print(OutFile, ">");
     }
 
     static int
@@ -186,12 +186,12 @@ namespace Operations {
             case 0:
                 return;
             case 1:
-                fputs("\t1 Category:\n", OutFile);
+                std::print(OutFile, "\t1 Category:\n");
                 break;
             default:
-                fprintf(OutFile,
-                        "\t%" PRIuPTR " Categories:\n",
-                        CategoryList.size());
+                std::print(OutFile,
+                           "\t{} Categories:\n",
+                           CategoryList.size());
                 break;
         }
 
@@ -200,13 +200,12 @@ namespace Operations {
             Utils::GetIntegerDigitCount(CategoryList.size());
 
         for (const auto &Category : CategoryList) {
-            fprintf(OutFile,
-                    "\t\tObjc-Class Category %" LEFTPAD_FMT PRIu64 ": ",
-                    PAD_FMT_ARGS(CategoryListSizeDigitLength),
-                    Index);
-
-            Utils::PrintAddress(OutFile, Category->address(), Is64Bit);
-            fprintf(OutFile, " \"%s\"\n", Category->name().data());
+            std::print(OutFile,
+                       "\t\tObjc-Class Category {:>{}}: {}\"{}\"\n",
+                       Index,
+                       CategoryListSizeDigitLength,
+                       Utils::CustomAddress(Category->address(), Is64Bit),
+                       Category->name());
 
             Index++;
         }
@@ -233,13 +232,13 @@ namespace Operations {
 
         const auto CharCount = static_cast<uint64_t>(RightPad - WrittenOut - 1);
 
-        fputc(' ', OutFile);
+        std::print(OutFile, " ");
         Utils::PrintMultTimes(OutFile, "-", CharCount);
 
         if (IsExternal) {
-            fputs("> ", OutFile);
+            std::print(OutFile, "> ");
             if (IsTree) {
-                fputs("Imported - ", OutFile);
+                std::print(OutFile, "Imported - ");
             }
 
             Operations::PrintDylibOrdinalInfo(OutFile,
@@ -247,9 +246,9 @@ namespace Operations {
                                               LibraryList,
                                               /*PrintPath=*/true);
         } else {
-            fputs("> ", OutFile);
+            std::print(OutFile, "> ");
             if (IsSwift) {
-                fputs("<Swift> ", OutFile);
+                std::print(OutFile, "<Swift> ");
             }
 
             PrintClassRoFlags(OutFile, Flags);
@@ -265,7 +264,7 @@ namespace Operations {
         const struct PrintObjcClassList::Options &Options) noexcept
     {
         if (ObjcClassCollection.empty()) {
-            fputs("Provided file has no Objective-C Classes\n", OutFile);
+            std::print(OutFile, "Provided file has no Objective-C Classes\n");
             return;
         }
 
@@ -314,7 +313,9 @@ namespace Operations {
                     return false;
                 }
 
-                WrittenOut += fprintf(OutFile, "\"%s\"", Node.name().data());
+                std::print(OutFile, "\"{}\"", Node.name());
+                WrittenOut += STR_LENGTH("\"\"") + Node.name().length();
+
                 if (!Options.Verbose) {
                     return true;
                 }
@@ -344,9 +345,9 @@ namespace Operations {
             }
 
             const auto ObjcClassListSize = ObjcClassList.size();
-            fprintf(OutFile,
-                    "Provided file has %" PRIuPTR " Objective-C Classes:\n",
-                    ObjcClassListSize);
+            std::print(OutFile,
+                       "Provided file has {} Objective-C Classes:\n",
+                       ObjcClassListSize);
 
             const auto MaxDigitLength =
                 Utils::GetIntegerDigitCount(ObjcClassListSize);
@@ -359,23 +360,25 @@ namespace Operations {
                     continue;
                 }
 
-                fprintf(OutFile,
-                        "Objective-C Class %" LEFTPAD_FMT PRIu64 ": ",
-                        PAD_FMT_ARGS(MaxDigitLength),
-                        I);
+                std::print(OutFile,
+                           "Objective-C Class {:0{}}: ",
+                           I,
+                           MaxDigitLength);
 
                 if (Node->external()) {
-                    Utils::RightPadSpaces(OutFile,
-                                          fputs("<imported>", OutFile),
-                                          Is64Bit ?
-                                            Utils::Address64Length :
-                                            Utils::Address32Length);
+                    std::print(OutFile,
+                               "{:<{}}",
+                               "<imported>",
+                               Utils::AddressLength(Is64Bit));
                 } else {
-                    Utils::PrintAddress(OutFile, Node->address(), Is64Bit);
+                    std::print(OutFile,
+                               "{}",
+                               Utils::CustomAddress(Node->address(), Is64Bit));
                 }
 
+                std::print(OutFile, " \"{}\"", Node->name());
                 const auto NamePrintLength =
-                    fprintf(OutFile, " \"%s\"", Node->name().data());
+                    STR_LENGTH(" \"\"") + Node->name().length();
 
                 PrintClassVerboseInfo(OutFile,
                                       LibraryList,
@@ -384,7 +387,7 @@ namespace Operations {
                                       false,
                                       NamePrintLength - 1);
 
-                fputc('\n', OutFile);
+                std::print(OutFile, "\n");
                 if (Options.PrintCategories) {
                     const auto &CategoryList = Node->categoryList();
                     PrintCategoryList(OutFile, CategoryList, Is64Bit);
@@ -404,10 +407,7 @@ namespace Operations {
 
         auto SegmentList = MachO::SegmentList();
         auto LibraryList = MachO::LibraryList();
-
-        auto BindRange = ADT::Range();
-        auto LazyBindRange = ADT::Range();
-        auto WeakBindRange = ADT::Range();
+        auto DyldInfo = static_cast<const MachO::DyldInfoCommand *>(nullptr);
 
         for (const auto &LC : MachO.loadCommandsMap()) {
             if (LC.isSharedLibrary(IsBigEndian)) {
@@ -419,26 +419,24 @@ namespace Operations {
             using Kind = MachO::LoadCommandKind;
             if (Is64Bit) {
                 if (const auto Segment =
-                        MachO::dyn_cast<Kind::Segment64>(&LC, IsBigEndian))
+                        dyn_cast<Kind::Segment64>(&LC, IsBigEndian))
                 {
                     SegmentList.addSegment(*Segment, IsBigEndian);
                     continue;
                 }
             } else {
                 if (const auto Segment =
-                        MachO::dyn_cast<Kind::Segment>(&LC, IsBigEndian))
+                        dyn_cast<Kind::Segment>(&LC, IsBigEndian))
                 {
                     SegmentList.addSegment(*Segment, IsBigEndian);
                     continue;
                 }
             }
 
-            if (const auto DyldInfo =
-                    MachO::dyn_cast<MachO::DyldInfoCommand>(&LC, IsBigEndian))
+            if (const auto DyldInfoCmd =
+                    dyn_cast<MachO::DyldInfoCommand>(&LC, IsBigEndian))
             {
-                BindRange = DyldInfo->bindRange(IsBigEndian);
-                LazyBindRange = DyldInfo->lazyBindRange(IsBigEndian);
-                WeakBindRange = DyldInfo->weakBindRange(IsBigEndian);
+                DyldInfo = DyldInfoCmd;
             }
         }
 
@@ -450,70 +448,49 @@ namespace Operations {
         }
 
         const auto &ObjcSectionInfo = ObjcSectionInfoOpt.value();
-
-        auto BindActionInfoList = MachO::BindActionList::UnorderedMap();
-        auto ParseResult = MachO::BindOpcodeParseResult();
-
-        if (MachO.map().range().contains(BindRange)) {
-            const auto BindList =
-                MachO::BindActionList(MachO.map(),
-                                      BindRange,
-                                      SegmentList,
-                                      Is64Bit);
-
-            ParseResult =
-                BindList.getMapForSection(ObjcSectionInfo.Segment,
-                                          ObjcSectionInfo.Section,
-                                          BindActionInfoList);
-
-            if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
-                return RunResult(MachO::BindInfoKind::Normal, ParseResult);
-            }
-        }
-
-        if (MachO.map().range().contains(LazyBindRange)) {
-            const auto LazyBindList =
-                MachO::LazyBindActionList(MachO.map(),
-                                          LazyBindRange,
-                                          SegmentList,
-                                          Is64Bit);
-
-            ParseResult =
-                LazyBindList.getMapForSection(ObjcSectionInfo.Segment,
-                                              ObjcSectionInfo.Section,
-                                              BindActionInfoList);
-
-            if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
-                return RunResult(MachO::BindInfoKind::Lazy, ParseResult);
-            }
-        }
-
-        if (MachO.map().range().contains(WeakBindRange)) {
-            const auto WeakBindList =
-                MachO::WeakBindActionList(MachO.map(),
-                                          WeakBindRange,
-                                          SegmentList,
-                                          Is64Bit);
-
-            ParseResult =
-                WeakBindList.getMapForSection(ObjcSectionInfo.Segment,
-                                              ObjcSectionInfo.Section,
-                                              BindActionInfoList);
-
-            if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
-                return RunResult(MachO::BindInfoKind::Weak, ParseResult);
-            }
-        }
-
         const auto DeVirtualizer =
             MachO::DeVirtualizer(MachO.map(), SegmentList);
+
+        const auto AddrResolverOpt =
+            ADT::AddressResolver::FromLoadCommands(DeVirtualizer.map(),
+                                                   MachO.header(),
+                                                   DyldInfo,
+                                                   /*ChainedFixups=*/nullptr,
+                                                   SegmentList);
+
+        if (!AddrResolverOpt.has_value()) {
+            const auto AddrResolverError = AddrResolverOpt.error();
+            if (std::holds_alternative<ADT::AddressResolver::BindParseError>(
+                    AddrResolverError))
+            {
+                auto &[BindKind, BindResult] =
+                    std::get<ADT::AddressResolver::BindParseError>(
+                        AddrResolverError);
+
+                return RunResult(BindKind, std::move(BindResult));
+            }
+
+            if (std::holds_alternative<ADT::AddressResolver::RebaseParseError>(
+                    AddrResolverError))
+            {
+                auto &RebaseResult =
+                    std::get<ADT::AddressResolver::RebaseParseError>(
+                        AddrResolverError);
+
+                return RunResult(std::move(RebaseResult));
+            }
+
+            assert(0 && "Expected a recognizable error");
+        }
+
+        const auto &AddrResolver = AddrResolverOpt.value();
 
         auto ObjcClassInfoList = MachO::ObjcClassInfoList();
         auto Error =
             ObjcClassInfoList.Parse(DeVirtualizer,
+                                    AddrResolver,
                                     ObjcSectionInfo,
                                     SegmentList,
-                                    BindActionInfoList,
                                     IsBigEndian,
                                     Is64Bit);
 
@@ -533,8 +510,8 @@ namespace Operations {
             Error =
                 CategoryInfoList.CollectFrom(MachO.map(),
                                              DeVirtualizer,
+                                             AddrResolver,
                                              SegmentList,
-                                             BindActionInfoList,
                                              &ObjcClassInfoList,
                                              IsBigEndian,
                                              Is64Bit);
@@ -567,9 +544,9 @@ namespace Operations {
         auto SegmentList = MachO::SegmentList();
         auto LibraryList = MachO::LibraryList();
 
-        auto BindRange = ADT::Range();
-        auto LazyBindRange = ADT::Range();
-        auto WeakBindRange = ADT::Range();
+        auto DyldInfo = static_cast<const MachO::DyldInfoCommand *>(nullptr);
+        auto ChainedFixups =
+            static_cast<const MachO::LinkeditDataCommand *>(nullptr);
 
         for (const auto &LC : Image.loadCommandsMap()) {
             if (LC.isSharedLibrary(IsBigEndian)) {
@@ -581,26 +558,33 @@ namespace Operations {
             using Kind = MachO::LoadCommandKind;
             if (Is64Bit) {
                 if (const auto Segment =
-                        MachO::dyn_cast<Kind::Segment64>(&LC, IsBigEndian))
+                        dyn_cast<Kind::Segment64>(&LC, IsBigEndian))
                 {
                     SegmentList.addSegment(*Segment, IsBigEndian);
                     continue;
                 }
             } else {
                 if (const auto Segment =
-                        MachO::dyn_cast<Kind::Segment>(&LC, IsBigEndian))
+                        dyn_cast<Kind::Segment>(&LC, IsBigEndian))
                 {
                     SegmentList.addSegment(*Segment, IsBigEndian);
                     continue;
                 }
             }
 
-            if (const auto DyldInfo =
-                    MachO::dyn_cast<MachO::DyldInfoCommand>(&LC, IsBigEndian))
+            if (const auto DyldInfoCmd =
+                    dyn_cast<MachO::DyldInfoCommand>(&LC, IsBigEndian))
             {
-                BindRange = DyldInfo->bindRange(IsBigEndian);
-                LazyBindRange = DyldInfo->lazyBindRange(IsBigEndian);
-                WeakBindRange = DyldInfo->weakBindRange(IsBigEndian);
+                DyldInfo = DyldInfoCmd;
+                continue;
+            }
+
+            if (const auto ChainedFixupsCmd =
+                    dyn_cast<MachO::LoadCommandKind::DyldChainedFixups>(
+                        &LC, IsBigEndian))
+            {
+                ChainedFixups = ChainedFixupsCmd;
+                continue;
             }
         }
 
@@ -612,70 +596,56 @@ namespace Operations {
             return RunResult(RunResult::Error::NoObjcData);
         }
 
+        const auto DeVirtualizer = DyldSharedCache::DeVirtualizer(Image.dsc());
         const auto &ObjcSectionInfo = ObjcSectionInfoOpt.value();
 
-        auto BindActionInfoList = MachO::BindActionList::UnorderedMap();
-        auto ParseResult = MachO::BindOpcodeParseResult();
+        auto PatchI =
+            DyldSharedCache::PatchInfo::Create(DeVirtualizer,
+                                               Image.dsc().header());
 
-        if (Map.range().contains(BindRange)) {
-            const auto BindList =
-                MachO::BindActionList(Map,
-                                      BindRange,
-                                      SegmentList,
-                                      Is64Bit);
+        auto List =
+            PatchI->getListOfExportPatchesV3ForImage(DeVirtualizer, 27, ADT::Range::CreateMax());
 
-            ParseResult =
-                BindList.getMapForSection(ObjcSectionInfo.Segment,
-                                          ObjcSectionInfo.Section,
-                                          BindActionInfoList);
+        const auto AddrResolverOpt =
+            ADT::AddressResolver::FromLoadCommands(DeVirtualizer.map(),
+                                                   Image.header(),
+                                                   DyldInfo,
+                                                   ChainedFixups,
+                                                   SegmentList);
 
-            if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
-                return RunResult(MachO::BindInfoKind::Normal, ParseResult);
+        if (!AddrResolverOpt.has_value()) {
+            const auto AddrResolverError = AddrResolverOpt.error();
+            if (std::holds_alternative<ADT::AddressResolver::BindParseError>(
+                    AddrResolverError))
+            {
+                auto &[BindKind, BindResult] =
+                    std::get<ADT::AddressResolver::BindParseError>(
+                        AddrResolverError);
+
+                return RunResult(BindKind, std::move(BindResult));
             }
+
+            if (std::holds_alternative<ADT::AddressResolver::RebaseParseError>(
+                    AddrResolverError))
+            {
+                auto &RebaseResult =
+                    std::get<ADT::AddressResolver::RebaseParseError>(
+                        AddrResolverError);
+
+                return RunResult(std::move(RebaseResult));
+            }
+
+            assert(0 && "Expected a recognizable error");
         }
 
-        if (Map.range().contains(LazyBindRange)) {
-            const auto LazyBindList =
-                MachO::LazyBindActionList(Map,
-                                          LazyBindRange,
-                                          SegmentList,
-                                          Is64Bit);
-
-            ParseResult =
-                LazyBindList.getMapForSection(ObjcSectionInfo.Segment,
-                                              ObjcSectionInfo.Section,
-                                              BindActionInfoList);
-
-            if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
-                return RunResult(MachO::BindInfoKind::Lazy, ParseResult);
-            }
-        }
-
-        if (Map.range().contains(WeakBindRange)) {
-            const auto WeakBindList =
-                MachO::WeakBindActionList(Map,
-                                          WeakBindRange,
-                                          SegmentList,
-                                          Is64Bit);
-
-            ParseResult =
-                WeakBindList.getMapForSection(ObjcSectionInfo.Segment,
-                                              ObjcSectionInfo.Section,
-                                              BindActionInfoList);
-
-            if (ParseResult.Error != MachO::BindOpcodeParseError::None) {
-                return RunResult(MachO::BindInfoKind::Weak, ParseResult);
-            }
-        }
-
-        const auto DeVirtualizer = DyldSharedCache::DeVirtualizer(Image.dsc());
+        const auto &AddrResolver = AddrResolverOpt.value();
 
         auto ObjcClassInfoList = MachO::ObjcClassInfoList();
         auto Error =
             ObjcClassInfoList.Parse(DeVirtualizer,
+                                    AddrResolver,
                                     ObjcSectionInfo,
                                     SegmentList,
-                                    BindActionInfoList,
                                     IsBigEndian,
                                     Is64Bit);
 
@@ -695,8 +665,8 @@ namespace Operations {
             Error =
                 CategoryInfoList.CollectFrom(Map,
                                              DeVirtualizer,
+                                             AddrResolver,
                                              SegmentList,
-                                             BindActionInfoList,
                                              &ObjcClassInfoList,
                                              IsBigEndian,
                                              Is64Bit);
@@ -716,7 +686,7 @@ namespace Operations {
                                Is64Bit,
                                Opt);
 
-        return RunResult(RunResult::Error::None);
+        return RunResult();
     }
 
     auto

@@ -22,12 +22,14 @@ namespace MachO {
         : Map(Map), SegmentList(SegmentList) {}
 
         [[nodiscard]] constexpr auto map() const noexcept {
-            return Map;
+            return this->Map;
         }
 
         [[nodiscard]] constexpr auto &segmentList() const noexcept {
-            return SegmentList;
+            return this->SegmentList;
         }
+
+        [[nodiscard]] uint64_t getBaseAddress() const noexcept override;
 
         [[nodiscard]] void *
         getPtrForAddress(const uint64_t Address,

@@ -408,6 +408,28 @@ namespace MachO {
         }
     };
 
+    struct BindOpcodeParseResult {
+        BindOpcodeParseError Error = BindOpcodeParseError::None;
+
+        int64_t Addend = 0;
+        int64_t DylibOrdinal = -1;
+
+        BindSymbolFlags Flags;
+        std::string SymbolName;
+
+        int64_t SegmentIndex = -1;
+        uint64_t SegOffset = 0;
+        uint64_t ThreadedCount = 0;
+
+        explicit BindOpcodeParseResult() noexcept = default;
+        explicit BindOpcodeParseResult(
+            const struct BindOpcodeIterateInfo &Iter) noexcept
+        : Error(Iter.Error), Addend(Iter.Addend),
+          DylibOrdinal(Iter.DylibOrdinal), Flags(Iter.Flags),
+          SymbolName(Iter.SymbolName), SegmentIndex(Iter.SegmentIndex),
+          SegOffset(Iter.SegOffset), ThreadedCount(Iter.ThreadedCount) {}
+    };
+
     struct BindOpcodeIteratorEnd {};
 
     template <BindInfoKind BindKind>
@@ -708,28 +730,6 @@ namespace MachO {
 
             return ErrorEnum::UnrecognizedBindOpcode;
         }
-    };
-
-    struct BindOpcodeParseResult {
-        BindOpcodeParseError Error = BindOpcodeParseError::None;
-
-        int64_t Addend = 0;
-        int64_t DylibOrdinal = -1;
-
-        BindSymbolFlags Flags;
-        std::string SymbolName;
-
-        int64_t SegmentIndex = -1;
-        uint64_t SegOffset = 0;
-        uint64_t ThreadedCount = 0;
-
-        explicit BindOpcodeParseResult() noexcept = default;
-        explicit BindOpcodeParseResult(
-            const struct BindOpcodeIterateInfo &Iter) noexcept
-        : Error(Iter.Error), Addend(Iter.Addend),
-          DylibOrdinal(Iter.DylibOrdinal), Flags(Iter.Flags),
-          SymbolName(Iter.SymbolName), SegmentIndex(Iter.SegmentIndex),
-          SegOffset(Iter.SegOffset), ThreadedCount(Iter.ThreadedCount) {}
     };
 
     template <BindInfoKind BindKind>

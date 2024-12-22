@@ -7,9 +7,7 @@
 
 #pragma once
 
-#include <cstring>
-#include <errno.h>
-#include <string>
+#include <print>
 #include <unistd.h>
 
 #include "Utils/Overflow.h"
@@ -40,6 +38,12 @@
 #define TO_STRING(Tok) TO_STRING_IMPL(Tok)
 
 #define CARR_TO_SV(carr) std::string_view(carr, strnlen(carr, sizeof(carr)))
+
+#if defined(DEBUG)
+    #define VERIFY_NOT_REACHED() assert(false && "Unreachable")
+#else
+    #define VERIFY_NOT_REACHED() __builtin_unreachable()
+#endif
 
 namespace Utils {
     [[nodiscard]]
@@ -79,6 +83,17 @@ namespace Utils {
     template <std::unsigned_integral T, std::unsigned_integral U>
     constexpr auto OrdinalOutOfBounds(const T Ordinal, const U Bound) noexcept {
         return Ordinal == 0 || Ordinal > Bound;
+    }
+
+    template <std::unsigned_integral T, std::unsigned_integral U,
+              std::unsigned_integral V>
+
+    [[nodiscard]] constexpr auto
+    IndexAndCountOutOfBounds(const T Index,
+                             const U Count,
+                             const V Bound) noexcept
+    {
+        return OrdinalOutOfBounds(Index + Count, Bound);
     }
 
     template <std::unsigned_integral T>
@@ -126,9 +141,9 @@ namespace Utils {
 
         const auto CdString = getcwd(nullptr, 0);
         if (CdString == nullptr) {
-            fprintf(stderr,
-                    "Failed to get current-directory. Error: \"%s\"\n",
-                    strerror(errno));
+            std::print(stderr,
+                       "Failed to get current-directory. Error: \"{}\"\n",
+                       strerror(errno));
             exit(1);
         }
 

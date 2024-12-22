@@ -43,12 +43,10 @@ namespace Operations {
                     const uint32_t ImageCount,
                     const bool PrintColon = true) noexcept
     {
-        fprintf(OutFile, "Provided file has %" PRIu32 " Images", ImageCount);
-        if (PrintColon) {
-            fputc(':', OutFile);
-        }
-
-        fputc('\n', OutFile);
+        std::print(OutFile,
+                   "Provided file has {} Images{}\n",
+                   ImageCount,
+                   PrintColon ? ":" : "");
     }
 
     struct ImageInfo : public DyldSharedCache::ImageInfo {
@@ -160,35 +158,30 @@ namespace Operations {
 
         auto Counter = uint64_t(1);
         for (const auto &Info : ImageInfoList) {
-            fprintf(OutFile,
-                    "Image %" LEFTPAD_FMT PRIu64 ": ",
-                    PAD_FMT_ARGS(ImageInfoListSizeDigitCount),
-                    Counter);
+            std::print(OutFile,
+                       "Image {:>{}}: ",
+                       Counter,
+                       ImageInfoListSizeDigitCount);
 
-            const auto WrittenOut =
-                fprintf(OutFile, "\"%s\"", Info.Path.data());
+            std::print(OutFile, "\"{}\"", Info.Path);
 
+            const auto WrittenOut = STR_LENGTH("\"\"") + Info.Path.length();
             if (Opt.Verbose) {
                 const auto RightPad =
                     static_cast<int>(LongestImagePath.value() +
                                      STR_LENGTH("\"\""));
 
                 Utils::RightPadSpaces(OutFile, WrittenOut, RightPad);
-                Utils::PrintAddress(OutFile,
-                                    Info.Address,
-                                    /*Is64Bit=*/true,
-                                    /*Prefix=*/" <Address: ");
-
-                fprintf(OutFile,
-                        ", Modification-Time: %s (Value: %" PRIu64 "), "
-                        "Inode: %" PRIu64 ">",
-                        Utils::GetHumanReadableTimestamp(
-                            static_cast<time_t>(Info.ModTime)).c_str(),
-                        Info.ModTime,
-                        Info.Inode);
+                std::print(OutFile,
+                           "{}, Modification-Time: {} (Value: {}), Inode: {}>",
+                           Utils::Address(Info.Address),
+                           Utils::GetHumanReadableTimestamp(
+                               static_cast<time_t>(Info.ModTime)),
+                           Info.ModTime,
+                           Info.Inode);
             }
 
-            fputc('\n', OutFile);
+            std::print(OutFile, "\n");
             Counter++;
         }
 

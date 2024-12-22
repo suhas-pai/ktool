@@ -428,11 +428,11 @@ namespace Objects {
             }
 
             for (const auto &[Name, SubCache] : this->SubCacheList) {
-                if (!subCacheHasAddress(SubCache, AddrRange.front())) {
+                if (!this->subCacheHasAddress(SubCache, AddrRange.front())) {
                     continue;
                 }
 
-                if (const auto Error = OpenSubCacheFileMap(SubCache);
+                if (const auto Error = this->OpenSubCacheFileMap(SubCache);
                     Error.Kind != OpenError::None)
                 {
                     return std::unexpected(Error);

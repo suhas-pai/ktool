@@ -9,6 +9,7 @@
 #include <string_view>
 #include <vector>
 
+#include "ADT/AddressResolver.h"
 #include "ADT/DeVirtualizer.h"
 #include "ADT/MemoryMap.h"
 #include "ADT/Tree.h"
@@ -108,45 +109,45 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto name() const noexcept -> std::string_view {
-            return Name;
+            return this->Name;
         }
 
         [[nodiscard]] constexpr auto dylibOrdinal() const noexcept {
-            return DylibOrdinal;
+            return this->DylibOrdinal;
         }
 
         [[nodiscard]] constexpr auto external() const noexcept {
-            return sIsExternal;
+            return this->sIsExternal;
         }
 
         [[nodiscard]] constexpr auto null() const noexcept {
-            return sIsNull;
+            return this->sIsNull;
         }
 
         [[nodiscard]] constexpr auto isSwift() const noexcept {
-            return sIsSwift;
+            return this->sIsSwift;
         }
 
         [[nodiscard]] constexpr auto flags() const noexcept {
-            return Flags;
+            return this->Flags;
         }
 
         [[nodiscard]] constexpr auto address() const noexcept {
             assert(!this->external());
-            return Addr;
+            return this->Addr;
         }
 
         [[nodiscard]] constexpr auto bindAddress() const noexcept {
             assert(this->external());
-            return BindAddr;
+            return this->BindAddr;
         }
 
         [[nodiscard]] constexpr auto &categoryList() const noexcept {
-            return CategoryList;
+            return this->CategoryList;
         }
 
         [[nodiscard]] constexpr auto &categoryListRef() noexcept {
-            return CategoryList;
+            return this->CategoryList;
         }
 
         inline auto setName(const std::string_view Value) noexcept
@@ -207,7 +208,7 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto operator<=>(const ObjcClassInfo &Rhs) const noexcept {
-            return Addr <=> Rhs.Addr;
+            return this->Addr <=> Rhs.Addr;
         }
     };
 
@@ -221,19 +222,19 @@ namespace MachO {
         explicit ObjcClassCategoryInfo() = default;
 
         [[nodiscard]] constexpr auto name() const noexcept -> std::string_view {
-            return Name;
+            return this->Name;
         }
 
         [[nodiscard]] constexpr auto getClass() const noexcept {
-            return Class;
+            return this->Class;
         }
 
         [[nodiscard]] constexpr auto address() const noexcept {
-            return Address;
+            return this->Address;
         }
 
         [[nodiscard]] constexpr auto null() const noexcept {
-            return sIsNull;
+            return this->sIsNull;
         }
 
         constexpr auto setName(const std::string_view Value) noexcept
@@ -284,8 +285,8 @@ namespace MachO {
         template <bool Is64Bit>
         using ObjcClassCategoryType =
             std::conditional_t<Is64Bit,
-                            ObjC::ClassCategory64,
-                            ObjC::ClassCategory>;
+                               ObjC::ClassCategory64,
+                               ObjC::ClassCategory>;
 
         using ObjcClassCollectionType =
             std::unordered_map<uint64_t, std::unique_ptr<ObjcClassInfo>>;
@@ -447,8 +448,8 @@ namespace MachO {
         FixSuperForClassInfo(
             ObjcClassInfo *const Info,
             const ADT::DeVirtualizer &DeVirtualizer,
+            const ADT::AddressResolver &AddrResolver,
             const SegmentList &SegmentList,
-            const BindActionList::UnorderedMap &BindCollection,
             ObjcClassCollectionType &List,
             std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
             const bool IsBigEndian) noexcept
@@ -457,11 +458,12 @@ namespace MachO {
             const auto BindAddr =
                 Info->address() + offsetof(ObjcClassType<Is64Bit>, SuperClass);
 
-            if (auto Iter = BindCollection.find(BindAddr);
-                Iter != BindCollection.end())
+            if (auto ResolveOpt =
+                    AddrResolver.resolveBind(BindAddr, /*BaseAddr=*/0);
+                ResolveOpt.has_value())
             {
                 SetSuperWithBindAction(Info,
-                                       Iter->second,
+                                       *ResolveOpt.value(),
                                        SegmentList,
                                        List,
                                        ExternalAndRootClassList);
@@ -496,8 +498,8 @@ namespace MachO {
             SetSuperClassForClassInfo(Ptr, Info);
             FixSuperForClassInfo<Is64Bit>(Ptr,
                                           DeVirtualizer,
+                                          AddrResolver,
                                           SegmentList,
-                                          BindCollection,
                                           List,
                                           ExternalAndRootClassList,
                                           IsBigEndian);
@@ -529,8 +531,8 @@ namespace MachO {
         static void
         FixSuperClassForClassList(
             const ADT::DeVirtualizer &DeVirtualizer,
+            const ADT::AddressResolver &AddrResolver,
             const SegmentList &SegmentList,
-            const BindActionList::UnorderedMap &BindCollection,
             ObjcClassCollectionType &List,
             std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
             const bool IsBigEndian) noexcept
@@ -550,8 +552,8 @@ namespace MachO {
 
                 FixSuperForClassInfo<Is64Bit>(Info,
                                               DeVirtualizer,
+                                              AddrResolver,
                                               SegmentList,
-                                              BindCollection,
                                               List,
                                               ExternalAndRootClassList,
                                               IsBigEndian);
@@ -563,8 +565,8 @@ namespace MachO {
         ParseObjcClassListSection(
             const SectionInfo &SectionInfo,
             const ADT::DeVirtualizer &DeVirtualizer,
+            const ADT::AddressResolver &AddrResolver,
             const SegmentList &SegmentList,
-            const BindActionList::UnorderedMap &BindList,
             ObjcClassCollectionType &ClassList,
             std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
             const bool IsBigEndian) noexcept
@@ -582,7 +584,7 @@ namespace MachO {
                 return Error::UnalignedSection;
             }
 
-            const auto ListOpt = SectionMap.list<PtrAddrType>();
+            const auto ListOpt = SectionMap.span<PtrAddrType>();
             if (!ListOpt.has_value()) {
                 return Error::DataOutOfBounds;
             }
@@ -595,8 +597,8 @@ namespace MachO {
             }
 
             FixSuperClassForClassList<Is64Bit>(DeVirtualizer,
+                                               AddrResolver,
                                                SegmentList,
-                                               BindList,
                                                ClassList,
                                                ExternalAndRootClassList,
                                                IsBigEndian);
@@ -624,8 +626,8 @@ namespace MachO {
         ParseObjcClassRefsSection(
             const SectionInfo &SectionInfo,
             const ADT::DeVirtualizer &DeVirtualizer,
+            const ADT::AddressResolver &AddrResolver,
             const SegmentList &SegmentList,
-            const BindActionList::UnorderedMap &BindCollection,
             ObjcClassCollectionType &ClassList,
             std::vector<ObjcClassInfo *> &ExternalAndRootClassList,
             const bool IsBigEndian) noexcept
@@ -643,29 +645,32 @@ namespace MachO {
                 return Error::UnalignedSection;
             }
 
-            const auto ListOpt = SectionMap.list<PointerAddrType>();
-            if (!ListOpt.has_value()) {
+            const auto SpanOpt = SectionMap.span<PointerAddrType>();
+            if (!SpanOpt.has_value()) {
                 return Error::DataOutOfBounds;
             }
 
-            auto ListAddr = SectionInfo.vmRange().front();
-            for (const auto &Addr : ListOpt.value()) {
-                if (const auto Iter = BindCollection.find(ListAddr);
-                    Iter != BindCollection.end())
+            auto SectionAddr = SectionInfo.vmRange().front();
+            const auto BaseAddress = DeVirtualizer.getBaseAddress();
+
+            for (const auto &Addr : SpanOpt.value()) {
+                if (const auto ResolveOpt =
+                        AddrResolver.resolveBind(Addr, BaseAddress);
+                    ResolveOpt.has_value())
                 {
-                    const auto &It = Iter->second;
+                    const auto &It = *ResolveOpt.value();
                     const auto Name =
                         GetNameFromBindActionSymbol(It.SymbolName);
                     const auto DylibOrdinal =
                         static_cast<uint64_t>(It.DylibOrdinal);
 
                     auto NewInfo =
-                        CreateExternalClass(Name, DylibOrdinal, ListAddr);
+                        CreateExternalClass(Name, DylibOrdinal, SectionAddr);
 
                     const auto Ptr =
                         ClassCollectionTypeAddClass(ClassList,
                                                     std::move(NewInfo),
-                                                    ListAddr);
+                                                    SectionAddr);
 
                     ExternalAndRootClassList.emplace_back(Ptr);
                 } else {
@@ -675,12 +680,12 @@ namespace MachO {
                                                     IsBigEndian);
                 }
 
-                ListAddr += Utils::PointerSize<Is64Bit>();
+                SectionAddr += Utils::PointerSize<Is64Bit>();
             }
 
             FixSuperClassForClassList<Is64Bit>(DeVirtualizer,
+                                               AddrResolver,
                                                SegmentList,
-                                               BindCollection,
                                                ClassList,
                                                ExternalAndRootClassList,
                                                IsBigEndian);
@@ -688,13 +693,13 @@ namespace MachO {
         }
 
         static const auto ObjcClassRefsSegmentSectionNamePairList = {
-                SegmentList::SegmentSectionNameListPair {
-                    "__OBJC2", { "__class_refs" }
-                },
-                SegmentList::SegmentSectionNameListPair {
-                    "__DATA", { "__objc_classrefs" }
-                }
-            };
+            SegmentList::SegmentSectionNameListPair {
+                "__OBJC2", { "__class_refs" }
+            },
+            SegmentList::SegmentSectionNameListPair {
+                "__DATA", { "__objc_classrefs" }
+            }
+        };
 
         static const auto ObjcClassListSegmentSectionNamePairList = {
             SegmentList::SegmentSectionNameListPair {
@@ -731,6 +736,11 @@ namespace MachO {
 
         const SegmentInfo &Segment;
         const SectionInfo &Section;
+
+        ObjcClassInfoSection(enum Kind Kind,
+                             const SegmentInfo &Segment,
+                             const SectionInfo &Section) noexcept
+        : Kind(Kind), Segment(Segment), Section(Section) {}
     };
 
     [[nodiscard]]
@@ -751,16 +761,16 @@ namespace MachO {
 
         auto
         Parse(const ADT::DeVirtualizer &DeVirtualizer,
+              const ADT::AddressResolver &AddrResolver,
               const SegmentList &SegmentList,
-              const BindActionList::UnorderedMap &BindList,
               bool IsBigEndian,
               bool Is64Bit) noexcept -> ObjcParse::Error;
 
         auto
         Parse(const ADT::DeVirtualizer &DeVirtualizer,
+              const ADT::AddressResolver &AddrResolver,
               const ObjcClassInfoSection &Section,
               const SegmentList &SegmentList,
-              const BindActionList::UnorderedMap &BindList,
               bool IsBigEndian,
               bool Is64Bit) noexcept -> ObjcParse::Error;
 
@@ -812,8 +822,8 @@ namespace MachO {
         auto
         CollectFrom(const ADT::MemoryMap &Map,
                     const ADT::DeVirtualizer &DeVirtualizer,
+                    const ADT::AddressResolver &AddrResolver,
                     const SegmentList &SegmentList,
-                    const BindActionList::UnorderedMap &BindCollection,
                     ObjcClassInfoList *ClassInfoTree,
                     bool IsBigEndian,
                     bool Is64Bit) noexcept -> ObjcParse::Error;

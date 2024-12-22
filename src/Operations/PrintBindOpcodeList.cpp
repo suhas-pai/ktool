@@ -41,18 +41,18 @@ namespace Operations {
     static void
     PrintFlags(FILE *const OutFile, const MachO::BindSymbolFlags Flags) noexcept
     {
-        fputs("\tFlags:", OutFile);
+        std::print(OutFile, "Flags:");
         if (!Flags.empty()) {
-            fputc('\n', OutFile);
+            std::print(OutFile, "\n");
             if (Flags.hasNonWeakDefinition()) {
-                fputs("\t\tHas Non-Weak Definition\n", OutFile);
+                std::print(OutFile, "\t\tHas Non-Weak Definition\n");
             }
 
             if (Flags.isWeakImport()) {
-                fputs("\t\tWeak-Import\n", OutFile);
+                std::print(OutFile, "\t\tWeak-Import\n");
             }
         } else {
-            fputs(" None\n", OutFile);
+            std::print(OutFile, " None\n");
         }
     }
 
@@ -291,12 +291,12 @@ namespace Operations {
             const auto OpcodeName = MachO::BindByteOpcodeGetName(Byte.opcode());
             const auto PtrSize = Utils::PointerSize(Is64Bit);
 
-            fprintf(OutFile,
-                    "%s %" LEFTPAD_FMT PRIu64 ": %s",
-                    Name,
-                    PAD_FMT_ARGS(SizeDigitLength),
-                    Counter,
-                    OpcodeName.data());
+            std::print(OutFile,
+                       "{} {:>{}}: {}",
+                       Name,
+                       Counter,
+                       SizeDigitLength,
+                       OpcodeName);
 
             auto OpcodeAndArgLength = static_cast<int>(OpcodeName.length());
             const auto PrintArrow = [&]() noexcept {
@@ -306,48 +306,38 @@ namespace Operations {
                         MachO::BindByteOpcode::DoBindUlebTimesSkippingUleb)
                             .length();
 
-                fputs(" ", OutFile);
+                std::print(OutFile, " ");
                 const auto PadLength =
                     (LongestOpcodeNameLength + MaxArgLength) -
                     static_cast<uint64_t>(OpcodeAndArgLength);
 
                 Utils::PrintMultTimes(OutFile, "-", PadLength);
-                fputs("> ", OutFile);
+                std::print(OutFile, "> ");
             };
 
             const auto PrintAddressInfo = [&](const uint64_t Add = 0) noexcept {
-                Utils::PrintSegmentSectionPair(
-                    OutFile,
-                    Iter.Segment ? Iter.Segment->Name : "",
-                    Iter.Section ? Iter.Section->Name : "",
-                    /*PadSegment=*/true,
-                    /*PadSection=*/true,
-                    /*Prefix=*/"Segment: ");
-
-                Utils::PrintAddress(OutFile,
-                                    Iter.AddrInSeg + Add,
-                                    Is64Bit,
-                                    "Segment-Address: ",
-                                    ", ");
-
                 const auto FullAddr =
                     Iter.Segment->VmRange.locForIndex(Iter.AddrInSeg + Add);
 
-                Utils::PrintAddress(OutFile,
-                                    FullAddr,
-                                    Is64Bit,
-                                    "Full-Address: ",
-                                    "\n");
+                std::print(OutFile,
+                           "{}, Segment-Address: {}, Full-Address: {}\n",
+                           Utils::SegmentSectionPair(
+                            Iter.Segment ? Iter.Segment->Name : "",
+                            Iter.Section ? Iter.Section->Name : "",
+                            /*PadSegment=*/false,
+                            /*PadSection=*/false),
+                           Utils::Address(Iter.AddrInSeg + Add),
+                           Utils::Address(FullAddr));
 
                 if (Iter.AddrInSegOverflows) {
-                    fputs(" (Overflows)", OutFile);
+                    std::print(OutFile, " (Overflows)");
                     return;
                 }
             };
 
             switch (Byte.opcode()) {
                 case MachO::BindByte::Opcode::Done:
-                    fputc('\n', OutFile);
+                    std::print(OutFile, "\n");
                     if constexpr (BindKind != MachO::BindInfoKind::Lazy) {
                         goto done;
                     }
@@ -356,16 +346,19 @@ namespace Operations {
                 case MachO::BindByte::Opcode::SetDylibOrdinalImm:
                 case MachO::BindByte::Opcode::SetDylibOrdinalUleb:
                 case MachO::BindByte::Opcode::SetDylibSpecialImm:
-                    fprintf(OutFile, "(%" PRId64, Iter.DylibOrdinal);
+                    std::print(OutFile, "({})", Iter.DylibOrdinal);
                     if (Options.Verbose) {
-                        fputs(" - ", OutFile);
+                        OpcodeAndArgLength +=
+                            2 + Utils::GetIntegerDigitCount(Iter.DylibOrdinal);
+
+                        PrintArrow();
 
                         auto Path = std::string_view("<Malformed>");
                         auto IsOutOfBounds = false;
 
                         if (Iter.DylibOrdinal > 0 &&
-                            static_cast<uint64_t>(Iter.DylibOrdinal)
-                                <= LibraryList.size())
+                            static_cast<uint64_t>(Iter.DylibOrdinal) <=
+                                LibraryList.size())
                         {
                             const auto DylibIndex =
                                 static_cast<uint64_t>(Iter.DylibOrdinal) - 1;
@@ -386,56 +379,58 @@ namespace Operations {
                                                      IsOutOfBounds);
                     }
 
-                    fputs(")\n", OutFile);
+                    std::print(OutFile, "\n");
                     break;
                 case MachO::BindByte::Opcode::SetSymbolTrailingFlagsImm:
-                    OpcodeAndArgLength +=
-                        fprintf(OutFile,
-                                "(Symbol: \"%s\", Flags: 0x%" PRIx8 ")",
-                                Iter.SymbolName.data(),
-                                Iter.Flags.value());
-
                     if (Options.Verbose) {
-                        if (!Iter.Flags.empty()) {
-                            PrintArrow();
-                            PrintFlags(OutFile, Iter.Flags);
-                        }
+                        std::print(OutFile, "()", Iter.Flags.value());
+                        OpcodeAndArgLength += STR_LENGTH("()");
+
+                        PrintArrow();
+                        std::print("\"{}\", ", Iter.SymbolName);
+
+                        PrintFlags(OutFile, Iter.Flags);
+                        std::print(OutFile, "\n");
+                    } else {
+                        std::print(OutFile,
+                                   "(Symbol: \"{}\", Flags: 0x{:x})\n",
+                                   Iter.SymbolName,
+                                   Iter.Flags.value());
                     }
 
-                    fputs(")\n", OutFile);
                     break;
 
                 case MachO::BindByte::Opcode::SetKindImm: {
                     if (MachO::BindWriteKindIsValid(Iter.WriteKind)) {
-                        OpcodeAndArgLength +=
-                            fprintf(OutFile,
-                                    "(Kind: %s)\n",
-                                    MachO::BindWriteKindGetName(
-                                        Iter.WriteKind).data());
+                        const auto Name =
+                            MachO::BindWriteKindGetName(Iter.WriteKind);
+
+                        std::print(OutFile, "(Kind: {})\n", Name);
                     } else {
-                        OpcodeAndArgLength +=
-                            fprintf(OutFile,
-                                    "(Kind: <unrecognized, value: %" PRId64 ")",
-                                    static_cast<int64_t>(Iter.WriteKind));
+                        const auto Value =
+                            static_cast<uint32_t>(Iter.WriteKind);
+
+                        std::print(OutFile,
+                                   "(Kind: <unrecognized, value: {})",
+                                   Value);
                     }
 
                     break;
                 }
                 case MachO::BindByte::Opcode::SetAddendSleb:
-                    OpcodeAndArgLength +=
-                        Utils::PrintAddress(OutFile,
-                                            static_cast<uint64_t>(Iter.Addend),
-                                            Is64Bit,
-                                            "(Addend: ",
-                                            ")\n");
+                    std::print(OutFile,
+                               "(Addend: {})\n",
+                               Utils::CustomAddress(
+                                static_cast<uint64_t>(Iter.Addend),
+                                Is64Bit));
+
                     break;
                 case MachO::BindByte::Opcode::SetSegmentAndOffsetUleb: {
-                    OpcodeAndArgLength +=
-                        fprintf(OutFile,
-                                "(Segment: %" PRId64 ")",
-                                Iter.SegmentIndex);
-
+                    std::print(OutFile, "(Segment: {})", Iter.SegmentIndex);
                     if (Options.Verbose) {
+                        OpcodeAndArgLength +=
+                            11 + Utils::GetIntegerDigitCount(Iter.SegmentIndex);
+
                         PrintArrow();
                         PrintAddressInfo();
                     }
@@ -443,51 +438,58 @@ namespace Operations {
                     break;
                 }
                 case MachO::BindByte::Opcode::AddAddrUleb: {
-                    OpcodeAndArgLength +=
-                        fprintf(OutFile, "(Add: %" PRId64 ")", Iter.AddAddr);
-
+                    std::print(OutFile, "(Add: {})", Iter.AddAddr);
                     if (Options.Verbose) {
+                        OpcodeAndArgLength +=
+                            7 + Utils::GetIntegerDigitCount(Iter.AddAddr);
+
                         PrintArrow();
                         PrintAddressInfo();
                     }
 
-                    fputs(")\n", OutFile);
+                    std::print(OutFile, ")\n");
                     break;
                 }
                 case MachO::BindByte::Opcode::DoBind:
-                    fputc('\n', OutFile);
+                    std::print(OutFile, "\n");
                     break;
                 case MachO::BindByte::Opcode::DoBindAddAddrUleb:
-                    OpcodeAndArgLength +=
-                        fprintf(OutFile, "(Add: %" PRId64 ")", Iter.AddAddr);
-
+                    std::print(OutFile, "(Add: {})", Iter.AddAddr);
                     if (Options.Verbose) {
+                        OpcodeAndArgLength +=
+                            9 + Utils::GetIntegerDigitCount(Iter.AddAddr);
+
                         PrintArrow();
                         PrintAddressInfo(PtrSize);
                     }
 
-                    fputs(")\n", OutFile);
+                    std::print(OutFile, ")\n");
                     break;
                 case MachO::BindByte::Opcode::DoBindAddAddrImmScaled: {
+                    std::print(OutFile, "(Scale: {})", Iter.Scale);
                     OpcodeAndArgLength +=
-                        fprintf(OutFile, "(Scale: %" PRId64 ")", Iter.Scale);
+                        9 + Utils::GetIntegerDigitCount(Iter.Scale);
 
                     if (Options.Verbose) {
                         PrintArrow();
                         PrintAddressInfo(Iter.Scale * PtrSize);
                     }
 
-                    fputs(")\n", OutFile);
+                    std::print(OutFile, ")\n");
                     break;
                 }
                 case MachO::BindByte::Opcode::DoBindUlebTimesSkippingUleb: {
-                    OpcodeAndArgLength +=
-                        fprintf(OutFile,
-                                "(Skip: %" PRId64 ", Count: %" PRIu64 ")",
-                                Iter.Skip,
-                                Iter.Count);
+                    std::print(OutFile,
+                               "(Skip: {}, Count: {})",
+                               Iter.Skip,
+                               Iter.Count);
 
                     if (Options.Verbose) {
+                        OpcodeAndArgLength +=
+                            17 +
+                            Utils::GetIntegerDigitCount(Iter.Skip) +
+                            Utils::GetIntegerDigitCount(Iter.Count);
+
                         const auto Add =
                             static_cast<uint64_t>(Iter.Skip) * Iter.Count +
                             Iter.Count * PtrSize;
@@ -496,11 +498,11 @@ namespace Operations {
                         PrintAddressInfo(Add);
                     }
 
-                    fputs(")\n", OutFile);
+                    std::print(OutFile, ")\n");
                     break;
                 }
                 case MachO::BindByte::Opcode::Threaded:
-                    fputc('\n', OutFile);
+                    std::print(OutFile, "\n");
                     break;
             }
 
@@ -624,13 +626,13 @@ namespace Operations {
                     Is64Bit,
                     Opt);
             } else {
-                fputs("No (Normal) Bind Opcodes found\n", stderr);
+                std::print(stderr, "No (Normal) Bind Opcodes found\n");
             }
         }
 
         if (Opt.PrintLazy) {
             if (Opt.PrintNormal) {
-                fputc('\n', OutFile);
+                std::print(OutFile, "\n");
             }
 
             if (!LazyBindOpcodeList.empty()) {
@@ -642,13 +644,13 @@ namespace Operations {
                     Is64Bit,
                     Opt);
             } else {
-                fputs("No Lazy-Bind Opcodes found\n", stderr);
+                std::print(stderr, "No Lazy-Bind Opcodes found\n");
             }
         }
 
         if (Opt.PrintWeak) {
             if (Opt.PrintNormal || Opt.PrintWeak) {
-                fputc('\n', OutFile);
+                std::print(OutFile, "\n");
             }
 
             if (!WeakBindOpcodeList.empty()) {
@@ -660,7 +662,7 @@ namespace Operations {
                     Is64Bit,
                     Opt);
             } else {
-                fputs("No Weak-Bind Opcodes found\n", stderr);
+                std::print(stderr, "No Weak-Bind Opcodes found\n");
             }
         }
 

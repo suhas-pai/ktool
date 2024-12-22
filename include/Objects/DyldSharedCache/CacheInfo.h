@@ -34,7 +34,7 @@ namespace Objects {
         }
     public:
         [[nodiscard]] constexpr auto map() const noexcept {
-            return Map;
+            return this->Map;
         }
 
         [[nodiscard]] constexpr auto range() const noexcept {

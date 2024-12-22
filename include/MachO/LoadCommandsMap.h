@@ -43,80 +43,80 @@ namespace MachO {
             : Ptr(Ptr), IsBigEndian(IsBigEndian) {}
 
             [[nodiscard]] constexpr auto isBigEndian() const noexcept {
-                return IsBigEndian;
+                return this->IsBigEndian;
             }
 
             [[nodiscard]] constexpr auto kind() const noexcept {
-                return Ptr->kind(IsBigEndian);
+                return this->Ptr->kind(this->IsBigEndian);
             }
 
             [[nodiscard]] constexpr auto cmdsize() const noexcept {
-                return Ptr->cmdsize(IsBigEndian);
+                return this->Ptr->cmdsize(this->IsBigEndian);
             }
 
             template <MachO::LoadCommandKind Kind>
             [[nodiscard]] constexpr auto isa() const noexcept -> decltype(auto)
             {
-                return MachO::isa<Kind>(Ptr, IsBigEndian);
+                return MachO::isa<Kind>(this->Ptr, this->IsBigEndian);
             }
 
             template <MachO::LoadCommandKind Kind>
             [[nodiscard]] constexpr auto cast() const noexcept -> decltype(auto)
             {
-                return MachO::cast<Kind>(Ptr, IsBigEndian);
+                return MachO::cast<Kind>(this->Ptr, this->IsBigEndian);
             }
 
             template <MachO::LoadCommandKind Kind>
             [[nodiscard]]
             constexpr auto dyn_cast() const noexcept -> decltype(auto) {
-                return MachO::dyn_cast<Kind>(Ptr, IsBigEndian);
+                return MachO::dyn_cast<Kind>(this->Ptr, this->IsBigEndian);
             }
 
             template <LoadCommandDerived T>
             [[nodiscard]] constexpr auto isa() const noexcept -> decltype(auto)
             {
-                return MachO::isa<T>(Ptr, IsBigEndian);
+                return MachO::isa<T>(this->Ptr, this->IsBigEndian);
             }
 
             template <LoadCommandDerived T>
             [[nodiscard]] constexpr auto cast() const noexcept -> decltype(auto)
             {
-                return MachO::cast<T>(*Ptr, IsBigEndian);
+                return MachO::cast<T>(*this->Ptr, this->IsBigEndian);
             }
 
             template <LoadCommandDerived T>
             [[nodiscard]]
             constexpr auto dyn_cast() const noexcept -> decltype(auto) {
-                return MachO::dyn_cast<T>(Ptr, IsBigEndian);
+                return MachO::dyn_cast<T>(this->Ptr, this->IsBigEndian);
             }
 
             inline auto operator++() noexcept -> decltype(*this) {
                 Ptr =
                     reinterpret_cast<MachO::LoadCommand *>(
-                        reinterpret_cast<uint8_t *>(Ptr) + cmdsize());
+                        reinterpret_cast<uint8_t *>(this->Ptr) + this->cmdsize());
                 return *this;
             }
 
             auto operator++(int) noexcept {
-                return operator++();
+                return this->operator++();
             }
 
             auto
             operator+=(const difference_type Amount) noexcept -> decltype(*this)
             {
                 for (auto I = difference_type(); I != Amount; I++) {
-                    operator++();
+                    this->operator++();
                 }
 
                 return *this;
             }
 
             [[nodiscard]] constexpr auto &operator*() const noexcept {
-                return *Ptr;
+                return *this->Ptr;
             }
 
             [[nodiscard]] constexpr auto operator->() const noexcept {
-                return Ptr;
+                return this->Ptr;
             }
 
             constexpr
@@ -124,34 +124,34 @@ namespace MachO {
 
             [[nodiscard]] constexpr
             auto operator==(const Iterator &Other) const noexcept {
-                return Ptr == Other.Ptr;
+                return this->Ptr == Other.Ptr;
             }
 
             [[nodiscard]] constexpr
             auto operator!=(const Iterator &Other) const noexcept {
-                return !operator==(Other);
+                return !this->operator==(Other);
             }
 
             [[nodiscard]] constexpr
             auto operator==(const LoadCommand *const Other) const noexcept {
-                return Ptr == Other;
+                return this->Ptr == Other;
             }
 
             [[nodiscard]] constexpr
             auto operator!=(const LoadCommand *const Other) const noexcept {
-                return !operator==(Other);
+                return !this->operator==(Other);
             }
         };
 
         [[nodiscard]] inline auto begin() const noexcept {
-            return Iterator(Map.base<LoadCommand>(), IsBigEndian);
+            return Iterator(this->Map.base<LoadCommand>(), this->IsBigEndian);
         }
 
         [[nodiscard]] inline auto end() const noexcept {
             const auto End =
-                const_cast<MachO::LoadCommand *>(Map.end<LoadCommand>());
+                const_cast<MachO::LoadCommand *>(this->Map.end<LoadCommand>());
 
-            return Iterator(End, IsBigEndian);
+            return Iterator(End, this->IsBigEndian);
         }
     };
 

@@ -30,10 +30,28 @@ namespace ADT {
             return Range(Begin, Size);
         }
 
+        [[nodiscard]] constexpr static auto CreateMax() noexcept {
+            return Range::FromSize(0, std::numeric_limits<uint64_t>::max());
+        }
+
+        [[nodiscard]] constexpr static auto
+        FromSizeAndCount(const uint64_t Begin,
+                         const uint64_t Size,
+                         const uint64_t Count) noexcept
+            -> std::optional<ADT::Range>
+        {
+            auto TotalSize = Utils::MulAndCheckOverflow(Size, Count);
+            if (TotalSize.has_value()) {
+                return Range::FromSize(Begin, TotalSize.value());
+            }
+
+            return std::nullopt;
+        }
+
         [[nodiscard]] constexpr static
         auto FromEnd(const uint64_t Begin, const uint64_t End) noexcept {
             assert(Begin <= End);
-            return Range(Begin, (End - Begin));
+            return Range::FromSize(Begin, (End - Begin));
         }
 
         [[nodiscard]] constexpr auto front() const noexcept {
@@ -42,6 +60,29 @@ namespace ADT {
 
         [[nodiscard]] constexpr auto size() const noexcept {
             return this->Size;
+        }
+
+        [[nodiscard]]
+        constexpr auto adding(const uint64_t Base) const noexcept
+            -> std::optional<Range>
+        {
+            auto NewBegin = uint64_t();
+            if (!Utils::AddAndCheckOverflow(this->front(), Base, NewBegin)) {
+                return std::nullopt;
+            }
+
+            return Range::FromSize(NewBegin, this->size());
+        }
+
+        [[nodiscard]]
+        constexpr auto subtracting(const uint64_t Base) const noexcept
+            -> std::optional<Range>
+        {
+            if (Base > this->front()) {
+                return std::nullopt;
+            }
+
+            return Range::FromSize(this->front() - Base, this->size());
         }
 
         [[nodiscard]] constexpr auto end() const noexcept {
@@ -144,7 +185,7 @@ namespace ADT {
         indexForLoc(const uint64_t Loc,
                     uint64_t *const MaxSizeOut = nullptr) const noexcept
         {
-            assert(hasLoc(Loc));
+            assert(this->hasLoc(Loc));
 
             const auto Index = Loc - this->front();
             if (MaxSizeOut != nullptr) {
@@ -232,6 +273,18 @@ namespace ADT {
         constexpr auto toIndex(const uint64_t Index) const noexcept {
             assert(this->hasIndex(Index));
             return Range::FromSize(0, Index);
+        }
+
+        [[nodiscard]]
+        constexpr auto multiply(const uint64_t Count) const noexcept
+            -> std::optional<Range>
+        {
+            auto NewSize = uint64_t();
+            if (Utils::MulAddAndCheckOverflow(this->size(), Count, NewSize)) {
+                return std::nullopt;
+            }
+
+            return Range::FromSize(this->front(), NewSize);
         }
 
         [[nodiscard]]

@@ -32,7 +32,7 @@ namespace Operations {
         std::string_view Path;
 
         int64_t ArchIndex = -1;
-        int64_t ImageIndex = -1;
+        int64_t ImageOrdinal = -1;
 
         Objects::DyldSharedCache::SubCacheProvidedPathMap
           SubCacheProvidedPathMap = {};

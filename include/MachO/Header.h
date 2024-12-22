@@ -274,126 +274,126 @@ namespace MachO {
         using ADT::FlagsBase<uint32_t>::FlagsBase;
 
         [[nodiscard]] constexpr auto noUndefineds() const noexcept {
-            return has(Kind::NoUndefineds);
+            return this->has(Kind::NoUndefineds);
         }
 
         [[nodiscard]] constexpr auto incrementalLink() const noexcept {
-            return has(Kind::IncrementalLink);
+            return this->has(Kind::IncrementalLink);
         }
 
         [[nodiscard]] constexpr auto dynamicLinkerLink() const noexcept {
-            return has(Kind::DynamicLinkerLink);
+            return this->has(Kind::DynamicLinkerLink);
         }
 
         [[nodiscard]] constexpr auto bindAtLoad() const noexcept {
-            return has(Kind::BindAtLoad);
+            return this->has(Kind::BindAtLoad);
         }
 
         [[nodiscard]] constexpr auto preBound() const noexcept {
-            return has(Kind::PreBound);
+            return this->has(Kind::PreBound);
         }
 
         [[nodiscard]] constexpr auto splitSegments() const noexcept {
-            return has(Kind::SplitSegments);
+            return this->has(Kind::SplitSegments);
         }
 
         [[nodiscard]] constexpr auto lazyInit() const noexcept {
-            return has(Kind::LazyInit);
+            return this->has(Kind::LazyInit);
         }
 
         [[nodiscard]] constexpr auto twoLevelNamespaces() const noexcept {
-            return has(Kind::TwoLevelNamespaces);
+            return this->has(Kind::TwoLevelNamespaces);
         }
 
         [[nodiscard]] constexpr auto forceFlatNamespaces() const noexcept {
-            return has(Kind::ForceFlatNamespaces);
+            return this->has(Kind::ForceFlatNamespaces);
         }
 
         [[nodiscard]] constexpr auto noMultipleDefinitions() const noexcept {
-            return has(Kind::NoMultipleDefinitions);
+            return this->has(Kind::NoMultipleDefinitions);
         }
 
         [[nodiscard]] constexpr auto noFixPrebinding() const noexcept {
-            return has(Kind::NoFixPrebinding);
+            return this->has(Kind::NoFixPrebinding);
         }
 
         [[nodiscard]] constexpr auto prebindable() const noexcept {
-            return has(Kind::Prebindable);
+            return this->has(Kind::Prebindable);
         }
 
         [[nodiscard]] constexpr auto allModulesBound() const noexcept {
-            return has(Kind::AllModulesBound);
+            return this->has(Kind::AllModulesBound);
         }
 
         [[nodiscard]] constexpr auto subsectionsViaSymbols() const noexcept {
-            return has(Kind::SubsectionsViaSymbols);
+            return this->has(Kind::SubsectionsViaSymbols);
         }
 
         [[nodiscard]] constexpr auto canonical() const noexcept {
-            return has(Kind::Canonical);
+            return this->has(Kind::Canonical);
         }
 
         [[nodiscard]] constexpr auto weakDefines() const noexcept {
-            return has(Kind::WeakDefines);
+            return this->has(Kind::WeakDefines);
         }
 
         [[nodiscard]] constexpr auto bindsToWeak() const noexcept {
-            return has(Kind::BindsToWeak);
+            return this->has(Kind::BindsToWeak);
         }
 
         [[nodiscard]] constexpr auto allowStackExecution() const noexcept {
-            return has(Kind::AllowStackExecution);
+            return this->has(Kind::AllowStackExecution);
         }
 
         [[nodiscard]] constexpr auto rootSafe() const noexcept {
-            return has(Kind::RootSafe);
+            return this->has(Kind::RootSafe);
         }
 
         [[nodiscard]] constexpr auto setuidSafe() const noexcept {
-            return has(Kind::SetuidSafe);
+            return this->has(Kind::SetuidSafe);
         }
 
         [[nodiscard]] constexpr auto noReexportedDylibs() const noexcept {
-            return has(Kind::NoReexportedDylibs);
+            return this->has(Kind::NoReexportedDylibs);
         }
 
         [[nodiscard]] constexpr auto positionIndependentExec() const noexcept {
-            return has(Kind::PositionIndependentExec);
+            return this->has(Kind::PositionIndependentExec);
         }
 
         [[nodiscard]] constexpr auto deadStrippableDylib() const noexcept {
-            return has(Kind::DeadStrippableDylib);
+            return this->has(Kind::DeadStrippableDylib);
         }
 
         [[nodiscard]] constexpr auto hasTlvDescriptors() const noexcept {
-            return has(Kind::HasTlvDescriptors);
+            return this->has(Kind::HasTlvDescriptors);
         }
 
         [[nodiscard]] constexpr auto noHeapExecution() const noexcept {
-            return has(Kind::NoHeapExecution);
+            return this->has(Kind::NoHeapExecution);
         }
 
         [[nodiscard]] constexpr auto appExtensionSafe() const noexcept {
-            return has(Kind::AppExtensionSafe);
+            return this->has(Kind::AppExtensionSafe);
         }
 
         [[nodiscard]] constexpr auto nlistOutOfSyncDyldInfo() const noexcept {
-            return has(Kind::NlistOutOfSyncDyldInfo);
+            return this->has(Kind::NlistOutOfSyncDyldInfo);
         }
 
         [[nodiscard]] constexpr auto simSupport() const noexcept {
-            return has(Kind::SimSupport);
+            return this->has(Kind::SimSupport);
         }
 
         [[nodiscard]] constexpr auto dylibInCache() const noexcept {
-            return has(Kind::DylibInCache);
+            return this->has(Kind::DylibInCache);
         }
 
         [[nodiscard]]
         constexpr auto setNoUndefineds(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::NoUndefineds, 0, Value);
+            this->setValueForMask(Kind::NoUndefineds, 0, Value);
             return *this;
         }
 
@@ -401,7 +401,7 @@ namespace MachO {
         constexpr auto setIncrementalLink(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::IncrementalLink, 0, Value);
+            this->setValueForMask(Kind::IncrementalLink, 0, Value);
             return *this;
         }
 
@@ -409,7 +409,7 @@ namespace MachO {
         constexpr auto setDynamicLinkerLink(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::DynamicLinkerLink, 0, Value);
+            this->setValueForMask(Kind::DynamicLinkerLink, 0, Value);
             return *this;
         }
 
@@ -417,7 +417,7 @@ namespace MachO {
         constexpr auto setBindAtLoad(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::BindAtLoad, 0, Value);
+            this->setValueForMask(Kind::BindAtLoad, 0, Value);
             return *this;
         }
 
@@ -425,7 +425,7 @@ namespace MachO {
         constexpr auto setPreBound(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::PreBound, 0, Value);
+            this->setValueForMask(Kind::PreBound, 0, Value);
             return *this;
         }
 
@@ -433,7 +433,7 @@ namespace MachO {
         constexpr auto setSplitSegments(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::SplitSegments, 0, Value);
+            this->setValueForMask(Kind::SplitSegments, 0, Value);
             return *this;
         }
 
@@ -441,7 +441,7 @@ namespace MachO {
         constexpr auto setLazyInit(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::LazyInit, 0, Value);
+            this->setValueForMask(Kind::LazyInit, 0, Value);
             return *this;
         }
 
@@ -449,7 +449,7 @@ namespace MachO {
         constexpr auto setTwoLevelNamespaces(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::TwoLevelNamespaces, 0, Value);
+            this->setValueForMask(Kind::TwoLevelNamespaces, 0, Value);
             return *this;
         }
 
@@ -457,7 +457,7 @@ namespace MachO {
         auto setForceFlatNamespaces(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::ForceFlatNamespaces, 0, Value);
+            this->setValueForMask(Kind::ForceFlatNamespaces, 0, Value);
             return *this;
         }
 
@@ -465,7 +465,7 @@ namespace MachO {
         auto setNoMultipleDefinitions(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::NoMultipleDefinitions, 0, Value);
+            this->setValueForMask(Kind::NoMultipleDefinitions, 0, Value);
             return *this;
         }
 
@@ -473,7 +473,7 @@ namespace MachO {
         constexpr auto setNoFixPrebinding(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::NoFixPrebinding, 0, Value);
+            this->setValueForMask(Kind::NoFixPrebinding, 0, Value);
             return *this;
         }
 
@@ -481,7 +481,7 @@ namespace MachO {
         constexpr auto setPrebindable(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::Prebindable, 0, Value);
+            this->setValueForMask(Kind::Prebindable, 0, Value);
             return *this;
         }
 
@@ -489,7 +489,7 @@ namespace MachO {
         constexpr auto setAllModulesBound(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::AllModulesBound, 0, Value);
+            this->setValueForMask(Kind::AllModulesBound, 0, Value);
             return *this;
         }
 
@@ -497,7 +497,7 @@ namespace MachO {
         auto setSubsectionsViaSymbols(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::SubsectionsViaSymbols, 0, Value);
+            this->setValueForMask(Kind::SubsectionsViaSymbols, 0, Value);
             return *this;
         }
 
@@ -505,7 +505,7 @@ namespace MachO {
         constexpr auto setCanonical(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::Canonical, 0, Value);
+            this->setValueForMask(Kind::Canonical, 0, Value);
             return *this;
         }
 
@@ -513,7 +513,7 @@ namespace MachO {
         constexpr auto setWeakDefines(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::WeakDefines, 0, Value);
+            this->setValueForMask(Kind::WeakDefines, 0, Value);
             return *this;
         }
 
@@ -521,7 +521,7 @@ namespace MachO {
         constexpr auto setBindsToWeak(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::BindsToWeak, 0, Value);
+            this->setValueForMask(Kind::BindsToWeak, 0, Value);
             return *this;
         }
 
@@ -529,7 +529,7 @@ namespace MachO {
         auto setAllowStackExecution(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::AllowStackExecution, 0, Value);
+            this->setValueForMask(Kind::AllowStackExecution, 0, Value);
             return *this;
         }
 
@@ -537,7 +537,7 @@ namespace MachO {
         constexpr auto setRootSafe(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::RootSafe, 0, Value);
+            this->setValueForMask(Kind::RootSafe, 0, Value);
             return *this;
         }
 
@@ -545,7 +545,7 @@ namespace MachO {
         constexpr auto setSetuidSafe(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::SetuidSafe, 0, Value);
+            this->setValueForMask(Kind::SetuidSafe, 0, Value);
             return *this;
         }
 
@@ -553,7 +553,7 @@ namespace MachO {
         constexpr auto setNoReexportedDylibs(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::NoReexportedDylibs, 0, Value);
+            this->setValueForMask(Kind::NoReexportedDylibs, 0, Value);
             return *this;
         }
 
@@ -561,7 +561,7 @@ namespace MachO {
         auto setPositionIndependentExec(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::PositionIndependentExec, 0, Value);
+            this->setValueForMask(Kind::PositionIndependentExec, 0, Value);
             return *this;
         }
 
@@ -569,7 +569,7 @@ namespace MachO {
         auto setDeadStrippableDylib(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::DeadStrippableDylib, 0, Value);
+            this->setValueForMask(Kind::DeadStrippableDylib, 0, Value);
             return *this;
         }
 
@@ -577,7 +577,7 @@ namespace MachO {
         constexpr auto setHasTlvDescriptors(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::HasTlvDescriptors, 0, Value);
+            this->setValueForMask(Kind::HasTlvDescriptors, 0, Value);
             return *this;
         }
 
@@ -585,7 +585,7 @@ namespace MachO {
         constexpr auto setNoHeapExecution(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::NoHeapExecution, 0, Value);
+            this->setValueForMask(Kind::NoHeapExecution, 0, Value);
             return *this;
         }
 
@@ -593,7 +593,7 @@ namespace MachO {
         constexpr auto setAppExtensionSafe(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::AppExtensionSafe, 0, Value);
+            this->setValueForMask(Kind::AppExtensionSafe, 0, Value);
             return *this;
         }
 
@@ -601,7 +601,7 @@ namespace MachO {
         auto setNlistOutOfSyncDyldInfo(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::NlistOutOfSyncDyldInfo, 0, Value);
+            this->setValueForMask(Kind::NlistOutOfSyncDyldInfo, 0, Value);
             return *this;
         }
 
@@ -609,7 +609,7 @@ namespace MachO {
         constexpr auto setSimSupport(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::SimSupport, 0, Value);
+            this->setValueForMask(Kind::SimSupport, 0, Value);
             return *this;
         }
 
@@ -617,7 +617,7 @@ namespace MachO {
         constexpr auto setDylibInCache(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Kind::DylibInCache, 0, Value);
+            this->setValueForMask(Kind::DylibInCache, 0, Value);
             return *this;
         }
     };
@@ -632,44 +632,62 @@ namespace MachO {
         uint32_t Flags;
 
         [[nodiscard]] constexpr auto isBigEndian() const noexcept {
-            return MagicIsBigEndian(Magic);
+            return MagicIsBigEndian(this->Magic);
         }
 
         [[nodiscard]] constexpr auto is64Bit() const noexcept {
-            return MagicIs64Bit(Magic);
+            return MagicIs64Bit(this->Magic);
+        }
+
+        [[nodiscard]] constexpr auto rawCpuType() const noexcept {
+            return ADT::SwitchEndianIf(this->CpuKind, this->isBigEndian());
         }
 
         [[nodiscard]] constexpr auto cpuKind() const noexcept {
-            return Mach::CpuKind(ADT::SwitchEndianIf(CpuKind, isBigEndian()));
+            return Mach::CpuKind(this->rawCpuType());
+        }
+
+        [[nodiscard]] constexpr auto rawCpuSubType() const noexcept
+            -> int32_t
+        {
+            const auto Value =
+                ADT::SwitchEndianIf(this->CpuSubKind, this->isBigEndian());
+
+            return Value;
         }
 
         [[nodiscard]] constexpr auto cpuSubKind() const noexcept {
-            return ADT::SwitchEndianIf(CpuSubKind, isBigEndian());
+            return this->rawCpuSubType() & Mach::CpuSubtypeMask;
         }
 
         [[nodiscard]] constexpr auto fileKind() const noexcept {
-            const auto Value = ADT::SwitchEndianIf(FileKind, isBigEndian());
+            const auto Value =
+                ADT::SwitchEndianIf(this->FileKind, this->isBigEndian());
+
             return ::MachO::FileKind(Value);
         }
 
         [[nodiscard]] constexpr auto ncmds() const noexcept {
-            return ADT::SwitchEndianIf(Ncmds, isBigEndian());
+            return ADT::SwitchEndianIf(this->Ncmds, this->isBigEndian());
         }
 
         [[nodiscard]] constexpr auto sizeOfCmds() const noexcept {
-            return ADT::SwitchEndianIf(SizeOfCmds, isBigEndian());
+            return ADT::SwitchEndianIf(this->SizeOfCmds, this->isBigEndian());
         }
 
         [[nodiscard]] constexpr auto flags() const noexcept {
-            return ::MachO::Flags(ADT::SwitchEndianIf(Flags, isBigEndian()));
+            const auto Value =
+                ADT::SwitchEndianIf(this->Flags, this->isBigEndian());
+
+            return ::MachO::Flags(Value);
         }
 
         [[nodiscard]] constexpr auto size() const noexcept {
-            return sizeof(*this) + (is64Bit() ? sizeof(uint32_t) : 0);
+            return sizeof(*this) + (this->is64Bit() ? sizeof(uint32_t) : 0);
         }
 
         [[nodiscard]] constexpr auto loadCommandsRange() const noexcept {
-            return ADT::Range::FromSize(size(), sizeOfCmds());
+            return ADT::Range::FromSize(this->size(), this->sizeOfCmds());
         }
     };
 }

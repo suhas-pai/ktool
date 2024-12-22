@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <string_view>
+#include <unordered_map>
 
 #include "ADT/MemoryMap.h"
 
@@ -222,6 +223,42 @@ namespace MachO {
         uint64_t AddrInSeg;
 
         bool HasSegmentIndex : 1;
+
+         [[nodiscard]] constexpr auto
+        getFullAddressInSection(const SegmentInfo &Segment,
+                                const SectionInfo &Sect) const noexcept
+            -> std::optional<uint64_t>
+        {
+            const auto FullAddr = Segment.VmRange.locForIndex(AddrInSeg);
+            const auto VmIndex = Sect.vmRange().indexForLoc(FullAddr);
+            const auto FileRange = Sect.fileRange();
+
+            if (!FileRange.hasIndex(VmIndex)) {
+                return std::nullopt;
+            }
+
+            return FileRange.locForIndex(VmIndex);
+        }
+
+        [[nodiscard]]
+        constexpr auto getFullAddress(const SegmentList &List) const noexcept
+            -> std::optional<uint64_t>
+        {
+            if (SegmentIndex < 0) {
+                return std::nullopt;
+            }
+
+            const auto SegIndex = static_cast<uint64_t>(SegmentIndex);
+            if (const auto Segment = List.atOrNull(SegIndex)) {
+                if (const auto Sect =
+                        Segment->findSectionWithVmAddrIndex(AddrInSeg))
+                {
+                    return getFullAddressInSection(*Segment, *Sect);
+                }
+            }
+
+            return std::nullopt;
+        }
     };
 
     enum class RebaseOpcodeParseError {
@@ -245,6 +282,7 @@ namespace MachO {
         uint64_t SegOffset = 0;
 
         bool HasSegmentIndex : 1;
+        RebaseWriteKind Kind;
 
         union {
             int64_t AddAddr = 0;
@@ -255,8 +293,6 @@ namespace MachO {
             int64_t Skip = 0;
             uint64_t Scale;
         };
-
-        RebaseWriteKind Kind;
 
         [[nodiscard]] constexpr auto hasError() const noexcept {
             return Error != RebaseOpcodeParseError::None;
@@ -274,6 +310,22 @@ namespace MachO {
 
             return -1;
         }
+    };
+
+    struct RebaseOpcodeParseResult {
+        RebaseOpcodeParseError Error = RebaseOpcodeParseError::None;
+
+        uint32_t SegmentIndex = 0;
+        uint64_t SegOffset = 0;
+
+        bool HasSegmentIndex : 1;
+        RebaseWriteKind Kind;
+
+        explicit RebaseOpcodeParseResult() noexcept = default;
+        explicit RebaseOpcodeParseResult(
+            const struct RebaseOpcodeIterateInfo &Iter) noexcept
+        : Error(Iter.Error), SegmentIndex(Iter.SegmentIndex),
+          SegOffset(Iter.SegOffset), HasSegmentIndex(Iter.HasSegmentIndex) {}
     };
 
     struct RebaseOpcodeIteratorEnd {};
@@ -920,17 +972,44 @@ namespace MachO {
         }
 
         inline
-        auto getAsList(std::vector<RebaseActionInfo> &ListOut) const noexcept {
+        auto getAsList(std::vector<RebaseActionInfo> &ListOut) const noexcept
+            -> RebaseOpcodeParseResult
+        {
             for (const auto &Iter : *this) {
                 const auto Error = Iter.error();
                 if (!Iter.canIgnoreError(Error)) {
-                    return Error;
+                    return RebaseOpcodeParseResult(Iter);
                 }
 
                 ListOut.emplace_back(Iter.getAction());
             }
 
-            return RebaseOpcodeParseError::None;
+            return RebaseOpcodeParseResult();
+        }
+
+        using UnorderedMap = std::unordered_map<uint64_t, RebaseActionInfo>;
+
+        inline auto
+        getAsUnorderedMap(const SegmentList &SegmentList,
+                          UnorderedMap &MapOut) const noexcept
+        {
+            for (const auto &Iter : *this) {
+                const auto Error = Iter.error();
+                if (!Iter.canIgnoreError(Error)) {
+                    return RebaseOpcodeParseResult(Iter);
+                }
+
+                const auto Action = Iter.getAction();
+                const auto FullAddr = Action.getFullAddress(SegmentList);
+
+                MapOut.emplace(
+                    FullAddr.has_value() ?
+                        FullAddr.value() : std::numeric_limits<uint64_t>::max(),
+                    Action
+                );
+            }
+
+            return RebaseOpcodeParseResult();
         }
 
         inline auto
@@ -949,6 +1028,69 @@ namespace MachO {
             }
 
             return RebaseOpcodeParseError::None;
+        }
+
+        [[nodiscard]]
+        inline auto
+        getMapForVmRange(ADT::Range &VmRange,
+                         const SegmentList &SegmentList,
+                         UnorderedMap &MapOut) const noexcept
+            -> RebaseOpcodeParseResult
+        {
+            for (const auto &Iter : *this) {
+                const auto Error = Iter.error();
+                if (!Iter.canIgnoreError(Error)) {
+                    return RebaseOpcodeParseResult(Iter);
+                }
+
+                const auto Action = Iter.getAction();
+                const auto FullAddrOpt = Action.getFullAddress(SegmentList);
+
+                if (!FullAddrOpt.has_value()) {
+                    continue;
+                }
+
+                const auto FullAddr = FullAddrOpt.value();
+                if (!VmRange.hasLoc(FullAddr)) {
+                    continue;
+                }
+
+                MapOut.emplace(FullAddr, Action);
+            }
+
+            return RebaseOpcodeParseResult();
+        }
+
+        [[nodiscard]]
+        inline auto
+        getMapForSection(const SegmentInfo &Segment,
+                         const SectionInfo &Section,
+                         UnorderedMap &MapOut) const noexcept
+            -> RebaseOpcodeParseResult
+        {
+            for (auto Iter = this->begin(); Iter != this->end(); ++Iter) {
+                const auto &Info = Iter.info();
+                if (Info.SegmentIndex != Segment.Index) {
+                    continue;
+                }
+
+                const auto Error = Info.error();
+                if (!Info.canIgnoreError(Error)) {
+                    return RebaseOpcodeParseResult(Info);
+                }
+
+                const auto Action = Info.getAction();
+                const auto FullAddr =
+                    Action.getFullAddressInSection(Segment, Section);
+
+                if (!FullAddr.has_value()) {
+                    continue;
+                }
+
+                MapOut.emplace(FullAddr.value(), Action);
+            }
+
+            return RebaseOpcodeParseResult();
         }
     };
 }

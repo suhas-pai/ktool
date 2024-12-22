@@ -141,7 +141,7 @@ namespace Objects {
             return DyldSharedCache::OpenError::NoMappings;
         }
 
-        const auto MappingsRangeOpt = Header.getMappingInfoListRange();
+        const auto MappingsRangeOpt = Header.mappingInfoListRange();
         if (!MappingsRangeOpt.has_value()) {
             return DyldSharedCache::OpenError::MappingsOutOfBounds;
         }
@@ -359,7 +359,7 @@ namespace Objects {
             return SubCache.Error;
         }
 
-        const auto MappingListRangeOpt = Header.getMappingInfoListRange();
+        const auto MappingListRangeOpt = Header.mappingInfoListRange();
         if (!MappingListRangeOpt.has_value()) {
             close(Fd);
             SubCache.Error = Error(OpenError::FailedToOpenSubCaches);

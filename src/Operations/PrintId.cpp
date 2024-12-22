@@ -56,7 +56,7 @@ namespace Operations {
                     }
                 }
 
-                fprintf(OutFile, "ID: \"%s\"\n", Name.data());
+                std::print(OutFile, "ID: \"{}\"\n", Name);
                 if (Opt.Verbose) {
                     const auto &Dylib = ID->Dylib;
                     const auto CurrentVersion =
@@ -67,14 +67,14 @@ namespace Operations {
                     const auto TimestampString =
                         Utils::GetHumanReadableTimestamp(Timestamp);
 
-                    fprintf(OutFile,
-                            "\tCurrent Version: " DYLD3_PACKED_VERSION_FMT "\n"
-                            "\tCompat Version:  " DYLD3_PACKED_VERSION_FMT "\n"
-                            "\tTimestamp:       %s (Value: %" PRIu32 ")\n",
-                            DYLD3_PACKED_VERSION_FMT_ARGS(CurrentVersion),
-                            DYLD3_PACKED_VERSION_FMT_ARGS(CompatVersion),
-                            TimestampString.data(),
-                            Timestamp);
+                    std::print(OutFile,
+                               "\tCurrent Version: {}\n"
+                               "\tCompat Version:  {}\n"
+                               "\tTimestamp:       {} (Value: {})\n",
+                               CurrentVersion,
+                               CompatVersion,
+                               TimestampString,
+                               Timestamp);
                 }
 
                 return RunResult();
@@ -92,10 +92,9 @@ namespace Operations {
         }
 
         const auto PathOpt = Image.path();
-        fprintf(OutFile,
-                "\"" STRING_VIEW_FMT "\"",
-                STRING_VIEW_FMT_ARGS(
-                    PathOpt.has_value() ? PathOpt.value() : "<invalid>"));
+        std::print(OutFile,
+                   "\"{}\"",
+                   PathOpt.has_value() ? PathOpt.value() : "<invalid>");
 
         return RunResult();
     }

@@ -36,23 +36,23 @@ namespace DyldSharedCache {
         uint32_t InitProt;
 
         [[nodiscard]] constexpr auto maxProt() const noexcept {
-            return Mach::VmProt(MaxProt);
+            return Mach::VmProt(this->MaxProt);
         }
 
         [[nodiscard]] constexpr auto initProt() const noexcept {
-            return Mach::VmProt(InitProt);
+            return Mach::VmProt(this->InitProt);
         }
 
         [[nodiscard]] constexpr auto addressRange() const noexcept {
-            return ADT::Range::FromSize(Address, Size);
+            return ADT::Range::FromSize(this->Address, this->Size);
         }
 
         [[nodiscard]] constexpr auto fileRange() const noexcept {
-            return ADT::Range::FromSize(FileOffset, Size);
+            return ADT::Range::FromSize(this->FileOffset, this->Size);
         }
 
         [[nodiscard]] inline auto empty() const noexcept {
-            return Size == 0;
+            return this->Size == 0;
         }
 
         [[nodiscard]] inline auto
@@ -87,15 +87,15 @@ namespace DyldSharedCache {
                 ConstData = 1 << 2
             };
 
-            [[nodiscard]] inline bool isAuthData() const noexcept {
+            [[nodiscard]] inline auto isAuthData() const noexcept {
                 return this->has(Masks::AuthData);
             }
 
-            [[nodiscard]] inline bool isDirtyData() const noexcept {
+            [[nodiscard]] inline auto isDirtyData() const noexcept {
                 return this->has(Masks::DirtyData);
             }
 
-            [[nodiscard]] inline bool isConstData() const noexcept {
+            [[nodiscard]] inline auto isConstData() const noexcept {
                 return this->has(Masks::ConstData);
             }
 
@@ -220,23 +220,10 @@ namespace DyldSharedCache {
         uint32_t RangeTableCount;
         uint64_t DyldSectionAddr;
 
-        [[nodiscard]] inline ImageInfoExtra &
-        getImageInfoExtraAtIndex(const uint32_t Index) noexcept {
-            auto &Result =
-                const_cast<ImageInfoExtra &>(
-                    getConstImageInfoExtraAtIndex(Index));
-
-            return Result;
-        }
-
-        [[nodiscard]]
-        inline const ImageInfoExtra &
-        getImageInfoExtraAtIndex(const uint32_t Index) const noexcept {
-            return getConstImageInfoExtraAtIndex(Index);
-        }
-
-        [[nodiscard]] inline const ImageInfoExtra &
-        getConstImageInfoExtraAtIndex(const uint32_t Index) const noexcept {
+        [[nodiscard]] inline
+        auto constImageInfoExtraAtIndex(const uint32_t Index) const noexcept
+            -> const ImageInfoExtra &
+        {
             assert(!Utils::IndexOutOfBounds(Index, ImageExtrasCount));
 
             const auto Map = reinterpret_cast<const uint8_t *>(this);
@@ -246,6 +233,25 @@ namespace DyldSharedCache {
 
             return ImageInfoExtraTable[Index];
         }
+
+        [[nodiscard]]
+        inline auto imageInfoExtraAtIndex(const uint32_t Index) noexcept
+            -> ImageInfoExtra &
+        {
+            auto &Result =
+                const_cast<ImageInfoExtra &>(
+                    this->constImageInfoExtraAtIndex(Index));
+
+            return Result;
+        }
+
+        [[nodiscard]]
+        inline auto imageInfoExtraAtIndex(const uint32_t Index) const noexcept
+            -> const ImageInfoExtra &
+        {
+            return this->constImageInfoExtraAtIndex(Index);
+        }
+
     };
 
     struct SubCacheEntryV1 {
@@ -315,17 +321,16 @@ namespace DyldSharedCache {
             }
 
 
-            [[nodiscard]] constexpr auto isProduction() const noexcept -> bool {
+            [[nodiscard]] constexpr auto isProduction() const noexcept {
                 return valueForMask(Kind::IsProduction);
             }
 
             [[nodiscard]]
-            constexpr auto noMissingWeakSuperclasses() const noexcept -> bool {
+            constexpr auto noMissingWeakSuperclasses() const noexcept {
                 return valueForMask(Kind::NoMissingWeakSuperclasses);
             }
 
-            [[nodiscard]]
-            constexpr auto largeSharedCache() const noexcept -> bool {
+            [[nodiscard]] constexpr auto largeSharedCache() const noexcept {
                 return valueForMask(Kind::LargeSharedCache);
             }
 
@@ -384,7 +389,8 @@ namespace DyldSharedCache {
         uint64_t DyldBaseAddress;
 
         [[nodiscard]] constexpr auto magic() const noexcept {
-            return std::string_view(Magic, strnlen(Magic, sizeof(Magic)));
+            const auto Length = strnlen(this->Magic, sizeof(this->Magic));
+            return std::string_view(this->Magic, Length);
         }
 
         [[nodiscard]] constexpr auto isAtleastV1() const noexcept -> bool;
@@ -403,33 +409,34 @@ namespace DyldSharedCache {
         [[nodiscard]] constexpr auto imageOffset() const noexcept -> uint32_t;
         [[nodiscard]] constexpr auto imageCount() const noexcept -> uint32_t;
 
-        [[nodiscard]]
-        inline auto getImageInfoListRange() const noexcept
+        [[nodiscard]] inline auto imageInfoListRange() const noexcept
             -> std::optional<ADT::Range>
         {
+            const auto ImagesOffset = this->imageOffset();
+            const auto ImagesCount = this->imageCount();
+
             const auto End =
-                Utils::MulAddAndCheckOverflow(ImagesCountOld,
+                Utils::MulAddAndCheckOverflow(ImagesCount,
                                               sizeof(ImageInfo),
-                                              ImagesOffsetOld);
+                                              ImagesOffset);
 
             if (End.has_value()) {
-                return ADT::Range::FromEnd(ImagesOffsetOld, End.value());
+                return ADT::Range::FromEnd(ImagesOffset, End.value());
             }
 
             return std::nullopt;
         }
 
-        [[nodiscard]]
-        inline auto getMappingInfoListRange() const noexcept
+        [[nodiscard]] inline auto mappingInfoListRange() const noexcept
             -> std::optional<ADT::Range>
         {
             const auto End =
-                Utils::MulAddAndCheckOverflow(MappingCount,
+                Utils::MulAddAndCheckOverflow(this->MappingCount,
                                               sizeof(MappingInfo),
-                                              MappingOffset);
+                                              this->MappingOffset);
 
             if (End.has_value()) {
-                return ADT::Range::FromEnd(MappingOffset, End.value());
+                return ADT::Range::FromEnd(this->MappingOffset, End.value());
             }
 
             return std::nullopt;
@@ -449,11 +456,13 @@ namespace DyldSharedCache {
         uint64_t SlideInfoSize;
 
         [[nodiscard]] constexpr auto codeSignatureRange() const noexcept {
-            return ADT::Range::FromSize(CodeSignatureOffset, CodeSignatureSize);
+            return ADT::Range::FromSize(this->CodeSignatureOffset,
+                                        this->CodeSignatureSize);
         }
 
         [[nodiscard]] constexpr auto slideInfoRange() const noexcept {
-            return ADT::Range::FromSize(SlideInfoOffset, SlideInfoSize);
+            return ADT::Range::FromSize(this->SlideInfoOffset,
+                                        this->SlideInfoSize);
         }
     };
 
@@ -466,7 +475,8 @@ namespace DyldSharedCache {
         uint8_t Uuid[16];
 
         [[nodiscard]] inline auto localSymbolInfoRange() const noexcept {
-            return ADT::Range::FromSize(LocalSymbolsOffset, LocalSymbolsSize);
+            return ADT::Range::FromSize(this->LocalSymbolsOffset,
+                                        this->LocalSymbolsSize);
         }
     };
 
@@ -493,35 +503,35 @@ namespace DyldSharedCache {
         uint64_t ImagesTextOffset;
         uint64_t ImagesTextCount;
 
-        [[nodiscard]]
-        inline auto getImageTextInfoListRange() const noexcept
+        [[nodiscard]] inline auto imageTextInfoListRange() const noexcept
             -> std::optional<ADT::Range>
         {
             const auto End =
                 Utils::MulAddAndCheckOverflow(sizeof(ImageTextInfo),
-                                              ImagesTextCount,
-                                              ImagesTextOffset);
+                                              this->ImagesTextCount,
+                                              this->ImagesTextOffset);
             if (End.has_value()) {
-                return ADT::Range::FromEnd(ImagesTextOffset, End.value());
+                return ADT::Range::FromEnd(this->ImagesTextOffset, End.value());
             }
 
             return std::nullopt;
         }
 
-        [[nodiscard]] inline auto imageTextInfoList() noexcept {
+        [[nodiscard]] inline auto imageTextInfoSpan() noexcept {
             const auto Map = reinterpret_cast<uint8_t *>(this);
             const auto Ptr =
-                reinterpret_cast<ImageTextInfo *>(Map + ImagesTextOffset);
+                reinterpret_cast<ImageTextInfo *>(Map + this->ImagesTextOffset);
 
-            return std::span(Ptr, ImagesTextCount);
+            return std::span(Ptr, this->ImagesTextCount);
         }
 
-        [[nodiscard]] inline auto imageTextInfoList() const noexcept {
+        [[nodiscard]] inline auto imageTextInfoSpan() const noexcept {
             const auto Map = reinterpret_cast<const uint8_t *>(this);
             const auto Ptr =
-                reinterpret_cast<const ImageTextInfo *>(Map + ImagesTextOffset);
+                reinterpret_cast<const ImageTextInfo *>(
+                    Map + this->ImagesTextOffset);
 
-            return std::span(Ptr, ImagesTextCount);
+            return std::span(Ptr, this->ImagesTextCount);
         }
     };
 
@@ -553,37 +563,39 @@ namespace DyldSharedCache {
         uint64_t MaxSlide;
 
         [[nodiscard]] constexpr auto patchInfoRange() const noexcept {
-            return ADT::Range::FromSize(PatchInfoAddr, PatchInfoSize);
+            return ADT::Range::FromSize(this->PatchInfoAddr,
+                                        this->PatchInfoSize);
         }
 
         [[nodiscard]] constexpr auto otherImageGroupRange() const noexcept {
-            return ADT::Range::FromSize(OtherImageGroupAddr,
-                                        OtherImageGroupSize);
+            return ADT::Range::FromSize(this->OtherImageGroupAddr,
+                                        this->OtherImageGroupSize);
         }
 
         [[nodiscard]] constexpr auto progClosuresRange() const noexcept {
-            return ADT::Range::FromSize(ProgClosuresAddr, ProgClosuresSize);
+            return ADT::Range::FromSize(this->ProgClosuresAddr,
+                                        this->ProgClosuresSize);
         }
 
         [[nodiscard]] constexpr auto progClosuresTrieRange() const noexcept {
-            return ADT::Range::FromSize(ProgClosuresTrieAddr,
-                                        ProgClosuresTrieSize);
+            return ADT::Range::FromSize(this->ProgClosuresTrieAddr,
+                                        this->ProgClosuresTrieSize);
         }
 
         [[nodiscard]] constexpr auto sharedRegionRange() const noexcept {
-            return ADT::Range::FromSize(SharedRegionStart, SharedRegionSize);
+            return ADT::Range::FromSize(this->SharedRegionStart,
+                                        this->SharedRegionSize);
         }
 
         [[nodiscard]] constexpr auto platform() const noexcept {
-            return Dyld3::Platform(Platform);
+            return Dyld3::Platform(this->Platform);
         }
 
-        [[nodiscard]]
-        constexpr auto isLocallyBuiltCache() const noexcept
+        [[nodiscard]] constexpr auto isLocallyBuiltCache() const noexcept
             -> std::optional<bool>
         {
-            return isAtleastV6() ?
-                std::optional(LocallyBuiltCache != 0) : std::nullopt;
+            return this->isAtleastV6() ?
+                std::optional(this->LocallyBuiltCache != 0) : std::nullopt;
         }
     };
 
@@ -603,21 +615,23 @@ namespace DyldSharedCache {
         uint64_t OtherTrieSize;
 
         [[nodiscard]] constexpr auto dylibsImageArrayRange() const noexcept {
-            return ADT::Range::FromSize(DylibsImageArrayAddr,
-                                        DylibsImageArraySize);
+            return ADT::Range::FromSize(this->DylibsImageArrayAddr,
+                                        this->DylibsImageArraySize);
         }
 
         [[nodiscard]] constexpr auto dylibsTrieRange() const noexcept {
-            return ADT::Range::FromSize(DylibsTrieAddr, DylibsTrieSize);
+            return ADT::Range::FromSize(this->DylibsTrieAddr,
+                                        this->DylibsTrieSize);
         }
 
         [[nodiscard]] constexpr auto otherImageArrayRange() const noexcept {
-            return ADT::Range::FromSize(OtherImageArrayAddr,
-                                        OtherImageArraySize);
+            return ADT::Range::FromSize(this->OtherImageArrayAddr,
+                                        this->OtherImageArraySize);
         }
 
         [[nodiscard]] constexpr auto otherTrieRange() const noexcept {
-            return ADT::Range::FromSize(OtherTrieAddr, OtherTrieSize);
+            return ADT::Range::FromSize(this->OtherTrieAddr,
+                                        this->OtherTrieSize);
         }
     };
 
@@ -627,27 +641,27 @@ namespace DyldSharedCache {
         uint32_t MappingWithSlideCount;
 
         [[nodiscard]]
-        constexpr auto getMappingWithSlideInfoRange() const noexcept {
-            return ADT::Range::FromSize(MappingWithSlideOffset,
-                                        MappingWithSlideCount);
+        constexpr auto mappingWithSlideInfoRange() const noexcept {
+            return ADT::Range::FromSize(this->MappingWithSlideOffset,
+                                        this->MappingWithSlideCount);
         }
 
-        [[nodiscard]] inline auto mappingWithSlideInfoList() noexcept {
+        [[nodiscard]] inline auto mappingWithSlideInfoSpan() noexcept {
             const auto Map = reinterpret_cast<uint8_t *>(this);
             const auto Ptr =
                 reinterpret_cast<MappingWithSlideInfo *>(
-                    Map + MappingWithSlideOffset);
+                    Map + this->MappingWithSlideOffset);
 
-            return std::span(Ptr, MappingWithSlideCount);
+            return std::span(Ptr, this->MappingWithSlideCount);
         }
 
         [[nodiscard]] inline auto mappingWithSlideInfoList() const noexcept {
             const auto Map = reinterpret_cast<const uint8_t *>(this);
             const auto Ptr =
                 reinterpret_cast<const MappingWithSlideInfo *>(
-                    Map + MappingWithSlideOffset);
+                    Map + this->MappingWithSlideOffset);
 
-            return std::span(Ptr, MappingWithSlideCount);
+            return std::span(Ptr, this->MappingWithSlideCount);
         }
     };
 
@@ -675,57 +689,60 @@ namespace DyldSharedCache {
         uint32_t ImagesCount;
 
         [[nodiscard]]
-        inline auto getImageInfoListRange() const noexcept
+        inline auto imageInfoListRange() const noexcept
             -> std::optional<ADT::Range>
         {
             const auto End =
-                Utils::MulAddAndCheckOverflow(ImagesCount, sizeof(ImageInfo),
-                                              ImagesOffset);
+                Utils::MulAddAndCheckOverflow(this->ImagesCount,
+                                              sizeof(ImageInfo),
+                                              this->ImagesOffset);
             if (End.has_value()) {
-                return ADT::Range::FromSize(ImagesOffset, End.value());
+                return ADT::Range::FromSize(this->ImagesOffset, End.value());
             }
 
             return std::nullopt;
         }
 
         [[nodiscard]] inline auto programsPBLSetPoolRange() const noexcept {
-            return ADT::Range::FromSize(ProgramsPBLSetPoolAddr,
-                                        ProgramsPBLSetPoolSize);
+            return ADT::Range::FromSize(this->ProgramsPBLSetPoolAddr,
+                                        this->ProgramsPBLSetPoolSize);
         }
 
         [[nodiscard]] inline auto programTrieRange() const noexcept {
-            return ADT::Range::FromSize(ProgramTrieAddr, ProgramTrieSize);
+            return ADT::Range::FromSize(this->ProgramTrieAddr,
+                                        this->ProgramTrieSize);
         }
 
         [[nodiscard]] inline auto swiftOptsRange() const noexcept {
-            return ADT::Range::FromSize(SwiftOptsOffset, SwiftOptsSize);
+            return ADT::Range::FromSize(this->SwiftOptsOffset,
+                                        this->SwiftOptsSize);
         }
 
         [[nodiscard]] inline auto subCacheArrayRange() const noexcept {
-            return ADT::Range::FromSize(SubCacheArrayOffset,
-                                        SubCacheArrayCount);
+            return ADT::Range::FromSize(this->SubCacheArrayOffset,
+                                        this->SubCacheArrayCount);
         }
 
         [[nodiscard]] inline auto rosettaReadOnlyRange() const noexcept {
-            return ADT::Range::FromSize(RosettaReadOnlyAddr,
-                                        RosettaReadOnlySize);
+            return ADT::Range::FromSize(this->RosettaReadOnlyAddr,
+                                        this->RosettaReadOnlySize);
         }
 
         [[nodiscard]] inline auto rosettaReadWriteRange() const noexcept {
-            return ADT::Range::FromSize(RosettaReadWriteAddr,
-                                        RosettaReadWriteSize);
+            return ADT::Range::FromSize(this->RosettaReadWriteAddr,
+                                        this->RosettaReadWriteSize);
         }
 
         [[nodiscard]] constexpr auto osVersion() const noexcept {
-            return Dyld3::PackedVersion(OsVersion);
+            return Dyld3::PackedVersion(this->OsVersion);
         }
 
         [[nodiscard]] constexpr auto altOsVersion() const noexcept {
-            return Dyld3::PackedVersion(AltOsVersion);
+            return Dyld3::PackedVersion(this->AltOsVersion);
         }
 
         [[nodiscard]] constexpr auto altPlatform() const noexcept {
-            return Dyld3::Platform(AltPlatform);
+            return Dyld3::Platform(this->AltPlatform);
         }
     };
 
@@ -740,19 +757,22 @@ namespace DyldSharedCache {
         uint64_t DynamicDataMaxSize;
 
         [[nodiscard]] constexpr auto cacheSubKind() const noexcept {
-            return CacheKind(CacheSubKind);
+            return CacheKind(this->CacheSubKind);
         }
 
         [[nodiscard]] constexpr auto objcOptsRange() const noexcept {
-            return ADT::Range::FromSize(ObjcOptsOffset, ObjcOptsSize);
+            return ADT::Range::FromSize(this->ObjcOptsOffset,
+                                        this->ObjcOptsSize);
         }
 
         [[nodiscard]] constexpr auto cacheAtlasRange() const noexcept {
-            return ADT::Range::FromSize(CacheAtlasOffset, CacheAtlasSize);
+            return ADT::Range::FromSize(this->CacheAtlasOffset,
+                                        this->CacheAtlasSize);
         }
 
         [[nodiscard]] constexpr auto dynamicDataMaxRange() const noexcept {
-            return ADT::Range::FromSize(DynamicDataOffset, DynamicDataMaxSize);
+            return ADT::Range::FromSize(this->DynamicDataOffset,
+                                        this->DynamicDataMaxSize);
         }
     };
 
@@ -761,7 +781,7 @@ namespace DyldSharedCache {
         auto Version = HeaderVersion::V9;
     #define CHECK_VERSION_LAST(VERS)                                           \
         do {                                                                   \
-            if (MappingOffset >= sizeof(VAR_CONCAT(Header, VERS))) {           \
+            if (this->MappingOffset >= sizeof(VAR_CONCAT(Header, VERS))) {     \
                 return HeaderVersion::VERS;                                    \
             }                                                                  \
         } while (false)
@@ -801,58 +821,69 @@ namespace DyldSharedCache {
 
     [[nodiscard]]
     constexpr auto HeaderV0::imageOffset() const noexcept -> uint32_t {
-        return isAtleastV8() ?
-            static_cast<const HeaderV8 &>(*this).ImagesOffset : ImagesOffsetOld;
+        return this->isAtleastV8() ?
+            static_cast<const HeaderV8 &>(*this).ImagesOffset :
+            this->ImagesOffsetOld;
     }
 
     [[nodiscard]]
     constexpr auto HeaderV0::imageCount() const noexcept -> uint32_t {
-        return isAtleastV8() ?
-            static_cast<const HeaderV8 &>(*this).ImagesCount : ImagesCountOld;
+        return this->isAtleastV8() ?
+            static_cast<const HeaderV8 &>(*this).ImagesCount :
+            this->ImagesCountOld;
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isAtleastV1() const noexcept -> bool {
-        return MappingOffset >= sizeof(DyldSharedCache::HeaderV1);
+    [[nodiscard]]
+    constexpr auto HeaderV0::isAtleastV1() const noexcept -> bool {
+        return this->MappingOffset >= sizeof(DyldSharedCache::HeaderV1);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isAtleastV2() const noexcept -> bool {
-        return MappingOffset >= sizeof(DyldSharedCache::HeaderV2);
+    [[nodiscard]]
+    constexpr auto HeaderV0::isAtleastV2() const noexcept -> bool {
+        return this->MappingOffset >= sizeof(DyldSharedCache::HeaderV2);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isAtleastV3() const noexcept -> bool {
-        return MappingOffset >= sizeof(DyldSharedCache::HeaderV3);
+    [[nodiscard]]
+    constexpr auto HeaderV0::isAtleastV3() const noexcept -> bool {
+        return this->MappingOffset >= sizeof(DyldSharedCache::HeaderV3);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isAtleastV4() const noexcept -> bool {
-        return MappingOffset >= sizeof(DyldSharedCache::HeaderV4);
+    [[nodiscard]]
+    constexpr auto HeaderV0::isAtleastV4() const noexcept -> bool {
+        return this->MappingOffset >= sizeof(DyldSharedCache::HeaderV4);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isAtleastV5() const noexcept -> bool {
-        return MappingOffset >= sizeof(DyldSharedCache::HeaderV5);
+    [[nodiscard]]
+    constexpr auto HeaderV0::isAtleastV5() const noexcept -> bool {
+        return this->MappingOffset >= sizeof(DyldSharedCache::HeaderV5);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isAtleastV6() const noexcept -> bool {
-        return MappingOffset >= sizeof(DyldSharedCache::HeaderV6);
+    [[nodiscard]]
+    constexpr auto HeaderV0::isAtleastV6() const noexcept -> bool {
+        return this->MappingOffset >= sizeof(DyldSharedCache::HeaderV6);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isAtleastV7() const noexcept -> bool {
-        return MappingOffset >= sizeof(DyldSharedCache::HeaderV7);
+    [[nodiscard]]
+    constexpr auto HeaderV0::isAtleastV7() const noexcept -> bool {
+        return this->MappingOffset >= sizeof(DyldSharedCache::HeaderV7);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isAtleastV8() const noexcept -> bool {
-        return MappingOffset >= sizeof(DyldSharedCache::HeaderV8);
+    [[nodiscard]]
+    constexpr auto HeaderV0::isAtleastV8() const noexcept -> bool {
+        return this->MappingOffset >= sizeof(DyldSharedCache::HeaderV8);
     }
 
-    [[nodiscard]] constexpr auto HeaderV0::isAtleastV9() const noexcept -> bool {
-        return MappingOffset >= sizeof(DyldSharedCache::HeaderV9);
+    [[nodiscard]]
+    constexpr auto HeaderV0::isAtleastV9() const noexcept -> bool {
+        return this->MappingOffset >= sizeof(DyldSharedCache::HeaderV9);
     }
 
     [[nodiscard]] constexpr auto HeaderV0::hasSubCacheV1Array() const noexcept {
-        return isAtleastV8();
+        return this->isAtleastV8();
     }
 
     [[nodiscard]] constexpr auto HeaderV0::hasSubCacheArray() const noexcept {
-        return isAtleastV9();
+        return this->isAtleastV9();
     }
 
     using Header = HeaderV9;

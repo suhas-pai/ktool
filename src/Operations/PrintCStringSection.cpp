@@ -91,7 +91,7 @@ namespace Operations {
     };
 
     static auto
-    HandleCStringSection(const char *const SectData,
+    HandleCStringSection(const std::span<const char> SectData,
                          const uint64_t SectFileOff,
                          const uint64_t SectVmAddr,
                          const uint64_t SectSize,
@@ -107,7 +107,7 @@ namespace Operations {
              StringCount < Limit && Pos < SectSize;
              Pos += Length + 1)
         {
-            const auto StringPtr = SectData + Pos;
+            const auto StringPtr = SectData.data() + Pos;
             Length = strnlen(StringPtr, SectSize);
 
             auto String = std::string(StringPtr, Length);
@@ -164,7 +164,7 @@ namespace Operations {
             return RunResult(RunResult::Error::EmptySectionName);
         }
 
-        auto SectionData = static_cast<const char *>(nullptr);
+        auto SectionData = std::optional<std::span<const char>>();
         auto SectionFileOff = uint64_t();
         auto SectionAddr = uint64_t();
         auto SectionSize = uint64_t();
@@ -216,7 +216,7 @@ namespace Operations {
                     SectionFileOff = SectionRange.front();
                     SectionAddr = Section->addr(IsBigEndian);
                     SectionSize = SectionRange.size();
-                    SectionData = Map.getFromRange<const char>(SectionRange);
+                    SectionData = Map.getRange<const char>(SectionRange);
 
                     break;
                 }
@@ -263,20 +263,20 @@ namespace Operations {
                     SectionFileOff = SectionRange.front();
                     SectionAddr = Section->addr(IsBigEndian);
                     SectionSize = SectionRange.size();
-                    SectionData = Map.getFromRange<const char>(SectionRange);
+                    SectionData = Map.getRange<const char>(SectionRange);
 
                     break;
                 }
             }
         }
 
-        if (SectionData == nullptr) {
+        if (!SectionData.has_value()) {
             return RunResult(RunResult::Error::SectionNotFound);
         }
 
         auto LongestCStringLength = uint64_t();
         auto CStringInfoList =
-            HandleCStringSection(SectionData,
+            HandleCStringSection(SectionData.value(),
                                  SectionFileOff,
                                  SectionAddr,
                                  SectionSize,
@@ -300,35 +300,29 @@ namespace Operations {
 
         auto Counter = static_cast<uint64_t>(1);
         for (const auto &Info : CStringInfoList) {
-            fprintf(OutFile,
-                    "C-String %" LEFTPAD_FMT PRIu64 ": ",
-                    PAD_FMT_ARGS(CStringListSizeDigitCount),
-                    Counter);
-
-            Utils::PrintAddress(OutFile, Info.Address, Is64Bit);
-            const auto WrittenOutString =
-                fprintf(OutFile,
-                        " \"" STRING_VIEW_FMT "\"",
-                        STRING_VIEW_FMT_ARGS(Info.String));
+            std::print(OutFile,
+                       "C-String {:>{}}: {} \"{}\"",
+                       Counter,
+                       CStringListSizeDigitCount,
+                       Utils::CustomAddress(Info.Address, Is64Bit),
+                       Info.String);
 
             if (Opt.Verbose) {
                 const auto RightPadLength =
-                    static_cast<int>(LongestCStringLength +
-                                     STR_LENGTH(" \"\""));
+                    static_cast<int>(LongestCStringLength);
 
                 Utils::RightPadSpaces(OutFile,
-                                      WrittenOutString,
+                                      Info.String.length(),
                                       RightPadLength);
 
-                fprintf(OutFile,
-                        " (Length: %" LEFTPAD_FMT PRIuPTR ", File Offset: ",
-                        PAD_FMT_ARGS(CStringListSizeDigitCount),
-                        Info.String.length());
-
-                Utils::PrintAddress(OutFile, Info.FileOffset, Is64Bit, "", ")");
+                std::print(OutFile,
+                           " (Length: {:>{}}, File Offset: {})",
+                           Info.String.length(),
+                           CStringListSizeDigitCount,
+                           Utils::CustomAddress(Info.FileOffset, Is64Bit));
             }
 
-            fputc('\n', OutFile);
+            std::print(OutFile, "\n");
             Counter++;
         }
 

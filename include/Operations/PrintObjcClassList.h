@@ -6,12 +6,14 @@
 //
 
 #pragma once
+
 #include <vector>
-
 #include "ADT/Tree.h"
-#include "MachO/BindInfo.h"
-#include "Objects/DscImage.h"
 
+#include "MachO/BindInfo.h"
+#include "MachO/RebaseInfo.h"
+
+#include "Objects/DscImage.h"
 #include "Base.h"
 
 namespace Operations {
@@ -49,6 +51,7 @@ namespace Operations {
                 Unsupported,
 
                 BindOpcodeParseError,
+                RebaseOpcodeParseError,
 
                 NoDyldInfo,
                 NoObjcData,
@@ -64,17 +67,27 @@ namespace Operations {
                     MachO::BindInfoKind BindKind;
                     MachO::BindOpcodeParseResult ParseResult;
                 } BindOpcodeParseResult;
+
+                struct {
+                    MachO::RebaseOpcodeParseResult ParseResult;
+                } RebaseOpcodeParseResult;
             #pragma GCC diagnostic pop
             };
 
+            explicit RunResult() noexcept {}
             explicit RunResult(const enum Error Error) noexcept
             : Error(Error) {}
 
             explicit
             RunResult(const MachO::BindInfoKind Kind,
-                      const MachO::BindOpcodeParseResult Result) noexcept
+                      const MachO::BindOpcodeParseResult &Result) noexcept
             : Error(Error::BindOpcodeParseError),
               BindOpcodeParseResult{Kind, Result} {}
+
+            explicit
+            RunResult(const MachO::RebaseOpcodeParseResult &Result) noexcept
+            : Error(Error::RebaseOpcodeParseError),
+              RebaseOpcodeParseResult{Result} {}
 
             auto operator=(const RunResult &Other) noexcept -> decltype(*this) {
                 Error = Other.Error;

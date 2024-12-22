@@ -87,23 +87,23 @@ namespace Operations {
         const auto Size = Arch.size(IsBigEndian);
         const auto Align = Arch.align(IsBigEndian);
 
-        fprintf(OutFile,
-                STRING_VIEW_FMT "Arch #%" PRIu32 ": %s\n"
-                STRING_VIEW_FMT "\tCpuKind:    %s\n"
-                STRING_VIEW_FMT "\tCpuSubKind: %s\n"
-                STRING_VIEW_FMT "\tOffset:     " ADDRESS_32_FMT
-                    " (" ADDR_RANGE_32_FMT ")\n"
-                STRING_VIEW_FMT "\tSize:       %s\n"
-                STRING_VIEW_FMT "\tAlign:      %" PRIu32 " (%s)\n",
-                STRING_VIEW_FMT_ARGS(Prefix), Ordinal, ObjectDesc.data(),
-                STRING_VIEW_FMT_ARGS(Prefix), CpuKindString.c_str(),
-                STRING_VIEW_FMT_ARGS(Prefix), SubKindString.c_str(),
-                STRING_VIEW_FMT_ARGS(Prefix), Offset,
-                    ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
-                STRING_VIEW_FMT_ARGS(Prefix),
-                    Utils::FormattedSizeForOutput(Size).c_str(),
-                STRING_VIEW_FMT_ARGS(Prefix), Align,
-                    Utils::FormattedSize(1ull << Align).c_str());
+        auto String = std::format("{}", Utils::NumberWithCommas<uint64_t>(0));
+        std::print(OutFile, "{}", Utils::ByteSize(1ull << Align));
+
+        const auto OffsetRange = ADT::Range::FromSize(Offset, Size);
+        std::print(OutFile,
+                   "{}Arch #{}: {}\n"
+                   "{}\tCpuKind:    {}\n"
+                   "{}\tCpuSubKind: {}\n"
+                   "{}\tOffset:     {} ({})\n"
+                   "{}\tSize:       {}\n"
+                   "{}\tAlign:      {} ({})\n",
+                   Prefix, Ordinal, ObjectDesc,
+                   Prefix, CpuKindString,
+                   Prefix, SubKindString,
+                   Prefix, Utils::Address(Offset), OffsetRange,
+                   Prefix, Utils::ByteSize(Size),
+                   Prefix, Align, Utils::ByteSize(1ull << Align));
     }
 
     void
@@ -130,23 +130,20 @@ namespace Operations {
         const auto Size = Arch.size(IsBigEndian);
         const auto Align = Arch.align(IsBigEndian);
 
-        fprintf(OutFile,
-                STRING_VIEW_FMT "Arch #%" PRIu32 ": %s\n"
-                STRING_VIEW_FMT "\tCpuKind:    %s\n"
-                STRING_VIEW_FMT "\tCpuSubKind: %s\n"
-                STRING_VIEW_FMT "\tOffset:     " ADDRESS_64_FMT
-                    " (" ADDR_RANGE_64_FMT ")\n"
-                STRING_VIEW_FMT "\tSize:       %s\n"
-                STRING_VIEW_FMT "\tAlign:      %" PRIu32 " (%s)\n",
-                STRING_VIEW_FMT_ARGS(Prefix), Ordinal, ObjectDesc.data(),
-                STRING_VIEW_FMT_ARGS(Prefix), CpuKindString.c_str(),
-                STRING_VIEW_FMT_ARGS(Prefix), SubKindString.c_str(),
-                STRING_VIEW_FMT_ARGS(Prefix), Offset,
-                    ADDR_RANGE_FMT_ARGS(Offset, Offset + Size),
-                STRING_VIEW_FMT_ARGS(Prefix),
-                    Utils::FormattedSizeForOutput(Size).c_str(),
-                STRING_VIEW_FMT_ARGS(Prefix), Align,
-                    Utils::FormattedSize(1ull << Align).c_str());
+        const auto OffsetRange = ADT::Range::FromSize(Offset, Size);
+        std::print(OutFile,
+                   "{}Arch #{}: {}\n"
+                   "{}\tCpuKind:    {}\n"
+                   "{}\tCpuSubKind: {}\n"
+                   "{}\tOffset:     {} ({})\n"
+                   "{}\tSize:       {}\n"
+                   "{}\tAlign:      {} ({})\n",
+                   Prefix, Ordinal, ObjectDesc,
+                   Prefix, CpuKindString,
+                   Prefix, SubKindString,
+                   Prefix, Utils::Address(Offset), OffsetRange,
+                   Prefix, Utils::ByteSize(Size),
+                   Prefix, Align, Utils::ByteSize(1ull << Align));
     }
 
     auto PrintArchs::run(const Objects::FatMachO &Fat) const noexcept

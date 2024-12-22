@@ -1,25 +1,28 @@
-/*
- * DyldSharedCache/DeVirtualizer.h
- * © suhas pai
- */
+//
+//  DscImage/DeVirtualizer.h
+//  ktool
+//
+//  Created by Suhas Pai on 12/19/24.
+//
 
 #pragma once
 
 #include "ADT/DeVirtualizer.h"
-#include "ADT/MemoryMap.h"
-
 #include "Objects/DyldSharedCache.h"
 
-namespace DyldSharedCache {
+namespace DscImage {
     struct DeVirtualizer : public ADT::DeVirtualizer {
     protected:
         const Objects::DyldSharedCache &Dsc;
+        uint64_t ImageBaseAddress = 0;
     public:
-        explicit DeVirtualizer(const Objects::DyldSharedCache &Dsc) noexcept
-        : Dsc(Dsc) {}
+        explicit
+        DeVirtualizer(const Objects::DyldSharedCache &Dsc,
+                      const uint64_t ImageBaseAddress) noexcept
+        : Dsc(Dsc), ImageBaseAddress(ImageBaseAddress) {}
 
         [[nodiscard]] uint64_t getBaseAddress() const noexcept override {
-            return this->Dsc.mappingInfoList().front().Address;
+            return this->ImageBaseAddress;
         }
 
         [[nodiscard]] void *

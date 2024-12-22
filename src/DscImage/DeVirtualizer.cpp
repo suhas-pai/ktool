@@ -1,11 +1,11 @@
 /*
- * DyldSharedCache/DeVirtualizer.cpp
+ * DscImage/DeVirtualizer.cpp
  * © suhas pai
  */
 
-#include "DyldSharedCache/DeVirtualizer.h"
+#include "DscImage/DeVirtualizer.h"
 
-namespace DyldSharedCache {
+namespace DscImage {
     auto
     DeVirtualizer::getPtrForAddress(const uint64_t Address,
                                     const bool IgnoreProtBounds,
@@ -18,10 +18,7 @@ namespace DyldSharedCache {
                                            !IgnoreProtBounds,
                                            &TotalSize))
         {
-            if (EndOut != nullptr) {
-                *EndOut = Result->second + TotalSize;
-            }
-
+            *EndOut = Result->second + TotalSize;
             return Result->second;
         }
 

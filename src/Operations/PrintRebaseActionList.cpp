@@ -49,20 +49,19 @@ namespace Operations {
                       const MachO::SegmentList &SegmentList,
                       const bool Is64Bit) noexcept
     {
-        fprintf(OutFile,
-                "Rebase-Action %" LEFTPAD_FMT "s: ",
-                PAD_FMT_ARGS(SizeDigitLength),
-                Utils::GetFormattedNumber(Counter).c_str());
+        std::print(OutFile,
+                   "Rebase-Action {:>{}}: ",
+                   Utils::NumberWithCommas(Counter),
+                   SizeDigitLength);
 
         constexpr auto RebaseWriteKindLongestDescLength =
             MachO::RebaseWriteKindGetDesc(
                 MachO::RebaseWriteKind::TextAbsolute32).length();
 
-        fprintf(OutFile,
-                " %" RIGHTPAD_FMT "s",
-                PAD_FMT_ARGS(
-                    static_cast<int>(RebaseWriteKindLongestDescLength)),
-                MachO::RebaseWriteKindGetDesc(Action.Kind).data());
+        std::print(OutFile,
+                   " {:>{}}",
+                   MachO::RebaseWriteKindGetDesc(Action.Kind),
+                   static_cast<int>(RebaseWriteKindLongestDescLength));
 
         if (const auto Segment = SegmentList.atOrNull(Action.SegmentIndex)) {
             auto FullAddr = uint64_t();
@@ -70,20 +69,22 @@ namespace Operations {
                 Segment->findSectionWithVmAddrIndex(Action.AddrInSeg,
                                                     &FullAddr);
 
-            Utils::PrintSegmentSectionPair(OutFile,
-                                           Segment ? Segment->Name : "",
-                                           Section ? Section->Name : "",
-                                           /*PadSegment=*/true,
-                                           /*PadSection=*/true);
+            std::print(OutFile,
+                       "{}{}",
+                       Utils::SegmentSectionPair(Segment ? Segment->Name : "",
+                                                 Section ? Section->Name : "",
+                                                 /*PadSegment=*/true,
+                                                 /*PadSection=*/true),
+                       Utils::CustomAddress(FullAddr, Is64Bit));
 
-            Utils::PrintAddress(OutFile, FullAddr, Is64Bit);
         } else {
-            Utils::RightPadSpaces(OutFile,
-                                  fputs("<unknown>", OutFile),
-                                  Utils::SegmentSectionPairMaxLen);
+            std::print(OutFile,
+                       "{:<{}}",
+                       "<unknown>",
+                       Utils::SegmentSectionPairMaxLen);
         }
 
-        fputc('\n', OutFile);
+        std::print(OutFile, "\n");
     }
 
     auto
@@ -101,14 +102,14 @@ namespace Operations {
             using Kind = MachO::LoadCommandKind;
             if (Is64Bit) {
                 if (const auto Segment =
-                        MachO::dyn_cast<Kind::Segment64>(&LC, IsBigEndian))
+                        dyn_cast<Kind::Segment64>(&LC, IsBigEndian))
                 {
                     SegmentList.addSegment(*Segment, IsBigEndian);
                     continue;
                 }
             } else {
                 if (const auto Segment =
-                        MachO::dyn_cast<Kind::Segment>(&LC, IsBigEndian))
+                        dyn_cast<Kind::Segment>(&LC, IsBigEndian))
                 {
                     SegmentList.addSegment(*Segment, IsBigEndian);
                     continue;
@@ -116,7 +117,7 @@ namespace Operations {
             }
 
             if (const auto DyldInfo =
-                    MachO::dyn_cast<MachO::DyldInfoCommand>(&LC, IsBigEndian))
+                    dyn_cast<MachO::DyldInfoCommand>(&LC, IsBigEndian))
             {
                 RebaseRange = DyldInfo->rebaseRange(IsBigEndian);
                 FoundDyldInfo = true;

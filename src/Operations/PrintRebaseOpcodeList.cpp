@@ -227,151 +227,152 @@ namespace Operations {
             const auto &OpcodeName =
                 MachO::RebaseByteOpcodeGetName(Byte.opcode());
 
-            fprintf(OutFile,
-                    "Rebase-Opcode %" LEFTPAD_FMT "s: %s",
-                    PAD_FMT_ARGS(SizeDigitLength),
-                    Utils::GetFormattedNumber(Counter).c_str(),
-                    OpcodeName.data());
+            std::print(OutFile,
+                       "Rebase-Opcode {:>{}}: {}",
+                       Utils::NumberWithCommas(Counter),
+                       SizeDigitLength,
+                       OpcodeName);
 
             auto OpcodeAndArgLength = static_cast<int>(OpcodeName.length());
             const auto PrintAddressInfo = [&](const uint64_t Add = 0) noexcept {
-                constexpr auto MaxArgLength = 32;
+                constexpr auto MaxArgLength = 38;
                 constexpr auto LongestOpcodeNameLength =
                     MachO::RebaseByteOpcodeGetName(
                         MachO::RebaseByteOpcode::DoRebaseUlebTimesSkipUleb)
                             .length();
 
-                fputs(" ", OutFile);
+                std::print(OutFile, " ");
                 const auto PadLength =
                     (LongestOpcodeNameLength + MaxArgLength) -
                     static_cast<uint64_t>(OpcodeAndArgLength);
 
                 Utils::PrintMultTimes(OutFile, "-", PadLength);
-                fputs("> ", OutFile);
-                Utils::PrintSegmentSectionPair(
-                    OutFile,
-                    Iter.Segment ? Iter.Segment->Name : "",
-                    Iter.Section ? Iter.Section->Name : "",
-                    /*PadSegment=*/true,
-                    /*PadSection=*/true,
-                    /*Prefix=*/"Segment: ");
-
-                Utils::PrintAddress(OutFile,
-                                    Iter.AddrInSeg + Add,
-                                    Is64Bit,
-                                    "Segment-Address: ",
-                                    ", ");
-
                 const auto FullAddr =
                     Iter.Segment->VmRange.locForIndex(Iter.AddrInSeg + Add);
 
-                Utils::PrintAddress(OutFile,
-                                    FullAddr,
-                                    Is64Bit,
-                                    "Full-Address: ",
-                                    "\n");
-
-                if (Iter.AddrInSegOverflows) {
-                    fputs(" (Overflows)", OutFile);
-                    return;
-                }
+                std::print(OutFile,
+                           "> Segment: {}"
+                           "Segment-Address: {}, Full-Address: {}{}\n",
+                           Utils::SegmentSectionPair(
+                            Iter.Segment ? Iter.Segment->Name : "",
+                            Iter.Section ? Iter.Section->Name : "",
+                            /*PadSegment=*/true,
+                            /*PadSection=*/true),
+                           Utils::CustomAddress(Iter.AddrInSeg + Add, Is64Bit),
+                           Utils::CustomAddress(FullAddr, Is64Bit),
+                           Iter.AddrInSegOverflows ? " (Overflows)" : "");
             };
 
             switch (Byte.opcode()) {
                 case MachO::RebaseByte::Opcode::Done:
-                    fputc('\n', OutFile);
+                    std::print(OutFile, "\n");
                     break;
                 case MachO::RebaseByte::Opcode::SetKindImm: {
                     const auto KindName =
                         MachO::RebaseWriteKindIsValid(Iter.Kind) ?
                             MachO::RebaseWriteKindGetString(Iter.Kind).data() :
-                            "<unrecognized>";
+                            std::string_view("<unrecognized>");
 
                     if (MachO::RebaseWriteKindIsValid(Iter.Kind)) {
-                        OpcodeAndArgLength +=
-                            fprintf(OutFile, "(%s)\n", KindName);
+                        std::print(OutFile, "({})\n", KindName);
                     } else {
-                        OpcodeAndArgLength +=
-                            fprintf(OutFile,
-                                    "(<unrecognized, Kind: %" PRIu32 ">)\n",
-                                    static_cast<uint32_t>(Iter.Kind));
+                        std::print(OutFile,
+                                   "(<unrecognized, Kind: {}>)\n",
+                                   static_cast<uint32_t>(Iter.Kind));
                     }
 
                     break;
                 }
                 case MachO::RebaseByte::Opcode::SetSegmentAndOffsetUleb: {
-                    OpcodeAndArgLength +=
-                        fprintf(OutFile,
-                                "(Segment: %" PRIu32 ", ",
-                                Iter.SegmentIndex);
-
-                    OpcodeAndArgLength +=
-                        Utils::PrintAddress(OutFile,
-                                            Iter.SegOffset,
-                                            Is64Bit,
-                                            "Offset: ",
-                                            ")");
+                    std::print(OutFile,
+                               "(Segment: {}, Offset: {})\n",
+                               Iter.SegmentIndex,
+                               Utils::CustomAddress(Iter.SegOffset, Is64Bit));
 
                     if (Opt.Verbose) {
+                        OpcodeAndArgLength +=
+                            22 +
+                            Utils::GetIntegerDigitCount(Iter.SegmentIndex) +
+                            Utils::AddressLength(Is64Bit);
+
                         PrintAddressInfo();
+                    } else {
+                        std::print(OutFile, "\n");
                     }
 
-                    fputc('\n', OutFile);
                     break;
                 }
                 case MachO::RebaseByte::Opcode::AddAddrImmScaled: {
-                    OpcodeAndArgLength +=
-                        fprintf(OutFile, "(Scale: %" PRId64 ")", Iter.Scale);
-
+                    std::print(OutFile, "(Scale: {})", Iter.Scale);
                     if (Opt.Verbose) {
+                        OpcodeAndArgLength +=
+                            9 + Utils::GetIntegerDigitCount(Iter.Scale);
+
                         PrintAddressInfo(Iter.Scale * PtrSize);
+                    } else {
+                        std::print(OutFile, "\n");
                     }
 
                     break;
                 }
                 case MachO::RebaseByte::Opcode::AddAddrUleb: {
-                    OpcodeAndArgLength +=
-                        fprintf(OutFile, "(Add: %" PRId64 ")", Iter.AddAddr);
-
+                    std::print(OutFile, "(Add: {})", Iter.AddAddr);
                     if (Opt.Verbose) {
+                        OpcodeAndArgLength +=
+                            7 + Utils::GetIntegerDigitCount(Iter.AddAddr);
+
                         PrintAddressInfo();
+                    } else {
+                        std::print(OutFile, "\n");
                     }
 
                     break;
                 }
                 case MachO::RebaseByte::Opcode::DoRebaseAddAddrUleb:
-                    OpcodeAndArgLength +=
-                        fprintf(OutFile, "(Add: %" PRId64 ")", Iter.AddAddr);
-
+                    std::print(OutFile, "(Add: {})", Iter.AddAddr);
                     if (Opt.Verbose) {
+                        OpcodeAndArgLength +=
+                            7 + Utils::GetIntegerDigitCount(Iter.AddAddr);
+
                         PrintAddressInfo(static_cast<uint64_t>(Iter.AddAddr));
+                    } else {
+                        std::print(OutFile, "\n");
                     }
 
                     break;
                 case MachO::RebaseByte::Opcode::DoRebaseImmTimes:
                 case MachO::RebaseByte::Opcode::DoRebaseUlebTimes: {
-                    OpcodeAndArgLength +=
-                        fprintf(OutFile, "(Count: %" PRId64 ")", Iter.Count);
-
+                    std::print(OutFile, "(Count: {})", Iter.Count);
                     if (Opt.Verbose) {
+                        OpcodeAndArgLength +=
+                            9 + Utils::GetIntegerDigitCount(Iter.Count);
+
                         PrintAddressInfo(Iter.Count * PtrSize);
+                    } else {
+                        std::print(OutFile, "\n");
                     }
 
                     break;
                 }
                 case MachO::RebaseByte::Opcode::DoRebaseUlebTimesSkipUleb: {
-                    OpcodeAndArgLength +=
-                        fprintf(OutFile,
-                                "(Skip: %" PRId64 ", Count: %" PRIu64 ")",
-                                Iter.Skip,
-                                Iter.Count);
+                    std::print(OutFile,
+                               "(Skip: {}, Count: {})",
+                               Iter.Skip,
+                               Iter.Count);
 
                     if (Opt.Verbose) {
+                        OpcodeAndArgLength +=
+                            17 +
+                            Utils::GetIntegerDigitCount(Iter.Skip) +
+                            Utils::GetIntegerDigitCount(Iter.Count);
+
                         const auto Add =
                             static_cast<uint64_t>(Iter.Skip) * Iter.Count +
                             Iter.Count * PtrSize;
 
                         PrintAddressInfo(Add);
+                    } else {
+                        std::print(OutFile, "\n");
                     }
 
                     break;
@@ -398,14 +399,14 @@ namespace Operations {
             using Kind = MachO::LoadCommandKind;
             if (Is64Bit) {
                 if (const auto Segment =
-                        MachO::dyn_cast<Kind::Segment64>(&LC, IsBigEndian))
+                        dyn_cast<Kind::Segment64>(&LC, IsBigEndian))
                 {
                     SegmentList.addSegment(*Segment, IsBigEndian);
                     continue;
                 }
             } else {
                 if (const auto Segment =
-                        MachO::dyn_cast<Kind::Segment>(&LC, IsBigEndian))
+                        dyn_cast<Kind::Segment>(&LC, IsBigEndian))
                 {
                     SegmentList.addSegment(*Segment, IsBigEndian);
                     continue;
@@ -413,7 +414,7 @@ namespace Operations {
             }
 
             if (const auto DyldInfo =
-                    MachO::dyn_cast<MachO::DyldInfoCommand>(&LC, IsBigEndian))
+                    dyn_cast<MachO::DyldInfoCommand>(&LC, IsBigEndian))
             {
                 RebaseRange = DyldInfo->rebaseRange(IsBigEndian);
                 FoundDyldInfo = true;

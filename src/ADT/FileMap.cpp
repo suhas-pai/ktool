@@ -13,8 +13,7 @@
 #include "ADT/FileMap.h"
 
 namespace ADT {
-    auto
-    FileMap::Open(const char *const Path, const Prot Prot) noexcept
+    auto FileMap::Open(const char *const Path, const Prot Prot) noexcept
         -> std::expected<FileMap *, OpenError>
     {
         auto Mode = O_RDONLY;
@@ -63,9 +62,9 @@ namespace ADT {
 
     FileMap::~FileMap() noexcept {
         if (munmap(this->Base, this->Size) != 0) {
-            fprintf(stderr,
-                    "Internal Error: munmap() failed with error: %s\n",
-                    strerror(errno));
+            std::print(stderr,
+                       "Internal Error: munmap() failed with error: {}\n",
+                       strerror(errno));
             exit(1);
         }
 

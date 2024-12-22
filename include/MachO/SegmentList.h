@@ -59,7 +59,7 @@ namespace MachO {
         findSectionWithName(const std::string_view Name) const noexcept
             -> const SectionInfo *
         {
-            for (const auto &Section : SectionList) {
+            for (const auto &Section : this->SectionList) {
                 if (Section.Name == Name) {
                     return &Section;
                 }
@@ -72,7 +72,7 @@ namespace MachO {
         auto findSectionWithFileOffset(const uint64_t Offset) const noexcept
             -> const SectionInfo *
         {
-            for (const auto &Section : SectionList) {
+            for (const auto &Section : this->SectionList) {
                 if (Section.fileRange().hasLoc(Offset)) {
                     return &Section;
                 }
@@ -134,15 +134,15 @@ namespace MachO {
         SegmentList(const MachO::LoadCommandsMap &Map, bool Is64Bit) noexcept;
 
         [[nodiscard]] constexpr auto size() const noexcept {
-            return List.size();
+            return this->List.size();
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {
-            return List.empty();
+            return this->List.empty();
         }
 
         [[nodiscard]] inline auto &at(const size_t Index) const noexcept {
-            return List.at(Index);
+            return this->List.at(Index);
         }
 
         [[nodiscard]]
@@ -153,7 +153,7 @@ namespace MachO {
                 return nullptr;
             }
 
-            return &List.at(Index);
+            return &this->List.at(Index);
         }
 
         auto
@@ -173,7 +173,7 @@ namespace MachO {
         auto findSegmentWithName(const std::string_view Name) const noexcept
             -> const SegmentInfo *
         {
-            for (const auto &Info : List) {
+            for (const auto &Info : this->List) {
                 if (Info.Name == Name) {
                     return &Info;
                 }
@@ -186,7 +186,7 @@ namespace MachO {
         auto findSegmentWithFileOffset(const uint64_t Offset) const noexcept
             -> const SegmentInfo *
         {
-            for (const auto &Info : List) {
+            for (const auto &Info : this->List) {
                 if (Info.FileRange.hasLoc(Offset)) {
                     return &Info;
                 }
@@ -253,7 +253,7 @@ namespace MachO {
             const std::initializer_list<SegmentSectionNameListPair> &L)
                 const noexcept
                     -> std::optional<
-                        std::pair<const SegmentInfo &, const SectionInfo &>>
+                        std::pair<const SegmentInfo *, const SectionInfo *>>
         {
             for (const auto &[SegmentName, SectionNameList] : L) {
                 if (const auto Segment =
@@ -263,13 +263,19 @@ namespace MachO {
                         if (const auto Section =
                                 Segment->findSectionWithName(SectName))
                         {
-                            return std::pair(*Segment, *Section);
+                            return std::pair(Segment, Section);
                         }
                     }
                 }
             }
 
             return std::nullopt;
+        }
+
+        [[nodiscard]] constexpr auto span() const noexcept
+            -> std::span<const SegmentInfo>
+        {
+            return this->List;
         }
     };
 }

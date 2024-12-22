@@ -38,10 +38,10 @@ namespace MachO {
                 ObjcParse::ObjcClassListSegmentSectionNamePairList);
 
         if (ObjcClassListSectionOpt.has_value()) {
-            const auto &[Segment, Section] = ObjcClassListSectionOpt.value();
+            const auto [Segment, Section] = ObjcClassListSectionOpt.value();
             return ObjcClassInfoSection(ObjcClassInfoSection::Kind::ClassList,
-                                        Segment,
-                                        Section);
+                                        *Segment,
+                                        *Section);
         }
 
         const auto ObjcClassRefsSectionOpt =
@@ -49,10 +49,10 @@ namespace MachO {
                 ObjcParse::ObjcClassRefsSegmentSectionNamePairList);
 
         if (ObjcClassRefsSectionOpt.has_value()) {
-            const auto &[Segment, Section] = ObjcClassRefsSectionOpt.value();
+            const auto [Segment, Section] = ObjcClassRefsSectionOpt.value();
             return ObjcClassInfoSection(ObjcClassInfoSection::Kind::ClassList,
-                                        Segment,
-                                        Section);
+                                        *Segment,
+                                        *Section);
         }
 
         return std::nullopt;
@@ -60,8 +60,8 @@ namespace MachO {
 
     auto
     ObjcClassInfoList::Parse(const ADT::DeVirtualizer &DeVirtualizer,
+                             const ADT::AddressResolver &AddrResolver,
                              const SegmentList &SegmentList,
-                             const BindActionList::UnorderedMap &BindList,
                              const bool IsBigEndian,
                              const bool Is64Bit) noexcept -> ObjcParse::Error
     {
@@ -78,8 +78,8 @@ namespace MachO {
                     ObjcParse::ParseObjcClassListSection<true>(
                         *ObjcClassListSection,
                         DeVirtualizer,
+                        AddrResolver,
                         SegmentList,
-                        BindList,
                         List,
                         ExternalAndRootClassList,
                         IsBigEndian);
@@ -88,8 +88,8 @@ namespace MachO {
                     ObjcParse::ParseObjcClassListSection<false>(
                         *ObjcClassListSection,
                         DeVirtualizer,
+                        AddrResolver,
                         SegmentList,
-                        BindList,
                         List,
                          ExternalAndRootClassList,
                         IsBigEndian);
@@ -109,8 +109,8 @@ namespace MachO {
                     ObjcParse::ParseObjcClassRefsSection<true>(
                         *ObjcClassRefsSection,
                         DeVirtualizer,
+                        AddrResolver,
                         SegmentList,
-                        BindList,
                         List,
                         ExternalAndRootClassList,
                         IsBigEndian);
@@ -119,8 +119,8 @@ namespace MachO {
                     ObjcParse::ParseObjcClassRefsSection<false>(
                         *ObjcClassRefsSection,
                         DeVirtualizer,
+                        AddrResolver,
                         SegmentList,
-                        BindList,
                         List,
                         ExternalAndRootClassList,
                         IsBigEndian);
@@ -139,9 +139,9 @@ namespace MachO {
 
     auto
     ObjcClassInfoList::Parse(const ADT::DeVirtualizer &DeVirtualizer,
+                             const ADT::AddressResolver &AddrResolver,
                              const ObjcClassInfoSection &ObjcSectionInfo,
                              const SegmentList &SegmentList,
-                             const BindActionList::UnorderedMap &BindList,
                              const bool IsBigEndian,
                              const bool Is64Bit) noexcept
         -> ObjcParse::Error
@@ -156,8 +156,8 @@ namespace MachO {
                         ObjcParse::ParseObjcClassRefsSection<true>(
                             ObjcSectionInfo.Section,
                             DeVirtualizer,
+                            AddrResolver,
                             SegmentList,
-                            BindList,
                             List,
                             ExternalAndRootClassList,
                             IsBigEndian);
@@ -166,8 +166,8 @@ namespace MachO {
                         ObjcParse::ParseObjcClassRefsSection<false>(
                             ObjcSectionInfo.Section,
                             DeVirtualizer,
+                            AddrResolver,
                             SegmentList,
-                            BindList,
                             List,
                             ExternalAndRootClassList,
                             IsBigEndian);
@@ -180,8 +180,8 @@ namespace MachO {
                         ObjcParse::ParseObjcClassRefsSection<true>(
                             ObjcSectionInfo.Section,
                             DeVirtualizer,
+                            AddrResolver,
                             SegmentList,
-                            BindList,
                             List,
                             ExternalAndRootClassList,
                             IsBigEndian);
@@ -190,8 +190,8 @@ namespace MachO {
                         ObjcParse::ParseObjcClassRefsSection<false>(
                             ObjcSectionInfo.Section,
                             DeVirtualizer,
+                            AddrResolver,
                             SegmentList,
-                            BindList,
                             List,
                             ExternalAndRootClassList,
                             IsBigEndian);
@@ -272,37 +272,38 @@ namespace MachO {
     template <bool Is64Bit>
     static void
     ParseObjcClassCategorySection(
-        const SectionInfo &SectInfo,
         const ADT::MemoryMap &Map,
         const ADT::DeVirtualizer &DeVirt,
+        const ADT::AddressResolver &AddrResolver,
         const SegmentList &SegmentList,
-        const BindActionList::UnorderedMap &BindList,
-        ObjcClassInfoList *ClassInfoTree,
+        const SectionInfo &SectInfo,
+        ObjcClassInfoList *const ClassInfoTree,
         std::vector<std::unique_ptr<ObjcClassCategoryInfo>> &CategoryList,
         const bool IsBigEndian) noexcept
     {
         using PtrAddrType = Utils::PointerAddrConstType<Is64Bit>;
         using ObjcCategoryType = ObjcParse::ObjcClassCategoryType<Is64Bit>;
 
-        auto End = static_cast<PtrAddrType *>(nullptr);
-        auto Begin = Map.getFromRange<PtrAddrType>(SectInfo.fileRange(), &End);
+        const auto ListOpt = Map.getRange<PtrAddrType>(SectInfo.fileRange());
+        if (!ListOpt.has_value()) {
+            return;
+        }
 
-        const auto List = std::span<PtrAddrType>(Begin, End);
+        const auto List = ListOpt.value();
         auto ListAddr = SectInfo.vmRange().front();
 
         if (ClassInfoTree != nullptr) {
-            const auto BindEnd = BindList.end();
-            for (const auto &Addr : List) {
+            for (const auto &UnswitchedAddr : List) {
                 auto Info = std::make_unique<ObjcClassCategoryInfo>();
 
-                const auto SwitchedAddr =
-                    ADT::SwitchEndianIf(Addr, IsBigEndian);
+                const auto Addr =
+                    ADT::SwitchEndianIf(UnswitchedAddr, IsBigEndian);
                 const auto Category =
                     DeVirt.getDataAtAddress<ObjcCategoryType>(
-                        SwitchedAddr,
+                        Addr,
                         /*IgnoreSectionBounds=*/true);
 
-                Info->setAddress(SwitchedAddr);
+                Info->setAddress(Addr);
                 if (Category == nullptr) {
                     Info->setIsNull();
                     CategoryList.emplace_back(std::move(Info));
@@ -320,11 +321,14 @@ namespace MachO {
 
                 auto Class = static_cast<ObjcClassInfo *>(nullptr);
                 auto ClassAddr =
-                    SwitchedAddr +
+                    Addr +
                     offsetof(ObjcParse::ObjcClassCategoryType<Is64Bit>, Class);
 
-                if (const auto It = BindList.find(ClassAddr); It != BindEnd) {
-                    const auto Info = It->second;
+                if (const auto ResolveOpt =
+                        AddrResolver.resolveBind(ClassAddr, 0);
+                    ResolveOpt.has_value())
+                {
+                    const auto Info = *ResolveOpt.value();
                     const auto Name =
                         ObjcParse::GetNameFromBindActionSymbol(Info.SymbolName);
 
@@ -390,8 +394,8 @@ namespace MachO {
     ObjcClassCategoryInfoList::CollectFrom(
         const ADT::MemoryMap &Map,
         const ADT::DeVirtualizer &DeVirtualizer,
+        const ADT::AddressResolver &AddrResolver,
         const SegmentList &SegmentList,
-        const BindActionList::UnorderedMap &BindCollection,
         ObjcClassInfoList *const ClassInfoTree,
         const bool IsBigEndian,
         const bool Is64Bit) noexcept -> ObjcParse::Error
@@ -405,20 +409,20 @@ namespace MachO {
         }
 
         if (Is64Bit) {
-            ParseObjcClassCategorySection<true>(*ObjcClassCategorySection,
-                                                Map,
+            ParseObjcClassCategorySection<true>(Map,
                                                 DeVirtualizer,
+                                                AddrResolver,
                                                 SegmentList,
-                                                BindCollection,
+                                                *ObjcClassCategorySection,
                                                 ClassInfoTree,
                                                 List,
                                                 IsBigEndian);
         } else {
-            ParseObjcClassCategorySection<false>(*ObjcClassCategorySection,
-                                                 Map,
+            ParseObjcClassCategorySection<false>(Map,
                                                  DeVirtualizer,
+                                                 AddrResolver,
                                                  SegmentList,
-                                                 BindCollection,
+                                                 *ObjcClassCategorySection,
                                                  ClassInfoTree,
                                                  List,
                                                  IsBigEndian);
