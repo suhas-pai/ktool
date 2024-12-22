@@ -308,15 +308,10 @@ namespace Operations {
                        Info.String);
 
             if (Opt.Verbose) {
-                const auto RightPadLength =
-                    static_cast<int>(LongestCStringLength);
-
-                Utils::RightPadSpaces(OutFile,
-                                      Info.String.length(),
-                                      RightPadLength);
-
                 std::print(OutFile,
-                           " (Length: {:>{}}, File Offset: {})",
+                           "{:<{}} (Length: {:>{}}, File Offset: {})",
+                           "",
+                           LongestCStringLength - Info.String.length(),
                            Info.String.length(),
                            CStringListSizeDigitCount,
                            Utils::CustomAddress(Info.FileOffset, Is64Bit));

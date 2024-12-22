@@ -21,7 +21,4 @@ jobs:
     - name: Make
       run: |
         cmake --preset debug
-        cmake --preset release
-
         cd build_debug && ninja
-        cd ../build_release && ninja

@@ -55,8 +55,8 @@ namespace Operations {
             Error Error = Error::None;
         };
 
-        RunResult run(const Objects::Base &Base) const noexcept;
-        RunResult run(const Objects::FatMachO &MachO) const noexcept;
+        auto run(const Objects::Base &Base) const noexcept -> RunResult;
+        auto run(const Objects::FatMachO &MachO) const noexcept -> RunResult;
 
         [[nodiscard]] constexpr auto &options() const noexcept {
             return Opt;

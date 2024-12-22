@@ -141,8 +141,10 @@ namespace Operations {
         }
 
         std::print(OutFile, " \"{}\"", Action.SymbolName);
-        Utils::PadSpaces(OutFile,
-                         LongestBindSymbolLength - Action.SymbolName.length());
+        Utils::PadSpaces(
+            OutFile,
+            static_cast<uint32_t>(
+                LongestBindSymbolLength - Action.SymbolName.length()));
 
         if constexpr (BindKind != MachO::BindInfoKind::Weak) {
             Operations::PrintDylibOrdinalInfo(OutFile,

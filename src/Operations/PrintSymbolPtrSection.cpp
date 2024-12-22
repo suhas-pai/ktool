@@ -573,9 +573,9 @@ namespace Operations {
 
             if (Opt.Verbose) {
                 const auto RightPad =
-                    static_cast<int>(LongestSymbolLength + STR_LENGTH("\"\""));
+                    LongestSymbolLength + STR_LENGTH("\"\"");
 
-                Utils::RightPadSpaces(OutFile, PrintLength, RightPad);
+                std::print(OutFile, "{:<{}}", "", RightPad - PrintLength);
 
                 const auto SymbolKind = SymbolInfo.Kind;
                 const auto SymbolKindDescription =

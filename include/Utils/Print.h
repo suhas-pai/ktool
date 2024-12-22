@@ -47,6 +47,9 @@ namespace Utils {
     template <std::unsigned_integral T>
     struct NumberWithCommas {
         T Value;
+
+        constexpr explicit NumberWithCommas(const T Value) noexcept
+        : Value(Value) {}
     };
 
     struct ByteSize {
@@ -68,6 +71,8 @@ namespace Utils {
     template <std::unsigned_integral T>
     struct Address {
         T Value;
+
+        constexpr explicit Address(const T Value) noexcept : Value(Value) {}
     };
 
     struct CustomAddress {

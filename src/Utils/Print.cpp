@@ -57,13 +57,13 @@ namespace Utils {
     {
         if (DylibOrdinal == 0) {
             std::print(stderr, "{}<invalid>{}", Prefix, Suffix);
-            return 9 + Prefix.length() + Suffix.length();
+            return static_cast<int>(9 + Prefix.length() + Suffix.length());
         }
 
         if (IsOutOfBounds) {
             std::print(OutFile, "{}<out-of-bounds!>{}", Prefix, Suffix);
 
-            return 16 + Prefix.length() + Suffix.length();
+            return static_cast<int>(16 + Prefix.length() + Suffix.length());
         }
 
         auto WrittenOut = int();
@@ -120,7 +120,7 @@ namespace Utils {
         DidPrint = true;
         std::print(OutFile, "{}", String);
 
-        return String.length();
+        return static_cast<int>(String.length());
     }
 
     auto
@@ -130,7 +130,7 @@ namespace Utils {
     {
         if (DidPassFirst) {
             std::print(OutFile, "{}", String);
-            return String.length();
+            return static_cast<int>(String.length());
         }
 
         DidPassFirst = true;

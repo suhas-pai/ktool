@@ -330,7 +330,8 @@ namespace ADT {
                 return Result;
             }
             case Dyld3::ChainedPointerKind::Bits32: {
-                const auto ChainedPtrValue = Dyld3::ChainedPointer32(Value);
+                const auto ChainedPtrValue =
+                    Dyld3::ChainedPointer32(static_cast<uint32_t>(Value));
                 auto Result =
                     ResolvedFixupResult(ResolvedFixupResult::Kind::Bind);
 
@@ -350,7 +351,8 @@ namespace ADT {
             case Dyld3::ChainedPointerKind::Bits32Cache:
                 return std::nullopt;
             case Dyld3::ChainedPointerKind::Bits32Firmware: {
-                const auto ChainedPtrValue = Dyld3::ChainedPointer32(Value);
+                const auto ChainedPtrValue =
+                    Dyld3::ChainedPointer32(static_cast<uint32_t>(Value));
                 auto Result =
                     ResolvedFixupResult(ResolvedFixupResult::Kind::Bind);
 

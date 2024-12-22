@@ -385,7 +385,8 @@ namespace Operations {
                                       LongestName.value(),
                                       *Node,
                                       false,
-                                      NamePrintLength - 1);
+                                      static_cast<int>(
+                                        NamePrintLength - 1));
 
                 std::print(OutFile, "\n");
                 if (Options.PrintCategories) {

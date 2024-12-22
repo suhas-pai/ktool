@@ -168,12 +168,13 @@ namespace Operations {
             const auto WrittenOut = STR_LENGTH("\"\"") + Info.Path.length();
             if (Opt.Verbose) {
                 const auto RightPad =
-                    static_cast<int>(LongestImagePath.value() +
-                                     STR_LENGTH("\"\""));
+                    LongestImagePath.value() + STR_LENGTH("\"\"");
 
-                Utils::RightPadSpaces(OutFile, WrittenOut, RightPad);
                 std::print(OutFile,
-                           "{}, Modification-Time: {} (Value: {}), Inode: {}>",
+                           "{:<{}}"
+                           "{}, Modification-Time: {} (Value: {}), Inode: {}",
+                           "",
+                           RightPad - WrittenOut,
                            Utils::Address(Info.Address),
                            Utils::GetHumanReadableTimestamp(
                                static_cast<time_t>(Info.ModTime)),

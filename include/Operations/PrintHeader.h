@@ -40,10 +40,12 @@ namespace Operations {
 
         bool supportsObjectKind(Objects::Kind Kind) const noexcept override;
 
-        RunResult run(const Objects::Base &Base) const noexcept;
-        RunResult run(const Objects::DyldSharedCache &Dsc) const noexcept;
-        RunResult run(const Objects::MachO &MachO) const noexcept;
-        RunResult run(const Objects::FatMachO &MachO) const noexcept;
+        auto run(const Objects::Base &Base) const noexcept -> RunResult;
+        auto run(const Objects::DyldSharedCache &Dsc) const noexcept
+            -> RunResult;
+
+        auto run(const Objects::MachO &MachO) const noexcept -> RunResult;
+        auto run(const Objects::FatMachO &MachO) const noexcept -> RunResult;
 
         [[nodiscard]] constexpr auto &options() const noexcept {
             return Opt;
