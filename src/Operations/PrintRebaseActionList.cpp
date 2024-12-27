@@ -51,7 +51,7 @@ namespace Operations {
     {
         std::print(OutFile,
                    "Rebase-Action {:>{}}: ",
-                   Utils::NumberWithCommas(Counter),
+                   Utils::FormattedNumber(Counter),
                    SizeDigitLength);
 
         constexpr auto RebaseWriteKindLongestDescLength =
@@ -61,7 +61,7 @@ namespace Operations {
         std::print(OutFile,
                    " {:>{}}",
                    MachO::RebaseWriteKindGetDesc(Action.Kind),
-                   static_cast<int>(RebaseWriteKindLongestDescLength));
+                   RebaseWriteKindLongestDescLength);
 
         if (const auto Segment = SegmentList.atOrNull(Action.SegmentIndex)) {
             auto FullAddr = uint64_t();
@@ -84,11 +84,10 @@ namespace Operations {
                        Utils::SegmentSectionPairMaxLen);
         }
 
-        std::print(OutFile, "\n");
+        std::println(OutFile);
     }
 
-    auto
-    PrintRebaseActionList::run(const Objects::MachO &MachO) const noexcept
+    auto PrintRebaseActionList::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
         const auto IsBigEndian = MachO.isBigEndian();
@@ -146,6 +145,8 @@ namespace Operations {
         }
 
         auto Counter = uint64_t();
+
+        const auto OutFile = this->OutFile;
         const auto SizeDigitLength =
             Utils::GetIntegerDigitCount(RebaseActionList.size());
 

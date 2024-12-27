@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <expected>
 #include <unordered_map>
+#include <variant>
 
 #include "ADT/FileMap.h"
 
@@ -111,8 +112,8 @@ namespace Objects {
             : FileMap(FileMap), Path(std::move(Path)), Info(Info) {}
 
             inline ~SubCacheInfo() noexcept {
-                if (FileMap != nullptr) {
-                    delete FileMap;
+                if (this->FileMap != nullptr) {
+                    delete this->FileMap;
                 }
             }
         };
@@ -145,8 +146,7 @@ namespace Objects {
         : Base(Kind::DyldSharedCache), Info(Map, /*VmOffset=*/0, UINT64_MAX),
           CpuKind(CpuKind), Path(Path) {}
 
-        [[nodiscard]]
-        auto
+        [[nodiscard]] auto
         subCacheHasAddress(const SubCacheInfo &SubCacheInfo,
                            const uint64_t Address) const
         {
@@ -182,6 +182,9 @@ namespace Objects {
         [[nodiscard]] constexpr auto cpuKind() const noexcept {
             return this->CpuKind;
         }
+
+        [[nodiscard]] auto baseAddress() const noexcept
+            -> std::optional<uint64_t>;
 
         [[nodiscard]] constexpr auto getMachCpuKindAndSubKind() const noexcept {
             switch (CpuKind) {
@@ -521,6 +524,10 @@ namespace Objects {
 
             return std::unexpected(Error(OpenError::None));
         }
+
+        [[nodiscard]] auto slideInfoHeaderOrFileRange() const noexcept
+            -> std::optional<
+                std::variant<::DyldSharedCache::SlideInfoBase *, ADT::Range>>;
 
         [[nodiscard]] auto subCacheEntryV1InfoList() const noexcept
             -> std::optional<std::span<::DyldSharedCache::SubCacheEntryV1>>;

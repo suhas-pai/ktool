@@ -274,6 +274,8 @@ namespace Operations {
             return RunResult(RunResult::Error::SectionNotFound);
         }
 
+        const auto &Opt = this->Opt;
+
         auto LongestCStringLength = uint64_t();
         auto CStringInfoList =
             HandleCStringSection(SectionData.value(),
@@ -295,6 +297,7 @@ namespace Operations {
                       });
         }
 
+        const auto OutFile = this->OutFile;
         const auto CStringListSizeDigitCount =
             Utils::GetIntegerDigitCount(CStringInfoList.size());
 
@@ -317,7 +320,7 @@ namespace Operations {
                            Utils::CustomAddress(Info.FileOffset, Is64Bit));
             }
 
-            std::print(OutFile, "\n");
+            std::println(OutFile);
             Counter++;
         }
 

@@ -77,5 +77,7 @@ namespace Objects {
 
         [[nodiscard]]
         virtual auto getMapForFileOffsets() const noexcept -> ADT::MemoryMap;
+
+        [[nodiscard]] auto getVmRange() const noexcept -> ADT::Range;
     };
 }

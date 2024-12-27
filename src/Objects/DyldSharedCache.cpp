@@ -7,8 +7,9 @@
 #include <sys/stat.h>
 
 #include <format>
-#include "DyldSharedCache/Headers.h"
+#include <ranges>
 
+#include "DyldSharedCache/Headers.h"
 #include "Objects/DyldSharedCache.h"
 #include "Objects/DscImage.h"
 
@@ -461,8 +462,7 @@ namespace Objects {
                             .back()
                             .addressRange()
                             .end()
-                            .value() -
-                        SubCacheEntry.CacheVMOffset;
+                            .value() - SubCacheEntry.CacheVMOffset;
                 }
 
                 auto SubCachePath = std::string();
@@ -597,6 +597,38 @@ namespace Objects {
         }
 
         return Result;
+    }
+
+    auto DyldSharedCache::baseAddress() const noexcept
+        -> std::optional<uint64_t>
+    {
+        if (this->mappingInfoList().empty()) {
+            return std::nullopt;
+        }
+
+        return this->mappingInfoList().front().addressRange().front();
+    }
+
+    auto DyldSharedCache::slideInfoHeaderOrFileRange() const noexcept
+        -> std::optional<
+            std::variant<::DyldSharedCache::SlideInfoBase *, ADT::Range>>
+    {
+        if (!this->isAtleastV7()) {
+            return this->headerV1().slideInfoHeader();
+        }
+
+        const auto MappingAndSlideInfoSpan =
+            this->headerV7().mappingWithSlideInfoSpan();
+
+        for (const auto &MappingWithSlideInfo :
+                std::views::reverse(MappingAndSlideInfoSpan))
+        {
+            if (MappingWithSlideInfo.SlideInfoFileOffset != 0) {
+                return MappingWithSlideInfo.slideInfoFileRange();
+            }
+        }
+
+        return std::nullopt;
     }
 
     auto DyldSharedCache::subCacheEntryV1InfoList() const noexcept

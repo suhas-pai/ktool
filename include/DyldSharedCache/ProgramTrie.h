@@ -18,7 +18,7 @@ namespace DyldSharedCache {
         explicit DylibIndexInfo() noexcept = default;
 
         [[nodiscard]] constexpr auto index() const noexcept {
-            return Index;
+            return this->Index;
         }
 
         constexpr auto setIndex(const uint32_t Index) noexcept
@@ -38,7 +38,7 @@ namespace DyldSharedCache {
             -> ADT::TrieParseError;
 
         constexpr auto clearExclusiveInfo() noexcept -> decltype(*this) {
-            Index = 0;
+            this->Index = 0;
             return *this;
         }
     };
@@ -254,7 +254,7 @@ namespace DyldSharedCache {
         using ConstIterator = ADT::TreeDFSIterator<const ChildNode>;
 
         [[nodiscard]] inline auto begin() const noexcept {
-            return Iterator(Root);
+            return Iterator(this->Root);
         }
 
         [[nodiscard]] constexpr auto end() const noexcept {
@@ -309,19 +309,19 @@ namespace DyldSharedCache {
         using ConstIterator = EntryListType::const_iterator;
 
         [[nodiscard]] inline auto begin() noexcept {
-            return EntryList.begin();
+            return this->EntryList.begin();
         }
 
         [[nodiscard]] inline auto end() noexcept {
-            return EntryList.end();
+            return this->EntryList.end();
         }
 
         [[nodiscard]] inline auto begin() const noexcept {
-            return EntryList.cbegin();
+            return this->EntryList.cbegin();
         }
 
         [[nodiscard]] inline auto end() const noexcept {
-            return EntryList.cend();
+            return this->EntryList.cend();
         }
     };
 }

@@ -19,15 +19,15 @@ namespace MachO {
         uint32_t ArchCount;
 
         [[nodiscard]] constexpr auto isBigEndian() const noexcept {
-            return MagicIsBigEndian(Magic);
+            return MagicIsBigEndian(this->Magic);
         }
 
         [[nodiscard]] constexpr auto is64Bit() const noexcept {
-            return MagicIs64Bit(Magic);
+            return MagicIs64Bit(this->Magic);
         }
 
         [[nodiscard]] constexpr auto archCount() const noexcept {
-            return ADT::SwitchEndianIf(ArchCount, isBigEndian());
+            return ADT::SwitchEndianIf(this->ArchCount, this->isBigEndian());
         }
     };
 
@@ -40,32 +40,33 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto cpuKind(const bool IsBigEndian) const noexcept {
-            return Mach::CpuKind(ADT::SwitchEndianIf(CpuKind, IsBigEndian));
+            return Mach::CpuKind(ADT::SwitchEndianIf(this->CpuKind, IsBigEndian));
         }
 
         [[nodiscard]]
         constexpr auto cpuSubKind(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(CpuSubKind, IsBigEndian);
+            return ADT::SwitchEndianIf(this->CpuSubKind, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto offset(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Offset, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Offset, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto size(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Size, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Size, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto align(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Align, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Align, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto range(const bool IsBigEndian) const noexcept {
-            return ADT::Range::FromSize(offset(IsBigEndian), size(IsBigEndian));
+            return ADT::Range::FromSize(this->offset(IsBigEndian),
+                                        this->size(IsBigEndian));
         }
     };
 
@@ -78,32 +79,34 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto cpuKind(const bool IsBigEndian) const noexcept {
-            return Mach::CpuKind(ADT::SwitchEndianIf(CpuKind, IsBigEndian));
+            const auto Value = ADT::SwitchEndianIf(this->CpuKind, IsBigEndian);
+            return Mach::CpuKind(Value);
         }
 
         [[nodiscard]]
         constexpr auto cpuSubKind(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(CpuSubKind, IsBigEndian);
+            return ADT::SwitchEndianIf(this->CpuSubKind, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto offset(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Offset, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Offset, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto size(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Size, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Size, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto align(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Align, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Align, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto range(const bool IsBigEndian) const noexcept {
-            return ADT::Range::FromSize(offset(IsBigEndian), size(IsBigEndian));
+            return ADT::Range::FromSize(this->offset(IsBigEndian),
+                                        this->size(IsBigEndian));
         }
     };
 }

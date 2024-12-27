@@ -11,10 +11,10 @@
 #include <span>
 #include <string_view>
 
-#include "Range.h"
-
 #include "Utils/Misc.h"
 #include "Utils/Overflow.h"
+
+#include "Range.h"
 
 namespace ADT {
     struct MemoryMap {
@@ -72,14 +72,14 @@ namespace ADT {
                 }
             }
 
-            return reinterpret_cast<T *>(Base);
+            return reinterpret_cast<T *>(this->Base);
         }
 
         template <typename T = void *>
         [[nodiscard]] inline auto end() const noexcept {
             const auto Result =
                 reinterpret_cast<const T *>(
-                    reinterpret_cast<uint64_t>(Base) + Size);
+                    reinterpret_cast<uint64_t>(this->base()) + this->size());
             return Result;
         }
 
@@ -100,7 +100,9 @@ namespace ADT {
                 }
             }
 
-            const auto AdjBase = reinterpret_cast<uint8_t *>(Base) + Offset;
+            const auto AdjBase =
+                reinterpret_cast<uint8_t *>(this->base()) + Offset;
+
             return reinterpret_cast<T *>(AdjBase);
         }
 
@@ -125,14 +127,13 @@ namespace ADT {
             }
 
             const auto AdjBase =
-                reinterpret_cast<uint8_t *>(Base) + Range.front();
+                reinterpret_cast<uint8_t *>(this->base()) + Range.front();
 
             return reinterpret_cast<T *>(AdjBase);
         }
 
         template <typename T = uint8_t, bool Verify = true>
-        [[nodiscard]]
-        inline auto getRange(const Range &Range) const noexcept
+        [[nodiscard]] inline auto getRange(const Range &Range) const noexcept
             -> std::optional<std::span<T>>
         {
             if constexpr (Verify) {
@@ -142,7 +143,7 @@ namespace ADT {
             }
 
             const auto AdjBase =
-                reinterpret_cast<uint64_t>(Base) + Range.front();
+                reinterpret_cast<uint64_t>(this->base()) + Range.front();
 
             return std::span(reinterpret_cast<T *>(AdjBase),
                              Range.size() / sizeof(T));
@@ -165,8 +166,7 @@ namespace ADT {
             return std::span<T>(Base, this->size() / Size);
         }
 
-        [[nodiscard]]
-        inline auto string(const uint64_t Offset) const noexcept
+        [[nodiscard]] inline auto string(const uint64_t Offset) const noexcept
             -> std::optional<std::string_view>
         {
             const auto Ptr = this->get<const char>(Offset);

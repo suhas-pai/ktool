@@ -8,7 +8,9 @@
 #pragma once
 
 #include <vector>
+
 #include "ADT/Tree.h"
+#include "DyldSharedCache/PatchInfo.h"
 
 #include "MachO/BindInfo.h"
 #include "MachO/RebaseInfo.h"
@@ -52,10 +54,14 @@ namespace Operations {
 
                 BindOpcodeParseError,
                 RebaseOpcodeParseError,
+                PatchInfoParseError,
 
                 NoDyldInfo,
                 NoObjcData,
+
+                ImageHasNoBaseAddress,
                 UnalignedSection,
+
                 ObjcDataOutOfBounds,
             };
 
@@ -71,6 +77,10 @@ namespace Operations {
                 struct {
                     MachO::RebaseOpcodeParseResult ParseResult;
                 } RebaseOpcodeParseResult;
+
+                struct {
+                    DyldSharedCache::PatchInfo::ParseResult ParseResult;
+                } PatchParseResult;
             #pragma GCC diagnostic pop
             };
 
@@ -89,9 +99,14 @@ namespace Operations {
             : Error(Error::RebaseOpcodeParseError),
               RebaseOpcodeParseResult{Result} {}
 
+            explicit
+            RunResult(
+                const DyldSharedCache::PatchInfo::ParseResult &Result) noexcept
+            : Error(Error::PatchInfoParseError), PatchParseResult{Result} {}
+
             auto operator=(const RunResult &Other) noexcept -> decltype(*this) {
-                Error = Other.Error;
-                if (Error == Error::BindOpcodeParseError) {
+                this->Error = Other.Error;
+                if (this->Error == Error::BindOpcodeParseError) {
                     BindOpcodeParseResult = Other.BindOpcodeParseResult;
                 }
 
@@ -99,8 +114,8 @@ namespace Operations {
             }
 
             auto operator=(RunResult &&Other) noexcept -> decltype(*this) {
-                Error = std::move(Other.Error);
-                if (Error == Error::BindOpcodeParseError) {
+                this->Error = std::move(Other.Error);
+                if (this->Error == Error::BindOpcodeParseError) {
                     BindOpcodeParseResult =
                         std::move(Other.BindOpcodeParseResult);
                 }
@@ -116,9 +131,28 @@ namespace Operations {
                 this->operator=(std::move(Other));
             }
 
-            ~RunResult() noexcept {
-                if (Error == Error::BindOpcodeParseError) {
-                    BindOpcodeParseResult.ParseResult.~BindOpcodeParseResult();
+            inline ~RunResult() noexcept {
+                switch (this->Error) {
+                    case Error::None:
+                    case Error::Unsupported:
+                        break;
+                    case Error::BindOpcodeParseError:
+                        BindOpcodeParseResult.ParseResult
+                            .~BindOpcodeParseResult();
+                        break;
+                    case Error::RebaseOpcodeParseError:
+                        RebaseOpcodeParseResult.ParseResult
+                            .~RebaseOpcodeParseResult();
+                        break;
+                    case Error::PatchInfoParseError:
+                        PatchParseResult.ParseResult.~ParseResult();
+                        break;
+                    case Error::NoDyldInfo:
+                    case Error::NoObjcData:
+                    case Error::ImageHasNoBaseAddress:
+                    case Error::UnalignedSection:
+                    case Error::ObjcDataOutOfBounds:
+                        break;
                 }
             }
         };
@@ -130,7 +164,7 @@ namespace Operations {
         auto run(const Objects::DscImage &Image) const noexcept -> RunResult;
 
         [[nodiscard]] constexpr auto &options() const noexcept {
-            return Opt;
+            return this->Opt;
         }
     };
 }

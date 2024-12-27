@@ -37,9 +37,7 @@ namespace Objects {
     {
         assert(!Utils::IndexOutOfBounds(Index, Dsc.imageCount()));
 
-        const auto ImageInfo = Dsc.imageInfoList()[Index];
-        const auto ObjectOrErr = DscImage::Open(Dsc, ImageInfo);
-
+        const auto ObjectOrErr = DscImage::Open(Dsc, Index);
         if (ObjectOrErr.has_value()) {
             return ObjectOrErr.value();
         }

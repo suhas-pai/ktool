@@ -4,6 +4,7 @@
  */
 
 #include <algorithm>
+#include <compare>
 #include "ADT/Maximizer.h"
 
 #include "MachO/BindInfo.h"
@@ -44,7 +45,7 @@ namespace Operations {
                "PrintBindSymbolList::supportsObjectKind()");
     }
 
-    static int
+    static auto
     CompareActionsBySortKind(
         const MachO::BindActionInfo &Lhs,
         const MachO::BindActionInfo &Rhs,
@@ -57,26 +58,11 @@ namespace Operations {
                        "Operations::PrintBindSymbolList::"
                        "CompareActionsBySortKind()");
             case PrintBindSymbolList::Options::SortKind::ByName:
-                return Lhs.SymbolName.compare(Rhs.SymbolName);
+                return Lhs.SymbolName <=> Rhs.SymbolName;
             case PrintBindSymbolList::Options::SortKind::ByDylibOrdinal:
-                if (Lhs.DylibOrdinal == Rhs.DylibOrdinal) {
-                    return 0;
-                } else if (Lhs.DylibOrdinal < Rhs.DylibOrdinal) {
-                    return -1;
-                }
-
-                return 1;
+                return Lhs.DylibOrdinal <=> Rhs.DylibOrdinal;
             case PrintBindSymbolList::Options::SortKind::ByKind:
-                const auto LhsKind = static_cast<uint8_t>(Lhs.WriteKind);
-                const auto RhsKind = static_cast<uint8_t>(Rhs.WriteKind);
-
-                if (LhsKind == RhsKind) {
-                    return 0;
-                } else if (LhsKind < RhsKind) {
-                    return -1;
-                }
-
-                return 1;
+                return Lhs.Kind <=> Rhs.Kind;
         }
 
         assert(false &&
@@ -144,7 +130,7 @@ namespace Operations {
         }
 
         const auto RightPad =
-            static_cast<int>(LongestBindSymbolLength + STR_LENGTH(" \"\""));
+            LongestBindSymbolLength + STR_LENGTH(" \"\"");
 
         std::print(OutFile,
                    "{:<{}}",
@@ -159,7 +145,7 @@ namespace Operations {
                                               /*Prefix=*/" ");
         }
 
-        std::print(OutFile, "\n");
+        std::println(OutFile);
     }
 
     template <MachO::BindInfoKind BindKind>
@@ -174,7 +160,7 @@ namespace Operations {
         const struct PrintBindSymbolList::Options &Options) noexcept
     {
         if (List.empty()) {
-            std::print(OutFile, "No {} Info\n", Name);
+            std::println(OutFile, "No {} Info", Name);
             return;
         }
 
@@ -188,10 +174,10 @@ namespace Operations {
                 assert(false &&
                        "Bind-Symbol List shouldn't be empty at this point");
             case 1:
-                std::print(OutFile, "1 {} Symbol:\n", Name);
+                std::println(OutFile, "1 {} Symbol:", Name);
                 break;
             default:
-                std::print(OutFile, "{} {} Symbols:\n", List.size(), Name);
+                std::println(OutFile, "{} {} Symbols:", List.size(), Name);
                 break;
         }
 
@@ -271,6 +257,8 @@ namespace Operations {
             return RunResult(RunResult::Error::NoSymbols);
         }
 
+        const auto &Opt = this->Opt;
+
         auto BindActionInfoList = std::vector<MachO::BindActionInfo>();
         auto LazyBindActionInfoList = std::vector<MachO::BindActionInfo>();
         auto WeakBindActionInfoList = std::vector<MachO::BindActionInfo>();
@@ -311,7 +299,7 @@ namespace Operations {
         if (Opt.PrintWeak) {
             if (MachO.map().range().contains(WeakBindRange)) {
                 if (Opt.PrintNormal || Opt.PrintLazy) {
-                    std::print(OutFile, "\n");
+                    std::println(OutFile);
                 }
 
                 const auto WeakBindList =
@@ -338,11 +326,9 @@ namespace Operations {
                     const auto CmpResult =
                         CompareActionsBySortKind(Lhs, Rhs, SortKind);
 
-                    if (CmpResult != 0) {
-                        return CmpResult < 0;
+                    if (CmpResult != std::strong_ordering::equal) {
+                        return CmpResult == std::strong_ordering::less;
                     }
-
-                    continue;
                 }
 
                 return false;
@@ -359,6 +345,7 @@ namespace Operations {
                       Comparator);
         }
 
+        const auto OutFile = this->OutFile;
         if (Opt.PrintNormal) {
             if (!BindActionInfoList.empty()) {
                 PrintBindActionInfoList<MachO::BindInfoKind::Normal>(
@@ -370,13 +357,13 @@ namespace Operations {
                     Is64Bit,
                     Opt);
             } else {
-                std::print(OutFile, "No Bind-Actions were found\n");
+                std::println(OutFile, "No Bind-Actions were found");
             }
         }
 
         if (Opt.PrintLazy) {
             if (Opt.PrintNormal) {
-                std::print(OutFile, "\n");
+                std::println(OutFile);
             }
 
             if (!LazyBindActionInfoList.empty()) {
@@ -389,13 +376,13 @@ namespace Operations {
                     Is64Bit,
                     Opt);
             } else {
-                std::print(OutFile, "No Lazy-Bind Actions were found\n");
+                std::println(OutFile, "No Lazy-Bind Actions were found");
             }
         }
 
         if (Opt.PrintWeak) {
             if (Opt.PrintNormal || Opt.PrintLazy) {
-                std::print(OutFile, "\n");
+                std::println(OutFile);
             }
 
             if (!WeakBindActionInfoList.empty()) {
@@ -408,7 +395,7 @@ namespace Operations {
                     Is64Bit,
                     Opt);
             } else {
-                std::print(OutFile, "No Weak-Bind Actions were found\n");
+                std::println(OutFile, "No Weak-Bind Actions were found");
             }
         }
 

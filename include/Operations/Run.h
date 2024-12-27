@@ -106,8 +106,7 @@ namespace Operations {
         : Kind(Operations::Kind::PrintHeader),
           PrintCStringSectionResult(Result) {}
 
-        explicit
-        RunResult(PrintCStringSection::RunResult &&Result) noexcept
+        explicit RunResult(PrintCStringSection::RunResult &&Result) noexcept
         : Kind(Operations::Kind::PrintHeader),
           PrintCStringSectionResult(std::move(Result)) {}
 
@@ -116,8 +115,7 @@ namespace Operations {
         : Kind(Operations::Kind::PrintSymbolPtrSection),
           PrintSymbolPtrSectionResult(Result) {}
 
-        explicit
-        RunResult(PrintSymbolPtrSection::RunResult &&Result) noexcept
+        explicit RunResult(PrintSymbolPtrSection::RunResult &&Result) noexcept
         : Kind(Operations::Kind::PrintSymbolPtrSection),
           PrintSymbolPtrSectionResult(std::move(Result)) {}
 
@@ -134,8 +132,7 @@ namespace Operations {
         : Kind(Operations::Kind::PrintBindOpcodeList),
           PrintBindOpcodeListResult(Result) {}
 
-        explicit
-        RunResult(PrintBindOpcodeList::RunResult &&Result) noexcept
+        explicit RunResult(PrintBindOpcodeList::RunResult &&Result) noexcept
         : Kind(Operations::Kind::PrintBindOpcodeList),
           PrintBindOpcodeListResult(std::move(Result)) {}
 
@@ -144,8 +141,7 @@ namespace Operations {
         : Kind(Operations::Kind::PrintBindActionList),
           PrintBindActionListResult(Result) {}
 
-        explicit
-        RunResult(PrintBindActionList::RunResult &&Result) noexcept
+        explicit RunResult(PrintBindActionList::RunResult &&Result) noexcept
         : Kind(Operations::Kind::PrintBindActionList),
           PrintBindActionListResult(std::move(Result)) {}
 
@@ -154,8 +150,7 @@ namespace Operations {
         : Kind(Operations::Kind::PrintBindSymbolList),
           PrintBindSymbolListResult(Result) {}
 
-        explicit
-        RunResult(PrintBindSymbolList::RunResult &&Result) noexcept
+        explicit RunResult(PrintBindSymbolList::RunResult &&Result) noexcept
         : Kind(Operations::Kind::PrintBindSymbolList),
           PrintBindSymbolListResult(std::move(Result)) {}
 
@@ -164,8 +159,7 @@ namespace Operations {
         : Kind(Operations::Kind::PrintBindOpcodeList),
           PrintRebaseOpcodeListResult(Result) {}
 
-        explicit
-        RunResult(PrintRebaseOpcodeList::RunResult &&Result) noexcept
+        explicit RunResult(PrintRebaseOpcodeList::RunResult &&Result) noexcept
         : Kind(Operations::Kind::PrintBindOpcodeList),
           PrintRebaseOpcodeListResult(std::move(Result)) {}
 
@@ -174,18 +168,15 @@ namespace Operations {
         : Kind(Operations::Kind::PrintRebaseActionList),
           PrintRebaseActionListResult(Result) {}
 
-        explicit
-        RunResult(PrintRebaseActionList::RunResult &&Result) noexcept
+        explicit RunResult(PrintRebaseActionList::RunResult &&Result) noexcept
         : Kind(Operations::Kind::PrintRebaseActionList),
           PrintRebaseActionListResult(std::move(Result)) {}
 
-        explicit
-        RunResult(const PrintObjcClassList::RunResult &Result) noexcept
+        explicit RunResult(const PrintObjcClassList::RunResult &Result) noexcept
         : Kind(Operations::Kind::PrintObjcClassList),
           PrintObjcClassListResult(Result) {}
 
-        explicit
-        RunResult(PrintObjcClassList::RunResult &&Result) noexcept
+        explicit RunResult(PrintObjcClassList::RunResult &&Result) noexcept
         : Kind(Operations::Kind::PrintObjcClassList),
           PrintObjcClassListResult(std::move(Result)) {}
 
@@ -208,55 +199,61 @@ namespace Operations {
         RunResult(const RunResult &Other) {
             switch (Other.Kind) {
                 case Operations::Kind::PrintHeader:
-                    PrintHeaderResult = Other.PrintHeaderResult;
+                    this->PrintHeaderResult = Other.PrintHeaderResult;
                     break;
                 case Operations::Kind::PrintId:
-                    PrintIdResult = Other.PrintIdResult;
+                    this->PrintIdResult = Other.PrintIdResult;
                     break;
                 case Operations::Kind::PrintLoadCommands:
-                    PrintLoadCommandsResult = Other.PrintLoadCommandsResult;
+                    this->PrintLoadCommandsResult =
+                        Other.PrintLoadCommandsResult;
                     break;
                 case Operations::Kind::PrintLibraries:
-                    PrintLibrariesResult = Other.PrintLibrariesResult;
+                    this->PrintLibrariesResult = Other.PrintLibrariesResult;
                     break;
                 case Operations::Kind::PrintArchs:
-                    PrintArchsResult = Other.PrintArchsResult;
+                    this->PrintArchsResult = Other.PrintArchsResult;
                     break;
                 case Operations::Kind::PrintCStringSection:
-                    PrintCStringSectionResult = Other.PrintCStringSectionResult;
+                    this->PrintCStringSectionResult =
+                        Other.PrintCStringSectionResult;
                     break;
                 case Operations::Kind::PrintSymbolPtrSection:
-                    PrintSymbolPtrSectionResult =
+                    this->PrintSymbolPtrSectionResult =
                         Other.PrintSymbolPtrSectionResult;
                     break;
                 case Operations::Kind::PrintExportTrie:
-                    PrintExportTrieResult = Other.PrintExportTrieResult;
+                    this->PrintExportTrieResult = Other.PrintExportTrieResult;
                     break;
                 case Operations::Kind::PrintBindOpcodeList:
-                    PrintBindOpcodeListResult = Other.PrintBindOpcodeListResult;
+                    this->PrintBindOpcodeListResult =
+                        Other.PrintBindOpcodeListResult;
                     break;
                 case Operations::Kind::PrintBindActionList:
-                    PrintBindActionListResult = Other.PrintBindActionListResult;
+                    this->PrintBindActionListResult =
+                        Other.PrintBindActionListResult;
                     break;
                 case Operations::Kind::PrintBindSymbolList:
-                    PrintBindSymbolListResult = Other.PrintBindSymbolListResult;
+                    this->PrintBindSymbolListResult =
+                        Other.PrintBindSymbolListResult;
                     break;
                 case Operations::Kind::PrintRebaseOpcodeList:
-                    PrintRebaseOpcodeListResult =
+                    this->PrintRebaseOpcodeListResult =
                         Other.PrintRebaseOpcodeListResult;
                     break;
                 case Operations::Kind::PrintRebaseActionList:
-                    PrintRebaseActionListResult =
+                    this->PrintRebaseActionListResult =
                         Other.PrintRebaseActionListResult;
                     break;
                 case Operations::Kind::PrintObjcClassList:
-                    PrintObjcClassListResult = Other.PrintObjcClassListResult;
+                    this->PrintObjcClassListResult =
+                        Other.PrintObjcClassListResult;
                     break;
                 case Operations::Kind::PrintProgramTrie:
-                    PrintProgramTrieResult = Other.PrintProgramTrieResult;
+                    this->PrintProgramTrieResult = Other.PrintProgramTrieResult;
                     break;
                 case Operations::Kind::PrintImageList:
-                    PrintImageListResult = Other.PrintImageListResult;
+                    this->PrintImageListResult = Other.PrintImageListResult;
                     break;
             }
         }
@@ -264,55 +261,61 @@ namespace Operations {
         RunResult(RunResult &&Other) {
             switch (Other.Kind) {
                 case Operations::Kind::PrintHeader:
-                    PrintHeaderResult = Other.PrintHeaderResult;
+                    this->PrintHeaderResult = Other.PrintHeaderResult;
                     break;
                 case Operations::Kind::PrintId:
-                    PrintIdResult = Other.PrintIdResult;
+                    this->PrintIdResult = Other.PrintIdResult;
                     break;
                 case Operations::Kind::PrintLoadCommands:
-                    PrintLoadCommandsResult = Other.PrintLoadCommandsResult;
+                    this->PrintLoadCommandsResult =
+                        Other.PrintLoadCommandsResult;
                     break;
                 case Operations::Kind::PrintLibraries:
-                    PrintLibrariesResult = Other.PrintLibrariesResult;
+                    this->PrintLibrariesResult = Other.PrintLibrariesResult;
                     break;
                 case Operations::Kind::PrintArchs:
-                    PrintArchsResult = Other.PrintArchsResult;
+                    this->PrintArchsResult = Other.PrintArchsResult;
                     break;
                 case Operations::Kind::PrintCStringSection:
-                    PrintCStringSectionResult = Other.PrintCStringSectionResult;
+                    this->PrintCStringSectionResult =
+                        Other.PrintCStringSectionResult;
                     break;
                 case Operations::Kind::PrintSymbolPtrSection:
-                    PrintSymbolPtrSectionResult =
+                    this->PrintSymbolPtrSectionResult =
                         Other.PrintSymbolPtrSectionResult;
                     break;
                 case Operations::Kind::PrintExportTrie:
-                    PrintExportTrieResult = Other.PrintExportTrieResult;
+                    this->PrintExportTrieResult = Other.PrintExportTrieResult;
                     break;
                 case Operations::Kind::PrintBindOpcodeList:
-                    PrintBindOpcodeListResult = Other.PrintBindOpcodeListResult;
+                    this->PrintBindOpcodeListResult =
+                        Other.PrintBindOpcodeListResult;
                     break;
                 case Operations::Kind::PrintBindActionList:
-                    PrintBindActionListResult = Other.PrintBindActionListResult;
+                    this->PrintBindActionListResult =
+                        Other.PrintBindActionListResult;
                     break;
                 case Operations::Kind::PrintBindSymbolList:
-                    PrintBindSymbolListResult = Other.PrintBindSymbolListResult;
+                    this->PrintBindSymbolListResult =
+                        Other.PrintBindSymbolListResult;
                     break;
                 case Operations::Kind::PrintRebaseOpcodeList:
-                    PrintRebaseOpcodeListResult =
+                    this->PrintRebaseOpcodeListResult =
                         Other.PrintRebaseOpcodeListResult;
                     break;
                 case Operations::Kind::PrintRebaseActionList:
-                    PrintRebaseActionListResult =
+                    this->PrintRebaseActionListResult =
                         Other.PrintRebaseActionListResult;
                     break;
                 case Operations::Kind::PrintObjcClassList:
-                    PrintObjcClassListResult = Other.PrintObjcClassListResult;
+                    this->PrintObjcClassListResult =
+                        Other.PrintObjcClassListResult;
                     break;
                 case Operations::Kind::PrintProgramTrie:
-                    PrintProgramTrieResult = Other.PrintProgramTrieResult;
+                    this->PrintProgramTrieResult = Other.PrintProgramTrieResult;
                     break;
                 case Operations::Kind::PrintImageList:
-                    PrintImageListResult = Other.PrintImageListResult;
+                    this->PrintImageListResult = Other.PrintImageListResult;
                     break;
             }
         }

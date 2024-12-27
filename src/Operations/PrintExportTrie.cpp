@@ -176,7 +176,7 @@ namespace Operations {
                                       /*Suffix=*/")");
             }
         } else {
-            std::print(OutFile, "{}", KindDesc.data());
+            std::print(OutFile, "{}", KindDesc);
         }
 
         std::print(OutFile, ")");
@@ -192,7 +192,7 @@ namespace Operations {
     {
         using RunResult = PrintExportTrie::RunResult;
         if (EntryCollection.empty()) {
-            std::print(OutFile, "Provided file has an empty export-trie\n");
+            std::println(OutFile, "Provided file has an empty export-trie");
             return RunResult();
         }
 
@@ -231,9 +231,9 @@ namespace Operations {
             }
 
             if (EntryCollection.empty()) {
-                std::print(OutFile,
-                           "Provided file has no export-trie after filtering "
-                           "with provided requirements\n");
+                std::println(OutFile,
+                             "Provided file has no export-trie after filtering "
+                             "with provided requirements");
                 return RunResult();
             }
         }
@@ -245,9 +245,9 @@ namespace Operations {
                                                          Options);
 
         if (Options.OnlyCount) {
-            std::print(OutFile,
-                       "Provided file's export-trie has {} nodes\n",
-                       Count);
+            std::println(OutFile,
+                         "Provided file's export-trie has {} nodes",
+                         Count);
             return RunResult();
         }
 
@@ -272,8 +272,8 @@ namespace Operations {
                 reinterpret_cast<const MachO::ExportTrieChildNode &>(Node);
 
             std::print(OutFile, "\"{}\"", Info.string());
-            WrittenOut += STR_LENGTH("\"\"") + Info.string().length();
             if (const auto ExportInfo = Info.getIfExportNode()) {
+                WrittenOut += STR_LENGTH("\"\"") + Info.string().length();
                 PrintTreeExportInfo(OutFile,
                                     *ExportInfo,
                                     LibraryList,
@@ -300,6 +300,8 @@ namespace Operations {
         -> PrintExportTrie::RunResult
     {
         using RunResult = PrintExportTrie::RunResult;
+        using Error = enum RunResult::Error;
+
         for (const auto &LC : MachO.loadCommandsMap()) {
             using Kind = MachO::LoadCommandKind;
             switch (LC.kind(IsBigEndian)) {
@@ -330,7 +332,7 @@ namespace Operations {
 
                     if (ExportTrieRangeOpt.has_value()) {
                         if (DyldInfoTrieRange != ExportTrieRangeOpt.value()) {
-                            return RunResult(RunResult::Error::MultipleExportTries);
+                            return RunResult(Error::MultipleExportTries);
                         }
 
                         continue;
@@ -346,7 +348,7 @@ namespace Operations {
                     const auto TrieRange = ET.dataRange(IsBigEndian);
                     if (ExportTrieRangeOpt.has_value()) {
                         if (TrieRange != ExportTrieRangeOpt.value()) {
-                            return RunResult(RunResult::Error::MultipleExportTries);
+                            return RunResult(Error::MultipleExportTries);
                         }
 
                         continue;
@@ -496,9 +498,9 @@ namespace Operations {
         }
 
         if (Opt.OnlyCount) {
-            std::print(OutFile,
-                       "Provided file's export-trie has {} nodes\n",
-                       Count);
+            std::println(OutFile,
+                         "Provided file's export-trie has {} nodes",
+                         Count);
             return RunResult();
         }
 
@@ -512,7 +514,7 @@ namespace Operations {
             std::sort(ExportList.begin(), ExportList.end(), Comparator);
         }
 
-        auto Counter = uint32_t(1);
+        auto Counter = static_cast<uint32_t>(1);
         const auto SizeDigitLength =
             Utils::GetIntegerDigitCount(ExportList.size());
 
@@ -580,7 +582,7 @@ namespace Operations {
                                                   ")");
             }
 
-            std::print(OutFile, "\n");
+            std::println(OutFile);
             Counter++;
         }
 
@@ -620,6 +622,9 @@ namespace Operations {
         if (!Map.range().contains(ExportTrieRange)) {
             return RunResult(RunResult::Error::ExportTrieOutOfBounds);
         }
+
+        const auto &Opt = this->Opt;
+        const auto OutFile = this->OutFile;
 
         auto TrieParser = ADT::TrieParser();
         auto ExportTrieMap =

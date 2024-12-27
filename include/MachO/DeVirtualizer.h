@@ -32,7 +32,7 @@ namespace MachO {
         [[nodiscard]] uint64_t getBaseAddress() const noexcept override;
 
         [[nodiscard]] void *
-        getPtrForAddress(const uint64_t Address,
+        getPtrForAddress(uint64_t Address,
                          bool IgnoreProtBounds = false,
                          void **EndOut = nullptr) const noexcept override;
 

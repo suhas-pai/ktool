@@ -22,7 +22,7 @@ namespace MachO {
         : Map(Map), IsBigEndian(IsBigEndian) {}
 
         [[nodiscard]] constexpr auto isBigEndian() const noexcept {
-            return IsBigEndian;
+            return this->IsBigEndian;
         }
 
         struct Iterator {
@@ -91,9 +91,11 @@ namespace MachO {
             }
 
             inline auto operator++() noexcept -> decltype(*this) {
-                Ptr =
+                this->Ptr =
                     reinterpret_cast<MachO::LoadCommand *>(
-                        reinterpret_cast<uint8_t *>(this->Ptr) + this->cmdsize());
+                        reinterpret_cast<uint8_t *>(this->Ptr) +
+                        this->cmdsize());
+
                 return *this;
             }
 
@@ -119,16 +121,16 @@ namespace MachO {
                 return this->Ptr;
             }
 
-            constexpr
+            [[nodiscard]] constexpr
             auto operator<=>(const Iterator &Other) const noexcept = default;
 
-            [[nodiscard]] constexpr
-            auto operator==(const Iterator &Other) const noexcept {
+            [[nodiscard]]
+            constexpr auto operator==(const Iterator &Other) const noexcept {
                 return this->Ptr == Other.Ptr;
             }
 
-            [[nodiscard]] constexpr
-            auto operator!=(const Iterator &Other) const noexcept {
+            [[nodiscard]]
+            constexpr auto operator!=(const Iterator &Other) const noexcept {
                 return !this->operator==(Other);
             }
 

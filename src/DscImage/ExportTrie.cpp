@@ -43,7 +43,7 @@ namespace DscImage {
         const uint64_t FullAddress =
             Kind == MachO::ExportTrieFlags::Kind::Absolute ?
                 Address :
-                Utils::AddAndCheckOverflow(ImageAddress, Address).value();
+                Utils::AddAndCheckOverflow(this->ImageAddress, Address).value();
 
         const auto Segment = SegList->findSegmentWithVmAddr(FullAddress);
         if (Segment != nullptr) {

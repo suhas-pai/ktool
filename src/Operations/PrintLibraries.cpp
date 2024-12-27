@@ -6,6 +6,7 @@
 //
 
 #include <algorithm>
+#include <compare>
 
 #include "MachO/LoadCommands.h"
 #include "Operations/PrintLibraries.h"
@@ -53,56 +54,27 @@ namespace Operations {
     CompareEntriesBySortKind(
         const DylibInfo &Lhs,
         const DylibInfo &Rhs,
-        const PrintLibraries::Options::SortKind SortKind) noexcept -> int
+        const PrintLibraries::Options::SortKind SortKind) noexcept
     {
         switch (SortKind) {
             case PrintLibraries::Options::SortKind::ByCurrentVersion:
-                if (Lhs.CurrentVersion == Rhs.CurrentVersion) {
-                    return 0;
-                }
-
-                if (Lhs.CurrentVersion < Rhs.CurrentVersion) {
-                    return -1;
-                }
-
-                return 1;
-            case PrintLibraries::Options::SortKind::ByCompatVersion: {
-                if (Lhs.CompatVersion == Rhs.CompatVersion) {
-                    return 0;
-                } else if (Lhs.CompatVersion < Rhs.CompatVersion) {
-                    return -1;
-                }
-
-                return 1;
-            }
-            case PrintLibraries::Options::SortKind::ByIndex: {
-                if (Lhs.Index == Rhs.Index) {
-                    return 0;
-                } else if (Lhs.Index < Rhs.Index) {
-                    return -1;
-                }
-
-                return 1;
-            }
-            case PrintLibraries::Options::SortKind::ByTimeStamp: {
-                if (Lhs.Timestamp == Rhs.Timestamp) {
-                    return 0;
-                } else if (Lhs.Timestamp < Rhs.Timestamp) {
-                    return -1;
-                }
-
-                return 1;
-            }
+                return Lhs.CurrentVersion <=> Rhs.CurrentVersion;
+            case PrintLibraries::Options::SortKind::ByCompatVersion:
+                return Lhs.CompatVersion <=> Rhs.CompatVersion;
+            case PrintLibraries::Options::SortKind::ByIndex:
+                return Lhs.Index <=> Rhs.Index;
+            case PrintLibraries::Options::SortKind::ByTimeStamp:
+                return Lhs.Timestamp <=> Rhs.Timestamp;
             case PrintLibraries::Options::SortKind::ByName:
-                return Lhs.Name.compare(Rhs.Name);
+                return Lhs.Name <=> Rhs.Name;
         }
 
         assert(false && "CompareEntriesBySortKind() got unrecognized SortKind");
     }
 
     auto
-    PrintLibraries::run(const Objects::MachO &MachO) const noexcept ->
-        RunResult
+    PrintLibraries::run(const Objects::MachO &MachO) const noexcept
+        -> RunResult
     {
         const auto IsBigEndian = MachO.isBigEndian();
         constexpr auto Malformed = std::string_view("<malformed>");
@@ -132,25 +104,27 @@ namespace Operations {
             LoadCommandIndex++;
         }
 
+        const auto &Opt = this->Opt;
         if (!Opt.SortKindList.empty()) {
             const auto Lambda = [&](const auto &Lhs, const auto &Rhs) noexcept {
-                auto Compare = int();
+                auto Compare = std::strong_ordering::equivalent;
                 for (const auto &Sort : Opt.SortKindList) {
                     Compare = CompareEntriesBySortKind(Lhs, Rhs, Sort);
-                    if (Compare != 0) {
+                    if (Compare != std::strong_ordering::equivalent) {
                         break;
                     }
                 }
 
-                return Compare < 0;
+                return Compare == std::strong_ordering::less;
             };
 
             std::sort(DylibList.begin(), DylibList.end(), Lambda);
         }
 
-        std::print(OutFile,
-                   "Provided file has {} Shared Libraries:\n",
-                   DylibList.size());
+        const auto OutFile = this->OutFile;
+        std::println(OutFile,
+                     "Provided file has {} Shared Libraries:",
+                     Utils::FormattedNumber(DylibList.size()));
 
         const auto NcmdsDigitCount =
             Utils::GetIntegerDigitCount(MachO.header().ncmds());
@@ -160,9 +134,6 @@ namespace Operations {
 
         auto Counter = static_cast<uint32_t>(1);
         for (const auto &DylibInfo : DylibList) {
-            const auto TimestampString =
-                Utils::GetHumanReadableTimestamp(DylibInfo.Timestamp);
-
             std::print(OutFile,
                        "{}. LC {:>{}}: {:<{}} \"{}\"\n"
                        "\tCurrent Version: {}\n"
@@ -176,7 +147,7 @@ namespace Operations {
                        DylibInfo.Name,
                        DylibInfo.CurrentVersion,
                        DylibInfo.CompatVersion,
-                       TimestampString,
+                       Utils::Timestamp(DylibInfo.Timestamp),
                        DylibInfo.Timestamp);
 
             Counter++;
@@ -185,8 +156,8 @@ namespace Operations {
         return RunResult();
     }
 
-    auto PrintLibraries::run(const Objects::Base &Base) const noexcept ->
-        RunResult
+    auto PrintLibraries::run(const Objects::Base &Base) const noexcept
+        -> RunResult
     {
         switch (Base.kind()) {
             case Objects::Kind::None:

@@ -32,6 +32,8 @@ namespace Objects {
 
         struct Error {
             OpenError Kind;
+            
+            constexpr Error(const OpenError Kind) noexcept : Kind(Kind) {}
         };
 
         ~FatMachO() noexcept override {}

@@ -312,7 +312,7 @@ namespace ADT {
                 this->Info->stackListRef().emplace_back(std::move(*NextStack));
             }
 
-            [[nodiscard]] auto MoveUptoParentNode() noexcept -> bool {
+            auto MoveUptoParentNode() noexcept {
                 auto &StackList = this->Info->stackListRef();
                 if (StackList.size() == 1) {
                     StackList.clear();
@@ -374,7 +374,7 @@ namespace ADT {
 
                                 break;
                             case Direction::MoveUptoParentNode:
-                                if (this->MoveUptoParentNode()) {}
+                                this->MoveUptoParentNode();
                                 break;
                         }
                     }
@@ -383,7 +383,7 @@ namespace ADT {
                         case Direction::Normal:
                             break;
                         case Direction::MoveUptoParentNode:
-                            if (MoveUptoParentNode()) {}
+                            this->MoveUptoParentNode();
                             return Error::None;
                     }
                 } else {
@@ -888,7 +888,7 @@ namespace ADT {
         Tree.setRoot(NodeCreator.createChildNode(*Iter));
 
         auto Parent = Tree.root();
-        auto PrevDepthLevel = uint64_t(1);
+        auto PrevDepthLevel = static_cast<uint64_t>(1);
 
         const auto MoveUpParentHierarchy = [&](const uint64_t Amt) noexcept {
             for (auto I = uint64_t(); I != Amt; I++) {

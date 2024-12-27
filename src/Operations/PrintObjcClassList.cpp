@@ -6,7 +6,6 @@
 #include "ADT/Maximizer.h"
 #include "DyldSharedCache/DeVirtualizer.h"
 
-#include "DyldSharedCache/PatchInfo.h"
 #include "MachO/DeVirtualizer.h"
 #include "MachO/LibraryList.h"
 #include "MachO/ObjcInfo.h"
@@ -118,7 +117,7 @@ namespace Operations {
         std::print(OutFile, ">");
     }
 
-    static int
+    static auto
     CompareActionsBySortKind(
         const MachO::ObjcClassInfo &Lhs,
         const MachO::ObjcClassInfo &Rhs,
@@ -129,29 +128,23 @@ namespace Operations {
                 assert(false &&
                        "Unrecognized PrintObjcClassList::Options::SortKind");
             case PrintObjcClassList::Options::SortKind::ByName:
-                return Lhs.name().compare(Rhs.name());
+                return Lhs.name() <=> Rhs.name();
             case PrintObjcClassList::Options::SortKind::ByDylibOrdinal:
-                if (Lhs.dylibOrdinal() < Rhs.dylibOrdinal()) {
-                    return -1;
-                } else if (Lhs.dylibOrdinal() == Rhs.dylibOrdinal()) {
-                    return 0;
-                }
-
-                return 1;
+                return Lhs.dylibOrdinal() <=> Rhs.dylibOrdinal();
             case PrintObjcClassList::Options::SortKind::ByKind: {
                 if (Lhs.external()) {
                     if (Rhs.external()) {
-                        return 0;
+                        return std::strong_ordering::equivalent;
                     }
 
-                    return 1;
+                    return std::strong_ordering::greater;
                 }
 
-                return -1;
+                return std::strong_ordering::less;
             }
         }
 
-        return false;
+        VERIFY_NOT_REACHED();
     }
 
     [[maybe_unused]] static int
@@ -186,26 +179,24 @@ namespace Operations {
             case 0:
                 return;
             case 1:
-                std::print(OutFile, "\t1 Category:\n");
+                std::println(OutFile, "\t1 Category:");
                 break;
             default:
-                std::print(OutFile,
-                           "\t{} Categories:\n",
-                           CategoryList.size());
+                std::println(OutFile, "\t{} Categories:", CategoryList.size());
                 break;
         }
 
-        auto Index = uint64_t(1);
+        auto Index = static_cast<uint64_t>(1);
         const auto CategoryListSizeDigitLength =
             Utils::GetIntegerDigitCount(CategoryList.size());
 
         for (const auto &Category : CategoryList) {
-            std::print(OutFile,
-                       "\t\tObjc-Class Category {:>{}}: {}\"{}\"\n",
-                       Index,
-                       CategoryListSizeDigitLength,
-                       Utils::CustomAddress(Category->address(), Is64Bit),
-                       Category->name());
+            std::println(OutFile,
+                         "\t\tObjc-Class Category {:>{}}: {}\"{}\"",
+                         Index,
+                         CategoryListSizeDigitLength,
+                         Utils::CustomAddress(Category->address(), Is64Bit),
+                         Category->name());
 
             Index++;
         }
@@ -264,7 +255,7 @@ namespace Operations {
         const struct PrintObjcClassList::Options &Options) noexcept
     {
         if (ObjcClassCollection.empty()) {
-            std::print(OutFile, "Provided file has no Objective-C Classes\n");
+            std::println(OutFile, "Provided file has no Objective-C Classes");
             return;
         }
 
@@ -345,14 +336,14 @@ namespace Operations {
             }
 
             const auto ObjcClassListSize = ObjcClassList.size();
-            std::print(OutFile,
-                       "Provided file has {} Objective-C Classes:\n",
-                       ObjcClassListSize);
-
             const auto MaxDigitLength =
                 Utils::GetIntegerDigitCount(ObjcClassListSize);
 
-            auto I = uint64_t(1);
+            std::println(OutFile,
+                         "Provided file has {} Objective-C Classes:",
+                         Utils::FormattedNumber(ObjcClassListSize));
+
+            auto I = static_cast<uint64_t>(1);
             for (const auto &Iter : ObjcClassList) {
                 const auto &Node = Iter;
                 if (Node->null()) {
@@ -388,7 +379,7 @@ namespace Operations {
                                       static_cast<int>(
                                         NamePrintLength - 1));
 
-                std::print(OutFile, "\n");
+                std::println(OutFile);
                 if (Options.PrintCategories) {
                     const auto &CategoryList = Node->categoryList();
                     PrintCategoryList(OutFile, CategoryList, Is64Bit);
@@ -403,6 +394,9 @@ namespace Operations {
     PrintObjcClassList::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
+        const auto OutFile = this->OutFile;
+        const auto &Opt = this->Opt;
+
         const auto IsBigEndian = MachO.isBigEndian();
         const auto Is64Bit = MachO.is64Bit();
 
@@ -597,22 +591,38 @@ namespace Operations {
             return RunResult(RunResult::Error::NoObjcData);
         }
 
-        const auto DeVirtualizer = DyldSharedCache::DeVirtualizer(Image.dsc());
+        auto SlideInfoHeader =
+            static_cast<::DyldSharedCache::SlideInfoBase *>(nullptr);
+
+        const auto &Dsc = Image.dsc();
+        const auto DeVirtualizer = DyldSharedCache::DeVirtualizer(Dsc);
+        const auto SlideInfoHeaderOrRangeOpt = Dsc.slideInfoHeaderOrFileRange();
+
+        if (SlideInfoHeaderOrRangeOpt.has_value()) {
+            const auto &SlideInfoHeaderOrRange =
+                SlideInfoHeaderOrRangeOpt.value();
+
+            if (const auto SlideInfoHeaderRange =
+                    std::get_if<ADT::Range>(&SlideInfoHeaderOrRange))
+            {
+                SlideInfoHeader =
+                    Dsc.map().get<::DyldSharedCache::SlideInfoBase>(
+                        SlideInfoHeaderRange->front());
+            } else {
+                SlideInfoHeader =
+                    std::get<::DyldSharedCache::SlideInfoBase *>(
+                        SlideInfoHeaderOrRange);
+            }
+        }
+
         const auto &ObjcSectionInfo = ObjcSectionInfoOpt.value();
-
-        auto PatchI =
-            DyldSharedCache::PatchInfo::Create(DeVirtualizer,
-                                               Image.dsc().header());
-
-        auto List =
-            PatchI->getListOfExportPatchesV3ForImage(DeVirtualizer, 27, ADT::Range::CreateMax());
-
         const auto AddrResolverOpt =
-            ADT::AddressResolver::FromLoadCommands(DeVirtualizer.map(),
-                                                   Image.header(),
-                                                   DyldInfo,
-                                                   ChainedFixups,
-                                                   SegmentList);
+            ADT::AddressResolver::ForDscImage(DeVirtualizer,
+                                              SlideInfoHeader,
+                                              Image,
+                                              DyldInfo,
+                                              ChainedFixups,
+                                              SegmentList);
 
         if (!AddrResolverOpt.has_value()) {
             const auto AddrResolverError = AddrResolverOpt.error();
@@ -634,6 +644,16 @@ namespace Operations {
                         AddrResolverError);
 
                 return RunResult(std::move(RebaseResult));
+            }
+
+            if (std::holds_alternative<ADT::AddressResolver::PatchParseError>(
+                    AddrResolverError))
+            {
+                auto &ParseResult =
+                    std::get<ADT::AddressResolver::PatchParseError>(
+                        AddrResolverError);
+
+                return RunResult(std::move(ParseResult));
             }
 
             assert(0 && "Expected a recognizable error");

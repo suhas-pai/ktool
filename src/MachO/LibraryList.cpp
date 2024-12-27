@@ -12,7 +12,8 @@ namespace MachO {
     {
         for (const auto &LC : Map) {
             if (LC.isSharedLibrary(IsBigEndian)) {
-                addLibrary(cast<DylibCommand>(LC, IsBigEndian), IsBigEndian);
+                this->addLibrary(cast<DylibCommand>(LC, IsBigEndian),
+                                 IsBigEndian);
             }
         }
     }

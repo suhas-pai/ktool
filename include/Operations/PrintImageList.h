@@ -53,7 +53,7 @@ namespace Operations {
             -> RunResult;
 
         [[nodiscard]] constexpr auto &options() const noexcept {
-            return Opt;
+            return this->Opt;
         }
     };
 }

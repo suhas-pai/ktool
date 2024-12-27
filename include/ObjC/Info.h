@@ -130,7 +130,7 @@ namespace ObjC {
             const auto Mask =
                 (IsSwiftObjcClassPreStableMask | IsSwiftObjcClassStableMask);
 
-            return data(IsBigEndian) & Mask;
+            return this->data(IsBigEndian) & Mask;
         }
     };
 
@@ -146,42 +146,42 @@ namespace ObjC {
 
         [[nodiscard]]
         constexpr auto isaAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Isa, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Isa, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
         auto superClassAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(SuperClass, IsBigEndian);
+            return ADT::SwitchEndianIf(this->SuperClass, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto cacheAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Cache, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Cache, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto vtableAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Vtable, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Vtable, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto data(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Data, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Data, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto reserved1(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Reserved1, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Reserved1, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto reserved2(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Reserved2, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Reserved2, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto reserved3(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Reserved3, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Reserved3, IsBigEndian);
         }
 
         constexpr auto
@@ -210,8 +210,7 @@ namespace ObjC {
         }
 
         constexpr auto
-        setVtableAddress(const uint64_t Value,
-                         const bool IsBigEndian) noexcept
+        setVtableAddress(const uint64_t Value, const bool IsBigEndian) noexcept
             -> decltype(*this)
         {
             this->Vtable = ADT::SwitchEndianIf(Value, IsBigEndian);
@@ -255,7 +254,7 @@ namespace ObjC {
             const auto Mask =
                 (IsSwiftObjcClassPreStableMask | IsSwiftObjcClassStableMask);
 
-            return data(IsBigEndian) & Mask;
+            return this->data(IsBigEndian) & Mask;
         }
     };
 
@@ -280,85 +279,85 @@ namespace ObjC {
         };
 
         [[nodiscard]] constexpr auto meta() const noexcept {
-            return has(Enum::IsMeta);
+            return this->has(Enum::IsMeta);
         }
 
         [[nodiscard]] constexpr auto root() const noexcept {
-            return has(Enum::IsRoot);
+            return this->has(Enum::IsRoot);
         }
 
         [[nodiscard]] constexpr auto hasCxxStructors() const noexcept {
-            return has(Enum::HasCxxStructors);
+            return this->has(Enum::HasCxxStructors);
         }
 
         [[nodiscard]] constexpr auto hidden() const noexcept {
-            return has(Enum::IsHidden);
+            return this->has(Enum::IsHidden);
         }
 
         [[nodiscard]] constexpr auto exception() const noexcept {
-            return has(Enum::IsException);
+            return this->has(Enum::IsException);
         }
 
         [[nodiscard]] constexpr auto hasSwiftInitializer() const noexcept {
-            return has(Enum::HasSwiftInitializer);
+            return this->has(Enum::HasSwiftInitializer);
         }
 
         [[nodiscard]] constexpr auto arc() const noexcept {
-            return has(Enum::IsARC);
+            return this->has(Enum::IsARC);
         }
 
         [[nodiscard]] constexpr auto hasCxxDestructorOnly() const noexcept {
-            return has(Enum::HasCxxDestructorOnly);
+            return this->has(Enum::HasCxxDestructorOnly);
         }
 
         [[nodiscard]] constexpr auto hasWeakWithoutARC() const noexcept {
-            return has(Enum::HasWeakWithoutARC);
+            return this->has(Enum::HasWeakWithoutARC);
         }
 
         [[nodiscard]] constexpr auto forbidsAssociatedObjects() const noexcept {
-            return has(Enum::ForbidsAssociatedObjects);
+            return this->has(Enum::ForbidsAssociatedObjects);
         }
 
         [[nodiscard]] constexpr auto fromBundle() const noexcept {
-            return has(Enum::IsFromBundle);
+            return this->has(Enum::IsFromBundle);
         }
 
         [[nodiscard]] constexpr auto future() const noexcept {
-            return has(Enum::IsFuture);
+            return this->has(Enum::IsFuture);
         }
 
         [[nodiscard]] constexpr auto realized() const noexcept {
-            return has(Enum::IsRealized);
+            return this->has(Enum::IsRealized);
         }
 
         constexpr
         auto setMeta(const bool Value = true) noexcept -> decltype(*this) {
-            setValueForMask(Enum::IsMeta, 0, Value);
+            this->setValueForMask(Enum::IsMeta, 0, Value);
             return *this;
         }
 
         constexpr
         auto setRoot(const bool Value = true) noexcept -> decltype(*this) {
-            setValueForMask(Enum::IsRoot, 0, Value);
+            this->setValueForMask(Enum::IsRoot, 0, Value);
             return *this;
         }
 
         constexpr auto
         setHasCxxStructors(const bool Value = true) noexcept -> decltype(*this)
         {
-            setValueForMask(Enum::HasCxxStructors, 0, Value);
+            this->setValueForMask(Enum::HasCxxStructors, 0, Value);
             return *this;
         }
 
         constexpr
         auto setHidden(const bool Value = true) noexcept -> decltype(*this) {
-            setValueForMask(Enum::IsHidden, 0, Value);
+            this->setValueForMask(Enum::IsHidden, 0, Value);
             return *this;
         }
 
         constexpr
         auto setException(const bool Value = true) noexcept -> decltype(*this) {
-            setValueForMask(Enum::IsException, 0, Value);
+            this->setValueForMask(Enum::IsException, 0, Value);
             return *this;
         }
 
@@ -366,13 +365,13 @@ namespace ObjC {
         setHasSwiftInitializer(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Enum::HasSwiftInitializer, 0, Value);
+            this->setValueForMask(Enum::HasSwiftInitializer, 0, Value);
             return *this;
         }
 
         constexpr
         auto setARC(const bool Value = true) noexcept -> decltype(*this) {
-            setValueForMask(Enum::IsARC, 0, Value);
+            this->setValueForMask(Enum::IsARC, 0, Value);
             return *this;
         }
 
@@ -380,7 +379,7 @@ namespace ObjC {
         setHasCxxDestructorsOnly(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Enum::HasCxxDestructorOnly, 0, Value);
+            this->setValueForMask(Enum::HasCxxDestructorOnly, 0, Value);
             return *this;
         }
 
@@ -388,7 +387,7 @@ namespace ObjC {
         setHasWeakWithoutARC(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Enum::HasWeakWithoutARC, 0, Value);
+            this->setValueForMask(Enum::HasWeakWithoutARC, 0, Value);
             return *this;
         }
 
@@ -396,25 +395,25 @@ namespace ObjC {
         setForbidsAssociatedObjects(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Enum::ForbidsAssociatedObjects, 0, Value);
+            this->setValueForMask(Enum::ForbidsAssociatedObjects, 0, Value);
             return *this;
         }
 
         constexpr auto
         setFromBundle(const bool Value = true) noexcept -> decltype(*this) {
-            setValueForMask(Enum::IsFromBundle, 0, Value);
+            this->setValueForMask(Enum::IsFromBundle, 0, Value);
             return *this;
         }
 
         constexpr
         auto setFuture(const bool Value = true) noexcept -> decltype(*this) {
-            setValueForMask(Enum::IsFuture, 0, Value);
+            this->setValueForMask(Enum::IsFuture, 0, Value);
             return *this;
         }
 
         constexpr
         auto setRealized(const bool Value = true) noexcept -> decltype(*this) {
-            setValueForMask(Enum::IsRealized, 0, Value);
+            this->setValueForMask(Enum::IsRealized, 0, Value);
             return *this;
         }
     };
@@ -433,52 +432,52 @@ namespace ObjC {
 
         [[nodiscard]]
         constexpr auto flags(const bool IsBigEndian) const noexcept {
-            return ClassRoFlags(ADT::SwitchEndianIf(Flags, IsBigEndian));
+            return ClassRoFlags(ADT::SwitchEndianIf(this->Flags, IsBigEndian));
         }
 
         [[nodiscard]]
         constexpr auto instanceStart(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(InstanceStart, IsBigEndian);
+            return ADT::SwitchEndianIf(this->InstanceStart, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto instanceSize(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(InstanceSize, IsBigEndian);
+            return ADT::SwitchEndianIf(this->InstanceSize, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto ivarLayout(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(IvarLayout, IsBigEndian);
+            return ADT::SwitchEndianIf(this->IvarLayout, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto nameAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Name, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Name, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto methodsAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(BaseMethods, IsBigEndian);
+            return ADT::SwitchEndianIf(this->BaseMethods, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto protocolsAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(BaseProtocols, IsBigEndian);
+            return ADT::SwitchEndianIf(this->BaseProtocols, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto ivarsAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Ivars, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Ivars, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto weakIvarLayout(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(WeakIvarLayout, IsBigEndian);
+            return ADT::SwitchEndianIf(this->WeakIvarLayout, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
         auto propertiesAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(BaseProperties, IsBigEndian);
+            return ADT::SwitchEndianIf(this->BaseProperties, IsBigEndian);
         }
 
         constexpr auto
@@ -574,52 +573,52 @@ namespace ObjC {
 
         [[nodiscard]]
         constexpr auto flags(const bool IsBigEndian) const noexcept {
-            return ClassRoFlags(ADT::SwitchEndianIf(Flags, IsBigEndian));
+            return ClassRoFlags(ADT::SwitchEndianIf(this->Flags, IsBigEndian));
         }
 
         [[nodiscard]]
         constexpr auto instanceStart(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(InstanceStart, IsBigEndian);
+            return ADT::SwitchEndianIf(this->InstanceStart, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto instanceSize(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(InstanceSize, IsBigEndian);
+            return ADT::SwitchEndianIf(this->InstanceSize, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto ivarLayout(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(IvarLayout, IsBigEndian);
+            return ADT::SwitchEndianIf(this->IvarLayout, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto nameAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Name, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Name, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto methodsAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(BaseMethods, IsBigEndian);
+            return ADT::SwitchEndianIf(this->BaseMethods, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto protocolsAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(BaseProtocols, IsBigEndian);
+            return ADT::SwitchEndianIf(this->BaseProtocols, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto ivarsAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Ivars, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Ivars, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto weakIvarLayout(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(WeakIvarLayout, IsBigEndian);
+            return ADT::SwitchEndianIf(this->WeakIvarLayout, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
         auto propertiesAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(BaseProperties, IsBigEndian);
+            return ADT::SwitchEndianIf(this->BaseProperties, IsBigEndian);
         }
 
         constexpr auto
@@ -704,40 +703,40 @@ namespace ObjC {
 
         [[nodiscard]]
         constexpr auto nameAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Name, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Name, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto classAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Class, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Class, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
         auto instanceMethodsAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(InstanceMethods, IsBigEndian);
+            return ADT::SwitchEndianIf(this->InstanceMethods, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
         auto classMethodsAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(ClassMethods, IsBigEndian);
+            return ADT::SwitchEndianIf(this->ClassMethods, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto protocolsAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Protocols, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Protocols, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
         auto instancePropertiesAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(InstanceProperties, IsBigEndian);
+            return ADT::SwitchEndianIf(this->InstanceProperties, IsBigEndian);
         }
 
         [[nodiscard]] constexpr auto v7(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(V7, IsBigEndian);
+            return ADT::SwitchEndianIf(this->V7, IsBigEndian);
         }
 
         [[nodiscard]] constexpr auto v8(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(V8, IsBigEndian);
+            return ADT::SwitchEndianIf(this->V8, IsBigEndian);
         }
 
         constexpr auto
@@ -809,40 +808,40 @@ namespace ObjC {
 
         [[nodiscard]]
         constexpr auto nameAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Name, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Name, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto classAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Class, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Class, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
         auto instanceMethodsAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(InstanceMethods, IsBigEndian);
+            return ADT::SwitchEndianIf(this->InstanceMethods, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
         auto classMethodsAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(ClassMethods, IsBigEndian);
+            return ADT::SwitchEndianIf(this->ClassMethods, IsBigEndian);
         }
 
         [[nodiscard]]
         constexpr auto protocolsAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(Protocols, IsBigEndian);
+            return ADT::SwitchEndianIf(this->Protocols, IsBigEndian);
         }
 
         [[nodiscard]] constexpr
         auto instancePropertiesAddress(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(InstanceProperties, IsBigEndian);
+            return ADT::SwitchEndianIf(this->InstanceProperties, IsBigEndian);
         }
 
         [[nodiscard]] constexpr auto v7(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(V7, IsBigEndian);
+            return ADT::SwitchEndianIf(this->V7, IsBigEndian);
         }
 
         [[nodiscard]] constexpr auto v8(const bool IsBigEndian) const noexcept {
-            return ADT::SwitchEndianIf(V8, IsBigEndian);
+            return ADT::SwitchEndianIf(this->V8, IsBigEndian);
         }
 
         constexpr auto
@@ -889,14 +888,14 @@ namespace ObjC {
             return *this;
         }
 
-        constexpr auto
-        setV7(const uint64_t Value, const bool IsBigEndian) noexcept {
+        constexpr
+        auto setV7(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->V7 = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }
 
-        constexpr auto
-        setV8(const uint64_t Value, const bool IsBigEndian) noexcept {
+        constexpr
+        auto setV8(const uint64_t Value, const bool IsBigEndian) noexcept {
             this->V8 = ADT::SwitchEndianIf(Value, IsBigEndian);
             return *this;
         }

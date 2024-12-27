@@ -71,29 +71,31 @@ namespace Operations {
         const auto FileMapOrError =
             ADT::FileMap::Open(Options.Path.data(), Prot);
 
-        switch (FileMapOrError.error()) {
-            case ADT::FileMap::OpenError::None:
-                break;
-            case ADT::FileMap::OpenError::FailedToOpen:
-                std::print(stderr,
-                           "Failed to open file (at path {}), error={}\n",
-                           Options.Path,
-                           strerror(errno));
-                exit(1);
-            case ADT::FileMap::OpenError::FailedToStat:
-                std::print(stderr,
-                           "Failed to get info on file (at path {}), "
-                           "error={}\n",
-                           Options.Path,
-                           strerror(errno));
-                exit(1);
-            case ADT::FileMap::OpenError::FailedToMemMap:
-                std::print(stderr,
-                           "Failed to open memory-map of file (at path {}), "
-                           "error={}\n",
-                           Options.Path,
-                           strerror(errno));
-                exit(1);
+        if (!FileMapOrError.has_value()) {
+            switch (FileMapOrError.error()) {
+                case ADT::FileMap::OpenError::None:
+                    break;
+                case ADT::FileMap::OpenError::FailedToOpen:
+                    std::println(stderr,
+                                 "Failed to open file (at path {}), error={}",
+                                 Options.Path,
+                                 strerror(errno));
+                    exit(1);
+                case ADT::FileMap::OpenError::FailedToStat:
+                    std::println(stderr,
+                                 "Failed to get info on file (at path {}), "
+                                 "error={}",
+                                 Options.Path,
+                                 strerror(errno));
+                    exit(1);
+                case ADT::FileMap::OpenError::FailedToMemMap:
+                    std::println(stderr,
+                                 "Failed to open memory-map of file "
+                                 "(at path {}), error={}",
+                                 Options.Path,
+                                 strerror(errno));
+                    exit(1);
+            }
         }
 
         const auto FileMap = FileMapOrError.value();
@@ -101,10 +103,11 @@ namespace Operations {
             Objects::Open(FileMap->map(), Options.Path, Prot);
 
         if (!ObjectOrError.has_value()) {
+            delete FileMap;
             if (ObjectOrError.error().isUnrecognizedFormat()) {
-                std::print(stderr,
-                           "File (at path {}) is of an unrecognized format\n",
-                           Options.Path);
+                std::println(stderr,
+                             "File (at path {}) is of an unrecognized format",
+                             Options.Path);
                 exit(1);
             }
 
@@ -127,14 +130,14 @@ namespace Operations {
                                    "Objects::MachO::OpenError in "
                                    "Operations::runAndHandleFile()");
                         case OpenError::SizeTooSmall:
-                            std::print(stderr,
-                                       "File is too small to be a valid "
-                                       "mach-o ");
+                            std::println(stderr,
+                                         "File is too small to be a valid "
+                                         "mach-o ");
                             exit(1);
                         case OpenError::TooManyLoadCommands:
-                            std::print(stderr,
-                                       "Mach-O file has too many "
-                                       "load-commands\n");
+                            std::println(stderr,
+                                         "Mach-O file has too many "
+                                         "load-commands");
                             exit(1);
                     }
 
@@ -154,29 +157,29 @@ namespace Operations {
                                    "Objects::FatMachO::OpenError in "
                                    "Operations::runAndHandleFile()");
                         case OpenError::SizeTooSmall:
-                            std::print(stderr,
-                                       "File is too small to be a valid mach-o "
-                                       "file\n");
+                            std::println(stderr,
+                                         "File is too small to be a valid "
+                                         "mach-o file");
                             exit(1);
                         case OpenError::TooManyArchitectures:
-                            std::print(stderr,
-                                       "Fat Mach-O file has too many "
-                                       "architectures\n");
+                            std::println(stderr,
+                                         "Fat Mach-O file has too many "
+                                         "architectures");
                             exit(1);
                         case OpenError::ArchOutOfBounds:
-                            std::print(stderr,
-                                       "Fat Mach-O File has at least 1 arch "
-                                       "out-of-bounds of file\n");
+                            std::println(stderr,
+                                         "Fat Mach-O File has at least 1 arch "
+                                         "out-of-bounds of file");
                             exit(1);
                         case OpenError::OverlappingArchs:
-                            std::print(stderr,
-                                       "Fat Mach-O File has at least 2 archs "
-                                       "overlap one another\n");
+                            std::println(stderr,
+                                         "Fat Mach-O File has at least 2 archs "
+                                         "overlap one another");
                             exit(1);
                         case OpenError::ArchsForSameCpu:
-                            std::print(stderr,
-                                       "Fat Mach-O File has at least 2 archs "
-                                       "for the same cpu\n");
+                            std::println(stderr,
+                                         "Fat Mach-O File has at least 2 archs "
+                                         "for the same cpu");
                             exit(1);
                         }
 
@@ -196,56 +199,56 @@ namespace Operations {
                                    "Objects::DyldSharedCache::OpenError in "
                                    "Operations::runAndHandleFile()");
                         case OpenError::UnrecognizedCpuKind:
-                            std::print(stderr,
-                                       "Dyld-shared-cache has an unrecognized "
-                                       "cputype\n");
+                            std::println(stderr,
+                                         "Dyld-shared-cache has an "
+                                         "unrecognized cputype");
                             exit(1);
                         case OpenError::SizeTooSmall:
-                            std::print(stderr,
-                                       "File is too small to be a valid "
-                                       "dyld-shared-cache file\n");
+                            std::println(stderr,
+                                         "File is too small to be a valid "
+                                         "dyld-shared-cache file");
                             exit(1);
                         case OpenError::NoMappings:
                             std::print(stderr,
-                                       "Dyld Shared-Cache's has no mappings\n");
+                                       "Dyld Shared-Cache's has no mappings");
                             exit(1);
                         case OpenError::MappingsOutOfBounds:
-                            std::print(stderr,
-                                       "Dyld Shared-Cache's mappings are "
-                                       "out-of-bound\n");
+                            std::println(stderr,
+                                         "Dyld Shared-Cache's mappings are "
+                                         "out-of-bound");
                             exit(1);
                         case OpenError::FirstMappingFileOffNotZero:
-                            std::print(stderr,
-                                       "Dyld Shared-Cache's first-mapping's "
-                                       "file-offset is not 0x0\n");
+                            std::println(stderr,
+                                         "Dyld Shared-Cache's first-mapping's "
+                                         "file-offset is not 0x0");
                             exit(1);
                         case OpenError::FailedToOpenSubCaches:
-                            std::print(stderr,
-                                       "Failed to open sub-caches of "
-                                       "dyld-shared-cache\n");
+                            std::println(stderr,
+                                         "Failed to open sub-caches of "
+                                         "dyld-shared-cache");
                             exit(1);
                         case OpenError::SubCacheHasDiffCpuKind:
-                            std::print(stderr,
-                                       "At least 1 Sub-cache has a different "
-                                       "cpu-kind\n");
+                            std::println(stderr,
+                                         "At least 1 Sub-cache has a different "
+                                         "cpu-kind");
                             exit(1);
                         case OpenError::SubCacheHasDiffVersion:
-                            std::print(stderr,
-                                       "At least 1 Sub-cache has a different "
-                                       "header-size\n");
+                            std::println(stderr,
+                                         "At least 1 Sub-cache has a different "
+                                         "header-size");
                             exit(1);
                         case OpenError::RecursiveSubCache:
-                            std::print(stderr,
-                                       "At least 1 Sub-cache has its own "
-                                       "sub-caches\n");
+                            std::println(stderr,
+                                         "At least 1 Sub-cache has its own "
+                                         "sub-caches");
                             exit(1);
                         case OpenError::SubCacheListIsInvalid:
-                            std::print(stderr,
-                                       "List of Sub-Caches is invalid\n");
+                            std::println(stderr,
+                                         "List of Sub-Caches is invalid");
                             exit(1);
                         case OpenError::SubCacheFileDoesNotExist:
-                            std::print(stderr,
-                                       "Sub-cache file does not exist\n");
+                            std::println(stderr,
+                                         "Sub-cache file does not exist");
                             exit(1);
                     }
 
@@ -267,48 +270,50 @@ namespace Operations {
                         case OpenError::InvalidAddress:
                             std::print(stderr,
                                        "Dsc-image has an invalid address "
-                                       "inside shared-cache\n");
+                                       "inside shared-cache");
                             exit(1);
                         case OpenError::WrongCpuInfo:
-                            std::print(stderr,
-                                       "Dsc-image has a different cputype than "
-                                       "its shared-cache\n");
+                            std::println(stderr,
+                                         "Dsc-image has a different cputype "
+                                         "than its shared-cache");
                             exit(1);
                         case OpenError::NotMarkedAsImage:
-                            std::print(stderr,
-                                       "Dsc-image is not marked as a mach-o "
-                                       "image\n");
+                            std::println(stderr,
+                                         "Dsc-image is not marked as a mach-o "
+                                         "image");
                             exit(1);
                         case OpenError::NotADylib:
-                            std::print(stderr,
-                                       "Dsc-image is neither a dylib or "
-                                       "dylinker\n");
+                            std::println(stderr,
+                                         "Dsc-image is neither a dylib or "
+                                         "dylinker");
                             exit(1);
                         case OpenError::SizeTooSmall:
-                            std::print(stderr,
-                                       "Dsc-image is too small to be a valid "
-                                       "mach-o\n");
+                            std::println(stderr,
+                                         "Dsc-image is too small to be a valid "
+                                         "mach-o");
                             exit(1);
                         case OpenError::TooManyLoadCommands:
-                            std::print(stderr,
-                                       "Dsc-image has too many "
-                                       "load-commands\n");
+                            std::println(stderr,
+                                         "Dsc-image has too many "
+                                         "load-commands");
                             exit(1);
                         case OpenError::OutOfBoundsSegment:
-                            std::print(stderr,
-                                       "Dsc-image has a segment that is "
-                                       "out-of-bounds of its shared-cache\n");
+                            std::println(stderr,
+                                         "Dsc-image has a segment that is "
+                                         "out-of-bounds of its shared-cache");
                             exit(1);
                         case OpenError::FailedToOpenDscSubCache:
-                            std::print(stderr,
-                                       "Dsc-image at  exists in a separate "
-                                       "shared-cache file, a sub-cache\n");
+                            std::println(stderr,
+                                         "Dsc-image at  exists in a separate "
+                                         "shared-cache file, a sub-cache");
                             exit(1);
                     }
 
                     break;
                 }
             }
+
+            VERIFY_NOT_REACHED();
         }
 
         const auto Object = ObjectOrError.value();
@@ -321,9 +326,9 @@ namespace Operations {
     }
 
     auto PrintUnsupportedError(const std::string_view Path) noexcept {
-        std::print(stderr,
-                   "Operation doesn't support file at path {}\n",
-                   Path);
+        std::println(stderr,
+                     "Operation doesn't support file at path {}",
+                     Path);
         exit(1);
     }
 
@@ -342,16 +347,16 @@ namespace Operations {
                     static_cast<const PrintLoadCommands &>(Op).run(Object));
             case Kind::PrintLibraries:
                 return RunResult(
-                    static_cast<const PrintHeader &>(Op).run(Object));
+                    static_cast<const PrintLibraries &>(Op).run(Object));
             case Kind::PrintArchs:
                 return RunResult(
                     static_cast<const PrintArchs &>(Op).run(Object));
             case Kind::PrintCStringSection:
                 return RunResult(
-                    static_cast<const PrintHeader &>(Op).run(Object));
+                    static_cast<const PrintCStringSection &>(Op).run(Object));
             case Kind::PrintSymbolPtrSection:
                 return RunResult(
-                    static_cast<const PrintHeader &>(Op).run(Object));
+                    static_cast<const PrintSymbolPtrSection &>(Op).run(Object));
             case Kind::PrintExportTrie:
                 return RunResult(
                     static_cast<const PrintExportTrie &>(Op).run(Object));
@@ -407,11 +412,13 @@ namespace Operations {
                     }
 
                     if (!Op.supportsObjectKind(Objects::Kind::MachO)) {
-                        std::print(stderr,
-                                   "Operation doesn't support Mach-O Files, "
-                                   "but does support Fat Mach-O Files.\nDrop "
-                                   "the -arch option to run on the Fat Mach-O "
-                                   "file\n");
+                        std::println(stderr,
+                                     "Operation doesn't support Mach-O Files, "
+                                     "but does support Fat Mach-O Files.");
+                        std::println(stderr,
+                                     "\nDrop the -arch option to run on the "
+                                     "Fat Mach-O "
+                                     "file");
                         exit(1);
                     }
                 } else if (!Op.supportsObjectKind(Objects::Kind::MachO)) {
@@ -419,23 +426,22 @@ namespace Operations {
                 }
 
                 if (Options.ArchIndex == -1) {
-                    std::print(stderr,
-                               "Operation doesn't support Fat Mach-O Files. "
-                               "Please select an arch by its index using "
-                               "option -arch\n");
+                    std::println(stderr,
+                                 "Operation doesn't support Fat Mach-O Files. "
+                                 "Please select an arch by its index using "
+                                 "option -arch");
                     exit(1);
                 }
 
-                const auto ArchIndex =
-                    static_cast<uint32_t>(Options.ArchIndex);
-
+                const auto ArchIndex = static_cast<uint32_t>(Options.ArchIndex);
                 const auto ArchCount = Fat.archCount();
+
                 if (Utils::IndexOutOfBounds(ArchIndex, ArchCount)) {
-                    std::print(stderr,
-                               "An Arch-Index of {} is invalid. The provided "
-                               "Fat Mach-O file only has {} architectures\n",
-                               ArchIndex,
-                               ArchCount);
+                    std::println(stderr,
+                                 "An Arch-Index of {} is invalid. The provided "
+                                 "Fat Mach-O file only has {} architectures",
+                                 ArchIndex,
+                                 ArchCount);
                     exit(1);
                 }
 
@@ -445,10 +451,10 @@ namespace Operations {
                 if (!ArchObjectOrError.has_value()) {
                     const auto Error = ArchObjectOrError.error();
                     if (Error.isUnrecognizedFormat()) {
-                        std::print(stderr,
-                                   "Architecture at index {} is of an "
-                                   "unrecognized format\n",
-                                   ArchIndex);
+                        std::println(stderr,
+                                     "Architecture at index {} is of an "
+                                     "unrecognized format",
+                                     ArchIndex);
                         exit(1);
                     }
 
@@ -468,16 +474,17 @@ namespace Operations {
                                            "Got Error WrongFormat for MachO "
                                            "OpenError");
                                 case ErrorKind::SizeTooSmall:
-                                    std::print(stderr,
-                                               "Arch at index {} is too small "
-                                               "to be a valid mach-o\n",
-                                               ArchIndex);
+                                    std::println(stderr,
+                                                 "Arch at index {} is too "
+                                                 "small to be a valid mach-o",
+                                                 ArchIndex);
                                     exit(1);
                                 case ErrorKind::TooManyLoadCommands:
-                                    std::print(stderr,
-                                               "Arch at index {} has too many "
-                                               "load-commands for its size\n",
-                                               ArchIndex);
+                                    std::println(stderr,
+                                                 "Arch at index {} has too "
+                                                 "many load-commands for its "
+                                                 "size",
+                                                 ArchIndex);
                                     exit(1);
                             }
 
@@ -508,12 +515,13 @@ namespace Operations {
                     }
 
                     if (!Op.supportsObjectKind(Objects::Kind::DscImage)) {
-                        std::print(stderr,
-                                   "Operation doesn't support "
-                                   "Dyld Shared-Cache Images, but does support "
-                                   "the Dyld Shared-Cache itself.\nDrop the "
-                                   "-image option to run on the "
-                                   "Dyld Shared-Cache file\n");
+                        std::println(stderr,
+                                     "Operation doesn't support "
+                                     "Dyld Shared-Cache Images, but does "
+                                     "support the Dyld Shared-Cache itself.");
+                        std::println(stderr,
+                                     "Drop the -image option to run on the "
+                                     "Dyld Shared-Cache file");
                         exit(1);
                     }
                 } else if (!Op.supportsObjectKind(Objects::Kind::DscImage)) {
@@ -521,10 +529,10 @@ namespace Operations {
                 }
 
                 if (Options.ImageOrdinal == -1) {
-                    std::print(stderr,
-                               "Operation doesn't support the "
-                               "Dyld Shared-Cache. Please select an image "
-                               "using option -image\n");
+                    std::println(stderr,
+                                 "Operation doesn't support the "
+                                 "Dyld Shared-Cache. Please select an image "
+                                 "using option -image");
                     exit(1);
                 }
 
@@ -533,11 +541,12 @@ namespace Operations {
                     static_cast<uint32_t>(Options.ImageOrdinal);
 
                 if (Utils::OrdinalOutOfBounds(ImageOrdinal, ImageCount)) {
-                    std::print(stderr,
-                               "An Image-Number of {} is invalid. The provided "
-                               "Dyld Shared-Cache file only has {} images\n",
-                               ImageOrdinal,
-                               ImageCount);
+                    std::println(stderr,
+                                 "An Image-Number of {} is invalid. The "
+                                 "provided Dyld Shared-Cache file only has {} "
+                                 "images",
+                                 ImageOrdinal,
+                                 ImageCount);
                     exit(1);
                 }
 
@@ -547,17 +556,17 @@ namespace Operations {
                 if (!ImageOrError.has_value()) {
                     const auto Error = ImageOrError.error();
                     if (Error.isUnrecognizedFormat()) {
-                        std::print(stderr,
-                                   "Image at ordinal {} is of an unrecognized "
-                                   "format\n",
-                                   ImageOrdinal);
+                        std::println(stderr,
+                                     "Image at ordinal {} is of an "
+                                     "unrecognized format",
+                                     ImageOrdinal);
                         exit(1);
                     }
 
                     switch (Error.Kind) {
                         case Objects::Kind::None:
                             assert(false &&
-                                   "Got Object-Kind None for OpenError\n");
+                                   "Got Object-Kind None for OpenError");
                         case Objects::Kind::MachO:
                             assert(false &&
                                    "Image-Object is somehow a MachO (and not a "
@@ -578,58 +587,60 @@ namespace Operations {
                                            "Got Error None for MachO "
                                            "OpenError");
                                 case ErrorKind::InvalidAddress:
-                                    std::print(stderr,
-                                               "Address of image {} is "
-                                               "out-of-bounds from "
-                                               "dyld-shared-cache\n",
-                                               (void *)Error.DscImageError
-                                                .InvalidAddress.Address);
+                                    std::println(stderr,
+                                                 "Address of image {} is "
+                                                 "out-of-bounds from "
+                                                 "dyld-shared-cache",
+                                                 (void *)Error.DscImageError
+                                                  .InvalidAddress.Address);
                                     exit(1);
                                 case ErrorKind::WrongFormat:
                                     assert(false &&
                                            "Got Error WrongFormat for MachO "
                                            "OpenError");
                                 case ErrorKind::SizeTooSmall:
-                                    std::print(stderr,
-                                               "Image at ordinal {} is too "
-                                               "small to be a valid mach-o\n",
-                                               ImageOrdinal);
+                                    std::println(stderr,
+                                                 "Image at ordinal {} is too "
+                                                 "small to be a valid mach-o",
+                                                 ImageOrdinal);
                                     exit(1);
                                 case ErrorKind::WrongCpuInfo:
-                                    std::print(stderr,
-                                               "Image has different cpu-info "
-                                               "than the shared-cache\n");
+                                    std::println(stderr,
+                                                 "Image has different cpu-info "
+                                                 "than the shared-cache");
                                     exit(1);
                                 case ErrorKind::NotMarkedAsImage:
-                                    std::print(stderr,
-                                               "Image's mach_header is not "
-                                               "marked as a shared-cache "
-                                               "image\n");
+                                    std::println(stderr,
+                                                 "Image's mach_header is not "
+                                                 "marked as a shared-cache "
+                                                 "image");
                                     exit(1);
                                 case ErrorKind::NotADylib:
-                                    std::print(stderr,
-                                               "Image is not a "
-                                               "dynamic-library\n");
+                                    std::println(stderr,
+                                                 "Image is not a "
+                                                 "dynamic-library");
                                     exit(1);
                                 case ErrorKind::OutOfBoundsSegment:
-                                    std::print(stderr,
-                                               "At least one of image's "
-                                               "segments isn't fully contained "
-                                               "within a single mapping\n");
+                                    std::println(stderr,
+                                                 "At least one of image's "
+                                                 "segments isn't fully "
+                                                 "contained within a single "
+                                                 "mapping");
                                     exit(1);
                                 case ErrorKind::TooManyLoadCommands:
-                                    std::print(stderr,
-                                               "Image at ordinal {} has too "
-                                               "many load-commands for its "
-                                               "size\n",
-                                               ImageOrdinal);
+                                    std::println(stderr,
+                                                 "Image at ordinal {} has too "
+                                                 "many load-commands for its "
+                                                 "size",
+                                                 ImageOrdinal);
                                     exit(1);
                                 case ErrorKind::FailedToOpenDscSubCache:
-                                    std::print(stderr,
-                                               "Image at ordinal {} exists in "
-                                               "a separate dyld-shared-cache "
-                                               "file, a sub-cache\n",
-                                               ImageOrdinal);
+                                    std::println(stderr,
+                                                 "Image at ordinal {} exists "
+                                                 "in a separate "
+                                                 "dyld-shared-cache file, a "
+                                                 "sub-cache",
+                                                 ImageOrdinal);
                                     exit(1);
                             }
                         }

@@ -19,14 +19,16 @@ namespace Objects {
         const ::DyldSharedCache::ImageInfo &ImageInfo;
 
         DyldSharedSingleCacheInfo DscInfo;
+        uint32_t ImageIndex;
 
         explicit
         DscImage(const DyldSharedCache &Dsc,
                  const DyldSharedSingleCacheInfo &DscInfo,
                  const ::DyldSharedCache::ImageInfo &ImageInfo,
-                 const ADT::MemoryMap &Map) noexcept
+                 const ADT::MemoryMap &Map,
+                 const uint32_t ImageIndex) noexcept
         : MachO(Map, Kind::DscImage), Dsc(Dsc), ImageInfo(ImageInfo),
-          DscInfo(DscInfo) {}
+          DscInfo(DscInfo), ImageIndex(ImageIndex) {}
     public:
         enum class OpenError {
             None,
@@ -49,17 +51,16 @@ namespace Objects {
         struct Error {
             OpenError Kind;
 
-            #pragma clang diagnostic push
-            #pragma clang diagnostic ignored "-Wnested-anon-types"
-
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wnested-anon-types"
             union {
                 struct {
                     uint64_t Address;
                 } InvalidAddress;
             };
+        #pragma clang diagnostic pop
 
-            #pragma clang diagnostic pop
-            explicit Error(const OpenError Kind) noexcept : Kind(Kind) {}
+            constexpr Error(const OpenError Kind) noexcept : Kind(Kind) {}
 
             static inline auto invalidAddress(const uint64_t Address) noexcept {
                 auto Result = Error(OpenError::InvalidAddress);
@@ -73,7 +74,7 @@ namespace Objects {
 
         static auto
         Open(const DyldSharedCache &Dsc,
-             const ::DyldSharedCache::ImageInfo &ImageInfo) noexcept
+             const uint32_t ImageIndex) noexcept
                 -> std::expected<DscImage *, Error>;
 
         [[nodiscard]] constexpr auto &dsc() const noexcept {
@@ -82,6 +83,10 @@ namespace Objects {
 
         [[nodiscard]] constexpr auto &info() const noexcept {
             return this->ImageInfo;
+        }
+
+        [[nodiscard]] constexpr auto index() const noexcept {
+            return this->ImageIndex;
         }
 
         [[nodiscard]] constexpr auto address() const noexcept {
@@ -95,6 +100,9 @@ namespace Objects {
         [[nodiscard]] constexpr auto dscMap() const noexcept {
             return this->DscInfo.map();
         }
+
+        [[nodiscard]] auto getBaseAddress() const noexcept
+            -> std::optional<uint64_t>;
 
         [[nodiscard]]
         ADT::MemoryMap getMapForFileOffsets() const noexcept override;

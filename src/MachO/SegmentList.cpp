@@ -36,12 +36,8 @@ namespace MachO {
     {
         auto &Info = List.emplace_back(SegmentInfo {
             .Name = std::string(Segment.segmentName()),
-            .VmRange =
-                ADT::Range::FromSize(Segment.vmAddr(IsBigEndian),
-                                     Segment.vmSize(IsBigEndian)),
-            .FileRange =
-                ADT::Range::FromSize(Segment.fileOffset(IsBigEndian),
-                                     Segment.fileSize(IsBigEndian)),
+            .VmRange = Segment.vmRange(IsBigEndian),
+            .FileRange = Segment.fileRange(IsBigEndian),
             .MaxProt = Segment.maxProt(IsBigEndian),
             .InitProt = Segment.initProt(IsBigEndian),
             .Flags = Segment.flags(IsBigEndian),
@@ -75,12 +71,8 @@ namespace MachO {
     {
         auto &Info = List.emplace_back(SegmentInfo {
             .Name = std::string(Segment.segmentName()),
-            .VmRange =
-                ADT::Range::FromSize(Segment.vmAddr(IsBigEndian),
-                                     Segment.vmSize(IsBigEndian)),
-            .FileRange =
-                ADT::Range::FromSize(Segment.fileOffset(IsBigEndian),
-                                     Segment.fileSize(IsBigEndian)),
+            .VmRange = Segment.vmRange(IsBigEndian),
+            .FileRange = Segment.fileRange(IsBigEndian),
             .MaxProt = Segment.maxProt(IsBigEndian),
             .InitProt = Segment.initProt(IsBigEndian),
             .Flags = Segment.flags(IsBigEndian),
@@ -112,7 +104,7 @@ namespace MachO {
                                         const uint64_t Size) const noexcept
         -> std::optional<uint64_t>
     {
-        for (const auto &SegInfo : List) {
+        for (const auto &SegInfo : this->List) {
             if (!SegInfo.VmRange.hasLoc(VmAddr)) {
                 continue;
             }

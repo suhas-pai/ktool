@@ -87,10 +87,10 @@ namespace Operations {
         const auto Size = Arch.size(IsBigEndian);
         const auto Align = Arch.align(IsBigEndian);
 
-        auto String = std::format("{}", Utils::NumberWithCommas<uint64_t>(0));
+        auto String = std::format("{}", Utils::FormattedNumber<uint64_t>(0));
         std::print(OutFile, "{}", Utils::ByteSize(1ull << Align));
 
-        const auto OffsetRange = ADT::Range::FromSize(Offset, Size);
+        const auto OffsetRange = Utils::PrintRange(Offset, Size);
         std::print(OutFile,
                    "{}Arch #{}: {}\n"
                    "{}\tCpuKind:    {}\n"
@@ -130,7 +130,7 @@ namespace Operations {
         const auto Size = Arch.size(IsBigEndian);
         const auto Align = Arch.align(IsBigEndian);
 
-        const auto OffsetRange = ADT::Range::FromSize(Offset, Size);
+        const auto OffsetRange = Utils::PrintRange(Offset, Size);
         std::print(OutFile,
                    "{}Arch #{}: {}\n"
                    "{}\tCpuKind:    {}\n"
@@ -150,6 +150,10 @@ namespace Operations {
         -> RunResult
     {
         const auto IsBigEndian = Fat.isBigEndian();
+
+        const auto OutFile = this->OutFile;
+        const auto &Opt = this->Opt;
+
         auto I = uint32_t();
 
         if (Fat.is64Bit()) {

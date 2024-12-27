@@ -477,6 +477,12 @@ namespace MachO {
             return Mach::VmProt(ADT::SwitchEndianIf(InitProt, IsBigEndian));
         }
 
+        [[nodiscard]]
+        constexpr auto initAndMaxProt(const bool IsBigEndian) const noexcept {
+            return Mach::VmProtInitMax(this->initProt(IsBigEndian),
+                                       this->maxProt(IsBigEndian));
+        }
+
         uint32_t SectionCount;
 
         [[nodiscard]]
@@ -1257,6 +1263,12 @@ namespace MachO {
         [[nodiscard]]
         constexpr auto initProt(const bool IsBigEndian) const noexcept {
             return Mach::VmProt(ADT::SwitchEndianIf(InitProt, IsBigEndian));
+        }
+
+        [[nodiscard]]
+        constexpr auto initAndMaxProt(const bool IsBigEndian) const noexcept {
+            return Mach::VmProtInitMax(this->initProt(IsBigEndian),
+                                       this->maxProt(IsBigEndian));
         }
 
         uint32_t SectionCount;
@@ -2265,7 +2277,7 @@ namespace MachO {
             -> std::optional<std::span<const Entry>>
         {
             return Map.getRange<const Entry>(
-                this->symRange(IsBigEndian, false));
+                this->symRange(IsBigEndian, /*Is64Bit=*/false));
         }
 
         [[nodiscard]] inline auto
@@ -2273,7 +2285,8 @@ namespace MachO {
                         const bool IsBigEndian) noexcept
             -> std::optional<std::span<Entry>>
         {
-            return Map.getRange<Entry>(this->symRange(IsBigEndian, false));
+            return Map.getRange<Entry>(
+                this->symRange(IsBigEndian, /*Is64Bit=*/false));
         }
 
         [[nodiscard]] inline auto
@@ -2282,7 +2295,7 @@ namespace MachO {
             -> std::optional<std::span<const Entry64>>
         {
             return Map.getRange<const Entry64>(
-                this->symRange(IsBigEndian, true));
+                this->symRange(IsBigEndian, /*Is64Bit=*/true));
         }
 
         [[nodiscard]] inline auto
@@ -2290,7 +2303,15 @@ namespace MachO {
                           const bool IsBigEndian) noexcept
             -> std::optional<std::span<Entry64>>
         {
-            return Map.getRange<Entry64>(this->symRange(IsBigEndian, true));
+            return Map.getRange<Entry64>(
+                this->symRange(IsBigEndian, /*Is64Bit=*/true));
+        }
+
+        [[nodiscard]] inline auto
+        stringTable(const ADT::MemoryMap &Map, const bool IsBigEndian) noexcept
+            -> std::optional<std::span<const char>>
+        {
+            return Map.getRange<const char>(this->strRange(IsBigEndian));
         }
 
         [[nodiscard]]

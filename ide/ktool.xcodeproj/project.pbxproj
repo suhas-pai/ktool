@@ -8,13 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		F308429D2921CD1500D989D8 /* FileMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F308429C2921CD1500D989D8 /* FileMap.cpp */; };
+		F30D6C102D19FF25007E5531 /* DeVirtualizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F30D6C0F2D19FF25007E5531 /* DeVirtualizer.cpp */; };
 		F32062A629248857002B99D9 /* PrintHeader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F32062A529248857002B99D9 /* PrintHeader.cpp */; };
 		F33C25CB28EA146700289314 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F33C25CA28EA146700289314 /* main.cpp */; };
 		F34C282B292A12ED0010B711 /* FatMachO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F34C282A292A12ED0010B711 /* FatMachO.cpp */; };
 		F36BCD5C292C198C00C911E8 /* PrintId.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36BCD5B292C198C00C911E8 /* PrintId.cpp */; };
 		F36E814F2C29E63500DFBF9B /* Trie.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F36E814E2C29E63400DFBF9B /* Trie.cpp */; };
 		F37E2B982D18CAB600BA9B1C /* AddressResolver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F37E2B972D18CAB600BA9B1C /* AddressResolver.cpp */; };
-		F37E2B9A2D18CAC500BA9B1C /* DeVirtualizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F37E2B992D18CAC500BA9B1C /* DeVirtualizer.cpp */; };
 		F38BB77F2952897A00F1EC85 /* PrintCStringSection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F38BB77D2952897A00F1EC85 /* PrintCStringSection.cpp */; };
 		F38BB7802952897A00F1EC85 /* PrintSymbolPtrSection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F38BB77E2952897A00F1EC85 /* PrintSymbolPtrSection.cpp */; };
 		F39FAE8D2929C5450057DC6F /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F39FAE8C2929C5450057DC6F /* Base.cpp */; };
@@ -30,7 +30,6 @@
 		F3B8A3B02C29E4180039AA5C /* LibraryList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B8A3A92C29E4180039AA5C /* LibraryList.cpp */; };
 		F3B8A3B12C29E4180039AA5C /* SegmentList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B8A3AA2C29E4180039AA5C /* SegmentList.cpp */; };
 		F3B8A3B52C29E42D0039AA5C /* ProgramTrie.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B8A3B32C29E42D0039AA5C /* ProgramTrie.cpp */; };
-		F3B8A3B62C29E42D0039AA5C /* DeVirtualizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B8A3B42C29E42D0039AA5C /* DeVirtualizer.cpp */; };
 		F3B8A3B92C29E43D0039AA5C /* ExportTrie.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B8A3B82C29E43D0039AA5C /* ExportTrie.cpp */; };
 		F3B8A3BB2C29E4520039AA5C /* PrintRebaseOpcodeList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B8A3BA2C29E4520039AA5C /* PrintRebaseOpcodeList.cpp */; };
 		F3B8A3BF2C29E45C0039AA5C /* PrintProgramTrie.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F3B8A3BC2C29E45C0039AA5C /* PrintProgramTrie.cpp */; };
@@ -67,6 +66,7 @@
 		F308429A2921CCAC00D989D8 /* FileMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FileMap.h; path = ../include/ADT/FileMap.h; sourceTree = "<group>"; };
 		F308429C2921CD1500D989D8 /* FileMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = FileMap.cpp; path = ../src/ADT/FileMap.cpp; sourceTree = "<group>"; };
 		F30BB524292A267000AF300B /* SwitchEndian.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SwitchEndian.h; path = ../include/ADT/SwitchEndian.h; sourceTree = "<group>"; };
+		F30D6C0F2D19FF25007E5531 /* DeVirtualizer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DeVirtualizer.cpp; path = ../src/DyldSharedCache/DeVirtualizer.cpp; sourceTree = SOURCE_ROOT; };
 		F32062A129248580002B99D9 /* Kind.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Kind.h; path = ../include/Operations/Kind.h; sourceTree = "<group>"; };
 		F32062A529248857002B99D9 /* PrintHeader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PrintHeader.cpp; path = ../src/Operations/PrintHeader.cpp; sourceTree = "<group>"; };
 		F32062A82924887A002B99D9 /* PrintHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrintHeader.h; path = ../include/Operations/PrintHeader.h; sourceTree = "<group>"; };
@@ -88,7 +88,6 @@
 		F36E814D2C29E60700DFBF9B /* Trie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Trie.h; path = ../include/ADT/Trie.h; sourceTree = "<group>"; };
 		F36E814E2C29E63400DFBF9B /* Trie.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Trie.cpp; path = ../src/ADT/Trie.cpp; sourceTree = "<group>"; };
 		F37E2B812D18CA3100BA9B1C /* AddressResolver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AddressResolver.h; path = ../include/ADT/AddressResolver.h; sourceTree = SOURCE_ROOT; };
-		F37E2B822D18CA4200BA9B1C /* DeVirtualizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DeVirtualizer.h; path = ../include/DscImage/DeVirtualizer.h; sourceTree = SOURCE_ROOT; };
 		F37E2B832D18CA4900BA9B1C /* ChainedFixups.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ChainedFixups.h; path = ../include/Dyld3/ChainedFixups.h; sourceTree = SOURCE_ROOT; };
 		F37E2B842D18CA5800BA9B1C /* DeVirtualizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DeVirtualizer.h; path = ../include/DyldSharedCache/DeVirtualizer.h; sourceTree = SOURCE_ROOT; };
 		F37E2B852D18CA5800BA9B1C /* Headers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Headers.h; path = ../include/DyldSharedCache/Headers.h; sourceTree = SOURCE_ROOT; };
@@ -110,7 +109,6 @@
 		F37E2B952D18CA9800BA9B1C /* Run.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Run.h; path = ../include/Operations/Run.h; sourceTree = SOURCE_ROOT; };
 		F37E2B962D18CAA400BA9B1C /* Assert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Assert.h; path = ../include/Utils/Assert.h; sourceTree = SOURCE_ROOT; };
 		F37E2B972D18CAB600BA9B1C /* AddressResolver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = AddressResolver.cpp; path = ../src/ADT/AddressResolver.cpp; sourceTree = SOURCE_ROOT; };
-		F37E2B992D18CAC500BA9B1C /* DeVirtualizer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DeVirtualizer.cpp; path = ../src/DscImage/DeVirtualizer.cpp; sourceTree = SOURCE_ROOT; };
 		F38BB77D2952897A00F1EC85 /* PrintCStringSection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintCStringSection.cpp; path = ../src/Operations/PrintCStringSection.cpp; sourceTree = "<group>"; };
 		F38BB77E2952897A00F1EC85 /* PrintSymbolPtrSection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintSymbolPtrSection.cpp; path = ../src/Operations/PrintSymbolPtrSection.cpp; sourceTree = "<group>"; };
 		F39FAE882929C0A50057DC6F /* MachO.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MachO.h; path = ../include/Objects/MachO.h; sourceTree = "<group>"; };
@@ -140,7 +138,6 @@
 		F3B8A3A92C29E4180039AA5C /* LibraryList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LibraryList.cpp; path = ../src/MachO/LibraryList.cpp; sourceTree = "<group>"; };
 		F3B8A3AA2C29E4180039AA5C /* SegmentList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SegmentList.cpp; path = ../src/MachO/SegmentList.cpp; sourceTree = "<group>"; };
 		F3B8A3B32C29E42D0039AA5C /* ProgramTrie.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ProgramTrie.cpp; path = ../src/DyldSharedCache/ProgramTrie.cpp; sourceTree = "<group>"; };
-		F3B8A3B42C29E42D0039AA5C /* DeVirtualizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DeVirtualizer.cpp; path = ../src/DyldSharedCache/DeVirtualizer.cpp; sourceTree = "<group>"; };
 		F3B8A3B82C29E43D0039AA5C /* ExportTrie.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ExportTrie.cpp; path = ../src/DscImage/ExportTrie.cpp; sourceTree = "<group>"; };
 		F3B8A3BA2C29E4520039AA5C /* PrintRebaseOpcodeList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintRebaseOpcodeList.cpp; path = ../src/Operations/PrintRebaseOpcodeList.cpp; sourceTree = "<group>"; };
 		F3B8A3BC2C29E45C0039AA5C /* PrintProgramTrie.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrintProgramTrie.cpp; path = ../src/Operations/PrintProgramTrie.cpp; sourceTree = "<group>"; };
@@ -415,7 +412,7 @@
 		F3B8A3B22C29E4230039AA5C /* DyldSharedCache */ = {
 			isa = PBXGroup;
 			children = (
-				F3B8A3B42C29E42D0039AA5C /* DeVirtualizer.cpp */,
+				F30D6C0F2D19FF25007E5531 /* DeVirtualizer.cpp */,
 				F3E9362A2D18CADE00D7A5FD /* PatchInfo.cpp */,
 				F3B8A3B32C29E42D0039AA5C /* ProgramTrie.cpp */,
 			);
@@ -425,7 +422,6 @@
 		F3B8A3B72C29E4320039AA5C /* DscImage */ = {
 			isa = PBXGroup;
 			children = (
-				F37E2B992D18CAC500BA9B1C /* DeVirtualizer.cpp */,
 				F3B8A3B82C29E43D0039AA5C /* ExportTrie.cpp */,
 			);
 			name = DscImage;
@@ -443,7 +439,6 @@
 		F3B8A3D32C29E4BF0039AA5C /* DscImage */ = {
 			isa = PBXGroup;
 			children = (
-				F37E2B822D18CA4200BA9B1C /* DeVirtualizer.h */,
 				F3B8A3D42C29E4C60039AA5C /* ExportTrie.h */,
 			);
 			name = DscImage;
@@ -538,6 +533,7 @@
 				F39FAE8D2929C5450057DC6F /* Base.cpp in Sources */,
 				F36BCD5C292C198C00C911E8 /* PrintId.cpp in Sources */,
 				F3B8A3CD2C29E47F0039AA5C /* PrintImageList.cpp in Sources */,
+				F30D6C102D19FF25007E5531 /* DeVirtualizer.cpp in Sources */,
 				F3B8A3D12C29E4A50039AA5C /* Print.cpp in Sources */,
 				F39FAE902929C8370057DC6F /* MachO.cpp in Sources */,
 				F3B8A3AE2C29E4180039AA5C /* LoadCommands.cpp in Sources */,
@@ -552,11 +548,9 @@
 				F308429D2921CD1500D989D8 /* FileMap.cpp in Sources */,
 				F3B8A3BF2C29E45C0039AA5C /* PrintProgramTrie.cpp in Sources */,
 				F3B8A3C82C29E46D0039AA5C /* PrintBindActionList.cpp in Sources */,
-				F37E2B9A2D18CAC500BA9B1C /* DeVirtualizer.cpp in Sources */,
 				F3B8A3AC2C29E4180039AA5C /* ObjcInfo.cpp in Sources */,
 				F33C25CB28EA146700289314 /* main.cpp in Sources */,
 				F38BB77F2952897A00F1EC85 /* PrintCStringSection.cpp in Sources */,
-				F3B8A3B62C29E42D0039AA5C /* DeVirtualizer.cpp in Sources */,
 				F3B8A3C12C29E45C0039AA5C /* PrintObjcClassList.cpp in Sources */,
 				F3B8A3EA2C29E55D0039AA5C /* DscImage.cpp in Sources */,
 				F37E2B982D18CAB600BA9B1C /* AddressResolver.cpp in Sources */,

@@ -7,7 +7,6 @@
 
 #include "ADT/AddressResolver.h"
 #include "Dyld3/ChainedFixups.h"
-#include "Mach/Machine.h"
 #include "MachO/LoadCommands.h"
 
 namespace ADT {
@@ -171,7 +170,7 @@ namespace ADT {
 
     auto
     AddressResolver::FromLoadCommands(
-        const MemoryMap Map,
+        const ADT::MemoryMap &Map,
         const MachO::Header &Header,
         const MachO::DyldInfoCommand *const DyldInfo,
         const MachO::LinkeditDataCommand *const ChainedFixups,
@@ -204,44 +203,218 @@ namespace ADT {
             }
         }
 
+        auto PatchExportMap = PatchLocationMap();
         return AddressResolver(std::move(BindMap),
                                std::move(RebaseMap),
-                               ChainedFixupsKind);
+                               ChainedFixupsKind,
+                               std::move(PatchExportMap),
+                               SegmentList,
+                               /*SlideInfoVersion=*/0,
+                               /*SlideInfoBaseAddress=*/0,
+                               /*BaseAddress=*/0);
     }
 
-    [[nodiscard]] auto
-    AddressResolver::resolveBind(uint64_t Address,
-                                 const uint64_t BaseAddress) const noexcept
-        -> std::optional<const MachO::BindActionInfo *>
+    auto
+    AddressResolver::ForDscImage(
+        const DyldSharedCache::DeVirtualizer &DeVirtualizer,
+        const DyldSharedCache::SlideInfoBase *const SlideInfo,
+        const Objects::DscImage &Image,
+        const MachO::DyldInfoCommand *const DyldInfo,
+        const MachO::LinkeditDataCommand *const ChainedFixups,
+        const MachO::SegmentList &SegmentList) noexcept
+            -> std::expected<AddressResolver, ParseErrorType>
     {
-        if (this->ChainedFixupsKind != Dyld3::ChainedPointerKind::None) {
-            if (const auto ResolvedFixup =
-                    this->resolveChainedFixup(Address, BaseAddress))
+        using Error = enum PatchParseError::Error;
+
+        const auto Map = DeVirtualizer.map();
+        const auto &Header = Image.header();
+
+        const auto ChainedFixupsKind =
+            GetChainedFixupsKind(Map, Header, ChainedFixups);
+
+        auto BindMap = MachO::BindActionList::UnorderedMap();
+        auto RebaseMap = MachO::RebaseActionList::UnorderedMap();
+
+        const auto IsBigEndian = Header.isBigEndian();
+        const auto Is64Bit = Header.is64Bit();
+
+        if (DyldInfo != nullptr) {
+            auto BindAndRebaseParseError = ParseErrorType();
+            const auto ParseSuccess =
+                ParseBindAndRebaseMapFromDyldInfo(Map,
+                                                  *DyldInfo,
+                                                  SegmentList,
+                                                  IsBigEndian,
+                                                  Is64Bit,
+                                                  BindMap,
+                                                  RebaseMap,
+                                                  BindAndRebaseParseError);
+
+            if (!ParseSuccess) {
+                return std::unexpected(std::move(BindAndRebaseParseError));
+            }
+        }
+
+        const auto BaseAddressOpt = Image.getBaseAddress();
+        if (!BaseAddressOpt.has_value()) {
+            return std::unexpected(Error::ImageBaseAddressNotFound);
+        }
+
+        const auto BaseAddress = BaseAddressOpt.value();
+        const auto PatchInfoOrError =
+            DyldSharedCache::PatchInfo::Create(DeVirtualizer,
+                                               Image.index(),
+                                               BaseAddress,
+                                               Image.dsc().header());
+
+        if (!PatchInfoOrError.has_value()) {
+            return std::unexpected(PatchInfoOrError.error());
+        }
+
+        auto PatchExportMap = PatchLocationMap();
+
+        const auto &PatchInfo = PatchInfoOrError.value();
+        const auto PatchParseResult =
+            PatchInfo.collectListOfExportPatchesForRange(
+                PatchExportMap, Image.getVmRange());
+
+        if (PatchParseResult.Error != PatchParseError::Error::None) {
+            return std::unexpected(PatchParseResult);
+        }
+
+        auto SlideInfoVersion = static_cast<uint32_t>(0);
+        if (SlideInfo != nullptr) {
+            SlideInfoVersion = SlideInfo->Version;
+        }
+
+        auto SlideInfoBaseAddress = static_cast<uint64_t>(0);
+        switch (SlideInfoVersion) {
+            case 0:
+                break;
+            case 1:
+            case 3:
+            case 5:
+                if (const auto BaseAddressOpt = Image.dsc().baseAddress()) {
+                    SlideInfoBaseAddress = BaseAddressOpt.value();
+                }
+
+                break;
+            case 2:
+            case 4:
+                SlideInfoBaseAddress =
+                    static_cast<const ::DyldSharedCache::SlideInfoV2 *>(
+                        SlideInfo)->ValueAdd;
+                break;
+        }
+
+        return AddressResolver(std::move(BindMap),
+                               std::move(RebaseMap),
+                               ChainedFixupsKind,
+                               std::move(PatchExportMap),
+                               SegmentList,
+                               SlideInfoVersion,
+                               SlideInfoBaseAddress,
+                               BaseAddress);
+    }
+
+    auto
+    AddressResolver::resolve(uint64_t Address, uint64_t Value) const noexcept
+        -> std::optional<Resolution>
+    {
+        if (const auto PatchIter = this->PatchExportMap.find(Address);
+            PatchIter != this->PatchExportMap.end())
+        {
+            return Resolution(std::move(PatchIter->second));
+        }
+
+        if (this->SlideInfoVersion != 0) {
+            const auto Version =
+                ::DyldSharedCache::SlideInfoVersion(this->SlideInfoVersion);
+
+            switch (Version) {
+                case DyldSharedCache::SlideInfoVersion::V1:
+                    break;
+                case DyldSharedCache::SlideInfoVersion::V2: {
+                    const auto DeltaMask = 0x00FFFF0000000000ull;
+                    Value &= ~DeltaMask;
+
+                    break;
+                }
+                case DyldSharedCache::SlideInfoVersion::V4: {
+                    const auto DeltaMask = 0x00000000C0000000ull;
+                    Value = static_cast<uint32_t>(Value) & ~DeltaMask;
+
+                    break;
+                }
+                case DyldSharedCache::SlideInfoVersion::V3:
+                    if (const auto ResolvedFixupOpt =
+                            this->resolveChainedFixup(
+                                Dyld3::ChainedPointerKind::Arm64e,
+                                Value,
+                                this->SlideInfoBaseAddress))
+                    {
+                        auto &Resolution = ResolvedFixupOpt.value();
+                        if (Resolution.Kind == Resolution::Kind::Rebase) {
+                            return std::move(Resolution);
+                        }
+                    } else {
+                        return std::nullopt;
+                    }
+
+                    break;
+                case DyldSharedCache::SlideInfoVersion::V5:
+                    if (const auto ResolvedFixupOpt =
+                            this->resolveChainedFixup(
+                                Dyld3::ChainedPointerKind::Arm64eSharedCache,
+                                Value,
+                                this->SlideInfoBaseAddress))
+                    {
+                        auto &Resolution = ResolvedFixupOpt.value();
+                        if (Resolution.Kind == Resolution::Kind::Rebase) {
+                            return std::move(Resolution);
+                        }
+                    } else {
+                        return std::nullopt;
+                    }
+
+                    break;
+            }
+        } else if (this->ChainedFixupsKind != Dyld3::ChainedPointerKind::None) {
+            if (const auto ResolvedFixupOpt =
+                    this->resolveChainedFixup(this->ChainedFixupsKind,
+                                              Value,
+                                              this->ImageBaseAddress))
             {
-                if (ResolvedFixup->Kind == ResolvedFixupResult::Kind::Rebase) {
-                    Address =
-                        BaseAddress + ResolvedFixup->Rebase.TargetRuntimeOffset;
+                auto &Resolution = ResolvedFixupOpt.value();
+                if (Resolution.Kind == Resolution::Kind::Rebase) {
+                    return std::move(Resolution);
                 }
             } else {
                 return std::nullopt;
             }
         }
 
-        const auto Iter = BindMap.find(Address);
-        if (Iter != BindMap.end()) {
-            return &Iter->second;
+        const auto Iter = this->BindMap.find(Address);
+        if (Iter != this->BindMap.end()) {
+            const auto &BindInfo = Iter->second;
+            if (const auto FullAddressOpt =
+                    BindInfo.getFullAddress(this->SegmentList))
+            {
+                return Resolution(BindInfo, FullAddressOpt.value());
+            }
         }
 
-        return nullptr;
+        return std::nullopt;
     }
 
     [[nodiscard]] auto
     AddressResolver::resolveChainedFixup(
+        const Dyld3::ChainedPointerKind ChainedFixupsKind,
         const uint64_t Value,
         const uint64_t BaseAddress) const noexcept
-            -> std::optional<ResolvedFixupResult>
+            -> std::optional<Resolution>
     {
-        switch (this->ChainedFixupsKind) {
+        switch (ChainedFixupsKind) {
             case Dyld3::ChainedPointerKind::None:
                 return std::nullopt;
             case Dyld3::ChainedPointerKind::Arm64e:
@@ -249,115 +422,113 @@ namespace ADT {
             case Dyld3::ChainedPointerKind::Arm64eUserland:
             case Dyld3::ChainedPointerKind::Arm64eFirmware:
             case Dyld3::ChainedPointerKind::Arm64eUserland24: {
-                auto Result =
-                    ResolvedFixupResult(ResolvedFixupResult::Kind::Bind);
-
+                auto Result = Resolution(Resolution::Kind::Bind);
                 const auto ChainedPtrValue = Dyld3::ChainedPointer64(Value);
+
                 if (!ChainedPtrValue.arm64e.AuthBind.Bind) {
-                    Result.Kind = ResolvedFixupResult::Kind::Rebase;
+                    Result.Kind = Resolution::Kind::Rebase;
                     if (ChainedPtrValue.arm64e.AuthRebase.Auth) {
-                        Result.Rebase.TargetRuntimeOffset =
+                        Result.Rebase.FullAddress =
+                            BaseAddress +
                             ChainedPtrValue.arm64e.AuthRebase.Target;
 
-                        return Result;
+                        return std::move(Result);
                     }
 
-                    Result.Rebase.TargetRuntimeOffset =
+                    Result.Rebase.FullAddress =
                         ChainedPtrValue.arm64e.Rebase.unpackTarget();
 
-                    if (ChainedFixupsKind ==
-                            Dyld3::ChainedPointerKind::Arm64e ||
-                        ChainedFixupsKind ==
+                    if (ChainedFixupsKind !=
+                            Dyld3::ChainedPointerKind::Arm64e &&
+                        ChainedFixupsKind !=
                             Dyld3::ChainedPointerKind::Arm64eFirmware)
                     {
-                        Result.Rebase.TargetRuntimeOffset -= BaseAddress;
+                        Result.Rebase.FullAddress += BaseAddress;
                     }
 
-                    return Result;
+                    return std::move(Result);
                 }
 
                 if (ChainedPtrValue.arm64e.AuthBind.Auth) {
                     if (ChainedFixupsKind ==
                             Dyld3::ChainedPointerKind::Arm64eUserland24)
                     {
-                        Result.Bind.Ordinal =
+                        Result.Bind.Info.DylibOrdinal =
                             ChainedPtrValue.arm64e.AuthBind24.Ordinal;
                     } else {
-                        Result.Bind.Ordinal =
+                        Result.Bind.Info.DylibOrdinal =
                             ChainedPtrValue.arm64e.AuthBind.Ordinal;
                     }
 
-                    return Result;
+                    return std::move(Result);
                 }
 
                 if (ChainedFixupsKind ==
                         Dyld3::ChainedPointerKind::Arm64eUserland24)
                 {
-                    Result.Bind.Ordinal = ChainedPtrValue.arm64e.Bind24.Ordinal;
-                    return Result;
+                    Result.Bind.Info.DylibOrdinal =
+                        ChainedPtrValue.arm64e.Bind24.Ordinal;
+
+                    return std::move(Result);
                 }
 
-                Result.Bind.Ordinal = ChainedPtrValue.arm64e.Bind.Ordinal;
-                return Result;
+                Result.Bind.Info.DylibOrdinal =
+                    ChainedPtrValue.arm64e.Bind.Ordinal;
+
+                return std::move(Result);
             }
             case Dyld3::ChainedPointerKind::Bits64:
             case Dyld3::ChainedPointerKind::Bits64Offset: {
-                auto Result =
-                    ResolvedFixupResult(ResolvedFixupResult::Kind::Bind);
-
+                auto Result = Resolution(Resolution::Kind::Bind);
                 const auto ChainedPtrValue = Dyld3::ChainedPointer64(Value);
-                if (ChainedPtrValue.Bind.Bind) {
-                    Result.Bind.Ordinal = ChainedPtrValue.Bind.Ordinal;
-                    Result.Bind.Addend = ChainedPtrValue.Bind.Addend;
 
-                    return Result;
+                if (ChainedPtrValue.Bind.Bind) {
+                    Result.Bind.Info.DylibOrdinal =
+                        ChainedPtrValue.Bind.Ordinal;
+
+                    Result.Bind.Info.Addend = ChainedPtrValue.Bind.Addend;
+                    return std::move(Result);
                 }
 
-                Result.Kind = ResolvedFixupResult::Kind::Rebase;
-                Result.Rebase.TargetRuntimeOffset =
+                Result.Kind = Resolution::Kind::Rebase;
+                Result.Rebase.FullAddress =
                     ChainedPtrValue.Rebase.unpackedTarget();
 
                 if (ChainedFixupsKind ==
                         Dyld3::ChainedPointerKind::Bits64Offset)
                 {
-                    if (Result.Rebase.TargetRuntimeOffset < BaseAddress) {
-                        return std::nullopt;
-                    }
-
-                    Result.Rebase.TargetRuntimeOffset -= BaseAddress;
+                    Result.Rebase.FullAddress += BaseAddress;
                 }
 
-                return Result;
+                return std::move(Result);
             }
             case Dyld3::ChainedPointerKind::Bits32: {
+                auto Result = Resolution(Resolution::Kind::Bind);
                 const auto ChainedPtrValue =
                     Dyld3::ChainedPointer32(static_cast<uint32_t>(Value));
-                auto Result =
-                    ResolvedFixupResult(ResolvedFixupResult::Kind::Bind);
 
                 if (!ChainedPtrValue.Bind.Bind) {
-                    Result.Kind = ResolvedFixupResult::Kind::Rebase;
-                    Result.Rebase.TargetRuntimeOffset =
-                        ChainedPtrValue.Rebase.Target - BaseAddress;
+                    Result.Kind = Resolution::Kind::Rebase;
+                    Result.Rebase.FullAddress =
+                        BaseAddress + ChainedPtrValue.Rebase.Target;
 
-                    return Result;
+                    return std::move(Result);
                 }
 
-                Result.Bind.Ordinal = ChainedPtrValue.Bind.Ordinal;
-                Result.Bind.Addend = ChainedPtrValue.Bind.Addend;
+                Result.Bind.Info.DylibOrdinal = ChainedPtrValue.Bind.Ordinal;
+                Result.Bind.Info.Addend = ChainedPtrValue.Bind.Addend;
 
-                return Result;
+                return std::move(Result);
             }
             case Dyld3::ChainedPointerKind::Bits32Cache:
                 return std::nullopt;
             case Dyld3::ChainedPointerKind::Bits32Firmware: {
+                auto Result = Resolution(Resolution::Kind::Bind);
                 const auto ChainedPtrValue =
                     Dyld3::ChainedPointer32(static_cast<uint32_t>(Value));
-                auto Result =
-                    ResolvedFixupResult(ResolvedFixupResult::Kind::Bind);
 
-                Result.Rebase.TargetRuntimeOffset =
-                    ChainedPtrValue.FirmwareRebase.Target - BaseAddress;
+                Result.Bind.FullAddress =
+                    BaseAddress + ChainedPtrValue.FirmwareRebase.Target;
 
                 break;
             }
@@ -365,35 +536,42 @@ namespace ADT {
             case Dyld3::ChainedPointerKind::X86_64KernelCache: {
                 const auto ChainedPtrValue = Dyld3::ChainedPointer64(Value);
                 if (!ChainedPtrValue.Bind.Bind) {
-                    auto Result =
-                        ResolvedFixupResult(ResolvedFixupResult::Kind::Rebase);
+                    const auto FullOffset =
+                        BaseAddress + ChainedPtrValue.KernelCache.Target;
 
-                    Result.Rebase.TargetRuntimeOffset =
-                        ChainedPtrValue.KernelCache.Target;
-
-                    return Result;
+                    return Resolution(Resolution::Kind::Rebase, FullOffset);
                 }
 
                 return std::nullopt;
             }
             case Dyld3::ChainedPointerKind::Arm64eSharedCache: {
                 const auto ChainedPtrValue = Dyld3::ChainedPointer64(Value);
-                auto Result =
-                    ResolvedFixupResult(ResolvedFixupResult::Kind::Rebase);
+                auto Result = Resolution(Resolution::Kind::Rebase);
 
                 if (ChainedPtrValue.arm64e.SharedCacheRebase.Auth) {
-                    Result.Rebase.TargetRuntimeOffset =
+                    Result.Rebase.FullAddress =
+                        BaseAddress +
                         ChainedPtrValue.arm64e.SharedCacheAuthRebase
                             .RuntimeOffset;
                 } else {
-                    Result.Rebase.TargetRuntimeOffset =
+                    Result.Rebase.FullAddress =
+                        BaseAddress +
                         ChainedPtrValue.arm64e.SharedCacheRebase.RuntimeOffset;
                 }
 
-                return Result;
+                return std::move(Result);
             }
         }
 
         assert(false && "Unknown ChainedPointerKind");
+    }
+
+    auto AddressResolver::resolveRebase(uint64_t Value) const noexcept
+        -> std::optional<Resolution>
+    {
+        auto Result = Resolution(Resolution::Kind::Rebase);
+        Result.Rebase.FullAddress = Value + this->ImageBaseAddress;
+
+        return Result;
     }
 }

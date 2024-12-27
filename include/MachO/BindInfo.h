@@ -1020,7 +1020,7 @@ namespace MachO {
         }
 
         constexpr BindOpcodeParseError Advance() noexcept {
-            auto &Info = info();
+            auto &Info = this->info();
             const auto AddChangeToSegmentAddress =
                 [&](const int64_t Add) noexcept
             {
@@ -1056,13 +1056,13 @@ namespace MachO {
 
             const auto DoThreadedBind = [&]() noexcept {
                 const auto &SegInfo =
-                    SegList.at(static_cast<uint64_t>(Info.SegmentIndex));
+                    this->SegList.at(static_cast<uint64_t>(Info.SegmentIndex));
                 const auto SegVmAddr =
                     SegInfo.VmRange.locForIndex(Info.AddrInSeg);
 
                 const auto PtrSize = Utils::PointerSize(Is64Bit);
                 const auto FileOffsetOpt =
-                    SegList.getFileOffsetForVmAddr(SegVmAddr, PtrSize);
+                    this->SegList.getFileOffsetForVmAddr(SegVmAddr, PtrSize);
 
                 if (!FileOffsetOpt.has_value()) {
                     return ErrorEnum::OutOfBoundsSegmentAddr;
@@ -1072,11 +1072,11 @@ namespace MachO {
                 if (Is64Bit) {
                     Value =
                         *reinterpret_cast<const uint64_t *>(
-                            Map + FileOffsetOpt.value());
+                            this->Map + FileOffsetOpt.value());
                 } else {
                     Value =
                         *reinterpret_cast<const uint32_t *>(
-                            Map + FileOffsetOpt.value());
+                            this->Map + FileOffsetOpt.value());
                 }
 
                 const auto IsBind = Value & (1ull << 62);
@@ -1088,11 +1088,10 @@ namespace MachO {
                 }
 
                 Info.AddrInSeg += PtrSize;
-
                 Value &= ~(1ull << 62);
-                AddAmt = (Value & 0x3FF8000000000000) >> 51;
 
-                if (AddAmt == 0) {
+                this->AddAmt = (Value & 0x3FF8000000000000) >> 51;
+                if (this->AddAmt == 0) {
                     LastByte.setOpcode(BindByte::Opcode::SetDylibOrdinalImm);
                 }
 
@@ -1101,19 +1100,20 @@ namespace MachO {
 
             switch (LastByte.opcode()) {
                 case BindByte::Opcode::DoBindUlebTimesSkippingUleb:
-                    if (Count == 0) {
+                    if (this->Count == 0) {
                         break;
                     }
 
                     Info.AddrInSeg += AddAmt;
-                    Count--;
+                    this->Count--;
 
-                    if (Count != 0) {
+                    if (this->Count != 0) {
                         return ErrorEnum::None;
                     }
 
                     Info.AddrInSeg += AddAmt;
-                    LastByte.setOpcode(BindByte::Opcode::SetDylibOrdinalImm);
+                    this->LastByte.setOpcode(
+                        BindByte::Opcode::SetDylibOrdinalImm);
 
                     this->Iter++;
                     break;
@@ -1122,9 +1122,11 @@ namespace MachO {
                 case BindByte::Opcode::DoBindAddAddrImmScaled:
                     // Clear the Last-Opcode.
                     FinalizeChangesForSegmentAddress();
-                    LastByte.setOpcode(BindByte::Opcode::SetDylibOrdinalImm);
 
                     this->Iter++;
+                    this->LastByte.setOpcode(
+                        BindByte::Opcode::SetDylibOrdinalImm);
+
                     break;
                 case BindByte::Opcode::Done:
                     return ErrorEnum::None;
@@ -1225,7 +1227,6 @@ namespace MachO {
                         continue;
                     }
                     case BindByte::Opcode::DoBind: {
-                        ;
                         if (const auto Error = CheckIfCanBind();
                             Error != ErrorEnum::None)
                         {
@@ -1255,7 +1256,7 @@ namespace MachO {
                             );
                         }
 
-                        LastByte = Byte;
+                        this->LastByte = Byte;
                         return ErrorEnum::None;
                     }
                     case BindByte::Opcode::DoBindAddAddrUleb: {
@@ -1269,7 +1270,7 @@ namespace MachO {
                             return ErrorEnum::None;
                         }
 
-                        return ErrorEnum::None;
+                        return ErrorEnum::OutOfBoundsSegmentAddr;
                     }
                     case BindByte::Opcode::DoBindAddAddrImmScaled: {
                         const auto PtrSize = Utils::PointerSize(Is64Bit);
@@ -1397,7 +1398,7 @@ namespace MachO {
           Is64Bit(Is64Bit) {}
 
         [[nodiscard]] constexpr auto map() const noexcept {
-            return Map;
+            return this->Map;
         }
 
         [[nodiscard]] inline auto getBegin() const noexcept {
@@ -1413,7 +1414,7 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto &getSegList() const noexcept {
-            return SegList;
+            return this->SegList;
         }
 
         [[nodiscard]] constexpr auto begin() const noexcept {
@@ -1455,20 +1456,19 @@ namespace MachO {
                 }
 
                 const auto Action = Iter.getAction();
-                const auto FullAddr = Action.getFullAddress(SegmentList);
+                const auto FullAddrOpt = Action.getFullAddress(SegmentList);
 
-                MapOut.emplace(
-                    FullAddr.has_value() ?
-                        FullAddr.value() : std::numeric_limits<uint64_t>::max(),
-                    Action
-                );
+                if (!FullAddrOpt.has_value()) {
+                    continue;
+                }
+
+                MapOut.emplace(FullAddrOpt.value(), Action);
             }
 
             return BindOpcodeParseResult();
         }
 
-        [[nodiscard]]
-        inline auto
+        [[nodiscard]] inline auto
         getMapForVmRange(ADT::Range &VmRange,
                          const SegmentList &SegmentList,
                          UnorderedMap &MapOut) const noexcept
@@ -1481,24 +1481,23 @@ namespace MachO {
                 }
 
                 const auto Action = Iter.getAction();
-                const auto FullAddr = Action.getFullAddress(SegmentList);
+                const auto FullAddrOpt = Action.getFullAddress(SegmentList);
 
-                if (!FullAddr.has_value()) {
+                if (!FullAddrOpt.has_value()) {
                     continue;
                 }
 
-                if (!VmRange.contains(FullAddr)) {
+                if (!VmRange.contains(FullAddrOpt)) {
                     continue;
                 }
 
-                MapOut.emplace(FullAddr.value(), Action);
+                MapOut.emplace(FullAddrOpt.value(), Action);
             }
 
             return BindOpcodeParseResult();
         }
 
-        [[nodiscard]]
-        inline auto
+        [[nodiscard]] inline auto
         getMapForSection(const SegmentInfo &Segment,
                          const SectionInfo &Section,
                          UnorderedMap &MapOut) const noexcept
@@ -1516,14 +1515,14 @@ namespace MachO {
                 }
 
                 const auto Action = Info.getAction();
-                const auto FullAddr =
+                const auto FullAddrOpt =
                     Action.getFullAddressInSection(Segment, Section);
 
-                if (!FullAddr.has_value()) {
+                if (!FullAddrOpt.has_value()) {
                     continue;
                 }
 
-                MapOut.emplace(FullAddr.value(), Action);
+                MapOut.emplace(FullAddrOpt.value(), Action);
             }
 
             return BindOpcodeParseResult();

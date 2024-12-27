@@ -6,7 +6,6 @@
 //
 
 #include "ADT/FlagsIterator.h"
-#include "ADT/Maximizer.h"
 
 #include "Dyld3/Platform.h"
 #include "MachO/LoadCommands.h"
@@ -46,8 +45,8 @@ namespace Operations {
     PrintLoadCommand(FILE *const OutFile,
                      const MachO::LoadCommand &LC,
                      const bool IsBigEndian,
+                     const bool Is64Bit,
                      uint32_t &DylibIndex,
-                     uint32_t MaxDylibPathLength,
                      const bool Verbose,
                      const char *Prefix = "") noexcept
     {
@@ -69,15 +68,14 @@ namespace Operations {
                 std::print(OutFile,
                            "\t\"{}\"\t{}\n"
                            "{}File:          {}\n"
-                           "{}Mem:           {}\n"
+                           "{}Memory:        {}\n"
                            "{}File Size:     {}\n"
-                           "{}Mem Size:      {}\n"
+                           "{}Memory Size:   {}\n"
                            "{}Flags:         0x{:x}\n",
                            Segment.segmentName(),
-                           Mach::VmProtInitMax(Segment.initProt(IsBigEndian),
-                                               Segment.maxProt(IsBigEndian)),
-                           Prefix, ADT::Range::FromSize(FileOffset, FileSize),
-                           Prefix, ADT::Range::FromSize(VmAddr, VmSize),
+                           Segment.initAndMaxProt(IsBigEndian),
+                           Prefix, Utils::PrintRange(FileOffset, FileSize),
+                           Prefix, Utils::PrintRange(VmAddr, VmSize),
                            Prefix, Utils::ByteSize(FileSize),
                            Prefix, Utils::ByteSize(VmSize),
                            Prefix, Flags.value());
@@ -90,23 +88,23 @@ namespace Operations {
                         const auto Flag =
                             static_cast<FlagsStruct::Kind>(1ull << Bit);
 
-                        std::print(OutFile,
-                                   "\t{}{}. Bit {}: {}\n",
-                                   Prefix,
-                                   Counter + 1,
-                                   Bit,
-                                   FlagsStruct::KindIsValid(Flag) ?
-                                       FlagsStruct::KindGetString(Flag).data() :
-                                       "<unknown>");
+                        std::println(OutFile,
+                                     "\t{}{}. Bit {}: {}",
+                                     Prefix,
+                                     Counter + 1,
+                                     Bit,
+                                     FlagsStruct::KindIsValid(Flag) ?
+                                         FlagsStruct::KindGetString(Flag) :
+                                         "<unknown>");
 
                         Counter++;
                     }
                 }
 
-                std::print(OutFile,
-                           "{}Section Count: {}\n",
-                           Prefix,
-                           SectionCount);
+                std::println(OutFile,
+                             "{}Section Count: {}",
+                             Prefix,
+                             SectionCount);
 
                 if (SectionCount == 0) {
                     break;
@@ -135,17 +133,14 @@ namespace Operations {
                                    SectionCountDigitCount);
                     } else {
                         std::print(OutFile,
-                                   "\t{}{:>{}}. File: {:<}\tMem: {:<}\tAlign: ",
+                                   "\t{}{:>{}}. File: {:<}\t  Memory: {:<}"
+                                   "\t  Align: {:<{}}",
                                    Prefix,
                                    I + 1,
                                    SectionCountDigitCount,
                                    Utils::PrintRange(FileOffset, Size),
-                                   Utils::PrintRange(Addr, Size));
-
-                        std::print(OutFile,
-                                   "{:<{}}",
-                                   AlignDesc,
-                                   LongestAlignDescLength);
+                                   Utils::PrintRange(Addr, Size),
+                                   AlignDesc, LongestAlignDescLength);
                     }
 
                     std::print(OutFile,
@@ -176,31 +171,30 @@ namespace Operations {
                     }
 
                     if (Verbose) {
-                       std::print(OutFile,
-                                  "\n"
-                                  "\t\t{}File:              {}\n"
-                                  "\t\t{}Mem:               {}\n"
-                                  "\t\t{}Size:              {}\n"
-                                  "\t\t{}Align:             {} ({})\n"
-                                  "\t\t{}Reloc File Offset: {}\n"
-                                  "\t\t{}Reloc Count:       {}\n"
-                                  "\t\t{}Reserved 1:        {}\n"
-                                  "\t\t{}Reserved 2:        {}\n"
-                                  "\t\t{}Flags:             0x{:x}\n",
-                                  Prefix,
-                                    ADT::Range::FromSize(FileOffset, Size),
-                                  Prefix, ADT::Range::FromSize(Addr, Size),
-                                  Prefix, Utils::ByteSize(Size),
-                                  Prefix, Align, AlignDesc,
-                                  Prefix,
-                                    Utils::Address(
-                                        Section.relocFileOffset(IsBigEndian)),
-                                  Prefix,
-                                    Utils::NumberWithCommas(
-                                        Section.relocsCount(IsBigEndian)),
-                                  Prefix, Section.reserved1(IsBigEndian),
-                                  Prefix, Section.reserved2(IsBigEndian),
-                                  Prefix, Flags.value());
+                        std::println(OutFile);
+                        std::print(OutFile,
+                                   "\t\t{}File:              {}\n"
+                                   "\t\t{}Memory:            {}\n"
+                                   "\t\t{}Size:              {}\n"
+                                   "\t\t{}Align:             {} ({})\n"
+                                   "\t\t{}Reloc File Offset: {}\n"
+                                   "\t\t{}Reloc Count:       {}\n"
+                                   "\t\t{}Reserved 1:        {}\n"
+                                   "\t\t{}Reserved 2:        {}\n"
+                                   "\t\t{}Flags:             0x{:x}\n",
+                                   Prefix, Utils::PrintRange(FileOffset, Size),
+                                   Prefix, Utils::PrintRange(Addr, Size),
+                                   Prefix, Utils::ByteSize(Size),
+                                   Prefix, Align, AlignDesc,
+                                   Prefix,
+                                     Utils::Address(
+                                         Section.relocFileOffset(IsBigEndian)),
+                                   Prefix,
+                                     Utils::FormattedNumber(
+                                         Section.relocsCount(IsBigEndian)),
+                                   Prefix, Section.reserved1(IsBigEndian),
+                                   Prefix, Section.reserved2(IsBigEndian),
+                                   Prefix, Flags.value());
 
                             auto FlagNumber = uint32_t();
                             for (const auto Bit :
@@ -213,12 +207,12 @@ namespace Operations {
                                         SectionT::AttributeGetString(Attr) :
                                         "<unknown>";
 
-                                std::print(OutFile,
-                                           "\t\t\t{}{}. Bit {}: {}\n",
-                                           Prefix,
-                                           FlagNumber + 1,
-                                           Bit,
-                                           AttrString);
+                                std::println(OutFile,
+                                             "\t\t\t{}{}. Bit {}: {}",
+                                             Prefix,
+                                             FlagNumber + 1,
+                                             Bit,
+                                             AttrString);
 
                                 FlagNumber++;
                             }
@@ -249,9 +243,9 @@ namespace Operations {
                             std::print(OutFile, ",");
                         }
 
-                        std::print(OutFile, ")\n");
+                        std::println(OutFile, ")");
                     } else {
-                        std::print(OutFile, "\n");
+                        std::println(OutFile);
                     }
 
                     I++;
@@ -272,15 +266,14 @@ namespace Operations {
                 std::print(OutFile,
                            "\t\"{}\"\t{}\n"
                            "{}File:          {}\n"
-                           "{}Mem:           {}\n"
+                           "{}Memory:        {}\n"
                            "{}File Size:     {}\n"
-                           "{}Mem Size:      {}\n"
+                           "{}Memory Size:   {}\n"
                            "{}Flags:         0x{:x}\n",
                            Segment.segmentName(),
-                           Mach::VmProtInitMax(Segment.initProt(IsBigEndian),
-                                               Segment.maxProt(IsBigEndian)),
-                           Prefix, ADT::Range::FromSize(FileOffset, FileSize),
-                           Prefix, ADT::Range::FromSize(VmAddr, VmSize),
+                           Segment.initAndMaxProt(IsBigEndian),
+                           Prefix, Utils::PrintRange(FileOffset, FileSize),
+                           Prefix, Utils::PrintRange(VmAddr, VmSize),
                            Prefix, Utils::ByteSize(FileSize),
                            Prefix, Utils::ByteSize(VmSize),
                            Prefix, Flags.value());
@@ -293,23 +286,23 @@ namespace Operations {
                         const auto Flag =
                             static_cast<FlagsStruct::Kind>(1ull << Bit);
 
-                        std::print(OutFile,
-                                   "\t{}{}. Bit {}: {}\n",
-                                   Prefix,
-                                   Counter + 1,
-                                   Bit,
-                                   FlagsStruct::KindIsValid(Flag) ?
-                                       FlagsStruct::KindGetString(Flag).data() :
-                                       "<unknown>");
+                        std::println(OutFile,
+                                     "\t{}{}. Bit {}: {}",
+                                     Prefix,
+                                     Counter + 1,
+                                     Bit,
+                                     FlagsStruct::KindIsValid(Flag) ?
+                                         FlagsStruct::KindGetString(Flag) :
+                                         "<unknown>");
 
                         Counter++;
                     }
                 }
 
-                std::print(OutFile,
-                           "{}Section Count: {}\n",
-                           Prefix,
-                           SectionCount);
+                std::println(OutFile,
+                             "{}Section Count: {}",
+                             Prefix,
+                             SectionCount);
 
                 if (SectionCount == 0) {
                     break;
@@ -338,8 +331,8 @@ namespace Operations {
                                    SectionCountDigitCount);
                     } else {
                         std::print(OutFile,
-                                   "\t{}{:>{}}. File: {:<}\tMem: {:<}"
-                                   "\tAlign: {:>{}}",
+                                   "\t{}{:>{}}. File: {:<}\t  Memory: {:<}"
+                                   "\t  Align: {:>{}}",
                                    Prefix,
                                    I + 1,
                                    SectionCountDigitCount,
@@ -380,10 +373,10 @@ namespace Operations {
                         const auto Align = Section.align(IsBigEndian);
                         const auto AlignDesc = Utils::ByteSize(1ull << Align);
 
+                        std::println(OutFile);
                         std::print(OutFile,
-                                   "\n"
                                    "\t\t{}File:              {}\n"
-                                   "\t\t{}Mem:               {}\n"
+                                   "\t\t{}Memory:            {}\n"
                                    "\t\t{}Size:              {}\n"
                                    "\t\t{}Align:             {} ({})\n"
                                    "\t\t{}Reloc File Offset: {}\n"
@@ -392,15 +385,16 @@ namespace Operations {
                                    "\t\t{}Reserved 2:        {}\n"
                                    "\t\t{}Flags:             0x{:x}\n",
                                    Prefix,
-                                    ADT::Range::FromSize(FileOffset, Size),
-                                   Prefix, ADT::Range::FromSize(Addr, Size),
+                                    Utils::PrintRange<uint64_t>(FileOffset,
+                                                                Size),
+                                   Prefix, Utils::PrintRange(Addr, Size),
                                    Prefix, Utils::ByteSize(Size),
                                    Prefix, Align, AlignDesc,
                                    Prefix,
                                        Utils::Address(
                                            Section.relocFileOffset(IsBigEndian)),
                                    Prefix,
-                                       Utils::NumberWithCommas(
+                                       Utils::FormattedNumber(
                                            Section.relocsCount(IsBigEndian)),
                                    Prefix, Section.reserved1(IsBigEndian),
                                    Prefix, Section.reserved2(IsBigEndian),
@@ -417,12 +411,12 @@ namespace Operations {
                                         SectionT::AttributeGetString(Attr) :
                                         "<unknown>";
 
-                                std::print(OutFile,
-                                           "\t\t\t{}{}. Bit {}: {}\n",
-                                           Prefix,
-                                           FlagNumber + 1,
-                                           Bit,
-                                           AttrString);
+                                std::println(OutFile,
+                                             "\t\t\t{}{}. Bit {}: {}",
+                                             Prefix,
+                                             FlagNumber + 1,
+                                             Bit,
+                                             AttrString);
 
                                 FlagNumber++;
                             }
@@ -440,7 +434,7 @@ namespace Operations {
                                 const auto AttrDesc =
                                     SectionT::AttributeGetDesc(Attr);
 
-                                std::print(OutFile, " {}", AttrDesc.data());
+                                std::print(OutFile, " {}", AttrDesc);
                             } else {
                                 std::print(OutFile, " <unknown: Bit {}>", Bit);
                             }
@@ -453,9 +447,9 @@ namespace Operations {
                             std::print(OutFile, ",");
                         }
 
-                        std::print(OutFile, ")\n");
+                        std::println(OutFile, ")");
                     } else {
-                        std::print(OutFile, "\n");
+                        std::println(OutFile);
                     }
 
                     I++;
@@ -465,7 +459,7 @@ namespace Operations {
             }
             case LoadCommandKind::Thread:
             case LoadCommandKind::UnixThread:
-                std::print(OutFile, "\n");
+                std::println(OutFile);
                 break;
             case LoadCommandKind::LoadFixedVMSharedLib:
             case LoadCommandKind::IdFixedVMSharedLib: {
@@ -477,8 +471,8 @@ namespace Operations {
                 const auto HeaderAddress =
                     FvmLib.Library.headerAddress(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Name:           \"{}\"\n"
                            "{}Minor Version:  {}\n"
                            "{}Header Address: {}\n",
@@ -505,31 +499,28 @@ namespace Operations {
                            NameOpt.has_value() ? NameOpt.value() : Malformed);
 
                 if (Kind != MachO::LoadCommandKind::IdDylib) {
-                    const auto PadLength =
-                        MaxDylibPathLength -
-                            (NameOpt.has_value() ?
-                                NameOpt->length() : Malformed.length());
-
-                    Utils::PadSpaces(OutFile, static_cast<uint32_t>(PadLength));
                     DylibIndex++;
                 }
 
-                const auto CurrentVersion =
-                    DylibCmd.currentVersion(IsBigEndian);
-                const auto CompatVersion = DylibCmd.compatVersion(IsBigEndian);
+                if (!Verbose) {
+                    std::println(OutFile);
+                    break;
+                }
 
                 const auto Timestamp = DylibCmd.timestamp(IsBigEndian);
-                const auto TimestampString =
-                    Utils::GetHumanReadableTimestamp(Timestamp);
+                const auto CompatVersion = DylibCmd.compatVersion(IsBigEndian);
+                const auto CurrentVersion =
+                    DylibCmd.currentVersion(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Current Version: {}\n"
                            "{}Compat Version:  {}\n"
                            "{}Timestamp:       {} (Value: {})\n",
                            Prefix, CurrentVersion,
                            Prefix, CompatVersion,
-                           Prefix, TimestampString, Timestamp);
+                           Prefix, Utils::Timestamp(Timestamp),
+                            Utils::FormattedNumber(Timestamp));
 
                 break;
             }
@@ -538,10 +529,10 @@ namespace Operations {
                     cast<SubFrameworkCommand>(LC, IsBigEndian);
 
                 const auto UmbrellaOpt = SubFramework.umbrella(IsBigEndian);
-                std::print(OutFile,
-                           "\t\"{}\"\n",
-                            UmbrellaOpt.has_value() ?
-                                UmbrellaOpt.value() : Malformed);
+                std::println(OutFile,
+                             "\t\"{}\"",
+                              UmbrellaOpt.has_value() ?
+                                  UmbrellaOpt.value() : Malformed);
 
                 break;
             }
@@ -549,10 +540,10 @@ namespace Operations {
                 const auto &SubClient = cast<SubClientCommand>(LC, IsBigEndian);
                 const auto ClientOpt = SubClient.client(IsBigEndian);
 
-                std::print(OutFile,
-                           "\t\"{}\"\n",
-                            ClientOpt.has_value() ?
-                                ClientOpt.value() : Malformed);
+                std::println(OutFile,
+                             "\t\"{}\"",
+                              ClientOpt.has_value() ?
+                                  ClientOpt.value() : Malformed);
 
                 break;
             }
@@ -562,10 +553,10 @@ namespace Operations {
                 const auto SubUmbrellaOpt =
                     SubUmbrella.subUmbrella(IsBigEndian);
 
-                std::print(OutFile,
-                           "\t\"{}\"\n",
-                           SubUmbrellaOpt.has_value() ?
-                                SubUmbrellaOpt.value() : Malformed);
+                std::println(OutFile,
+                             "\t\"{}\"",
+                             SubUmbrellaOpt.has_value() ?
+                                  SubUmbrellaOpt.value() : Malformed);
 
                 break;
             }
@@ -574,9 +565,9 @@ namespace Operations {
                     cast<SubLibraryCommand>(LC, IsBigEndian);
 
                 const auto SubLibraryOpt = SubLibrary.subLibrary(IsBigEndian);
-                std::print(OutFile,
-                           "\t\"{}\"\n",
-                            SubLibraryOpt.has_value() ?
+                std::println(OutFile,
+                             "\t\"{}\"",
+                              SubLibraryOpt.has_value() ?
                                 SubLibraryOpt.value() : Malformed);
 
                 break;
@@ -586,9 +577,9 @@ namespace Operations {
                     cast<PreboundDylibCommand>(LC, IsBigEndian);
 
                 const auto NameOpt = PreboundDylibCmd.name(IsBigEndian);
-                std::print(OutFile,
-                           "\t\"{}\"\n",
-                           NameOpt.has_value() ? NameOpt.value() : Malformed);
+                std::println(OutFile,
+                             "\t\"{}\"",
+                             NameOpt.has_value() ? NameOpt.value() : Malformed);
 
                 break;
             }
@@ -598,9 +589,9 @@ namespace Operations {
                     cast<DylinkerCommand>(LC, IsBigEndian);
 
                 const auto NameOpt = DylinkerCmd.name(IsBigEndian);
-                std::print(OutFile,
-                           "\t\"{}\"\n",
-                           NameOpt.has_value() ? NameOpt.value() : Malformed);
+                std::println(OutFile,
+                             "\t\"{}\"",
+                             NameOpt.has_value() ? NameOpt.value() : Malformed);
 
                 break;
             }
@@ -618,8 +609,8 @@ namespace Operations {
                 const auto Reserved5 = RoutinesCmd.reserved5(IsBigEndian);
                 const auto Reserved6 = RoutinesCmd.reserved6(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Init Address: {}\n"
                            "{}Init Module:  {}\n"
                            "{}Reserved 1:   {}\n"
@@ -652,8 +643,8 @@ namespace Operations {
                 const auto Reserved5 = RoutinesCmd.reserved5(IsBigEndian);
                 const auto Reserved6 = RoutinesCmd.reserved6(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Init Address: {}\n"
                            "{}Init Module:  {}\n"
                            "{}Reserved 1:   {}\n"
@@ -681,16 +672,21 @@ namespace Operations {
                 const auto StrOff = SymTabCmd.strOffset(IsBigEndian);
                 const auto StrSize = SymTabCmd.strSize(IsBigEndian);
 
+                const auto SymRange =
+                    Utils::PrintRange<decltype(SymOff)>(
+                        SymTabCmd.symRange(IsBigEndian, Is64Bit));
+
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
-                           "{}Symbol Table Offset: {}\n"
-                           "{}Symbol Count:        {}\n"
-                           "{}String Table Offset: ({})\n"
+                           "{}Symbol Table Offset: {} ({})\n"
+                           "{}Symbol Count:        {} ({})\n"
+                           "{}String Table Offset: {} ({})\n"
                            "{}String Table Size:   {}\n",
-                           Prefix, SymOff,
-                           Prefix, SymCount,
-                           Prefix, StrOff,
-                           ADT::Range::FromSize(StrOff, StrSize),
+                           Prefix, Utils::Address(SymOff), SymRange,
+                           Prefix, Utils::FormattedNumber(SymCount),
+                            Utils::ByteSize(SymRange.size()),
+                           Prefix, Utils::Address(StrOff),
+                            Utils::PrintRange(StrOff, StrSize),
                            Prefix, Utils::ByteSize(StrSize));
 
                 break;
@@ -726,7 +722,7 @@ namespace Operations {
                 const auto IndirectSymbolsOffset =
                     DySymTabCmd.indirectSymbolsOffset(IsBigEndian);
                 const auto IndirectSymbolsCount =
-                    DySymTabCmd.indirectSymbolsOffset(IsBigEndian);
+                    DySymTabCmd.indirectSymbolsCount(IsBigEndian);
                 const auto ExternRelOffset =
                     DySymTabCmd.externRelOffset(IsBigEndian);
                 const auto ExternRelCount =
@@ -736,8 +732,8 @@ namespace Operations {
                 const auto LocalRelCount =
                     DySymTabCmd.localRelCount(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Local Symbols Index:       {}\n"
                            "{}Local Symbols Count:       {}\n"
                            "{}Extern Def Symbols Index:  {}\n"
@@ -756,29 +752,29 @@ namespace Operations {
                            "{}Extern Relocations Count:  {}\n"
                            "{}Local Relocations Offset:  {}\n"
                            "{}Local Relocations Count:   {}\n",
-                           Prefix, Utils::NumberWithCommas(LocalSymbolsIndex),
-                           Prefix, Utils::NumberWithCommas(LocalSymbolsCount),
+                           Prefix, Utils::FormattedNumber(LocalSymbolsIndex),
+                           Prefix, Utils::FormattedNumber(LocalSymbolsCount),
                            Prefix,
-                            Utils::NumberWithCommas(ExternDefSymbolsIndex),
+                            Utils::FormattedNumber(ExternDefSymbolsIndex),
                            Prefix,
-                            Utils::NumberWithCommas(ExternDefSymbolsCount),
-                           Prefix, Utils::NumberWithCommas(UndefSymbolsIndex),
-                           Prefix, Utils::NumberWithCommas(UndefSymbolsCount),
+                            Utils::FormattedNumber(ExternDefSymbolsCount),
+                           Prefix, Utils::FormattedNumber(UndefSymbolsIndex),
+                           Prefix, Utils::FormattedNumber(UndefSymbolsCount),
                            Prefix, Utils::Address(TableOfContentsOffset),
                            Prefix,
-                            Utils::NumberWithCommas(TableOfContentsCount),
+                            Utils::FormattedNumber(TableOfContentsCount),
                            Prefix, Utils::Address(ModulesTabOffset),
-                           Prefix, Utils::NumberWithCommas(ModulesTabCount),
+                           Prefix, Utils::FormattedNumber(ModulesTabCount),
                            Prefix, Utils::Address(ExternRefSymbolsOffset),
                            Prefix,
-                            Utils::NumberWithCommas(ExternRefSymbolsCount),
+                            Utils::FormattedNumber(ExternRefSymbolsCount),
                            Prefix, Utils::Address(IndirectSymbolsOffset),
                            Prefix,
-                            Utils::NumberWithCommas(IndirectSymbolsCount),
+                            Utils::FormattedNumber(IndirectSymbolsCount),
                            Prefix, Utils::Address(ExternRelOffset),
-                           Prefix, Utils::NumberWithCommas(ExternRelCount),
+                           Prefix, Utils::FormattedNumber(ExternRelCount),
                            Prefix, Utils::Address(LocalRelOffset),
-                           Prefix, Utils::NumberWithCommas(LocalRelCount));
+                           Prefix, Utils::FormattedNumber(LocalRelCount));
                 break;
             }
             case LoadCommandKind::TwoLevelHints: {
@@ -789,12 +785,12 @@ namespace Operations {
                 const auto HintsCount =
                     TwoLevelHintsCmd.hintsCount(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Offset:      {}\n"
                            "{}Hints Count: {}\n",
                            Prefix, Utils::Address(Offset),
-                           Prefix, Utils::NumberWithCommas(HintsCount));
+                           Prefix, Utils::FormattedNumber(HintsCount));
                 break;
             }
             case LoadCommandKind::PreBindChecksum: {
@@ -802,24 +798,22 @@ namespace Operations {
                     cast<PrebindChecksumCommand>(LC, IsBigEndian);
 
                 const auto Checksum = PrebindChecksumCmd.checksum(IsBigEndian);
-                std::print(OutFile, "\t{}\n", Checksum);
+                std::println(OutFile, "\t{}", Checksum);
 
                 break;
             }
             case LoadCommandKind::Uuid: {
                 const auto UuidCmd = cast<UuidCommand>(LC, IsBigEndian);
-                std::print(OutFile,
-                           "\t\"{}\"\n",
-                           Utils::Uuid(UuidCmd.Uuid));
+                std::println(OutFile, "\t\"{}\"", Utils::Uuid(UuidCmd.Uuid));
                 break;
             }
             case LoadCommandKind::Rpath: {
                 const auto &RpathCmd = cast<RpathCommand>(LC, IsBigEndian);
                 const auto PathOpt = RpathCmd.path(IsBigEndian);
 
-                std::print(OutFile,
-                           "\t\"{}\"\n",
-                           PathOpt.has_value() ? PathOpt.value() : Malformed);
+                std::println(OutFile,
+                             "\t\"{}\"",
+                             PathOpt.has_value() ? PathOpt.value() : Malformed);
                 break;
             }
             case LoadCommandKind::CodeSignature:
@@ -836,12 +830,12 @@ namespace Operations {
                 const auto DataOff = LinkeditDataCmd.dataOff(IsBigEndian);
                 const auto DataSize = LinkeditDataCmd.dataSize(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Data Offset: {} ({})\n"
                            "{}Data Size:   {}\n",
                            Prefix, Utils::Address(DataOff),
-                            ADT::Range::FromSize(DataOff, DataSize),
+                            Utils::PrintRange(DataOff, DataSize),
                            Prefix, Utils::ByteSize(DataSize));
                 break;
             }
@@ -854,8 +848,8 @@ namespace Operations {
                 const auto EntryIdOpt = FileSetEntryCmd.entryId(IsBigEndian);
                 const auto Reserved = FileSetEntryCmd.reserved(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Vm Address:  {}\n"
                            "{}File Offset: {}\n"
                            "{}Entry Id:    {}\n"
@@ -877,13 +871,13 @@ namespace Operations {
                 const auto CryptOffset =
                     EncryptionInfoCmd.cryptOffset(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Crypt Offset: {} ({})\n"
                            "{}Crypt Size:   {}\n"
                            "{}Crypt Id:     {}\n",
                            Prefix, CryptOffset,
-                           ADT::Range::FromSize(CryptOffset, CryptSize),
+                            Utils::PrintRange(CryptOffset, CryptSize),
                            Prefix, Utils::ByteSize(CryptSize),
                            Prefix, CryptId);
                 break;
@@ -898,16 +892,16 @@ namespace Operations {
                 const auto CryptOffset =
                     EncryptionInfoCmd.cryptOffset(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Crypt Offset: {} ({})\n"
                            "{}Crypt Size:   {}\n"
                            "{}Crypt Id:     {}\n"
                            "{}Pad:          {}\n",
-                           Prefix, CryptOffset,
-                            ADT::Range::FromSize(CryptOffset, CryptSize),
+                           Prefix, Utils::Address(CryptOffset),
+                            Utils::PrintRange(CryptOffset, CryptSize),
                            Prefix, Utils::ByteSize(CryptSize),
-                           Prefix, CryptId,
+                           Prefix, Utils::FormattedNumber(CryptId),
                            Prefix, Pad);
                 break;
             }
@@ -921,8 +915,8 @@ namespace Operations {
                 const auto Version = VersionMinCmd.version(IsBigEndian);
                 const auto Sdk = VersionMinCmd.sdk(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Version: {}\n"
                            "{}SDK:     {}\n",
                            Prefix, Version,
@@ -940,17 +934,17 @@ namespace Operations {
                             Dyld3::PlatformGetString(Platform) :
                             Dyld3::PlatformGetDesc(Platform);
 
-                    std::print(OutFile,
-                               "\n"
-                               "{}Platform:    {}\n",
-                               Prefix,
-                               PlatformString);
+                    std::println(OutFile);
+                    std::println(OutFile,
+                                 "{}Platform:    {}",
+                                 Prefix,
+                                 PlatformString);
                 } else {
-                    std::print(OutFile,
-                               "\n"
-                               "{}Platform:    <Unknown> (Value: {}\n",
-                               Prefix,
-                               static_cast<uint32_t>(Platform));
+                    std::println(OutFile);
+                    std::println(OutFile,
+                                 "{}Platform:    <Unknown> (Value: {})",
+                                 Prefix,
+                                 static_cast<uint32_t>(Platform));
                 }
 
                 const auto MinOS = BuildVersionCmd.minOS(IsBigEndian);
@@ -1012,8 +1006,8 @@ namespace Operations {
                 const auto ExportTrieSize =
                     DyldInfoCmd.exportTrieSize(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Rebase Offset:      {} ({})\n"
                            "{}Rebase Size:        {}\n"
                            "{}Bind Offset:        {} ({})\n"
@@ -1025,24 +1019,19 @@ namespace Operations {
                            "{}Export Trie Offset: {} ({})\n"
                            "{}Export Trie Size:   {}\n",
                            Prefix, Utils::Address(RebaseOffset),
-                            ADT::Range::FromSize(RebaseOffset, RebaseSize),
-                           Prefix,
-                               Utils::ByteSize(RebaseSize),
+                            Utils::PrintRange(RebaseOffset, RebaseSize),
+                           Prefix, Utils::ByteSize(RebaseSize),
                            Prefix, Utils::Address(BindOffset),
-                            ADT::Range::FromSize(BindOffset, BindSize),
-                           Prefix,
-                               Utils::ByteSize(BindSize),
+                            Utils::PrintRange(BindOffset, BindSize),
+                           Prefix, Utils::ByteSize(BindSize),
                            Prefix, Utils::Address(WeakBindOffset),
-                            ADT::Range::FromSize(WeakBindOffset, WeakBindSize),
-                           Prefix,
-                               Utils::ByteSize(WeakBindSize),
+                            Utils::PrintRange(WeakBindOffset, WeakBindSize),
+                           Prefix, Utils::ByteSize(WeakBindSize),
                            Prefix, Utils::Address(LazyBindOffset),
-                            ADT::Range::FromSize(LazyBindOffset, LazyBindSize),
-                           Prefix,
-                               Utils::ByteSize(LazyBindSize),
+                            Utils::PrintRange(LazyBindOffset, LazyBindSize),
+                           Prefix, Utils::ByteSize(LazyBindSize),
                            Prefix, Utils::Address(ExportTrieOffset),
-                            ADT::Range::FromSize(ExportTrieOffset,
-                                                 ExportTrieSize),
+                            Utils::PrintRange(ExportTrieOffset, ExportTrieSize),
                            Prefix, Utils::ByteSize(ExportTrieSize));
                 break;
             }
@@ -1051,7 +1040,7 @@ namespace Operations {
                     cast<LinkerOptionCommand>(LC, IsBigEndian);
 
                 const auto Count = LinkerOptionCmd.count(IsBigEndian);
-                std::print(OutFile, "\n{}Count: {}\n", Prefix, Count);
+                std::println(OutFile, "\n{}Count: {}", Prefix, Count);
 
                 break;
             }
@@ -1062,11 +1051,11 @@ namespace Operations {
                 const auto Offset = SymbolSegmentCmd.offset(IsBigEndian);
                 const auto Size = SymbolSegmentCmd.size(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Offset: {} ({})\n"
                            "{}Size:   {}\n",
-                           Prefix, Offset, ADT::Range::FromSize(Offset, Size),
+                           Prefix, Offset, Utils::PrintRange(Offset, Size),
                            Prefix, Utils::ByteSize(Size));
                 break;
             }
@@ -1077,8 +1066,8 @@ namespace Operations {
                 const auto HeaderAddress =
                     FvmFileCmd.headerAddress(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Name:           \"{}\"\n"
                            "{}Header Address: {}\n",
                            Prefix,
@@ -1093,8 +1082,8 @@ namespace Operations {
                 const auto EntryOffset = EntryPointCmd.entryOffset(IsBigEndian);
                 const auto StackSize = EntryPointCmd.stackSize(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Entry Offset: {}\n"
                            "{}Stack Size:   {}\n",
                            Prefix, EntryOffset,
@@ -1106,7 +1095,7 @@ namespace Operations {
                     cast<SourceVersionCommand>(LC, IsBigEndian);
 
                 const auto Version = SourceVersionCmd.version(IsBigEndian);
-                std::print(OutFile, "\t{}\n", Version);
+                std::println(OutFile, "\t{}", Version);
 
                 break;
             }
@@ -1118,13 +1107,13 @@ namespace Operations {
                 const auto Offset = NoteCmd.offset(IsBigEndian);
                 const auto Size = NoteCmd.size(IsBigEndian);
 
+                std::println(OutFile);
                 std::print(OutFile,
-                           "\n"
                            "{}Data Owner: \"{}\"\n"
                            "{}Offset: {} ({})\n"
                            "{}Size:   {}\n",
                            Prefix, DataOwner,
-                           Prefix, Offset, ADT::Range::FromSize(Offset, Size),
+                           Prefix, Offset, Utils::PrintRange(Offset, Size),
                            Prefix, Utils::ByteSize(Size));
 
                 break;
@@ -1132,30 +1121,21 @@ namespace Operations {
         }
     }
 
-    auto
-    PrintLoadCommands::run(const Objects::MachO &MachO) const noexcept
+    auto PrintLoadCommands::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
         auto Counter = static_cast<uint32_t>(1);
         auto DylibIndex = uint32_t();
 
         const auto IsBigEndian = MachO.isBigEndian();
+        const auto Is64Bit = MachO.is64Bit();
+
+        const auto OutFile = this->OutFile;
+        const auto &Opt = this->Opt;
+
         const auto LongestLCKindLength =
             MachO::LoadCommandKindGetString(
                 MachO::LoadCommandKind::LinkerOptimizationHint).length();
-
-        auto MaxDylibPathLength = ADT::Maximizer<uint32_t>();
-        for (const auto &LC : MachO.loadCommandsMap()) {
-            if (LC.isSharedLibrary(IsBigEndian)) {
-                const auto &DylibCmd =
-                    MachO::cast<MachO::DylibCommand>(LC, IsBigEndian);
-
-                if (const auto NameOpt = DylibCmd.name(IsBigEndian)) {
-                    MaxDylibPathLength.set(
-                        static_cast<uint32_t>(NameOpt->length()));
-                }
-            }
-        }
 
         const auto NcmdsDigitCount =
             Utils::GetIntegerDigitCount(MachO.header().ncmds());
@@ -1182,8 +1162,8 @@ namespace Operations {
             PrintLoadCommand(OutFile,
                              LoadCommand,
                              IsBigEndian,
+                             Is64Bit,
                              DylibIndex,
-                             MaxDylibPathLength.value(),
                              Opt.Verbose,
                              "\t");
             Counter++;

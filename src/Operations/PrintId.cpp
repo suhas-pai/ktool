@@ -38,6 +38,9 @@ namespace Operations {
             return RunResult(RunResult::Error::NotADylib);
         }
 
+        const auto OutFile = this->OutFile;
+        const auto &Opt = this->Opt;
+
         const auto IsBigEndian = MachO.isBigEndian();
         const auto LoadCommandsMap = MachO.loadCommandsMap();
 
@@ -56,16 +59,14 @@ namespace Operations {
                     }
                 }
 
-                std::print(OutFile, "ID: \"{}\"\n", Name);
+                std::println(OutFile, "\"{}\"", Name);
                 if (Opt.Verbose) {
                     const auto &Dylib = ID->Dylib;
                     const auto CurrentVersion =
                         Dylib.currentVersion(IsBigEndian);
-                    const auto CompatVersion = Dylib.compatVersion(IsBigEndian);
 
+                    const auto CompatVersion = Dylib.compatVersion(IsBigEndian);
                     const auto Timestamp = Dylib.timestamp(IsBigEndian);
-                    const auto TimestampString =
-                        Utils::GetHumanReadableTimestamp(Timestamp);
 
                     std::print(OutFile,
                                "\tCurrent Version: {}\n"
@@ -73,8 +74,8 @@ namespace Operations {
                                "\tTimestamp:       {} (Value: {})\n",
                                CurrentVersion,
                                CompatVersion,
-                               TimestampString,
-                               Timestamp);
+                               Utils::Timestamp(Timestamp),
+                               Utils::FormattedNumber(Timestamp));
                 }
 
                 return RunResult();
@@ -87,11 +88,14 @@ namespace Operations {
     auto PrintId::run(const Objects::DscImage &Image) const noexcept
         -> RunResult
     {
+        const auto &Opt = this->Opt;
         if (Opt.Verbose) {
             return run(static_cast<const Objects::MachO &>(Image));
         }
 
+        const auto OutFile = this->OutFile;
         const auto PathOpt = Image.path();
+
         std::print(OutFile,
                    "\"{}\"",
                    PathOpt.has_value() ? PathOpt.value() : "<invalid>");

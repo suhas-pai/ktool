@@ -18,7 +18,7 @@ namespace DyldSharedCache {
             -> ADT::TrieParseError
     {
         if (const auto IndexOpt = Utils::ReadUleb128(Ptr, NodeEnd, &Ptr)) {
-            Index = static_cast<uint32_t>(IndexOpt.value());
+            this->Index = static_cast<uint32_t>(IndexOpt.value());
             return ADT::TrieParseError::None;
         }
 
@@ -100,7 +100,8 @@ namespace DyldSharedCache {
             }
 
             const auto &ExportInfo = Iter->exportInfo();
-            EntryList.emplace_back(std::make_unique<EntryInfo>(ExportInfo));
+            this->EntryList.emplace_back(
+                std::make_unique<EntryInfo>(ExportInfo));
         }
     }
 }

@@ -78,7 +78,7 @@ namespace ADT {
         constexpr auto subtracting(const uint64_t Base) const noexcept
             -> std::optional<Range>
         {
-            if (Base > this->front()) {
+            if (this->front() < Base) {
                 return std::nullopt;
             }
 
@@ -146,7 +146,7 @@ namespace ADT {
                 if (const auto EndOpt =
                         Utils::AddAndCheckOverflow(Idx, TotalOpt.value()))
                 {
-                    return hasEndIndex(EndOpt.value());
+                    return this->hasEndIndex(EndOpt.value());
                 }
             }
 
@@ -189,7 +189,7 @@ namespace ADT {
 
             const auto Index = Loc - this->front();
             if (MaxSizeOut != nullptr) {
-                *MaxSizeOut = size() - Index;
+                *MaxSizeOut = this->size() - Index;
             }
 
             return Index;
@@ -276,15 +276,8 @@ namespace ADT {
         }
 
         [[nodiscard]]
-        constexpr auto multiply(const uint64_t Count) const noexcept
-            -> std::optional<Range>
-        {
-            auto NewSize = uint64_t();
-            if (Utils::MulAddAndCheckOverflow(this->size(), Count, NewSize)) {
-                return std::nullopt;
-            }
-
-            return Range::FromSize(this->front(), NewSize);
+        constexpr auto multiply(const uint64_t Count) const noexcept {
+            return Range::FromSizeAndCount(this->front(), this->size(), Count);
         }
 
         [[nodiscard]]

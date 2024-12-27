@@ -19,7 +19,7 @@ namespace DyldSharedCache {
         : Dsc(Dsc) {}
 
         [[nodiscard]] uint64_t getBaseAddress() const noexcept override {
-            return this->Dsc.mappingInfoList().front().Address;
+            return this->Dsc.baseAddress().value();
         }
 
         [[nodiscard]] void *

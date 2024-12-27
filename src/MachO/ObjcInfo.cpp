@@ -26,7 +26,7 @@ namespace MachO {
                 Root->addChild(*Node);
             }
         } else {
-            setRoot(List.front());
+            this->setRoot(List.front());
         }
     }
 
@@ -158,7 +158,7 @@ namespace MachO {
                             DeVirtualizer,
                             AddrResolver,
                             SegmentList,
-                            List,
+                            this->List,
                             ExternalAndRootClassList,
                             IsBigEndian);
                 } else {
@@ -168,7 +168,7 @@ namespace MachO {
                             DeVirtualizer,
                             AddrResolver,
                             SegmentList,
-                            List,
+                            this->List,
                             ExternalAndRootClassList,
                             IsBigEndian);
                 }
@@ -182,7 +182,7 @@ namespace MachO {
                             DeVirtualizer,
                             AddrResolver,
                             SegmentList,
-                            List,
+                            this->List,
                             ExternalAndRootClassList,
                             IsBigEndian);
                 } else {
@@ -192,7 +192,7 @@ namespace MachO {
                             DeVirtualizer,
                             AddrResolver,
                             SegmentList,
-                            List,
+                            this->List,
                             ExternalAndRootClassList,
                             IsBigEndian);
                 }
@@ -275,7 +275,6 @@ namespace MachO {
         const ADT::MemoryMap &Map,
         const ADT::DeVirtualizer &DeVirt,
         const ADT::AddressResolver &AddrResolver,
-        const SegmentList &SegmentList,
         const SectionInfo &SectInfo,
         ObjcClassInfoList *const ClassInfoTree,
         std::vector<std::unique_ptr<ObjcClassCategoryInfo>> &CategoryList,
@@ -324,26 +323,39 @@ namespace MachO {
                     Addr +
                     offsetof(ObjcParse::ObjcClassCategoryType<Is64Bit>, Class);
 
-                if (const auto ResolveOpt =
-                        AddrResolver.resolveBind(ClassAddr, 0);
+                if (const auto ResolveOpt = AddrResolver.resolve(ClassAddr, 0);
                     ResolveOpt.has_value())
                 {
-                    const auto Info = *ResolveOpt.value();
-                    const auto Name =
-                        ObjcParse::GetNameFromBindActionSymbol(Info.SymbolName);
+                    const auto &Resolution = ResolveOpt.value();
+                    switch (Resolution.Kind) {
+                        case ADT::AddressResolver::Resolution::Kind::None:
+                            break;
+                        case ADT::AddressResolver::Resolution::Kind::Bind: {
+                            const auto &Info = Resolution.Bind.Info;
+                            const auto Name =
+                                ObjcParse::GetNameFromBindActionSymbol(
+                                    Info.SymbolName);
 
-                    Class = ClassInfoTree->getInfoForClassName(Name);
-                    if (Class == nullptr) {
-                        const auto FullAddress =
-                            Info.getFullAddress(SegmentList);
+                            Class = ClassInfoTree->getInfoForClassName(Name);
+                            if (Class == nullptr) {
+                                const auto DylibOrdinal =
+                                    static_cast<uint64_t>(Info.DylibOrdinal);
+                                const auto FullAddress =
+                                    Resolution.Bind.FullAddress != 0 ?
+                                        Resolution.Bind.FullAddress :
+                                        std::numeric_limits<uint64_t>::max();
 
-                        Class =
-                            ClassInfoTree->addExternalClass(
-                                Name,
-                                static_cast<uint64_t>(Info.DylibOrdinal),
-                                FullAddress.has_value() ?
-                                    FullAddress.value() :
-                                    std::numeric_limits<uint64_t>::max());
+                                Class =
+                                    ClassInfoTree->addExternalClass(
+                                        Name,
+                                        DylibOrdinal,
+                                        FullAddress);
+                            }
+                        }
+                        case ADT::AddressResolver::Resolution::Kind::Rebase:
+                            continue;
+                        case ADT::AddressResolver::Resolution::Kind::Patch:
+                            break;
                     }
                 } else {
                     ClassAddr = Category->classAddress(IsBigEndian);
@@ -412,7 +424,6 @@ namespace MachO {
             ParseObjcClassCategorySection<true>(Map,
                                                 DeVirtualizer,
                                                 AddrResolver,
-                                                SegmentList,
                                                 *ObjcClassCategorySection,
                                                 ClassInfoTree,
                                                 List,
@@ -421,7 +432,6 @@ namespace MachO {
             ParseObjcClassCategorySection<false>(Map,
                                                  DeVirtualizer,
                                                  AddrResolver,
-                                                 SegmentList,
                                                  *ObjcClassCategorySection,
                                                  ClassInfoTree,
                                                  List,

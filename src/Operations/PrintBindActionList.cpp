@@ -137,7 +137,7 @@ namespace Operations {
             std::print(OutFile,
                        " {:<{}}",
                        MachO::BindWriteKindGetDesc(Action.WriteKind),
-                       static_cast<int>(LongestDesc));
+                       LongestDesc);
         }
 
         std::print(OutFile, " \"{}\"", Action.SymbolName);
@@ -154,7 +154,7 @@ namespace Operations {
                                               " ");
         }
 
-        std::print(OutFile, "\n");
+        std::println(OutFile);
     }
 
     template <MachO::BindInfoKind BindKind>
@@ -169,7 +169,7 @@ namespace Operations {
         const struct PrintBindActionList::Options &Options) noexcept
     {
         if (List.empty()) {
-            std::print(OutFile, "No {} Info\n", Name);
+            std::println(OutFile, "No {} Info", Name);
             return;
         }
 
@@ -184,10 +184,10 @@ namespace Operations {
                        "MachO::BindActionList shouldn't be empty at this "
                        "point");
             case 1:
-                std::print(OutFile, "1 {} Action:\n", Name);
+                std::println(OutFile, "1 {} Action:", Name);
                 break;
             default:
-                std::print(OutFile, "{} {} Actions:\n", List.size(), Name);
+                std::println(OutFile, "{} {} Actions:", List.size(), Name);
                 break;
         }
 
@@ -213,6 +213,8 @@ namespace Operations {
     PrintBindActionList::run(const Objects::MachO &MachO) const noexcept
         -> RunResult
     {
+        const auto &Opt = this->Opt;
+
         const auto IsBigEndian = MachO.isBigEndian();
         const auto Is64Bit = MachO.is64Bit();
 
@@ -222,8 +224,8 @@ namespace Operations {
         auto BindRange = ADT::Range();
         auto LazyBindRange = ADT::Range();
         auto WeakBindRange = ADT::Range();
-        auto FoundDyldInfo = false;
 
+        auto FoundDyldInfo = false;
         for (const auto &LC : MachO.loadCommandsMap()) {
             if (LC.isSharedLibrary(IsBigEndian)) {
                 LibraryList.addLibrary(
@@ -306,7 +308,7 @@ namespace Operations {
         if (Opt.PrintWeak) {
             if (MachO.map().range().contains(WeakBindRange)) {
                 if (Opt.PrintNormal || Opt.PrintLazy) {
-                    std::print(OutFile, "\n");
+                    std::println(OutFile);
                 }
 
                 const auto WeakBindList =
@@ -351,6 +353,7 @@ namespace Operations {
                       Comparator);
         }
 
+        const auto OutFile = this->OutFile;
         if (Opt.PrintNormal) {
             if (!BindActionInfoList.empty()) {
                 PrintBindActionInfoList<MachO::BindInfoKind::Normal>(
@@ -362,13 +365,13 @@ namespace Operations {
                     Is64Bit,
                     Opt);
             } else {
-                std::print(OutFile, "No Bind-Actions were found\n");
+                std::println(OutFile, "No Bind-Actions were found");
             }
         }
 
         if (Opt.PrintLazy) {
             if (Opt.PrintNormal) {
-                std::print(OutFile, "\n");
+                std::println(OutFile);
             }
 
             if (!LazyBindActionInfoList.empty()) {
@@ -381,13 +384,13 @@ namespace Operations {
                     Is64Bit,
                     Opt);
             } else {
-                std::print(OutFile, "No Lazy-Bind Actions were found\n");
+                std::print(OutFile, "No Lazy-Bind Actions were found");
             }
         }
 
         if (Opt.PrintWeak) {
             if (Opt.PrintNormal || Opt.PrintLazy) {
-                std::print(OutFile, "\n");
+                std::println(OutFile);
             }
 
             if (!WeakBindActionInfoList.empty()) {
@@ -400,7 +403,7 @@ namespace Operations {
                     Is64Bit,
                     Opt);
             } else {
-                std::print(OutFile, "No Weak-Bind Actions were found\n");
+                std::println(OutFile, "No Weak-Bind Actions were found");
             }
         }
 

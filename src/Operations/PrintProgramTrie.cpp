@@ -56,7 +56,7 @@ namespace Operations {
 
         std::print(OutFile,
                    "> (Exported - Index: {})",
-                   Utils::NumberWithCommas(Export.index()),
+                   Utils::FormattedNumber(Export.index()),
                    /*Is64Bit=*/false);
     }
 
@@ -92,7 +92,7 @@ namespace Operations {
     {
         using RunResult = PrintProgramTrie::RunResult;
         if (EntryCollection.empty()) {
-            std::print(OutFile, "Provided file has an empty export-trie\n");
+            std::println(OutFile, "Provided file has an empty export-trie");
             return RunResult(RunResult::Error::None);
         }
 
@@ -103,9 +103,9 @@ namespace Operations {
                                                          Options);
 
         if (Options.OnlyCount) {
-            std::print(OutFile,
-                       "Provided file's program-trie has {} nodes\n",
-                       Count);
+            std::println(OutFile,
+                         "Provided file's program-trie has {} nodes",
+                         Count);
             return RunResult(RunResult::Error::None);
         }
 
@@ -192,9 +192,9 @@ namespace Operations {
         }
 
         if (Opt.OnlyCount) {
-            std::print(OutFile,
-                       "Provided file's program-trie has {} nodes\n",
-                       Count);
+            std::println(OutFile,
+                         "Provided file's program-trie has {} nodes",
+                         Count);
             return RunResult(RunResult::Error::None);
         }
 
@@ -208,22 +208,22 @@ namespace Operations {
             std::sort(ExportList.begin(), ExportList.end(), Comparator);
         }
 
-        auto Counter = uint32_t(1);
+        auto Counter = static_cast<uint32_t>(1);
         const auto SizeDigitLength =
             Utils::GetIntegerDigitCount(ExportList.size());
 
         for (const auto &Export : ExportList) {
             const auto RightPadAmt =
-                static_cast<int>(STR_LENGTH("Program : ") + SizeDigitLength);
+                STR_LENGTH("Program : ") + SizeDigitLength;
 
-            std::print(OutFile,
-                       "{:<{}}\t{}\t{}\"\n",
-                       std::format("Program {:>{}}: ",
-                                   Counter,
-                                   SizeDigitLength),
-                       RightPadAmt,
-                       Utils::Address<uint32_t>(Export.Index),
-                       Export.String);
+            std::println(OutFile,
+                         "{:<{}}\t{}\t{}\"",
+                         std::format("Program {:>{}}: ",
+                                     Counter,
+                                     SizeDigitLength),
+                         RightPadAmt,
+                         Utils::Address<uint32_t>(Export.Index),
+                         Export.String);
 
             Counter++;
         }
@@ -251,12 +251,14 @@ namespace Operations {
             return RunResult(RunResult::Error::OutOfBounds);
         }
 
-        const auto ProgramTriePair = ProgramTrieMemMapOpt.value();
+        const auto &[CacheInfo, ProgramTrie] = ProgramTrieMemMapOpt.value();
 
         auto TrieParser = ADT::TrieParser();
         auto ProgramTrieMap =
-            ::DyldSharedCache::ProgramTrieMap(ProgramTriePair.second,
-                                              TrieParser);
+            ::DyldSharedCache::ProgramTrieMap(ProgramTrie, TrieParser);
+
+        const auto OutFile = this->OutFile;
+        const auto &Opt = this->Opt;
 
         if (Opt.PrintTree) {
             auto Error = ::DyldSharedCache::ProgramTrieMap::ParseError::None;
@@ -273,24 +275,16 @@ namespace Operations {
                 case ADT::TrieParseError::None:
                     break;
                 case ADT::TrieParseError::InvalidUleb128:
-                    std::print(stderr,
-                               "Encountered an invalid uleb128 while parsing "
-                               "trie\n");
-                    return RunResult(RunResult::Error::None);
+                    return RunResult(RunResult::Error::InvalidTrieUleb128);
                 case ADT::TrieParseError::InvalidFormat:
-                    std::print(stderr, "Trie is invalid\n");
+                    return RunResult(RunResult::Error::InvalidTrieFormat);
                 case ADT::TrieParseError::OverlappingRanges:
-                    std::print(stderr,
-                               "At least two nodes in trie are overlapping\n");
-                    return RunResult(RunResult::Error::None);
+                    return RunResult(RunResult::Error::OverlappingTrieRanges);
                 case ADT::TrieParseError::TooDeep:
-                    std::print(stderr, "Trie is too deep\n");
-                    return RunResult(RunResult::Error::None);
+                    return RunResult(RunResult::Error::TrieIsTooDeep);
             }
 
-            return HandleTreeOption(OutFile,
-                                    EntryCollection,
-                                    Opt);
+            return HandleTreeOption(OutFile, EntryCollection, Opt);
         }
 
         return PrintExportList(OutFile, ProgramTrieMap, Opt);

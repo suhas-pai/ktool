@@ -51,13 +51,13 @@ namespace MachO {
             }
 
             template <typename T = uint64_t>
-            [[nodiscard]] auto ReadUleb128() noexcept -> std::optional<T> {
-                return Utils::ReadUleb128(Iter, End, &Iter);
+            [[nodiscard]] auto ReadUleb128() noexcept {
+                return Utils::ReadUleb128<T>(Iter, End, &Iter);
             }
 
             template <typename T = int64_t>
-            [[nodiscard]] auto ReadSleb128() noexcept -> std::optional<T> {
-                return Utils::ReadSleb128(Iter, End, &Iter);
+            [[nodiscard]] auto ReadSleb128() noexcept {
+                return Utils::ReadSleb128<T>(Iter, End, &Iter);
             }
 
             [[nodiscard]]

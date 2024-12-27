@@ -229,11 +229,11 @@ namespace Operations {
 
             std::print(OutFile,
                        "Rebase-Opcode {:>{}}: {}",
-                       Utils::NumberWithCommas(Counter),
+                       Utils::FormattedNumber(Counter),
                        SizeDigitLength,
                        OpcodeName);
 
-            auto OpcodeAndArgLength = static_cast<int>(OpcodeName.length());
+            auto OpcodeAndArgLength = OpcodeName.length();
             const auto PrintAddressInfo = [&](const uint64_t Add = 0) noexcept {
                 constexpr auto MaxArgLength = 38;
                 constexpr auto LongestOpcodeNameLength =
@@ -250,44 +250,45 @@ namespace Operations {
                 const auto FullAddr =
                     Iter.Segment->VmRange.locForIndex(Iter.AddrInSeg + Add);
 
-                std::print(OutFile,
-                           "> Segment: {}"
-                           "Segment-Address: {}, Full-Address: {}{}\n",
-                           Utils::SegmentSectionPair(
-                            Iter.Segment ? Iter.Segment->Name : "",
-                            Iter.Section ? Iter.Section->Name : "",
-                            /*PadSegment=*/true,
-                            /*PadSection=*/true),
-                           Utils::CustomAddress(Iter.AddrInSeg + Add, Is64Bit),
-                           Utils::CustomAddress(FullAddr, Is64Bit),
-                           Iter.AddrInSegOverflows ? " (Overflows)" : "");
+                std::println(OutFile,
+                             "> Segment: {}"
+                             "Segment-Address: {}, Full-Address: {}{}",
+                             Utils::SegmentSectionPair(
+                              Iter.Segment ? Iter.Segment->Name : "",
+                              Iter.Section ? Iter.Section->Name : "",
+                              /*PadSegment=*/true,
+                              /*PadSection=*/true),
+                             Utils::CustomAddress(Iter.AddrInSeg + Add,
+                                                  Is64Bit),
+                             Utils::CustomAddress(FullAddr, Is64Bit),
+                             Iter.AddrInSegOverflows ? " (Overflows)" : "");
             };
 
             switch (Byte.opcode()) {
                 case MachO::RebaseByte::Opcode::Done:
-                    std::print(OutFile, "\n");
+                    std::println(OutFile);
                     break;
                 case MachO::RebaseByte::Opcode::SetKindImm: {
                     const auto KindName =
                         MachO::RebaseWriteKindIsValid(Iter.Kind) ?
-                            MachO::RebaseWriteKindGetString(Iter.Kind).data() :
+                            MachO::RebaseWriteKindGetString(Iter.Kind) :
                             std::string_view("<unrecognized>");
 
                     if (MachO::RebaseWriteKindIsValid(Iter.Kind)) {
-                        std::print(OutFile, "({})\n", KindName);
+                        std::println(OutFile, "({})", KindName);
                     } else {
-                        std::print(OutFile,
-                                   "(<unrecognized, Kind: {}>)\n",
-                                   static_cast<uint32_t>(Iter.Kind));
+                        std::println(OutFile,
+                                     "(<unrecognized, Kind: {}>)",
+                                     static_cast<uint32_t>(Iter.Kind));
                     }
 
                     break;
                 }
                 case MachO::RebaseByte::Opcode::SetSegmentAndOffsetUleb: {
-                    std::print(OutFile,
-                               "(Segment: {}, Offset: {})\n",
-                               Iter.SegmentIndex,
-                               Utils::CustomAddress(Iter.SegOffset, Is64Bit));
+                    std::println(OutFile,
+                                 "(Segment: {}, Offset: {})",
+                                 Iter.SegmentIndex,
+                                 Utils::CustomAddress(Iter.SegOffset, Is64Bit));
 
                     if (Opt.Verbose) {
                         OpcodeAndArgLength +=
@@ -297,7 +298,7 @@ namespace Operations {
 
                         PrintAddressInfo();
                     } else {
-                        std::print(OutFile, "\n");
+                        std::println(OutFile);
                     }
 
                     break;
@@ -310,7 +311,7 @@ namespace Operations {
 
                         PrintAddressInfo(Iter.Scale * PtrSize);
                     } else {
-                        std::print(OutFile, "\n");
+                        std::println(OutFile);
                     }
 
                     break;
@@ -323,7 +324,7 @@ namespace Operations {
 
                         PrintAddressInfo();
                     } else {
-                        std::print(OutFile, "\n");
+                        std::println(OutFile);
                     }
 
                     break;
@@ -336,7 +337,7 @@ namespace Operations {
 
                         PrintAddressInfo(static_cast<uint64_t>(Iter.AddAddr));
                     } else {
-                        std::print(OutFile, "\n");
+                        std::println(OutFile);
                     }
 
                     break;
@@ -349,7 +350,7 @@ namespace Operations {
 
                         PrintAddressInfo(Iter.Count * PtrSize);
                     } else {
-                        std::print(OutFile, "\n");
+                        std::println(OutFile);
                     }
 
                     break;
@@ -372,7 +373,7 @@ namespace Operations {
 
                         PrintAddressInfo(Add);
                     } else {
-                        std::print(OutFile, "\n");
+                        std::println(OutFile);
                     }
 
                     break;
@@ -391,7 +392,6 @@ namespace Operations {
         const auto Is64Bit = MachO.is64Bit();
 
         auto SegmentList = MachO::SegmentList();
-
         auto RebaseRange = ADT::Range();
         auto FoundDyldInfo = false;
 
@@ -442,6 +442,9 @@ namespace Operations {
         if (RebaseOpcodeList.empty()) {
             return RunResult(RunResult::Error::NoOpcodes);
         }
+
+        const auto OutFile = this->OutFile;
+        const auto &Opt = this->Opt;
 
         PrintRebaseOpcodeCollection(OutFile,
                                     RebaseOpcodeList,

@@ -11,11 +11,12 @@ namespace MachO {
     OpcodeList::IteratorInfo::ParseString() noexcept
         -> std::optional<std::string_view>
     {
-        const auto Ptr = reinterpret_cast<const char *>(Iter);
-        const auto Length = strnlen(Ptr, static_cast<uint64_t>(End - Iter));
+        const auto Ptr = reinterpret_cast<const char *>(this->Iter);
+        const auto Length =
+            strnlen(Ptr, static_cast<uint64_t>(this->End - this->Iter));
 
-        Iter += Length + 1;
-        if (Iter >= End) {
+        this->Iter += Length + 1;
+        if (this->Iter >= this->End) {
             return std::nullopt;
         }
 

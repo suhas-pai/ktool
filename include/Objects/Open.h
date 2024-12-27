@@ -37,7 +37,7 @@ namespace Objects {
         constexpr OpenError(const MachO::Error &Error) noexcept
         : Kind(Objects::Kind::MachO), MachOError(Error) {}
 
-        static inline auto unrecognized() noexcept {
+        [[nodiscard]] static inline auto unrecognized() noexcept {
             return OpenError(Objects::Kind::None);
         }
 

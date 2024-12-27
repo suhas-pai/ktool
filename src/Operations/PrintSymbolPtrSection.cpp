@@ -6,6 +6,7 @@
 //
 
 #include <algorithm>
+#include <compare>
 
 #include "ADT/Maximizer.h"
 #include "Operations/PrintSymbolPtrSection.h"
@@ -244,50 +245,34 @@ namespace Operations {
         const SymbolInfo &Rhs,
         const std::vector<DylibInfo> &DylibInfoList,
         const PrintSymbolPtrSection::Options::SortKind SortKind) noexcept
-            -> int
     {
         switch (SortKind) {
             using SortKind = PrintSymbolPtrSection::Options::SortKind;
             case SortKind::ByDylibOrdinal:
-                if (Lhs.DylibOrdinal == Rhs.DylibOrdinal) {
-                    return 0;
-                }
-
-                if (Lhs.DylibOrdinal < Rhs.DylibOrdinal) {
-                    return -1;
-                }
-
-                return 1;
+                return Lhs.DylibOrdinal <=> Rhs.DylibOrdinal;
             case SortKind::ByDylibPath: {
                 auto LhsDylibPath = std::string_view();
                 auto RhsDylibPath = std::string_view();
 
                 if (Lhs.DylibOrdinal >= DylibInfoList.size()) {
                     if (Rhs.DylibOrdinal >= DylibInfoList.size()) {
-                        return 0;
+                        return std::strong_ordering::equivalent;
                     }
 
-                    return 1;
+                    return std::strong_ordering::greater;
                 } else if (Rhs.DylibOrdinal >= DylibInfoList.size()) {
-                    return -1;
+                    return std::strong_ordering::less;
                 }
 
                 LhsDylibPath = DylibInfoList.at(Lhs.DylibOrdinal - 1).Path;
                 RhsDylibPath = DylibInfoList.at(Rhs.DylibOrdinal - 1).Path;
 
-                return LhsDylibPath.compare(RhsDylibPath);
+                return LhsDylibPath <=> RhsDylibPath;
             }
-            case SortKind::ByIndex: {
-                if (Lhs.Index == Rhs.Index) {
-                    return 0;
-                } else if (Lhs.Index < Rhs.Index) {
-                    return -1;
-                }
-
-                return 1;
-            }
+            case SortKind::ByIndex:
+                return Lhs.Index <=> Rhs.Index;
             case SortKind::ByString:
-                return Lhs.String.compare(Rhs.String);
+                return Lhs.String <=> Rhs.String;
         }
 
         assert(false && "CompareEntriesBySortKind() got unrecognized SortKind");
@@ -297,9 +282,12 @@ namespace Operations {
         -> RunResult
     {
         using namespace MachO;
-        if (SectionName.empty()) {
+        if (this->SectionName.empty()) {
             return RunResult(RunResult::Error::EmptySectionName);
         }
+
+        const auto &Opt = this->Opt;
+        const auto OutFile = this->OutFile;
 
         auto SectionReserved1 = uint32_t();
 
@@ -372,7 +360,7 @@ namespace Operations {
                     auto SegmentInfo = ::Operations::SegmentInfo();
                     const auto IterateResult =
                         IterateSections(*Segment,
-                                        SectionName,
+                                        this->SectionName,
                                         IsBigEndian,
                                         SegmentInfo.SectionNameList,
                                         Section);
@@ -385,8 +373,8 @@ namespace Operations {
                         continue;
                     }
 
-                    if (const auto SegName = SegmentName) {
-                        if (Segment->segmentName() != SegmentName) {
+                    if (const auto SegName = this->SegmentName) {
+                        if (Segment->segmentName() != this->SegmentName) {
                             continue;
                         }
                     }
@@ -539,17 +527,17 @@ namespace Operations {
 
         if (!Opt.SortKindList.empty()) {
             const auto Lambda = [&](const auto &Lhs, const auto &Rhs) noexcept {
-                auto Compare = int();
+                auto Compare = std::strong_ordering::equivalent;
                 for (const auto &Sort : Opt.SortKindList) {
                     Compare =
                         CompareEntriesBySortKind(Lhs, Rhs, DylibList, Sort);
 
-                    if (Compare != 0) {
+                    if (Compare != std::strong_ordering::equivalent) {
                         break;
                     }
                 }
 
-                return Compare < 0;
+                return Compare == std::strong_ordering::less;
             };
 
             std::sort(SymbolInfoList.begin(), SymbolInfoList.end(), Lambda);
@@ -567,14 +555,12 @@ namespace Operations {
                        Counter + 1,
                        SymbolInfoListSizeDigitCount);
 
-            std::print(OutFile, "\"{}\"", SymbolInfo.String.data());
+            std::print(OutFile, "\"{}\"", SymbolInfo.String);
             const auto PrintLength =
                 STR_LENGTH("\"\"") + SymbolInfo.String.length();
 
             if (Opt.Verbose) {
-                const auto RightPad =
-                    LongestSymbolLength + STR_LENGTH("\"\"");
-
+                const auto RightPad = LongestSymbolLength + STR_LENGTH("\"\"");
                 std::print(OutFile, "{:<{}}", "", RightPad - PrintLength);
 
                 const auto SymbolKind = SymbolInfo.Kind;
@@ -639,7 +625,7 @@ namespace Operations {
                 } else {
                     Utils::PrintDylibOrdinalInfo(OutFile,
                                                  SymbolInfo.DylibOrdinal,
-                                                 std::string_view(),
+                                                 /*DylibPath=*/"",
                                                  /*PrintPath=*/true,
                                                  /*IsOutOfBounds=*/true);
                 }
@@ -647,7 +633,7 @@ namespace Operations {
                 std::print(OutFile, ">");
             }
 
-            std::print(OutFile, "\n");
+            std::println(OutFile);
             Counter++;
         }
 

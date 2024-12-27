@@ -72,7 +72,10 @@ namespace Utils {
         auto Bits = Leb128ByteGetBits(Byte);
         auto Value = T(Bits);
 
-        for (auto Shift = uint8_t(7); Shift != MaxShift; Shift += 7) {
+        for (auto Shift = static_cast<uint8_t>(7);
+             Shift != MaxShift;
+             Shift += 7)
+        {
             Byte = *Iter;
             Bits = Leb128ByteGetBits(Byte);
             Value |= T(Bits) << Shift;
@@ -112,7 +115,7 @@ namespace Utils {
     template <std::unsigned_integral T = uint64_t, typename U>
     [[nodiscard]] constexpr static
     auto ReadUleb128(U *const Begin, U *const End, U **const PtrOut) noexcept {
-        return ReadLeb128Base<T, U, false>(Begin, End, PtrOut);
+        return ReadLeb128Base<T, U, /*Signed=*/false>(Begin, End, PtrOut);
     }
 
     template <std::integral T = uint64_t, typename U>

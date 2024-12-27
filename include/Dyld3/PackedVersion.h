@@ -6,8 +6,6 @@
 //
 
 #pragma once
-
-#include <cstdint>
 #include "ADT/FlagsBase.h"
 
 namespace Dyld3 {

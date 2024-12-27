@@ -650,10 +650,7 @@ namespace MachO {
         [[nodiscard]] constexpr auto rawCpuSubType() const noexcept
             -> int32_t
         {
-            const auto Value =
-                ADT::SwitchEndianIf(this->CpuSubKind, this->isBigEndian());
-
-            return Value;
+            return ADT::SwitchEndianIf(this->CpuSubKind, this->isBigEndian());
         }
 
         [[nodiscard]] constexpr auto cpuSubKind() const noexcept {

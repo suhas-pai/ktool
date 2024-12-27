@@ -10,8 +10,10 @@
 #include <expected>
 #include <variant>
 
-#include "ADT/MemoryMap.h"
 #include "Dyld3/ChainedFixups.h"
+
+#include "DyldSharedCache/DeVirtualizer.h"
+#include "DyldSharedCache/PatchInfo.h"
 
 #include "MachO/BindInfo.h"
 #include "MachO/Header.h"
@@ -19,44 +21,17 @@
 #include "MachO/RebaseInfo.h"
 #include "MachO/SegmentList.h"
 
+#include "Objects/DscImage.h"
+
 namespace ADT {
     struct AddressResolver {
-    protected:
-        MachO::BindActionList::UnorderedMap BindMap;
-        MachO::RebaseActionList::UnorderedMap RebaseMap;
-
-        Dyld3::ChainedPointerKind ChainedFixupsKind;
-
-        explicit
-        AddressResolver(
-            MachO::BindActionList::UnorderedMap &&BindMap,
-            MachO::RebaseActionList::UnorderedMap &&RebaseMap,
-            Dyld3::ChainedPointerKind ChainedFixupsKind) noexcept
-        : BindMap(std::move(BindMap)), RebaseMap(std::move(RebaseMap)),
-          ChainedFixupsKind(ChainedFixupsKind) {}
     public:
-        using BindParseError =
-            std::pair<MachO::BindInfoKind, MachO::BindOpcodeParseResult>;
-
-        using RebaseParseError = MachO::RebaseOpcodeParseResult;
-        using ParseErrorType = std::variant<BindParseError, RebaseParseError>;
-
-        static auto
-        FromLoadCommands(MemoryMap Map,
-                         const MachO::Header &Header,
-                         const MachO::DyldInfoCommand *DyldInfo,
-                         const MachO::LinkeditDataCommand *ChainedFixups,
-                         const MachO::SegmentList &SegmentList) noexcept
-            -> std::expected<AddressResolver, ParseErrorType>;
-
-        [[nodiscard]]
-        auto resolveBind(uint64_t Address, uint64_t BaseAddress) const noexcept
-            -> std::optional<const MachO::BindActionInfo *>;
-
-        struct ResolvedFixupResult {
+        struct Resolution {
             enum class Kind {
+                None,
                 Bind,
-                Rebase
+                Rebase,
+                Patch
             };
 
             Kind Kind;
@@ -64,27 +39,109 @@ namespace ADT {
             #pragma clang diagnostic push
             #pragma clang diagnostic ignored "-Wnested-anon-types"
                 struct {
-                    uint64_t Ordinal = 0;
-                    uint64_t Addend = 0;
+                    MachO::BindActionInfo Info;
+                    uint64_t FullAddress;
                 } Bind;
                 struct {
-                    uint64_t TargetRuntimeOffset = 0;
+                    uint64_t FullAddress = 0;
                 } Rebase;
+
+                struct {
+                    DyldSharedCache::PatchInfo::PatchLocation PatchLoc;
+                } Patch;
             #pragma clang diagnostic pop
             };
 
-            explicit ResolvedFixupResult(const enum Kind Kind) noexcept
-            : Kind(Kind) {}
+            explicit Resolution(enum Kind Kind) noexcept : Kind(Kind) {}
 
-            ~ResolvedFixupResult() noexcept {}
+            explicit
+            Resolution(
+                const DyldSharedCache::PatchInfo::PatchLocation &Loc) noexcept
+            : Kind(Kind::Patch), Patch(Loc) {}
+
+            constexpr explicit
+            Resolution(const MachO::BindActionInfo &BindInfo,
+                       const uint64_t FullAddress) noexcept
+            : Kind(Kind::Bind), Bind(BindInfo, FullAddress) {}
+
+            constexpr explicit
+            Resolution(const enum Kind Kind,
+                       const uint64_t FullAddress) noexcept
+            : Kind(Kind), Rebase(FullAddress) {
+                assert(Kind == Kind::Rebase);
+            }
+
+            ~Resolution() noexcept {}
         };
+    protected:
+        using PatchLocationMap = DyldSharedCache::PatchInfo::PatchLocationMap;
+
+        MachO::BindActionList::UnorderedMap BindMap;
+        MachO::RebaseActionList::UnorderedMap RebaseMap;
+        Dyld3::ChainedPointerKind ChainedFixupsKind;
+
+        PatchLocationMap PatchExportMap;
+        uint32_t SlideInfoVersion;
+
+        MachO::SegmentList SegmentList;
+
+        uint64_t SlideInfoBaseAddress;
+        uint64_t ImageBaseAddress;
+
+        explicit
+        AddressResolver(
+            MachO::BindActionList::UnorderedMap &&BindMap,
+            MachO::RebaseActionList::UnorderedMap &&RebaseMap,
+            Dyld3::ChainedPointerKind ChainedFixupsKind,
+            PatchLocationMap &&PatchExportMap,
+            const MachO::SegmentList &SegmentList,
+            const uint32_t SlideInfoVersion,
+            const uint64_t SlideInfoBaseAddress,
+            const uint64_t BaseAddress) noexcept
+        : BindMap(std::move(BindMap)), RebaseMap(std::move(RebaseMap)),
+          ChainedFixupsKind(ChainedFixupsKind),
+          PatchExportMap(std::move(PatchExportMap)),
+          SlideInfoVersion(SlideInfoVersion), SegmentList(SegmentList),
+          SlideInfoBaseAddress(SlideInfoBaseAddress),
+          ImageBaseAddress(BaseAddress) {}
 
         [[nodiscard]] auto
-        resolveChainedFixup(uint64_t Value, uint64_t BaseAddress) const noexcept
-            -> std::optional<ResolvedFixupResult>;
+        resolveChainedFixup(Dyld3::ChainedPointerKind ChainedFixupsKind,
+                            uint64_t Value,
+                            uint64_t BaseAddress) const noexcept
+            -> std::optional<Resolution>;
+
+        [[nodiscard]] auto resolveRebase(uint64_t Value) const noexcept
+            -> std::optional<Resolution>;
+    public:
+        using BindParseError =
+            std::pair<MachO::BindInfoKind, MachO::BindOpcodeParseResult>;
+
+        using RebaseParseError = MachO::RebaseOpcodeParseResult;
+        using PatchParseError = DyldSharedCache::PatchInfo::ParseResult;
+
+        using ParseErrorType =
+            std::variant<BindParseError, RebaseParseError, PatchParseError>;
+
+        static auto
+        FromLoadCommands(const ADT::MemoryMap &Map,
+                         const MachO::Header &Header,
+                         const MachO::DyldInfoCommand *DyldInfo,
+                         const MachO::LinkeditDataCommand *ChainedFixups,
+                         const MachO::SegmentList &SegmentList) noexcept
+            -> std::expected<AddressResolver, ParseErrorType>;
+
+        static auto
+        ForDscImage(const DyldSharedCache::DeVirtualizer &DeVirtualizer,
+                    const DyldSharedCache::SlideInfoBase *SlideInfo,
+                    const Objects::DscImage &DscImage,
+                    const MachO::DyldInfoCommand *DyldInfo,
+                    const MachO::LinkeditDataCommand *ChainedFixups,
+                    const MachO::SegmentList &SegmentList) noexcept
+            -> std::expected<AddressResolver, ParseErrorType>;
 
         [[nodiscard]]
         auto resolve(uint64_t Address, uint64_t Value) const noexcept
-            -> std::optional<uint64_t>;
+            -> std::optional<Resolution>;
     };
 }

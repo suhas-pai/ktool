@@ -5,15 +5,12 @@
 //  Created by suhaspai on 11/22/22.
 //
 
-#include "MachO/LoadCommands.h"
-
-#include "Utils/Assert.h"
 #include "Utils/Print.h"
 
 namespace Utils {
     auto
     PadSpaces(FILE *const OutFile, const uint32_t SpaceAmount) noexcept -> int {
-        std::print(OutFile, "{:<{}}", "", static_cast<int>(SpaceAmount));
+        std::print(OutFile, "{:<{}}", "", SpaceAmount);
         return static_cast<int>(SpaceAmount);
     }
 
@@ -56,13 +53,12 @@ namespace Utils {
                           const std::string_view Suffix) noexcept -> int
     {
         if (DylibOrdinal == 0) {
-            std::print(stderr, "{}<invalid>{}", Prefix, Suffix);
+            std::print(OutFile, "{}<invalid>{}", Prefix, Suffix);
             return static_cast<int>(9 + Prefix.length() + Suffix.length());
         }
 
         if (IsOutOfBounds) {
             std::print(OutFile, "{}<out-of-bounds!>{}", Prefix, Suffix);
-
             return static_cast<int>(16 + Prefix.length() + Suffix.length());
         }
 

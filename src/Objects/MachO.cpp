@@ -83,4 +83,46 @@ namespace Objects {
     auto MachO::getMapForFileOffsets() const noexcept -> ADT::MemoryMap {
         return this->map();
     }
+
+    auto MachO::getVmRange() const noexcept -> ADT::Range {
+        const auto Is64Bit = this->is64Bit();
+        const auto IsBigEndian = this->isBigEndian();
+
+        auto Base = uint64_t();
+        auto End = uint64_t();
+
+        if (Is64Bit) {
+            for (const auto &LC : this->loadCommandsMap()) {
+                if (const auto Segment =
+                        dyn_cast<::MachO::SegmentCommand64>(&LC, IsBigEndian))
+                {
+                    const auto VmRange = Segment->vmRange(IsBigEndian);
+                    if (Base == 0) {
+                        Base = VmRange.front();
+                    }
+
+                    if (const auto EndOpt = VmRange.end()) {
+                        End = std::max(End, EndOpt.value());
+                    }
+                }
+            }
+        } else {
+            for (const auto &LC : this->loadCommandsMap()) {
+                if (const auto Segment =
+                        dyn_cast<::MachO::SegmentCommand>(&LC, IsBigEndian))
+                {
+                    const auto VmRange = Segment->vmRange(IsBigEndian);
+                    if (Base == 0) {
+                        Base = VmRange.front();
+                    }
+
+                    if (const auto EndOpt = VmRange.end()) {
+                        End = std::max(End, EndOpt.value());
+                    }
+                }
+            }
+        }
+
+        return ADT::Range::FromEnd(Base, End);
+    }
 }

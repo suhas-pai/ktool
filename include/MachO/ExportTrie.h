@@ -518,36 +518,36 @@ namespace MachO {
         }
 
         [[nodiscard]] inline auto parent() const noexcept {
-            return get(Parent);
+            return get(this->Parent);
         }
 
         [[nodiscard]] inline auto prevSibling() const noexcept {
-            return get(PrevSibling);
+            return get(this->PrevSibling);
         }
 
         [[nodiscard]] inline auto nextSibling() const noexcept {
-            return get(NextSibling);
+            return get(this->NextSibling);
         }
 
         [[nodiscard]] inline auto firstChild() const noexcept {
-            return get(FirstChild);
+            return get(this->FirstChild);
         }
 
         [[nodiscard]] inline auto lastChild() const noexcept {
-            return get(LastChild);
+            return get(this->LastChild);
         }
 
         [[nodiscard]] inline uint64_t getLength() const noexcept override {
-            return String.length();
+            return this->String.length();
         }
 
         [[nodiscard]] constexpr auto kind() const noexcept {
-            return Kind;
+            return this->Kind;
         }
 
         [[nodiscard]]
         constexpr auto string() const noexcept -> std::string_view {
-            return String;
+            return this->String;
         }
 
         constexpr auto setKind(const ExportTrieExportKind Kind) noexcept
@@ -565,11 +565,11 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto isExport() const noexcept {
-            return kind() != ExportTrieExportKind::None;
+            return this->kind() != ExportTrieExportKind::None;
         }
 
         [[nodiscard]] constexpr auto isReexport() const noexcept {
-            return kind() == ExportTrieExportKind::Reexport;
+            return this->kind() == ExportTrieExportKind::Reexport;
         }
 
         [[nodiscard]]
@@ -620,7 +620,7 @@ namespace MachO {
         using ExportTrieChildNode::ExportTrieChildNode;
 
         [[nodiscard]] constexpr const auto &info() const noexcept {
-            return Info;
+            return this->Info;
         }
 
         constexpr auto &setInfo(const ExportTrieExportInfo &Value) noexcept {
@@ -634,12 +634,12 @@ namespace MachO {
 
         [[nodiscard]] inline auto segment() const noexcept {
             assert(!this->isReexport());
-            return Segment;
+            return this->Segment;
         }
 
         [[nodiscard]] inline auto section() const noexcept {
             assert(!this->isReexport());
-            return Section;
+            return this->Section;
         }
 
         constexpr auto setSegment(const SegmentInfo *const Value) noexcept
@@ -719,7 +719,7 @@ namespace MachO {
                       Error *ErrorOut = nullptr) noexcept;
 
         [[nodiscard]] inline ADT::TreeNode *root() const noexcept override {
-            return Root;
+            return this->Root;
         }
 
         inline ADT::Tree &setRoot(ADT::TreeNode *const Root) noexcept override {
@@ -739,7 +739,7 @@ namespace MachO {
         using ConstIterator = ADT::TreeDFSIterator<const ChildNode>;
 
         [[nodiscard]] inline auto begin() const noexcept {
-            return Iterator(Root);
+            return Iterator(this->Root);
         }
 
         [[nodiscard]] constexpr auto end() const noexcept {
@@ -747,7 +747,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline auto cbegin() const noexcept {
-            return ConstIterator(Root);
+            return ConstIterator(this->Root);
         }
 
         [[nodiscard]] constexpr auto cend() const noexcept {
@@ -776,19 +776,19 @@ namespace MachO {
         const SectionInfo *Section = nullptr;
     public:
         [[nodiscard]] constexpr auto &getInfo() const noexcept {
-            return Export;
+            return this->Export;
         }
 
         [[nodiscard]] constexpr auto &info() noexcept {
-            return Export;
+            return this->Export;
         }
 
         [[nodiscard]] constexpr auto segment() const noexcept {
-            return Segment;
+            return this->Segment;
         }
 
         [[nodiscard]] constexpr auto section() const noexcept {
-            return Section;
+            return this->Section;
         }
 
         constexpr auto setSegment(const SegmentInfo *const Value) noexcept
@@ -839,19 +839,19 @@ namespace MachO {
         using ConstIterator = EntryListType::const_iterator;
 
         [[nodiscard]] inline auto begin() noexcept {
-            return EntryList.begin();
+            return this->EntryList.begin();
         }
 
         [[nodiscard]] inline auto end() noexcept {
-            return EntryList.end();
+            return this->EntryList.end();
         }
 
         [[nodiscard]] inline auto begin() const noexcept {
-            return EntryList.cbegin();
+            return this->EntryList.cbegin();
         }
 
         [[nodiscard]] inline auto end() const noexcept {
-            return EntryList.cend();
+            return this->EntryList.cend();
         }
     };
 }

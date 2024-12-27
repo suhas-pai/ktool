@@ -41,7 +41,7 @@ namespace MachO {
             assert(Dylib.isSharedLibrary(IsBigEndian));
 
             const auto PathOpt = Dylib.name(IsBigEndian);
-            List.emplace_back(LibraryInfo {
+            this->List.emplace_back(LibraryInfo {
                 .Kind = Dylib.kind(IsBigEndian),
                 .Path =
                     PathOpt.has_value() ?
@@ -57,16 +57,16 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto empty() const noexcept {
-            return List.empty();
+            return this->List.empty();
         }
 
         [[nodiscard]] constexpr auto size() const noexcept {
-            return List.size();
+            return this->List.size();
         }
 
         [[nodiscard]] constexpr
         auto &at(const decltype(List)::size_type Index) const noexcept {
-            return List.at(Index);
+            return this->List.at(Index);
         }
     };
 }

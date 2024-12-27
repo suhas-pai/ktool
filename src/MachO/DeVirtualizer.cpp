@@ -83,10 +83,7 @@ namespace MachO {
                 VmRange = Segment->VmRange;
             }
 
-            const auto IndexRange =
-                ADT::Range::FromSize(Range.front() - VmRange.front(),
-                                     Range.size());
-
+            const auto IndexRange = VmRange.indexForLocRange(Range);
             if (!FileRange.containsAsIndex(IndexRange)) {
                 return std::nullopt;
             }

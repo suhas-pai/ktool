@@ -70,7 +70,7 @@ namespace Objects {
             return std::unexpected(Error(Err));
         }
 
-        const auto Header = *Map.base<::MachO::FatHeader, false>();
+        const auto Header = *Map.base<::MachO::FatHeader, /*Verify=*/false>();
         if (Header.ArchCount == 0) {
             return new FatMachO(Map);
         }
@@ -78,7 +78,7 @@ namespace Objects {
         const auto ArchCount = Header.archCount();
         if (Header.is64Bit()) {
             const auto ArchList =
-                Map.get<::MachO::FatArch64, false>(
+                Map.get<::MachO::FatArch64, /*Verify=*/false>(
                     sizeof(struct ::MachO::FatHeader), ArchCount);
 
             // Don't Swap CpuKind and CpuSubKind, because we're only comparing
@@ -89,7 +89,7 @@ namespace Objects {
                 const auto ArchRange = Arch.range(Header.isBigEndian());
 
                 if (!Map.range().contains(ArchRange)) {
-                    return std::unexpected(Error(OpenError::ArchOutOfBounds));
+                    return std::unexpected(OpenError::ArchOutOfBounds);
                 }
 
                 for (auto J = uint32_t(); J != I; J++) {
@@ -97,21 +97,19 @@ namespace Objects {
                     const auto InnerRange = Inner.range(Header.isBigEndian());
 
                     if (InnerRange.overlaps(ArchRange)) {
-                        return std::unexpected(
-                            Error(OpenError::OverlappingArchs));
+                        return std::unexpected(OpenError::OverlappingArchs);
                     }
 
                     if (Inner.CpuKind == Arch.CpuKind &&
                         Inner.CpuSubKind == Arch.CpuSubKind)
                     {
-                        return std::unexpected(
-                            Error(OpenError::ArchsForSameCpu));
+                        return std::unexpected(OpenError::ArchsForSameCpu);
                     }
                 }
             }
         } else {
             const auto ArchList =
-                Map.get<::MachO::FatArch, false>(
+                Map.get<::MachO::FatArch, /*Verify=*/false>(
                     sizeof(struct ::MachO::FatHeader), ArchCount);
 
             // Don't Swap CpuKind and CpuSubKind, because we're only comparing
@@ -122,7 +120,7 @@ namespace Objects {
                 const auto ArchRange = Arch.range(Header.isBigEndian());
 
                 if (!Map.range().contains(ArchRange)) {
-                    return std::unexpected(Error(OpenError::ArchOutOfBounds));
+                    return std::unexpected(OpenError::ArchOutOfBounds);
                 }
 
                 for (auto J = uint32_t(); J != I; J++) {
@@ -130,15 +128,13 @@ namespace Objects {
                     const auto InnerRange = Inner.range(Header.isBigEndian());
 
                     if (InnerRange.overlaps(ArchRange)) {
-                        return std::unexpected(
-                            Error(OpenError::OverlappingArchs));
+                        return std::unexpected(OpenError::OverlappingArchs);
                     }
 
                     if (Inner.CpuKind == Arch.CpuKind &&
                         Inner.CpuSubKind == Arch.CpuSubKind)
                     {
-                        return std::unexpected(
-                            Error(OpenError::ArchsForSameCpu));
+                        return std::unexpected(OpenError::ArchsForSameCpu);
                     }
                 }
             }

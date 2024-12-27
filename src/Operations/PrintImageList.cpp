@@ -43,10 +43,10 @@ namespace Operations {
                     const uint32_t ImageCount,
                     const bool PrintColon = true) noexcept
     {
-        std::print(OutFile,
-                   "Provided file has {} Images{}\n",
-                   ImageCount,
-                   PrintColon ? ":" : "");
+        std::println(OutFile,
+                     "Provided file has {} Images{}",
+                     Utils::FormattedNumber(ImageCount),
+                     PrintColon ? ":" : "");
     }
 
     struct ImageInfo : public DyldSharedCache::ImageInfo {
@@ -66,31 +66,13 @@ namespace Operations {
     {
         switch (SortKind) {
             case PrintImageList::Options::SortKind::ByAddress:
-                if (Lhs.Address == Rhs.Address) {
-                    return 0;
-                } else if (Lhs.Address < Rhs.Address) {
-                    return -1;
-                }
-
-                return 1;
+                return Lhs.Address <=> Rhs.Address;
             case PrintImageList::Options::SortKind::ByInode:
-                if (Lhs.Inode == Rhs.Inode) {
-                    return 0;
-                } else if (Lhs.Inode < Rhs.Inode) {
-                    return -1;
-                }
-
-                return 1;
+                return Lhs.Inode <=> Rhs.Inode;
             case PrintImageList::Options::SortKind::ByModTime:
-                if (Lhs.ModTime == Rhs.ModTime) {
-                    return 0;
-                } else if (Lhs.ModTime < Rhs.ModTime) {
-                    return -1;
-                }
-
-                return 1;
+                return Lhs.ModTime <=> Rhs.ModTime;
             case PrintImageList::Options::SortKind::ByName:
-                return Lhs.Path.compare(Rhs.Path);
+                return Lhs.Path <=> Rhs.Path;
         }
 
         assert(false && "Unrecognized (and invalid) Sort-Kind");
@@ -104,6 +86,9 @@ namespace Operations {
         if (ImageCount == 0) {
             return RunResult(RunResult::Error::NoImages);
         }
+
+        const auto &Opt = this->Opt;
+        const auto OutFile = this->OutFile;
 
         if (Opt.OnlyCount) {
             PrintImageCount(OutFile, ImageCount, false);
@@ -138,15 +123,14 @@ namespace Operations {
             const auto Comparator =
                 [&](const auto &Lhs, const auto &Rhs) noexcept
             {
-                auto Compare = int();
                 for (const auto &Sort : Opt.SortKindList) {
-                    Compare = CompareInfosBySortKind(Lhs, Rhs, Sort);
+                    const auto Compare = CompareInfosBySortKind(Lhs, Rhs, Sort);
                     if (Compare != 0) {
-                        break;
+                        return Compare == std::strong_ordering::less;
                     }
                 }
 
-                return Compare < 0;
+                return false;
             };
 
             std::sort(ImageInfoList.begin(), ImageInfoList.end(), Comparator);
@@ -156,7 +140,7 @@ namespace Operations {
         const auto ImageInfoListSizeDigitCount =
             Utils::GetIntegerDigitCount(ImageCount);
 
-        auto Counter = uint64_t(1);
+        auto Counter = static_cast<uint64_t>(1);
         for (const auto &Info : ImageInfoList) {
             std::print(OutFile,
                        "Image {:>{}}: ",
@@ -176,13 +160,12 @@ namespace Operations {
                            "",
                            RightPad - WrittenOut,
                            Utils::Address(Info.Address),
-                           Utils::GetHumanReadableTimestamp(
-                               static_cast<time_t>(Info.ModTime)),
+                           Utils::Timestamp(static_cast<time_t>(Info.ModTime)),
                            Info.ModTime,
                            Info.Inode);
             }
 
-            std::print(OutFile, "\n");
+            std::println(OutFile);
             Counter++;
         }
 

@@ -8,7 +8,9 @@
 #pragma once
 
 #include <format>
+#include <type_traits>
 #include "MachO/LoadCommands.h"
+#include "Utils/Misc.h"
 
 namespace Utils {
     template <std::unsigned_integral T>
@@ -24,10 +26,9 @@ namespace Utils {
 
     template <std::signed_integral T>
     [[nodiscard]]
-    constexpr auto GetIntegerDigitCount(T Integer) noexcept -> uint8_t {
+    constexpr auto GetIntegerDigitCount(const T Integer) noexcept -> uint8_t {
         if (Integer < 0) {
-            Integer = -Integer;
-            return GetIntegerDigitCount(Integer) + 1;
+            return GetIntegerDigitCount(-Integer) + 1;
         }
 
         return GetIntegerDigitCount(
@@ -44,11 +45,11 @@ namespace Utils {
                    std::string_view Prefix = "",
                    std::string_view Suffix = "") -> int;
 
-    template <std::unsigned_integral T>
-    struct NumberWithCommas {
+    template <std::integral T>
+    struct FormattedNumber {
         T Value;
 
-        constexpr explicit NumberWithCommas(const T Value) noexcept
+        constexpr explicit FormattedNumber(const T Value) noexcept
         : Value(Value) {}
     };
 
@@ -128,6 +129,10 @@ namespace Utils {
         bool PadSection : 1;
     };
 
+    struct Timestamp {
+        time_t Value;
+    };
+
     auto
     PrintOffsetSizeInfo(FILE *OutFile,
                         const ADT::Range &Range,
@@ -187,8 +192,18 @@ namespace Utils {
     };
 
     template <>
+    struct AddressLengthCalc<const uint32_t> {
+        constexpr static inline auto Length = Address32Length;
+    };
+
+    template <>
     struct AddressLengthCalc<uint32_t> {
         constexpr static inline auto Length = Address32Length;
+    };
+
+    template <>
+    struct AddressLengthCalc<const uint64_t> {
+        constexpr static inline auto Length = Address64Length;
     };
 
     template <>
@@ -199,8 +214,8 @@ namespace Utils {
 
 #define STR_LENGTH(s) (sizeof(s) - 1)
 
-template <std::unsigned_integral T>
-struct std::formatter<Utils::NumberWithCommas<T>> :
+template <std::integral T>
+struct std::formatter<Utils::FormattedNumber<T>> :
     public std::formatter<std::string_view>
 {
     auto format(const auto &Number, auto &ctx) const noexcept {
@@ -211,12 +226,18 @@ struct std::formatter<Utils::NumberWithCommas<T>> :
             std::string_view(Buffer.begin(),
                              strnlen(Buffer.begin(), Buffer.size()));
 
-        if (Sv.length() < 4) {
+        const auto DigitCount =
+            std::is_signed_v<T> && Number.Value < 0 ?
+                Sv.length() - 1 : Sv.length();
+
+        if (DigitCount < 4) {
             return std::formatter<std::string_view>::format(Sv, ctx);
         }
 
+        const auto StartIndex = std::is_signed_v<T> && Number.Value < 0 ? 1 : 0;
         auto Result = std::string(Sv);
-        for (auto I = int64_t(Sv.length() - 3); I > 0; I -= 3) {
+
+        for (auto I = int64_t(Sv.length() - 3); I > StartIndex; I -= 3) {
             Result.insert(static_cast<uint64_t>(I), 1, ',');
         }
 
@@ -280,7 +301,7 @@ struct std::formatter<Utils::ByteSize> :
         if (ByteSize.Value < Base) {
             std::format_to(std::back_inserter(Result),
                            "{} bytes",
-                           Utils::NumberWithCommas(ByteSize.Value));
+                           Utils::FormattedNumber(ByteSize.Value));
 
             return std::formatter<std::string_view>::format(Result, ctx);
         }
@@ -300,7 +321,7 @@ struct std::formatter<Utils::ByteSize> :
         if (floor(ResultAmount) == ResultAmount) {
             std::format_to(std::back_inserter(Result),
                            "{} {}",
-                           Utils::NumberWithCommas(
+                           Utils::FormattedNumber(
                            static_cast<uint64_t>(ResultAmount)),
                            Name);
 
@@ -321,8 +342,8 @@ struct std::formatter<Utils::Uuid> : public std::formatter<std::string_view> {
     auto format(const Utils::Uuid &Uuid, auto &Ctx) const {
         auto Result = std::string();
         std::format_to(std::back_inserter(Result),
-                       "{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}"
-                       "{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+                       "{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}"
+                       "{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
                        Uuid.Bytes[0], Uuid.Bytes[1], Uuid.Bytes[2],
                        Uuid.Bytes[3], Uuid.Bytes[4], Uuid.Bytes[5],
                        Uuid.Bytes[6], Uuid.Bytes[7], Uuid.Bytes[8],
@@ -357,6 +378,25 @@ struct std::formatter<Utils::PrintRange<T>> {
             (Utils::AddressLengthCalc<T>::Length * 2) + STR_LENGTH("-");
 
         if (Range.front() == 0) {
+            if (Range.size() == 0) {
+                switch (this->Padded) {
+                    case Padded::None:
+                        return std::format_to(ctx.out(), "0x0-0x0");
+                    case Padded::Left:
+                        return std::format_to(ctx.out(),
+                                            "{:>{}}",
+                                            "0x0-0x0",
+                                            FullRangeLength);
+                    case Padded::Right:
+                        return std::format_to(ctx.out(),
+                                            "{:<{}}",
+                                            "0x0-0x0",
+                                            FullRangeLength);
+                }
+
+                VERIFY_NOT_REACHED();
+            }
+
             switch (this->Padded) {
                 case Padded::None:
                     return std::format_to(ctx.out(),
@@ -377,23 +417,25 @@ struct std::formatter<Utils::PrintRange<T>> {
                                                         Range.size())),
                                           FullRangeLength);
             }
+
+            VERIFY_NOT_REACHED();
         }
 
-        if (const auto End = Range.end()) {
+        if (const auto EndOpt = Range.end()) {
+            const auto End = static_cast<T>(EndOpt.value());
             switch (this->Padded) {
                 case Padded::None:
                     return std::format_to(ctx.out(),
                                           "{}-{}",
                                           Utils::Address(Range.front()),
-                                          Utils::Address(End.value()));
+                                          Utils::Address(End));
                 case Padded::Left:
                     return std::format_to(ctx.out(),
                                           "{:>{}}",
                                           std::format("{}-{}",
                                                       Utils::Address(
                                                         Range.front()),
-                                                      Utils::Address(
-                                                        End.value())),
+                                                      Utils::Address(End)),
                                           FullRangeLength);
                 case Padded::Right:
                     return std::format_to(ctx.out(),
@@ -401,10 +443,11 @@ struct std::formatter<Utils::PrintRange<T>> {
                                           std::format("{}-{}",
                                                       Utils::Address(
                                                         Range.front()),
-                                                      Utils::Address(
-                                                        End.value())),
+                                                      Utils::Address(End)),
                                           FullRangeLength);
             }
+
+            VERIFY_NOT_REACHED();
         }
 
         switch (this->Padded) {
@@ -427,6 +470,8 @@ struct std::formatter<Utils::PrintRange<T>> {
                                                       Range.front())),
                                       FullRangeLength);
         }
+
+        VERIFY_NOT_REACHED();
     }
 
     enum class Padded {
@@ -435,24 +480,24 @@ struct std::formatter<Utils::PrintRange<T>> {
         Right
     };
 
-    Padded Padded;
+    Padded Padded = Padded::None;
 };
 
 template <>
-struct std::formatter<Utils::SegmentSectionPair> {
-    constexpr auto parse(auto &ctx) noexcept {
-        return ctx.begin();
-    }
-
+struct std::formatter<Utils::SegmentSectionPair> :
+    public std::formatter<std::string_view>
+{
     auto
-    format(const Utils::SegmentSectionPair &Pair, auto &ctx) const noexcept {
+    format(const Utils::SegmentSectionPair &Pair, auto &Ctx) const noexcept {
         auto Result = std::string();
         if (Pair.PadSegment) {
-            std::format_to(
-                std::back_inserter(Result),
-                "{:>{}}",
-                "",
-                MachO::SegmentSectionMaxNameLength - Pair.SegmentName.length());
+            const auto PadLength =
+                MachO::SegmentSectionMaxNameLength - Pair.SegmentName.length();
+
+            std::format_to(std::back_inserter(Result),
+                           "{:>{}}",
+                           "",
+                           PadLength);
         }
 
         std::format_to(std::back_inserter(Result), "\"{}\"", Pair.SegmentName);
@@ -469,39 +514,39 @@ struct std::formatter<Utils::SegmentSectionPair> {
                 MachO::SegmentSectionMaxNameLength - Pair.SectionName.length());
         }
 
-        return std::format_to(ctx.out(), "{}", Result);
+        return std::formatter<std::string_view>::format(Result, Ctx);
     }
 };
 
 template <>
-struct std::formatter<Dyld3::PackedVersion> {
-    constexpr auto parse(auto &ctx) {
-        return ctx.begin();
-    }
+struct std::formatter<Dyld3::PackedVersion> :
+    public std::formatter<std::string_view>
+{
+    auto format(const Dyld3::PackedVersion &Version, auto &Ctx) const {
+        const auto Result =
+            std::format("{}.{}.{}",
+                        Version.major(),
+                        Version.minor(),
+                        Version.revision());
 
-    auto format(const Dyld3::PackedVersion &Version, auto &ctx) const {
-        return std::format_to(ctx.out(),
-                              "{}.{}.{}",
-                              Version.major(),
-                              Version.minor(),
-                              Version.revision());
+        return std::formatter<std::string_view>::format(Result, Ctx);
     }
 };
 
 template <>
-struct std::formatter<Dyld3::PackedVersion64> {
-    constexpr auto parse(auto &ctx) {
-        return ctx.begin();
-    }
+struct std::formatter<Dyld3::PackedVersion64> :
+    public std::formatter<std::string_view>
+{
+    auto format(const Dyld3::PackedVersion64 &Version, auto &Ctx) const {
+        const auto Result =
+            std::format("{}.{}.{}.{}.{}",
+                        Version.major(),
+                        Version.minor(),
+                        Version.revision1(),
+                        Version.revision2(),
+                        Version.revision3());
 
-    auto format(const Dyld3::PackedVersion64 &Version, auto &ctx) const {
-        return std::format_to(ctx.out(),
-                              "{}.{}.{}.{}.{}",
-                              Version.major(),
-                              Version.minor(),
-                              Version.revision1(),
-                              Version.revision2(),
-                              Version.revision3());
+        return std::formatter<std::string_view>::format(Result, Ctx);
     }
 };
 
@@ -531,30 +576,34 @@ struct std::formatter<ADT::Range> {
 };
 
 template <>
-struct std::formatter<Mach::VmProt> {
-    constexpr auto parse(auto &ctx) noexcept {
-        return ctx.begin();
-    }
+struct std::formatter<Mach::VmProt> : public std::formatter<std::string_view> {
+    auto format(const Mach::VmProt &Prot, auto &Ctx) const noexcept {
+        const auto Result =
+            std::format("{}{}{}",
+                        Prot.readable() ? 'R' : '-',
+                        Prot.writable() ? 'W' : '-',
+                        Prot.executable() ? 'X' : '-');
 
-    auto format(const Mach::VmProt &Prot, auto &ctx) const noexcept {
-        return std::format_to(ctx.out(),
-                              "{}{}{}",
-                              Prot.readable() ? 'R' : '-',
-                              Prot.writable() ? 'W' : '-',
-                              Prot.executable() ? 'X' : '-');
+        return std::formatter<std::string_view>::format(Result, Ctx);
     }
 };
 
 template <>
-struct std::formatter<Mach::VmProtInitMax> {
-    constexpr auto parse(auto &ctx) noexcept {
-        return ctx.begin();
+struct std::formatter<Mach::VmProtInitMax> :
+    public std::formatter<std::string_view>
+{
+    auto format(const Mach::VmProtInitMax &Prot, auto &Ctx) const noexcept {
+        const auto Result = std::format("{}/{}", Prot.getInit(), Prot.getMax());
+        return std::formatter<std::string_view>::format(Result, Ctx);
     }
+};
 
-    auto format(const Mach::VmProtInitMax &Prot, auto &ctx) const noexcept {
-        return std::format_to(ctx.out(),
-                              "{}/{}",
-                              Prot.getInit(),
-                              Prot.getMax());
+template <>
+struct std::formatter<Utils::Timestamp> :
+    public std::formatter<std::string_view>
+{
+    auto format(const Utils::Timestamp &Timestamp, auto &Ctx) const noexcept {
+        const auto Result = Utils::GetHumanReadableTimestamp(Timestamp.Value);
+        return std::formatter<std::string_view>::format(Result, Ctx);
     }
 };

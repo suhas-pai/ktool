@@ -71,7 +71,7 @@ namespace Operations {
         auto run(const Objects::DscImage &DscImage) const noexcept -> RunResult;
 
         [[nodiscard]] constexpr auto &options() const noexcept {
-            return Opt;
+            return this->Opt;
         }
     };
 }

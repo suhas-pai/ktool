@@ -51,11 +51,6 @@ namespace Utils {
         return Is64Bit ? 8 : 4;
     }
 
-    [[nodiscard]]
-    constexpr auto PointerLogSize(const bool Is64Bit) noexcept -> uint8_t {
-        return Is64Bit ? 3 : 2;
-    }
-
     template <bool Is64Bit>
     [[nodiscard]] constexpr auto PointerSize() noexcept -> uint8_t {
         return PointerSize(Is64Bit);
@@ -63,7 +58,12 @@ namespace Utils {
 
     template <bool Is64Bit>
     [[nodiscard]] constexpr auto PointerLogSize() noexcept -> uint8_t {
-        return PointerLogSize(Is64Bit);
+        return Is64Bit ? 3 : 2;
+    }
+
+    [[nodiscard]]
+    constexpr auto PointerLogSize(const bool Is64Bit) noexcept -> uint8_t {
+        return Is64Bit ? PointerLogSize<true>() : PointerLogSize<false>();
     }
 
     template <bool Is64Bit>
@@ -93,7 +93,12 @@ namespace Utils {
                              const U Count,
                              const V Bound) noexcept
     {
-        return OrdinalOutOfBounds(Index + Count, Bound);
+        const auto EndOpt = Utils::AddAndCheckOverflow(Index, Count);
+        if (!EndOpt.has_value()) {
+            return true;
+        }
+
+        return OrdinalOutOfBounds(EndOpt.value(), Bound);
     }
 
     template <std::unsigned_integral T>
@@ -101,15 +106,6 @@ namespace Utils {
         -> std::optional<T>
     {
         auto Front = String.front();
-        if (Front == '0') {
-            if (String.length() == 1) {
-                return 0;
-            }
-
-            // Number with leading 0
-            return std::nullopt;
-        }
-
         if (Front < '0' || Front > '9') {
             return std::nullopt;
         }
@@ -141,9 +137,9 @@ namespace Utils {
 
         const auto CdString = getcwd(nullptr, 0);
         if (CdString == nullptr) {
-            std::print(stderr,
-                       "Failed to get current-directory. Error: \"{}\"\n",
-                       strerror(errno));
+            std::println(stderr,
+                         "Failed to get current-directory. Error: \"{}\"",
+                         strerror(errno));
             exit(1);
         }
 

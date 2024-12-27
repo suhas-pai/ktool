@@ -8,6 +8,7 @@
 #include <span>
 #include "ADT/Range.h"
 
+#include "Dyld3/ChainedFixups.h"
 #include "Dyld3/PackedVersion.h"
 #include "Dyld3/Platform.h"
 
@@ -35,14 +36,6 @@ namespace DyldSharedCache {
         uint32_t MaxProt;
         uint32_t InitProt;
 
-        [[nodiscard]] constexpr auto maxProt() const noexcept {
-            return Mach::VmProt(this->MaxProt);
-        }
-
-        [[nodiscard]] constexpr auto initProt() const noexcept {
-            return Mach::VmProt(this->InitProt);
-        }
-
         [[nodiscard]] constexpr auto addressRange() const noexcept {
             return ADT::Range::FromSize(this->Address, this->Size);
         }
@@ -53,6 +46,18 @@ namespace DyldSharedCache {
 
         [[nodiscard]] inline auto empty() const noexcept {
             return this->Size == 0;
+        }
+
+        [[nodiscard]] constexpr auto maxProt() const noexcept {
+            return Mach::VmProt(this->MaxProt);
+        }
+
+        [[nodiscard]] constexpr auto initProt() const noexcept {
+            return Mach::VmProt(this->InitProt);
+        }
+
+        [[nodiscard]] constexpr auto initAndMaxProt() const noexcept {
+            return Mach::VmProtInitMax(this->initProt(), this->maxProt());
         }
 
         [[nodiscard]] inline auto
@@ -84,7 +89,11 @@ namespace DyldSharedCache {
             enum class Masks : uint64_t {
                 AuthData  = 1 << 0,
                 DirtyData = 1 << 1,
-                ConstData = 1 << 2
+                ConstData = 1 << 2,
+                TextStubs = 1 << 3,
+                DynamicConfigData = 1 << 4,
+                ReadOnlyData = 1 << 5,
+                ConstTproData = 1 << 6,
             };
 
             [[nodiscard]] inline auto isAuthData() const noexcept {
@@ -97,6 +106,22 @@ namespace DyldSharedCache {
 
             [[nodiscard]] inline auto isConstData() const noexcept {
                 return this->has(Masks::ConstData);
+            }
+
+            [[nodiscard]] inline auto isTextStubs() const noexcept {
+                return this->has(Masks::TextStubs);
+            }
+
+            [[nodiscard]] inline auto isDynamicConfigData() const noexcept {
+                return this->has(Masks::DynamicConfigData);
+            }
+
+            [[nodiscard]] inline auto isReadOnlyData() const noexcept {
+                return this->has(Masks::ReadOnlyData);
+            }
+
+            [[nodiscard]] inline auto isConstTproData() const noexcept {
+                return this->has(Masks::ConstTproData);
             }
 
             constexpr auto setAuthData(const bool Value = true) noexcept
@@ -119,6 +144,35 @@ namespace DyldSharedCache {
                 this->setValueForMask(Masks::ConstData, 0, Value);
                 return *this;
             }
+
+            constexpr auto setTextStubs(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
+                this->setValueForMask(Masks::TextStubs, 0, Value);
+                return *this;
+            }
+
+            constexpr
+            auto setDynamicConfigData(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
+                this->setValueForMask(Masks::DynamicConfigData, 0, Value);
+                return *this;
+            }
+
+            constexpr auto setReadOnlyData(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
+                this->setValueForMask(Masks::ReadOnlyData, 0, Value);
+                return *this;
+            }
+
+            constexpr auto setConstTproData(const bool Value = true) noexcept
+                -> decltype(*this)
+            {
+                this->setValueForMask(Masks::ConstTproData, 0, Value);
+                return *this;
+            }
         };
 
         uint64_t Address;
@@ -130,32 +184,37 @@ namespace DyldSharedCache {
         uint32_t MaxProt;
         uint32_t InitProt;
 
-        [[nodiscard]] constexpr auto maxProt() const noexcept {
-            return Mach::VmProt(MaxProt);
-        }
-
-        [[nodiscard]] constexpr auto initProt() const noexcept {
-            return Mach::VmProt(InitProt);
-        }
-
-        [[nodiscard]] constexpr auto flags() const noexcept {
-            return FlagsStruct(Flags);
-        }
-
         [[nodiscard]] constexpr auto addressRange() const noexcept {
-            return ADT::Range::FromSize(Address, Size);
+            return ADT::Range::FromSize(this->Address, this->Size);
         }
 
         [[nodiscard]] constexpr auto fileRange() const noexcept {
-            return ADT::Range::FromSize(FileOffset, Size);
+            return ADT::Range::FromSize(this->FileOffset, this->Size);
         }
 
         [[nodiscard]] constexpr auto slideInfoFileRange() const noexcept {
-            return ADT::Range::FromSize(SlideInfoFileOffset, SlideInfoFileSize);
+            return ADT::Range::FromSize(this->SlideInfoFileOffset,
+                                        this->SlideInfoFileSize);
         }
 
         [[nodiscard]] inline auto empty() const noexcept {
-            return Size == 0;
+            return this->Size == 0;
+        }
+
+        [[nodiscard]] constexpr auto flags() const noexcept {
+            return FlagsStruct(this->Flags);
+        }
+
+        [[nodiscard]] constexpr auto maxProt() const noexcept {
+            return Mach::VmProt(this->MaxProt);
+        }
+
+        [[nodiscard]] constexpr auto initProt() const noexcept {
+            return Mach::VmProt(this->InitProt);
+        }
+
+        [[nodiscard]] constexpr auto initAndMaxProt() const noexcept {
+            return Mach::VmProtInitMax(this->initProt(), this->maxProt());
         }
 
         [[nodiscard]] inline auto
@@ -409,45 +468,255 @@ namespace DyldSharedCache {
         [[nodiscard]] constexpr auto imageOffset() const noexcept -> uint32_t;
         [[nodiscard]] constexpr auto imageCount() const noexcept -> uint32_t;
 
-        [[nodiscard]] inline auto imageInfoListRange() const noexcept
-            -> std::optional<ADT::Range>
-        {
-            const auto ImagesOffset = this->imageOffset();
-            const auto ImagesCount = this->imageCount();
-
-            const auto End =
-                Utils::MulAddAndCheckOverflow(ImagesCount,
-                                              sizeof(ImageInfo),
-                                              ImagesOffset);
-
-            if (End.has_value()) {
-                return ADT::Range::FromEnd(ImagesOffset, End.value());
-            }
-
-            return std::nullopt;
+        [[nodiscard]] inline auto imageInfoListRange() const noexcept {
+            return ADT::Range::FromSizeAndCount(this->imageOffset(),
+                                                sizeof(ImageInfo),
+                                                this->imageCount());
         }
 
-        [[nodiscard]] inline auto mappingInfoListRange() const noexcept
-            -> std::optional<ADT::Range>
-        {
-            const auto End =
-                Utils::MulAddAndCheckOverflow(this->MappingCount,
-                                              sizeof(MappingInfo),
-                                              this->MappingOffset);
-
-            if (End.has_value()) {
-                return ADT::Range::FromEnd(this->MappingOffset, End.value());
-            }
-
-            return std::nullopt;
+        [[nodiscard]] inline auto mappingInfoListRange() const noexcept {
+            return ADT::Range::FromSizeAndCount(this->MappingOffset,
+                                                sizeof(MappingInfo),
+                                                this->MappingCount);
         }
 
         [[nodiscard]] constexpr auto hasSubCacheV1Array() const noexcept;
         [[nodiscard]] constexpr auto hasSubCacheArray() const noexcept;
     };
 
-    // From dyld v195.5
+    struct SlideInfoBase {
+        uint32_t Version;
+    };
 
+    enum class SlideInfoVersion {
+        V1 = 1,
+        V2,
+        V3,
+        V4,
+        V5
+    };
+
+    struct SlideInfoV1 : public SlideInfoBase {
+        struct Entry {
+            uint8_t Bits[4096 / (8 * 4)];
+        };
+
+        uint32_t TocOffset;
+        uint32_t TocCount;
+        uint32_t EntriesOffset;
+        uint32_t EntriesCount;
+        uint32_t EntriesSize;
+        // uint16_t toc[toc_count];
+        // entrybitmap entries[entries_count];
+
+        [[nodiscard]] constexpr auto tocRange() const noexcept {
+            return ADT::Range::FromSizeAndCount(this->TocOffset,
+                                                sizeof(uint16_t),
+                                                this->TocCount);
+        }
+
+        [[nodiscard]] constexpr auto entriesRange() const noexcept {
+            return ADT::Range::FromSizeAndCount(this->EntriesOffset,
+                                                this->EntriesSize,
+                                                this->EntriesCount);
+        }
+
+        [[nodiscard]] auto tocSpan() noexcept {
+            const auto Map = reinterpret_cast<uint8_t *>(this);
+            const auto Ptr =
+                reinterpret_cast<uint16_t *>(Map + this->EntriesOffset);
+
+            return std::span<uint16_t>(Ptr, this->EntriesCount);
+        }
+
+        [[nodiscard]] constexpr auto entriesSpan() noexcept
+            -> std::optional<std::span<Entry>>
+        {
+            if (this->EntriesSize != sizeof(Entry)) {
+                return std::nullopt;
+            }
+
+            const auto Map = reinterpret_cast<uint8_t *>(this);
+            const auto Ptr =
+                reinterpret_cast<Entry *>(Map + this->EntriesOffset);
+
+            return std::span<Entry>(Ptr, this->EntriesCount);
+        }
+    };
+
+    struct SlideInfoV2 : public SlideInfoBase {
+        uint32_t PageSize;
+        uint32_t PageStartsOffset;
+        uint32_t PageStartsCount;
+        uint32_t PageExtrasOffset;
+        uint32_t PageExtrasCount;
+        uint64_t DeltaMask;
+        uint64_t ValueAdd;
+
+        [[nodiscard]] constexpr auto pageStartsRange() const noexcept {
+            return ADT::Range::FromSizeAndCount(this->PageStartsOffset,
+                                                sizeof(uint16_t),
+                                                this->PageStartsCount);
+        }
+
+        [[nodiscard]] auto pageStartsSpan() noexcept {
+            const auto Map = reinterpret_cast<uint8_t *>(this);
+            const auto Ptr =
+                reinterpret_cast<uint16_t *>(Map + this->PageStartsOffset);
+
+            return std::span<uint16_t>(Ptr, this->PageStartsCount);
+        }
+
+        [[nodiscard]] auto pageStartsSpan() const noexcept {
+            const auto Map = reinterpret_cast<const uint8_t *>(this);
+            const auto Ptr =
+                reinterpret_cast<const uint16_t *>(
+                    Map + this->PageStartsOffset);
+
+            return std::span<const uint16_t>(Ptr, this->PageStartsCount);
+        }
+
+        [[nodiscard]] constexpr auto pageExtrasRange() const noexcept {
+            return ADT::Range::FromSizeAndCount(this->PageExtrasOffset,
+                                                sizeof(uint16_t),
+                                                this->PageExtrasCount);
+        }
+
+        [[nodiscard]] auto pageExtrasSpan() noexcept {
+            const auto Map = reinterpret_cast<uint8_t *>(this);
+            const auto Ptr =
+                reinterpret_cast<uint16_t *>(Map + this->PageExtrasOffset);
+
+            return std::span<uint16_t>(Ptr, this->PageExtrasCount);
+        }
+
+        [[nodiscard]] auto pageExtrasSpan() const noexcept {
+            const auto Map = reinterpret_cast<const uint8_t *>(this);
+            const auto Ptr =
+                reinterpret_cast<const uint16_t *>(
+                    Map + this->PageExtrasOffset);
+
+            return std::span<const uint16_t>(Ptr, this->PageExtrasCount);
+        }
+    };
+
+    struct SlideInfoV3 : public SlideInfoBase {
+        union PointerV3 {
+            uint64_t Raw;
+            struct {
+                uint64_t PointerValue        : 51,
+                         OffsetToNextPointer : 11,
+                         Unused              :  2;
+            } Plain;
+
+            struct {
+                uint64_t OffsetFromSharedCacheBase : 32,
+                         DiversityData             : 16,
+                         HasAddressDiversity       :  1,
+                         Key                       :  2,
+                         OffsetToNextPointer       : 11,
+                         Unused                    :  1,
+                         Authenticated             :  1;
+            } Auth;
+        };
+
+        uint32_t PageSize;
+        uint32_t PageStartsCount;
+        uint64_t AuthValueAdd;
+
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wc99-extensions"
+        uint16_t PageStarts[];
+    #pragma clang diagnostic pop
+
+        [[nodiscard]] constexpr auto pageStartsSpan() noexcept {
+            return std::span(this->PageStarts, this->PageStartsCount);
+        }
+
+        [[nodiscard]] constexpr auto pageStartsSpan() const noexcept {
+            return std::span(this->PageStarts, this->PageStartsCount);
+        }
+    };
+
+    struct SlideInfoV4 : public SlideInfoBase {
+        uint32_t PageSize;
+        uint32_t PageStartsOffset;
+        uint32_t PageStartsCount;
+        uint32_t PageExtrasOffset;
+        uint32_t PageExtrasCount;
+        uint64_t DeltaMask;
+        uint64_t ValueAdd;
+
+        [[nodiscard]] constexpr auto pageStartsRange() const noexcept {
+            return ADT::Range::FromSizeAndCount(this->PageStartsOffset,
+                                                sizeof(uint16_t),
+                                                this->PageStartsCount);
+        }
+
+        [[nodiscard]] auto pageStartsSpan() noexcept {
+            const auto Map = reinterpret_cast<uint8_t *>(this);
+            const auto Ptr =
+                reinterpret_cast<uint16_t *>(Map + this->PageStartsOffset);
+
+            return std::span<uint16_t>(Ptr, this->PageStartsCount);
+        }
+
+        [[nodiscard]] auto pageStartsSpan() const noexcept {
+            const auto Map = reinterpret_cast<const uint8_t *>(this);
+            const auto Ptr =
+                reinterpret_cast<const uint16_t *>(
+                    Map + this->PageStartsOffset);
+
+            return std::span<const uint16_t>(Ptr, this->PageStartsCount);
+        }
+
+        [[nodiscard]] constexpr auto pageExtrasRange() const noexcept {
+            return ADT::Range::FromSizeAndCount(this->PageExtrasOffset,
+                                                sizeof(uint16_t),
+                                                this->PageExtrasCount);
+        }
+
+        [[nodiscard]] auto pageExtrasSpan() noexcept {
+            const auto Map = reinterpret_cast<uint8_t *>(this);
+            const auto Ptr =
+                reinterpret_cast<uint16_t *>(Map + this->PageExtrasOffset);
+
+            return std::span<uint16_t>(Ptr, this->PageExtrasCount);
+        }
+
+        [[nodiscard]] auto pageExtrasSpan() const noexcept {
+            const auto Map = reinterpret_cast<const uint8_t *>(this);
+            const auto Ptr =
+                reinterpret_cast<const uint16_t *>(
+                    Map + this->PageExtrasOffset);
+
+            return std::span<const uint16_t>(Ptr, this->PageExtrasCount);
+        }
+    };
+
+    struct SlideInfoV5 : public SlideInfoBase {
+        union PointerV5 {
+            uint64_t Raw;
+
+            struct Dyld3::ChainedPointerArm64eSharedCacheRebase Regular;
+            struct Dyld3::ChainedPointerArm64eSharedCacheAuthRebase Auth;
+        };
+
+        uint32_t PageSize;
+        uint32_t PageStartsCount;
+        uint64_t ValueAdd;
+
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wc99-extensions"
+        uint16_t PageStarts[];
+    #pragma clang diagnostic pop
+
+        [[nodiscard]] constexpr auto pageStartsSpan() const noexcept {
+            return std::span(this->PageStarts, this->PageStartsCount);
+        }
+    };
+
+    // From dyld v195.5
     struct HeaderV1 : public HeaderV0 {
         uint64_t CodeSignatureOffset;
         uint64_t CodeSignatureSize;
@@ -463,6 +732,34 @@ namespace DyldSharedCache {
         [[nodiscard]] constexpr auto slideInfoRange() const noexcept {
             return ADT::Range::FromSize(this->SlideInfoOffset,
                                         this->SlideInfoSize);
+        }
+
+        [[nodiscard]]
+        constexpr auto slideInfoHeader() noexcept -> SlideInfoBase * {
+            if (this->SlideInfoSize < sizeof(SlideInfoV1)) {
+                return nullptr;
+            }
+
+            const auto Map = reinterpret_cast<uint8_t *>(this);
+            const auto Ptr =
+                reinterpret_cast<uint8_t *>(Map + this->SlideInfoOffset);
+
+            return reinterpret_cast<SlideInfoBase *>(Ptr);
+        }
+
+        [[nodiscard]]
+        constexpr auto slideInfoHeader() const noexcept
+            -> const SlideInfoBase *
+        {
+            if (this->SlideInfoSize < sizeof(SlideInfoV1)) {
+                return nullptr;
+            }
+
+            const auto Map = reinterpret_cast<const uint8_t *>(this);
+            const auto Ptr =
+                reinterpret_cast<const uint8_t *>(Map + this->SlideInfoOffset);
+
+            return reinterpret_cast<const SlideInfoBase *>(Ptr);
         }
     };
 
@@ -503,18 +800,10 @@ namespace DyldSharedCache {
         uint64_t ImagesTextOffset;
         uint64_t ImagesTextCount;
 
-        [[nodiscard]] inline auto imageTextInfoListRange() const noexcept
-            -> std::optional<ADT::Range>
-        {
-            const auto End =
-                Utils::MulAddAndCheckOverflow(sizeof(ImageTextInfo),
-                                              this->ImagesTextCount,
-                                              this->ImagesTextOffset);
-            if (End.has_value()) {
-                return ADT::Range::FromEnd(this->ImagesTextOffset, End.value());
-            }
-
-            return std::nullopt;
+        [[nodiscard]] inline auto imageTextInfoListRange() const noexcept {
+            return ADT::Range::FromSizeAndCount(this->ImagesTextOffset,
+                                                sizeof(ImageTextInfo),
+                                                this->ImagesTextCount);
         }
 
         [[nodiscard]] inline auto imageTextInfoSpan() noexcept {
@@ -642,8 +931,9 @@ namespace DyldSharedCache {
 
         [[nodiscard]]
         constexpr auto mappingWithSlideInfoRange() const noexcept {
-            return ADT::Range::FromSize(this->MappingWithSlideOffset,
-                                        this->MappingWithSlideCount);
+            return ADT::Range::FromSizeAndCount(this->MappingWithSlideOffset,
+                                                sizeof(MappingWithSlideInfo),
+                                                this->MappingWithSlideCount);
         }
 
         [[nodiscard]] inline auto mappingWithSlideInfoSpan() noexcept {
@@ -689,18 +979,21 @@ namespace DyldSharedCache {
         uint32_t ImagesCount;
 
         [[nodiscard]]
-        inline auto imageInfoListRange() const noexcept
-            -> std::optional<ADT::Range>
-        {
-            const auto End =
-                Utils::MulAddAndCheckOverflow(this->ImagesCount,
-                                              sizeof(ImageInfo),
-                                              this->ImagesOffset);
-            if (End.has_value()) {
-                return ADT::Range::FromSize(this->ImagesOffset, End.value());
-            }
+        constexpr auto imageOffset() const noexcept -> uint32_t {
+            return this->ImagesOffset;
+        }
 
-            return std::nullopt;
+        [[nodiscard]]
+        constexpr auto imageCount() const noexcept -> uint32_t {
+            return this->ImagesCount;
+        }
+
+
+        [[nodiscard]]
+        inline auto imageInfoListRange() const noexcept {
+            return ADT::Range::FromSizeAndCount(this->imageOffset(),
+                                                sizeof(ImageInfo),
+                                                this->imageCount());
         }
 
         [[nodiscard]] inline auto programsPBLSetPoolRange() const noexcept {

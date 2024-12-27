@@ -312,7 +312,7 @@ namespace MachO {
             }
         }
 
-        inline auto
+        [[nodiscard]] inline auto
         GetNameFromBindActionSymbol(const std::string_view Symbol) noexcept {
             constexpr auto Prefix = std::string_view("_OBJC_CLASS_$_");
             if (Symbol.compare(0, Prefix.size(), Prefix) == 0) {
@@ -383,34 +383,57 @@ namespace MachO {
         }
 
         template <bool Is64Bit>
-        static void
-        ParseObjcClass(const uint64_t Addr,
+        static auto
+        ParseObjcClass(const uint64_t ClassAddr,
                        const ADT::DeVirtualizer &DeVirtualizer,
+                       const ADT::AddressResolver &AddrResolver,
                        ObjcClassInfo &Info,
-                       const bool IsBigEndian) noexcept
+                       const bool IsBigEndian) noexcept -> void
         {
             using ClassType = ObjcClassType<Is64Bit>;
             using ClassRoType = ObjcClassRoType<Is64Bit>;
 
             const auto Class =
                 reinterpret_cast<const ClassType *>(
-                    DeVirtualizer.getPtrForAddress(Addr));
+                    DeVirtualizer.getPtrForAddress(ClassAddr));
 
             if (Class == nullptr) {
-                Info.setAddr(Addr);
+                Info.setAddr(ClassAddr);
                 Info.setIsNull();
 
                 return;
             }
 
-            const auto SuperAddr = Class->superClassAddress(IsBigEndian);
-            const auto RoAddr = Class->data(IsBigEndian);
+            auto AddrOfRoAddr = ClassAddr + offsetof(ClassType, Data);
+            auto RoAddr =
+                static_cast<uint64_t>(Class->data(IsBigEndian));
+
+            if (const auto ResolveOpt =
+                    AddrResolver.resolve(AddrOfRoAddr, RoAddr);
+                ResolveOpt.has_value())
+            {
+                const auto &Resolution = ResolveOpt.value();
+                switch (Resolution.Kind) {
+                    case ADT::AddressResolver::Resolution::Kind::None:
+                        break;
+                    case ADT::AddressResolver::Resolution::Kind::Bind:
+                        RoAddr = Resolution.Bind.FullAddress;
+                        break;
+                    case ADT::AddressResolver::Resolution::Kind::Rebase:
+                        RoAddr = Resolution.Rebase.FullAddress;
+                        break;
+                    case ADT::AddressResolver::Resolution::Kind::Patch:
+                        RoAddr = Resolution.Patch.PatchLoc.FullImplAddress;
+                        break;
+                }
+            }
+
             const auto ClassRo =
                 reinterpret_cast<const ClassRoType *>(
                     DeVirtualizer.getPtrForAddress(RoAddr));
 
             if (ClassRo == nullptr) {
-                Info.setAddr(Addr);
+                Info.setAddr(ClassAddr);
                 Info.setIsNull();
 
                 return;
@@ -421,7 +444,8 @@ namespace MachO {
                 Info.setName(String.value());
             }
 
-            Info.setAddr(Addr);
+            const auto SuperAddr = Class->superClassAddress(IsBigEndian);
+
             Info.setFlags(ClassRo->flags(IsBigEndian));
             Info.setIsSwift(Class->isSwift(IsBigEndian));
             Info.setSuper(reinterpret_cast<ObjcClassInfo *>(SuperAddr | 1));
@@ -429,7 +453,7 @@ namespace MachO {
 
         inline bool
         SetSuperIfExists(ObjcClassCollectionType &List,
-                        ObjcClassInfo *const Info) noexcept
+                         ObjcClassInfo *const Info) noexcept
         {
             const auto Addr =
                 reinterpret_cast<uint64_t>(Info->super()) &
@@ -458,15 +482,24 @@ namespace MachO {
             const auto BindAddr =
                 Info->address() + offsetof(ObjcClassType<Is64Bit>, SuperClass);
 
-            if (auto ResolveOpt =
-                    AddrResolver.resolveBind(BindAddr, /*BaseAddr=*/0);
+            if (auto ResolveOpt = AddrResolver.resolve(BindAddr, 0);
                 ResolveOpt.has_value())
             {
-                SetSuperWithBindAction(Info,
-                                       *ResolveOpt.value(),
-                                       SegmentList,
-                                       List,
-                                       ExternalAndRootClassList);
+                switch (ResolveOpt.value().Kind) {
+                    case ADT::AddressResolver::Resolution::Kind::None:
+                        break;
+                    case ADT::AddressResolver::Resolution::Kind::Bind:
+                        SetSuperWithBindAction(Info,
+                                               ResolveOpt.value().Bind.Info,
+                                               SegmentList,
+                                               List,
+                                               ExternalAndRootClassList);
+                        break;
+                    case ADT::AddressResolver::Resolution::Kind::Rebase:
+                    case ADT::AddressResolver::Resolution::Kind::Patch:
+                        break;
+                }
+
                 return;
             }
 
@@ -487,6 +520,7 @@ namespace MachO {
             auto SuperInfo = ObjcClassInfo();
             ParseObjcClass<Is64Bit>(SuperAddr,
                                     DeVirtualizer,
+                                    AddrResolver,
                                     SuperInfo,
                                     IsBigEndian);
 
@@ -509,6 +543,7 @@ namespace MachO {
         static void
         HandleAddrForObjcClass(const uint64_t Addr,
                                const ADT::DeVirtualizer &DeVirtualizer,
+                               const ADT::AddressResolver &AddrResolver,
                                ObjcClassCollectionType &List,
                                const bool IsBigEndian) noexcept
         {
@@ -521,6 +556,7 @@ namespace MachO {
             auto Info = ObjcClassInfo();
             ParseObjcClass<Is64Bit>(SwitchedAddr,
                                     DeVirtualizer,
+                                    AddrResolver,
                                     Info,
                                     IsBigEndian);
 
@@ -592,6 +628,7 @@ namespace MachO {
             for (const auto &Addr : ListOpt.value()) {
                 HandleAddrForObjcClass<Is64Bit>(Addr,
                                                 DeVirtualizer,
+                                                AddrResolver,
                                                 ClassList,
                                                 IsBigEndian);
             }
@@ -651,35 +688,54 @@ namespace MachO {
             }
 
             auto SectionAddr = SectionInfo.vmRange().front();
-            const auto BaseAddress = DeVirtualizer.getBaseAddress();
+            const auto Span = SpanOpt.value();
 
-            for (const auto &Addr : SpanOpt.value()) {
+            for (auto Iter = Span.begin(); Iter != Span.end(); Iter++) {
+                auto Address = static_cast<uint64_t>(*Iter);
                 if (const auto ResolveOpt =
-                        AddrResolver.resolveBind(Addr, BaseAddress);
+                        AddrResolver.resolve(SectionAddr, Address);
                     ResolveOpt.has_value())
                 {
-                    const auto &It = *ResolveOpt.value();
-                    const auto Name =
-                        GetNameFromBindActionSymbol(It.SymbolName);
-                    const auto DylibOrdinal =
-                        static_cast<uint64_t>(It.DylibOrdinal);
+                    const auto &Resolution = ResolveOpt.value();
+                    switch (Resolution.Kind) {
+                        case ADT::AddressResolver::Resolution::Kind::None:
+                            break;
+                        case ADT::AddressResolver::Resolution::Kind::Bind: {
+                            const auto &Info = Resolution.Bind.Info;
+                            const auto Name =
+                                GetNameFromBindActionSymbol(Info.SymbolName);
+                            const auto DylibOrdinal =
+                                static_cast<uint64_t>(Info.DylibOrdinal);
 
-                    auto NewInfo =
-                        CreateExternalClass(Name, DylibOrdinal, SectionAddr);
-
-                    const auto Ptr =
-                        ClassCollectionTypeAddClass(ClassList,
-                                                    std::move(NewInfo),
+                            auto NewInfo =
+                                CreateExternalClass(Name,
+                                                    DylibOrdinal,
                                                     SectionAddr);
 
-                    ExternalAndRootClassList.emplace_back(Ptr);
-                } else {
-                    HandleAddrForObjcClass<Is64Bit>(Addr,
-                                                    DeVirtualizer,
-                                                    ClassList,
-                                                    IsBigEndian);
+                            const auto Ptr =
+                                ClassCollectionTypeAddClass(ClassList,
+                                                            std::move(NewInfo),
+                                                            SectionAddr);
+
+                            ExternalAndRootClassList.emplace_back(Ptr);
+                            goto done;
+                        }
+                        case ADT::AddressResolver::Resolution::Kind::Rebase:
+                            Address = Resolution.Rebase.FullAddress;
+                            break;
+                        case ADT::AddressResolver::Resolution::Kind::Patch:
+                            Address = Resolution.Patch.PatchLoc.FullImplAddress;
+                            break;
+                    }
                 }
 
+                HandleAddrForObjcClass<Is64Bit>(Address,
+                                                DeVirtualizer,
+                                                AddrResolver,
+                                                ClassList,
+                                                IsBigEndian);
+
+            done:
                 SectionAddr += Utils::PointerSize<Is64Bit>();
             }
 
@@ -737,6 +793,7 @@ namespace MachO {
         const SegmentInfo &Segment;
         const SectionInfo &Section;
 
+        constexpr
         ObjcClassInfoSection(enum Kind Kind,
                              const SegmentInfo &Segment,
                              const SectionInfo &Section) noexcept

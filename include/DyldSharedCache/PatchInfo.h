@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "ADT/Range.h"
-#include "DscImage/DeVirtualizer.h"
 
 #include "DyldSharedCache/DeVirtualizer.h"
 #include "DyldSharedCache/Headers.h"
@@ -200,35 +199,6 @@ namespace DyldSharedCache {
                  Discriminator : 16;
     };
 
-    struct PatchInfoV3 : public PatchInfoV2 {
-        uint64_t GotClientsArrayAddr;
-        uint64_t GotClientsArrayCount;
-        uint64_t GotClientExportsArrayAddr;
-        uint64_t GotClientExportsArrayCount;
-        uint64_t GotLocationArrayAddr;
-        uint64_t GotLocationArrayCount;
-
-        [[nodiscard]] constexpr auto gotClientsArrayRange() const noexcept {
-            return ADT::Range::FromSizeAndCount(this->GotClientsArrayAddr,
-                                                sizeof(ImageGotClientsV3),
-                                                this->GotClientsArrayCount);
-        }
-
-        [[nodiscard]] constexpr auto gotClientExportsArrayRange() const noexcept
-        {
-            return ADT::Range::FromSizeAndCount(
-                this->GotClientExportsArrayAddr,
-                sizeof(PatchableExportV3),
-                this->GotClientExportsArrayCount);
-        }
-
-        [[nodiscard]] constexpr auto gotLocationArrayRange() const noexcept {
-            return ADT::Range::FromSizeAndCount(this->GotLocationArrayAddr,
-                                                sizeof(PatchableLocationV3),
-                                                this->GotLocationArrayCount);
-        }
-    };
-
     struct PatchableLocationV4 {
         struct Authenticated {
             uint32_t Authenticated : 1,
@@ -264,12 +234,6 @@ namespace DyldSharedCache {
         }
     };
 
-    union PatchableLocation {
-        PatchableLocationV2 V2;
-        PatchableLocationV3 V3;
-        PatchableLocationV4 V4;
-    };
-
     struct PatchableLocationV4Got {
         uint64_t CacheOffsetOfUse;
         union {
@@ -284,10 +248,45 @@ namespace DyldSharedCache {
                 this->Auth.Addend : this->Regular.Addend;
         }
 
-        [[nodiscard]] constexpr auto isWeakImport() const noexcept {
+        [[nodiscard]] constexpr auto isWeakImport() const noexcept -> bool {
             return this->Auth.Authenticated ?
                 this->Auth.IsWeakImport : this->Regular.IsWeakImport;
         }
+    };
+
+    struct PatchInfoV3 : public PatchInfoV2 {
+        uint64_t GotClientsArrayAddr;
+        uint64_t GotClientsArrayCount;
+        uint64_t GotClientExportsArrayAddr;
+        uint64_t GotClientExportsArrayCount;
+        uint64_t GotLocationArrayAddr;
+        uint64_t GotLocationArrayCount;
+
+        [[nodiscard]] constexpr auto gotClientsArrayRange() const noexcept {
+            return ADT::Range::FromSizeAndCount(this->GotClientsArrayAddr,
+                                                sizeof(ImageGotClientsV3),
+                                                this->GotClientsArrayCount);
+        }
+
+        [[nodiscard]] constexpr auto gotClientExportsArrayRange() const noexcept
+        {
+            return ADT::Range::FromSizeAndCount(
+                this->GotClientExportsArrayAddr,
+                sizeof(PatchableExportV3),
+                this->GotClientExportsArrayCount);
+        }
+
+        [[nodiscard]] constexpr auto gotLocationArrayRange() const noexcept {
+            return ADT::Range::FromSizeAndCount(this->GotLocationArrayAddr,
+                                                sizeof(PatchableLocationV4Got),
+                                                this->GotLocationArrayCount);
+        }
+    };
+
+    union PatchableLocation {
+        PatchableLocationV2 V2;
+        PatchableLocationV3 V3;
+        PatchableLocationV4 V4;
     };
 
     struct PatchInfoV4 : public PatchInfoV3 {
@@ -319,11 +318,56 @@ namespace DyldSharedCache {
     };
 
     struct PatchInfo {
+    public:
+        struct PatchLocation {
+            std::string_view ExportName;
+
+            uint64_t Addend;
+            uint64_t FullImplAddress;
+
+            bool IsAuthenticated : 1;
+            bool UsesAddressDiversity : 1;
+            bool IsWeakImport : 1;
+
+            uint8_t Key : 2;
+        };
+
+        struct ParseResult {
+            enum class Error {
+                None,
+                ImageBaseAddressNotFound,
+
+                PatchInfoNotFound,
+                PatchTableArrayNotFound,
+                PatchExportArrayNotFound,
+                PatchLocArrayNotFound,
+                PatchExportNamesNotFound,
+                PatchClientsArrayNotFound,
+                PatchClientExportsArrayNotFound,
+                PatchGOTLocArrayNotFound,
+
+                ImageIndexNotFoundInPatchTable,
+                ImagePatchExportsOutOfBounds,
+                ImageIndexNotFoundOfClientsArray,
+
+                ImageExportInfoNotFound,
+                ImageClientHasNoPatches,
+            };
+
+            Error Error = Error::None;
+
+            constexpr explicit ParseResult() noexcept = default;
+            constexpr ParseResult(const enum Error Error) noexcept
+            : Error(Error) {}
+        };
+
+        using PatchLocationMap = std::unordered_map<uint64_t, PatchLocation>;
     protected:
         const DyldSharedCache::DeVirtualizer &DeVirtualizer;
         PatchInfoVersion Version;
 
-        uint64_t BaseAddress;
+        uint32_t ImageIndex;
+        uint64_t ImageBaseAddress;
 
         union {
             const DyldSharedCache::PatchInfoV1 *HeaderV1;
@@ -332,25 +376,32 @@ namespace DyldSharedCache {
         };
 
         explicit
-        PatchInfo(const DyldSharedCache::DeVirtualizer &DeVirtualizer,
-                  const PatchInfoVersion Version,
-                  const DyldSharedCache::PatchInfoV3 &Header) noexcept
-        : DeVirtualizer(DeVirtualizer), Version(Version), HeaderV3(&Header) {}
+        PatchInfo(
+            const DyldSharedCache::DeVirtualizer &DeVirtualizer,
+            const uint32_t ImageIndex,
+            const uint64_t ImageBaseAddress,
+            const PatchInfoVersion Version,
+            const DyldSharedCache::PatchInfoV3 &Header) noexcept
+        : DeVirtualizer(DeVirtualizer), Version(Version),
+          ImageIndex(ImageIndex), ImageBaseAddress(ImageBaseAddress),
+          HeaderV3(&Header) {}
+
+        [[nodiscard]] auto
+        collectListOfExportPatchesV1ForRange(
+            PatchLocationMap &Map,
+            ADT::Range VmRange) const noexcept -> ParseResult;
+
+        [[nodiscard]] auto
+        collectListOfExportPatchesV3ForRange(
+            PatchLocationMap &Map,
+            ADT::Range VmRange) const noexcept -> ParseResult;
     public:
         [[nodiscard]] static auto
         Create(const struct DeVirtualizer &DeVirtualizer,
+               uint32_t ImageIndex,
+               uint64_t ImageBaseAddress,
                const DyldSharedCache::HeaderV5 &Header) noexcept
-            -> std::optional<PatchInfo>;
-
-        struct PatchLocation {
-            std::string_view ExportName;
-
-            bool IsAuthenticated : 1;
-            bool UsesAddressDiversity : 1;
-            bool IsWeakImport : 1;
-
-            uint8_t Key : 2;
-        };
+            -> std::expected<PatchInfo, ParseResult>;
 
         [[nodiscard]] constexpr auto &headerV1() const noexcept {
             return *this->HeaderV1;
@@ -365,18 +416,8 @@ namespace DyldSharedCache {
         }
 
         [[nodiscard]] auto
-        getListOfExportPatchesV1ForImage(
-            const struct DeVirtualizer &DeVirtualizer,
-            const DscImage::DeVirtualizer &DscImageDeVirtualizer,
-            uint32_t ImageIndex,
-            ADT::Range VmRange) const noexcept
-                -> std::optional<std::unordered_map<uint64_t, PatchLocation>>;
-
-        [[nodiscard]] auto
-        getListOfExportPatchesV3ForImage(
-            const struct DeVirtualizer &DeVirtualizer,
-            uint32_t ImageIndex,
-            ADT::Range VmRange) const noexcept
-                -> std::optional<std::unordered_map<uint64_t, PatchLocation>>;
+        collectListOfExportPatchesForRange(
+            PatchLocationMap &Map,
+            ADT::Range VmRange) const noexcept -> ParseResult;
     };
 }

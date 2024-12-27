@@ -6,8 +6,6 @@
 #pragma once
 
 #include <cassert>
-#include <cstdint>
-#include <cstdio>
 #include <iterator>
 #include <set>
 
@@ -51,11 +49,11 @@ namespace ADT {
         TreeNode *LastChild = nullptr;
 
         void clearAndDestroy() noexcept {
-            setParent(nullptr);
-            setFirstChild(nullptr);
-            setPrevSibling(nullptr);
-            setNextSibling(nullptr);
-            setLastChild(nullptr);
+            this->setParent(nullptr);
+            this->setFirstChild(nullptr);
+            this->setPrevSibling(nullptr);
+            this->setNextSibling(nullptr);
+            this->setLastChild(nullptr);
 
             delete this;
         }
@@ -69,31 +67,31 @@ namespace ADT {
         virtual ~TreeNode() noexcept = default;
 
         [[nodiscard]] constexpr auto parent() const noexcept {
-            return Parent;
+            return this->Parent;
         }
 
         [[nodiscard]] constexpr auto prevSibling() const noexcept {
-            return PrevSibling;
+            return this->PrevSibling;
         }
 
         [[nodiscard]] constexpr auto nextSibling() const noexcept {
-            return NextSibling;
+            return this->NextSibling;
         }
 
         [[nodiscard]] constexpr auto firstChild() const noexcept {
-            return FirstChild;
+            return this->FirstChild;
         }
 
         [[nodiscard]] constexpr auto lastChild() const noexcept {
-            return LastChild;
+            return this->LastChild;
         }
 
         [[nodiscard]] constexpr auto isLeaf() const noexcept {
-            return firstChild() == nullptr;
+            return this->firstChild() == nullptr;
         }
 
         [[nodiscard]] constexpr auto hasOnlyOneChild() const noexcept {
-            if (const auto FirstChild = firstChild()) {
+            if (const auto FirstChild = this->firstChild()) {
                 return FirstChild->nextSibling() == nullptr;
             }
 
@@ -275,7 +273,7 @@ namespace ADT {
         {
             this->setParentOfSiblings(this, Node, End);
 
-            if (const auto LastChild = lastChild()) {
+            if (const auto LastChild = this->lastChild()) {
                 LastChild->NextSibling = &Node;
                 Node.PrevSibling = LastChild;
             } else {
@@ -406,10 +404,11 @@ namespace ADT {
         constexpr static auto DefaultTabLength = 2;
 
         template <typename NodePrinter>
-        const TreeNode &
+        auto
         printHorizontal(FILE *const OutFile,
                         const uint32_t TabLength,
-                        const NodePrinter &NodePrinterFunc) noexcept;
+                        const NodePrinter &NodePrinterFunc) noexcept
+            -> const TreeNode &;
     };
 
     template <typename T>
@@ -439,23 +438,23 @@ namespace ADT {
         : Current(Current), End(End) {}
 
         [[nodiscard]] constexpr auto operator*() const noexcept -> reference {
-            return *Current;
+            return *this->Current;
         }
 
         [[nodiscard]] constexpr auto operator*() noexcept -> reference {
-            return *Current;
+            return *this->Current;
         }
 
         [[nodiscard]] constexpr auto operator->() const noexcept -> pointer {
-            return Current;
+            return this->Current;
         }
 
         [[nodiscard]] constexpr auto node() const noexcept {
-            return Current;
+            return this->Current;
         }
 
         [[nodiscard]] constexpr auto depthLevel() const noexcept {
-            return DepthLevel;
+            return this->DepthLevel;
         }
 
         [[nodiscard]] constexpr
@@ -464,12 +463,12 @@ namespace ADT {
         }
 
         [[nodiscard]] constexpr auto isAtEnd() const noexcept {
-            return Current == End;
+            return this->Current == this->End;
         }
 
         [[nodiscard]] constexpr
         auto getParentAtIndex(const uint64_t DepthIndex) const noexcept {
-            auto Parent = Current;
+            auto Parent = this->Current;
 
             const auto ThisDepthIndex = DepthLevel - 1;
             const auto MoveCount = ThisDepthIndex - DepthIndex;
@@ -482,8 +481,8 @@ namespace ADT {
         }
 
         constexpr auto operator--() noexcept -> decltype(*this) {
-            auto Node = Current;
-            Current = nullptr;
+            auto Node = this->Current;
+            this->Current = nullptr;
 
             for (; DepthLevel != 0; DepthLevel--, Node = Node->parent()) {
                 if (const auto PrevSibling = Node->prevSibling()) {
@@ -500,16 +499,19 @@ namespace ADT {
         }
 
         constexpr auto operator++() noexcept -> decltype(*this) {
-            if (const auto FirstChild = Current->firstChild()) {
-                Current = reinterpret_cast<T *>(FirstChild);
-                DepthLevel += 1;
+            if (const auto FirstChild = this->Current->firstChild()) {
+                this->Current = reinterpret_cast<T *>(FirstChild);
+                this->DepthLevel += 1;
 
                 return *this;
             }
 
-            for (; Current != End; DepthLevel--, Current = Current->parent()) {
-                if (const auto NextSibling = Current->nextSibling()) {
-                    Current = T::get(NextSibling);
+            for (;
+                 this->Current != this->End;
+                 this->DepthLevel--, this->Current = this->Current->parent())
+            {
+                if (const auto NextSibling = this->Current->nextSibling()) {
+                    this->Current = T::get(NextSibling);
                     break;
                 }
             }
@@ -560,14 +562,15 @@ namespace ADT {
     static_assert(std::bidirectional_iterator<TreeDFSIterator<TreeNode>>);
 
     template <typename NodePrinter>
-    const TreeNode &
+    auto
     TreeNode::printHorizontal(FILE *const OutFile,
                               const uint32_t TabLength,
                               const NodePrinter &NodePrinterFunc) noexcept
+        -> const TreeNode &
     {
-        const auto RootDepthLevel = uint64_t(1);
+        const auto RootDepthLevel = static_cast<uint64_t>(1);
         if (NodePrinterFunc(OutFile, 0, RootDepthLevel, *this)) {
-            std::print(OutFile, "\n");
+            std::println(OutFile);
         }
 
         auto Iter = TreeDFSIterator<const TreeNode>(this);
@@ -604,7 +607,7 @@ namespace ADT {
             WrittenOut += 1;
 
             NodePrinterFunc(OutFile, WrittenOut, DepthLevel, Info);
-            std::print(OutFile, "\n");
+            std::println(OutFile);
         }
 
         return *this;
@@ -636,7 +639,7 @@ namespace ADT {
             constexpr DFS(T *const Root) noexcept : Root(Root) {}
 
             [[nodiscard]] constexpr auto root() const noexcept {
-                return Root;
+                return this->Root;
             }
 
             constexpr
@@ -832,7 +835,7 @@ namespace ADT {
                     Child->clearAndDestroy();
 
                     if (Parent == nullptr || !Parent->isLeaf()) {
-                        RemovedRoot = (Child == &Root);
+                        RemovedRoot = Child == &Root;
                         break;
                     }
 
@@ -863,7 +866,7 @@ namespace ADT {
                 return RemovedRoot;
             };
 
-            if (&Node == root()) {
+            if (&Node == this->root()) {
                 if (Node.isLeaf()) {
                     this->setRoot(nullptr);
 
@@ -879,7 +882,7 @@ namespace ADT {
                     IsolateNode(Node);
                     Node.clearAndDestroy();
 
-                    return root();
+                    return this->root();
                 }
 
                 this->setRoot(Node.createNew());

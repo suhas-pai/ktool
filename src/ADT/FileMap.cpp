@@ -62,9 +62,9 @@ namespace ADT {
 
     FileMap::~FileMap() noexcept {
         if (munmap(this->Base, this->Size) != 0) {
-            std::print(stderr,
-                       "Internal Error: munmap() failed with error: {}\n",
-                       strerror(errno));
+            std::println(stderr,
+                         "Internal Error: munmap() failed with error: {}",
+                         strerror(errno));
             exit(1);
         }
 

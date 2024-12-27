@@ -20,7 +20,7 @@ namespace Operations {
         virtual ~Base() noexcept {}
 
         [[nodiscard]] constexpr auto kind() const noexcept {
-            return Kind;
+            return this->Kind;
         }
 
         virtual

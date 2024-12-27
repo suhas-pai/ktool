@@ -9,15 +9,18 @@
 namespace Objects {
     auto
     DscImage::Open(const DyldSharedCache &Dsc,
-                   const ::DyldSharedCache::ImageInfo &ImageInfo) noexcept
+                   const uint32_t ImageIndex) noexcept
         -> std::expected<DscImage *, Error>
     {
+        const auto ImageList = Dsc.imageInfoList();
+        const auto ImageInfo = ImageList[ImageIndex];
+
         auto MaxPossibleSize = uint64_t();
         auto FileOffset = uint64_t();
 
         const auto HeaderPairOpt =
             Dsc.getPtrForAddress<::MachO::Header>(ImageInfo.Address,
-                                                  /*InsideMappings=*/false,
+                                                  /*InsideMappings=*/true,
                                                   &MaxPossibleSize,
                                                   &FileOffset);
 
@@ -53,28 +56,28 @@ namespace Objects {
             }
 
             if (::MachO::MagicIsThin(Header->Magic)) {
-                return std::unexpected(Error(OpenError::SizeTooSmall));
+                return std::unexpected(OpenError::SizeTooSmall);
             }
 
-            return std::unexpected(Error(OpenError::WrongFormat));
+            return std::unexpected(OpenError::WrongFormat);
         }
 
         if (!::MachO::MagicIsThin(Header->Magic)) {
-            return std::unexpected(Error(OpenError::WrongFormat));
+            return std::unexpected(OpenError::WrongFormat);
         }
 
         if (!Dsc.cpuInfoMatches(Header->cpuKind(), Header->cpuSubKind())) {
-            return std::unexpected(Error(OpenError::WrongCpuInfo));
+            return std::unexpected(OpenError::WrongCpuInfo);
         }
 
         if (!Header->flags().dylibInCache()) {
-            return std::unexpected(Error(OpenError::NotMarkedAsImage));
+            return std::unexpected(OpenError::NotMarkedAsImage);
         }
 
         if (Header->fileKind() != ::MachO::FileKind::DynamicLibrary &&
             Header->fileKind() != ::MachO::FileKind::DynamicLinker)
         {
-            return std::unexpected(Error(OpenError::NotADylib));
+            return std::unexpected(OpenError::NotADylib);
         }
 
         const auto LoadCommandsSize = Header->sizeOfCmds();
@@ -83,16 +86,16 @@ namespace Objects {
                                        Header->ncmds());
 
         if (!MinLoadCommandSizeOpt.has_value()) {
-            return std::unexpected(Error(OpenError::TooManyLoadCommands));
+            return std::unexpected(OpenError::TooManyLoadCommands);
         }
 
         const auto MinLoadCommandSize = MinLoadCommandSizeOpt.value();
         if (LoadCommandsSize < MinLoadCommandSize) {
-            return std::unexpected(Error(OpenError::TooManyLoadCommands));
+            return std::unexpected(OpenError::TooManyLoadCommands);
         }
 
         if (MaxPossibleSize < Header->size() + LoadCommandsSize) {
-            return std::unexpected(Error(OpenError::TooManyLoadCommands));
+            return std::unexpected(OpenError::TooManyLoadCommands);
         }
 
         const auto Map = SingleCache.map();
@@ -123,8 +126,7 @@ namespace Objects {
                     }
 
                     if (!FoundMapping) {
-                        return std::unexpected(
-                            Error(OpenError::OutOfBoundsSegment));
+                        return std::unexpected(OpenError::OutOfBoundsSegment);
                     }
 
                     const auto NewFileSize =
@@ -132,8 +134,7 @@ namespace Objects {
                             Segment->fileSize(IsBigEndian), FileSize);
 
                     if (!NewFileSize.has_value()) {
-                        return std::unexpected(
-                            Error(OpenError::OutOfBoundsSegment));
+                        return std::unexpected(OpenError::OutOfBoundsSegment);
                     }
 
                     FileSize = NewFileSize.value();
@@ -157,14 +158,12 @@ namespace Objects {
                     }
 
                     if (!FoundMapping) {
-                        return std::unexpected(
-                            Error(OpenError::OutOfBoundsSegment));
+                        return std::unexpected(OpenError::OutOfBoundsSegment);
                     }
 
                     FileSize += Segment->fileSize(IsBigEndian);
                     if (FileSize > std::numeric_limits<uint32_t>::max()) {
-                        return std::unexpected(
-                            Error(OpenError::OutOfBoundsSegment));
+                        return std::unexpected(OpenError::OutOfBoundsSegment);
                     }
                 }
             }
@@ -175,7 +174,32 @@ namespace Objects {
         const auto ImageRange = ADT::Range::FromSize(FileOffset, FileSize);
         const auto ImageMap = ADT::MemoryMap(Map, ImageRange);
 
-        return new DscImage(Dsc, SingleCache, ImageInfo, ImageMap);
+        return new DscImage(Dsc, SingleCache, ImageInfo, ImageMap, ImageIndex);
+    }
+
+    auto DscImage::getBaseAddress() const noexcept -> std::optional<uint64_t> {
+        const auto Is64Bit = this->is64Bit();
+        const auto IsBigEndian = this->isBigEndian();
+
+        if (Is64Bit) {
+            for (const auto &LC : this->loadCommandsMap()) {
+                if (const auto Segment =
+                        dyn_cast<::MachO::SegmentCommand64>(&LC, IsBigEndian))
+                {
+                    return Segment->vmRange(IsBigEndian).front();
+                }
+            }
+        } else {
+            for (const auto &LC : this->loadCommandsMap()) {
+                if (const auto Segment =
+                        dyn_cast<::MachO::SegmentCommand>(&LC, IsBigEndian))
+                {
+                    return Segment->vmRange(IsBigEndian).front();
+                }
+            }
+        }
+
+        return std::nullopt;
     }
 
     auto DscImage::getMapForFileOffsets() const noexcept -> ADT::MemoryMap {

@@ -48,7 +48,7 @@ namespace Operations {
         auto run(const Objects::FatMachO &MachO) const noexcept -> RunResult;
 
         [[nodiscard]] constexpr auto &options() const noexcept {
-            return Opt;
+            return this->Opt;
         }
     };
 }

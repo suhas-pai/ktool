@@ -55,8 +55,8 @@ namespace MachO {
 
         uint32_t Index;
 
-        [[nodiscard]] constexpr auto
-        findSectionWithName(const std::string_view Name) const noexcept
+        [[nodiscard]] constexpr
+        auto findSectionWithName(const std::string_view Name) const noexcept
             -> const SectionInfo *
         {
             for (const auto &Section : this->SectionList) {
@@ -250,9 +250,9 @@ namespace MachO {
 
         [[nodiscard]] constexpr auto
         findSectionWithNameAndSegment(
-            const std::initializer_list<SegmentSectionNameListPair> &L)
-                const noexcept
-                    -> std::optional<
+            const std::initializer_list<
+                SegmentSectionNameListPair> &L) const noexcept
+                -> std::optional<
                         std::pair<const SegmentInfo *, const SectionInfo *>>
         {
             for (const auto &[SegmentName, SectionNameList] : L) {

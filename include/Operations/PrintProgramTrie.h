@@ -38,6 +38,13 @@ namespace Operations {
 
                 NoProgramTrie,
                 OutOfBounds,
+
+                InvalidTrieUleb128,
+                InvalidTrieFormat,
+
+                OverlappingTrieRanges,
+                TrieIsTooDeep,
+
                 NoExports
             };
 
@@ -51,7 +58,7 @@ namespace Operations {
             -> RunResult;
 
         [[nodiscard]] constexpr auto &options() const noexcept {
-            return Opt;
+            return this->Opt;
         }
     };
 }

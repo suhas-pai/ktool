@@ -29,8 +29,8 @@ namespace MachO {
             return Error::InvalidFormat;
         }
 
-        setFlags(FlagsOpt.value());
-        if (isReexport()) {
+        this->setFlags(FlagsOpt.value());
+        if (this->isReexport()) {
             const auto DylibOrdinalOpt =
                 Utils::ReadUleb128<uint32_t>(Ptr, NodeEnd, &Ptr);
 
@@ -42,7 +42,7 @@ namespace MachO {
                 return Error::InvalidFormat;
             }
 
-            setReexportDylibOrdinal(DylibOrdinalOpt.value());
+            this->setReexportDylibOrdinal(DylibOrdinalOpt.value());
             if (*Ptr != '\0') {
                 const auto String = reinterpret_cast<const char *>(Ptr);
                 const auto MaxLength = static_cast<uint64_t>(NodeEnd - Ptr);
@@ -53,7 +53,7 @@ namespace MachO {
                 }
 
                 auto ImportName = std::string(String, Length);
-                setReexportImportName(std::move(ImportName));
+                this->setReexportImportName(std::move(ImportName));
 
                 const auto StringSize = Length + 1;
                 Ptr += StringSize;
@@ -66,8 +66,8 @@ namespace MachO {
                 return Error::InvalidUleb128;
             }
 
-            setImageOffset(ImageOffsetOpt.value());
-            if (stubAndResolver()) {
+            this->setImageOffset(ImageOffsetOpt.value());
+            if (this->stubAndResolver()) {
                 const auto ResolverStubAddressOpt =
                     Utils::ReadUleb128(Ptr, NodeEnd, &Ptr);
 
@@ -75,7 +75,8 @@ namespace MachO {
                     return Error::InvalidUleb128;
                 }
 
-                setResolverStubAddress(static_cast<uint32_t>(ResolverStubAddressOpt.value()));
+                this->setResolverStubAddress(
+                    static_cast<uint32_t>(ResolverStubAddressOpt.value()));
             }
         }
 
@@ -89,11 +90,11 @@ namespace MachO {
         const SectionInfo **const SectionOut) const noexcept
         -> const SegmentInfo *
     {
-        if (SegList == nullptr) {
+        if (this->SegList == nullptr) {
             return nullptr;
         }
 
-        const auto Segment = SegList->findSegmentWithVmAddr(Address);
+        const auto Segment = this->SegList->findSegmentWithVmAddr(Address);
         if (Segment != nullptr) {
             *SectionOut = Segment->findSectionWithVmAddr(Address);
         }
@@ -126,7 +127,9 @@ namespace MachO {
 
                     const auto Addr = ExportInfo.imageOffset();
                     const auto Segment =
-                        LookupInfoForAddress(ExportInfo.kind(), Addr, &Section);
+                        this->LookupInfoForAddress(ExportInfo.kind(),
+                                                   Addr,
+                                                   &Section);
 
                     ExportNode->setSegment(Segment);
                     ExportNode->setSection(Section);
@@ -177,11 +180,12 @@ namespace MachO {
         Base::ParseFromTrie(Trie, NodeCreator, Options, ErrorOut);
     }
 
-    ExportTrieExportCollection
+    auto
     ExportTrieExportCollection::Open(const ExportTrieMap::ExportMap &Trie,
                                      const SegmentList *const SegList,
                                      const ParseOptions &Options,
                                      Error *const ErrorOut) noexcept
+        -> ExportTrieExportCollection
     {
         auto Result = ExportTrieExportCollection();
         auto NodeCreator = ExportTrieEntryCollectionNodeCreator(SegList);
@@ -216,7 +220,7 @@ namespace MachO {
                 Entry.setSection(Section);
             }
 
-            EntryList.emplace_back(std::make_unique<EntryInfo>(Entry));
+            this->EntryList.emplace_back(std::make_unique<EntryInfo>(Entry));
         }
     }
 }
