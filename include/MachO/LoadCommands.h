@@ -605,7 +605,7 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto isProtected(const bool IsBigEndian) const noexcept {
-            return flags(IsBigEndian).protectedVersion1();
+            return this->flags(IsBigEndian).protectedVersion1();
         }
 
         struct Section {
@@ -1133,7 +1133,7 @@ namespace MachO {
 
             [[nodiscard]]
             constexpr auto kind(const bool IsBigEndian) const noexcept {
-                return flags(IsBigEndian).kind();
+                return this->flags(IsBigEndian).kind();
             }
 
             uint32_t Reserved1;
@@ -1287,7 +1287,7 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr auto isProtected(const bool IsBigEndian) const noexcept {
-            return flags(IsBigEndian).protectedVersion1();
+            return this->flags(IsBigEndian).protectedVersion1();
         }
 
         using FlagsStruct = SegmentCommand::FlagsStruct;
@@ -1422,7 +1422,7 @@ namespace MachO {
 
             [[nodiscard]]
             constexpr auto kind(const bool IsBigEndian) const noexcept {
-                return flags(IsBigEndian).kind();
+                return this->flags(IsBigEndian).kind();
             }
 
             uint32_t Reserved1;

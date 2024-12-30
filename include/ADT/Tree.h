@@ -550,7 +550,7 @@ namespace ADT {
 
         [[nodiscard]]
         constexpr auto operator==(const TreeDFSIterator &Iter) const noexcept {
-            return Current == Iter.Current;
+            return this->Current == Iter.Current;
         }
 
         [[nodiscard]]
@@ -600,10 +600,10 @@ namespace ADT {
             // Add 1 for the ├ or └ character, and 1 for the space after the
             // "----".
 
-            WrittenOut += static_cast<int>(TabLength) + 2;
             Utils::PrintMultTimes(OutFile, "─", TabLength);
-
             std::print(OutFile, " ");
+
+            WrittenOut += static_cast<int>(TabLength) + 2;
             WrittenOut += 1;
 
             NodePrinterFunc(OutFile, WrittenOut, DepthLevel, Info);

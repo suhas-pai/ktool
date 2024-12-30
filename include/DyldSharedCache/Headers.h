@@ -988,7 +988,6 @@ namespace DyldSharedCache {
             return this->ImagesCount;
         }
 
-
         [[nodiscard]]
         inline auto imageInfoListRange() const noexcept {
             return ADT::Range::FromSizeAndCount(this->imageOffset(),

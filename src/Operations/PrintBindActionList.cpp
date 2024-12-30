@@ -83,7 +83,7 @@ namespace Operations {
     template <MachO::BindInfoKind BindKind>
     static void
     PrintBindAction(FILE *const OutFile,
-                    const char *const Name,
+                    const std::string_view Name,
                     const uint64_t Counter,
                     const unsigned SizeDigitLength,
                     const MachO::BindActionInfo &Action,
@@ -161,7 +161,7 @@ namespace Operations {
     static void
     PrintBindActionInfoList(
         FILE *const OutFile,
-        const char *const Name,
+        const std::string_view Name,
         const std::vector<MachO::BindActionInfo> &List,
         const MachO::SegmentList &SegmentList,
         const MachO::LibraryList &LibraryList,

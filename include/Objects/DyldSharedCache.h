@@ -416,8 +416,7 @@ namespace Objects {
         [[nodiscard]] inline auto
         getMapForAddrRange(const ADT::Range &AddrRange,
                            const bool InsideMappings = true) const noexcept
-            -> std::expected<std::pair<SingleCacheInfo, ADT::MemoryMap>,
-                             Error>
+            -> std::expected<std::pair<SingleCacheInfo, ADT::MemoryMap>, Error>
         {
             const uint64_t BaseAddr = AddrRange.front();
             if (AddrRange.empty() || BaseAddr == 0) {

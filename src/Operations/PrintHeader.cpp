@@ -686,8 +686,8 @@ namespace Operations {
     static inline void
     PrintDscSizeRange(FILE *const OutFile,
                       const ADT::Range &DscRange,
-                      const char *const AddressName,
-                      const char *const SizeName,
+                      const std::string_view AddressName,
+                      const std::string_view SizeName,
                       const AddrType Address,
                       const SizeType Size,
                       const bool Verbose,
@@ -966,8 +966,8 @@ namespace Operations {
     static void
     PrintOffsetCountPair(FILE *const OutFile,
                          const ADT::Range &Range,
-                         const char *const OffsetKey,
-                         const char *const CountKey,
+                         const std::string_view OffsetKey,
+                         const std::string_view CountKey,
                          const OffsetType Offset,
                          const SizeType Count,
                          const std::string_view Suffix = "")
@@ -1056,7 +1056,7 @@ namespace Operations {
 
     static inline void
     PrintBoolValue(FILE *const OutFile,
-                   const char *const Key,
+                   const std::string_view Key,
                    const bool Value) noexcept
     {
         std::println(OutFile,
@@ -1067,7 +1067,7 @@ namespace Operations {
 
     static inline void
     PrintPlatformValue(FILE *const OutFile,
-                       const char *const Key,
+                       const std::string_view Key,
                        const Dyld3::Platform Platform) noexcept
     {
         std::print(OutFile, DSC_KEY_FMT, DSC_KEY_FMT_ARGS(Key));

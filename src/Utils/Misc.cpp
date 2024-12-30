@@ -9,7 +9,9 @@
 #include <string>
 
 namespace Utils {
-    std::string GetHumanReadableTimestamp(const time_t Timestamp) noexcept {
+    auto GetHumanReadableTimestamp(const time_t Timestamp) noexcept
+        -> std::string
+    {
         auto Buffer = std::array<char, 64>();
         strftime(Buffer.data(), Buffer.size(), "%c", localtime(&Timestamp));
 

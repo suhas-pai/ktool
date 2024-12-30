@@ -18,9 +18,9 @@ namespace Objects {
         uint64_t MaxVmSize;
         uint64_t FirstAddr;
 
-        constexpr
-        explicit DyldSharedSingleCacheInfo(const uint64_t VmOffset,
-                                           const uint64_t MaxVmSize) noexcept
+        constexpr explicit
+        DyldSharedSingleCacheInfo(const uint64_t VmOffset,
+                                  const uint64_t MaxVmSize) noexcept
         : VmOffset(VmOffset), MaxVmSize(MaxVmSize) {}
 
         constexpr
@@ -42,7 +42,8 @@ namespace Objects {
         }
 
         [[nodiscard]] inline auto &header() const noexcept {
-            return *this->map().base<::DyldSharedCache::HeaderV9, false>();
+            return *this->map().base<
+                ::DyldSharedCache::HeaderV9, /*Verify=*/false>();
         }
 
         [[nodiscard]] inline auto isAtleastV1() const noexcept {
@@ -145,11 +146,11 @@ namespace Objects {
         }
 
         [[nodiscard]] inline auto mappingCount() const noexcept {
-            return this->header().MappingCount;
+            return this->headerV0().MappingCount;
         }
 
         [[nodiscard]] inline auto imageCount() const noexcept {
-            return this->header().imageCount();
+            return this->headerV0().imageCount();
         }
 
         [[nodiscard]] inline auto mappingInfoList() const noexcept {

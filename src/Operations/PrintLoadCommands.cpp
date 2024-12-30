@@ -48,7 +48,7 @@ namespace Operations {
                      const bool Is64Bit,
                      uint32_t &DylibIndex,
                      const bool Verbose,
-                     const char *Prefix = "") noexcept
+                     const std::string_view Prefix = "") noexcept
     {
         const auto Kind = LC.kind(IsBigEndian);
         constexpr auto Malformed = std::string_view("<malformed>");

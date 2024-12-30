@@ -45,8 +45,7 @@ namespace ADT {
             FailedToMemMap,
         };
 
-        static auto
-        Open(const char *Path, Prot Prot) noexcept
+        static auto Open(const char *Path, Prot Prot) noexcept
             -> std::expected<FileMap *, OpenError>;
 
         explicit FileMap(const FileMap &FileMap) noexcept = delete;

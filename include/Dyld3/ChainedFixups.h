@@ -10,6 +10,8 @@
 #include "ADT/Range.h"
 #include "ADT/SwitchEndian.h"
 
+#include "Utils/Misc.h"
+
 namespace Dyld3 {
     struct ChainedStartsInImage {
         uint32_t SegmentCount;
@@ -26,15 +28,17 @@ namespace Dyld3 {
 
         [[nodiscard]] constexpr
         auto segmentOffsetsRange(const bool IsBigEndian) const noexcept {
-            const auto Size =
-                static_cast<uint64_t>(sizeof(uint32_t)) *
-                this->segmentCount(IsBigEndian);
-
-            return ADT::Range::FromSize(0, Size);
+            return ADT::Range::FromSizeAndCount(
+                0,
+                sizeof(uint32_t),
+                this->segmentCount(IsBigEndian)).value();
         }
 
         [[nodiscard]] constexpr auto
         segmentOffset(const uint32_t I, const bool IsBigEndian) const noexcept {
+            assert(!
+                Utils::IndexOutOfBounds(I, this->segmentCount(IsBigEndian)));
+
             return ADT::SwitchEndianIf(this->SegInfoOffset[I], IsBigEndian);
         }
     };

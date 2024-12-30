@@ -192,8 +192,7 @@ namespace Operations {
     {
         using RunResult = PrintExportTrie::RunResult;
         if (EntryCollection.empty()) {
-            std::println(OutFile, "Provided file has an empty export-trie");
-            return RunResult();
+            return RunResult(RunResult::Error::NoExports);
         }
 
         if (!Options.SectionRequirements.empty()) {
@@ -231,10 +230,7 @@ namespace Operations {
             }
 
             if (EntryCollection.empty()) {
-                std::println(OutFile,
-                             "Provided file has no export-trie after filtering "
-                             "with provided requirements");
-                return RunResult();
+                return RunResult(RunResult::Error::NoExportsAfterFilters);
             }
         }
 
@@ -686,7 +682,7 @@ namespace Operations {
         const auto &ExportTrieRange = ExportTrieRangeOpt.value();
 
         if (ExportTrieRange.empty()) {
-            return RunResult(RunResult::Error::NoExports);
+            return RunResult(RunResult::Error::EmptyExportTrie);
         }
 
         if (!Map.range().contains(ExportTrieRange)) {

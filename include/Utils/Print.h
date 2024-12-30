@@ -6,9 +6,8 @@
 //
 
 #pragma once
-
 #include <format>
-#include <type_traits>
+
 #include "MachO/LoadCommands.h"
 #include "Utils/Misc.h"
 
@@ -307,7 +306,7 @@ struct std::formatter<Utils::ByteSize> :
         }
 
         auto Index = uint32_t();
-        auto ResultAmount = double(ByteSize.Value);
+        auto ResultAmount = static_cast<double>(ByteSize.Value);
 
         ResultAmount /= Base;
         while (ResultAmount >= Base) {
@@ -341,9 +340,11 @@ template<>
 struct std::formatter<Utils::Uuid> : public std::formatter<std::string_view> {
     auto format(const Utils::Uuid &Uuid, auto &Ctx) const {
         auto Result = std::string();
+        Result.reserve(35);
+
         std::format_to(std::back_inserter(Result),
-                       "{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}"
-                       "{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
+                       "{:02X}{:02X}{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}-"
+                       "{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
                        Uuid.Bytes[0], Uuid.Bytes[1], Uuid.Bytes[2],
                        Uuid.Bytes[3], Uuid.Bytes[4], Uuid.Bytes[5],
                        Uuid.Bytes[6], Uuid.Bytes[7], Uuid.Bytes[8],

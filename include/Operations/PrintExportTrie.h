@@ -58,7 +58,11 @@ namespace Operations {
                 MultipleExportTries,
                 NoExportTrieFound,
                 ExportTrieOutOfBounds,
-                NoExports
+
+                EmptyExportTrie,
+
+                NoExports,
+                NoExportsAfterFilters,
             };
 
             Error Error = Error::None;

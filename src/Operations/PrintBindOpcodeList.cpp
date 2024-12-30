@@ -277,7 +277,7 @@ namespace Operations {
     void
     PrintBindOpcodeListInfo(
         FILE *const OutFile,
-        const char *const Name,
+        const std::string_view Name,
         const MachO::LibraryList &LibraryList,
         const std::vector<BindOpcodeInfo> &List,
         const bool Is64Bit,

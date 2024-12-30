@@ -41,7 +41,7 @@ namespace Operations {
     static void
     PrintImageCount(FILE *const OutFile,
                     const uint32_t ImageCount,
-                    const bool PrintColon = true) noexcept
+                    const bool PrintColon) noexcept
     {
         std::println(OutFile,
                      "Provided file has {} Images{}",
@@ -91,7 +91,7 @@ namespace Operations {
         const auto OutFile = this->OutFile;
 
         if (Opt.OnlyCount) {
-            PrintImageCount(OutFile, ImageCount, false);
+            PrintImageCount(OutFile, ImageCount, /*PrintColon=*/false);
             return RunResult();
         }
 
@@ -136,7 +136,7 @@ namespace Operations {
             std::sort(ImageInfoList.begin(), ImageInfoList.end(), Comparator);
         }
 
-        PrintImageCount(OutFile, ImageCount);
+        PrintImageCount(OutFile, ImageCount, /*PrintColon=*/true);
         const auto ImageInfoListSizeDigitCount =
             Utils::GetIntegerDigitCount(ImageCount);
 

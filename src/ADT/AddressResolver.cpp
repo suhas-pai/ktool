@@ -411,8 +411,7 @@ namespace ADT {
     AddressResolver::resolveChainedFixup(
         const Dyld3::ChainedPointerKind ChainedFixupsKind,
         const uint64_t Value,
-        const uint64_t BaseAddress) const noexcept
-            -> std::optional<Resolution>
+        const uint64_t BaseAddress) const noexcept -> std::optional<Resolution>
     {
         switch (ChainedFixupsKind) {
             case Dyld3::ChainedPointerKind::None:

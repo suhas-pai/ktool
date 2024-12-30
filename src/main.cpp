@@ -62,7 +62,7 @@ static void
 PrintBindOpcodeParseError(
     const MachO::BindInfoKind BindKind,
     const MachO::BindOpcodeParseResult ParseResult,
-    const char *const Prefix = "") noexcept
+    const std::string_view Prefix = "") noexcept
 {
     const auto BindKindString =
         BindKind == MachO::BindInfoKind::Normal ? "normal" :
@@ -183,7 +183,7 @@ PrintBindOpcodeParseError(
 static void
 PrintRebaseOpcodeParseError(
     const MachO::RebaseOpcodeParseResult &ParseResult,
-    const char *const Prefix = "") noexcept
+    const std::string_view Prefix = "") noexcept
 {
     switch (ParseResult.Error) {
         case MachO::RebaseOpcodeParseError::None:
@@ -1291,6 +1291,14 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     return 1;
                 case RunResult::Error::NoExports:
                     std::println(stderr, "Export-trie has no exported symbols");
+                    return 1;
+                case RunResult::Error::EmptyExportTrie:
+                    std::println(stderr, "Export-trie is empty");
+                    return 1;
+                case RunResult::Error::NoExportsAfterFilters:
+                    std::println(stderr,
+                                 "Export-trie has no exported symbols after "
+                                 "applying provided filters");
                     return 1;
             }
 

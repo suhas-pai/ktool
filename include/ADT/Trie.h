@@ -920,8 +920,6 @@ namespace ADT {
 
             PrevDepthLevel = DepthLevel;
         }
-
-        return;
     }
 
     template <TrieExportInfoParser T,

@@ -144,11 +144,11 @@ namespace Utils {
         }
 
         auto String = std::string();
-        auto CdLength = strlen(CdString);
-        auto HasBackSlash = CdString[CdLength - 1] == '/';
 
+        const auto CdSv = std::string_view(CdString);
+        const auto HasBackSlash = CdSv.back() == '/';
         const auto ReserveLength =
-            CdLength + static_cast<size_t>(!HasBackSlash) + Path.length();
+            CdSv.length() + static_cast<size_t>(!HasBackSlash) + Path.length();
 
         String.reserve(ReserveLength);
         String.append(CdString);
@@ -162,5 +162,6 @@ namespace Utils {
     }
 
     [[nodiscard]]
-    std::string GetHumanReadableTimestamp(const time_t Timestamp) noexcept;
+    auto GetHumanReadableTimestamp(const time_t Timestamp) noexcept
+        -> std::string;
 }

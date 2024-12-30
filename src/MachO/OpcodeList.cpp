@@ -7,8 +7,7 @@
 #include "MachO/OpcodeList.h"
 
 namespace MachO {
-    auto
-    OpcodeList::IteratorInfo::ParseString() noexcept
+    auto OpcodeList::IteratorInfo::ParseString() noexcept
         -> std::optional<std::string_view>
     {
         const auto Ptr = reinterpret_cast<const char *>(this->Iter);
