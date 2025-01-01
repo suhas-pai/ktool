@@ -683,14 +683,28 @@ namespace Operations {
 
     static void
     WarnIfOutOfRange(FILE *const OutFile,
-                     const ADT::Range &DscRange,
+                     const Objects::DyldSharedCache &Dsc,
                      const uint64_t Offset,
                      const uint64_t Size,
                      const bool PrintNewLine = true) noexcept
     {
+        const auto &DscRange = Dsc.range();
         const auto Range = ADT::Range::FromSize(Offset, Size);
+
         if (!DscRange.contains(Range)) {
-            std::print(OutFile, " (Past EOF!)");
+            const auto ResultOpt = Dsc.getMapForAddrRange(Range);
+            if (!ResultOpt.has_value()) {
+                std::print(OutFile,
+                           " (Out of range, Not entirely found in any "
+                           "single, available sub-cache)");
+                return;
+            }
+
+            const auto &[SubCache, Map] = ResultOpt.value();
+            std::print(OutFile,
+                       " (Past EOF, Found in sub-cache with "
+                       "file-suffix \"{}\")",
+                       SubCache.fileSuffix());
         }
 
         if (PrintNewLine) {
@@ -701,7 +715,7 @@ namespace Operations {
     template <std::unsigned_integral AddrType, std::unsigned_integral SizeType>
     static inline void
     PrintDscSizeRange(FILE *const OutFile,
-                      const ADT::Range &DscRange,
+                      const Objects::DyldSharedCache &Dsc,
                       const std::string_view AddressName,
                       const std::string_view SizeName,
                       const AddrType Address,
@@ -724,16 +738,16 @@ namespace Operations {
 
         if (IsOffset) {
             WarnIfOutOfRange(OutFile,
-                             DscRange,
+                             Dsc,
                              Address,
                              Size,
                              /*PrintNewLine=*/false);
         }
 
         std::println(OutFile);
-        std::println(OutFile,
-                     "{}{}{}",
-                     Suffix, DscKey(SizeName), Utils::ByteSize(Size));
+        std::print(OutFile,
+                   "{}{}{}",
+                   Suffix, DscKey(SizeName), Utils::ByteSize(Size));
 
         if (PrintNewLine) {
             std::println(OutFile);
@@ -905,7 +919,7 @@ namespace Operations {
 
         const auto &Header = Dsc.headerV1();
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Code-Signature Offset",
                           "Code-Signature Size",
                           Header.CodeSignatureOffset,
@@ -921,7 +935,7 @@ namespace Operations {
                                             DscRangeKind::CodeSignature);
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Slide-Info Offset",
                           "Slide-Info Size",
                           Header.SlideInfoOffset,
@@ -947,7 +961,7 @@ namespace Operations {
 
         const auto &Header = Dsc.headerV2();
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Local-Symbols Offset",
                           "Local-Symbols Size",
                           Header.LocalSymbolsOffset,
@@ -972,7 +986,7 @@ namespace Operations {
 
     static void
     PrintOffsetCountPair(FILE *const OutFile,
-                         const ADT::Range &Range,
+                         const Objects::DyldSharedCache &Dsc,
                          const std::string_view OffsetKey,
                          const std::string_view CountKey,
                          const OffsetType Offset,
@@ -983,7 +997,7 @@ namespace Operations {
                    "{}{}",
                    DscKey(OffsetKey), Utils::Address(Offset));
 
-        WarnIfOutOfRange(OutFile, Range, Offset, /*Size=*/1);
+        WarnIfOutOfRange(OutFile, Dsc, Offset, /*Size=*/1);
         std::print(OutFile,
                    "{}{}{}",
                    DscKey(CountKey), Utils::FormattedNumber(Count), Suffix);
@@ -1024,7 +1038,7 @@ namespace Operations {
 
         const auto &Header = Dsc.headerV4();
         PrintOffsetCountPair(OutFile,
-                             Dsc.range(),
+                             Dsc,
                              "Branch-Pools Offset",
                              "Branch-Pools Count",
                              Header.BranchPoolsOffset,
@@ -1032,7 +1046,7 @@ namespace Operations {
                              /*Suffix=*/"\n");
 
         PrintOffsetCountPair(OutFile,
-                             Dsc.range(),
+                             Dsc,
                              "Images-Text Offset",
                              "Images-Text Count",
                              Header.ImagesTextOffset,
@@ -1095,7 +1109,7 @@ namespace Operations {
 
         const auto &Header = Dsc.headerV5();
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Patch Info Address",
                           "Patch Info Size",
                           Header.PatchInfoAddr,
@@ -1108,7 +1122,7 @@ namespace Operations {
                                             DscRangeKind::PatchInfo);
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Other Image-Group Address",
                           "Other Image-Group Size",
                           Header.OtherImageGroupAddr,
@@ -1121,7 +1135,7 @@ namespace Operations {
                                             DscRangeKind::OtherImageGroup);
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Program Closures Address",
                           "Program Closures Size",
                           Header.ProgClosuresAddr,
@@ -1134,7 +1148,7 @@ namespace Operations {
                                             DscRangeKind::ProgClosures);
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Program Closures Trie Address",
                           "Program Closures Trie Size",
                           Header.ProgClosuresTrieAddr,
@@ -1165,7 +1179,7 @@ namespace Operations {
                        Header.BuiltFromChainedFixups);
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Shared-Region Start",
                           "Shared-Region Size",
                           Header.SharedRegionStart,
@@ -1191,7 +1205,7 @@ namespace Operations {
 
         const auto &Header = Dsc.headerV6();
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Dylibs Image-Array Address",
                           "Dylibs Image-Array Size",
                           Header.DylibsImageArrayAddr,
@@ -1204,7 +1218,7 @@ namespace Operations {
                                             DscRangeKind::PatchInfo);
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Dylibs Trie Address",
                           "Dylibs Trie Size",
                           Header.DylibsTrieAddr,
@@ -1217,7 +1231,7 @@ namespace Operations {
                                             DscRangeKind::DylibsTrie);
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Other Image Array Address",
                           "Other Image Array Size",
                           Header.OtherImageArrayAddr,
@@ -1230,7 +1244,7 @@ namespace Operations {
                                             DscRangeKind::OtherImageArray);
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Other Trie Address",
                           "Other Trie Size",
                           Header.OtherTrieAddr,
@@ -1318,7 +1332,7 @@ namespace Operations {
 
         const auto &Header = Dsc.headerV7();
         PrintOffsetCountPair(OutFile,
-                             Dsc.range(),
+                             Dsc,
                              "Mapping With Slide Info Offset",
                              "Mapping With Slide Info Count",
                              Header.MappingWithSlideOffset,
@@ -1354,7 +1368,7 @@ namespace Operations {
                         Utils::Address(Header.DylibsPBLSetAddr));
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Programs Prebuilt Loader Set Pool Address",
                           "Programs Prebuilt Loader Set Pool Size",
                           Header.ProgramsPBLSetPoolAddr,
@@ -1367,7 +1381,7 @@ namespace Operations {
                                             DscRangeKind::ProgramsPBLSetPool);
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Program Trie Address",
                           "Program Trie Size",
                           Header.ProgramTrieAddr,
@@ -1389,7 +1403,7 @@ namespace Operations {
                            Header.altOsVersion());
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Swift Optimizations Offset",
                           "Swift Optimizations Size",
                           Header.SwiftOptsOffset,
@@ -1405,7 +1419,7 @@ namespace Operations {
                                             DscRangeKind::SwiftOpts);
 
         PrintOffsetCountPair(OutFile,
-                             Dsc.range(),
+                             Dsc,
                              "SubCache Array Offset",
                              "SubCache Array Count",
                              Header.SubCacheArrayOffset,
@@ -1422,7 +1436,7 @@ namespace Operations {
                         Utils::Uuid(Header.SymbolFileUUID));
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Rosetta Read-Only Address",
                           "Rosetta Read-Only Size",
                           Header.RosettaReadOnlyAddr,
@@ -1435,7 +1449,7 @@ namespace Operations {
                                             DscRangeKind::RosettaReadOnly);
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Rosetta Read-Write Address",
                           "Rosetta Read-Write Size",
                           Header.RosettaReadWriteAddr,
@@ -1452,9 +1466,9 @@ namespace Operations {
         std::print(OutFile,
                    "{}{}\n"
                    "{}{}\n",
-                   DscKey("Images Count"),
-                    Utils::CustomAddress(Header.ImagesOffset),
                    DscKey("Images Offset"),
+                    Utils::CustomAddress(Header.ImagesOffset),
+                   DscKey("Images Count"),
                     Utils::FormattedNumber(Header.ImagesCount));
     }
 
@@ -1547,7 +1561,7 @@ namespace Operations {
 
         PrintCacheKind(OutFile, "Cache Sub-Kind", Header.cacheSubKind());
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Objc Optimizations Offset",
                           "Objc Optimizations Size",
                           Header.ObjcOptsOffset,
@@ -1564,7 +1578,7 @@ namespace Operations {
 
         PrintObjcOptsInfo(OutFile, Dsc, Header);
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Cache Atlas Offset",
                           "Cache Atlas Size",
                           Header.CacheAtlasOffset,
@@ -1580,7 +1594,7 @@ namespace Operations {
                                             DscRangeKind::CacheAtlas);
 
         PrintDscSizeRange(OutFile,
-                          Dsc.range(),
+                          Dsc,
                           "Dynamic Data Offset",
                           "Dynamic Data Max Size",
                           Header.DynamicDataOffset,

@@ -488,7 +488,8 @@ namespace Objects {
 
                 auto Info =
                     SubCacheInfo(SubCachePath,
-                                 SingleCacheInfo(SubCacheEntry.CacheVMOffset,
+                                 SingleCacheInfo(SubCacheEntry.fileSuffix(),
+                                                 SubCacheEntry.CacheVMOffset,
                                                  MaxVmSize));
 
                 if (const auto Error =

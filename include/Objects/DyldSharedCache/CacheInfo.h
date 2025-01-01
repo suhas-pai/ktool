@@ -13,15 +13,17 @@ namespace Objects {
         friend struct DyldSharedCache;
     protected:
         ADT::MemoryMap Map;
+        std::string_view FileSuffix = "";
 
         uint64_t VmOffset;
         uint64_t MaxVmSize;
         uint64_t FirstAddr;
 
         constexpr explicit
-        DyldSharedSingleCacheInfo(const uint64_t VmOffset,
+        DyldSharedSingleCacheInfo(const std::string_view FileSuffix,
+                                  const uint64_t VmOffset,
                                   const uint64_t MaxVmSize) noexcept
-        : VmOffset(VmOffset), MaxVmSize(MaxVmSize) {}
+        : FileSuffix(FileSuffix), VmOffset(VmOffset), MaxVmSize(MaxVmSize) {}
 
         constexpr
         DyldSharedSingleCacheInfo(const ADT::MemoryMap &Map,
@@ -39,6 +41,10 @@ namespace Objects {
 
         [[nodiscard]] constexpr auto range() const noexcept {
             return ADT::Range::FromSize(0, this->map().size());
+        }
+
+        [[nodiscard]] constexpr auto fileSuffix() const noexcept {
+            return this->FileSuffix;
         }
 
         [[nodiscard]] inline auto &header() const noexcept {
