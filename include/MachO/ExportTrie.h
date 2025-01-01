@@ -458,11 +458,11 @@ namespace MachO {
             -> ADT::TrieParseError;
 
         constexpr auto clearExclusiveInfo() noexcept -> decltype(*this) {
-            Info.Loc.ImageOffset = 0;
-            Info.ReexportDylibOrdinal = 0;
-            Info.Loc.ResolverStubAddress = 0;
+            this->Info.Loc.ImageOffset = 0;
+            this->Info.ReexportDylibOrdinal = 0;
+            this->Info.Loc.ResolverStubAddress = 0;
 
-            Flags.clear();
+            this->Flags.clear();
             return *this;
         }
     };

@@ -180,7 +180,7 @@ namespace Operations {
                 IndexDigitCountMaximizer.set(
                     Utils::GetIntegerDigitCount(Info.exportInfo().index()));
 
-                ExportList.push_back(SExportInfo {
+                ExportList.emplace_back(SExportInfo {
                     .String = std::string(Info.string()),
                     .Index = Info.exportInfo().index(),
                 });

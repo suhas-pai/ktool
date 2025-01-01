@@ -297,6 +297,7 @@ namespace ADT {
             };
         protected:
             Error ParseError;
+            Direction Direction;
 
             uint8_t *Begin;
             uint8_t *End;
@@ -304,7 +305,6 @@ namespace ADT {
             std::unique_ptr<IterateInfo> Info;
             std::unique_ptr<StackInfo> NextStack;
 
-            Direction Direction;
             TrieParser &Parser;
 
             void SetupInfoForNewStack() noexcept {

@@ -584,7 +584,9 @@ namespace MachO {
             auto setIsProtectedVersion1(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                this->setValueForMask(Kind::ProtectedVersion1, /*Shift=*/0, Value);
+                this->setValueForMask(Kind::ProtectedVersion1,
+                                      /*Shift=*/0,
+                                      Value);
                 return *this;
             }
 
@@ -1012,7 +1014,9 @@ namespace MachO {
                 auto setHasLocalReloc(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    this->setValueForMask(Attribute::HasLocalReloc, /*Shift=*/0, Value);
+                    this->setValueForMask(Attribute::HasLocalReloc,
+                                          /*Shift=*/0,
+                                          Value);
                     return *this;
                 }
 
@@ -1040,7 +1044,9 @@ namespace MachO {
                 auto setIsDebugSection(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    this->setValueForMask(Attribute::DebugSection, /*Shift=*/0, Value);
+                    this->setValueForMask(Attribute::DebugSection,
+                                          /*Shift=*/0,
+                                          Value);
                     return *this;
                 }
 
@@ -1058,14 +1064,18 @@ namespace MachO {
                 auto setHasLiveSupport(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    this->setValueForMask(Attribute::HasLiveSupport, /*Shift=*/0, Value);
+                    this->setValueForMask(Attribute::HasLiveSupport,
+                                          /*Shift=*/0,
+                                          Value);
                     return *this;
                 }
 
                 constexpr auto setNoDeadStrip(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    this->setValueForMask(Attribute::NoDeadStrip, /*Shift=*/0, Value);
+                    this->setValueForMask(Attribute::NoDeadStrip,
+                                          /*Shift=*/0,
+                                          Value);
                     return *this;
                 }
 
@@ -4050,8 +4060,7 @@ namespace MachO {
 
     template <LoadCommandDerived T>
     [[nodiscard]] constexpr
-    auto dyn_cast(LoadCommand *const LC, const bool IsBigEndian) noexcept -> T *
-    {
+    auto dyn_cast(LoadCommand *const LC, const bool IsBigEndian) noexcept {
         if (isa<T>(LC, IsBigEndian)) {
             return static_cast<T *>(LC);
         }
@@ -4061,9 +4070,7 @@ namespace MachO {
 
     template <LoadCommandDerived T>
     [[nodiscard]] constexpr auto
-    dyn_cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept
-        -> const T *
-    {
+    dyn_cast(const LoadCommand *const LC, const bool IsBigEndian) noexcept {
         if (isa<T>(LC, IsBigEndian)) {
             return static_cast<const T *>(LC);
         }

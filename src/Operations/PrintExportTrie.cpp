@@ -536,8 +536,7 @@ namespace Operations {
                            Utils::CustomAddress(ImageOffset, Is64Bit));
             } else {
                 const auto OffsetLength =
-                    Is64Bit ?
-                        Utils::Address64Length : Utils::Address32Length;
+                    Is64Bit ? Utils::Address64Length : Utils::Address32Length;
                 const auto PadLength =
                     Utils::SegmentSectionPairMaxLen + OffsetLength;
 
@@ -546,15 +545,14 @@ namespace Operations {
 
             const auto KindDesc =
                 MachO::ExportTrieExportKindGetDesc(Export.Kind);
-
-            std::print(OutFile, "\t{:<{}}", KindDesc, LongestDescLength);
-
             const auto RightPad =
                 static_cast<int>(LongestExportLength.value() +
                                  STR_LENGTH("\"\""));
 
             std::print(OutFile,
-                       "{:<{}}",
+                       "\t{:<{}}{:<{}}",
+                       KindDesc,
+                       LongestDescLength,
                        std::format("\"{}\"", Export.String),
                        RightPad);
 

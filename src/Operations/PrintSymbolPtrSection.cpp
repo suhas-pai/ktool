@@ -465,16 +465,14 @@ namespace Operations {
                     MachO::cast<MachO::DylibCommand>(LC, IsBigEndian);
 
                 const auto PathOpt = DylibCmd.name(IsBigEndian);
-                const auto Info = DylibInfo {
+                DylibList.emplace_back(DylibInfo {
                     .Path =
-                        std::string(PathOpt.has_value() ?
-                            PathOpt.value() : Malformed),
+                        std::string(
+                            PathOpt.has_value() ? PathOpt.value() : Malformed),
                     .CurrentVersion = DylibCmd.currentVersion(IsBigEndian),
                     .CompatVersion = DylibCmd.compatVersion(IsBigEndian),
                     .Timestamp = DylibCmd.timestamp(IsBigEndian)
-                };
-
-                DylibList.push_back(Info);
+                });
             }
         }
 

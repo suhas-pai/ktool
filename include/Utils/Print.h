@@ -136,6 +136,10 @@ namespace Utils {
         time_t Value;
     };
 
+    struct Boolean {
+        bool Value;
+    };
+
     auto
     PrintOffsetSizeInfo(FILE *OutFile,
                         const ADT::Range &Range,
@@ -611,6 +615,16 @@ struct std::formatter<Utils::Timestamp> :
 {
     auto format(const Utils::Timestamp &Timestamp, auto &Ctx) const noexcept {
         const auto Result = Utils::GetHumanReadableTimestamp(Timestamp.Value);
+        return std::formatter<std::string_view>::format(Result, Ctx);
+    }
+};
+
+template <>
+struct std::formatter<Utils::Boolean> :
+    public std::formatter<std::string_view>
+{
+    auto format(const Utils::Boolean &Bool, auto &Ctx) const noexcept {
+        const auto Result = Bool.Value ? "Yes" : "No";
         return std::formatter<std::string_view>::format(Result, Ctx);
     }
 };

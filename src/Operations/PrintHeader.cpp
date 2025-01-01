@@ -44,7 +44,7 @@ public:
 };
 
 template <>
-struct std::formatter<DscKey> : std::formatter<std::string_view> {
+struct std::formatter<DscKey> : public std::formatter<std::string_view> {
     auto format(const DscKey &DscKey, auto &Ctx) const noexcept {
         auto Result = std::string();
         std::format_to(std::back_inserter(Result),
@@ -86,8 +86,7 @@ namespace Operations {
             Verbose ?
                 std::string(Mach::CpuKindGetString(CpuKind)) :
                 std::string(Mach::CpuKindGetDesc(CpuKind))
-            : std::format("<Unknown: 0x{:02x}>",
-                          static_cast<int32_t>(CpuKind));
+            : std::format("<Unknown: 0x{:02x}>", static_cast<int32_t>(CpuKind));
     }
 
     static auto
@@ -105,8 +104,9 @@ namespace Operations {
                           static_cast<uint32_t>(SubKind));
     }
 
-    auto
-    PrintHeader::run(const Objects::MachO &MachO) const noexcept -> RunResult {
+    auto PrintHeader::run(const Objects::MachO &MachO) const noexcept
+        -> RunResult
+    {
         const auto OutFile = this->OutFile;
         const auto &Opt = this->Opt;
 
@@ -145,8 +145,8 @@ namespace Operations {
             std::print(OutFile,
                        "\t\tIs 64-bit: {}\n"
                        "\t\tIs 64-bit with 32-bit pointers: {}\n",
-                       RawCpuType & Mach::CpuABI64 ? "yes" : "no",
-                       RawCpuType & Mach::CpuABI64_32 ? "yes" : "no");
+                       Utils::Boolean(RawCpuType & Mach::CpuABI64),
+                       Utils::Boolean(RawCpuType & Mach::CpuABI64_32));
         }
 
         std::println(OutFile, "\tCpuSubtype: {}", SubKindString);
@@ -157,10 +157,9 @@ namespace Operations {
             std::print(OutFile,
                        "\t\tIs 64-bit: {}\n"
                        "\t\tSupports Pointer Authentication: {}\n",
-                       RawCpuSubType & Mach::CpuSubtypeLib64 ?
-                        "yes" : "no",
-                       RawCpuSubType & Mach::CpuSubtypePtrauthABI ?
-                        "yes" : "no");
+                       Utils::Boolean(RawCpuSubType & Mach::CpuSubtypeLib64),
+                       Utils::Boolean(
+                        RawCpuSubType & Mach::CpuSubtypePtrauthABI));
         }
 
         std::print(OutFile,
@@ -1078,9 +1077,7 @@ namespace Operations {
                    const std::string_view Key,
                    const bool Value) noexcept
     {
-        std::println(OutFile,
-                     "{}{}",
-                     DscKey(Key), (Value) ? "true" : "false");
+        std::println(OutFile, "{}{}", DscKey(Key), Utils::Boolean(Value));
     }
 
     static inline void
