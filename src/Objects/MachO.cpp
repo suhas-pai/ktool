@@ -34,7 +34,7 @@ namespace Objects {
     auto MachO::VerifyLoadCommands(const ADT::MemoryMap &Map) noexcept
         -> OpenError
     {
-        const auto Header = Map.base<::MachO::Header, false>();
+        const auto Header = Map.base<::MachO::Header, /*Verify=*/false>();
 
         const auto LoadCommandsRange = Header->loadCommandsRange();
         const auto MinLoadCommandSizeOpt =

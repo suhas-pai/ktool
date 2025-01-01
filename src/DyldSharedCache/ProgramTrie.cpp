@@ -77,10 +77,11 @@ namespace DyldSharedCache {
         Base::ParseFromTrie(Trie, NodeCreator, Options, ErrorOut);
     }
 
-    ProgramTrieExportCollection
+    auto
     ProgramTrieExportCollection::Open(const ProgramTrieMap::ExportMap &Trie,
                                       const ParseOptions &Options,
                                       Error *const ErrorOut) noexcept
+        -> ProgramTrieExportCollection
     {
         auto Result = ProgramTrieExportCollection();
         Result.Parse(Trie, Options, ErrorOut);

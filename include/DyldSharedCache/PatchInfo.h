@@ -87,10 +87,20 @@ namespace DyldSharedCache {
         uint32_t PatchExportsCount;
     };
 
+    enum class PatchKind : uint32_t {
+        Regular,
+        CFObj2,
+        ObjcClass = 8
+    };
+
     struct ImageExportV2 {
         uint32_t DylibOffsetOfImpl;
         uint32_t ExportNameOffset : 28;
         uint32_t PatchKind : 4;
+
+        [[nodiscard]] constexpr auto patchKind() const noexcept {
+            return ::DyldSharedCache::PatchKind(this->PatchKind);
+        }
     };
 
     struct ImageClientsV2 {
@@ -376,12 +386,11 @@ namespace DyldSharedCache {
         };
 
         explicit
-        PatchInfo(
-            const DyldSharedCache::DeVirtualizer &DeVirtualizer,
-            const uint32_t ImageIndex,
-            const uint64_t ImageBaseAddress,
-            const PatchInfoVersion Version,
-            const DyldSharedCache::PatchInfoV3 &Header) noexcept
+        PatchInfo(const DyldSharedCache::DeVirtualizer &DeVirtualizer,
+                  const uint32_t ImageIndex,
+                  const uint64_t ImageBaseAddress,
+                  const PatchInfoVersion Version,
+                  const DyldSharedCache::PatchInfoV3 &Header) noexcept
         : DeVirtualizer(DeVirtualizer), Version(Version),
           ImageIndex(ImageIndex), ImageBaseAddress(ImageBaseAddress),
           HeaderV3(&Header) {}
@@ -416,8 +425,8 @@ namespace DyldSharedCache {
         }
 
         [[nodiscard]] auto
-        collectListOfExportPatchesForRange(
-            PatchLocationMap &Map,
-            ADT::Range VmRange) const noexcept -> ParseResult;
+        collectListOfExportPatchesForRange(PatchLocationMap &Map,
+                                           ADT::Range VmRange) const noexcept
+            -> ParseResult;
     };
 }

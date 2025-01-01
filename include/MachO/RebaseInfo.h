@@ -199,14 +199,14 @@ namespace MachO {
             -> decltype(*this)
         {
             this->setValueForMask(Masks::Opcode,
-                                  0,
+                                  /*Shift=*/0,
                                   static_cast<uint8_t>(Opcode));
             return *this;
         }
 
         auto setImmediate(const uint8_t Value) noexcept -> decltype(*this) {
             assert(Value <= 0xF);
-            this->setValueForMask(Masks::Immediate, 0, Value);
+            this->setValueForMask(Masks::Immediate, /*Shift=*/0, Value);
 
             return *this;
         }

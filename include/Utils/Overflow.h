@@ -50,9 +50,8 @@ namespace Utils {
               std::integral V,
               std::integral... Rest>
 
-    [[nodiscard]]
-    constexpr auto
-    AddAndCheckOverflow(const U Lhs, const V Rhs, Rest... rest) noexcept
+    [[nodiscard]] constexpr
+    auto AddAndCheckOverflow(const U Lhs, const V Rhs, Rest... rest) noexcept
         -> std::optional<T>
     {
         if (const auto FirstOpt = AddAndCheckOverflow(Lhs, Rhs)) {

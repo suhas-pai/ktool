@@ -52,7 +52,7 @@ namespace Objects {
         }
 
         [[nodiscard]] inline auto &header() const noexcept {
-            return *this->map().base<::MachO::Header, false>();
+            return *this->map().base<::MachO::Header, /*Verify=*/false>();
         }
 
         [[nodiscard]] inline auto fileKind() const noexcept {

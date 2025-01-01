@@ -145,8 +145,7 @@ namespace MachO {
             return this->List.at(Index);
         }
 
-        [[nodiscard]]
-        inline auto atOrNull(const size_t Index) const noexcept
+        [[nodiscard]] inline auto atOrNull(const size_t Index) const noexcept
             -> const SegmentInfo *
         {
             if (Utils::IndexOutOfBounds(Index, size())) {
@@ -157,12 +156,12 @@ namespace MachO {
         }
 
         auto
-        addSegment(const MachO::SegmentCommand &Segment,
-                   const bool IsBigEndian) noexcept -> decltype(*this);
+        add(const MachO::SegmentCommand &Segment,
+            const bool IsBigEndian) noexcept -> decltype(*this);
 
         auto
-        addSegment(const MachO::SegmentCommand64 &Segment,
-                   const bool IsBigEndian) noexcept -> decltype(*this);
+        add(const MachO::SegmentCommand64 &Segment,
+            const bool IsBigEndian) noexcept -> decltype(*this);
 
         [[nodiscard]] virtual auto
         getFileOffsetForVmAddr(const uint64_t VmAddr,

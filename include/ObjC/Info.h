@@ -332,32 +332,32 @@ namespace ObjC {
 
         constexpr
         auto setMeta(const bool Value = true) noexcept -> decltype(*this) {
-            this->setValueForMask(Enum::IsMeta, 0, Value);
+            this->setValueForMask(Enum::IsMeta, /*Shift=*/0, Value);
             return *this;
         }
 
         constexpr
         auto setRoot(const bool Value = true) noexcept -> decltype(*this) {
-            this->setValueForMask(Enum::IsRoot, 0, Value);
+            this->setValueForMask(Enum::IsRoot, /*Shift=*/0, Value);
             return *this;
         }
 
         constexpr auto
         setHasCxxStructors(const bool Value = true) noexcept -> decltype(*this)
         {
-            this->setValueForMask(Enum::HasCxxStructors, 0, Value);
+            this->setValueForMask(Enum::HasCxxStructors, /*Shift=*/0, Value);
             return *this;
         }
 
         constexpr
         auto setHidden(const bool Value = true) noexcept -> decltype(*this) {
-            this->setValueForMask(Enum::IsHidden, 0, Value);
+            this->setValueForMask(Enum::IsHidden, /*Shift=*/0, Value);
             return *this;
         }
 
         constexpr
         auto setException(const bool Value = true) noexcept -> decltype(*this) {
-            this->setValueForMask(Enum::IsException, 0, Value);
+            this->setValueForMask(Enum::IsException, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -365,13 +365,15 @@ namespace ObjC {
         setHasSwiftInitializer(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Enum::HasSwiftInitializer, 0, Value);
+            this->setValueForMask(Enum::HasSwiftInitializer,
+                                  /*Shift=*/0,
+                                  Value);
             return *this;
         }
 
         constexpr
         auto setARC(const bool Value = true) noexcept -> decltype(*this) {
-            this->setValueForMask(Enum::IsARC, 0, Value);
+            this->setValueForMask(Enum::IsARC, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -379,7 +381,9 @@ namespace ObjC {
         setHasCxxDestructorsOnly(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Enum::HasCxxDestructorOnly, 0, Value);
+            this->setValueForMask(Enum::HasCxxDestructorOnly,
+                                  /*Shift=*/0,
+                                  Value);
             return *this;
         }
 
@@ -387,7 +391,7 @@ namespace ObjC {
         setHasWeakWithoutARC(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Enum::HasWeakWithoutARC, 0, Value);
+            this->setValueForMask(Enum::HasWeakWithoutARC, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -395,25 +399,27 @@ namespace ObjC {
         setForbidsAssociatedObjects(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Enum::ForbidsAssociatedObjects, 0, Value);
+            this->setValueForMask(Enum::ForbidsAssociatedObjects,
+                                  /*Shift=*/0,
+                                  Value);
             return *this;
         }
 
         constexpr auto
         setFromBundle(const bool Value = true) noexcept -> decltype(*this) {
-            this->setValueForMask(Enum::IsFromBundle, 0, Value);
+            this->setValueForMask(Enum::IsFromBundle, /*Shift=*/0, Value);
             return *this;
         }
 
         constexpr
         auto setFuture(const bool Value = true) noexcept -> decltype(*this) {
-            this->setValueForMask(Enum::IsFuture, 0, Value);
+            this->setValueForMask(Enum::IsFuture, /*Shift=*/0, Value);
             return *this;
         }
 
         constexpr
         auto setRealized(const bool Value = true) noexcept -> decltype(*this) {
-            this->setValueForMask(Enum::IsRealized, 0, Value);
+            this->setValueForMask(Enum::IsRealized, /*Shift=*/0, Value);
             return *this;
         }
     };

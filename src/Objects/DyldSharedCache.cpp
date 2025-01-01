@@ -224,12 +224,15 @@ namespace Objects {
             return Error;
         }
 
-        auto MappingList =
-            std::span<::DyldSharedCache::MappingInfo>(
-                Map.get<::DyldSharedCache::MappingInfo, false>(
-                    HeaderV0->MappingOffset),
-                HeaderV0->MappingCount);
+        const auto MappingListOpt =
+            Map.getSpan<::DyldSharedCache::MappingInfo, /*Verify=*/false>(
+                HeaderV0->MappingOffset, HeaderV0->MappingCount);
 
+        if (!MappingListOpt.has_value()) {
+            return OpenError::MappingsOutOfBounds;
+        }
+
+        const auto &MappingList = MappingListOpt.value();
         if (const auto Error = VerifyMappingList(MappingList);
             Error != OpenError::None)
         {
@@ -256,7 +259,9 @@ namespace Objects {
             return DyldSharedCache::Error(OpenError::SubCacheHasDiffCpuKind);
         }
 
-        const auto Header = Map.base<::DyldSharedCache::HeaderV9, false>();
+        const auto Header =
+            Map.base<::DyldSharedCache::HeaderV9, /*Verify=*/false>();
+
         if (Header->getVersion() != this->getVersion()) {
             return DyldSharedCache::Error(OpenError::SubCacheHasDiffVersion);
         }
@@ -268,12 +273,11 @@ namespace Objects {
         return DyldSharedCache::Error(OpenError::None);
     }
 
-    auto
-    DyldSharedCache::OpenSubCacheFileMap(
+    auto DyldSharedCache::OpenSubCacheFileMap(
         const SubCacheInfo &SubCache) const noexcept -> Error
     {
         if (SubCache.FileMap != nullptr) {
-            return Error(OpenError::None);
+            return OpenError::None;
         }
 
         if (SubCache.Error.Kind != OpenError::None) {
@@ -284,7 +288,7 @@ namespace Objects {
             ADT::FileMap::Open(SubCache.Path.c_str(), SubCache.Prot);
 
         if (!FileMapOrErr.has_value()) {
-            return Error(OpenError::FailedToOpenSubCaches);
+            return OpenError::FailedToOpenSubCaches;
         }
 
         auto FileMap = FileMapOrErr.value();
@@ -293,13 +297,13 @@ namespace Objects {
         if (const auto Err = VerifySubCacheMap(Map);
             Err.Kind != OpenError::None)
         {
-            return Error(Err);
+            return Err;
         }
 
         auto &SingleInfo = (SingleCacheInfo &)SubCache.Info;
         SingleInfo.Map = Map;
 
-        return Error(OpenError::None);
+        return OpenError::None;
     }
 
     auto
@@ -311,18 +315,18 @@ namespace Objects {
         const int Fd = ::open(Path.c_str(), O_RDONLY);
         if (Fd < 0) {
             if (access(Path.c_str(), F_OK) < 0) {
-                SubCache.Error = Error(OpenError::SubCacheFileDoesNotExist);
+                SubCache.Error = OpenError::SubCacheFileDoesNotExist;
                 return SubCache.Error;
             }
 
-            SubCache.Error = Error(OpenError::FailedToOpenSubCaches);
+            SubCache.Error = OpenError::FailedToOpenSubCaches;
             return SubCache.Error;
         }
 
         struct stat Stat;
         if (::fstat(Fd, &Stat) < 0) {
             close(Fd);
-            SubCache.Error = Error(OpenError::FailedToOpenSubCaches);
+            SubCache.Error = OpenError::FailedToOpenSubCaches;
 
             return SubCache.Error;
         }
@@ -335,7 +339,7 @@ namespace Objects {
             HeaderSize < static_cast<ssize_t>(sizeof(Header)))
         {
             close(Fd);
-            SubCache.Error = Error(OpenError::FailedToOpenSubCaches);
+            SubCache.Error = OpenError::FailedToOpenSubCaches;
 
             return SubCache.Error;
         }
@@ -346,7 +350,7 @@ namespace Objects {
             Err != DyldSharedCache::OpenError::None)
         {
             close(Fd);
-            SubCache.Error = Error(Err);
+            SubCache.Error = Err;
 
             return SubCache.Error;
         }
@@ -355,7 +359,7 @@ namespace Objects {
             Err != DyldSharedCache::OpenError::None)
         {
             close(Fd);
-            SubCache.Error = Error(Err);
+            SubCache.Error = Err;
 
             return SubCache.Error;
         }
@@ -363,7 +367,7 @@ namespace Objects {
         const auto MappingListRangeOpt = Header.mappingInfoListRange();
         if (!MappingListRangeOpt.has_value()) {
             close(Fd);
-            SubCache.Error = Error(OpenError::FailedToOpenSubCaches);
+            SubCache.Error = OpenError::FailedToOpenSubCaches;
 
             return SubCache.Error;
         }
@@ -374,21 +378,21 @@ namespace Objects {
 
         if (Header.MappingOffset < sizeof(::DyldSharedCache::HeaderV0)) {
             close(Fd);
-            SubCache.Error = Error(OpenError::MappingsOutOfBounds);
+            SubCache.Error = OpenError::MappingsOutOfBounds;
 
             return SubCache.Error;
         }
 
         if (Header.MappingCount == 0) {
             close(Fd);
-            SubCache.Error = Error(OpenError::NoMappings);
+            SubCache.Error = OpenError::NoMappings;
 
             return SubCache.Error;
         }
 
         if (::lseek(Fd, Header.MappingOffset, SEEK_SET) < 0) {
             close(Fd);
-            SubCache.Error = Error(OpenError::MappingsOutOfBounds);
+            SubCache.Error = OpenError::MappingsOutOfBounds;
 
             return SubCache.Error;
         }
@@ -401,7 +405,7 @@ namespace Objects {
                 static_cast<ssize_t>(ReadSize))
         {
             close(Fd);
-            SubCache.Error = Error(OpenError::MappingsOutOfBounds);
+            SubCache.Error = OpenError::MappingsOutOfBounds;
 
             return SubCache.Error;
         }
@@ -410,7 +414,7 @@ namespace Objects {
             Err != DyldSharedCache::OpenError::None)
         {
             close(Fd);
-            SubCache.Error = Error(Err);
+            SubCache.Error = Err;
 
             return SubCache.Error;
         }
@@ -422,7 +426,7 @@ namespace Objects {
 
             if (MaxVmOffset > SubCache.Info.VmOffset) {
                 close(Fd);
-                SubCache.Error = Error(OpenError::MappingsOutOfBounds);
+                SubCache.Error = OpenError::MappingsOutOfBounds;
 
                 return SubCache.Error;
             }
@@ -434,7 +438,7 @@ namespace Objects {
 
         SubCache.Info.FirstAddr = MappingSpan.front().addressRange().front();
         SubCache.Prot = Prot;
-        SubCache.Error = Error(OpenError::None);
+        SubCache.Error = OpenError::None;
 
         return SubCache.Error;
     }
@@ -483,10 +487,9 @@ namespace Objects {
                 }
 
                 auto Info =
-                    SubCacheInfo(
-                        SubCachePath,
-                        SingleCacheInfo(SubCacheEntry.CacheVMOffset,
-                                        MaxVmSize));
+                    SubCacheInfo(SubCachePath,
+                                 SingleCacheInfo(SubCacheEntry.CacheVMOffset,
+                                                 MaxVmSize));
 
                 if (const auto Error =
                         FillSubCacheInfo(Info, SubCachePath, Prot);

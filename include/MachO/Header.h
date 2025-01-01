@@ -393,7 +393,7 @@ namespace MachO {
         constexpr auto setNoUndefineds(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::NoUndefineds, 0, Value);
+            this->setValueForMask(Kind::NoUndefineds, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -401,7 +401,7 @@ namespace MachO {
         constexpr auto setIncrementalLink(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::IncrementalLink, 0, Value);
+            this->setValueForMask(Kind::IncrementalLink, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -409,7 +409,7 @@ namespace MachO {
         constexpr auto setDynamicLinkerLink(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::DynamicLinkerLink, 0, Value);
+            this->setValueForMask(Kind::DynamicLinkerLink, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -417,7 +417,7 @@ namespace MachO {
         constexpr auto setBindAtLoad(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::BindAtLoad, 0, Value);
+            this->setValueForMask(Kind::BindAtLoad, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -425,7 +425,7 @@ namespace MachO {
         constexpr auto setPreBound(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::PreBound, 0, Value);
+            this->setValueForMask(Kind::PreBound, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -433,7 +433,7 @@ namespace MachO {
         constexpr auto setSplitSegments(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::SplitSegments, 0, Value);
+            this->setValueForMask(Kind::SplitSegments, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -441,7 +441,7 @@ namespace MachO {
         constexpr auto setLazyInit(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::LazyInit, 0, Value);
+            this->setValueForMask(Kind::LazyInit, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -449,7 +449,7 @@ namespace MachO {
         constexpr auto setTwoLevelNamespaces(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::TwoLevelNamespaces, 0, Value);
+            this->setValueForMask(Kind::TwoLevelNamespaces, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -457,7 +457,9 @@ namespace MachO {
         auto setForceFlatNamespaces(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::ForceFlatNamespaces, 0, Value);
+            this->setValueForMask(Kind::ForceFlatNamespaces,
+                                  /*Shift=*/0,
+                                  Value);
             return *this;
         }
 
@@ -465,7 +467,9 @@ namespace MachO {
         auto setNoMultipleDefinitions(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::NoMultipleDefinitions, 0, Value);
+            this->setValueForMask(Kind::NoMultipleDefinitions,
+                                  /*Shift=*/0,
+                                  Value);
             return *this;
         }
 
@@ -473,7 +477,7 @@ namespace MachO {
         constexpr auto setNoFixPrebinding(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::NoFixPrebinding, 0, Value);
+            this->setValueForMask(Kind::NoFixPrebinding, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -481,7 +485,7 @@ namespace MachO {
         constexpr auto setPrebindable(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::Prebindable, 0, Value);
+            this->setValueForMask(Kind::Prebindable, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -489,7 +493,7 @@ namespace MachO {
         constexpr auto setAllModulesBound(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::AllModulesBound, 0, Value);
+            this->setValueForMask(Kind::AllModulesBound, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -497,7 +501,9 @@ namespace MachO {
         auto setSubsectionsViaSymbols(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::SubsectionsViaSymbols, 0, Value);
+            this->setValueForMask(Kind::SubsectionsViaSymbols,
+                                  /*Shift=*/0,
+                                  Value);
             return *this;
         }
 
@@ -505,7 +511,7 @@ namespace MachO {
         constexpr auto setCanonical(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::Canonical, 0, Value);
+            this->setValueForMask(Kind::Canonical, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -513,7 +519,7 @@ namespace MachO {
         constexpr auto setWeakDefines(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::WeakDefines, 0, Value);
+            this->setValueForMask(Kind::WeakDefines, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -521,7 +527,7 @@ namespace MachO {
         constexpr auto setBindsToWeak(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::BindsToWeak, 0, Value);
+            this->setValueForMask(Kind::BindsToWeak, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -529,7 +535,7 @@ namespace MachO {
         auto setAllowStackExecution(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::AllowStackExecution, 0, Value);
+            this->setValueForMask(Kind::AllowStackExecution, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -537,7 +543,7 @@ namespace MachO {
         constexpr auto setRootSafe(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::RootSafe, 0, Value);
+            this->setValueForMask(Kind::RootSafe, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -545,7 +551,7 @@ namespace MachO {
         constexpr auto setSetuidSafe(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::SetuidSafe, 0, Value);
+            this->setValueForMask(Kind::SetuidSafe, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -553,7 +559,7 @@ namespace MachO {
         constexpr auto setNoReexportedDylibs(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::NoReexportedDylibs, 0, Value);
+            this->setValueForMask(Kind::NoReexportedDylibs, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -561,7 +567,7 @@ namespace MachO {
         auto setPositionIndependentExec(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::PositionIndependentExec, 0, Value);
+            this->setValueForMask(Kind::PositionIndependentExec, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -569,7 +575,7 @@ namespace MachO {
         auto setDeadStrippableDylib(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::DeadStrippableDylib, 0, Value);
+            this->setValueForMask(Kind::DeadStrippableDylib, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -577,7 +583,7 @@ namespace MachO {
         constexpr auto setHasTlvDescriptors(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::HasTlvDescriptors, 0, Value);
+            this->setValueForMask(Kind::HasTlvDescriptors, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -585,7 +591,7 @@ namespace MachO {
         constexpr auto setNoHeapExecution(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::NoHeapExecution, 0, Value);
+            this->setValueForMask(Kind::NoHeapExecution, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -593,7 +599,7 @@ namespace MachO {
         constexpr auto setAppExtensionSafe(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::AppExtensionSafe, 0, Value);
+            this->setValueForMask(Kind::AppExtensionSafe, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -601,7 +607,7 @@ namespace MachO {
         auto setNlistOutOfSyncDyldInfo(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::NlistOutOfSyncDyldInfo, 0, Value);
+            this->setValueForMask(Kind::NlistOutOfSyncDyldInfo, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -609,7 +615,7 @@ namespace MachO {
         constexpr auto setSimSupport(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::SimSupport, 0, Value);
+            this->setValueForMask(Kind::SimSupport, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -617,7 +623,7 @@ namespace MachO {
         constexpr auto setDylibInCache(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(Kind::DylibInCache, 0, Value);
+            this->setValueForMask(Kind::DylibInCache, /*Shift=*/0, Value);
             return *this;
         }
     };

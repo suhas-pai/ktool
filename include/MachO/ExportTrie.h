@@ -132,28 +132,28 @@ namespace MachO {
         }
 
         constexpr auto setKind(const Kind Kind) noexcept -> decltype(*this) {
-            setValueForMask(Masks::Kind, 0, Kind);
+            setValueForMask(Masks::Kind, /*Shift=*/0, Kind);
             return *this;
         }
 
         constexpr auto setWeak(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::WeakDefinition, 0, Value);
+            setValueForMask(Masks::WeakDefinition, /*Shift=*/0, Value);
             return *this;
         }
 
         constexpr auto setReexport(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::Reexport, 0, Value);
+            setValueForMask(Masks::Reexport, /*Shift=*/0, Value);
             return *this;
         }
 
         constexpr auto setStubAndResolver(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::StubAndResolver, 0, Value);
+            setValueForMask(Masks::StubAndResolver, /*Shift=*/0, Value);
             return *this;
         }
     };

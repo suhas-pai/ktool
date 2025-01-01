@@ -323,7 +323,8 @@ namespace MachO {
                     Addr +
                     offsetof(ObjcParse::ObjcClassCategoryType<Is64Bit>, Class);
 
-                if (const auto ResolveOpt = AddrResolver.resolve(ClassAddr, 0);
+                if (const auto ResolveOpt =
+                        AddrResolver.resolve(ClassAddr, /*Value=*/0);
                     ResolveOpt.has_value())
                 {
                     const auto &Resolution = ResolveOpt.value();

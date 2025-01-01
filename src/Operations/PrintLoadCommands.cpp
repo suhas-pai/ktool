@@ -133,8 +133,8 @@ namespace Operations {
                                    SectionCountDigitCount);
                     } else {
                         std::print(OutFile,
-                                   "\t{}{:>{}}. File: {:<}\t  Memory: {:<}"
-                                   "\t  Align: {:<{}}",
+                                   "\t{}{:>{}}. File: {:<}  Memory: {:<}"
+                                   "  Align: {:<{}}",
                                    Prefix,
                                    I + 1,
                                    SectionCountDigitCount,
@@ -162,12 +162,7 @@ namespace Operations {
                                 SectionT::KindGetDesc(SectionKind) :
                                 "<unknown>";
 
-                        std::print(OutFile, " ({}", SectionKindDesc);
-                        if (!Flags.attributes().empty()) {
-                            std::print(OutFile, ";");
-                        } else {
-                            std::print(OutFile, ")");
-                        }
+                        std::print(OutFile, " ({})", SectionKindDesc);
                     }
 
                     if (Verbose) {
@@ -176,7 +171,7 @@ namespace Operations {
                                    "\t\t{}File:              {}\n"
                                    "\t\t{}Memory:            {}\n"
                                    "\t\t{}Size:              {}\n"
-                                   "\t\t{}Align:             {} ({})\n"
+                                   "\t\t{}Alignment:         {} ({})\n"
                                    "\t\t{}Reloc File Offset: {}\n"
                                    "\t\t{}Reloc Count:       {}\n"
                                    "\t\t{}Reserved 1:        {}\n"
@@ -216,34 +211,6 @@ namespace Operations {
 
                                 FlagNumber++;
                             }
-                    } else if (!Flags.attributes().empty()) {
-                        if (SectionKind == SectionT::Kind::Regular) {
-                            std::print(OutFile, " (Regular;");
-                        }
-
-                        auto Iterator = ADT::FlagsIterator(Flags.attributes());
-                        for (auto Iter = Iterator.begin();;) {
-                            const auto Bit = *Iter;
-                            const auto Attr = SectionT::Attribute(1ull << Bit);
-
-                            if (SectionT::AttributeIsValid(Attr)) {
-                                const auto AttrDesc =
-                                    SectionT::AttributeGetDesc(Attr);
-
-                                std::print(OutFile, " {}", AttrDesc);
-                            } else {
-                                std::print(OutFile, " <unknown: Bit {}>", Bit);
-                            }
-
-                            Iter++;
-                            if (Iter == Iterator.end()) {
-                                break;
-                            }
-
-                            std::print(OutFile, ",");
-                        }
-
-                        std::println(OutFile, ")");
                     } else {
                         std::println(OutFile);
                     }
@@ -331,13 +298,12 @@ namespace Operations {
                                    SectionCountDigitCount);
                     } else {
                         std::print(OutFile,
-                                   "\t{}{:>{}}. File: {:<}\t  Memory: {:<}"
-                                   "\t  Align: {:>{}}",
+                                   "\t{}{:>{}}. File: {:<}  Memory: {:<}  "
+                                   "Align: {:>{}}",
                                    Prefix,
                                    I + 1,
                                    SectionCountDigitCount,
-                                   Utils::PrintRange<uint64_t>(FileOffset,
-                                                               Size),
+                                   Utils::PrintRange(FileOffset, Size),
                                    Utils::PrintRange(Addr, Size),
                                    AlignDesc, LongestAlignDescLength);
                     }
@@ -361,12 +327,7 @@ namespace Operations {
                                 SectionT::KindGetDesc(SectionKind) :
                                 "<unknown>";
 
-                        std::print(OutFile, " ({}", SectionKindDesc);
-                        if (!Flags.attributes().empty()) {
-                            std::print(OutFile, ";");
-                        } else {
-                            std::print(OutFile, ")");
-                        }
+                        std::print(OutFile, " ({})", SectionKindDesc);
                     }
 
                     if (Verbose) {
@@ -378,15 +339,14 @@ namespace Operations {
                                    "\t\t{}File:              {}\n"
                                    "\t\t{}Memory:            {}\n"
                                    "\t\t{}Size:              {}\n"
-                                   "\t\t{}Align:             {} ({})\n"
+                                   "\t\t{}Alignment:         {} ({})\n"
                                    "\t\t{}Reloc File Offset: {}\n"
                                    "\t\t{}Reloc Count:       {}\n"
                                    "\t\t{}Reserved 1:        {}\n"
                                    "\t\t{}Reserved 2:        {}\n"
                                    "\t\t{}Flags:             0x{:x}\n",
                                    Prefix,
-                                    Utils::PrintRange<uint64_t>(FileOffset,
-                                                                Size),
+                                    Utils::PrintRange(FileOffset, Size),
                                    Prefix, Utils::PrintRange(Addr, Size),
                                    Prefix, Utils::ByteSize(Size),
                                    Prefix, Align, AlignDesc,
@@ -420,34 +380,6 @@ namespace Operations {
 
                                 FlagNumber++;
                             }
-                    } else if (!Flags.attributes().empty()) {
-                        if (SectionKind == SectionT::Kind::Regular) {
-                            std::print(OutFile, " (Regular;");
-                        }
-
-                        auto Iterator = ADT::FlagsIterator(Flags.attributes());
-                        for (auto Iter = Iterator.begin();;) {
-                            const auto Bit = *Iter;
-                            const auto Attr = SectionT::Attribute(1ull << Bit);
-
-                            if (SectionT::AttributeIsValid(Attr)) {
-                                const auto AttrDesc =
-                                    SectionT::AttributeGetDesc(Attr);
-
-                                std::print(OutFile, " {}", AttrDesc);
-                            } else {
-                                std::print(OutFile, " <unknown: Bit {}>", Bit);
-                            }
-
-                            Iter++;
-                            if (Iter == Iterator.end()) {
-                                break;
-                            }
-
-                            std::print(OutFile, ",");
-                        }
-
-                        std::println(OutFile, ")");
                     } else {
                         std::println(OutFile);
                     }

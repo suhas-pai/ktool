@@ -19,6 +19,42 @@
 
 #include "Utils/Print.h"
 
+constexpr static auto LongestDscKeyLength =
+    STR_LENGTH("Programs Prebuilt Loader Set Pool Address");
+
+struct DscKey {
+protected:
+    std::string_view Key;
+    uint32_t PadLength;
+public:
+    constexpr explicit
+    DscKey(const std::string_view Key,
+           const uint32_t LongestKey = LongestDscKeyLength) noexcept
+    : Key(Key), PadLength(LongestKey - Key.length()) {
+        assert(LongestKey >= Key.length());
+    }
+
+    [[nodiscard]] constexpr auto key() const noexcept {
+        return this->Key;
+    }
+
+    [[nodiscard]] constexpr auto padLength() const noexcept {
+        return this->PadLength;
+    }
+};
+
+template <>
+struct std::formatter<DscKey> : std::formatter<std::string_view> {
+    auto format(const DscKey &DscKey, auto &Ctx) const noexcept {
+        auto Result = std::string();
+        std::format_to(std::back_inserter(Result),
+                       "{}: {:<{}}",
+                       DscKey.key(), "", DscKey.padLength());
+
+        return std::formatter<std::string_view>::format(Result, Ctx);
+    }
+};
+
 namespace Operations {
     PrintHeader::PrintHeader(FILE *const OutFile,
                              const struct Options &Options) noexcept
@@ -645,26 +681,6 @@ namespace Operations {
         }
     }
 
-    constexpr static auto LongestDscKey =
-        STR_LENGTH("Programs Prebuilt Loader Set Pool Address");
-
-    #define DSC_KEY_FMT "{}: {:<{}}"
-    #define DSC_KEY_FMT_ARGS(Key) \
-        Key, \
-        "", \
-        static_cast<int>(LongestDscKey - std::string_view(Key).length())
-
-    #define DSC_CUSTOM_KEY_FMT_ARGS(Key, Longest) \
-        Key, "", static_cast<int>(Longest - std::string_view(Key).length())
-
-    static void
-    PrintDscKey(FILE *const OutFile,
-                const std::string_view Key,
-                const std::string_view Prefix = "") noexcept
-    {
-        std::print(OutFile, "{}" DSC_KEY_FMT, Prefix, DSC_KEY_FMT_ARGS(Key));
-    }
-
     static void
     WarnIfOutOfRange(FILE *const OutFile,
                      const ADT::Range &DscRange,
@@ -697,10 +713,8 @@ namespace Operations {
                       const bool PrintNewLine = false) noexcept
     {
         std::print(OutFile,
-                   "{}" DSC_KEY_FMT "{}",
-                   Prefix,
-                   DSC_KEY_FMT_ARGS(AddressName),
-                   Utils::Address(Address));
+                   "{}{}{}",
+                   Prefix, DscKey(AddressName), Utils::Address(Address));
 
         if (Verbose && Size != 0) {
             std::print(OutFile,
@@ -718,11 +732,8 @@ namespace Operations {
 
         std::println(OutFile);
         std::println(OutFile,
-                     "{}"
-                     DSC_KEY_FMT "{}",
-                     Suffix,
-                     DSC_KEY_FMT_ARGS(SizeName),
-                     Utils::ByteSize(Size));
+                     "{}{}{}",
+                     Suffix, DscKey(SizeName), Utils::ByteSize(Size));
 
         if (PrintNewLine) {
             std::println(OutFile);
@@ -743,12 +754,12 @@ namespace Operations {
         for (const auto &Mapping : Dsc.mappingInfoList()) {
             std::print(OutFile,
                        "\tMapping {:0{}}: {}\n"
-                       "\t\t" DSC_KEY_FMT "{}",
+                       "\t\t{}{}",
                        Index,
                        MappingCountDigitLength,
                        Mapping.initAndMaxProt(),
-                       DSC_CUSTOM_KEY_FMT_ARGS("File-Offset", LongestKeyLength),
-                       Utils::Address(Mapping.FileOffset));
+                       DscKey("File-Offset", LongestKeyLength),
+                        Utils::Address(Mapping.FileOffset));
 
             const auto PrintRange = !Mapping.empty() && Options.Verbose;
             if (PrintRange) {
@@ -757,9 +768,9 @@ namespace Operations {
 
             std::println(OutFile);
             std::println(OutFile,
-                         "\t\t" DSC_KEY_FMT "{}",
-                         DSC_CUSTOM_KEY_FMT_ARGS("Address", LongestKeyLength),
-                         Utils::Address(Mapping.Address));
+                         "\t\t{}{}",
+                         DscKey("Address", LongestKeyLength),
+                            Utils::Address(Mapping.Address));
 
             if (PrintRange) {
                 std::print(OutFile,
@@ -769,9 +780,9 @@ namespace Operations {
 
             std::println(OutFile);
             std::println(OutFile,
-                         "\t\t" DSC_KEY_FMT "{}",
-                         DSC_CUSTOM_KEY_FMT_ARGS("Size", LongestKeyLength),
-                         Utils::ByteSize(Mapping.Size));
+                         "\t\t{}{}",
+                         DscKey("Size", LongestKeyLength),
+                            Utils::ByteSize(Mapping.Size));
 
             Index++;
         }
@@ -790,17 +801,15 @@ namespace Operations {
             for (const auto &Info : ListOpt.value()) {
                 std::print(OutFile,
                            "\tSubCache Entry {:0{}}: {}\n"
-                           "\t\t" DSC_KEY_FMT "{}\n"
-                           "\t\t" DSC_KEY_FMT "{}\n",
+                           "\t\t{}{}\n"
+                           "\t\t{}\"{}\"\n",
                            Index,
                            MappingCountDigitLength,
                            Utils::Uuid(Info.Uuid),
-                           DSC_CUSTOM_KEY_FMT_ARGS("Cache Vm-Offset",
-                                                   LongestKeyLength),
-                           Utils::Address(Info.CacheVMOffset),
-                           DSC_CUSTOM_KEY_FMT_ARGS("File Suffix",
-                                                   LongestKeyLength),
-                           Info.FileSuffix);
+                           DscKey("Cache Vm-Offset", LongestKeyLength),
+                            Utils::Address(Info.CacheVMOffset),
+                           DscKey("File Suffix", LongestKeyLength),
+                           Info.fileSuffix());
 
                 Index++;
             }
@@ -816,13 +825,12 @@ namespace Operations {
         for (const auto &Info : ListOpt.value()) {
             std::print(OutFile,
                        "\tSubCache V1 Entry {:0{}}: {}\n"
-                       "\t\t" DSC_KEY_FMT "{}\n",
+                       "\t\t{}{}\n",
                        Index,
                        MappingCountDigitLength,
                        Utils::Uuid(Info.Uuid),
-                       DSC_CUSTOM_KEY_FMT_ARGS("Cache Vm-Offset",
-                                               LongestKeyLength),
-                       Info.CacheVMOffset);
+                       DscKey("Cache Vm-Offset", LongestKeyLength),
+                        Info.CacheVMOffset);
 
             Index++;
         }
@@ -835,9 +843,8 @@ namespace Operations {
     {
         const auto Header = Dsc.headerV0();
         std::print(OutFile,
-                   DSC_KEY_FMT "\"{}\"",
-                   DSC_KEY_FMT_ARGS("Magic"),
-                   Header.Magic);
+                   "{}\"{}\"",
+                   DscKey("Magic"), Header.Magic);
 
         if (Options.Verbose) {
             const auto [CpuKind, CpuSubKind] = Dsc.getMachCpuKindAndSubKind();
@@ -850,13 +857,13 @@ namespace Operations {
 
         const auto Version = Dsc.getVersion();
         std::print(OutFile,
-                   DSC_KEY_FMT "{}\n"
-                   DSC_KEY_FMT "{}\n"
-                   DSC_KEY_FMT "{}\n",
-                   DSC_KEY_FMT_ARGS("Version"), static_cast<int>(Version),
-                   DSC_KEY_FMT_ARGS("Mapping Offset"),
+                   "{}{}\n"
+                   "{}{}\n"
+                   "{}{}\n",
+                   DscKey("Version"), static_cast<int>(Version),
+                   DscKey("Mapping Offset"),
                     Utils::Address(Header.MappingOffset),
-                   DSC_KEY_FMT_ARGS("Mapping Count"),
+                   DscKey("Mapping Count"),
                     Utils::FormattedNumber(Header.MappingCount));
 
         if (Dsc.mappingCount() <= 10) {
@@ -866,26 +873,26 @@ namespace Operations {
 
         if (Header.isAtleastV8()) {
             std::print(OutFile,
-                       DSC_KEY_FMT "{}\n"
-                       DSC_KEY_FMT "{}\n",
-                       DSC_KEY_FMT_ARGS("Images Offset (Old)"),
+                       "{}{}\n"
+                       "{}{}\n",
+                       DscKey("Images Offset (Old)"),
                         Utils::Address(Header.ImagesOffsetOld),
-                       DSC_KEY_FMT_ARGS("Images Count (Old)"),
+                       DscKey("Images Count (Old)"),
                         Utils::FormattedNumber(Header.ImagesCountOld));
         } else {
             std::print(OutFile,
-                       DSC_KEY_FMT "{}\n"
-                       DSC_KEY_FMT "{}\n",
-                       DSC_KEY_FMT_ARGS("Images Offset"),
+                       "{}{}\n"
+                       "{}{}\n",
+                       DscKey("Images Offset"),
                         Utils::Address(Header.ImagesOffsetOld),
-                       DSC_KEY_FMT_ARGS("Images Count"),
+                       DscKey("Images Count"),
                         Utils::FormattedNumber(Header.ImagesCountOld));
         }
 
         std::println(OutFile,
-                     DSC_KEY_FMT "{}",
-                     DSC_KEY_FMT_ARGS("Dyld Base-Address"),
-                      Utils::Address(Header.DyldBaseAddress));
+                     "{}{}",
+                     DscKey("Dyld Base-Address"),
+                        Utils::Address(Header.DyldBaseAddress));
     }
 
     static void
@@ -956,8 +963,8 @@ namespace Operations {
                                             DscRangeKind::LocalSymbolInfo);
 
         std::println(OutFile,
-                     DSC_KEY_FMT "\"{}\"",
-                     DSC_KEY_FMT_ARGS("Uuid"), Utils::Uuid(Header.Uuid));
+                     "{}\"{}\"",
+                     DscKey("Uuid"), Utils::Uuid(Header.Uuid));
     }
 
     template <std::unsigned_integral OffsetType,
@@ -973,14 +980,13 @@ namespace Operations {
                          const std::string_view Suffix = "")
     {
         std::print(OutFile,
-                   DSC_KEY_FMT "{}",
-                   DSC_KEY_FMT_ARGS(OffsetKey), Utils::Address(Offset));
+                   "{}{}",
+                   DscKey(OffsetKey), Utils::Address(Offset));
 
         WarnIfOutOfRange(OutFile, Range, Offset, /*Size=*/1);
         std::print(OutFile,
-                   DSC_KEY_FMT "{}{}",
-                   DSC_KEY_FMT_ARGS(CountKey),
-                    Utils::FormattedNumber(Count), Suffix);
+                   "{}{}{}",
+                   DscKey(CountKey), Utils::FormattedNumber(Count), Suffix);
     }
 
     static void
@@ -988,17 +994,16 @@ namespace Operations {
                    const std::string_view Key,
                    const DyldSharedCache::CacheKind CacheKind) noexcept
     {
-        PrintDscKey(OutFile, Key);
         switch (CacheKind) {
             case DyldSharedCache::CacheKind::Development:
-                std::println(OutFile, "Development");
+                std::println(OutFile, "{}Development", DscKey(Key));
                 return;
             case DyldSharedCache::CacheKind::Production:
-                std::println(OutFile, "Production");
+                std::println(OutFile, "{}Production", DscKey(Key));
                 return;
         }
 
-        std::println(OutFile, "<Unrecognized>");
+        std::println(OutFile, "{}<Unrecognized>", DscKey(Key));
     }
 
     static void
@@ -1046,12 +1051,12 @@ namespace Operations {
                                             DscRangeKind::ImageTextInfoList);
 
         std::print(OutFile,
-                   DSC_KEY_FMT "{}\n"
-                   DSC_KEY_FMT "{}\n",
-                   DSC_KEY_FMT_ARGS("Dyld In-Cache Mach-Header Address"),
-                   Utils::Address(Header.DyldInCacheMachHeaderAddr),
-                   DSC_KEY_FMT_ARGS("Dyld In-Cache Entry-Point Address"),
-                   Utils::Address(Header.DyldInCacheEntryPointAddr));
+                   "{}{}\n"
+                   "{}{}\n",
+                   DscKey("Dyld In-Cache Mach-Header Address"),
+                    Utils::Address(Header.DyldInCacheMachHeaderAddr),
+                   DscKey("Dyld In-Cache Entry-Point Address"),
+                    Utils::Address(Header.DyldInCacheEntryPointAddr));
     }
 
     static inline void
@@ -1060,9 +1065,8 @@ namespace Operations {
                    const bool Value) noexcept
     {
         std::println(OutFile,
-                     DSC_KEY_FMT "{}",
-                     DSC_KEY_FMT_ARGS(Key),
-                     (Value) ? "true" : "false");
+                     "{}{}",
+                     DscKey(Key), (Value) ? "true" : "false");
     }
 
     static inline void
@@ -1070,13 +1074,14 @@ namespace Operations {
                        const std::string_view Key,
                        const Dyld3::Platform Platform) noexcept
     {
-        std::print(OutFile, DSC_KEY_FMT, DSC_KEY_FMT_ARGS(Key));
         if (Dyld3::PlatformIsValid(Platform)) {
-            std::println(OutFile, "{}", Dyld3::PlatformGetDesc(Platform));
+            std::println(OutFile,
+                         "{}{}",
+                         DscKey(Key), Dyld3::PlatformGetDesc(Platform));
         } else {
             std::println(OutFile,
-                         "<unknown, value={}>",
-                         static_cast<uint32_t>(Platform));
+                         "{}<unknown, value={}>",
+                         DscKey(Key), static_cast<uint32_t>(Platform));
         }
     }
 
@@ -1143,9 +1148,8 @@ namespace Operations {
 
         PrintPlatformValue(OutFile, "Platform", Header.platform());
         std::println(OutFile,
-                     DSC_KEY_FMT "{}",
-                     DSC_KEY_FMT_ARGS("Closure-Format Version"),
-                     Header.FormatVersion);
+                     "{}{}",
+                     DscKey("Closure-Format Version"), Header.FormatVersion);
 
         PrintBoolValue(OutFile,
                        "Dylibs Expected On Disk",
@@ -1173,9 +1177,8 @@ namespace Operations {
                           /*PrintNewLine=*/true);
 
         std::println(OutFile,
-                     DSC_KEY_FMT "{}",
-                     DSC_KEY_FMT_ARGS("Max Slide"),
-                     Utils::ByteSize(Header.MaxSlide));
+                     "{}{}",
+                     DscKey("Max Slide"), Utils::ByteSize(Header.MaxSlide));
     }
 
     static void
@@ -1255,12 +1258,12 @@ namespace Operations {
         for (const auto &Mapping : Header.mappingWithSlideInfoList()) {
             std::print(OutFile,
                        "\tMapping {:0{}}: {}\n"
-                       "\t\t" DSC_KEY_FMT "{}",
+                       "\t\t{}{}",
                        Index,
                        MappingCountDigitLength,
                        Mapping.initAndMaxProt(),
-                       DSC_CUSTOM_KEY_FMT_ARGS("File-Offset", LongestKeyLength),
-                       Utils::Address(Mapping.FileOffset));
+                       DscKey("File-Offset", LongestKeyLength),
+                        Utils::Address(Mapping.FileOffset));
 
             const auto PrintRange = !Mapping.empty() && Options.Verbose;
             if (PrintRange) {
@@ -1271,8 +1274,8 @@ namespace Operations {
 
             std::println(OutFile);
             std::print(OutFile,
-                       "\t\t" DSC_KEY_FMT "{}",
-                       DSC_CUSTOM_KEY_FMT_ARGS("Address", LongestKeyLength),
+                       "\t\t{}{}",
+                       DscKey("Address", LongestKeyLength),
                         Utils::Address(Mapping.Address));
 
             if (PrintRange) {
@@ -1283,13 +1286,12 @@ namespace Operations {
 
             std::println(OutFile);
             std::print(OutFile,
-                       "\t\t" DSC_KEY_FMT "{}\n"
-                       "\t\t" DSC_KEY_FMT "{}",
-                       DSC_CUSTOM_KEY_FMT_ARGS("Size", LongestKeyLength),
+                       "\t\t{}{}\n"
+                       "\t\t{}{}",
+                       DscKey("Size", LongestKeyLength),
                         Utils::ByteSize(Mapping.Size),
-                       DSC_CUSTOM_KEY_FMT_ARGS("Slide-Info File Offset",
-                                               LongestKeyLength),
-                       Utils::Address(Mapping.SlideInfoFileOffset));
+                       DscKey("Slide-Info File Offset", LongestKeyLength),
+                        Utils::Address(Mapping.SlideInfoFileOffset));
 
             if (!Mapping.slideInfoFileRange().empty() && Options.Verbose) {
                 std::print(OutFile,
@@ -1299,10 +1301,9 @@ namespace Operations {
 
             std::println(OutFile);
             std::println(OutFile,
-                         "\t\t" DSC_KEY_FMT "{}",
-                         DSC_CUSTOM_KEY_FMT_ARGS("Slide-Info File Size",
-                                                 LongestKeyLength),
-                         Utils::ByteSize(Mapping.SlideInfoFileSize));
+                         "\t\t{}{}",
+                         DscKey("Slide-Info File Size", LongestKeyLength),
+                            Utils::ByteSize(Mapping.SlideInfoFileSize));
 
             Index++;
         }
@@ -1335,8 +1336,7 @@ namespace Operations {
                        const std::string_view Key,
                        const Dyld3::PackedVersion &Version) noexcept
     {
-        PrintDscKey(OutFile, Key);
-        std::println(OutFile, "{}", Version);
+        std::println(OutFile, "{}{}", DscKey(Key), Version);
     }
 
     static void
@@ -1349,9 +1349,9 @@ namespace Operations {
         const auto &Header = Dsc.headerV8();
 
         std::println(OutFile,
-                     DSC_KEY_FMT "{}",
-                     DSC_KEY_FMT_ARGS("Dylibs Prebuilt Loader Set Address"),
-                     Utils::Address(Header.DylibsPBLSetAddr));
+                     "{}{}",
+                     DscKey("Dylibs Prebuilt Loader Set Address"),
+                        Utils::Address(Header.DylibsPBLSetAddr));
 
         PrintDscSizeRange(OutFile,
                           Dsc.range(),
@@ -1417,9 +1417,9 @@ namespace Operations {
         }
 
         std::println(OutFile,
-                     DSC_KEY_FMT "\"{}\"",
-                     DSC_KEY_FMT_ARGS("Symbol File Uuid"),
-                     Utils::Uuid(Header.SymbolFileUUID));
+                     "{}\"{}\"",
+                     DscKey("Symbol File Uuid"),
+                        Utils::Uuid(Header.SymbolFileUUID));
 
         PrintDscSizeRange(OutFile,
                           Dsc.range(),
@@ -1450,12 +1450,12 @@ namespace Operations {
                                             DscRangeKind::RosettaReadWrite);
 
         std::print(OutFile,
-                   DSC_KEY_FMT "{}\n"
-                   DSC_KEY_FMT "{}\n",
-                   DSC_KEY_FMT_ARGS("Images Count"),
-                   Utils::CustomAddress(Header.ImagesOffset),
-                   DSC_KEY_FMT_ARGS("Images Offset"),
-                   Utils::FormattedNumber(Header.ImagesCount));
+                   "{}{}\n"
+                   "{}{}\n",
+                   DscKey("Images Count"),
+                    Utils::CustomAddress(Header.ImagesOffset),
+                   DscKey("Images Offset"),
+                    Utils::FormattedNumber(Header.ImagesCount));
     }
 
     static void

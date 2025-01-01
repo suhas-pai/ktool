@@ -534,20 +534,19 @@ namespace Operations {
              Iter++)
         {
             if (Iter->isSharedLibrary(IsBigEndian)) {
-                LibraryList.addLibrary(Iter.cast<MachO::DylibCommand>(),
-                                       IsBigEndian);
+                LibraryList.add(Iter.cast<MachO::DylibCommand>(), IsBigEndian);
                 continue;
             }
 
             using Kind = MachO::LoadCommandKind;
             if (Is64Bit) {
                 if (const auto Segment = Iter.dyn_cast<Kind::Segment64>()) {
-                    SegmentList.addSegment(*Segment, IsBigEndian);
+                    SegmentList.add(*Segment, IsBigEndian);
                     continue;
                 }
             } else {
                 if (const auto Segment = Iter.dyn_cast<Kind::Segment>()) {
-                    SegmentList.addSegment(*Segment, IsBigEndian);
+                    SegmentList.add(*Segment, IsBigEndian);
                     continue;
                 }
             }

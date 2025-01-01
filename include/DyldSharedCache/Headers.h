@@ -127,28 +127,28 @@ namespace DyldSharedCache {
             constexpr auto setAuthData(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                this->setValueForMask(Masks::AuthData, 0, Value);
+                this->setValueForMask(Masks::AuthData, /*Shift=*/0, Value);
                 return *this;
             }
 
             constexpr auto setDirtyData(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                this->setValueForMask(Masks::DirtyData, 0, Value);
+                this->setValueForMask(Masks::DirtyData, /*Shift=*/0, Value);
                 return *this;
             }
 
             constexpr auto setConstData(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                this->setValueForMask(Masks::ConstData, 0, Value);
+                this->setValueForMask(Masks::ConstData, /*Shift=*/0, Value);
                 return *this;
             }
 
             constexpr auto setTextStubs(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                this->setValueForMask(Masks::TextStubs, 0, Value);
+                this->setValueForMask(Masks::TextStubs, /*Shift=*/0, Value);
                 return *this;
             }
 
@@ -156,21 +156,23 @@ namespace DyldSharedCache {
             auto setDynamicConfigData(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                this->setValueForMask(Masks::DynamicConfigData, 0, Value);
+                this->setValueForMask(Masks::DynamicConfigData,
+                                      /*Shift=*/0,
+                                      Value);
                 return *this;
             }
 
             constexpr auto setReadOnlyData(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                this->setValueForMask(Masks::ReadOnlyData, 0, Value);
+                this->setValueForMask(Masks::ReadOnlyData, /*Shift=*/0, Value);
                 return *this;
             }
 
             constexpr auto setConstTproData(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                this->setValueForMask(Masks::ConstTproData, 0, Value);
+                this->setValueForMask(Masks::ConstTproData, /*Shift=*/0, Value);
                 return *this;
             }
         };
@@ -396,7 +398,7 @@ namespace DyldSharedCache {
             constexpr auto setIsProduction(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                setValueForMask(Kind::IsProduction, 0, Value);
+                setValueForMask(Kind::IsProduction, /*Shift=*/0, Value);
                 return *this;
             }
 
@@ -404,7 +406,7 @@ namespace DyldSharedCache {
             setNoMissingWeakSuperclasses(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                setValueForMask(Kind::IsProduction, 0, Value);
+                setValueForMask(Kind::IsProduction, /*Shift=*/0, Value);
                 return *this;
             }
 
@@ -412,7 +414,7 @@ namespace DyldSharedCache {
             auto setLargeSharedCache(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                setValueForMask(Kind::LargeSharedCache, 0, Value);
+                setValueForMask(Kind::LargeSharedCache, /*Shift=*/0, Value);
                 return *this;
             }
         };

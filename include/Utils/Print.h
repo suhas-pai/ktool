@@ -6,10 +6,12 @@
 //
 
 #pragma once
-#include <format>
 
+#include <format>
 #include "MachO/LoadCommands.h"
+
 #include "Utils/Misc.h"
+#include "Utils/Templates.h"
 
 namespace Utils {
     template <std::unsigned_integral T>
@@ -91,13 +93,14 @@ namespace Utils {
         : Bytes(Bytes) {}
     };
 
-    template <std::unsigned_integral T = uint64_t>
+    template <std::unsigned_integral T = uint64_t,
+              std::unsigned_integral U = T>
     struct PrintRange {
     protected:
         T Begin;
-        T Size;
+        U Size;
     public:
-        explicit PrintRange(T Begin, T Size) noexcept
+        explicit PrintRange(const T Begin, const U Size) noexcept
         : Begin(Begin), Size(Size) {}
 
         explicit PrintRange(const ADT::Range &Range) noexcept
@@ -112,7 +115,8 @@ namespace Utils {
         }
 
         [[nodiscard]] constexpr auto end() const noexcept {
-            return Utils::AddAndCheckOverflow(this->front(), this->size());
+            return Utils::AddAndCheckOverflow<typename largest_type<T, U>::type>(
+                this->front(), this->size());
         }
 
         [[nodiscard]] constexpr auto range() const noexcept {
@@ -356,8 +360,8 @@ struct std::formatter<Utils::Uuid> : public std::formatter<std::string_view> {
     }
 };
 
-template <std::unsigned_integral T>
-struct std::formatter<Utils::PrintRange<T>> {
+template <std::unsigned_integral T, std::unsigned_integral U>
+struct std::formatter<Utils::PrintRange<T, U>> {
     constexpr auto parse(auto &ctx) noexcept {
         auto Iter = ctx.begin();
         for (; Iter != ctx.end() && *Iter != '}'; Iter++) {
@@ -374,9 +378,12 @@ struct std::formatter<Utils::PrintRange<T>> {
         return Iter;
     }
 
-    auto format(const Utils::PrintRange<T> &Range, auto &ctx) const noexcept {
+    auto
+    format(const Utils::PrintRange<T, U> &Range, auto &ctx) const noexcept {
         constexpr auto FullRangeLength =
-            (Utils::AddressLengthCalc<T>::Length * 2) + STR_LENGTH("-");
+            Utils::AddressLengthCalc<T>::Length +
+            Utils::AddressLengthCalc<U>::Length +
+            STR_LENGTH("-");
 
         if (Range.front() == 0) {
             if (Range.size() == 0) {
@@ -385,14 +392,14 @@ struct std::formatter<Utils::PrintRange<T>> {
                         return std::format_to(ctx.out(), "0x0-0x0");
                     case Padded::Left:
                         return std::format_to(ctx.out(),
-                                            "{:>{}}",
-                                            "0x0-0x0",
-                                            FullRangeLength);
+                                              "{:>{}}",
+                                              "0x0-0x0",
+                                              FullRangeLength);
                     case Padded::Right:
                         return std::format_to(ctx.out(),
-                                            "{:<{}}",
-                                            "0x0-0x0",
-                                            FullRangeLength);
+                                              "{:<{}}",
+                                              "0x0-0x0",
+                                              FullRangeLength);
                 }
 
                 VERIFY_NOT_REACHED();
@@ -423,7 +430,7 @@ struct std::formatter<Utils::PrintRange<T>> {
         }
 
         if (const auto EndOpt = Range.end()) {
-            const auto End = static_cast<T>(EndOpt.value());
+            const auto End = EndOpt.value();
             switch (this->Padded) {
                 case Padded::None:
                     return std::format_to(ctx.out(),
@@ -501,11 +508,10 @@ struct std::formatter<Utils::SegmentSectionPair> :
                            PadLength);
         }
 
-        std::format_to(std::back_inserter(Result), "\"{}\"", Pair.SegmentName);
         std::format_to(std::back_inserter(Result),
-                       ",\"{}\"",
-                       Pair.SectionName,
-                       MachO::SegmentSectionMaxNameLength);
+                       "\"{}\",\"{}\"",
+                       Pair.SegmentName,
+                       Pair.SectionName);
 
         if (Pair.PadSection) {
             std::format_to(

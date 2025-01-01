@@ -135,11 +135,9 @@ namespace ADT {
             return Dyld3::ChainedPointerKind::None;
         }
 
-        const auto StartsRange = Starts->segmentOffsetsRange(IsBigEndian);
         const auto StartsSpanOpt =
-            Map.getRange<Dyld3::ChainedStartsInImage>(
-                ADT::Range::FromSize(StartsOffset,
-                                     sizeof(*Starts) + StartsRange.size()));
+            Map.getSpan<Dyld3::ChainedStartsInImage>(
+                StartsOffset, Starts->segmentCount(IsBigEndian));
 
         if (!StartsSpanOpt.has_value()) {
             return Dyld3::ChainedPointerKind::None;
@@ -482,10 +480,10 @@ namespace ADT {
                 const auto ChainedPtrValue = Dyld3::ChainedPointer64(Value);
 
                 if (ChainedPtrValue.Bind.Bind) {
+                    Result.Bind.Info.Addend = ChainedPtrValue.Bind.Addend;
                     Result.Bind.Info.DylibOrdinal =
                         ChainedPtrValue.Bind.Ordinal;
 
-                    Result.Bind.Info.Addend = ChainedPtrValue.Bind.Addend;
                     return std::move(Result);
                 }
 

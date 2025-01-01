@@ -69,8 +69,8 @@ namespace Objects {
             };
         #pragma GCC diagnostic pop
 
-            explicit Error() noexcept = default;
-            explicit Error(const OpenError Kind) noexcept : Kind(Kind) {}
+            constexpr explicit Error() noexcept = default;
+            constexpr Error(const OpenError Kind) noexcept : Kind(Kind) {}
         };
 
         struct SubCacheProvidedPathInfo {

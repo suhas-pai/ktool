@@ -216,8 +216,8 @@ namespace Operations {
 
         for (const auto &LC : MachO.loadCommandsMap()) {
             if (LC.isSharedLibrary(IsBigEndian)) {
-                LibraryList.addLibrary(
-                    cast<MachO::DylibCommand>(LC, IsBigEndian), IsBigEndian);
+                LibraryList.add(cast<MachO::DylibCommand>(LC, IsBigEndian),
+                                IsBigEndian);
                 continue;
             }
 
@@ -226,14 +226,14 @@ namespace Operations {
                 if (const auto Segment =
                         dyn_cast<Kind::Segment64>(&LC, IsBigEndian))
                 {
-                    SegmentList.addSegment(*Segment, IsBigEndian);
+                    SegmentList.add(*Segment, IsBigEndian);
                     continue;
                 }
             } else {
                 if (const auto Segment =
                         dyn_cast<Kind::Segment>(&LC, IsBigEndian))
                 {
-                    SegmentList.addSegment(*Segment, IsBigEndian);
+                    SegmentList.add(*Segment, IsBigEndian);
                     continue;
                 }
             }

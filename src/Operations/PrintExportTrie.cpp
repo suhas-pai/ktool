@@ -306,17 +306,16 @@ namespace Operations {
                         continue;
                     }
 
-                    SegmentList.addSegment(cast<Kind::Segment>(LC, IsBigEndian),
-                                           IsBigEndian);
+                    SegmentList.add(cast<Kind::Segment>(LC, IsBigEndian),
+                                    IsBigEndian);
                     break;
                 case Kind::Segment64:
                     if (!Is64Bit) {
                         continue;
                     }
 
-                    SegmentList.addSegment(
-                        cast<Kind::Segment64>(LC, IsBigEndian),
-                        IsBigEndian);
+                    SegmentList.add(cast<Kind::Segment64>(LC, IsBigEndian),
+                                    IsBigEndian);
                     break;
                 case Kind::DyldInfo:
                 case Kind::DyldInfoOnly:
@@ -358,9 +357,8 @@ namespace Operations {
                 case MachO::LoadCommandKind::ReexportDylib:
                 case MachO::LoadCommandKind::LazyLoadDylib:
                 case MachO::LoadCommandKind::LoadUpwardDylib:
-                    LibraryList.addLibrary(
-                        cast<MachO::DylibCommand>(LC, IsBigEndian),
-                        IsBigEndian);
+                    LibraryList.add(cast<MachO::DylibCommand>(LC, IsBigEndian),
+                                    IsBigEndian);
                     break;
                 case MachO::LoadCommandKind::SymbolTable:
                 case MachO::LoadCommandKind::SymbolSegment:

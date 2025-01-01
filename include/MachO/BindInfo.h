@@ -291,14 +291,16 @@ namespace MachO {
         constexpr auto setIsWeakImport(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(FlagsEnum::WeakImport, 0, Value);
+            this->setValueForMask(FlagsEnum::WeakImport, /*Shift=*/0, Value);
             return *this;
         }
 
         constexpr auto setHasNonWeakDefinition(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            this->setValueForMask(FlagsEnum::NonWeakDefinition, 0, Value);
+            this->setValueForMask(FlagsEnum::NonWeakDefinition,
+                                  /*Shift=*/0,
+                                  Value);
             return *this;
         }
     };
@@ -323,7 +325,7 @@ namespace MachO {
 
         constexpr auto setOpcode(const Opcode Value) noexcept -> decltype(*this)
         {
-            this->setValueForMask(Masks::Opcode, 0, Value);
+            this->setValueForMask(Masks::Opcode, /*Shift=*/0, Value);
             return *this;
         }
 
@@ -331,7 +333,7 @@ namespace MachO {
             -> decltype(*this)
         {
             assert(Value <= 0xF);
-            this->setValueForMask(Masks::Immediate, 0, Value);
+            this->setValueForMask(Masks::Immediate, /*Shift=*/0, Value);
 
             return *this;
         }

@@ -129,6 +129,6 @@ namespace Utils {
     template <std::signed_integral T = int64_t, typename U>
     [[nodiscard]] constexpr static
     auto ReadSleb128(U *const Begin, U *const End, U **const PtrOut) noexcept {
-        return ReadLeb128Base<T, U, true>(Begin, End, PtrOut);
+        return ReadLeb128Base<T, U, /*Signed=*/true>(Begin, End, PtrOut);
     }
 }

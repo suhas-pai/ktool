@@ -35,7 +35,7 @@ namespace MachO {
         LibraryList(const LoadCommandsMap &Map, bool IsBigEndian) noexcept;
 
         auto
-        addLibrary(const DylibCommand &Dylib, const bool IsBigEndian) noexcept
+        add(const DylibCommand &Dylib, const bool IsBigEndian) noexcept
             -> decltype(*this)
         {
             assert(Dylib.isSharedLibrary(IsBigEndian));
@@ -45,8 +45,8 @@ namespace MachO {
                 .Kind = Dylib.kind(IsBigEndian),
                 .Path =
                     PathOpt.has_value() ?
-                        std::string(PathOpt.value()) :
-                        std::optional<std::string>(std::nullopt),
+                        std::optional<std::string>(PathOpt.value()) :
+                        std::nullopt,
                 .CurrentVersion = Dylib.currentVersion(IsBigEndian),
                 .CompatVersion = Dylib.compatVersion(IsBigEndian),
                 .Index = static_cast<uint32_t>(List.size()),

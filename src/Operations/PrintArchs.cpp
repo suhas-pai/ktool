@@ -97,7 +97,7 @@ namespace Operations {
                    "{}\tCpuSubKind: {}\n"
                    "{}\tOffset:     {} ({})\n"
                    "{}\tSize:       {}\n"
-                   "{}\tAlign:      {} ({})\n",
+                   "{}\tAlignment:  {} ({})\n",
                    Prefix, Ordinal, ObjectDesc,
                    Prefix, CpuKindString,
                    Prefix, SubKindString,
@@ -137,7 +137,7 @@ namespace Operations {
                    "{}\tCpuSubKind: {}\n"
                    "{}\tOffset:     {} ({})\n"
                    "{}\tSize:       {}\n"
-                   "{}\tAlign:      {} ({})\n",
+                   "{}\tAlignment:  {} ({})\n",
                    Prefix, Ordinal, ObjectDesc,
                    Prefix, CpuKindString,
                    Prefix, SubKindString,

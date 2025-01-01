@@ -222,7 +222,7 @@ namespace Operations {
                                      Counter,
                                      SizeDigitLength),
                          RightPadAmt,
-                         Utils::Address<uint32_t>(Export.Index),
+                         Utils::Address(Export.Index),
                          Export.String);
 
             Counter++;

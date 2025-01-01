@@ -569,7 +569,7 @@ namespace ADT {
         -> const TreeNode &
     {
         const auto RootDepthLevel = static_cast<uint64_t>(1);
-        if (NodePrinterFunc(OutFile, 0, RootDepthLevel, *this)) {
+        if (NodePrinterFunc(OutFile, /*DepthLevel=*/0, RootDepthLevel, *this)) {
             std::println(OutFile);
         }
 

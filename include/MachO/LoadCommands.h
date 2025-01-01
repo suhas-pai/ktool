@@ -562,21 +562,21 @@ namespace MachO {
             constexpr auto setIsHighVm(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                this->setValueForMask(Kind::HighVm, 0, Value);
+                this->setValueForMask(Kind::HighVm, /*Shift=*/0, Value);
                 return *this;
             }
 
             constexpr auto setIsFixedVmLibrary(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                this->setValueForMask(Kind::FixedVmLibrary, 0, Value);
+                this->setValueForMask(Kind::FixedVmLibrary, /*Shift=*/0, Value);
                 return *this;
             }
 
             constexpr auto setHasNoRelocations(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                this->setValueForMask(Kind::NoRelocations, 0, Value);
+                this->setValueForMask(Kind::NoRelocations, /*Shift=*/0, Value);
                 return *this;
             }
 
@@ -584,14 +584,14 @@ namespace MachO {
             auto setIsProtectedVersion1(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                this->setValueForMask(Kind::ProtectedVersion1, 0, Value);
+                this->setValueForMask(Kind::ProtectedVersion1, /*Shift=*/0, Value);
                 return *this;
             }
 
             constexpr auto setIsReadOnly(const bool Value = true) noexcept
                 -> decltype(*this)
             {
-                this->setValueForMask(Kind::ReadOnly, 0, Value);
+                this->setValueForMask(Kind::ReadOnly, /*Shift=*/0, Value);
                 return *this;
             }
         };
@@ -1012,7 +1012,7 @@ namespace MachO {
                 auto setHasLocalReloc(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    this->setValueForMask(Attribute::HasLocalReloc, 0, Value);
+                    this->setValueForMask(Attribute::HasLocalReloc, /*Shift=*/0, Value);
                     return *this;
                 }
 
@@ -1040,7 +1040,7 @@ namespace MachO {
                 auto setIsDebugSection(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    this->setValueForMask(Attribute::DebugSection, 0, Value);
+                    this->setValueForMask(Attribute::DebugSection, /*Shift=*/0, Value);
                     return *this;
                 }
 
@@ -1058,14 +1058,14 @@ namespace MachO {
                 auto setHasLiveSupport(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    this->setValueForMask(Attribute::HasLiveSupport, 0, Value);
+                    this->setValueForMask(Attribute::HasLiveSupport, /*Shift=*/0, Value);
                     return *this;
                 }
 
                 constexpr auto setNoDeadStrip(const bool Value = true) noexcept
                     -> decltype(*this)
                 {
-                    this->setValueForMask(Attribute::NoDeadStrip, 0, Value);
+                    this->setValueForMask(Attribute::NoDeadStrip, /*Shift=*/0, Value);
                     return *this;
                 }
 
@@ -1109,7 +1109,7 @@ namespace MachO {
                 constexpr auto setKind(const Kind Kind) noexcept
                     -> decltype(*this)
                 {
-                    this->setValueForMask(KindMask, 0, Kind);
+                    this->setValueForMask(KindMask, /*Shift=*/0, Kind);
                     return *this;
                 }
 
@@ -1118,8 +1118,8 @@ namespace MachO {
                     -> decltype(*this)
                 {
                     this->setValueForMask(AttributesMask,
-                                    AttributeShift,
-                                    Attr.value() >> AttributeShift);
+                                          AttributeShift,
+                                          Attr.value() >> AttributeShift);
                     return *this;
                 }
             };

@@ -133,6 +133,26 @@ namespace ADT {
         }
 
         template <typename T = uint8_t, bool Verify = true>
+        [[nodiscard]] inline auto
+        getSpan(const uint64_t Offset, const uint64_t Count) const noexcept
+            -> std::optional<std::span<T>>
+        {
+            if constexpr (Verify) {
+                const auto EndOpt =
+                    Utils::AddMulAndCheckOverflow(Offset, sizeof(T), Count);
+
+                if (!EndOpt.has_value() || this->size() < EndOpt.value()) {
+                    return std::nullopt;
+                }
+            }
+
+            const auto AdjBase =
+                reinterpret_cast<uint64_t>(this->base()) + Offset;
+
+            return std::span(reinterpret_cast<T *>(AdjBase), Count);
+        }
+
+        template <typename T = uint8_t, bool Verify = true>
         [[nodiscard]] inline auto getRange(const Range &Range) const noexcept
             -> std::optional<std::span<T>>
         {

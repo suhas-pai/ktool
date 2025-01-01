@@ -160,7 +160,7 @@ namespace DyldSharedCache {
 
                 const auto Range = Header->patchExportNamesRange();
                 if (!DeVirtualizer.getMapForVmRange(Range).has_value()) {
-                        return std::unexpected(Error::PatchExportNamesNotFound);
+                    return std::unexpected(Error::PatchExportNamesNotFound);
                 }
 
                 if (Version == PatchInfoVersion::V2) {
@@ -327,7 +327,7 @@ namespace DyldSharedCache {
                 const auto PatchLoc = PatchLocation {
                     .ExportName = ExportName,
                     .Addend = Location.getAddend(),
-                    .FullImplAddress = 0,
+                    .FullImplAddress = Export.CacheOffsetOfImpl,
                     .IsAuthenticated = Location.Authenticated != 0,
                     .UsesAddressDiversity = Location.UsesAddressDiversity != 0,
                     .IsWeakImport = false,
@@ -492,7 +492,7 @@ namespace DyldSharedCache {
                 continue;
             }
 
-            const auto &ImageExports =
+            const auto &ImageClientPatches =
                 ImageClientPatchesList.subspan(
                     ImageClient.PatchExportsStartIndex,
                     ImageClient.PatchExportsCount);
@@ -505,19 +505,30 @@ namespace DyldSharedCache {
                         std::get<std::span<PatchableLocationV2>>(
                             PatchLocationList);
 
-                    for (const auto &Export : ImageExports) {
-                        if (Utils::IndexOutOfBounds(Export.ImageExportIndex,
-                                                    ImageExportsList.size()))
+                    for (const auto &ClientPatch : ImageClientPatches) {
+                        if (Utils::IndexOutOfBounds(
+                                ClientPatch.ImageExportIndex,
+                                ImageExportsList.size()))
                         {
                             continue;
                         }
 
                         const auto &ExportInfo =
-                            ImageExportsList[Export.ImageExportIndex];
+                            ImageExportsList[ClientPatch.ImageExportIndex];
+
+                        if (Utils::IndexOutOfBounds(ExportInfo.ExportNameOffset,
+                                                    ExportNameList.size()))
+                        {
+                            continue;
+                        }
+
+                        const auto ExportName =
+                            ExportNameList.begin().base() +
+                            ExportInfo.ExportNameOffset;
 
                         if (Utils::IndexAndCountOutOfBounds(
-                                Export.PatchLocationsStartIndex,
-                                Export.PatchLocationsCount,
+                                ClientPatch.PatchLocationsStartIndex,
+                                ClientPatch.PatchLocationsCount,
                                 ImagePatchLocationsList.size()))
                         {
                             continue;
@@ -525,8 +536,8 @@ namespace DyldSharedCache {
 
                         const auto &LocationList =
                             ImagePatchLocationsList.subspan(
-                                Export.PatchLocationsStartIndex,
-                                Export.PatchLocationsCount);
+                                ClientPatch.PatchLocationsStartIndex,
+                                ClientPatch.PatchLocationsCount);
 
                         for (const auto &Loc : LocationList) {
                             const auto FullOffset =
@@ -537,7 +548,7 @@ namespace DyldSharedCache {
                             }
 
                             const auto PatchLoc = PatchLocation {
-                                .ExportName = std::string_view(),
+                                .ExportName = ExportName,
                                 .Addend = Loc.getAddend(),
                                 .FullImplAddress =
                                     this->ImageBaseAddress +
@@ -563,15 +574,16 @@ namespace DyldSharedCache {
                         std::get<std::span<PatchableLocationV3>>(
                             PatchGOTLocationList);
 
-                    for (const auto &Export : ImageExports) {
-                        if (Utils::IndexOutOfBounds(Export.ImageExportIndex,
-                                                    ImageExportsList.size()))
+                    for (const auto &ClientPatch : ImageClientPatches) {
+                        if (Utils::IndexOutOfBounds(
+                                ClientPatch.ImageExportIndex,
+                                ImageExportsList.size()))
                         {
                             continue;
                         }
 
                         const auto &ExportInfo =
-                            ImageExportsList[Export.ImageExportIndex];
+                            ImageExportsList[ClientPatch.ImageExportIndex];
 
                         if (!VmRange.hasLoc(ExportInfo.DylibOffsetOfImpl)) {
                             continue;
@@ -588,8 +600,8 @@ namespace DyldSharedCache {
                             ExportInfo.ExportNameOffset;
 
                         if (Utils::IndexAndCountOutOfBounds(
-                                Export.PatchLocationsStartIndex,
-                                Export.PatchLocationsCount,
+                                ClientPatch.PatchLocationsStartIndex,
+                                ClientPatch.PatchLocationsCount,
                                 ImagePatchLocationsList.size()))
                         {
                             continue;
@@ -597,8 +609,8 @@ namespace DyldSharedCache {
 
                         const auto &LocationList =
                             ImagePatchLocationsList.subspan(
-                                Export.PatchLocationsStartIndex,
-                                Export.PatchLocationsCount);
+                                ClientPatch.PatchLocationsStartIndex,
+                                ClientPatch.PatchLocationsCount);
 
                         for (const auto &Loc : LocationList) {
                             const auto PatchLoc = PatchLocation {
@@ -622,8 +634,8 @@ namespace DyldSharedCache {
                         }
 
                         if (Utils::IndexAndCountOutOfBounds(
-                                Export.PatchLocationsStartIndex,
-                                Export.PatchLocationsCount,
+                                ClientPatch.PatchLocationsStartIndex,
+                                ClientPatch.PatchLocationsCount,
                                 GOTPatchList.size()))
                         {
                             continue;
@@ -631,8 +643,8 @@ namespace DyldSharedCache {
 
                         const auto &GOTLocationList =
                             GOTPatchList.subspan(
-                                Export.PatchLocationsStartIndex,
-                                Export.PatchLocationsCount);
+                                ClientPatch.PatchLocationsStartIndex,
+                                ClientPatch.PatchLocationsCount);
 
                         for (const auto &Loc : GOTLocationList) {
                             if (!VmRange.hasLoc(Loc.CacheOffsetOfUse)) {
@@ -666,15 +678,16 @@ namespace DyldSharedCache {
                         std::get<std::span<PatchableLocationV4Got>>(
                             PatchGOTLocationList);
 
-                    for (const auto &Export : ImageExports) {
-                        if (Utils::IndexOutOfBounds(Export.ImageExportIndex,
-                                                    ImageExportsList.size()))
+                    for (const auto &ClientPatch : ImageClientPatches) {
+                        if (Utils::IndexOutOfBounds(
+                                ClientPatch.ImageExportIndex,
+                                ImageExportsList.size()))
                         {
                             continue;
                         }
 
                         const auto &ExportInfo =
-                            ImageExportsList[Export.ImageExportIndex];
+                            ImageExportsList[ClientPatch.ImageExportIndex];
 
                         if (Utils::IndexOutOfBounds(ExportInfo.ExportNameOffset,
                                                     ExportNameList.size()))
@@ -687,8 +700,8 @@ namespace DyldSharedCache {
                             ExportInfo.ExportNameOffset;
 
                         if (Utils::IndexAndCountOutOfBounds(
-                                Export.PatchLocationsStartIndex,
-                                Export.PatchLocationsCount,
+                                ClientPatch.PatchLocationsStartIndex,
+                                ClientPatch.PatchLocationsCount,
                                 ImagePatchLocationsList.size()))
                         {
                             continue;
@@ -696,14 +709,14 @@ namespace DyldSharedCache {
 
                         const auto &LocationList =
                             ImagePatchLocationsList.subspan(
-                                Export.PatchLocationsStartIndex,
-                                Export.PatchLocationsCount);
+                                ClientPatch.PatchLocationsStartIndex,
+                                ClientPatch.PatchLocationsCount);
 
                         for (const auto &Loc : LocationList) {
-                            const auto FullOffset =
+                            const auto FullAddress =
                                 this->ImageBaseAddress + Loc.DylibOffsetOfUse;
 
-                            if (!VmRange.hasLoc(FullOffset)) {
+                            if (!VmRange.hasLoc(FullAddress)) {
                                 continue;
                             }
 
@@ -720,12 +733,12 @@ namespace DyldSharedCache {
                                 .Key = static_cast<uint8_t>(Loc.Auth.KeyIsD),
                             };
 
-                            Map.emplace(FullOffset, PatchLoc);
+                            Map.emplace(FullAddress, PatchLoc);
                         }
 
                         if (Utils::IndexAndCountOutOfBounds(
-                                Export.PatchLocationsStartIndex,
-                                Export.PatchLocationsCount,
+                                ClientPatch.PatchLocationsStartIndex,
+                                ClientPatch.PatchLocationsCount,
                                 GOTPatchList.size()))
                         {
                             continue;
@@ -733,8 +746,8 @@ namespace DyldSharedCache {
 
                         const auto &GOTLocationList =
                             GOTPatchList.subspan(
-                                Export.PatchLocationsStartIndex,
-                                Export.PatchLocationsCount);
+                                ClientPatch.PatchLocationsStartIndex,
+                                ClientPatch.PatchLocationsCount);
 
                         for (const auto &Loc : GOTLocationList) {
                             if (!VmRange.hasLoc(Loc.CacheOffsetOfUse)) {

@@ -15,7 +15,7 @@ namespace MachO {
                 if (const auto Segment =
                         dyn_cast<SegmentCommand64>(&LC, IsBigEndian))
                 {
-                    this->addSegment(*Segment, IsBigEndian);
+                    this->add(*Segment, IsBigEndian);
                 }
             }
         } else {
@@ -23,15 +23,15 @@ namespace MachO {
                 if (const auto Segment =
                         dyn_cast<SegmentCommand>(&LC, IsBigEndian))
                 {
-                    this->addSegment(*Segment, IsBigEndian);
+                    this->add(*Segment, IsBigEndian);
                 }
             }
         }
     }
 
     auto
-    SegmentList::addSegment(const SegmentCommand &Segment,
-                            const bool IsBigEndian) noexcept
+    SegmentList::add(const SegmentCommand &Segment,
+                     const bool IsBigEndian) noexcept
         -> decltype(*this)
     {
         auto &Info = List.emplace_back(SegmentInfo {
@@ -45,6 +45,7 @@ namespace MachO {
             .Index = static_cast<uint32_t>(List.size())
         });
 
+        Info.SectionList.reserve(Segment.sectionCount(IsBigEndian));
         for (const auto &Section : Segment.sectionList(IsBigEndian)) {
             Info.SectionList.emplace_back(SectionInfo {
                 .Name = std::string(Section.sectionName()),
@@ -65,8 +66,8 @@ namespace MachO {
     }
 
     auto
-    SegmentList::addSegment(const SegmentCommand64 &Segment,
-                            const bool IsBigEndian) noexcept
+    SegmentList::add(const SegmentCommand64 &Segment,
+                     const bool IsBigEndian) noexcept
         -> decltype(*this)
     {
         auto &Info = List.emplace_back(SegmentInfo {
@@ -80,6 +81,7 @@ namespace MachO {
             .Index = static_cast<uint32_t>(List.size())
         });
 
+        Info.SectionList.reserve(Segment.sectionCount(IsBigEndian));
         for (const auto &Section : Segment.sectionList(IsBigEndian)) {
             Info.SectionList.emplace_back(SectionInfo {
                 .Name = std::string(Section.sectionName()),

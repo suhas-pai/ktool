@@ -32,7 +32,7 @@ namespace Objects {
 
         struct Error {
             OpenError Kind;
-            
+
             constexpr Error(const OpenError Kind) noexcept : Kind(Kind) {}
         };
 
@@ -49,7 +49,7 @@ namespace Objects {
         }
 
         [[nodiscard]] inline auto header() const noexcept {
-            return *this->map().base<::MachO::FatHeader, false>();
+            return *this->map().base<::MachO::FatHeader, /*Verify=*/false>();
         }
 
         [[nodiscard]] inline auto isBigEndian() const noexcept {
@@ -67,8 +67,8 @@ namespace Objects {
         [[nodiscard]] inline auto archs() const noexcept {
             assert(!this->is64Bit());
             return
-                this->map().get<::MachO::FatArch, false>(sizeof(this->header()),
-                                                         this->archCount());
+                this->map().get<::MachO::FatArch, /*Verify=*/false>(
+                    sizeof(this->header()), this->archCount());
         }
 
         [[nodiscard]] inline auto archList() const noexcept {
@@ -79,7 +79,7 @@ namespace Objects {
         [[nodiscard]] inline auto archs64() const noexcept {
             assert(is64Bit());
             return
-                this->map().get<::MachO::FatArch64, false>(
+                this->map().get<::MachO::FatArch64, /*Verify=*/false>(
                     sizeof(this->header()),
                     this->archCount());
         }
