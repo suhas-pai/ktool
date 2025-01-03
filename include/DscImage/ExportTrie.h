@@ -41,8 +41,7 @@ namespace DscImage {
              Error *ErrorOut = nullptr) -> ExportTrieEntryCollection;
     };
 
-    struct ExportTrieExportCollection :
-        public MachO::ExportTrieExportCollection
+    struct ExportTrieExportCollection : public MachO::ExportTrieExportCollection
     {
     protected:
         explicit ExportTrieExportCollection(uint64_t ImageAddress) noexcept;

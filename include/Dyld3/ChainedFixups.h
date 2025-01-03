@@ -29,17 +29,20 @@ namespace Dyld3 {
         [[nodiscard]] constexpr
         auto segmentOffsetsRange(const bool IsBigEndian) const noexcept {
             return ADT::Range::FromSizeAndCount(
-                0,
+                /*Begin=*/0,
                 sizeof(uint32_t),
                 this->segmentCount(IsBigEndian)).value();
         }
 
         [[nodiscard]] constexpr auto
-        segmentOffset(const uint32_t I, const bool IsBigEndian) const noexcept {
+        segmentOffset(const uint32_t Index,
+                      const bool IsBigEndian) const noexcept
+        {
             assert(!
-                Utils::IndexOutOfBounds(I, this->segmentCount(IsBigEndian)));
+                Utils::IndexOutOfBounds(Index,
+                                        this->segmentCount(IsBigEndian)));
 
-            return ADT::SwitchEndianIf(this->SegInfoOffset[I], IsBigEndian);
+            return ADT::SwitchEndianIf(this->SegInfoOffset[Index], IsBigEndian);
         }
     };
 

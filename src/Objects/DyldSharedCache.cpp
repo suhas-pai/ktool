@@ -154,8 +154,9 @@ namespace Objects {
         return DyldSharedCache::OpenError::None;
     }
 
-    static auto VerifyMappingList(
-        const std::span<::DyldSharedCache::MappingInfo> &MappingSpan) noexcept
+    static auto
+    VerifyMappingList(
+        const std::span<::DyldSharedCache::MappingInfo> MappingSpan) noexcept
             -> DyldSharedCache::OpenError
     {
         const auto &FirstMapping = MappingSpan.front();
