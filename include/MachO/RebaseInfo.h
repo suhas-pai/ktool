@@ -707,8 +707,7 @@ namespace MachO {
                 }
 
                 this->SegAddAddress = SegAddAddressOpt.value();
-                if (Utils::WillAddOverflow(this->SegAddAddress,
-                                           Info.AddrInSeg))
+                if (Utils::WillAddOverflow(this->SegAddAddress, Info.AddrInSeg))
                 {
                     return false;
                 }
@@ -1003,8 +1002,7 @@ namespace MachO {
                 const auto FullAddr = Action.getFullAddress(SegmentList);
 
                 MapOut.emplace(
-                    FullAddr.has_value() ?
-                        FullAddr.value() : std::numeric_limits<uint64_t>::max(),
+                    FullAddr.value_or(std::numeric_limits<uint64_t>::max()),
                     Action
                 );
             }

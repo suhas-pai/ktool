@@ -353,7 +353,7 @@ namespace Operations {
 
                         PrintArrow();
 
-                        auto Path = std::string_view("<Malformed>");
+                        auto Path = std::string_view();
                         auto IsOutOfBounds = false;
 
                         if (Iter.DylibOrdinal > 0 &&
@@ -363,12 +363,11 @@ namespace Operations {
                             const auto DylibIndex =
                                 static_cast<uint64_t>(Iter.DylibOrdinal) - 1;
 
-                            if (const auto &PathOpt =
-                                    LibraryList.at(DylibIndex).Path)
-                            {
-                                Path = PathOpt.value();
-                            }
+                            Path =
+                                LibraryList.at(DylibIndex).Path
+                                    .value_or("<Malformed>");
                         } else {
+                            Path = "<Malformed>";
                             IsOutOfBounds = true;
                         }
 

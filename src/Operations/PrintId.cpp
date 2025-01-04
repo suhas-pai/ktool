@@ -96,10 +96,7 @@ namespace Operations {
         const auto OutFile = this->OutFile;
         const auto PathOpt = Image.path();
 
-        std::print(OutFile,
-                   "\"{}\"",
-                   PathOpt.has_value() ? PathOpt.value() : "<invalid>");
-
+        std::print(OutFile, "\"{}\"", PathOpt.value_or("<invalid>"));
         return RunResult();
     }
 

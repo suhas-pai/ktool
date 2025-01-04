@@ -408,8 +408,7 @@ namespace Operations {
                            "{}Name:           \"{}\"\n"
                            "{}Minor Version:  {}\n"
                            "{}Header Address: {}\n",
-                           Prefix,
-                            NameOpt.has_value() ? NameOpt.value() : Malformed,
+                           Prefix, NameOpt.value_or(Malformed),
                            Prefix, MinorVersion,
                            Prefix, HeaderAddress);
 
@@ -426,10 +425,7 @@ namespace Operations {
                 const auto &DylibCmd = cast<DylibCommand>(LC, IsBigEndian);
                 const auto NameOpt = DylibCmd.name(IsBigEndian);
 
-                std::print(OutFile,
-                           "\t\"{}\"",
-                           NameOpt.has_value() ? NameOpt.value() : Malformed);
-
+                std::print(OutFile, "\t\"{}\"", NameOpt.value_or(Malformed));
                 if (Kind != MachO::LoadCommandKind::IdDylib) {
                     DylibIndex++;
                 }
@@ -463,8 +459,7 @@ namespace Operations {
                 const auto UmbrellaOpt = SubFramework.umbrella(IsBigEndian);
                 std::println(OutFile,
                              "\t\"{}\"",
-                              UmbrellaOpt.has_value() ?
-                                  UmbrellaOpt.value() : Malformed);
+                              UmbrellaOpt.value_or(Malformed));
 
                 break;
             }
@@ -474,8 +469,7 @@ namespace Operations {
 
                 std::println(OutFile,
                              "\t\"{}\"",
-                              ClientOpt.has_value() ?
-                                  ClientOpt.value() : Malformed);
+                              ClientOpt.value_or(Malformed));
 
                 break;
             }
@@ -487,8 +481,7 @@ namespace Operations {
 
                 std::println(OutFile,
                              "\t\"{}\"",
-                             SubUmbrellaOpt.has_value() ?
-                                  SubUmbrellaOpt.value() : Malformed);
+                             SubUmbrellaOpt.value_or(Malformed));
 
                 break;
             }
@@ -499,8 +492,7 @@ namespace Operations {
                 const auto SubLibraryOpt = SubLibrary.subLibrary(IsBigEndian);
                 std::println(OutFile,
                              "\t\"{}\"",
-                              SubLibraryOpt.has_value() ?
-                                SubLibraryOpt.value() : Malformed);
+                              SubLibraryOpt.value_or(Malformed));
 
                 break;
             }
@@ -509,9 +501,7 @@ namespace Operations {
                     cast<PreboundDylibCommand>(LC, IsBigEndian);
 
                 const auto NameOpt = PreboundDylibCmd.name(IsBigEndian);
-                std::println(OutFile,
-                             "\t\"{}\"",
-                             NameOpt.has_value() ? NameOpt.value() : Malformed);
+                std::println(OutFile, "\t\"{}\"", NameOpt.value_or(Malformed));
 
                 break;
             }
@@ -521,9 +511,7 @@ namespace Operations {
                     cast<DylinkerCommand>(LC, IsBigEndian);
 
                 const auto NameOpt = DylinkerCmd.name(IsBigEndian);
-                std::println(OutFile,
-                             "\t\"{}\"",
-                             NameOpt.has_value() ? NameOpt.value() : Malformed);
+                std::println(OutFile, "\t\"{}\"", NameOpt.value_or(Malformed));
 
                 break;
             }
@@ -743,9 +731,7 @@ namespace Operations {
                 const auto &RpathCmd = cast<RpathCommand>(LC, IsBigEndian);
                 const auto PathOpt = RpathCmd.path(IsBigEndian);
 
-                std::println(OutFile,
-                             "\t\"{}\"",
-                             PathOpt.has_value() ? PathOpt.value() : Malformed);
+                std::println(OutFile, "\t\"{}\"", PathOpt.value_or(Malformed));
                 break;
             }
             case LoadCommandKind::CodeSignature:
@@ -788,9 +774,7 @@ namespace Operations {
                            "{}Reserved:    {}\n",
                            Prefix, Utils::Address(VmAddress),
                            Prefix, Utils::Address(FileOffset),
-                           Prefix,
-                                EntryIdOpt.has_value() ?
-                                    EntryIdOpt.value() : Malformed,
+                           Prefix, EntryIdOpt.value_or(Malformed),
                            Prefix, Reserved);
                 break;
             }
@@ -1002,8 +986,7 @@ namespace Operations {
                 std::print(OutFile,
                            "{}Name:           \"{}\"\n"
                            "{}Header Address: {}\n",
-                           Prefix,
-                            NameOpt.has_value() ? NameOpt.value() : Malformed,
+                           Prefix, NameOpt.value_or(Malformed),
                            Prefix, HeaderAddress);
                 break;
             }

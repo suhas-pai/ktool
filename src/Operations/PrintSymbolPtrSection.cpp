@@ -466,9 +466,7 @@ namespace Operations {
 
                 const auto PathOpt = DylibCmd.name(IsBigEndian);
                 DylibList.emplace_back(DylibInfo {
-                    .Path =
-                        std::string(
-                            PathOpt.has_value() ? PathOpt.value() : Malformed),
+                    .Path = std::string(PathOpt.value_or(Malformed)),
                     .CurrentVersion = DylibCmd.currentVersion(IsBigEndian),
                     .CompatVersion = DylibCmd.compatVersion(IsBigEndian),
                     .Timestamp = DylibCmd.timestamp(IsBigEndian)

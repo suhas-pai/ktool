@@ -90,7 +90,7 @@ namespace Operations {
 
                 const auto NameOpt = DylibCmd.name(IsBigEndian);
                 const auto Info = DylibInfo {
-                    .Name = NameOpt.has_value() ? NameOpt.value() : Malformed,
+                    .Name = NameOpt.value_or(Malformed),
                     .Kind = DylibCmd.kind(IsBigEndian),
                     .CurrentVersion = DylibCmd.currentVersion(IsBigEndian),
                     .CompatVersion = DylibCmd.compatVersion(IsBigEndian),

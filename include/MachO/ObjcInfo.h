@@ -440,7 +440,9 @@ namespace MachO {
             }
 
             const auto NameAddr = ClassRo->nameAddress(IsBigEndian);
-            if (auto String = DeVirtualizer.getStringAtAddress(NameAddr)) {
+            if (const auto String =
+                    DeVirtualizer.getStringAtAddress(NameAddr))
+            {
                 Info.setName(String.value());
             }
 
@@ -482,7 +484,8 @@ namespace MachO {
             const auto BindAddr =
                 Info->address() + offsetof(ObjcClassType<Is64Bit>, SuperClass);
 
-            if (auto ResolveOpt = AddrResolver.resolve(BindAddr, /*Value=*/0);
+            if (const auto ResolveOpt =
+                    AddrResolver.resolve(BindAddr, /*Value=*/0);
                 ResolveOpt.has_value())
             {
                 switch (ResolveOpt.value().Kind) {

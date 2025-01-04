@@ -21,13 +21,9 @@ namespace Operations {
         auto IsOutOfBounds = true;
 
         if (!Utils::OrdinalOutOfBounds(DylibOrdinal, List.size())) {
-            if (const auto &PathOpt = List.at(DylibOrdinal - 1).Path) {
-                LibraryPath = PathOpt.value();
-            } else {
-                LibraryPath = "<Malformed>";
-            }
-
             IsOutOfBounds = false;
+            LibraryPath =
+                    List.at(DylibOrdinal - 1).Path.value_or("<Malformed>");
         }
 
         const auto WrittenOut =
@@ -54,14 +50,9 @@ namespace Operations {
         auto IsOutOfBounds = true;
 
         if (!Utils::OrdinalOutOfBounds(DylibOrdinal, List.size())) {
-            const auto &PathOpt = List.at(DylibOrdinal - 1).Path;
-            if (PathOpt.has_value()) {
-                LibraryPath = PathOpt.value();
-            } else {
-                LibraryPath = "<Malformed>";
-            }
-
             IsOutOfBounds = false;
+            LibraryPath =
+                    List.at(DylibOrdinal - 1).Path.value_or("<Malformed>");
         }
 
         const auto WrittenOut =

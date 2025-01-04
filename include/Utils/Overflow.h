@@ -109,11 +109,11 @@ namespace Utils {
               std::integral... Rest>
 
     [[nodiscard]] constexpr auto
-    MulAndCheckOverflow(const U Lhs, const V Rhs, Rest... rest) noexcept
+    MulAndCheckOverflow(const U Lhs, const V Rhs, Rest... TheRest) noexcept
         -> std::optional<T>
     {
         if (const auto FirstOpt = MulAndCheckOverflow(Lhs, Rhs)) {
-            return MulAndCheckOverflow(FirstOpt.value(), rest...);
+            return MulAndCheckOverflow(FirstOpt.value(), TheRest...);
         }
 
         return std::nullopt;
@@ -161,20 +161,18 @@ namespace Utils {
                                    Value,
                                    reinterpret_cast<uint64_t>(Ptr));
 
-        if (Result.has_value()) {
-            return std::optional(reinterpret_cast<T *>(Result.value()));
-        }
-
-        return std::nullopt;
+        return Result.transform([](const auto V) noexcept {
+            return reinterpret_cast<T *>(V);
+        });
     }
 
     template <typename T, std::integral U, std::integral... Rest>
     [[nodiscard]] inline auto
-    AddPtrAndCheckOverflow(T *const Ptr, const U Rhs, Rest... rest) noexcept
+    AddPtrAndCheckOverflow(T *const Ptr, const U Rhs, Rest... TheRest) noexcept
         -> std::optional<T *>
     {
         if (const auto FirstOpt = AddPtrAndCheckOverflow(Ptr, Rhs)) {
-            return AddPtrAndCheckOverflow(FirstOpt.value(), rest...);
+            return AddPtrAndCheckOverflow(FirstOpt.value(), TheRest...);
         }
 
         return std::nullopt;

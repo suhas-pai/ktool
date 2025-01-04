@@ -44,9 +44,9 @@ namespace MachO {
             this->List.emplace_back(LibraryInfo {
                 .Kind = Dylib.kind(IsBigEndian),
                 .Path =
-                    PathOpt.has_value() ?
-                        std::optional<std::string>(PathOpt.value()) :
-                        std::nullopt,
+                    PathOpt.transform([](const auto V) noexcept {
+                        return std::string(V);
+                    }),
                 .CurrentVersion = Dylib.currentVersion(IsBigEndian),
                 .CompatVersion = Dylib.compatVersion(IsBigEndian),
                 .Index = static_cast<uint32_t>(List.size()),
