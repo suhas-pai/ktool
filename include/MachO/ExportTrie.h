@@ -34,7 +34,7 @@ namespace MachO {
 
         [[nodiscard]]
         constexpr static auto KindGetString(const Kind Kind) noexcept
-            -> std::string_view
+            -> std::optional<std::string_view>
         {
             switch (Kind) {
                 case Kind::Regular:
@@ -45,14 +45,12 @@ namespace MachO {
                     return "EXPORT_SYMBOL_FLAGS_KIND_ABSOLUTE";
             }
 
-            assert(false &&
-                   "MachO::ExportTrieFlags::KindGetString() got unrecognized "
-                   "Kind");
+            return std::nullopt;
         }
 
         [[nodiscard]]
         constexpr static auto KindGetDesc(const Kind Kind) noexcept
-            -> std::string_view
+            -> std::optional<std::string_view>
         {
             switch (Kind) {
                 case Kind::Regular:
@@ -63,9 +61,7 @@ namespace MachO {
                     return "Absolute";
             }
 
-            assert(false &&
-                   "MachO::ExportTrieFlags::KindGetDesc() got unrecognized "
-                   "Kind");
+            return std::nullopt;
         }
 
         [[nodiscard]] constexpr
@@ -213,12 +209,11 @@ namespace MachO {
 
     [[nodiscard]] constexpr
     auto ExportTrieExportKindGetString(const ExportTrieExportKind Kind) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Kind) {
             case ExportTrieExportKind::None:
-                assert(false &&
-                       "MachO::ExportTrieExportKindGetString() got None");
+                return std::nullopt;
             case ExportTrieExportKind::Regular:
                 return "EXPORT_SYMBOL_FLAGS_KIND_REGULAR";
             case ExportTrieExportKind::Absolute:
@@ -233,19 +228,16 @@ namespace MachO {
                 return "EXPORT_SYMBOL_FLAGS_KIND_THREAD_LOCAL";
         }
 
-        assert(false &&
-               "MachO::ExportTrieExportKindGetString() got unrecognized "
-               "ExportTrieExportKind");
+        return std::nullopt;
     }
 
     [[nodiscard]] constexpr
     auto ExportTrieExportKindGetDesc(const ExportTrieExportKind Kind) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Kind) {
             case ExportTrieExportKind::None:
-                assert(false &&
-                       "MachO::ExportTrieExportKindGetDesc() got None");
+                return std::nullopt;
             case ExportTrieExportKind::Regular:
                 return "Regular";
             case ExportTrieExportKind::Absolute:
@@ -260,9 +252,7 @@ namespace MachO {
                 return "Thread-Local";
         }
 
-        assert(false &&
-               "MachO::ExportTrieExportKindGetDesc() got unrecognized "
-               "ExportTrieExportKind");
+        return std::nullopt;
     }
 
     [[nodiscard]] constexpr

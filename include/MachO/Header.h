@@ -55,7 +55,7 @@ namespace MachO {
 
     [[nodiscard]]
     constexpr auto FileKindGetString(const FileKind FileKind) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (FileKind) {
             case FileKind::Object:
@@ -84,12 +84,12 @@ namespace MachO {
                 return "MH_FILESET";
         }
 
-        assert(false && "Called FileKindGetString() with unknown FileKind");
+        return std::nullopt;
     }
 
     [[nodiscard]]
     constexpr auto FileKindGetDesc(const FileKind FileKind) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (FileKind) {
             case FileKind::Object:
@@ -118,7 +118,7 @@ namespace MachO {
                 return "Fileset";
         }
 
-        assert(false && "Called FileKindGetDesc() with unknown FileKind");
+        return std::nullopt;
     }
 
     struct Flags : public ADT::FlagsBase<uint32_t> {
@@ -203,8 +203,10 @@ namespace MachO {
             return false;
         }
 
-        [[nodiscard]] constexpr static
-        auto KindGetString(const Kind Flag) noexcept -> std::string_view {
+        [[nodiscard]]
+        constexpr static auto KindGetString(const Kind Flag) noexcept
+            -> std::optional<std::string_view>
+        {
             switch (Flag) {
                 case Kind::NoUndefineds:
                     return "MH_UNDEF";
@@ -266,9 +268,7 @@ namespace MachO {
                     return "MH_DYLIB_IN_CACHE";
             }
 
-            assert(false &&
-                   "Called MachO::Header::Flags::KindGetString() with unknown "
-                   "Kind");
+            return std::nullopt;
         }
 
         using ADT::FlagsBase<uint32_t>::FlagsBase;

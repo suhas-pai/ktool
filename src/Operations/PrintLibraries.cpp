@@ -130,7 +130,7 @@ namespace Operations {
             Utils::GetIntegerDigitCount(MachO.header().ncmds());
         const auto LongestLCDylibKindLength =
             MachO::LoadCommandKindGetString(
-                MachO::LoadCommandKind::LoadUpwardDylib).length();
+                MachO::LoadCommandKind::LoadUpwardDylib).value().length();
 
         auto Counter = static_cast<uint32_t>(1);
         for (const auto &DylibInfo : DylibList) {
@@ -142,13 +142,14 @@ namespace Operations {
                        Counter,
                        DylibInfo.Index,
                        NcmdsDigitCount,
-                       MachO::LoadCommandKindGetString(DylibInfo.Kind),
+                       MachO::LoadCommandKindGetString(DylibInfo.Kind)
+                           .value_or("<unknown>"),
                        LongestLCDylibKindLength,
                        DylibInfo.Name,
                        DylibInfo.CurrentVersion,
                        DylibInfo.CompatVersion,
                        Utils::Timestamp(DylibInfo.Timestamp),
-                       DylibInfo.Timestamp);
+                           DylibInfo.Timestamp);
 
             Counter++;
         }

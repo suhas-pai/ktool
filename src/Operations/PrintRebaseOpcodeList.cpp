@@ -225,7 +225,8 @@ namespace Operations {
         for (const auto &Iter : Collection) {
             const auto &Byte = Iter.Byte;
             const auto &OpcodeName =
-                MachO::RebaseByteOpcodeGetName(Byte.opcode());
+                MachO::RebaseByteOpcodeGetName(Byte.opcode())
+                    .value_or("<unknown>");
 
             std::print(OutFile,
                        "Rebase-Opcode {:>{}}: {}",
@@ -239,6 +240,7 @@ namespace Operations {
                 constexpr auto LongestOpcodeNameLength =
                     MachO::RebaseByteOpcodeGetName(
                         MachO::RebaseByteOpcode::DoRebaseUlebTimesSkipUleb)
+                            .value()
                             .length();
 
                 std::print(OutFile, " ");
@@ -266,21 +268,18 @@ namespace Operations {
 
             switch (Byte.opcode()) {
                 case MachO::RebaseByte::Opcode::Done:
-                    std::println(OutFile);
+                    std::println(OutFile, "");
                     break;
                 case MachO::RebaseByte::Opcode::SetKindImm: {
-                    const auto KindName =
-                        MachO::RebaseWriteKindIsValid(Iter.Kind) ?
-                            MachO::RebaseWriteKindGetString(Iter.Kind) :
-                            std::string_view("<unrecognized>");
+                    const auto FallBack = [Kind = Iter.Kind]() noexcept {
+                        return std::format("<unrecognized, Kind: {}>)",
+                                          static_cast<uint32_t>(Kind));
+                    };
 
-                    if (MachO::RebaseWriteKindIsValid(Iter.Kind)) {
-                        std::println(OutFile, "({})", KindName);
-                    } else {
-                        std::println(OutFile,
-                                     "(<unrecognized, Kind: {}>)",
-                                     static_cast<uint32_t>(Iter.Kind));
-                    }
+                    std::println(OutFile,
+                                 "({})",
+                                 MachO::RebaseWriteKindGetString(Iter.Kind)
+                                    .value_or(FallBack()));
 
                     break;
                 }
@@ -298,7 +297,7 @@ namespace Operations {
 
                         PrintAddressInfo();
                     } else {
-                        std::println(OutFile);
+                        std::println(OutFile, "");
                     }
 
                     break;
@@ -311,7 +310,7 @@ namespace Operations {
 
                         PrintAddressInfo(Iter.Scale * PtrSize);
                     } else {
-                        std::println(OutFile);
+                        std::println(OutFile, "");
                     }
 
                     break;
@@ -324,7 +323,7 @@ namespace Operations {
 
                         PrintAddressInfo();
                     } else {
-                        std::println(OutFile);
+                        std::println(OutFile, "");
                     }
 
                     break;
@@ -337,7 +336,7 @@ namespace Operations {
 
                         PrintAddressInfo(static_cast<uint64_t>(Iter.AddAddr));
                     } else {
-                        std::println(OutFile);
+                        std::println(OutFile, "");
                     }
 
                     break;
@@ -350,7 +349,7 @@ namespace Operations {
 
                         PrintAddressInfo(Iter.Count * PtrSize);
                     } else {
-                        std::println(OutFile);
+                        std::println(OutFile, "");
                     }
 
                     break;
@@ -373,7 +372,7 @@ namespace Operations {
 
                         PrintAddressInfo(Add);
                     } else {
-                        std::println(OutFile);
+                        std::println(OutFile, "");
                     }
 
                     break;

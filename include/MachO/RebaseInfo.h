@@ -50,7 +50,7 @@ namespace MachO {
 
     [[nodiscard]] constexpr
     auto RebaseByteOpcodeGetName(const RebaseByteOpcode Opcode) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Opcode) {
             case RebaseByteOpcode::Done:
@@ -73,14 +73,12 @@ namespace MachO {
                 return "REBASE_OPCODE_DO_REBASE_ULEB_TIMES_SKIP_ULEB";
         }
 
-        assert(false &&
-               "MachO::RebaseByteOpcodeGetString() got unrecognized "
-               "MachO::RebaseByteOpcode");
+        return std::nullopt;
     }
 
     [[nodiscard]] constexpr
     auto RebaseByteOpcodeGetDesc(const RebaseByteOpcode Opcode) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Opcode) {
             case RebaseByteOpcode::Done:
@@ -103,9 +101,7 @@ namespace MachO {
                 return "Do Rebase Uleb128 times Skipping Uleb128 Bytes";
         }
 
-        assert(false &&
-               "MachO::RebaseByteOpcodeGetDesc() got unrecognized "
-               "MachO::RebaseByteOpcode");
+        return std::nullopt;
     }
 
     enum class RebaseWriteKind : uint8_t {
@@ -130,7 +126,7 @@ namespace MachO {
 
     [[nodiscard]]
     constexpr auto RebaseWriteKindGetString(const RebaseWriteKind Kind) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         using Enum = RebaseWriteKind;
         switch (Kind) {
@@ -144,14 +140,12 @@ namespace MachO {
                 return "REBASE_TYPE_TEXT_PCREL32";
         }
 
-        assert(false &&
-               "MachO::RebaseWriteKindGetString() got unrecognized "
-               "MachO::RebaseWritKind");
+        return std::nullopt;
     }
 
     [[nodiscard]]
     constexpr auto RebaseWriteKindGetDesc(const RebaseWriteKind Kind) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         using Enum = RebaseWriteKind;
         switch (Kind) {
@@ -165,9 +159,7 @@ namespace MachO {
                 return "PC Relative (32-Bit)";
         }
 
-        assert(false &&
-               "MachO::RebaseWriteKindGetDesc() got unrecognized "
-               "MachO::RebaseWritKind");
+        return std::nullopt;
     }
 
     enum class RebaseByteDylibSpecialOrdinal : uint8_t {

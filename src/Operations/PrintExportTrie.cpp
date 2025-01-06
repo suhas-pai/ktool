@@ -135,8 +135,8 @@ namespace Operations {
             static_cast<int>(LongestLength + STR_LENGTH("\"\" "));
 
         const auto KindDesc =
-            ExportTrieExportKindIsValid(Export.kind()) ?
-                ExportTrieExportKindGetDesc(Export.kind()) : "<unrecognized>";
+            ExportTrieExportKindGetDesc(Export.kind())
+                .value_or("<unrecognized>");
 
         std::print(OutFile, " ");
 
@@ -514,7 +514,9 @@ namespace Operations {
 
         constexpr auto LongestDescLength =
             MachO::ExportTrieExportKindGetDesc(
-                MachO::ExportTrieExportKind::StubAndResolver).length();
+                MachO::ExportTrieExportKind::StubAndResolver)
+                    .value()
+                    .length();
 
         for (const auto &Export : ExportList) {
             const auto RightPadAmt =
@@ -543,8 +545,14 @@ namespace Operations {
                 Utils::PadSpaces(OutFile, PadLength);
             }
 
+            const auto FallBack = [Kind = Export.Kind]() noexcept {
+                return std::format("<unrecognized, value: {}>)",
+                                   static_cast<uint32_t>(Kind));
+            };
+
             const auto KindDesc =
-                MachO::ExportTrieExportKindGetDesc(Export.Kind);
+                MachO::ExportTrieExportKindGetDesc(Export.Kind)
+                    .value_or(FallBack());
             const auto RightPad =
                 static_cast<int>(LongestExportLength.value() +
                                  STR_LENGTH("\"\""));
@@ -574,7 +582,7 @@ namespace Operations {
                                                   ")");
             }
 
-            std::println(OutFile);
+            std::println(OutFile, "");
             Counter++;
         }
 

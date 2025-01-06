@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string_view>
 #include "Utils/Assert.h"
 
@@ -111,7 +112,7 @@ namespace MachO {
 
     [[nodiscard]]
     constexpr auto MagicGetString(const Magic Magic) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Magic) {
             case Magic::Default:
@@ -132,11 +133,12 @@ namespace MachO {
                 return "FAT_CIGAM_64";
         }
 
-        assert(false && "Called MachO::MagicGetString() with unknown Magic");
+        return std::nullopt;
     }
 
     [[nodiscard]]
-    constexpr auto MagicGetDesc(const Magic Magic) noexcept -> std::string_view
+    constexpr auto MagicGetDesc(const Magic Magic) noexcept
+        -> std::optional<std::string_view>
     {
         switch (Magic) {
             case Magic::Default:
@@ -157,6 +159,6 @@ namespace MachO {
                 return "Fat (64-bit, Swapped)";
         }
 
-        assert(false && "Called MachO::MagicGetDesc() with unknown Magic");
+        return std::nullopt;
     }
 }

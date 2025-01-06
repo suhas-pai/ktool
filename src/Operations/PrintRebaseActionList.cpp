@@ -56,11 +56,12 @@ namespace Operations {
 
         constexpr auto RebaseWriteKindLongestDescLength =
             MachO::RebaseWriteKindGetDesc(
-                MachO::RebaseWriteKind::TextAbsolute32).length();
+                MachO::RebaseWriteKind::TextAbsolute32).value().length();
 
         std::print(OutFile,
                    " {:>{}}",
-                   MachO::RebaseWriteKindGetDesc(Action.Kind),
+                   MachO::RebaseWriteKindGetDesc(Action.Kind)
+                       .value_or("<unknown>"),
                    RebaseWriteKindLongestDescLength);
 
         if (const auto Segment = SegmentList.atOrNull(Action.SegmentIndex)) {
@@ -84,7 +85,7 @@ namespace Operations {
                        Utils::SegmentSectionPairMaxLen);
         }
 
-        std::println(OutFile);
+        std::println(OutFile, "");
     }
 
     auto PrintRebaseActionList::run(const Objects::MachO &MachO) const noexcept

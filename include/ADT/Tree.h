@@ -570,7 +570,7 @@ namespace ADT {
     {
         const auto RootDepthLevel = static_cast<uint64_t>(1);
         if (NodePrinterFunc(OutFile, /*DepthLevel=*/0, RootDepthLevel, *this)) {
-            std::println(OutFile);
+            std::println(OutFile, "");
         }
 
         auto Iter = TreeDFSIterator<const TreeNode>(this);
@@ -607,7 +607,7 @@ namespace ADT {
             WrittenOut += 1;
 
             NodePrinterFunc(OutFile, WrittenOut, DepthLevel, Info);
-            std::println(OutFile);
+            std::println(OutFile, "");
         }
 
         return *this;

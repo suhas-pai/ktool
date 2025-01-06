@@ -93,9 +93,8 @@ namespace Operations {
                                      Prefix,
                                      Counter + 1,
                                      Bit,
-                                     FlagsStruct::KindIsValid(Flag) ?
-                                         FlagsStruct::KindGetString(Flag) :
-                                         "<unknown>");
+                                     FlagsStruct::KindGetString(Flag)
+                                         .value_or("<unknown>"));
 
                         Counter++;
                     }
@@ -157,16 +156,14 @@ namespace Operations {
                     const auto Flags = Section.flags(IsBigEndian);
 
                     if (SectionKind != SectionT::Kind::Regular) {
-                        const auto SectionKindDesc =
-                            SectionT::KindIsValid(SectionKind) ?
-                                SectionT::KindGetDesc(SectionKind) :
-                                "<unknown>";
-
-                        std::print(OutFile, " ({})", SectionKindDesc);
+                        std::print(OutFile,
+                                   " ({})",
+                                   SectionT::KindGetDesc(SectionKind)
+                                    .value_or("<unknown>"));
                     }
 
                     if (Verbose) {
-                        std::println(OutFile);
+                        std::println(OutFile, "");
                         std::print(OutFile,
                                    "\t\t{}File:              {}\n"
                                    "\t\t{}Memory:            {}\n"
@@ -197,22 +194,19 @@ namespace Operations {
                             {
                                 const auto Attr =
                                     SectionT::Attribute(1ull << Bit);
-                                const auto AttrString =
-                                    SectionT::AttributeIsValid(Attr) ?
-                                        SectionT::AttributeGetString(Attr) :
-                                        "<unknown>";
 
                                 std::println(OutFile,
                                              "\t\t\t{}{}. Bit {}: {}",
                                              Prefix,
                                              FlagNumber + 1,
                                              Bit,
-                                             AttrString);
+                                             SectionT::AttributeGetString(Attr)
+                                                .value_or("<unknown>"));
 
                                 FlagNumber++;
                             }
                     } else {
-                        std::println(OutFile);
+                        std::println(OutFile, "");
                     }
 
                     I++;
@@ -258,9 +252,8 @@ namespace Operations {
                                      Prefix,
                                      Counter + 1,
                                      Bit,
-                                     FlagsStruct::KindIsValid(Flag) ?
-                                         FlagsStruct::KindGetString(Flag) :
-                                         "<unknown>");
+                                     FlagsStruct::KindGetString(Flag)
+                                         .value_or("<unknown>"));
 
                         Counter++;
                     }
@@ -322,19 +315,17 @@ namespace Operations {
                     const auto Flags = Section.flags(IsBigEndian);
 
                     if (SectionKind != SectionT::Kind::Regular) {
-                        const auto SectionKindDesc =
-                            SectionT::KindIsValid(SectionKind) ?
-                                SectionT::KindGetDesc(SectionKind) :
-                                "<unknown>";
-
-                        std::print(OutFile, " ({})", SectionKindDesc);
+                        std::print(OutFile,
+                                   " ({})",
+                                   SectionT::KindGetDesc(SectionKind)
+                                    .value_or("<unknown>"));
                     }
 
                     if (Verbose) {
                         const auto Align = Section.align(IsBigEndian);
                         const auto AlignDesc = Utils::ByteSize(1ull << Align);
 
-                        std::println(OutFile);
+                        std::println(OutFile, "");
                         std::print(OutFile,
                                    "\t\t{}File:              {}\n"
                                    "\t\t{}Memory:            {}\n"
@@ -366,22 +357,19 @@ namespace Operations {
                             {
                                 const auto Attr =
                                     SectionT::Attribute(1ull << Bit);
-                                const auto AttrString =
-                                    SectionT::AttributeIsValid(Attr) ?
-                                        SectionT::AttributeGetString(Attr) :
-                                        "<unknown>";
 
                                 std::println(OutFile,
                                              "\t\t\t{}{}. Bit {}: {}",
                                              Prefix,
                                              FlagNumber + 1,
                                              Bit,
-                                             AttrString);
+                                             SectionT::AttributeGetString(Attr)
+                                                .value_or("<unknown>"));
 
                                 FlagNumber++;
                             }
                     } else {
-                        std::println(OutFile);
+                        std::println(OutFile, "");
                     }
 
                     I++;
@@ -391,7 +379,7 @@ namespace Operations {
             }
             case LoadCommandKind::Thread:
             case LoadCommandKind::UnixThread:
-                std::println(OutFile);
+                std::println(OutFile, "");
                 break;
             case LoadCommandKind::LoadFixedVMSharedLib:
             case LoadCommandKind::IdFixedVMSharedLib: {
@@ -403,7 +391,7 @@ namespace Operations {
                 const auto HeaderAddress =
                     FvmLib.Library.headerAddress(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Name:           \"{}\"\n"
                            "{}Minor Version:  {}\n"
@@ -431,7 +419,7 @@ namespace Operations {
                 }
 
                 if (!Verbose) {
-                    std::println(OutFile);
+                    std::println(OutFile, "");
                     break;
                 }
 
@@ -440,7 +428,7 @@ namespace Operations {
                 const auto CurrentVersion =
                     DylibCmd.currentVersion(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Current Version: {}\n"
                            "{}Compat Version:  {}\n"
@@ -529,7 +517,7 @@ namespace Operations {
                 const auto Reserved5 = RoutinesCmd.reserved5(IsBigEndian);
                 const auto Reserved6 = RoutinesCmd.reserved6(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Init Address: {}\n"
                            "{}Init Module:  {}\n"
@@ -563,7 +551,7 @@ namespace Operations {
                 const auto Reserved5 = RoutinesCmd.reserved5(IsBigEndian);
                 const auto Reserved6 = RoutinesCmd.reserved6(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Init Address: {}\n"
                            "{}Init Module:  {}\n"
@@ -596,7 +584,7 @@ namespace Operations {
                     Utils::PrintRange<decltype(SymOff)>(
                         SymTabCmd.symRange(IsBigEndian, Is64Bit));
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Symbol Table Offset: {} ({})\n"
                            "{}Symbol Count:        {} ({})\n"
@@ -652,7 +640,7 @@ namespace Operations {
                 const auto LocalRelCount =
                     DySymTabCmd.localRelCount(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Local Symbols Index:       {}\n"
                            "{}Local Symbols Count:       {}\n"
@@ -705,7 +693,7 @@ namespace Operations {
                 const auto HintsCount =
                     TwoLevelHintsCmd.hintsCount(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Offset:      {}\n"
                            "{}Hints Count: {}\n",
@@ -748,7 +736,7 @@ namespace Operations {
                 const auto DataOff = LinkeditDataCmd.dataOff(IsBigEndian);
                 const auto DataSize = LinkeditDataCmd.dataSize(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Data Offset: {} ({})\n"
                            "{}Data Size:   {}\n",
@@ -766,7 +754,7 @@ namespace Operations {
                 const auto EntryIdOpt = FileSetEntryCmd.entryId(IsBigEndian);
                 const auto Reserved = FileSetEntryCmd.reserved(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Vm Address:  {}\n"
                            "{}File Offset: {}\n"
@@ -787,7 +775,7 @@ namespace Operations {
                 const auto CryptOffset =
                     EncryptionInfoCmd.cryptOffset(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Crypt Offset: {} ({})\n"
                            "{}Crypt Size:   {}\n"
@@ -808,7 +796,7 @@ namespace Operations {
                 const auto CryptOffset =
                     EncryptionInfoCmd.cryptOffset(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Crypt Offset: {} ({})\n"
                            "{}Crypt Size:   {}\n"
@@ -831,7 +819,7 @@ namespace Operations {
                 const auto Version = VersionMinCmd.version(IsBigEndian);
                 const auto Sdk = VersionMinCmd.sdk(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Version: {}\n"
                            "{}SDK:     {}\n",
@@ -844,24 +832,23 @@ namespace Operations {
                     cast<BuildVersionCommand>(LC, IsBigEndian);
 
                 const auto Platform = BuildVersionCmd.platform(IsBigEndian);
-                if (Dyld3::PlatformIsValid(Platform)) {
-                    const auto PlatformString =
-                        Verbose ?
-                            Dyld3::PlatformGetString(Platform) :
-                            Dyld3::PlatformGetDesc(Platform);
+                const auto FallBack = [Platform = Platform]() noexcept {
+                    return std::format("<unrecognized, value: {}>)",
+                                       static_cast<uint32_t>(Platform));
+                };
+                
+                const auto PlatformString =
+                    Verbose ?
+                        Dyld3::PlatformGetString(Platform)
+                            .value_or(FallBack()) :
+                        Dyld3::PlatformGetDesc(Platform)
+                            .value_or(FallBack());
 
-                    std::println(OutFile);
-                    std::println(OutFile,
-                                 "{}Platform:    {}",
-                                 Prefix,
-                                 PlatformString);
-                } else {
-                    std::println(OutFile);
-                    std::println(OutFile,
-                                 "{}Platform:    <Unknown> (Value: {})",
-                                 Prefix,
-                                 static_cast<uint32_t>(Platform));
-                }
+                std::println(OutFile, "");
+                std::println(OutFile,
+                             "{}Platform:    {}",
+                             Prefix,
+                             PlatformString);
 
                 const auto MinOS = BuildVersionCmd.minOS(IsBigEndian);
                 const auto Sdk = BuildVersionCmd.sdk(IsBigEndian);
@@ -883,12 +870,18 @@ namespace Operations {
                 for (const auto &Tool : BuildVersionCmd.toolList(IsBigEndian)) {
                     const auto Version = Tool.version(IsBigEndian);
                     const auto ToolValue = Tool.tool(IsBigEndian);
+                    
+                    const auto FallBack = [ToolValue = ToolValue]() noexcept {
+                        return std::format("<unrecognized, value: {}>)",
+                                           static_cast<uint32_t>(ToolValue));
+                    };
+
                     const auto ToolValueString =
-                        BuildToolIsValid(ToolValue) ?
-                            Verbose ?
-                                BuildToolGetString(ToolValue) :
-                                BuildToolGetDesc(ToolValue) :
-                            "<unknown>";
+                        Verbose ?
+                            BuildToolGetString(ToolValue)
+                                .value_or(FallBack()) :
+                            BuildToolGetDesc(ToolValue)
+                                .value_or(FallBack());
 
                     std::print(OutFile,
                                "{}\t{}. Tool: {}\n"
@@ -922,7 +915,7 @@ namespace Operations {
                 const auto ExportTrieSize =
                     DyldInfoCmd.exportTrieSize(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Rebase Offset:      {} ({})\n"
                            "{}Rebase Size:        {}\n"
@@ -967,7 +960,7 @@ namespace Operations {
                 const auto Offset = SymbolSegmentCmd.offset(IsBigEndian);
                 const auto Size = SymbolSegmentCmd.size(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Offset: {} ({})\n"
                            "{}Size:   {}\n",
@@ -982,7 +975,7 @@ namespace Operations {
                 const auto HeaderAddress =
                     FvmFileCmd.headerAddress(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Name:           \"{}\"\n"
                            "{}Header Address: {}\n",
@@ -997,7 +990,7 @@ namespace Operations {
                 const auto EntryOffset = EntryPointCmd.entryOffset(IsBigEndian);
                 const auto StackSize = EntryPointCmd.stackSize(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Entry Offset: {}\n"
                            "{}Stack Size:   {}\n",
@@ -1022,7 +1015,7 @@ namespace Operations {
                 const auto Offset = NoteCmd.offset(IsBigEndian);
                 const auto Size = NoteCmd.size(IsBigEndian);
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 std::print(OutFile,
                            "{}Data Owner: \"{}\"\n"
                            "{}Offset: {} ({})\n"
@@ -1050,19 +1043,30 @@ namespace Operations {
 
         const auto LongestLCKindLength =
             MachO::LoadCommandKindGetString(
-                MachO::LoadCommandKind::LinkerOptimizationHint).length();
+                MachO::LoadCommandKind::LinkerOptimizationHint)
+                    .value()
+                    .length();
 
         const auto NcmdsDigitCount =
             Utils::GetIntegerDigitCount(MachO.header().ncmds());
 
         for (const auto &LoadCommand : MachO.loadCommandsMap()) {
             const auto Kind = LoadCommand.kind(IsBigEndian);
+            const auto FallBack = [Kind = Kind]() noexcept {
+                return std::format("<unrecognized, value: {}>)",
+                                   static_cast<uint32_t>(Kind));
+            };
+
+            const auto LCString =
+                MachO::LoadCommandKindGetString(Kind)
+                    .value_or(FallBack());
+
             if (MachO::LoadCommandKindIsValid(Kind)) {
                 std::print(OutFile,
                            "LC {:>{}}: {:<{}}",
                            Counter,
                            NcmdsDigitCount,
-                           MachO::LoadCommandKindGetString(Kind),
+                           LCString,
                            LongestLCKindLength);
             } else {
                 std::print(OutFile,

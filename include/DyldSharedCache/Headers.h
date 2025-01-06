@@ -365,7 +365,7 @@ namespace DyldSharedCache {
 
             [[nodiscard]] constexpr
             static auto KindGetString(const FlagsStruct::Kind Kind) noexcept
-                -> std::string_view
+                -> std::optional<std::string_view>
             {
                 switch (Kind) {
                     case Kind::IsProduction:
@@ -376,11 +376,8 @@ namespace DyldSharedCache {
                         return "Large Shared-Cache";
                 }
 
-                assert(false &&
-                       "DyldSharedCache::ObjcOptimizationHeader::FlagsStruct::"
-                       "KindGetString() got unknown Kind");
+                return std::nullopt;
             }
-
 
             [[nodiscard]] constexpr auto isProduction() const noexcept {
                 return valueForMask(Kind::IsProduction);

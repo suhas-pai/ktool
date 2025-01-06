@@ -165,7 +165,7 @@ namespace Operations {
                            Info.Inode);
             }
 
-            std::println(OutFile);
+            std::println(OutFile, "");
             Counter++;
         }
 

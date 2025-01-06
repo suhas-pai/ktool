@@ -43,7 +43,7 @@ namespace Operations {
     {
         std::print(OutFile, "Flags:");
         if (!Flags.empty()) {
-            std::println(OutFile);
+            std::println(OutFile, "");
             if (Flags.hasNonWeakDefinition()) {
                 std::println(OutFile, "\t\tHas Non-Weak Definition");
             }
@@ -288,9 +288,11 @@ namespace Operations {
 
         for (const auto &Iter : List) {
             const auto &Byte = Iter.Byte;
-            const auto OpcodeName = MachO::BindByteOpcodeGetName(Byte.opcode());
-            const auto PtrSize = Utils::PointerSize(Is64Bit);
+            const auto OpcodeName =
+                MachO::BindByteOpcodeGetName(Byte.opcode())
+                    .value_or("<unknown>");
 
+            const auto PtrSize = Utils::PointerSize(Is64Bit);
             std::print(OutFile,
                        "{} {:>{}}: {}",
                        Name,
@@ -304,6 +306,7 @@ namespace Operations {
                 constexpr auto LongestOpcodeNameLength =
                     MachO::BindByteOpcodeGetName(
                         MachO::BindByteOpcode::DoBindUlebTimesSkippingUleb)
+                            .value()
                             .length();
 
                 std::print(OutFile, " ");
@@ -337,7 +340,7 @@ namespace Operations {
 
             switch (Byte.opcode()) {
                 case MachO::BindByte::Opcode::Done:
-                    std::println(OutFile);
+                    std::println(OutFile, "");
                     if constexpr (BindKind != MachO::BindInfoKind::Lazy) {
                         goto done;
                     }
@@ -378,7 +381,7 @@ namespace Operations {
                                                      IsOutOfBounds);
                     }
 
-                    std::println(OutFile);
+                    std::println(OutFile, "");
                     break;
                 case MachO::BindByte::Opcode::SetSymbolTrailingFlagsImm:
                     if (Options.Verbose) {
@@ -389,7 +392,7 @@ namespace Operations {
                         std::print("\"{}\", ", Iter.SymbolName);
 
                         PrintFlags(OutFile, Iter.Flags);
-                        std::println(OutFile);
+                        std::println(OutFile, "");
                     } else {
                         std::println(OutFile,
                                      "(Symbol: \"{}\", Flags: 0x{:x})",
@@ -400,20 +403,15 @@ namespace Operations {
                     break;
 
                 case MachO::BindByte::Opcode::SetKindImm: {
-                    if (MachO::BindWriteKindIsValid(Iter.WriteKind)) {
-                        const auto Name =
-                            MachO::BindWriteKindGetName(Iter.WriteKind);
+                    const auto FallBack = [Kind = Iter.WriteKind]() noexcept {
+                        return std::format("<unrecognized, value: {}>)",
+                                           static_cast<uint32_t>(Kind));
+                    };
 
-                        std::println(OutFile, "(Kind: {})", Name);
-                    } else {
-                        const auto Value =
-                            static_cast<uint32_t>(Iter.WriteKind);
-
-                        std::println(OutFile,
-                                     "(Kind: <unrecognized>, value: {})",
-                                     Value);
-                    }
-
+                    std::println(OutFile,
+                                 "(Kind: {})",
+                                 MachO::BindWriteKindGetName(Iter.WriteKind)
+                                    .value_or(FallBack()));
                     break;
                 }
                 case MachO::BindByte::Opcode::SetAddendSleb:
@@ -450,7 +448,7 @@ namespace Operations {
                     break;
                 }
                 case MachO::BindByte::Opcode::DoBind:
-                    std::println(OutFile);
+                    std::println(OutFile, "");
                     break;
                 case MachO::BindByte::Opcode::DoBindAddAddrUleb:
                     std::print(OutFile, "(Add: {})", Iter.AddAddr);
@@ -501,7 +499,7 @@ namespace Operations {
                     break;
                 }
                 case MachO::BindByte::Opcode::Threaded:
-                    std::println(OutFile);
+                    std::println(OutFile, "");
                     break;
             }
 
@@ -631,7 +629,7 @@ namespace Operations {
 
         if (Opt.PrintLazy) {
             if (Opt.PrintNormal) {
-                std::println(OutFile);
+                std::println(OutFile, "");
             }
 
             if (!LazyBindOpcodeList.empty()) {
@@ -649,7 +647,7 @@ namespace Operations {
 
         if (Opt.PrintWeak) {
             if (Opt.PrintNormal || Opt.PrintWeak) {
-                std::println(OutFile);
+                std::println(OutFile, "");
             }
 
             if (!WeakBindOpcodeList.empty()) {

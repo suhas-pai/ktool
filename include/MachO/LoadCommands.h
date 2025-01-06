@@ -145,7 +145,7 @@ namespace MachO {
 
     [[nodiscard]] constexpr
     auto LoadCommandKindGetString(const LoadCommandKind Kind) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Kind) {
             case LoadCommandKind::Segment:
@@ -258,9 +258,7 @@ namespace MachO {
                 return "LC_FILESET_ENTRY";
         }
 
-        assert(false &&
-               "Called MachO::LoadCommandKindGetString() with unknown "
-               "MachO::LoadCommandKind");
+        return std::nullopt;
     }
 
     [[nodiscard]] constexpr
@@ -516,7 +514,7 @@ namespace MachO {
 
             [[nodiscard]] constexpr
             static auto KindGetString(const FlagsStruct::Kind Kind) noexcept
-                -> std::string_view
+                -> std::optional<std::string_view>
             {
                 switch (Kind) {
                     case Kind::HighVm:
@@ -531,7 +529,7 @@ namespace MachO {
                         return "SG_READ_ONLY";
                 }
 
-                assert(false && "KindGetString got unknown Kind");
+                return std::nullopt;
             }
 
             using ADT::FlagsBase<uint32_t>::FlagsBase;
@@ -739,8 +737,10 @@ namespace MachO {
                 return false;
             }
 
-            [[nodiscard]] constexpr static
-            auto KindGetString(const Kind Kind) noexcept -> std::string_view {
+            [[nodiscard]]
+            constexpr static auto KindGetString(const Kind Kind) noexcept
+                -> std::optional<std::string_view>
+            {
                 switch (Kind) {
                     case Kind::Regular:
                         return "S_REGULAR";
@@ -790,12 +790,13 @@ namespace MachO {
                         return "S_INIT_FUNC_OFFSETS";
                 }
 
-                assert(false &&
-                       "Section::KindGetString() got an unrecognized Kind");
+                return std::nullopt;
             }
 
-            [[nodiscard]] constexpr static
-            auto KindGetDesc(const Kind Kind) noexcept -> std::string_view {
+            [[nodiscard]]
+            constexpr static auto KindGetDesc(const Kind Kind) noexcept 
+                -> std::optional<std::string_view>
+            {
                 switch (Kind) {
                     case Kind::Regular:
                         return "Regular";
@@ -845,8 +846,7 @@ namespace MachO {
                         return "Init Function Offsets";
                 }
 
-                assert(false &&
-                       "Section::KindGetDesc() got an unrecognized Kind");
+                return std::nullopt;
             }
 
             enum class Attribute : uint32_t {
@@ -899,7 +899,7 @@ namespace MachO {
 
             [[nodiscard]] constexpr
             static auto AttributeGetString(const Attribute Attr) noexcept
-                -> std::string_view
+                -> std::optional<std::string_view>
             {
                 switch (Attr) {
                     case Attribute::HasLocalReloc:
@@ -924,13 +924,12 @@ namespace MachO {
                         return "S_ATTR_PURE_INSTRUCTIONS";
                 }
 
-                assert(false &&
-                       "AttributeGetString() got unrecognized Attribute");
+                return std::nullopt;
             }
 
             [[nodiscard]] constexpr
             static auto AttributeGetDesc(const Attribute Attr) noexcept
-                -> std::string_view
+                -> std::optional<std::string_view>
             {
                 switch (Attr) {
                     case Attribute::HasLocalReloc:
@@ -955,8 +954,7 @@ namespace MachO {
                         return "Pure Instructions";
                 }
 
-                assert(false &&
-                       "AttributeGetDesc() got unrecognized Attribute");
+                return std::nullopt;
             }
 
             struct AttributesStruct : public ADT::FlagsBase<uint32_t> {
@@ -2113,7 +2111,7 @@ namespace MachO {
 
             [[nodiscard]]
             constexpr static auto KindGetString(const Kind Kind) noexcept
-                -> std::string_view
+                -> std::optional<std::string_view>
             {
                 switch (Kind) {
                     case Kind::Undefined:
@@ -2128,13 +2126,13 @@ namespace MachO {
                         return "N_INDR";
                 }
 
-                assert(false &&
-                       "SymTabCommand::Entry::KindGetString() called with "
-                       "unknown Kind");
+                return std::nullopt;
             }
 
             [[nodiscard]] constexpr static
-            auto KindGetDesc(const Kind Kind) noexcept -> std::string_view {
+            auto KindGetDesc(const Kind Kind) noexcept
+                -> std::optional<std::string_view>
+            {
                 switch (Kind) {
                     case Kind::Undefined:
                         return "Undefined";
@@ -2148,9 +2146,7 @@ namespace MachO {
                         return "Indirect";
                 }
 
-                assert(false &&
-                       "SymTabCommand::Entry::KindGetDesc() called with "
-                       "unknown Kind");
+                return std::nullopt;
             }
 
             uint32_t Index;
@@ -3125,7 +3121,7 @@ namespace MachO {
 
     [[nodiscard]]
     constexpr auto BuildToolGetString(const BuildTool Tool) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Tool) {
             case BuildTool::Clang:
@@ -3136,12 +3132,12 @@ namespace MachO {
                 return "TOOL_LD";
         }
 
-        assert(false && "BuildToolGetString() got unrecognized BuildTool");
+        return std::nullopt;
     }
 
     [[nodiscard]]
     constexpr auto BuildToolGetDesc(const BuildTool Tool) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Tool) {
             case BuildTool::Clang:
@@ -3152,7 +3148,7 @@ namespace MachO {
                 return "Ld";
         }
 
-        assert(false && "BuildToolGetDesc() got unrecognized BuildTool");
+        return std::nullopt;
     }
 
     struct BuildToolVersion {
@@ -3241,9 +3237,15 @@ namespace MachO {
                 return Result;
             }
 
-            const auto ToolListSize =
-                sizeof(BuildTool) * toolsCount(IsBigEndian);
+            const auto ToolListSizeOpt =
+                Utils::MulAndCheckOverflow(sizeof(BuildTool),
+                                           this->toolsCount(IsBigEndian));
 
+            if (!ToolListSizeOpt) {
+                return CmdSizeInvalidKind::TooLarge;
+            }
+
+            const auto ToolListSize = ToolListSizeOpt.value();
             if (sizeof(*this) + ToolListSize < cmdsize(IsBigEndian)) {
                 return CmdSizeInvalidKind::TooSmall;
             }
@@ -3552,23 +3554,9 @@ namespace MachO {
         AbsJumpTable32
     };
 
-    [[nodiscard]] constexpr
-    auto DataInCodeEntryKindIsValid(const DataInCodeEntryKind Kind) noexcept {
-        switch (Kind) {
-            case DataInCodeEntryKind::Data:
-            case DataInCodeEntryKind::JumpTables8:
-            case DataInCodeEntryKind::JumpTables16:
-            case DataInCodeEntryKind::JumpTables32:
-            case DataInCodeEntryKind::AbsJumpTable32:
-                return true;
-        }
-
-        return false;
-    }
-
     [[nodiscard]] constexpr auto
     DataInCodeEntryKindGetString(const DataInCodeEntryKind Kind) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Kind) {
             case DataInCodeEntryKind::Data:
@@ -3583,14 +3571,12 @@ namespace MachO {
                 return "DICE_KIND_ABS_JUMP_TABLE32";
         }
 
-        assert(false &&
-               "MachO::DataInCodeEntryKindGetString() called with unknown "
-               "DataInCodeEntryKind");
+        return std::nullopt;
     }
 
     [[nodiscard]] constexpr auto
     DataInCodeEntryKindGetDesc(const DataInCodeEntryKind Kind) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Kind) {
             case DataInCodeEntryKind::Data:
@@ -3605,9 +3591,7 @@ namespace MachO {
                 return "Absolute Jump-Tables 32";
         }
 
-        assert(false &&
-               "MachO::DataInCodeEntryKindGetDesc() called with unknown "
-               "DataInCodeEntryKind");
+        return std::nullopt;
     }
 
     struct DataInCodeEntry {

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string_view>
 #include "Utils/Assert.h"
 
@@ -46,7 +47,7 @@ namespace Dyld3 {
 
     [[nodiscard]]
     constexpr auto PlatformGetString(const enum Platform Platform) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Platform) {
             case Platform::macOS:
@@ -71,13 +72,12 @@ namespace Dyld3 {
                 return "PLATFORM_DRIVERKIT";
         }
 
-        assert(false &&
-               "Dyld3::PlatformGetString() called with unknown Platform");
+        return std::nullopt;
     }
 
     [[nodiscard]]
     constexpr auto PlatformGetDesc(const enum Platform Platform) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Platform) {
             case Platform::macOS:
@@ -102,7 +102,6 @@ namespace Dyld3 {
                 return "DriverKit";
         }
 
-        assert(false &&
-               "Dyld3::PlatformGetDesc() called with unknown Platform");
+        return std::nullopt;
     }
 }

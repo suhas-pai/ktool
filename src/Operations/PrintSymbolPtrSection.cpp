@@ -223,7 +223,7 @@ namespace Operations {
 
             if (MachO::SymTabCommand::Entry::KindIsValid(Info.Kind)) {
                 const auto Desc =
-                    MachO::SymTabCommand::Entry::KindGetDesc(Info.Kind);
+                    MachO::SymTabCommand::Entry::KindGetDesc(Info.Kind).value();
 
                 KindLengthMaximizer.set(Desc.length());
             }
@@ -561,9 +561,8 @@ namespace Operations {
 
                 const auto SymbolKind = SymbolInfo.Kind;
                 const auto SymbolKindDescription =
-                    SymTabCommand::Entry::KindIsValid(SymbolKind) ?
-                        SymTabCommand::Entry::KindGetDesc(SymbolKind) :
-                        "<unknown>";
+                    SymTabCommand::Entry::KindGetDesc(SymbolKind)
+                        .value_or("<unknown>");
 
                 const auto KindRightPad =
                     static_cast<int>(LongestKindLength +
@@ -629,7 +628,7 @@ namespace Operations {
                 std::print(OutFile, ">");
             }
 
-            std::println(OutFile);
+            std::println(OutFile, "");
             Counter++;
         }
 

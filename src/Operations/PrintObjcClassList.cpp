@@ -379,7 +379,7 @@ namespace Operations {
                                       static_cast<int>(
                                         NamePrintLength - 1));
 
-                std::println(OutFile);
+                std::println(OutFile, "");
                 if (Options.PrintCategories) {
                     const auto &CategoryList = Node->categoryList();
                     PrintCategoryList(OutFile, CategoryList, Is64Bit);

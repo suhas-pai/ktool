@@ -41,12 +41,23 @@ namespace Operations {
     StringForCpuKind(const Mach::CpuKind CpuKind,
                      const bool Verbose) noexcept -> std::string
     {
-        return Mach::CpuKindIsValid(CpuKind) ?
+        const auto FallBack = [CpuKind]() noexcept {
+            return std::format("<Unknown: 0x{:02x}>",
+                               static_cast<int32_t>(CpuKind));
+        };
+
+        return
             Verbose ?
-                std::string(Mach::CpuKindGetString(CpuKind)) :
-                std::string(Mach::CpuKindGetDesc(CpuKind))
-            : std::format("<Unknown: 0x{:02x}>",
-                          static_cast<int32_t>(CpuKind));
+                Mach::CpuKindGetString(CpuKind)
+                    .and_then([](const auto V) noexcept { 
+                        return std::optional<std::string>(V);
+                    })
+                    .value_or(FallBack()) :
+                Mach::CpuKindGetDesc(CpuKind)
+                    .and_then([](const auto V) noexcept { 
+                        return std::optional<std::string>(V);
+                    })
+                    .value_or(FallBack());
     }
 
     static auto
@@ -54,13 +65,22 @@ namespace Operations {
                      const int32_t SubKind,
                      const bool Verbose) noexcept -> std::string
     {
-        return Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind) ?
+        const auto FallBack = [SubKind]() noexcept {
+            return std::format("<Unknown: 0x{:02x}>", SubKind);
+        };
+
+        return
             Verbose ?
-                std::string(
-                        Mach::CpuKindAndSubKindGetString(CpuKind, SubKind)) :
-                    std::string(
-                        Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind))
-            : std::format("<Unknown: 0x{:02x}>", SubKind);
+                Mach::CpuKindAndSubKindGetString(CpuKind, SubKind)
+                    .and_then([](const auto V) noexcept { 
+                        return std::optional<std::string>(V);
+                    })
+                    .value_or(FallBack()) :
+                Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind)
+                    .and_then([](const auto V) noexcept { 
+                        return std::optional<std::string>(V);
+                    })
+                    .value_or(FallBack());
     }
 
     void

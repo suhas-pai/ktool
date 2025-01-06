@@ -82,11 +82,22 @@ namespace Operations {
     StringForCpuKind(const Mach::CpuKind CpuKind,
                      const bool Verbose) noexcept -> std::string
     {
-        return Mach::CpuKindIsValid(CpuKind) ?
-            Verbose ?
-                std::string(Mach::CpuKindGetString(CpuKind)) :
-                std::string(Mach::CpuKindGetDesc(CpuKind))
-            : std::format("<Unknown: 0x{:02x}>", static_cast<int32_t>(CpuKind));
+        const auto FallBack = [CpuKind]() noexcept {
+            return std::format("<Unknown: 0x{:02x}>",
+                               static_cast<int32_t>(CpuKind));
+        };
+
+        return Verbose ?
+            Mach::CpuKindGetDesc(CpuKind)
+                .and_then([](const auto V) noexcept {
+                    return std::optional<std::string>(V);
+                })
+                .value_or(FallBack()) :
+            Mach::CpuKindGetString(CpuKind)
+                .and_then([](const auto V) noexcept {
+                    return std::optional<std::string>(V);
+                })
+                .value_or(FallBack());
     }
 
     static auto
@@ -94,14 +105,22 @@ namespace Operations {
                      const int32_t SubKind,
                      const bool Verbose) noexcept -> std::string
     {
-        return Mach::CpuKindAndSubKindIsValid(CpuKind, SubKind) ?
-            Verbose ?
-                std::string(
-                        Mach::CpuKindAndSubKindGetString(CpuKind, SubKind)) :
-                    std::string(
-                        Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind))
-            : std::format("<Unknown: 0x{:02x}>",
-                          static_cast<uint32_t>(SubKind));
+        const auto FallBack = [CpuKind, SubKind]() noexcept {
+            return std::format("<Unknown: 0x{:02x}, 0x{:02x}>",
+                               static_cast<int32_t>(CpuKind), SubKind);
+        };
+
+        return Verbose ?
+            Mach::CpuKindAndSubKindGetString(CpuKind, SubKind)
+                .and_then([](const auto V) noexcept {
+                    return std::optional<std::string>(V);
+                })
+                .value_or(FallBack()) :
+            Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind)
+                .and_then([](const auto V) noexcept {
+                    return std::optional<std::string>(V);
+                })
+                .value_or(FallBack());
     }
 
     auto PrintHeader::run(const Objects::MachO &MachO) const noexcept
@@ -121,14 +140,24 @@ namespace Operations {
         const auto CpuKindString = StringForCpuKind(CpuKind, Opt.Verbose);
         const auto SubKindString =
             StringForSubKind(CpuKind, SubKind, Opt.Verbose);
+        
+        const auto FallBack = [FileKind]() noexcept {
+            return std::format("<Unknown: 0x{:02x}>",
+                               static_cast<int32_t>(FileKind));
+        };
 
         const auto FileKindString =
-            MachO::FileKindIsValid(FileKind) ?
-                Opt.Verbose ?
-                    std::string(MachO::FileKindGetString(FileKind)) :
-                    std::string(MachO::FileKindGetDesc(FileKind))
-                : std::format("<Unknown: 0x{:02x}>",
-                              static_cast<uint32_t>(FileKind));
+            Opt.Verbose ?
+                MachO::FileKindGetString(FileKind)
+                    .and_then([](const auto V) noexcept {
+                        return std::optional<std::string>(V);
+                    })
+                    .value_or(FallBack()) :
+                MachO::FileKindGetDesc(FileKind)
+                    .and_then([](const auto V) noexcept {
+                        return std::optional<std::string>(V);
+                    })
+                    .value_or(FallBack());
 
         std::print(OutFile,
                    "Apple {} Mach-O File\n"
@@ -136,8 +165,8 @@ namespace Operations {
                    "\tCputype:    {}\n",
                    MachO.is64Bit() ? "64-Bit" : "32-Bit",
                    Opt.Verbose ?
-                    MachO::MagicGetString(Header.Magic) :
-                    MachO::MagicGetDesc(Header.Magic),
+                    MachO::MagicGetString(Header.Magic).value() :
+                    MachO::MagicGetDesc(Header.Magic).value(),
                    CpuKindString);
 
         if (Opt.Verbose) {
@@ -184,9 +213,8 @@ namespace Operations {
                          Counter,
                          DigitCount,
                          Bit,
-                         MachO::Flags::KindIsValid(Flag) ?
-                          MachO::Flags::KindGetString(Flag) :
-                          "<Unknown>");
+                            MachO::Flags::KindGetString(Flag)
+                                .value_or("<Unknown>"));
 
             Counter++;
         }
@@ -208,8 +236,8 @@ namespace Operations {
                    "\tArch Count: {}\n",
                    Fat.is64Bit() ? "64-Bit" : "32-Bit",
                    Opt.Verbose ?
-                    MachO::MagicGetString(Header.Magic) :
-                    MachO::MagicGetDesc(Header.Magic),
+                    MachO::MagicGetString(Header.Magic).value() :
+                    MachO::MagicGetDesc(Header.Magic).value(),
                    ArchCount);
 
         if (ArchCount < 6) {
@@ -565,7 +593,7 @@ namespace Operations {
         const DscRangeKind Kind) noexcept
     {
         if (Options.Verbose) {
-            std::println(OutFile);
+            std::println(OutFile, "");
             return;
         }
 
@@ -573,13 +601,13 @@ namespace Operations {
         const auto Iter = List.find(Kind);
 
         if (Iter == End) {
-            std::println(OutFile);
+            std::println(OutFile, "");
             return;
         }
 
         const auto &OverlapKindSet = Iter->second.OverlapKindSet;
         if (OverlapKindSet.none()) {
-            std::println(OutFile);
+            std::println(OutFile, "");
             return;
         }
 
@@ -707,7 +735,7 @@ namespace Operations {
         }
 
         if (PrintNewLine) {
-            std::println(OutFile);
+            std::println(OutFile, "");
         }
     }
 
@@ -743,13 +771,13 @@ namespace Operations {
                              /*PrintNewLine=*/false);
         }
 
-        std::println(OutFile);
+        std::println(OutFile, "");
         std::print(OutFile,
                    "{}{}{}",
                    Suffix, DscKey(SizeName), Utils::ByteSize(Size));
 
         if (PrintNewLine) {
-            std::println(OutFile);
+            std::println(OutFile, "");
         }
     }
 
@@ -779,7 +807,7 @@ namespace Operations {
                 std::print(OutFile, " ({})", Mapping.fileRange());
             }
 
-            std::println(OutFile);
+            std::println(OutFile, "");
             std::println(OutFile,
                          "\t\t{}{}",
                          DscKey("Address", LongestKeyLength),
@@ -791,7 +819,7 @@ namespace Operations {
                            Utils::PrintRange(Mapping.addressRange()));
             }
 
-            std::println(OutFile);
+            std::println(OutFile, "");
             std::println(OutFile,
                          "\t\t{}{}",
                          DscKey("Size", LongestKeyLength),
@@ -863,9 +891,10 @@ namespace Operations {
             const auto [CpuKind, CpuSubKind] = Dsc.getMachCpuKindAndSubKind();
             std::println(OutFile,
                          " (Cpu-Kind: {})",
-                         Mach::CpuKindAndSubKindGetString(CpuKind, CpuSubKind));
+                         Mach::CpuKindAndSubKindGetString(CpuKind, CpuSubKind)
+                             .value());
         } else {
-            std::println(OutFile);
+            std::println(OutFile, "");
         }
 
         const auto Version = Dsc.getVersion();
@@ -914,7 +943,7 @@ namespace Operations {
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
-        std::println(OutFile);
+        std::println(OutFile, "");
 
         const auto &Header = Dsc.headerV1();
         PrintDscSizeRange(OutFile,
@@ -956,7 +985,7 @@ namespace Operations {
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
-        std::println(OutFile);
+        std::println(OutFile, "");
 
         const auto &Header = Dsc.headerV2();
         PrintDscSizeRange(OutFile,
@@ -1033,7 +1062,7 @@ namespace Operations {
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
-        std::println(OutFile);
+        std::println(OutFile, "");
 
         const auto &Header = Dsc.headerV4();
         PrintOffsetCountPair(OutFile,
@@ -1085,15 +1114,15 @@ namespace Operations {
                        const std::string_view Key,
                        const Dyld3::Platform Platform) noexcept
     {
-        if (Dyld3::PlatformIsValid(Platform)) {
-            std::println(OutFile,
-                         "{}{}",
-                         DscKey(Key), Dyld3::PlatformGetDesc(Platform));
-        } else {
-            std::println(OutFile,
-                         "{}<unknown, value={}>",
-                         DscKey(Key), static_cast<uint32_t>(Platform));
-        }
+        const auto FallBack = [Platform]() noexcept {
+            return std::format("<unknown, value={}>",
+                               static_cast<uint32_t>(Platform));
+        };
+
+        std::println(OutFile,
+                     "{}{}",
+                     DscKey(Key),
+                         Dyld3::PlatformGetDesc(Platform).value_or(FallBack()));
     }
 
     static void
@@ -1102,7 +1131,7 @@ namespace Operations {
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
-        std::println(OutFile);
+        std::println(OutFile, "");
 
         const auto &Header = Dsc.headerV5();
         PrintDscSizeRange(OutFile,
@@ -1198,7 +1227,7 @@ namespace Operations {
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
-        std::println(OutFile);
+        std::println(OutFile, "");
 
         const auto &Header = Dsc.headerV6();
         PrintDscSizeRange(OutFile,
@@ -1283,7 +1312,7 @@ namespace Operations {
                            Utils::PrintRange(Mapping.fileRange()));
             }
 
-            std::println(OutFile);
+            std::println(OutFile, "");
             std::print(OutFile,
                        "\t\t{}{}",
                        DscKey("Address", LongestKeyLength),
@@ -1295,7 +1324,7 @@ namespace Operations {
                            Utils::PrintRange(Mapping.addressRange()));
             }
 
-            std::println(OutFile);
+            std::println(OutFile, "");
             std::print(OutFile,
                        "\t\t{}{}\n"
                        "\t\t{}{}",
@@ -1310,7 +1339,7 @@ namespace Operations {
                            Utils::PrintRange(Mapping.slideInfoFileRange()));
             }
 
-            std::println(OutFile);
+            std::println(OutFile, "");
             std::println(OutFile,
                          "\t\t{}{}",
                          DscKey("Slide-Info File Size", LongestKeyLength),
@@ -1325,7 +1354,7 @@ namespace Operations {
                          const Objects::DyldSharedCache &Dsc,
                          const struct PrintHeader::Options &Options) noexcept
     {
-        std::println(OutFile);
+        std::println(OutFile, "");
 
         const auto &Header = Dsc.headerV7();
         PrintOffsetCountPair(OutFile,
@@ -1356,7 +1385,7 @@ namespace Operations {
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
-        std::println(OutFile);
+        std::println(OutFile, "");
         const auto &Header = Dsc.headerV8();
 
         std::println(OutFile,
@@ -1500,9 +1529,8 @@ namespace Operations {
                              "\t\t{}. Bit {}: {}",
                              Counter + 1,
                              Bit,
-                             FlagsStruct::KindIsValid(Flag) ?
-                                 FlagsStruct::KindGetString(Flag) :
-                                 "<unknown>");
+                             FlagsStruct::KindGetString(Flag)
+                                .value_or("<unknown>"));
 
                 Counter++;
             }
@@ -1553,7 +1581,7 @@ namespace Operations {
                          const struct PrintHeader::Options &Options,
                          const DscRangeList &List) noexcept
     {
-        std::println(OutFile);
+        std::println(OutFile, "");
         const auto &Header = Dsc.headerV9();
 
         PrintCacheKind(OutFile, "Cache Sub-Kind", Header.cacheSubKind());

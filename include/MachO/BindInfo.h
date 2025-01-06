@@ -60,7 +60,7 @@ namespace MachO {
 
     [[nodiscard]]
     constexpr auto BindByteOpcodeGetName(const BindByteOpcode Opcode) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Opcode) {
             case BindByteOpcode::Done:
@@ -93,14 +93,12 @@ namespace MachO {
                 return "Threaded";
         }
 
-        assert(false &&
-               "MachO::BindByteOpcodeGetName() got unrecognized "
-               "MachO::BindByteOpcode");
+        return std::nullopt;
     }
 
     [[nodiscard]]
     constexpr auto BindByteOpcodeGetDesc(const BindByteOpcode Opcode) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Opcode) {
             case BindByteOpcode::Done:
@@ -133,9 +131,7 @@ namespace MachO {
                 return "Threaded";
         }
 
-        assert(false &&
-               "MachO::BindByteOpcodeGetDesc() got unrecognized "
-               "MachO:;BindByteOpcode");
+        return std::nullopt;
     }
 
     enum class BindByteSubOpcode : uint8_t {
@@ -166,7 +162,7 @@ namespace MachO {
 
     [[nodiscard]]
     constexpr auto BindWriteKindGetName(const BindWriteKind Kind) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Kind) {
             case BindWriteKind::None:
@@ -181,14 +177,12 @@ namespace MachO {
                 return "BIND_TYPE_TEXT_PCREL32";
         }
 
-        assert(false &&
-               "MachO::BindWriteKindGetName() got unrecognized "
-               "MachO::BindWriteKind");
+        return std::nullopt;
     }
 
     [[nodiscard]]
     constexpr auto BindWriteKindGetDesc(const BindWriteKind Kind) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (Kind) {
             case BindWriteKind::None:
@@ -203,9 +197,7 @@ namespace MachO {
                 return "PC Relative (32-Bit)";
         }
 
-        assert(false &&
-               "MachO::BindWriteKindGetDesc() got unrecognized "
-               "MachO::BindWriteKind");
+        return std::nullopt;
     }
 
     enum class BindByteDylibSpecialOrdinal : uint8_t {
@@ -232,7 +224,8 @@ namespace MachO {
 
     [[nodiscard]] constexpr auto
     BindByteDylibSpecialOrdinalGetName(
-        const BindByteDylibSpecialOrdinal Ordinal) noexcept -> std::string_view
+        const BindByteDylibSpecialOrdinal Ordinal) noexcept
+            -> std::optional<std::string_view>
     {
         switch (Ordinal) {
             case BindByteDylibSpecialOrdinal::DylibSelf:
@@ -245,14 +238,13 @@ namespace MachO {
                 return "BIND_SPECIAL_DYLIB_WEAK_LOOKUP";
         }
 
-        assert(false &&
-               "MachO::BindByteDylibSpecialOrdinalGetName() got unrecognized "
-               "MachO::BindByteDylibSpecialOrdinal");
+        return std::nullopt;
     }
 
     [[nodiscard]] constexpr auto
     BindByteDylibSpecialOrdinalGetDesc(
-        const BindByteDylibSpecialOrdinal Ordinal) noexcept -> std::string_view
+        const BindByteDylibSpecialOrdinal Ordinal) noexcept
+            -> std::optional<std::string_view>
     {
         switch (Ordinal) {
             case BindByteDylibSpecialOrdinal::DylibSelf:
@@ -265,9 +257,7 @@ namespace MachO {
                 return "Weak-Lookup";
         }
 
-        assert(false &&
-               "MachO::BindByteDylibSpecialOrdinalGetDesc() got unrecognized "
-               "MachO::BindByteDylibSpecialOrdinal");
+        return std::nullopt;
     }
 
     struct BindSymbolFlags : public ADT::FlagsBase<uint8_t> {

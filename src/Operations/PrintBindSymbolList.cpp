@@ -122,11 +122,12 @@ namespace Operations {
         if constexpr (BindKind != MachO::BindInfoKind::Lazy) {
             constexpr auto LongestDesc =
                 MachO::BindWriteKindGetDesc(
-                    MachO::BindWriteKind::TextAbsolute32).length();
+                    MachO::BindWriteKind::TextAbsolute32).value().length();
 
             std::print(OutFile,
                        " {:<{}}",
-                       MachO::BindWriteKindGetDesc(Action.WriteKind),
+                       MachO::BindWriteKindGetDesc(Action.WriteKind)
+                           .value_or("<unknown>"),
                        LongestDesc);
         }
 
@@ -146,7 +147,7 @@ namespace Operations {
                                               /*Prefix=*/" ");
         }
 
-        std::println(OutFile);
+        std::println(OutFile, "");
     }
 
     template <MachO::BindInfoKind BindKind>
@@ -300,7 +301,7 @@ namespace Operations {
         if (Opt.PrintWeak) {
             if (MachO.map().range().contains(WeakBindRange)) {
                 if (Opt.PrintNormal || Opt.PrintLazy) {
-                    std::println(OutFile);
+                    std::println(OutFile, "");
                 }
 
                 const auto WeakBindList =
@@ -364,7 +365,7 @@ namespace Operations {
 
         if (Opt.PrintLazy) {
             if (Opt.PrintNormal) {
-                std::println(OutFile);
+                std::println(OutFile, "");
             }
 
             if (!LazyBindActionInfoList.empty()) {
@@ -383,7 +384,7 @@ namespace Operations {
 
         if (Opt.PrintWeak) {
             if (Opt.PrintNormal || Opt.PrintLazy) {
-                std::println(OutFile);
+                std::println(OutFile, "");
             }
 
             if (!WeakBindActionInfoList.empty()) {

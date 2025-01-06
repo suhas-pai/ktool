@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string_view>
 #include "Utils/Assert.h"
 
@@ -197,8 +198,8 @@ namespace Mach {
     }
 
     [[nodiscard]]
-    constexpr auto CpuKindGetString(const CpuKind CpuKind) noexcept ->
-        std::string_view
+    constexpr auto CpuKindGetString(const CpuKind CpuKind) noexcept
+        -> std::optional<std::string_view>
     {
         switch (CpuKind) {
             case CpuKind::Any:
@@ -233,12 +234,12 @@ namespace Mach {
                 return "CPU_TYPE_POWERPC64";
         }
 
-        assert(false && "CpuKindGetString() called with unknown CpuKind");
+        return std::nullopt;
     }
 
     [[nodiscard]]
-    constexpr auto CpuKindGetDesc(const CpuKind CpuKind) noexcept ->
-        std::string_view
+    constexpr auto CpuKindGetDesc(const CpuKind CpuKind) noexcept
+        -> std::optional<std::string_view>
     {
         switch (CpuKind) {
             case CpuKind::Any:
@@ -273,7 +274,7 @@ namespace Mach {
                 return "PowerPC (64-bit)";
         }
 
-        assert(false && "CpuKindGetDesc() called with unknown CpuKind");
+        return std::nullopt;
     }
 
     [[nodiscard]]
@@ -446,7 +447,7 @@ namespace Mach {
     constexpr auto
     CpuKindAndSubKindGetString(const CpuKind CpuKind,
                                const int32_t SubKind) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (CpuKind) {
             case CpuKind::Any:
@@ -485,9 +486,7 @@ namespace Mach {
                         return "CPU_SUBTYPE_UVAXIII";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetString() called with unknown Vax "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Motorola680x0:
                 switch (Motorola68000(SubKind)) {
                     case Motorola68000::All:
@@ -498,9 +497,7 @@ namespace Mach {
                         return "CPU_SUBTYPE_MC68030_ONLY";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetString() called with unknown Motorola "
-                       "68000 Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::IntelX86:
                 switch (Intelx86(SubKind)) {
                     case Intelx86::x86:
@@ -543,9 +540,7 @@ namespace Mach {
                         return "CPU_SUBTYPE_XEON_MP";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetString() called with unknown x86 "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::IntelX86_64:
                 switch (Intelx86_64(SubKind)) {
                     case Intelx86_64::All:
@@ -554,9 +549,7 @@ namespace Mach {
                         return "CPU_SUBTYPE_X86_64_H";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetString() called with unknown x86_64 "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Motorola98000:
                 switch (Motorola98000(SubKind)) {
                     case Motorola98000::All:
@@ -565,9 +558,7 @@ namespace Mach {
                         return "CPU_SUBTYPE_MC98601";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetString() called with unknown Motorola "
-                       "98000 Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Hppa:
                 switch (Hppa(SubKind)) {
                     case Hppa::v7100:
@@ -576,9 +567,7 @@ namespace Mach {
                         return "CPU_SUBTYPE_HPPA_7100LC";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetString() called with unknown Hppa"
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Arm:
                 switch (Arm(SubKind)) {
                     case Arm::All:
@@ -611,9 +600,7 @@ namespace Mach {
                         return "CPU_SUBTYPE_ARM_V8M";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetString() called with unknown Arm "
-                       "CpuSubKind");
+                return std::nullopt;
             case CpuKind::Arm64:
                 switch (Arm64(SubKind)) {
                     case Arm64::All:
@@ -624,9 +611,7 @@ namespace Mach {
                         return "CPU_SUBTYPE_ARM64E";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetString() called with unknown arm64 "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Arm64_32:
                 switch (Arm64_32(SubKind)) {
                     case Arm64_32::All:
@@ -635,9 +620,7 @@ namespace Mach {
                         return "CPU_SUBTYPE_ARM64_32_V8";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetString() called with unknown arm64_32 "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Motorola88000:
                 switch (Motorola88000(SubKind)) {
                     case Motorola88000::All:
@@ -648,17 +631,13 @@ namespace Mach {
                         return "CPU_SUBTYPE_MC88110";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetString() called with unknown Motorola "
-                       "98000 Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Sparc:
                 if (SubKind == 0) {
                     return "CPU_TYPE_SPARC_ALL";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetString() called with unknown Sparc "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::IntelI860:
                 switch (IntelI860(SubKind)) {
                     case IntelI860::All:
@@ -667,9 +646,7 @@ namespace Mach {
                         return "CPU_SUBTYPE_I860_860";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetString() called with unknown I860 "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::PowerPC:
             case CpuKind::PowerPC64:
                 switch (PowerPC(SubKind)) {
@@ -701,19 +678,17 @@ namespace Mach {
                         return "CPU_SUBTYPE_POWERPC_970";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetString() called with unknown "
-                       "PowerPC[64] Mach::CpuSubKind");
+                return std::nullopt;
         }
 
-        assert(false && "Mach::CpuKindGetString() called with unknown CpuKind");
+        return std::nullopt;
     }
 
     [[nodiscard]]
     constexpr auto
     CpuKindAndSubKindGetDesc(const CpuKind CpuKind,
                              const int32_t SubKind) noexcept
-        -> std::string_view
+        -> std::optional<std::string_view>
     {
         switch (CpuKind) {
             case CpuKind::Any:
@@ -752,9 +727,7 @@ namespace Mach {
                         return "Vax UvaxIII";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetDesc() called with unknown Vax "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Motorola680x0:
                 switch (Motorola68000(SubKind)) {
                     case Motorola68000::All:
@@ -765,9 +738,7 @@ namespace Mach {
                         return "Motorola 68030";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetDesc() called with unknown Motorola "
-                       "68000 Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::IntelX86:
                 switch (Intelx86(SubKind)) {
                     case Intelx86::x86:
@@ -810,9 +781,7 @@ namespace Mach {
                         return "Intel Xeon MP";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetDesc() called with unknown x86 "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::IntelX86_64:
                 switch (Intelx86_64(SubKind)) {
                     case Intelx86_64::All:
@@ -821,9 +790,7 @@ namespace Mach {
                         return "Intel x86_64 Haswell";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetDesc() called with unknown x86_64 "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Motorola98000:
                 switch (Motorola98000(SubKind)) {
                     case Motorola98000::All:
@@ -832,9 +799,7 @@ namespace Mach {
                         return "Motorola 98601";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetDesc() called with unknown Motorola "
-                       "98000 Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Hppa:
                 switch (Hppa(SubKind)) {
                     case Hppa::v7100:
@@ -843,9 +808,7 @@ namespace Mach {
                         return "Hppa 7100LC";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetDesc() called with unknown Hppa "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Arm:
                 switch (Arm(SubKind)) {
                     case Arm::All:
@@ -878,9 +841,7 @@ namespace Mach {
                         return "Armv8m";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetDesc() called with unknown Arm "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Arm64:
                 switch (Arm64(SubKind)) {
                     case Arm64::All:
@@ -891,9 +852,7 @@ namespace Mach {
                         return "Arm64e";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetDesc() called with unknown arm64 "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Arm64_32:
                 switch (Arm64_32(SubKind)) {
                     case Arm64_32::All:
@@ -902,9 +861,7 @@ namespace Mach {
                         return "Arm64_32 v8";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetDesc() called with unknown arm64_32 "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Motorola88000:
                 switch (Motorola88000(SubKind)) {
                     case Motorola88000::All:
@@ -915,17 +872,13 @@ namespace Mach {
                         return "Motorola 88110";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetDesc() called with unknown Motorola "
-                       "98000 Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::Sparc:
                 if (SubKind == 0) {
                     return "Sparc All";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetDesc() called with unknown Sparc "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::IntelI860:
                 switch (IntelI860(SubKind)) {
                     case IntelI860::All:
@@ -934,9 +887,7 @@ namespace Mach {
                         return "Intel I860 860";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetDesc() called with unknown I860 "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
             case CpuKind::PowerPC:
             case CpuKind::PowerPC64:
                 switch (PowerPC(SubKind)) {
@@ -968,11 +919,9 @@ namespace Mach {
                         return "PowerPC 970";
                 }
 
-                assert(false &&
-                       "Mach::CpuKindGetDesc() called with unknown PowerPC[64] "
-                       "Mach::CpuSubKind");
+                return std::nullopt;
         }
 
-        assert(false && "Mach::CpuKindGetDesc() called with unknown CpuKind");
+        return std::nullopt;
     }
 }

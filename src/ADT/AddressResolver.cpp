@@ -560,7 +560,7 @@ namespace ADT {
             }
         }
 
-        assert(false && "Unknown ChainedPointerKind");
+        return std::nullopt;
     }
 
     auto AddressResolver::resolveRebase(uint64_t Value) const noexcept

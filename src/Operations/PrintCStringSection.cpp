@@ -320,7 +320,7 @@ namespace Operations {
                            Utils::CustomAddress(Info.FileOffset, Is64Bit));
             }
 
-            std::println(OutFile);
+            std::println(OutFile, "");
             Counter++;
         }
 
