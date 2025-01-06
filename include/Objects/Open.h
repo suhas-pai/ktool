@@ -67,12 +67,12 @@ namespace Objects {
     };
 
     auto
-    Open(const ADT::MemoryMap &Map,
+    Open(const ADT::MemoryMap Map,
          std::string_view Path,
          ADT::FileMap::Prot Prot) noexcept
             -> std::expected<Base *, OpenError>;
 
-    auto OpenFrom(const ADT::MemoryMap &Map, const Kind FromKind) noexcept
+    auto OpenFrom(const ADT::MemoryMap Map, const Kind FromKind) noexcept
         -> std::expected<Base *, OpenError>;
 
     auto OpenArch(const FatMachO &MachO, const uint32_t Index) noexcept

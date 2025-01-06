@@ -29,7 +29,7 @@ namespace DyldSharedCache {
     }
 
     auto
-    DeVirtualizer::getMapForVmRange(const ADT::Range &Range,
+    DeVirtualizer::getMapForVmRange(const ADT::Range Range,
                                     const bool IgnoreProtBounds) const noexcept
         -> std::optional<ADT::MemoryMap>
     {

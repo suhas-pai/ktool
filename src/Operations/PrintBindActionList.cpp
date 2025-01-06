@@ -4,6 +4,7 @@
  */
 
 #include <algorithm>
+#include <compare>
 #include "ADT/Maximizer.h"
 
 #include "MachO/BindInfo.h"
@@ -43,41 +44,30 @@ namespace Operations {
                "PrintBindActionList::supportsObjectKind()");
     }
 
-    static int
+    static auto
     CompareActionsBySortKind(
         const MachO::BindActionInfo &Lhs,
         const MachO::BindActionInfo &Rhs,
         const PrintBindActionList::Options::SortKind SortKind) noexcept
+            -> std::strong_ordering
     {
         switch (SortKind) {
             case PrintBindActionList::Options::SortKind::None:
                 assert(false &&
                        "Unrecognized PrintBindActionList::Options::SortKind");
             case PrintBindActionList::Options::SortKind::ByName:
-                return Lhs.SymbolName.compare(Rhs.SymbolName);
+                return Lhs.SymbolName <=> Rhs.SymbolName;
             case PrintBindActionList::Options::SortKind::ByDylibOrdinal:
-                if (Lhs.DylibOrdinal < Rhs.DylibOrdinal) {
-                    return -1;
-                } else if (Lhs.DylibOrdinal == Rhs.DylibOrdinal) {
-                    return 0;
-                }
-
-                return 1;
+                return Lhs.DylibOrdinal <=> Rhs.DylibOrdinal;
             case PrintBindActionList::Options::SortKind::ByKind: {
                 const auto LhsKind = static_cast<uint8_t>(Lhs.WriteKind);
                 const auto RhsKind = static_cast<uint8_t>(Rhs.WriteKind);
 
-                if (LhsKind < RhsKind) {
-                    return -1;
-                } else if (LhsKind == RhsKind) {
-                    return 0;
-                }
-
-                return 1;
+                return LhsKind <=> RhsKind;
             }
         }
 
-        return false;
+        assert(false && "Unrecognized PrintBindActionList::Options::SortKind");
     }
 
     template <MachO::BindInfoKind BindKind>
@@ -163,7 +153,7 @@ namespace Operations {
     PrintBindActionInfoList(
         FILE *const OutFile,
         const std::string_view Name,
-        const std::vector<MachO::BindActionInfo> &List,
+        const std::span<MachO::BindActionInfo> List,
         const MachO::SegmentList &SegmentList,
         const MachO::LibraryList &LibraryList,
         const bool Is64Bit,
@@ -330,28 +320,22 @@ namespace Operations {
                 [&](const MachO::BindActionInfo &Lhs,
                     const MachO::BindActionInfo &Rhs) noexcept
             {
-                auto Compare = int();
+                auto Compare = std::strong_ordering::equivalent;
                 for (const auto &SortKind : Opt.SortKindList) {
                     Compare = CompareActionsBySortKind(Lhs, Rhs, SortKind);
-                    if (Compare != 0) {
+                    if (Compare != std::strong_ordering::equivalent) {
                         break;
                     }
 
                     continue;
                 }
 
-                return Compare < 0;
+                return Compare == std::strong_ordering::less;
             };
 
-            std::sort(BindActionInfoList.begin(),
-                      BindActionInfoList.end(),
-                      Comparator);
-            std::sort(LazyBindActionInfoList.begin(),
-                      LazyBindActionInfoList.end(),
-                      Comparator);
-            std::sort(WeakBindActionInfoList.begin(),
-                      WeakBindActionInfoList.end(),
-                      Comparator);
+            std::ranges::sort(BindActionInfoList, Comparator);
+            std::ranges::sort(LazyBindActionInfoList, Comparator);
+            std::ranges::sort(WeakBindActionInfoList, Comparator);
         }
 
         const auto OutFile = this->OutFile;

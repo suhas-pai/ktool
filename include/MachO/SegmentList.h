@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <initializer_list>
 #include <optional>
@@ -59,23 +60,25 @@ namespace MachO {
         auto findSectionWithName(const std::string_view Name) const noexcept
             -> const SectionInfo *
         {
-            for (const auto &Section : this->SectionList) {
-                if (Section.Name == Name) {
-                    return &Section;
-                }
-            }
+            const auto Iter =
+                std::ranges::find(this->SectionList, Name, &SectionInfo::Name);
 
-            return nullptr;
+            return Iter != this->SectionList.end() ? &*Iter : nullptr;
         }
 
         [[nodiscard]] constexpr
         auto findSectionWithFileOffset(const uint64_t Offset) const noexcept
             -> const SectionInfo *
         {
-            for (const auto &Section : this->SectionList) {
-                if (Section.fileRange().hasLoc(Offset)) {
-                    return &Section;
-                }
+            const auto Iter =
+                std::ranges::find_if(this->SectionList,
+                                     [Offset](const auto &Section) noexcept {
+                                        return Section.fileRange()
+                                            .hasLoc(Offset);
+                                     });
+
+            if (Iter != this->SectionList.end()) {
+                return &*Iter;
             }
 
             return nullptr;
@@ -85,10 +88,15 @@ namespace MachO {
         auto findSectionWithVmAddr(const uint64_t VmAddr) const noexcept
             -> const SectionInfo *
         {
-            for (const auto &Section : SectionList) {
-                if (Section.vmRange().hasLoc(VmAddr)) {
-                    return &Section;
-                }
+            const auto Iter =
+                std::ranges::find_if(this->SectionList,
+                                     [VmAddr](const auto &Section) noexcept {
+                                        return Section.vmRange()
+                                            .hasLoc(VmAddr);
+                                     });
+
+            if (Iter != this->SectionList.end()) {
+                return &*Iter;
             }
 
             return nullptr;
@@ -100,9 +108,9 @@ namespace MachO {
             uint64_t *const AddrOut = nullptr) const noexcept
             -> const SectionInfo *
         {
-            assert(VmRange.hasIndex(AddrIndex));
+            assert(this->VmRange.hasIndex(AddrIndex));
 
-            const auto FullAddr = VmRange.locForIndex(AddrIndex);
+            const auto FullAddr = this->VmRange.locForIndex(AddrIndex);
             if (AddrOut != nullptr) {
                 *AddrOut = FullAddr;
             }
@@ -111,13 +119,18 @@ namespace MachO {
         }
 
         [[nodiscard]] constexpr auto
-        findSectionContainingVmRange(const ADT::Range &VmRange) const noexcept
+        findSectionContainingVmRange(const ADT::Range VmRange) const noexcept
             -> const SectionInfo *
         {
-            for (const auto &Section : SectionList) {
-                if (Section.vmRange().contains(VmRange)) {
-                    return &Section;
-                }
+            const auto Iter =
+                std::ranges::find_if(this->SectionList,
+                                     [VmRange](const auto &Section) noexcept {
+                                        return Section.vmRange()
+                                            .contains(VmRange);
+                                     });
+
+            if (Iter != this->SectionList.end()) {
+                return &*Iter;
             }
 
             return nullptr;
@@ -172,10 +185,11 @@ namespace MachO {
         auto findSegmentWithName(const std::string_view Name) const noexcept
             -> const SegmentInfo *
         {
-            for (const auto &Info : this->List) {
-                if (Info.Name == Name) {
-                    return &Info;
-                }
+            const auto Iter =
+                std::ranges::find(this->List, Name, &SegmentInfo::Name);
+
+            if (Iter != this->List.end()) {
+                return &*Iter;
             }
 
             return nullptr;
@@ -185,10 +199,14 @@ namespace MachO {
         auto findSegmentWithFileOffset(const uint64_t Offset) const noexcept
             -> const SegmentInfo *
         {
-            for (const auto &Info : this->List) {
-                if (Info.FileRange.hasLoc(Offset)) {
-                    return &Info;
-                }
+            const auto Iter =
+                std::ranges::find_if(this->List,
+                                     [Offset](const auto &Segment) noexcept {
+                                        return Segment.FileRange.hasLoc(Offset);
+                                     });
+
+            if (Iter != this->List.end()) {
+                return &*Iter;
             }
 
             return nullptr;
@@ -198,23 +216,31 @@ namespace MachO {
         virtual auto findSegmentWithVmAddr(const uint64_t Addr) const noexcept
             -> const SegmentInfo *
         {
-            for (const auto &Info : List) {
-                if (Info.VmRange.hasLoc(Addr)) {
-                    return &Info;
-                }
+            const auto Iter =
+                std::ranges::find_if(this->List,
+                                     [Addr](const auto &Segment) noexcept {
+                                        return Segment.VmRange.hasLoc(Addr);
+                                     });
+
+            if (Iter != this->List.end()) {
+                return &*Iter;
             }
 
             return nullptr;
         }
 
         [[nodiscard]] virtual
-        auto findSegmentWithVmRange(const ADT::Range &Range) const noexcept
+        auto findSegmentWithVmRange(const ADT::Range Range) const noexcept
             -> const SegmentInfo *
         {
-            for (const auto &Info : List) {
-                if (Info.VmRange.contains(Range)) {
-                    return &Info;
-                }
+            const auto Iter =
+                std::ranges::find_if(this->List,
+                                     [Range](const auto &Segment) noexcept {
+                                        return Segment.VmRange.contains(Range);
+                                     });
+
+            if (Iter != this->List.end()) {
+                return &*Iter;
             }
 
             return nullptr;

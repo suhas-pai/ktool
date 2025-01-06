@@ -25,7 +25,7 @@ namespace Objects {
         DscImage(const DyldSharedCache &Dsc,
                  const DyldSharedSingleCacheInfo &DscInfo,
                  const ::DyldSharedCache::ImageInfo &ImageInfo,
-                 const ADT::MemoryMap &Map,
+                 const ADT::MemoryMap Map,
                  const uint32_t ImageIndex) noexcept
         : MachO(Map, Kind::DscImage), Dsc(Dsc), ImageInfo(ImageInfo),
           DscInfo(DscInfo), ImageIndex(ImageIndex) {}
@@ -109,7 +109,7 @@ namespace Objects {
 
         template <typename T = uint8_t, uint64_t Size = sizeof(T)>
         [[nodiscard]] inline auto
-        getMapForAddrRange(const ADT::Range &AddrRange,
+        getMapForAddrRange(const ADT::Range AddrRange,
                            const bool InsideMappings = true) const noexcept
             -> std::optional<
                 std::pair<DyldSharedSingleCacheInfo, ADT::MemoryMap>>
@@ -120,7 +120,7 @@ namespace Objects {
 
         template <typename T, uint64_t Size = sizeof(T)>
         [[nodiscard]] inline auto
-        getMapForFileRange(const ADT::Range &FileRange,
+        getMapForFileRange(const ADT::Range FileRange,
                            const bool InsideMappings = true) const noexcept
             -> T *
         {

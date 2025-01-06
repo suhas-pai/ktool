@@ -49,12 +49,12 @@ namespace Operations {
         return
             Verbose ?
                 Mach::CpuKindGetString(CpuKind)
-                    .and_then([](const auto V) noexcept { 
+                    .and_then([](const auto &&V) noexcept {
                         return std::optional<std::string>(V);
                     })
                     .value_or(FallBack()) :
                 Mach::CpuKindGetDesc(CpuKind)
-                    .and_then([](const auto V) noexcept { 
+                    .and_then([](const auto &&V) noexcept {
                         return std::optional<std::string>(V);
                     })
                     .value_or(FallBack());
@@ -72,12 +72,12 @@ namespace Operations {
         return
             Verbose ?
                 Mach::CpuKindAndSubKindGetString(CpuKind, SubKind)
-                    .and_then([](const auto V) noexcept { 
+                    .and_then([](const auto &&V) noexcept {
                         return std::optional<std::string>(V);
                     })
                     .value_or(FallBack()) :
                 Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind)
-                    .and_then([](const auto V) noexcept { 
+                    .and_then([](const auto &&V) noexcept {
                         return std::optional<std::string>(V);
                     })
                     .value_or(FallBack());
@@ -226,4 +226,3 @@ namespace Operations {
         assert(false && "Got unrecognized Object-Kind in PrintArchs::run()");
     }
 }
-

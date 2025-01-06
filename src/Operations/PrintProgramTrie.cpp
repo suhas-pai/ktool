@@ -152,6 +152,16 @@ namespace Operations {
     struct SExportInfo {
         std::string String;
         uint32_t Index;
+
+        [[nodiscard]]
+        constexpr auto operator==(const SExportInfo &Rhs) const noexcept {
+            return this->String == Rhs.String;
+        }
+
+        [[nodiscard]]
+        constexpr auto operator<=>(const SExportInfo &Rhs) const noexcept {
+            return this->String <=> Rhs.String;
+        }
     };
 
     static auto
@@ -199,13 +209,7 @@ namespace Operations {
         }
 
         if (Opt.Sort) {
-            const auto Comparator =
-                [](const SExportInfo &Lhs, const SExportInfo &Rhs) noexcept
-            {
-                return Lhs.String < Rhs.String;
-            };
-
-            std::sort(ExportList.begin(), ExportList.end(), Comparator);
+            std::ranges::sort(ExportList);
         }
 
         auto Counter = static_cast<uint32_t>(1);

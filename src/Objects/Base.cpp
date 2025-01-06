@@ -15,7 +15,7 @@ namespace Objects {
     Base::~Base() noexcept {}
 
     auto
-    Open(const ADT::MemoryMap &Map,
+    Open(const ADT::MemoryMap Map,
          const std::string_view Path,
          const ADT::FileMap::Prot Prot) noexcept
             -> std::expected<Base *, OpenError>
@@ -71,7 +71,7 @@ namespace Objects {
         return std::unexpected(OpenError::unrecognized());
     }
 
-    auto OpenFrom(const ADT::MemoryMap &Map, const Kind FromKind) noexcept
+    auto OpenFrom(const ADT::MemoryMap Map, const Kind FromKind) noexcept
         -> std::expected<Base *, OpenError>
     {
         const auto Kind = Kind::None;

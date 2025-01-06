@@ -484,7 +484,10 @@ namespace ADT {
             auto Node = this->Current;
             this->Current = nullptr;
 
-            for (; DepthLevel != 0; DepthLevel--, Node = Node->parent()) {
+            for (;
+                 this->DepthLevel != 0;
+                 this->DepthLevel--, Node = Node->parent())
+            {
                 if (const auto PrevSibling = Node->prevSibling()) {
                     Current = PrevSibling->get(PrevSibling);
                     break;

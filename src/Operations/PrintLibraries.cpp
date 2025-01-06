@@ -106,7 +106,9 @@ namespace Operations {
 
         const auto &Opt = this->Opt;
         if (!Opt.SortKindList.empty()) {
-            const auto Lambda = [&](const auto &Lhs, const auto &Rhs) noexcept {
+            const auto Comparator =
+                [&](const auto &Lhs, const auto &Rhs) noexcept
+            {
                 auto Compare = std::strong_ordering::equivalent;
                 for (const auto &Sort : Opt.SortKindList) {
                     Compare = CompareEntriesBySortKind(Lhs, Rhs, Sort);
@@ -118,7 +120,7 @@ namespace Operations {
                 return Compare == std::strong_ordering::less;
             };
 
-            std::sort(DylibList.begin(), DylibList.end(), Lambda);
+            std::ranges::sort(DylibList, Comparator);
         }
 
         const auto OutFile = this->OutFile;
@@ -142,8 +144,7 @@ namespace Operations {
                        Counter,
                        DylibInfo.Index,
                        NcmdsDigitCount,
-                       MachO::LoadCommandKindGetString(DylibInfo.Kind)
-                           .value_or("<unknown>"),
+                       MachO::LoadCommandKindGetString(DylibInfo.Kind).value(),
                        LongestLCDylibKindLength,
                        DylibInfo.Name,
                        DylibInfo.CurrentVersion,

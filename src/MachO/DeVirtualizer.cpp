@@ -58,7 +58,7 @@ namespace MachO {
 
     auto
     DeVirtualizer::getMapForVmRange(
-        const ADT::Range &Range,
+        const ADT::Range Range,
         const bool IgnoreSectionBounds) const noexcept
             -> std::optional<ADT::MemoryMap>
     {

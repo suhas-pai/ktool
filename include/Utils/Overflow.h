@@ -79,8 +79,8 @@ namespace Utils {
               std::integral V,
               std::integral... Rest>
 
-    [[nodiscard]] constexpr auto
-    SubAndCheckOverflow(const T Lhs, const T Rhs, Rest... rest) noexcept
+    [[nodiscard]] constexpr
+    auto SubAndCheckOverflow(const T Lhs, const T Rhs, Rest... rest) noexcept
         -> std::optional<T>
     {
         if (const auto FirstOpt = SubAndCheckOverflow(Lhs, Rhs)) {
@@ -108,8 +108,8 @@ namespace Utils {
               std::integral V,
               std::integral... Rest>
 
-    [[nodiscard]] constexpr auto
-    MulAndCheckOverflow(const U Lhs, const V Rhs, Rest... TheRest) noexcept
+    [[nodiscard]] constexpr
+    auto MulAndCheckOverflow(const U Lhs, const V Rhs, Rest... TheRest) noexcept
         -> std::optional<T>
     {
         if (const auto FirstOpt = MulAndCheckOverflow(Lhs, Rhs)) {
@@ -124,8 +124,8 @@ namespace Utils {
               std::integral V,
               std::integral W>
 
-    [[nodiscard]] constexpr auto
-    MulAddAndCheckOverflow(const U F, const V S, const W Th) noexcept
+    [[nodiscard]] constexpr
+    auto MulAddAndCheckOverflow(const U F, const V S, const W Th) noexcept
         -> std::optional<T>
     {
         if (const auto FirstOpt = MulAndCheckOverflow(F, S)) {
@@ -140,8 +140,8 @@ namespace Utils {
               std::integral V,
               std::integral W>
 
-    [[nodiscard]] constexpr auto
-    AddMulAndCheckOverflow(const U F, const V S, const W Th) noexcept
+    [[nodiscard]] constexpr
+    auto AddMulAndCheckOverflow(const U F, const V S, const W Th) noexcept
         -> std::optional<T>
     {
         if (const auto FirstOpt = AddAndCheckOverflow(F, S)) {

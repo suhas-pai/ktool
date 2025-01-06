@@ -21,9 +21,9 @@ namespace MachO {
                                                        Info(),
                                                        /*ClassAddr=*/0));
 
-            Root->setIsNull();
+            this->Root->setIsNull();
             for (const auto &Node : List) {
-                Root->addChild(*Node);
+                this->Root->addChild(*Node);
             }
         } else {
             this->setRoot(List.front());
@@ -210,9 +210,9 @@ namespace MachO {
 
     auto ObjcClassInfoList::getAsList() const noexcept -> std::vector<Info *> {
         auto Vector = std::vector<Info *>();
-        Vector.reserve(List.size());
+        Vector.reserve(this->List.size());
 
-        for (const auto &Info : List) {
+        for (const auto &Info : this->List) {
             Vector.emplace_back(Info.second.get());
         }
 
@@ -260,10 +260,14 @@ namespace MachO {
     auto ObjcClassInfoList::getInfoForClassName(
         const std::string_view Name) const noexcept -> ObjcClassInfo *
     {
-        for (const auto &Info : List) {
-            if (Info.second->name() == Name) {
-                return Info.second.get();
-            }
+        const auto Iter =
+            std::ranges::find_if(this->List,
+                                 [Name](const auto &Pair) noexcept {
+                                    return Name == Pair.second->name();
+                                 });
+
+        if (Iter != this->List.end()) {
+            return Iter->second.get();
         }
 
         return nullptr;
@@ -272,7 +276,7 @@ namespace MachO {
     template <bool Is64Bit>
     static void
     ParseObjcClassCategorySection(
-        const ADT::MemoryMap &Map,
+        const ADT::MemoryMap Map,
         const ADT::DeVirtualizer &DeVirt,
         const ADT::AddressResolver &AddrResolver,
         const SectionInfo &SectInfo,
@@ -405,7 +409,7 @@ namespace MachO {
 
     auto
     ObjcClassCategoryInfoList::CollectFrom(
-        const ADT::MemoryMap &Map,
+        const ADT::MemoryMap Map,
         const ADT::DeVirtualizer &DeVirtualizer,
         const ADT::AddressResolver &AddrResolver,
         const SegmentList &SegmentList,

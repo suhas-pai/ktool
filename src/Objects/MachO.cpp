@@ -9,7 +9,7 @@
 #include "Utils/Overflow.h"
 
 namespace Objects {
-    auto MachO::VerifyMap(const ADT::MemoryMap &Map) noexcept -> OpenError {
+    auto MachO::VerifyMap(const ADT::MemoryMap Map) noexcept -> OpenError {
         const auto Header = Map.base<::MachO::Header>();
         if (Header == nullptr) {
             const auto Magic = Map.base<::MachO::Magic>();
@@ -31,7 +31,7 @@ namespace Objects {
         return OpenError::None;
     }
 
-    auto MachO::VerifyLoadCommands(const ADT::MemoryMap &Map) noexcept
+    auto MachO::VerifyLoadCommands(const ADT::MemoryMap Map) noexcept
         -> OpenError
     {
         const auto Header = Map.base<::MachO::Header, /*Verify=*/false>();
@@ -56,7 +56,7 @@ namespace Objects {
         return OpenError::None;
     }
 
-    auto MachO::Open(const ADT::MemoryMap &Map) noexcept
+    auto MachO::Open(const ADT::MemoryMap Map) noexcept
         -> std::expected<MachO *, Error>
     {
         const auto Header = Map.base<::MachO::Header>();

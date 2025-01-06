@@ -9,7 +9,7 @@
 #include "Utils/Overflow.h"
 
 namespace Objects {
-    static auto ValidateHeader(const ADT::MemoryMap &Map) noexcept {
+    static auto ValidateHeader(const ADT::MemoryMap Map) noexcept {
         const auto Header = Map.base<::MachO::FatHeader>();
         if (Header == nullptr) {
             const auto Magic = Map.base<::MachO::Magic>();
@@ -53,7 +53,7 @@ namespace Objects {
         return FatMachO::OpenError::None;
     }
 
-    auto FatMachO::Open(const ADT::MemoryMap &Map) noexcept
+    auto FatMachO::Open(const ADT::MemoryMap Map) noexcept
         -> std::expected<FatMachO *, Error>
     {
         if (const auto Err = ValidateHeader(Map); Err != OpenError::None) {
@@ -63,7 +63,7 @@ namespace Objects {
         return new FatMachO(Map);
     }
 
-    auto FatMachO::OpenAndValidateArchs(const ADT::MemoryMap &Map) noexcept
+    auto FatMachO::OpenAndValidateArchs(const ADT::MemoryMap Map) noexcept
         -> std::expected<FatMachO *, Error>
     {
         if (const auto Err = ValidateHeader(Map); Err != OpenError::None) {

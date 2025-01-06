@@ -733,7 +733,7 @@ namespace MachO {
         bool Is64Bit : 1;
     public:
         explicit
-        BindOpcodeListBase(const ADT::MemoryMap &Map,
+        BindOpcodeListBase(const ADT::MemoryMap Map,
                            const bool Is64Bit) noexcept
         : Begin(Map.base<const BindByte>()), End(Map.end<const BindByte>()),
           Is64Bit(Is64Bit) {}
@@ -1179,7 +1179,7 @@ namespace MachO {
             };
 
             for (; !this->isAtEnd(); this->Iter++) {
-                if (Iter->hasError()) {
+                if (this->Iter->hasError()) {
                     return this->Iter->error();
                 }
 
@@ -1380,8 +1380,8 @@ namespace MachO {
           Is64Bit(Is64Bit) {}
 
         constexpr explicit
-        BindActionListBase(const ADT::MemoryMap &Map,
-                           const ADT::Range &Range,
+        BindActionListBase(const ADT::MemoryMap Map,
+                           const ADT::Range Range,
                            const SegmentList &SegList,
                            const bool Is64Bit) noexcept
         : Map(Map.base<uint8_t>()), SegList(SegList),
@@ -1461,7 +1461,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline auto
-        getMapForVmRange(ADT::Range &VmRange,
+        getMapForVmRange(ADT::Range VmRange,
                          const SegmentList &SegmentList,
                          UnorderedMap &MapOut) const noexcept
             -> BindOpcodeParseResult
@@ -1541,4 +1541,3 @@ namespace MachO {
     using LazyBindActionList = BindActionListBase<BindInfoKind::Lazy>;
     using WeakBindActionList = BindActionListBase<BindInfoKind::Weak>;
 }
-

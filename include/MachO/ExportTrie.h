@@ -468,7 +468,7 @@ namespace MachO {
         : ADT::Trie<ExportTrieExportInfo>(Begin, End, TrieParser, ExportInfo) {}
 
         explicit
-        ExportTrieMap(const ADT::MemoryMap &Map,
+        ExportTrieMap(const ADT::MemoryMap Map,
                       ADT::TrieParser &TrieParser) noexcept
         : ADT::Trie<ExportTrieExportInfo>(Map, TrieParser, ExportInfo) {}
 

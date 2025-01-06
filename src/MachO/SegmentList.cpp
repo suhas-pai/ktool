@@ -11,21 +11,31 @@ namespace MachO {
     {
         const auto IsBigEndian = Map.isBigEndian();
         if (Is64Bit) {
-            for (const auto &LC : Map) {
-                if (const auto Segment =
-                        dyn_cast<SegmentCommand64>(&LC, IsBigEndian))
-                {
-                    this->add(*Segment, IsBigEndian);
-                }
-            }
+            auto SegmentList = Map
+                | std::views::transform([IsBigEndian](const auto &Lc) noexcept {
+                    return dyn_cast<SegmentCommand64>(&Lc, IsBigEndian);
+                  })
+                | std::views::filter([](const auto Segment) noexcept {
+                    return Segment != nullptr;
+                  });
+
+            std::ranges::for_each(SegmentList,
+                                  [this, IsBigEndian](const auto Segment) {
+                                    this->add(*Segment, IsBigEndian);
+                                  });
         } else {
-            for (const auto &LC : Map) {
-                if (const auto Segment =
-                        dyn_cast<SegmentCommand>(&LC, IsBigEndian))
-                {
-                    this->add(*Segment, IsBigEndian);
-                }
-            }
+            auto SegmentList = Map
+                | std::views::transform([IsBigEndian](const auto &Lc) noexcept {
+                    return dyn_cast<SegmentCommand>(&Lc, IsBigEndian);
+                  })
+                | std::views::filter([](const auto Segment) noexcept {
+                    return Segment != nullptr;
+                  });
+
+            std::ranges::for_each(SegmentList,
+                                  [this, IsBigEndian](const auto Segment) {
+                                    this->add(*Segment, IsBigEndian);
+                                  });
         }
     }
 
@@ -45,22 +55,26 @@ namespace MachO {
             .Index = static_cast<uint32_t>(List.size())
         });
 
-        Info.SectionList.reserve(Segment.sectionCount(IsBigEndian));
-        for (const auto &Section : Segment.sectionList(IsBigEndian)) {
-            Info.SectionList.emplace_back(SectionInfo {
-                .Name = std::string(Section.sectionName()),
-                .Addr = Section.addr(IsBigEndian),
-                .Size = Section.size(IsBigEndian),
-                .FileOffset = Section.fileOffset(IsBigEndian),
-                .Align = Section.align(IsBigEndian),
-                .RelocFileOffset = Section.relocFileOffset(IsBigEndian),
-                .RelocsCount = Section.relocsCount(IsBigEndian),
-                .Flags = Section.flags(IsBigEndian),
-                .Reserved1 = Section.reserved1(IsBigEndian),
-                .Reserved2 = Section.reserved2(IsBigEndian),
-                .Reserved3 = 0
-            });
-        }
+        const auto SectionListRange = Segment.sectionList(IsBigEndian)
+            | std::views::transform(
+                [IsBigEndian](const auto &Section) noexcept {
+                    return SectionInfo {
+                        .Name = std::string(Section.sectionName()),
+                        .Addr = Section.addr(IsBigEndian),
+                        .Size = Section.size(IsBigEndian),
+                        .FileOffset = Section.fileOffset(IsBigEndian),
+                        .Align = Section.align(IsBigEndian),
+                        .RelocFileOffset = Section.relocFileOffset(IsBigEndian),
+                        .RelocsCount = Section.relocsCount(IsBigEndian),
+                        .Flags = Section.flags(IsBigEndian),
+                        .Reserved1 = Section.reserved1(IsBigEndian),
+                        .Reserved2 = Section.reserved2(IsBigEndian),
+                        .Reserved3 = 0
+                    };
+                });
+
+        Info.SectionList.insert_range(
+            Info.SectionList.begin(), SectionListRange);
 
         return *this;
     }
@@ -81,22 +95,26 @@ namespace MachO {
             .Index = static_cast<uint32_t>(List.size())
         });
 
-        Info.SectionList.reserve(Segment.sectionCount(IsBigEndian));
-        for (const auto &Section : Segment.sectionList(IsBigEndian)) {
-            Info.SectionList.emplace_back(SectionInfo {
-                .Name = std::string(Section.sectionName()),
-                .Addr = Section.addr(IsBigEndian),
-                .Size = Section.size(IsBigEndian),
-                .FileOffset = Section.fileOffset(IsBigEndian),
-                .Align = Section.align(IsBigEndian),
-                .RelocFileOffset = Section.relocFileOffset(IsBigEndian),
-                .RelocsCount = Section.relocsCount(IsBigEndian),
-                .Flags = Section.flags(IsBigEndian),
-                .Reserved1 = Section.reserved1(IsBigEndian),
-                .Reserved2 = Section.reserved2(IsBigEndian),
-                .Reserved3 = Section.reserved3(IsBigEndian)
-            });
-        }
+        const auto SectionListRange = Segment.sectionList(IsBigEndian)
+            | std::views::transform(
+                [IsBigEndian](const auto &Section) noexcept {
+                    return SectionInfo {
+                        .Name = std::string(Section.sectionName()),
+                        .Addr = Section.addr(IsBigEndian),
+                        .Size = Section.size(IsBigEndian),
+                        .FileOffset = Section.fileOffset(IsBigEndian),
+                        .Align = Section.align(IsBigEndian),
+                        .RelocFileOffset = Section.relocFileOffset(IsBigEndian),
+                        .RelocsCount = Section.relocsCount(IsBigEndian),
+                        .Flags = Section.flags(IsBigEndian),
+                        .Reserved1 = Section.reserved1(IsBigEndian),
+                        .Reserved2 = Section.reserved2(IsBigEndian),
+                        .Reserved3 = Section.reserved3(IsBigEndian)
+                    };
+                });
+
+        Info.SectionList.insert_range(
+            Info.SectionList.begin(), SectionListRange);
 
         return *this;
     }
@@ -106,11 +124,11 @@ namespace MachO {
                                         const uint64_t Size) const noexcept
         -> std::optional<uint64_t>
     {
-        for (const auto &SegInfo : this->List) {
-            if (!SegInfo.VmRange.hasLoc(VmAddr)) {
-                continue;
-            }
+        const auto Filter = [VmAddr](const auto &SegInfo) noexcept {
+            return SegInfo.VmRange.hasLoc(VmAddr);
+        };
 
+        for (const auto &SegInfo : this->List | std::views::filter(Filter)) {
             const uint64_t VmIndex = SegInfo.VmRange.indexForLoc(VmAddr);
             if (!SegInfo.FileRange.hasIndex(VmIndex)) {
                 return std::nullopt;

@@ -5,8 +5,10 @@
 
 #pragma once
 
+#include <algorithm>
 #include <filesystem>
 #include <expected>
+#include <ranges>
 #include <unordered_map>
 #include <variant>
 
@@ -135,12 +137,12 @@ namespace Objects {
 
         auto OpenSubCacheFileMap(const SubCacheInfo &Info) const noexcept
             -> Error;
-        auto VerifySubCacheMap(const ADT::MemoryMap &Map) const noexcept
+        auto VerifySubCacheMap(const ADT::MemoryMap Map) const noexcept
             -> Error;
 
         explicit
         DyldSharedCache(
-            const ADT::MemoryMap &Map,
+            const ADT::MemoryMap Map,
             const enum CpuKind CpuKind,
             const std::filesystem::path &Path) noexcept
         : Base(Kind::DyldSharedCache), Info(Map, /*VmOffset=*/0, UINT64_MAX),
@@ -163,7 +165,7 @@ namespace Objects {
         }
     public:
         static auto
-        Open(const ADT::MemoryMap &Map,
+        Open(const ADT::MemoryMap Map,
              const std::filesystem::path &Path,
              ADT::FileMap::Prot SubCacheProt,
              const SubCacheProvidedPathMap &SubCachePathMap = {}) noexcept
@@ -414,7 +416,7 @@ namespace Objects {
 
         template <typename T = uint8_t, uint64_t Size = sizeof(T)>
         [[nodiscard]] inline auto
-        getMapForAddrRange(const ADT::Range &AddrRange,
+        getMapForAddrRange(const ADT::Range AddrRange,
                            const bool InsideMappings = true) const noexcept
             -> std::expected<std::pair<SingleCacheInfo, ADT::MemoryMap>, Error>
         {
@@ -429,11 +431,15 @@ namespace Objects {
                 return Result.value();
             }
 
-            for (const auto &[Name, SubCache] : this->SubCacheList) {
-                if (!this->subCacheHasAddress(SubCache, AddrRange.front())) {
-                    continue;
-                }
+            const auto HasAddrFilter =
+                [this, AddrRange](const auto &Pair) noexcept {
+                    return this->subCacheHasAddress(Pair.second,
+                                                    AddrRange.front());
+                };
 
+            for (const auto &[Name, SubCache] :
+                    this->SubCacheList | std::views::filter(HasAddrFilter))
+            {
                 if (const auto Error = this->OpenSubCacheFileMap(SubCache);
                     Error.Kind != OpenError::None)
                 {
@@ -467,12 +473,18 @@ namespace Objects {
             }
 
             if (InsideMappings) {
-                for (const auto &Mapping : mappingInfoList()) {
-                    if (Mapping.fileRange().contains(FileRange)) {
-                        return
-                            this->map().get<T, /*Verify=*/false, Size>(
-                                FileRange.front());
-                    }
+                const auto MappingIter =
+                    std::ranges::find_if(this->mappingInfoList(),
+                                         [FileRange](
+                                            const auto &Mapping) noexcept
+                                         {
+                                             return Mapping.fileRange()
+                                                .contains(FileRange);
+                                         });
+
+                if (MappingIter != this->mappingInfoList().end()) {
+                    return this->map().get<T, /*Verify=*/false, Size>(
+                        MappingIter->fileRange().front());
                 }
 
                 return nullptr;
@@ -499,11 +511,14 @@ namespace Objects {
                 return std::make_pair(Info, Result);
             }
 
-            for (const auto &[Name, SubCacheInfo] : this->SubCacheList) {
-                if (!this->subCacheHasAddress(SubCacheInfo, Address)) {
-                    continue;
-                }
+            const auto HasAddrFilter =
+                [this, Address](const auto &Pair) noexcept {
+                    return this->subCacheHasAddress(Pair.second, Address);
+                };
 
+            for (const auto &[Name, SubCacheInfo] :
+                    this->SubCacheList | std::views::filter(HasAddrFilter))
+            {
                 if (const auto Error = this->OpenSubCacheFileMap(SubCacheInfo);
                     Error.Kind != OpenError::None)
                 {
@@ -512,10 +527,11 @@ namespace Objects {
 
                 const auto &SubCache = SubCacheInfo.Info;
                 if (const auto Result =
-                        SubCache.getPtrForAddress<T, Size>(Address,
-                                                           InsideMappings,
-                                                           TotalAvailSize,
-                                                           FileOffsetOut))
+                        SubCache.template getPtrForAddress<T, Size>(
+                            Address,
+                            InsideMappings,
+                            TotalAvailSize,
+                            FileOffsetOut))
                 {
                     return std::make_pair(SubCache, Result);
                 }

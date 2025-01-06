@@ -32,19 +32,19 @@ namespace Objects {
     protected:
         ADT::MemoryMap Map;
 
-        static auto VerifyMap(const ADT::MemoryMap &Map) noexcept -> OpenError;
+        static auto VerifyMap(const ADT::MemoryMap Map) noexcept -> OpenError;
         static auto
-        VerifyLoadCommands(const ADT::MemoryMap &Map) noexcept -> OpenError;
+        VerifyLoadCommands(const ADT::MemoryMap Map) noexcept -> OpenError;
 
-        explicit MachO(const ADT::MemoryMap &Map) noexcept
+        explicit MachO(const ADT::MemoryMap Map) noexcept
         : Base(Kind::MachO), Map(Map) {}
 
-        explicit MachO(const ADT::MemoryMap &Map, const enum Kind Kind) noexcept
+        explicit MachO(const ADT::MemoryMap Map, const enum Kind Kind) noexcept
         : Base(Kind), Map(Map) {}
     public:
         ~MachO() noexcept override {}
 
-        static auto Open(const ADT::MemoryMap &Map) noexcept ->
+        static auto Open(const ADT::MemoryMap Map) noexcept ->
             std::expected<MachO *, Error>;
 
         [[nodiscard]] constexpr auto map() const noexcept {

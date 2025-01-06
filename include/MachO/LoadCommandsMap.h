@@ -6,6 +6,7 @@
 //
 
 #pragma once
+#include <ranges>
 
 #include "ADT/MemoryMap.h"
 #include "LoadCommands.h"
@@ -158,4 +159,5 @@ namespace MachO {
     };
 
     static_assert(std::forward_iterator<LoadCommandsMap::Iterator>);
+    static_assert(std::ranges::forward_range<LoadCommandsMap>);
 }

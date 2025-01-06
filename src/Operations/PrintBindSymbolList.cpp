@@ -155,7 +155,7 @@ namespace Operations {
     PrintBindActionInfoList(
         FILE *const OutFile,
         const std::string_view Name,
-        const std::vector<MachO::BindActionInfo> &List,
+        const std::span<MachO::BindActionInfo> List,
         const MachO::SegmentList &SegmentList,
         const MachO::LibraryList &LibraryList,
         bool Is64Bit,
@@ -336,15 +336,9 @@ namespace Operations {
                 return false;
             };
 
-            std::sort(BindActionInfoList.begin(),
-                      BindActionInfoList.end(),
-                      Comparator);
-            std::sort(LazyBindActionInfoList.begin(),
-                      LazyBindActionInfoList.end(),
-                      Comparator);
-            std::sort(WeakBindActionInfoList.begin(),
-                      WeakBindActionInfoList.end(),
-                      Comparator);
+            std::ranges::sort(BindActionInfoList, Comparator);
+            std::ranges::sort(LazyBindActionInfoList, Comparator);
+            std::ranges::sort(WeakBindActionInfoList, Comparator);
         }
 
         const auto OutFile = this->OutFile;

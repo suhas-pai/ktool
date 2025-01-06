@@ -794,7 +794,7 @@ namespace MachO {
             }
 
             [[nodiscard]]
-            constexpr static auto KindGetDesc(const Kind Kind) noexcept 
+            constexpr static auto KindGetDesc(const Kind Kind) noexcept
                 -> std::optional<std::string_view>
             {
                 switch (Kind) {
@@ -2278,7 +2278,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline auto
-        symbolEntryList(const ADT::MemoryMap &Map,
+        symbolEntryList(const ADT::MemoryMap Map,
                         const bool IsBigEndian) const noexcept
             -> std::optional<std::span<const Entry>>
         {
@@ -2287,7 +2287,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline auto
-        symbolEntryList(const ADT::MemoryMap &Map,
+        symbolEntryList(const ADT::MemoryMap Map,
                         const bool IsBigEndian) noexcept
             -> std::optional<std::span<Entry>>
         {
@@ -2296,7 +2296,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline auto
-        symbolEntryList64(const ADT::MemoryMap &Map,
+        symbolEntryList64(const ADT::MemoryMap Map,
                           const bool IsBigEndian) const noexcept
             -> std::optional<std::span<const Entry64>>
         {
@@ -2305,7 +2305,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline auto
-        symbolEntryList64(const ADT::MemoryMap &Map,
+        symbolEntryList64(const ADT::MemoryMap Map,
                           const bool IsBigEndian) noexcept
             -> std::optional<std::span<Entry64>>
         {
@@ -2314,7 +2314,7 @@ namespace MachO {
         }
 
         [[nodiscard]] inline auto
-        stringTable(const ADT::MemoryMap &Map, const bool IsBigEndian) noexcept
+        stringTable(const ADT::MemoryMap Map, const bool IsBigEndian) noexcept
             -> std::optional<std::span<const char>>
         {
             return Map.getRange<const char>(this->strRange(IsBigEndian));

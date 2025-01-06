@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include <ranges>
+
 #include "MachO/LibraryList.h"
 #include "MachO/LoadCommands.h"
 
@@ -10,10 +12,14 @@ namespace MachO {
     LibraryList::LibraryList(const MachO::LoadCommandsMap &Map,
                              const bool IsBigEndian) noexcept
     {
-        for (const auto &LC : Map) {
-            if (LC.isSharedLibrary(IsBigEndian)) {
-                this->add(cast<DylibCommand>(LC, IsBigEndian), IsBigEndian);
-            }
-        }
+        const auto Filter = [IsBigEndian](const auto &LC) noexcept {
+            return LC.isSharedLibrary(IsBigEndian);
+        };
+
+        std::ranges::for_each(Map | std::views::filter(Filter),
+                              [this, IsBigEndian](const auto &LC) {
+                                  this->add(cast<DylibCommand>(LC, IsBigEndian),
+                                            IsBigEndian);
+                              });
     }
 }

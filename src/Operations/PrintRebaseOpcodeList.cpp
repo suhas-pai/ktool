@@ -213,7 +213,7 @@ namespace Operations {
     static auto
     PrintRebaseOpcodeCollection(
         FILE *const OutFile,
-        const std::vector<RebaseOpcodeInfo> &Collection,
+        const std::span<RebaseOpcodeInfo> Collection,
         const bool Is64Bit,
         const PrintRebaseOpcodeList::Options &Opt) noexcept
     {
@@ -445,11 +445,7 @@ namespace Operations {
         const auto OutFile = this->OutFile;
         const auto &Opt = this->Opt;
 
-        PrintRebaseOpcodeCollection(OutFile,
-                                    RebaseOpcodeList,
-                                    Is64Bit,
-                                    Opt);
-
+        PrintRebaseOpcodeCollection(OutFile, RebaseOpcodeList, Is64Bit, Opt);
         return RunResult(RunResult::Error::None);
     }
 

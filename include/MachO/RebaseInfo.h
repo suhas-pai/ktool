@@ -519,7 +519,7 @@ namespace MachO {
           Is64Bit(Is64Bit) {}
 
         explicit
-        RebaseOpcodeList(const ADT::MemoryMap &Map,
+        RebaseOpcodeList(const ADT::MemoryMap Map,
                          const bool Is64Bit) noexcept
         : Begin(Map.base<const RebaseByte>()), End(Map.end<const RebaseByte>()),
           Is64Bit(Is64Bit) {}
@@ -946,7 +946,7 @@ namespace MachO {
         : Begin(Begin), End(End), Is64Bit(Is64Bit) {}
 
         explicit
-        RebaseActionList(const ADT::MemoryMap &Map, const bool Is64Bit) noexcept
+        RebaseActionList(const ADT::MemoryMap Map, const bool Is64Bit) noexcept
         : Begin(Map.base<const RebaseByte>()), End(Map.end<const RebaseByte>()),
           Is64Bit(Is64Bit) {}
 
@@ -1022,7 +1022,7 @@ namespace MachO {
 
         [[nodiscard]]
         inline auto
-        getMapForVmRange(ADT::Range &VmRange,
+        getMapForVmRange(const ADT::Range VmRange,
                          const SegmentList &SegmentList,
                          UnorderedMap &MapOut) const noexcept
             -> RebaseOpcodeParseResult

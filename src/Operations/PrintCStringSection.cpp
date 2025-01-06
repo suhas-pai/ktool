@@ -88,6 +88,16 @@ namespace Operations {
 
         uint64_t FileOffset;
         uint64_t Address;
+
+        [[nodiscard]]
+        constexpr auto operator==(const CStringInfo &Other) const noexcept {
+            return this->String == Other.String;
+        }
+
+        [[nodiscard]]
+        constexpr auto operator<=>(const CStringInfo &Other) const noexcept {
+            return this->String <=> Other.String;
+        }
     };
 
     static auto
@@ -290,11 +300,7 @@ namespace Operations {
         }
 
         if (Opt.Sort) {
-            std::sort(CStringInfoList.begin(),
-                      CStringInfoList.end(),
-                      [](const auto &Left, const auto &Right) noexcept {
-                        return Left.String < Right.String;
-                      });
+            std::ranges::sort(CStringInfoList);
         }
 
         const auto OutFile = this->OutFile;

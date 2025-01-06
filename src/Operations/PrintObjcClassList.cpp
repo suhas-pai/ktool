@@ -172,7 +172,7 @@ namespace Operations {
     static void
     PrintCategoryList(
         FILE *const OutFile,
-        const std::vector<MachO::ObjcClassCategoryInfo *> &CategoryList,
+        const std::vector<MachO::ObjcClassCategoryInfo *> CategoryList,
         const bool Is64Bit) noexcept
     {
         switch (CategoryList.size()) {
@@ -327,12 +327,12 @@ namespace Operations {
         } else {
             auto ObjcClassList = ObjcClassCollection.getAsList();
             if (!Options.SortKindList.empty()) {
-                std::sort(ObjcClassList.begin(),
-                          ObjcClassList.end(),
-                          [&](const auto &Lhs, const auto &Rhs) noexcept
-                {
-                    return CompareObjcClasses(*Lhs, *Rhs, Options);
-                });
+                std::ranges::sort(ObjcClassList,
+                                  [&](const auto Lhs, const auto Rhs) noexcept {
+                                    return CompareObjcClasses(*Lhs,
+                                                              *Rhs,
+                                                              Options);
+                                  });
             }
 
             const auto ObjcClassListSize = ObjcClassList.size();
@@ -381,8 +381,7 @@ namespace Operations {
 
                 std::println(OutFile, "");
                 if (Options.PrintCategories) {
-                    const auto &CategoryList = Node->categoryList();
-                    PrintCategoryList(OutFile, CategoryList, Is64Bit);
+                    PrintCategoryList(OutFile, Node->categoryList(), Is64Bit);
                 }
 
                 I++;

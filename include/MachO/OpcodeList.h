@@ -47,17 +47,21 @@ namespace MachO {
 
             template <typename T>
             [[nodiscard]] inline auto asByte() const noexcept {
-                return reinterpret_cast<const T *>(Iter);
+                return reinterpret_cast<const T *>(this->Iter);
             }
 
             template <typename T = uint64_t>
             [[nodiscard]] auto ReadUleb128() noexcept {
-                return Utils::ReadUleb128<T>(Iter, End, &Iter);
+                return Utils::ReadUleb128<T>(this->Iter,
+                                             this->End,
+                                             &this->Iter);
             }
 
             template <typename T = int64_t>
             [[nodiscard]] auto ReadSleb128() noexcept {
-                return Utils::ReadSleb128<T>(Iter, End, &Iter);
+                return Utils::ReadSleb128<T>(this->Iter,
+                                             this->End,
+                                             &this->Iter);
             }
 
             [[nodiscard]]

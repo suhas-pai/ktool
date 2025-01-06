@@ -103,7 +103,7 @@ namespace Utils {
         explicit PrintRange(const T Begin, const U Size) noexcept
         : Begin(Begin), Size(Size) {}
 
-        explicit PrintRange(const ADT::Range &Range) noexcept
+        explicit PrintRange(const ADT::Range Range) noexcept
         : Begin(Range.front()), Size(Range.size()) {}
 
         [[nodiscard]] constexpr auto front() const noexcept {
@@ -142,7 +142,7 @@ namespace Utils {
 
     auto
     PrintOffsetSizeInfo(FILE *OutFile,
-                        const ADT::Range &Range,
+                        const ADT::Range Range,
                         bool Is64Bit,
                         bool IsSize64Bit,
                         bool IsOutOfBounds,
@@ -567,7 +567,7 @@ struct std::formatter<ADT::Range> {
         return ctx.begin();
     }
 
-    auto format(const ADT::Range &Range, auto &ctx) const {
+    auto format(const ADT::Range Range, auto &ctx) const {
         if (Range.front() == 0) {
             return std::format_to(ctx.out(), "0x0-0x{:08x}", Range.size());
         }

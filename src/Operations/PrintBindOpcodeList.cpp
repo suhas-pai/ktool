@@ -156,8 +156,8 @@ namespace Operations {
 
                     const auto PtrSize = Utils::PointerSize(Is64Bit);
                     const auto AddrInSegOpt =
-                        Utils::AddAndCheckOverflow(
-                            OpcodeInfo.AddrInSeg, PtrSize);
+                        Utils::AddAndCheckOverflow(OpcodeInfo.AddrInSeg,
+                                                   PtrSize);
 
                     if (!AddrInSegOpt.has_value()) {
                         OpcodeInfo.AddrInSegOverflows = true;
@@ -279,7 +279,7 @@ namespace Operations {
         FILE *const OutFile,
         const std::string_view Name,
         const MachO::LibraryList &LibraryList,
-        const std::vector<BindOpcodeInfo> &List,
+        const std::span<BindOpcodeInfo> List,
         const bool Is64Bit,
         const struct PrintBindOpcodeList::Options &Options) noexcept
     {

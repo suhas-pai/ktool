@@ -89,12 +89,12 @@ namespace Operations {
 
         return Verbose ?
             Mach::CpuKindGetDesc(CpuKind)
-                .and_then([](const auto V) noexcept {
+                .and_then([](const auto &&V) noexcept {
                     return std::optional<std::string>(V);
                 })
                 .value_or(FallBack()) :
             Mach::CpuKindGetString(CpuKind)
-                .and_then([](const auto V) noexcept {
+                .and_then([](const auto &&V) noexcept {
                     return std::optional<std::string>(V);
                 })
                 .value_or(FallBack());
@@ -112,12 +112,12 @@ namespace Operations {
 
         return Verbose ?
             Mach::CpuKindAndSubKindGetString(CpuKind, SubKind)
-                .and_then([](const auto V) noexcept {
+                .and_then([](const auto &&V) noexcept {
                     return std::optional<std::string>(V);
                 })
                 .value_or(FallBack()) :
             Mach::CpuKindAndSubKindGetDesc(CpuKind, SubKind)
-                .and_then([](const auto V) noexcept {
+                .and_then([](const auto &&V) noexcept {
                     return std::optional<std::string>(V);
                 })
                 .value_or(FallBack());
@@ -140,7 +140,7 @@ namespace Operations {
         const auto CpuKindString = StringForCpuKind(CpuKind, Opt.Verbose);
         const auto SubKindString =
             StringForSubKind(CpuKind, SubKind, Opt.Verbose);
-        
+
         const auto FallBack = [FileKind]() noexcept {
             return std::format("<Unknown: 0x{:02x}>",
                                static_cast<int32_t>(FileKind));
@@ -149,12 +149,12 @@ namespace Operations {
         const auto FileKindString =
             Opt.Verbose ?
                 MachO::FileKindGetString(FileKind)
-                    .and_then([](const auto V) noexcept {
+                    .and_then([](const auto &&V) noexcept {
                         return std::optional<std::string>(V);
                     })
                     .value_or(FallBack()) :
                 MachO::FileKindGetDesc(FileKind)
-                    .and_then([](const auto V) noexcept {
+                    .and_then([](const auto &&V) noexcept {
                         return std::optional<std::string>(V);
                     })
                     .value_or(FallBack());

@@ -97,6 +97,16 @@ namespace Operations {
         std::string_view SectionName;
 
         std::string String;
+
+        [[nodiscard]]
+        constexpr auto operator==(const ExportInfo &Other) const noexcept {
+            return this->String == Other.String;
+        }
+
+        [[nodiscard]]
+        constexpr auto operator<=>(const ExportInfo &Other) const noexcept {
+            return this->String <=> Other.String;
+        }
     };
 
     [[nodiscard]] static auto
@@ -499,13 +509,7 @@ namespace Operations {
         }
 
         if (Opt.Sort) {
-            const auto Comparator =
-                [](const ExportInfo &Lhs, const ExportInfo &Rhs) noexcept
-            {
-                return Lhs.String < Rhs.String;
-            };
-
-            std::sort(ExportList.begin(), ExportList.end(), Comparator);
+            std::ranges::sort(ExportList);
         }
 
         auto Counter = static_cast<uint32_t>(1);

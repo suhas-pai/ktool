@@ -39,14 +39,11 @@ namespace ADT {
         }
 
         const auto Range = ADT::Range::FromEnd(Offset, OffsetEndOpt.value());
-        const auto Predicate = [&Range](const ADT::Range &RhsRange) noexcept {
+        const auto Predicate = [Range](const ADT::Range RhsRange) noexcept {
             return Range.overlaps(RhsRange);
         };
 
-        const auto RangeListEnd = RangeList.cend();
-        if (std::find_if(RangeList.cbegin(), RangeListEnd, Predicate) !=
-            RangeListEnd)
-        {
+        if (std::ranges::find_if(RangeList, Predicate) != RangeList.end()) {
             return Error::OverlappingRanges;
         }
 

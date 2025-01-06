@@ -54,7 +54,7 @@ namespace DyldSharedCache {
         : ADT::Trie<DylibIndexInfo>(Begin, End, TrieParser, Info) {}
 
         explicit
-        ProgramTrieMap(const ADT::MemoryMap &Map,
+        ProgramTrieMap(const ADT::MemoryMap Map,
                        ADT::TrieParser &TrieParser) noexcept
         : ADT::Trie<DylibIndexInfo>(Map, TrieParser, Info) {}
 

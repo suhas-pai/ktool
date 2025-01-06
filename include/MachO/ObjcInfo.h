@@ -356,11 +356,10 @@ namespace MachO {
                 return Lhs->name() == ActionSymbol;
             };
 
-            const auto Begin = ExternalAndRootClassList.cbegin();
-            const auto End = ExternalAndRootClassList.cend();
-            const auto Iter = std::find_if(Begin, End, Pred);
+            const auto Iter =
+                std::ranges::find_if(ExternalAndRootClassList, Pred);
 
-            if (Iter != End) {
+            if (Iter != ExternalAndRootClassList.end()) {
                 SetSuperClassForClassInfo(*Iter, Info);
                 return;
             }
@@ -880,7 +879,7 @@ namespace MachO {
         ObjcClassCategoryInfoList() noexcept = default;
 
         auto
-        CollectFrom(const ADT::MemoryMap &Map,
+        CollectFrom(const ADT::MemoryMap Map,
                     const ADT::DeVirtualizer &DeVirtualizer,
                     const ADT::AddressResolver &AddrResolver,
                     const SegmentList &SegmentList,

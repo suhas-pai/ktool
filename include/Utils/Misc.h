@@ -102,7 +102,7 @@ namespace Utils {
     }
 
     template <std::unsigned_integral T>
-    constexpr auto to_uint(const std::string_view String) noexcept
+    [[nodiscard]] constexpr auto to_uint(const std::string_view String) noexcept
         -> std::optional<T>
     {
         auto Front = String.front();

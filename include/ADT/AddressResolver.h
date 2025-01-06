@@ -124,7 +124,7 @@ namespace ADT {
             std::variant<BindParseError, RebaseParseError, PatchParseError>;
 
         static auto
-        FromLoadCommands(const ADT::MemoryMap &Map,
+        FromLoadCommands(const ADT::MemoryMap Map,
                          const MachO::Header &Header,
                          const MachO::DyldInfoCommand *DyldInfo,
                          const MachO::LinkeditDataCommand *ChainedFixups,

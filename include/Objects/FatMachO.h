@@ -16,7 +16,7 @@ namespace Objects {
     protected:
         ADT::MemoryMap Map;
 
-        explicit FatMachO(const ADT::MemoryMap &Map) noexcept
+        explicit FatMachO(const ADT::MemoryMap Map) noexcept
         : Base(Kind::FatMachO), Map(Map) {}
     public:
         enum class OpenError {
@@ -38,10 +38,10 @@ namespace Objects {
 
         ~FatMachO() noexcept override {}
 
-        static auto Open(const ADT::MemoryMap &Map) noexcept
+        static auto Open(const ADT::MemoryMap Map) noexcept
             -> std::expected<FatMachO *, Error>;
 
-        static auto OpenAndValidateArchs(const ADT::MemoryMap &Map) noexcept
+        static auto OpenAndValidateArchs(const ADT::MemoryMap Map) noexcept
             -> std::expected<FatMachO *, Error>;
 
         [[nodiscard]] constexpr auto map() const noexcept {

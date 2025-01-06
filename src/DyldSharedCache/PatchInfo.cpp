@@ -5,6 +5,7 @@
 //  Created by Suhas Pai on 12/16/24.
 //
 
+#include <ranges>
 #include <variant>
 
 #include "DyldSharedCache/PatchInfo.h"
@@ -289,7 +290,7 @@ namespace DyldSharedCache {
         }
 
         const auto ImagePatchLocationsList = ImagePatchLocationsListOpt.value();
-        const auto &ImageExportList =
+        const auto ImageExportList =
             ImagePatchExportsList.subspan(ImageInfo.PatchExportsStartIndex,
                                           ImageInfo.PatchExportsCount);
 
@@ -311,7 +312,7 @@ namespace DyldSharedCache {
             }
 
             const auto DscBaseAddress = this->DeVirtualizer.getBaseAddress();
-            const auto &ExportPatchLocations =
+            const auto ExportPatchLocations =
                 ImagePatchLocationsList.subspan(Export.PatchLocationsStartIndex,
                                                 Export.PatchLocationsCount);
 
@@ -492,7 +493,7 @@ namespace DyldSharedCache {
                 continue;
             }
 
-            const auto &ImageClientPatches =
+            const auto ImageClientPatches =
                 ImageClientPatchesList.subspan(
                     ImageClient.PatchExportsStartIndex,
                     ImageClient.PatchExportsCount);
@@ -534,34 +535,43 @@ namespace DyldSharedCache {
                             continue;
                         }
 
-                        const auto &LocationList =
+                        const auto ImagePatchLocationListForClient =
                             ImagePatchLocationsList.subspan(
                                 ClientPatch.PatchLocationsStartIndex,
                                 ClientPatch.PatchLocationsCount);
 
-                        for (const auto &Loc : LocationList) {
-                            const auto FullOffset =
-                                this->ImageBaseAddress + Loc.DylibOffsetOfUse;
+                        auto LocationList = ImagePatchLocationListForClient
+                            | std::views::filter(
+                                [this, VmRange](const auto &Loc) {
+                                    return VmRange.hasLoc(
+                                        this->ImageBaseAddress +
+                                        Loc.DylibOffsetOfUse);
+                                })
+                            | std::views::transform(
+                                [this, &ExportInfo, ExportName](const auto &Loc)
+                                    -> std::pair<uint64_t, PatchLocation>
+                                {
+                                    const auto PatchLoc = PatchLocation {
+                                        .ExportName = ExportName,
+                                        .Addend = Loc.Addend,
+                                        .FullImplAddress =
+                                            this->ImageBaseAddress +
+                                            ExportInfo.DylibOffsetOfImpl,
+                                        .IsAuthenticated =
+                                            Loc.Authenticated != 0,
+                                        .UsesAddressDiversity =
+                                            Loc.UsesAddressDiversity != 0,
+                                        .IsWeakImport = false,
+                                        .Key = static_cast<uint8_t>(Loc.Key)
+                                    };
 
-                            if (!VmRange.hasLoc(FullOffset)) {
-                                continue;
-                            }
+                                    return std::make_pair(
+                                        this->ImageBaseAddress +
+                                            Loc.DylibOffsetOfUse,
+                                        std::move(PatchLoc));
+                                });
 
-                            const auto PatchLoc = PatchLocation {
-                                .ExportName = ExportName,
-                                .Addend = Loc.getAddend(),
-                                .FullImplAddress =
-                                    this->ImageBaseAddress +
-                                    ExportInfo.DylibOffsetOfImpl,
-                                .IsAuthenticated = Loc.Authenticated != 0,
-                                .UsesAddressDiversity =
-                                    Loc.UsesAddressDiversity != 0,
-                                .IsWeakImport = false,
-                                .Key = static_cast<uint8_t>(Loc.Key)
-                            };
-
-                            Map.emplace(FullOffset, PatchLoc);
-                        }
+                        Map.insert_range(LocationList);
                     }
 
                     break;
@@ -607,32 +617,38 @@ namespace DyldSharedCache {
                             continue;
                         }
 
-                        const auto &LocationList =
+                        const auto ImagePatchLocationListForClient =
                             ImagePatchLocationsList.subspan(
                                 ClientPatch.PatchLocationsStartIndex,
                                 ClientPatch.PatchLocationsCount);
 
-                        for (const auto &Loc : LocationList) {
-                            const auto PatchLoc = PatchLocation {
-                                .ExportName = ExportName,
-                                .Addend = Loc.Addend,
-                                .FullImplAddress =
-                                    this->ImageBaseAddress +
-                                    ExportInfo.DylibOffsetOfImpl,
-                                .IsAuthenticated = Loc.Authenticated != 0,
-                                .UsesAddressDiversity =
-                                    Loc.UsesAddressDiversity != 0,
-                                .IsWeakImport = false,
-                                .Key = static_cast<uint8_t>(Loc.Key)
-                            };
+                        auto PatchLocList = ImagePatchLocationListForClient
+                            | std::views::filter([VmRange](const auto &Loc) {
+                                return VmRange.hasLoc(Loc.CacheOffsetOfUse);
+                              })
+                            | std::views::transform(
+                                [this, &ExportInfo, ExportName](const auto &Loc)
+                                    -> std::pair<uint64_t, PatchLocation>
+                                {
+                                    const auto PatchLoc = PatchLocation {
+                                        .ExportName = ExportName,
+                                        .Addend = Loc.Addend,
+                                        .FullImplAddress =
+                                            this->ImageBaseAddress +
+                                            ExportInfo.DylibOffsetOfImpl,
+                                        .IsAuthenticated =
+                                            Loc.Authenticated != 0,
+                                        .UsesAddressDiversity =
+                                            Loc.UsesAddressDiversity != 0,
+                                        .IsWeakImport = false,
+                                        .Key = static_cast<uint8_t>(Loc.Key)
+                                    };
 
-                            if (!VmRange.hasLoc(Loc.CacheOffsetOfUse)) {
-                                continue;
-                            }
+                                    return std::make_pair(Loc.CacheOffsetOfUse,
+                                                          std::move(PatchLoc));
+                                });
 
-                            Map.emplace(Loc.CacheOffsetOfUse, PatchLoc);
-                        }
-
+                        Map.insert_range(PatchLocList);
                         if (Utils::IndexAndCountOutOfBounds(
                                 ClientPatch.PatchLocationsStartIndex,
                                 ClientPatch.PatchLocationsCount,
@@ -641,31 +657,38 @@ namespace DyldSharedCache {
                             continue;
                         }
 
-                        const auto &GOTLocationList =
+                        const auto GotPatchListForClient =
                             GOTPatchList.subspan(
                                 ClientPatch.PatchLocationsStartIndex,
                                 ClientPatch.PatchLocationsCount);
 
-                        for (const auto &Loc : GOTLocationList) {
-                            if (!VmRange.hasLoc(Loc.CacheOffsetOfUse)) {
-                                continue;
-                            }
+                        auto GOTLocList = GotPatchListForClient
+                            | std::views::filter([VmRange](const auto &Loc) {
+                                return VmRange.hasLoc(Loc.CacheOffsetOfUse);
+                            })
+                            | std::views::transform(
+                                [this, &ExportInfo, ExportName](const auto &Loc)
+                                    -> std::pair<uint64_t, PatchLocation>
+                                {
+                                    const auto PatchLoc = PatchLocation {
+                                        .ExportName = ExportName,
+                                        .Addend = Loc.Addend,
+                                        .FullImplAddress =
+                                            this->ImageBaseAddress +
+                                            ExportInfo.DylibOffsetOfImpl,
+                                        .IsAuthenticated =
+                                            Loc.Authenticated != 0,
+                                        .UsesAddressDiversity =
+                                            Loc.UsesAddressDiversity != 0,
+                                        .IsWeakImport = false,
+                                        .Key = static_cast<uint8_t>(Loc.Key)
+                                    };
 
-                            const auto PatchLoc = PatchLocation {
-                                .ExportName = ExportName,
-                                .Addend = Loc.Addend,
-                                .FullImplAddress =
-                                    this->ImageBaseAddress +
-                                    ExportInfo.DylibOffsetOfImpl,
-                                .IsAuthenticated = Loc.Authenticated != 0,
-                                .UsesAddressDiversity =
-                                    Loc.UsesAddressDiversity != 0,
-                                .IsWeakImport = false,
-                                .Key = static_cast<uint8_t>(Loc.Key)
-                            };
+                                    return std::make_pair(Loc.CacheOffsetOfUse,
+                                                          std::move(PatchLoc));
+                                });
 
-                            Map.emplace(Loc.CacheOffsetOfUse, PatchLoc);
-                        }
+                        Map.insert_range(GOTLocList);
                     }
 
                     break;
@@ -707,34 +730,45 @@ namespace DyldSharedCache {
                             continue;
                         }
 
-                        const auto &LocationList =
+                        const auto ImagePatchLocationListForClient =
                             ImagePatchLocationsList.subspan(
                                 ClientPatch.PatchLocationsStartIndex,
                                 ClientPatch.PatchLocationsCount);
 
-                        for (const auto &Loc : LocationList) {
-                            const auto FullAddress =
-                                this->ImageBaseAddress + Loc.DylibOffsetOfUse;
+                        auto LocationList = ImagePatchLocationListForClient
+                            | std::views::filter(
+                                [this, VmRange](const auto &Loc) {
+                                    return VmRange.hasLoc(
+                                        this->ImageBaseAddress +
+                                        Loc.DylibOffsetOfUse);
+                                }
+                            )
+                            | std::views::transform(
+                                [this, &ExportInfo, ExportName](const auto &Loc)
+                                    -> std::pair<uint64_t, PatchLocation>
+                                {
+                                    const auto PatchLoc = PatchLocation {
+                                        .ExportName = ExportName,
+                                        .Addend = Loc.getAddend(),
+                                        .FullImplAddress =
+                                            this->ImageBaseAddress +
+                                            ExportInfo.DylibOffsetOfImpl,
+                                        .IsAuthenticated =
+                                            Loc.Auth.Authenticated != 0,
+                                        .UsesAddressDiversity =
+                                            Loc.Auth.UsesAddressDiversity != 0,
+                                        .IsWeakImport = Loc.isWeakImport(),
+                                        .Key = static_cast<uint8_t>(
+                                            Loc.Auth.KeyIsD)
+                                    };
 
-                            if (!VmRange.hasLoc(FullAddress)) {
-                                continue;
-                            }
+                                    return std::make_pair(
+                                        this->ImageBaseAddress +
+                                            Loc.DylibOffsetOfUse,
+                                        std::move(PatchLoc));
+                                });
 
-                            const auto PatchLoc = PatchLocation {
-                                .ExportName = ExportName,
-                                .Addend = Loc.getAddend(),
-                                .FullImplAddress =
-                                    this->ImageBaseAddress +
-                                    ExportInfo.DylibOffsetOfImpl,
-                                .IsAuthenticated = Loc.Auth.Authenticated != 0,
-                                .UsesAddressDiversity =
-                                    Loc.Auth.UsesAddressDiversity != 0,
-                                .IsWeakImport = Loc.isWeakImport(),
-                                .Key = static_cast<uint8_t>(Loc.Auth.KeyIsD),
-                            };
-
-                            Map.emplace(FullAddress, PatchLoc);
-                        }
+                        Map.insert_range(LocationList);
 
                         if (Utils::IndexAndCountOutOfBounds(
                                 ClientPatch.PatchLocationsStartIndex,
@@ -744,31 +778,41 @@ namespace DyldSharedCache {
                             continue;
                         }
 
-                        const auto &GOTLocationList =
+                        const auto GOTPatchLocationListForClient =
                             GOTPatchList.subspan(
                                 ClientPatch.PatchLocationsStartIndex,
                                 ClientPatch.PatchLocationsCount);
 
-                        for (const auto &Loc : GOTLocationList) {
-                            if (!VmRange.hasLoc(Loc.CacheOffsetOfUse)) {
-                                continue;
-                            }
+                        auto GOTLocationList = GOTPatchLocationListForClient
+                            | std::views::filter(
+                                [VmRange](const auto &Loc) {
+                                    return VmRange.hasLoc(Loc.CacheOffsetOfUse);
+                                }
+                            )
+                            | std::views::transform(
+                                [this, &ExportInfo, ExportName](const auto &Loc)
+                                    -> std::pair<uint64_t, PatchLocation>
+                                {
+                                    const auto PatchLoc = PatchLocation {
+                                        .ExportName = ExportName,
+                                        .Addend = Loc.getAddend(),
+                                        .FullImplAddress =
+                                            this->ImageBaseAddress +
+                                            ExportInfo.DylibOffsetOfImpl,
+                                        .IsAuthenticated =
+                                            Loc.Auth.Authenticated != 0,
+                                        .UsesAddressDiversity =
+                                            Loc.Auth.UsesAddressDiversity != 0,
+                                        .IsWeakImport = Loc.isWeakImport(),
+                                        .Key = static_cast<uint8_t>(
+                                            Loc.Auth.KeyIsD)
+                                    };
 
-                            const auto PatchLoc = PatchLocation {
-                                .ExportName = ExportName,
-                                .Addend = Loc.getAddend(),
-                                .FullImplAddress =
-                                    this->ImageBaseAddress +
-                                    ExportInfo.DylibOffsetOfImpl,
-                                .IsAuthenticated = Loc.Auth.Authenticated != 0,
-                                .UsesAddressDiversity =
-                                    Loc.Auth.UsesAddressDiversity != 0,
-                                .IsWeakImport = Loc.isWeakImport(),
-                                .Key = static_cast<uint8_t>(Loc.Auth.KeyIsD),
-                            };
+                                    return std::make_pair(Loc.CacheOffsetOfUse,
+                                                          std::move(PatchLoc));
+                                });
 
-                            Map.emplace(Loc.CacheOffsetOfUse, PatchLoc);
-                        }
+                        Map.insert_range(GOTLocationList);
                     }
 
                     break;

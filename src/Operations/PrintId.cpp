@@ -50,16 +50,17 @@ namespace Operations {
         {
             using Kind = MachO::LoadCommandKind;
             if (const auto ID = Iter.dyn_cast<Kind::IdDylib>()) {
-                auto Name = std::string_view("<malformed>");
-                if (const auto NameOpt = ID->name(IsBigEndian)) {
-                    Name = NameOpt.value();
-                } else {
-                    if (!Opt.Verbose) {
+                const auto NameOpt = ID->name(IsBigEndian);
+                if (!Opt.Verbose) {
+                    if (!NameOpt.has_value()) {
                         return RunResult(RunResult::Error::BadIdString);
                     }
                 }
 
-                std::println(OutFile, "\"{}\"", Name);
+                std::println(OutFile,
+                             "\"{}\"",
+                             NameOpt.value_or("<Malformed>"));
+
                 if (Opt.Verbose) {
                     const auto &Dylib = ID->Dylib;
                     const auto CurrentVersion =

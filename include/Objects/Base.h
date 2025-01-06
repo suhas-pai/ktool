@@ -19,7 +19,7 @@ namespace Objects {
             assert(Kind != Kind::None);
         }
 
-        explicit Base(const ADT::MemoryMap &Map) noexcept = delete;
+        explicit Base(const ADT::MemoryMap Map) noexcept = delete;
         virtual ~Base() noexcept = 0;
 
         [[nodiscard]] constexpr auto kind() const noexcept {

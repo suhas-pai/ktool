@@ -18,7 +18,7 @@ namespace ADT {
                          void **EndOut = nullptr) const noexcept -> void * = 0;
 
         [[nodiscard]] virtual auto
-        getMapForVmRange(const ADT::Range &Range,
+        getMapForVmRange(const ADT::Range Range,
                          bool IgnoreSectionBounds = false) const noexcept
             -> std::optional<ADT::MemoryMap> = 0;
 

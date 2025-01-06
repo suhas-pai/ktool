@@ -7,12 +7,13 @@
 
 #include "ADT/AddressResolver.h"
 #include "Dyld3/ChainedFixups.h"
+#include "DyldSharedCache/Headers.h"
 #include "MachO/LoadCommands.h"
 
 namespace ADT {
     static auto
     ParseBindAndRebaseMapFromDyldInfo(
-        const ADT::MemoryMap &Map,
+        const ADT::MemoryMap Map,
         const MachO::DyldInfoCommand &DyldInfo,
         const MachO::SegmentList &SegmentList,
         const bool IsBigEndian,
@@ -143,24 +144,33 @@ namespace ADT {
             return Dyld3::ChainedPointerKind::None;
         }
 
-        const auto SegmentCount = Starts->segmentCount(IsBigEndian);
-        for (auto I = uint32_t(); I != SegmentCount; I++) {
-            const auto SegOffset = Starts->segmentOffset(I, IsBigEndian);
-            if (SegOffset == 0) {
-                continue;
-            }
-
-            const auto Segment =
-                Map.get<Dyld3::ChainedStartsInSegment>(
-                    FixupsHeaderRange.front() + StartsOffset + SegOffset);
-
-            if (Segment == nullptr) {
-                continue;
-            }
-
-            if (Segment->pageCount(IsBigEndian) != 0) {
+        auto Monad =
+            std::ranges::iota_view(static_cast<uint32_t>(0),
+                                   Starts->segmentCount(IsBigEndian))
+            | std::views::transform(
+                [Starts, IsBigEndian](const auto I) noexcept {
+                    return Starts->segmentOffset(I, IsBigEndian);
+                })
+            | std::views::transform(
+                [Map, FixupsHeaderRange, StartsOffset](const auto Offset) {
+                    return
+                        Map.get<Dyld3::ChainedStartsInSegment>(
+                            FixupsHeaderRange.front() +
+                            StartsOffset +
+                            Offset);
+                })
+            | std::views::filter([](const auto Segment) noexcept {
+                return Segment != nullptr;
+            })
+            | std::views::filter([](const auto Segment) noexcept {
+                return Segment->pageCount(0);
+            })
+            | std::views::transform([IsBigEndian](const auto Segment) {
                 return Segment->pointerFormat(IsBigEndian);
-            }
+            });
+
+        if (!Monad.empty()) {
+            return Monad.front();
         }
 
         return Dyld3::ChainedPointerKind::None;
@@ -168,7 +178,7 @@ namespace ADT {
 
     auto
     AddressResolver::FromLoadCommands(
-        const ADT::MemoryMap &Map,
+        const ADT::MemoryMap Map,
         const MachO::Header &Header,
         const MachO::DyldInfoCommand *const DyldInfo,
         const MachO::LinkeditDataCommand *const ChainedFixups,
@@ -280,25 +290,25 @@ namespace ADT {
             return std::unexpected(PatchParseResult);
         }
 
-        auto SlideInfoVersion = static_cast<uint32_t>(0);
+        auto SlideInfoVersion =
+            DyldSharedCache::SlideInfoVersion(static_cast<uint32_t>(0));
+
         if (SlideInfo != nullptr) {
-            SlideInfoVersion = SlideInfo->Version;
+            SlideInfoVersion = SlideInfo->version();
         }
 
         auto SlideInfoBaseAddress = static_cast<uint64_t>(0);
         switch (SlideInfoVersion) {
-            case 0:
-                break;
-            case 1:
-            case 3:
-            case 5:
+            case DyldSharedCache::SlideInfoVersion::V1:
+            case DyldSharedCache::SlideInfoVersion::V3:
+            case DyldSharedCache::SlideInfoVersion::V5:
                 if (const auto BaseAddressOpt = Image.dsc().baseAddress()) {
                     SlideInfoBaseAddress = BaseAddressOpt.value();
                 }
 
                 break;
-            case 2:
-            case 4:
+            case DyldSharedCache::SlideInfoVersion::V2:
+            case DyldSharedCache::SlideInfoVersion::V4:
                 SlideInfoBaseAddress =
                     static_cast<const ::DyldSharedCache::SlideInfoV2 *>(
                         SlideInfo)->ValueAdd;
@@ -310,7 +320,7 @@ namespace ADT {
                                ChainedFixupsKind,
                                std::move(PatchExportMap),
                                SegmentList,
-                               SlideInfoVersion,
+                               static_cast<uint32_t>(SlideInfoVersion),
                                SlideInfoBaseAddress,
                                BaseAddress);
     }

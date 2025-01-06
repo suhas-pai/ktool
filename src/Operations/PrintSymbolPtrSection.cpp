@@ -91,9 +91,9 @@ namespace Operations {
     };
 
     static auto
-    GetSectionAtOrdinal(const std::vector<SegmentInfo> &SegmentList,
+    GetSectionAtOrdinal(const std::span<SegmentInfo> SegmentList,
                         const uint32_t Ordinal,
-                        std::string_view &SegmentName) noexcept
+                        std::string_view SegmentName) noexcept
         -> std::optional<std::string_view>
     {
         assert(Ordinal != 0);
@@ -115,8 +115,8 @@ namespace Operations {
 
     struct SymbolInfo {
         std::string_view String;
-
         uint64_t Index;
+
         MachO::SymTabCommand::Entry::Kind Kind;
         uint8_t Section;
         uint8_t DylibOrdinal;
@@ -129,7 +129,7 @@ namespace Operations {
     auto
     IterateIndices(const MachO::SymTabCommand &SymTab,
                    const MachO::DynamicSymTabCommand &DynamicSymTab,
-                   const ADT::MemoryMap &Map,
+                   const ADT::MemoryMap Map,
                    const uint32_t Reserved1,
                    const bool SkipInvalidIndices,
                    const uint64_t Limit,
@@ -243,7 +243,7 @@ namespace Operations {
     CompareEntriesBySortKind(
         const SymbolInfo &Lhs,
         const SymbolInfo &Rhs,
-        const std::vector<DylibInfo> &DylibInfoList,
+        const std::span<DylibInfo> DylibInfoList,
         const PrintSymbolPtrSection::Options::SortKind SortKind) noexcept
     {
         switch (SortKind) {
@@ -264,8 +264,8 @@ namespace Operations {
                     return std::strong_ordering::less;
                 }
 
-                LhsDylibPath = DylibInfoList.at(Lhs.DylibOrdinal - 1).Path;
-                RhsDylibPath = DylibInfoList.at(Rhs.DylibOrdinal - 1).Path;
+                LhsDylibPath = DylibInfoList[Lhs.DylibOrdinal - 1].Path;
+                RhsDylibPath = DylibInfoList[Rhs.DylibOrdinal - 1].Path;
 
                 return LhsDylibPath <=> RhsDylibPath;
             }
@@ -536,7 +536,7 @@ namespace Operations {
                 return Compare == std::strong_ordering::less;
             };
 
-            std::sort(SymbolInfoList.begin(), SymbolInfoList.end(), Lambda);
+            std::ranges::sort(SymbolInfoList, Lambda);
         }
 
         const auto MaxIndexDigitCount =

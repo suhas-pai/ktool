@@ -108,7 +108,7 @@ namespace Objects {
 
     static auto
     VerifyHeaderMagicAndCpuKind(
-        const std::string_view &Magic,
+        const std::string_view Magic,
         enum DyldSharedCache::CpuKind &CpuKindOut) noexcept
             -> DyldSharedCache::OpenError
     {
@@ -178,7 +178,7 @@ namespace Objects {
     }
 
     static auto
-    VerifyMap(const ADT::MemoryMap &Map,
+    VerifyMap(const ADT::MemoryMap Map,
               enum DyldSharedCache::CpuKind &CpuKindOut) noexcept
         -> DyldSharedCache::OpenError
     {
@@ -244,7 +244,7 @@ namespace Objects {
     }
 
     auto
-    DyldSharedCache::VerifySubCacheMap(const ADT::MemoryMap &Map) const noexcept
+    DyldSharedCache::VerifySubCacheMap(const ADT::MemoryMap Map) const noexcept
         -> Error
     {
         using OpenError = DyldSharedCache::OpenError;
@@ -579,7 +579,7 @@ namespace Objects {
 
     auto
     DyldSharedCache::Open(
-        const ADT::MemoryMap &Map,
+        const ADT::MemoryMap Map,
         const std::filesystem::path &Path,
         const ADT::FileMap::Prot SubCacheProt,
         const SubCacheProvidedPathMap &SubCacheProvidedPathMap) noexcept
@@ -624,13 +624,17 @@ namespace Objects {
 
         const auto MappingAndSlideInfoSpan =
             this->headerV7().mappingWithSlideInfoSpan();
+        const auto HasSlideInfoFilter =
+            [](const auto &MappingWithSlideInfo) noexcept {
+                return MappingWithSlideInfo.SlideInfoFileOffset != 0;
+            };
 
         for (const auto &MappingWithSlideInfo :
-                std::views::reverse(MappingAndSlideInfoSpan))
+                MappingAndSlideInfoSpan |
+                std::views::reverse |
+                std::views::filter(HasSlideInfoFilter))
         {
-            if (MappingWithSlideInfo.SlideInfoFileOffset != 0) {
-                return MappingWithSlideInfo.slideInfoFileRange();
-            }
+            return MappingWithSlideInfo.slideInfoFileRange();
         }
 
         return std::nullopt;

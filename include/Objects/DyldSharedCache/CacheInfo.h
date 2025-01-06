@@ -4,6 +4,7 @@
  */
 
 #pragma once
+#include <ranges>
 
 #include "ADT/MemoryMap.h"
 #include "DyldSharedCache/Headers.h"
@@ -26,7 +27,7 @@ namespace Objects {
         : FileSuffix(FileSuffix), VmOffset(VmOffset), MaxVmSize(MaxVmSize) {}
 
         constexpr
-        DyldSharedSingleCacheInfo(const ADT::MemoryMap &Map,
+        DyldSharedSingleCacheInfo(const ADT::MemoryMap Map,
                                   const uint64_t VmOffset,
                                   const uint64_t MaxVmSize) noexcept
         : Map(Map), VmOffset(VmOffset), MaxVmSize(MaxVmSize) {}
@@ -187,41 +188,45 @@ namespace Objects {
             }
 
             if (InsideMappings) {
-                for (const auto &Mapping : this->mappingInfoList()) {
-                    if (const auto Offset =
-                            Mapping.getFileOffsetFromAddr(Addr, MaxSizeOut))
-                    {
-                        return Offset.value();
-                    }
-                }
-            } else {
-                const auto FirstMappingAddress =
-                    this->mappingInfoList().front().Address;
+                auto Mappings = this->mappingInfoList()
+                    | std::views::transform([=](const auto &Mapping) noexcept {
+                        return Mapping.getFileOffsetFromAddr(Addr, MaxSizeOut);
+                      })
+                    | std::views::filter([](const auto &Opt) noexcept {
+                        return Opt.has_value();
+                      });
 
-                if (Addr < FirstMappingAddress) {
-                    return std::nullopt;
+                if (!Mappings.empty()) {
+                    return Mappings.front();
                 }
 
-                const auto Offset = Addr - FirstMappingAddress;
-                const auto DscSize = this->map().range().size();
-
-                if (Offset >= DscSize) {
-                    return std::nullopt;
-                }
-
-                if (MaxSizeOut != nullptr) {
-                    *MaxSizeOut = DscSize - Offset;
-                }
-
-                return Offset;
+                return std::nullopt;
             }
 
-            return std::nullopt;
+            const auto FirstMappingAddress =
+                this->mappingInfoList().front().Address;
+
+            if (Addr < FirstMappingAddress) {
+                return std::nullopt;
+            }
+
+            const auto Offset = Addr - FirstMappingAddress;
+            const auto DscSize = this->map().range().size();
+
+            if (Offset >= DscSize) {
+                return std::nullopt;
+            }
+
+            if (MaxSizeOut != nullptr) {
+                *MaxSizeOut = DscSize - Offset;
+            }
+
+            return Offset;
         }
 
         [[nodiscard]] inline auto
         getFileRangeForAddrRange(
-            const ADT::Range &AddrRange,
+            const ADT::Range AddrRange,
             const bool InsideMappings = true) const noexcept
                 -> std::optional<ADT::Range>
         {
@@ -307,7 +312,7 @@ namespace Objects {
 
         template <typename T = uint8_t, uint64_t Size = sizeof(T)>
         [[nodiscard]] inline auto
-        getMapForAddrRange(const ADT::Range &AddrRange,
+        getMapForAddrRange(const ADT::Range AddrRange,
                            const bool InsideMappings = true) const noexcept
             -> std::optional<
                     std::pair<DyldSharedSingleCacheInfo, ADT::MemoryMap>>

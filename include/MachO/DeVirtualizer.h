@@ -17,7 +17,7 @@ namespace MachO {
         MachO::SegmentList SegmentList;
     public:
         explicit
-        DeVirtualizer(const ADT::MemoryMap &Map,
+        DeVirtualizer(const ADT::MemoryMap Map,
                       MachO::SegmentList &SegmentList) noexcept
         : Map(Map), SegmentList(SegmentList) {}
 
@@ -37,7 +37,7 @@ namespace MachO {
                          void **EndOut = nullptr) const noexcept override;
 
         [[nodiscard]] std::optional<ADT::MemoryMap>
-        getMapForVmRange(const ADT::Range &Range,
+        getMapForVmRange(const ADT::Range Range,
                          bool IgnoreProtBounds = false) const noexcept override;
     };
 }

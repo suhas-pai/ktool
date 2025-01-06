@@ -483,16 +483,20 @@ namespace DyldSharedCache {
         [[nodiscard]] constexpr auto hasSubCacheArray() const noexcept;
     };
 
-    struct SlideInfoBase {
-        uint32_t Version;
-    };
-
     enum class SlideInfoVersion {
         V1 = 1,
         V2,
         V3,
         V4,
         V5
+    };
+
+    struct SlideInfoBase {
+        uint32_t Version;
+
+        [[nodiscard]] constexpr auto version() const noexcept {
+            return SlideInfoVersion(this->Version);
+        }
     };
 
     struct SlideInfoV1 : public SlideInfoBase {

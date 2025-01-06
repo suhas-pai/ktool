@@ -103,17 +103,14 @@ namespace Operations {
         ImageInfoList.reserve(ImageCount);
         for (const auto &Info : Dsc.imageInfoList()) {
             auto NewInfo = ImageInfo();
-            if (const auto PathOpt = Map.string(Info.PathFileOffset)) {
-                NewInfo.Path = PathOpt.value();
-            } else {
-                NewInfo.Path = "<invalid>";
-            }
 
             NewInfo.Address = Info.Address;
             NewInfo.ModTime = Info.ModTime;
             NewInfo.Inode = Info.Inode;
             NewInfo.PathFileOffset = Info.PathFileOffset;
             NewInfo.Pad = Info.Pad;
+            NewInfo.Path =
+                Map.string(Info.PathFileOffset).value_or("<invalid>");
 
             LongestImagePath.set(NewInfo.Path.length());
             ImageInfoList.emplace_back(std::move(NewInfo));
@@ -133,7 +130,7 @@ namespace Operations {
                 return false;
             };
 
-            std::sort(ImageInfoList.begin(), ImageInfoList.end(), Comparator);
+            std::ranges::sort(ImageInfoList, Comparator);
         }
 
         PrintImageCount(OutFile, ImageCount, /*PrintColon=*/true);
@@ -143,11 +140,10 @@ namespace Operations {
         auto Counter = static_cast<uint64_t>(1);
         for (const auto &Info : ImageInfoList) {
             std::print(OutFile,
-                       "Image {:>{}}: ",
+                       "Image {:>{}}: \"{}\"",
                        Counter,
-                       ImageInfoListSizeDigitCount);
-
-            std::print(OutFile, "\"{}\"", Info.Path);
+                       ImageInfoListSizeDigitCount,
+                       Info.Path);
 
             const auto WrittenOut = STR_LENGTH("\"\"") + Info.Path.length();
             if (Opt.Verbose) {
