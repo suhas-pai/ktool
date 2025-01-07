@@ -8,33 +8,21 @@
 #pragma once
 
 #include <concepts>
-
-#include "ADT/FlagsBase.h"
 #include "Utils/Misc.h"
 
 namespace ADT {
     template <std::unsigned_integral T>
     struct FlagsIterator {
     protected:
-        FlagsBase<T> Value;
+        T Value;
         uint8_t BitIndex = bit_sizeof(T);
     public:
+        using value_type = uint8_t;
         using difference_type = ptrdiff_t;
 
-        constexpr FlagsIterator(const T Value) noexcept
-        : Value(Value), BitIndex(this->Value.getFirstSet()) {}
-
-        constexpr FlagsIterator(const FlagsBase<T> Value) noexcept
-        : Value(Value), BitIndex(Value.getFirstSet()) {}
-
-        [[nodiscard]] inline auto begin() noexcept -> decltype(*this) {
-            return *this;
-        }
-
-        struct EndValue {};
-        [[nodiscard]] constexpr auto end() noexcept {
-            return EndValue();
-        }
+        constexpr FlagsIterator() noexcept = default;
+        constexpr FlagsIterator(const T Value, const uint8_t BitIndex) noexcept
+        : Value(Value), BitIndex(BitIndex) {}
 
         [[nodiscard]] constexpr
         auto operator<=>(const FlagsIterator<T> &Rhs) const noexcept = default;
@@ -42,7 +30,10 @@ namespace ADT {
         constexpr auto operator++() noexcept -> decltype(*this) {
             if (this->BitIndex < bit_sizeof(T) - 1) {
                 this->BitIndex++;
-                this->BitIndex = this->Value.getFirstSet(this->BitIndex);
+                this->BitIndex +=
+                    __builtin_ctzll(
+                        static_cast<unsigned long long>(
+                            Value >> this->BitIndex));
             } else {
                 this->BitIndex = bit_sizeof(T);
             }
@@ -62,14 +53,31 @@ namespace ADT {
             return T(1) << this->BitIndex;
         }
 
-        [[nodiscard]] constexpr
-        auto operator==([[maybe_unused]] const EndValue &End) const noexcept {
-            return this->BitIndex == bit_sizeof(T);
+        [[nodiscard]]
+        constexpr auto operator==(const FlagsIterator<T> &Rhs) const noexcept {
+            return this->BitIndex == Rhs.BitIndex;
         }
 
+        struct Sentinel {
+        public:
+            Sentinel() noexcept = default;
+            Sentinel([[maybe_unused]] const FlagsIterator<T> &Iter) noexcept {}
+
+            [[nodiscard]]
+            auto operator==(const FlagsIterator<T> &It) const noexcept {
+                return It.BitIndex == bit_sizeof(T);
+            }
+
+            [[nodiscard]] auto operator==(const Sentinel &) const noexcept {
+                return true;
+            }
+        };
+
         [[nodiscard]] constexpr
-        auto operator!=([[maybe_unused]] const EndValue &End) const noexcept {
-            return !this->operator==(End);
+        auto operator==([[maybe_unused]] const Sentinel &End) const noexcept {
+            return this->BitIndex == bit_sizeof(T);
         }
     };
+
+    static_assert(std::forward_iterator<FlagsIterator<uint64_t>>);
 }

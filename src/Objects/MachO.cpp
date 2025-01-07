@@ -92,10 +92,10 @@ namespace Objects {
         auto End = uint64_t();
 
         if (Is64Bit) {
-            for (const auto &LC : this->loadCommandsMap()) {
-                if (const auto Segment =
-                        dyn_cast<::MachO::SegmentCommand64>(&LC, IsBigEndian))
-                {
+            std::ranges::for_each(
+                this->loadCommandsMap() | ::MachO::LCMapFilterType<
+                    ::MachO::SegmentCommand64>(IsBigEndian),
+                [&Base, &End, IsBigEndian](const auto Segment) noexcept {
                     const auto VmRange = Segment->vmRange(IsBigEndian);
                     if (Base == 0) {
                         Base = VmRange.front();
@@ -104,13 +104,12 @@ namespace Objects {
                     if (const auto EndOpt = VmRange.end()) {
                         End = std::max(End, EndOpt.value());
                     }
-                }
-            }
+                });
         } else {
-            for (const auto &LC : this->loadCommandsMap()) {
-                if (const auto Segment =
-                        dyn_cast<::MachO::SegmentCommand>(&LC, IsBigEndian))
-                {
+            std::ranges::for_each(
+                this->loadCommandsMap() | ::MachO::LCMapFilterType<
+                    ::MachO::SegmentCommand>(IsBigEndian),
+                [&Base, &End, IsBigEndian](const auto Segment) noexcept {
                     const auto VmRange = Segment->vmRange(IsBigEndian);
                     if (Base == 0) {
                         Base = VmRange.front();
@@ -119,8 +118,7 @@ namespace Objects {
                     if (const auto EndOpt = VmRange.end()) {
                         End = std::max(End, EndOpt.value());
                     }
-                }
-            }
+                });
         }
 
         return ADT::Range::FromEnd(Base, End);

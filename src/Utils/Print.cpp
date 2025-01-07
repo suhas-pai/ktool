@@ -5,6 +5,7 @@
 //  Created by suhaspai on 11/22/22.
 //
 
+#include <ranges>
 #include "Utils/Print.h"
 
 namespace Utils {
@@ -34,13 +35,15 @@ namespace Utils {
     {
         std::print(OutFile, "{}", Prefix);
 
-        auto Result = int();
-        for (auto I = uint64_t(); I != Times; I++) {
-            std::print(OutFile, "{}", String);
-        }
+        std::ranges::for_each(
+            std::views::iota(0) | std::views::take(Times),
+            [OutFile, String]([[maybe_unused]] const auto I) noexcept {
+                std::print(OutFile, "{}", String);
+            });
 
         std::print(OutFile, "{}", Suffix);
-        return Result;
+        return static_cast<int>(Prefix.length() + String.length() * Times +
+                               Suffix.length());
     }
 
     auto

@@ -153,7 +153,7 @@ namespace MachO {
             case ObjcClassInfoSection::Kind::ClassList:
                 if (Is64Bit) {
                     Error =
-                        ObjcParse::ParseObjcClassRefsSection<true>(
+                        ObjcParse::ParseObjcClassRefsSection</*Is64Bit=*/true>(
                             ObjcSectionInfo.Section,
                             DeVirtualizer,
                             AddrResolver,
@@ -163,7 +163,7 @@ namespace MachO {
                             IsBigEndian);
                 } else {
                     Error =
-                        ObjcParse::ParseObjcClassRefsSection<false>(
+                        ObjcParse::ParseObjcClassRefsSection</*Is64Bit=*/false>(
                             ObjcSectionInfo.Section,
                             DeVirtualizer,
                             AddrResolver,
@@ -177,7 +177,7 @@ namespace MachO {
             case ObjcClassInfoSection::Kind::ClassRefs:
                 if (Is64Bit) {
                     Error =
-                        ObjcParse::ParseObjcClassRefsSection<true>(
+                        ObjcParse::ParseObjcClassRefsSection</*Is64Bit=*/true>(
                             ObjcSectionInfo.Section,
                             DeVirtualizer,
                             AddrResolver,
@@ -187,7 +187,7 @@ namespace MachO {
                             IsBigEndian);
                 } else {
                     Error =
-                        ObjcParse::ParseObjcClassRefsSection<false>(
+                        ObjcParse::ParseObjcClassRefsSection</*Is64Bit=*/false>(
                             ObjcSectionInfo.Section,
                             DeVirtualizer,
                             AddrResolver,
@@ -209,14 +209,11 @@ namespace MachO {
     }
 
     auto ObjcClassInfoList::getAsList() const noexcept -> std::vector<Info *> {
-        auto Vector = std::vector<Info *>();
-        Vector.reserve(this->List.size());
-
-        for (const auto &Info : this->List) {
-            Vector.emplace_back(Info.second.get());
-        }
-
-        return Vector;
+        return this->List |
+            std::views::transform([](const auto &Pair) noexcept {
+                return Pair.second.get();
+            }) |
+            std::ranges::to<std::vector<Info *>>();
     }
 
     auto ObjcClassInfoList::addNullClass(const uint64_t BindAddress) noexcept

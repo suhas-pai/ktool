@@ -436,65 +436,82 @@ namespace Operations {
         auto ExportList = std::vector<ExportInfo>();
         auto LongestExportLength = ADT::Maximizer<uint64_t>();
 
-        if (Opt.OnlyCount && Opt.SectionRequirements.empty()) {
-            for ([[maybe_unused]] const auto &Info : ExportTrieMap.exportMap())
-            {
-                Count++;
-                continue;
+        if (!Opt.OnlyCount || !Opt.SectionRequirements.empty()) {
+            struct Temp {
+                const ADT::Trie<MachO::ExportTrieExportInfo>::IterateInfo *Info;
+
+                std::string_view SegmentName;
+                std::string_view SectionName;
+
+                MachO::ExportTrieExportKind Kind;
+            };
+
+            auto ExportListRange = ExportTrieMap.exportList() |
+                std::views::transform([&](const auto &Info) noexcept {
+                    LongestExportLength.set(Info.string().length());
+
+                    auto SegmentName = std::string_view();
+                    auto SectionName = std::string_view();
+
+                    if (!Info.exportInfo().isReexport()) {
+                        const auto ImageOffset =
+                            Info.exportInfo().imageOffset();
+                        const auto Addr =
+                            Info.exportInfo().absolute() && ImageOffset != 0 ?
+                                ImageOffset :
+                                Utils::AddAndCheckOverflow(
+                                    BaseAddress, ImageOffset).value();
+
+                        if (const auto Segment =
+                                SegmentList.findSegmentWithVmAddr(Addr))
+                        {
+                            if (const auto Section =
+                                    Segment->findSectionWithVmAddr(Addr))
+                            {
+                                SectionName = Section->Name;
+                            }
+
+                            SegmentName = Segment->Name;
+                        }
+                    }
+
+                    return Temp {
+                        &Info,
+                        SegmentName,
+                        SectionName,
+                        MachO::ExportTrieExportKindFromFlags(
+                            Info.exportInfo().flags())
+                    };
+                }) |
+                std::views::filter([&](const auto &Info) noexcept {
+                    return ExportMeetsRequirements(Info.Kind,
+                                                   Info.SegmentName,
+                                                   Info.SectionName,
+                                                   Opt);
+                }) |
+                std::views::transform([&](const auto &Temp) noexcept {
+                    return ExportInfo {
+                        .Kind = Temp.Kind,
+                        .Info = Temp.Info->exportInfo(),
+                        .SegmentName = Temp.SegmentName,
+                        .SectionName = Temp.SectionName,
+                        .String = std::string(Temp.Info->string())
+                    };
+                });
+
+            if (!Opt.OnlyCount) {
+                ExportList.append_range(ExportListRange);
+            } else {
+                std::ranges::for_each(ExportListRange,
+                                      [&]([[maybe_unused]] const auto &Info) {
+                                        return Count++;
+                                      });
             }
         } else {
-            for (const auto &Info : ExportTrieMap.exportMap()) {
-                LongestExportLength.set(Info.string().length());
-
-                auto SegmentName = std::string_view();
-                auto SectionName = std::string_view();
-
-                if (!Info.exportInfo().isReexport()) {
-                    const auto ImageOffset = Info.exportInfo().imageOffset();
-                    const auto Addr =
-                        Info.exportInfo().absolute() && ImageOffset != 0 ?
-                            ImageOffset :
-                            Utils::AddAndCheckOverflow(BaseAddress,
-                                                       ImageOffset).value();
-
-                    if (const auto Segment =
-                            SegmentList.findSegmentWithVmAddr(Addr))
-                    {
-                        if (const auto Section =
-                                Segment->findSectionWithVmAddr(Addr))
-                        {
-                            SectionName = Section->Name;
-                        }
-
-                        SegmentName = Segment->Name;
-                    }
-                }
-
-                const auto Kind =
-                    MachO::ExportTrieExportKindFromFlags(
-                        Info.exportInfo().flags());
-
-                if (!ExportMeetsRequirements(Kind,
-                                             SegmentName,
-                                             SectionName,
-                                             Opt))
-                {
-                    continue;
-                }
-
-                if (Opt.OnlyCount) {
-                    Count++;
-                    continue;
-                }
-
-                ExportList.emplace_back(ExportInfo {
-                    .Kind = Kind,
-                    .Info = Info.exportInfo(),
-                    .SegmentName = SegmentName,
-                    .SectionName = SectionName,
-                    .String = std::string(Info.string())
-                });
-            }
+             std::ranges::for_each(ExportTrieMap.exportList(),
+                                   [&]([[maybe_unused]] const auto &Info) {
+                                        return Count++;
+                                   });
         }
 
         if (ExportList.empty()) {
@@ -633,7 +650,7 @@ namespace Operations {
         auto TrieParser = ADT::TrieParser();
         auto ExportTrieMap =
             MachO::ExportTrieMap(ADT::MemoryMap(Map, ExportTrieRange),
-                                 TrieParser);
+                                 &TrieParser);
 
         if (Opt.PrintTree) {
             auto Error = MachO::ExportTrieEntryCollection::Error::None;
@@ -700,7 +717,7 @@ namespace Operations {
         auto TrieParser = ADT::TrieParser();
         auto ExportTrieMap =
             MachO::ExportTrieMap(ADT::MemoryMap(Map, ExportTrieRange),
-                                 TrieParser);
+                                 &TrieParser);
 
         if (Opt.PrintTree) {
             auto Error = MachO::ExportTrieMap::ParseError::None;

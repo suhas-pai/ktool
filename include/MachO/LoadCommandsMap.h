@@ -100,7 +100,7 @@ namespace MachO {
                 return *this;
             }
 
-            auto operator++(int) noexcept {
+            inline auto operator++(int) noexcept {
                 return this->operator++();
             }
 
@@ -157,6 +157,32 @@ namespace MachO {
             return Iterator(End, this->IsBigEndian);
         }
     };
+
+    template <LoadCommandDerived T>
+    const auto LCMapFilterType =
+        [](const bool IsBigEndian) noexcept {
+            return
+                std::views::transform(
+                    [IsBigEndian](const LoadCommand &Cmd) noexcept {
+                        return dyn_cast<T>(&Cmd, IsBigEndian);
+                    }) |
+                std::views::filter([](const LoadCommand *const Cmd) noexcept {
+                    return Cmd != nullptr;
+                });
+        };
+
+    template <MachO::LoadCommandKind Kind>
+    const auto LCMapFilterKind =
+        [](const bool IsBigEndian) noexcept {
+            return
+                std::views::transform(
+                    [IsBigEndian](const LoadCommand &Cmd) noexcept {
+                        return dyn_cast<Kind>(&Cmd, IsBigEndian);
+                    }) |
+                std::views::filter([](const LoadCommand *const Cmd) noexcept {
+                    return Cmd != nullptr;
+                });
+        };
 
     static_assert(std::forward_iterator<LoadCommandsMap::Iterator>);
     static_assert(std::ranges::forward_range<LoadCommandsMap>);

@@ -144,33 +144,33 @@ namespace ADT {
             return Dyld3::ChainedPointerKind::None;
         }
 
-        auto Monad =
-            std::ranges::iota_view(static_cast<uint32_t>(0),
-                                   Starts->segmentCount(IsBigEndian))
-            | std::views::transform(
-                [Starts, IsBigEndian](const auto I) noexcept {
-                    return Starts->segmentOffset(I, IsBigEndian);
-                })
-            | std::views::transform(
+        auto Op =
+            std::views::iota(static_cast<uint32_t>(0)) |
+            std::views::take(Starts->segmentCount(IsBigEndian)) |
+            std::views::transform([Starts, IsBigEndian](const auto I) noexcept {
+                return Starts->segmentOffset(I, IsBigEndian);
+            }) |
+            std::views::transform(
                 [Map, FixupsHeaderRange, StartsOffset](const auto Offset) {
                     return
                         Map.get<Dyld3::ChainedStartsInSegment>(
                             FixupsHeaderRange.front() +
                             StartsOffset +
                             Offset);
-                })
-            | std::views::filter([](const auto Segment) noexcept {
+                }
+            ) |
+            std::views::filter([](const auto Segment) noexcept {
                 return Segment != nullptr;
-            })
-            | std::views::filter([](const auto Segment) noexcept {
+            }) |
+            std::views::filter([](const auto Segment) noexcept {
                 return Segment->pageCount(0);
-            })
-            | std::views::transform([IsBigEndian](const auto Segment) {
+            }) |
+            std::views::transform([IsBigEndian](const auto Segment) {
                 return Segment->pointerFormat(IsBigEndian);
             });
 
-        if (!Monad.empty()) {
-            return Monad.front();
+        if (!Op.empty()) {
+            return Op.front();
         }
 
         return Dyld3::ChainedPointerKind::None;

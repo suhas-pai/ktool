@@ -53,7 +53,7 @@ namespace DscImage {
         using Error = ADT::TrieParseError;
 
         static auto
-        Open(const MachO::ExportTrieMap::ExportMap &Trie,
+        Open(const MachO::ExportTrieMap::ExportList &Trie,
              const MachO::SegmentList *SegList,
              uint64_t ImageAddress,
              const ParseOptions &Options = ParseOptions(),

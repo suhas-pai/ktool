@@ -3,6 +3,8 @@
  * © suhas pai
  */
 
+#include <ranges>
+
 #include "DyldSharedCache/Headers.h"
 #include "Objects/DscImage.h"
 
@@ -13,7 +15,7 @@ namespace Objects {
         -> std::expected<DscImage *, Error>
     {
         const auto ImageList = Dsc.imageInfoList();
-        const auto ImageInfo = ImageList[ImageIndex];
+        const auto &ImageInfo = ImageList[ImageIndex];
 
         auto MaxPossibleSize = uint64_t();
         auto FileOffset = uint64_t();
@@ -141,30 +143,27 @@ namespace Objects {
                 }
             }
         } else {
-            for (auto Iter = LoadCommandsMap.begin();
-                 Iter != LoadCommandsMap.end();
-                 Iter++)
+            for (const auto &Segment :
+                    LoadCommandsMap |
+                    ::MachO::LCMapFilterType<
+                        ::MachO::SegmentCommand>(IsBigEndian))
             {
-                if (const auto Segment =
-                        Iter.dyn_cast<::MachO::SegmentCommand>())
-                {
-                    auto FoundMapping = true;
-                    for (const auto &Mapping : Dsc.mappingInfoList()) {
-                        const auto FileRange = Segment->fileRange(IsBigEndian);
-                        if (Mapping.fileRange().contains(FileRange)) {
-                            FoundMapping = true;
-                            break;
-                        }
-                    }
+                const auto FoundMapping =
+                    std::ranges::find_if(
+                        Dsc.mappingInfoList(),
+                        [&](const auto &Mapping) {
+                            const auto FileRange =
+                                Segment->fileRange(IsBigEndian);
+                            return Mapping.fileRange().contains(FileRange);
+                        });
 
-                    if (!FoundMapping) {
-                        return std::unexpected(OpenError::OutOfBoundsSegment);
-                    }
+                if (FoundMapping != Dsc.mappingInfoList().end()) {
+                    return std::unexpected(OpenError::OutOfBoundsSegment);
+                }
 
-                    FileSize += Segment->fileSize(IsBigEndian);
-                    if (FileSize > std::numeric_limits<uint32_t>::max()) {
-                        return std::unexpected(OpenError::OutOfBoundsSegment);
-                    }
+                FileSize += Segment->fileSize(IsBigEndian);
+                if (FileSize > std::numeric_limits<uint32_t>::max()) {
+                    return std::unexpected(OpenError::OutOfBoundsSegment);
                 }
             }
         }
@@ -178,24 +177,43 @@ namespace Objects {
     }
 
     auto DscImage::getBaseAddress() const noexcept -> std::optional<uint64_t> {
-        const auto Is64Bit = this->is64Bit();
         const auto IsBigEndian = this->isBigEndian();
+        if (this->is64Bit()) {
+             auto SegmentListRange = this->loadCommandsMap() |
+                ::MachO::LCMapFilterType<::MachO::SegmentCommand64>(
+                    IsBigEndian) |
+                std::views::filter(
+                    [IsBigEndian](const auto &Segment) noexcept {
+                        return Segment->vmRange(IsBigEndian).size() > 0;
+                    }
+                ) |
+                std::views::take(1) |
+                std::views::transform(
+                    [IsBigEndian](const auto &Segment) noexcept {
+                        return Segment->vmRange(IsBigEndian).front();
+                    }
+                );
 
-        if (Is64Bit) {
-            for (const auto &LC : this->loadCommandsMap()) {
-                if (const auto Segment =
-                        dyn_cast<::MachO::SegmentCommand64>(&LC, IsBigEndian))
-                {
-                    return Segment->vmRange(IsBigEndian).front();
-                }
+            if (!SegmentListRange.empty()) {
+                return SegmentListRange.front();
             }
         } else {
-            for (const auto &LC : this->loadCommandsMap()) {
-                if (const auto Segment =
-                        dyn_cast<::MachO::SegmentCommand>(&LC, IsBigEndian))
-                {
-                    return Segment->vmRange(IsBigEndian).front();
-                }
+            auto SegmentListRange = this->loadCommandsMap() |
+                ::MachO::LCMapFilterType<::MachO::SegmentCommand>(IsBigEndian) |
+                std::views::filter(
+                    [IsBigEndian](const auto &Segment) noexcept {
+                        return Segment->vmRange(IsBigEndian).size() > 0;
+                    }
+                ) |
+                std::views::take(1) |
+                std::views::transform(
+                    [IsBigEndian](const auto &Segment) noexcept {
+                        return Segment->vmRange(IsBigEndian).front();
+                    }
+                );
+
+            if (!SegmentListRange.empty()) {
+                return SegmentListRange.front();
             }
         }
 

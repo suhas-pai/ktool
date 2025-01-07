@@ -50,20 +50,20 @@ namespace DyldSharedCache {
         explicit
         ProgramTrieMap(uint8_t *const Begin,
                        uint8_t *const End,
-                       ADT::TrieParser &TrieParser) noexcept
-        : ADT::Trie<DylibIndexInfo>(Begin, End, TrieParser, Info) {}
+                       ADT::TrieParser *const TrieParser) noexcept
+        : ADT::Trie<DylibIndexInfo>(Begin, End, TrieParser, &Info) {}
 
         explicit
         ProgramTrieMap(const ADT::MemoryMap Map,
-                       ADT::TrieParser &TrieParser) noexcept
-        : ADT::Trie<DylibIndexInfo>(Map, TrieParser, Info) {}
+                       ADT::TrieParser *const TrieParser) noexcept
+        : ADT::Trie<DylibIndexInfo>(Map, TrieParser, &Info) {}
 
         [[nodiscard]] constexpr auto &info() const noexcept {
-            return Info;
+            return this->Info;
         }
 
         [[nodiscard]] constexpr auto &info() noexcept {
-            return Info;
+            return this->Info;
         }
     };
 
@@ -295,12 +295,12 @@ namespace DyldSharedCache {
         explicit ProgramTrieExportCollection() noexcept = default;
 
         void
-        Parse(const ProgramTrieMap::ExportMap &Trie,
+        Parse(const ProgramTrieMap::ExportList &Trie,
               const ParseOptions &Options,
               Error *const ErrorOut) noexcept;
     public:
         static auto
-        Open(const ProgramTrieMap::ExportMap &Trie,
+        Open(const ProgramTrieMap::ExportList &Trie,
              const ParseOptions &Options = ParseOptions(),
              Error *ErrorOut = nullptr) noexcept
              -> ProgramTrieExportCollection;

@@ -10,6 +10,8 @@
 #include <concepts>
 #include <cstdint>
 
+#include "ADT/FlagsIterator.h"
+
 #include "Utils/Assert.h"
 #include "Utils/Misc.h"
 
@@ -142,8 +144,18 @@ namespace ADT {
         [[nodiscard]] constexpr auto operator<=>(const T Rhs) const noexcept {
             return this->Flags <=> Rhs;
         }
+
+        [[nodiscard]] constexpr auto begin() const noexcept {
+            return FlagsIterator<T>(this->Flags, /*BitIndex*/0);
+        }
+
+        [[nodiscard]] constexpr auto end() const noexcept {
+            return typename FlagsIterator<T>::Sentinel();
+        }
     };
 }
+
+static_assert(std::ranges::forward_range<ADT::FlagsBase<uint32_t>>);
 
 #define MAKE_ENUM_MASK_CLASS(ENUM) \
     [[maybe_unused]] [[nodiscard]] \

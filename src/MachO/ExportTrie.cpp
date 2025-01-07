@@ -122,7 +122,7 @@ namespace MachO {
             const auto &ExportInfo = Info.exportInfo();
 
             if (!ExportInfo.isReexport()) {
-                if (SegList != nullptr) {
+                if (this->SegList != nullptr) {
                     auto Section = static_cast<const SectionInfo *>(nullptr);
 
                     const auto Addr = ExportInfo.imageOffset();
@@ -181,7 +181,7 @@ namespace MachO {
     }
 
     auto
-    ExportTrieExportCollection::Open(const ExportTrieMap::ExportMap &Trie,
+    ExportTrieExportCollection::Open(const ExportTrieMap::ExportList &Trie,
                                      const SegmentList *const SegList,
                                      const ParseOptions &Options,
                                      Error *const ErrorOut) noexcept
@@ -195,7 +195,7 @@ namespace MachO {
     }
 
     void
-    ExportTrieExportCollection::Parse(const ExportTrieMap::ExportMap &Trie,
+    ExportTrieExportCollection::Parse(const ExportTrieMap::ExportList &Trie,
                                       NodeCreator &Creator,
                                       const ParseOptions &Options,
                                       Error *const ErrorOut) noexcept

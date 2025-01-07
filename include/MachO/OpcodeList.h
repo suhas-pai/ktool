@@ -120,7 +120,7 @@ namespace MachO {
                 return *this;
             }
 
-            inline auto operator++(int) noexcept -> decltype(*this) {
+            inline auto operator++(int) noexcept {
                 return this->operator++();
             }
 

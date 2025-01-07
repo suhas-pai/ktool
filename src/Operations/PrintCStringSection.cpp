@@ -150,11 +150,15 @@ namespace Operations {
         -> PrintCStringSection::RunResult
     {
         using RunResult = PrintCStringSection::RunResult;
-        for (const auto &Section : Segment.sectionList(IsBigEndian)) {
-            if (Section.sectionName() != SectionName) {
-                continue;
-            }
 
+        const auto Filter = [SectionName](const auto &Section) {
+            return Section.sectionName() == SectionName;
+        };
+
+        for (const auto &Section :
+                Segment.sectionList(IsBigEndian) |
+                std::views::filter(Filter))
+        {
             if (Section.kind(IsBigEndian) != T::Section::Kind::CStringLiterals)
             {
                 return RunResult(RunResult::Error::NotCStringSection);
@@ -184,99 +188,100 @@ namespace Operations {
         const auto Map = MachO.getMapForFileOffsets();
 
         if (Is64Bit) {
-            for (const auto &LC : MachO.loadCommandsMap()) {
+            for (const auto Segment :
+                    MachO.loadCommandsMap() |
+                    MachO::LCMapFilterType<MachO::SegmentCommand64>(
+                        IsBigEndian) |
+                    std::views::take(1))
+            {
                 using namespace MachO;
-                if (const auto Segment =
-                        dyn_cast<MachO::SegmentCommand64>(&LC, IsBigEndian))
-                {
-                    if (const auto SegName = SegmentName) {
-                        if (Segment->segmentName() != SegmentName) {
-                            continue;
-                        }
-
-                        if (Segment->isProtected(IsBigEndian)) {
-                            return RunResult(RunResult::Error::ProtectedSegment);
-                        }
-                    }
-
-                    auto Section =
-                        static_cast<
-                            const MachO::SegmentCommand64::Section *>(nullptr);
-
-                    const auto IterateResult =
-                        IterateSections(*Segment,
-                                        SectionName,
-                                        IsBigEndian,
-                                        Section);
-
-                    if (IterateResult.Error != RunResult::Error::None) {
-                        return IterateResult;
-                    }
-
-                    if (Section == nullptr) {
+                if (const auto SegName = SegmentName) {
+                    if (Segment->segmentName() != SegmentName) {
                         continue;
                     }
 
                     if (Segment->isProtected(IsBigEndian)) {
                         return RunResult(RunResult::Error::ProtectedSegment);
                     }
-
-                    const auto SectionRange = Section->fileRange(IsBigEndian);
-
-                    SectionFileOff = SectionRange.front();
-                    SectionAddr = Section->addr(IsBigEndian);
-                    SectionSize = SectionRange.size();
-                    SectionData = Map.getRange<const char>(SectionRange);
-
-                    break;
                 }
+
+                auto Section =
+                    static_cast<
+                        const MachO::SegmentCommand64::Section *>(nullptr);
+
+                const auto IterateResult =
+                    IterateSections(*Segment,
+                                    SectionName,
+                                    IsBigEndian,
+                                    Section);
+
+                if (IterateResult.Error != RunResult::Error::None) {
+                    return IterateResult;
+                }
+
+                if (Section == nullptr) {
+                    continue;
+                }
+
+                if (Segment->isProtected(IsBigEndian)) {
+                    return RunResult(RunResult::Error::ProtectedSegment);
+                }
+
+                const auto SectionRange = Section->fileRange(IsBigEndian);
+
+                SectionFileOff = SectionRange.front();
+                SectionAddr = Section->addr(IsBigEndian);
+                SectionSize = SectionRange.size();
+                SectionData = Map.getRange<const char>(SectionRange);
+
+                break;
             }
         } else {
-            for (const auto &LC : MachO.loadCommandsMap()) {
+            for (const auto Segment :
+                    MachO.loadCommandsMap() |
+                    MachO::LCMapFilterType<MachO::SegmentCommand>(IsBigEndian) |
+                    std::views::take(1))
+            {
                 using namespace MachO;
-                if (const auto Segment =
-                        dyn_cast<SegmentCommand>(&LC, IsBigEndian))
-                {
-                    if (const auto SegName = SegmentName) {
-                        if (Segment->segmentName() != SegmentName) {
-                            continue;
-                        }
-
-                        if (Segment->isProtected(IsBigEndian)) {
-                            return RunResult(RunResult::Error::ProtectedSegment);
-                        }
-                    }
-
-                    auto Section =
-                        static_cast<const SegmentCommand::Section *>(nullptr);
-
-                    const auto IterateResult =
-                        IterateSections(*Segment,
-                                        SectionName,
-                                        IsBigEndian,
-                                        Section);
-
-                    if (IterateResult.Error != RunResult::Error::None) {
-                        return IterateResult;
-                    }
-
-                    if (Section == nullptr) {
+                if (const auto SegName = SegmentName) {
+                    if (Segment->segmentName() != SegmentName) {
                         continue;
                     }
 
                     if (Segment->isProtected(IsBigEndian)) {
                         return RunResult(RunResult::Error::ProtectedSegment);
                     }
-
-                    const auto SectionRange = Section->fileRange(IsBigEndian);
-
-                    SectionFileOff = SectionRange.front();
-                    SectionAddr = Section->addr(IsBigEndian);
-                    SectionSize = SectionRange.size();
-                    SectionData = Map.getRange<const char>(SectionRange);
-
-                    break;
                 }
+
+                auto Section =
+                    static_cast<const SegmentCommand::Section *>(nullptr);
+
+                const auto IterateResult =
+                    IterateSections(*Segment,
+                                    SectionName,
+                                    IsBigEndian,
+                                    Section);
+
+                if (IterateResult.Error != RunResult::Error::None) {
+                    return IterateResult;
+                }
+
+                if (Section == nullptr) {
+                    continue;
+                }
+
+                if (Segment->isProtected(IsBigEndian)) {
+                    return RunResult(RunResult::Error::ProtectedSegment);
+                }
+
+                const auto SectionRange = Section->fileRange(IsBigEndian);
+
+                SectionFileOff = SectionRange.front();
+                SectionAddr = Section->addr(IsBigEndian);
+                SectionSize = SectionRange.size();
+                SectionData = Map.getRange<const char>(SectionRange);
+
+                break;
             }
         }
 

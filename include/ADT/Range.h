@@ -153,8 +153,7 @@ namespace ADT {
             return false;
         }
 
-        [[nodiscard]]
-        constexpr auto isBelow(const Range &Range) const noexcept {
+        [[nodiscard]] constexpr auto isBelow(const Range Range) const noexcept {
             if (this->empty()) {
                 return true;
             }
@@ -167,8 +166,7 @@ namespace ADT {
             return BeginIndex >= Range.size();
         }
 
-        [[nodiscard]]
-        constexpr auto isAbove(const Range &Range) const noexcept {
+        [[nodiscard]] constexpr auto isAbove(const Range Range) const noexcept {
             if (this->empty()) {
                 return true;
             }
@@ -202,7 +200,7 @@ namespace ADT {
         }
 
         [[nodiscard]]
-        constexpr auto contains(const Range &Other) const noexcept {
+        constexpr auto contains(const Range Other) const noexcept {
             if (Other.empty()) {
                 return true;
             }
@@ -231,7 +229,7 @@ namespace ADT {
         }
 
         [[nodiscard]]
-        constexpr auto overlaps(const Range &Other) const noexcept {
+        constexpr auto overlaps(const Range Other) const noexcept {
             if (this->empty() || Other.empty()) {
                 return false;
             }
@@ -246,19 +244,19 @@ namespace ADT {
         }
 
         [[nodiscard]]
-        constexpr auto containsAsIndex(const Range &Other) const noexcept {
+        constexpr auto containsAsIndex(const Range Other) const noexcept {
             const auto MinSize = Other.size() - Other.front();
             return hasIndex(Other.front()) && this->size() >= MinSize;
         }
 
         [[nodiscard]]
-        constexpr auto indexForLocRange(const Range &Range) const noexcept {
+        constexpr auto indexForLocRange(const Range Range) const noexcept {
             assert(this->contains(Range));
             return Range::FromSize(Range.front() - this->front(), Range.size());
         }
 
         [[nodiscard]]
-        constexpr auto locForIndexRange(const Range &Range) const noexcept {
+        constexpr auto locForIndexRange(const Range Range) const noexcept {
             assert(this->containsAsIndex(Range));
             return Range::FromSize(this->front() + Range.front(), Range.size());
         }
@@ -281,14 +279,9 @@ namespace ADT {
         }
 
         [[nodiscard]]
-        constexpr auto operator==(const Range &Range) const noexcept {
+        constexpr auto operator==(const Range Range) const noexcept {
             return this->front() == Range.front() &&
                    this->size() == Range.size();
-        }
-
-        [[nodiscard]]
-        constexpr auto operator!=(const Range &Range) const noexcept {
-            return !operator==(Range);
         }
     };
 }

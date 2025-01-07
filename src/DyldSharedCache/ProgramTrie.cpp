@@ -78,7 +78,7 @@ namespace DyldSharedCache {
     }
 
     auto
-    ProgramTrieExportCollection::Open(const ProgramTrieMap::ExportMap &Trie,
+    ProgramTrieExportCollection::Open(const ProgramTrieMap::ExportList &Trie,
                                       const ParseOptions &Options,
                                       Error *const ErrorOut) noexcept
         -> ProgramTrieExportCollection
@@ -90,7 +90,7 @@ namespace DyldSharedCache {
     }
 
     void
-    ProgramTrieExportCollection::Parse(const ProgramTrieMap::ExportMap &Trie,
+    ProgramTrieExportCollection::Parse(const ProgramTrieMap::ExportList &Trie,
                                        const ParseOptions &Options,
                                        Error *const ErrorOut) noexcept
     {

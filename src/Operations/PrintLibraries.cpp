@@ -79,30 +79,27 @@ namespace Operations {
         const auto IsBigEndian = MachO.isBigEndian();
         constexpr auto Malformed = std::string_view("<malformed>");
 
-        auto DylibList = std::vector<DylibInfo>();
         auto LoadCommandIndex = uint32_t();
 
-        for (const auto &LoadCommand : MachO.loadCommandsMap()) {
-            using namespace MachO;
-            if (LoadCommand.isSharedLibrary(IsBigEndian)) {
-                const auto &DylibCmd =
-                    cast<DylibCommand>(LoadCommand, IsBigEndian);
+        const auto Filter = [&](const auto &LoadCommand) noexcept {
+            return LoadCommand.isSharedLibrary(IsBigEndian);
+        };
 
-                const auto NameOpt = DylibCmd.name(IsBigEndian);
-                const auto Info = DylibInfo {
-                    .Name = NameOpt.value_or(Malformed),
+        auto DylibList = MachO.loadCommandsMap() |
+            std::views::filter(Filter) |
+            std::views::transform([&](const auto &LoadCommand) noexcept {
+                return cast<MachO::DylibCommand>(LoadCommand, IsBigEndian);
+            }) |
+            std::views::transform([&](const auto &DylibCmd) noexcept {
+                return DylibInfo {
+                    .Name = DylibCmd.name(IsBigEndian).value_or(Malformed),
                     .Kind = DylibCmd.kind(IsBigEndian),
                     .CurrentVersion = DylibCmd.currentVersion(IsBigEndian),
                     .CompatVersion = DylibCmd.compatVersion(IsBigEndian),
                     .Timestamp = DylibCmd.timestamp(IsBigEndian),
                     .Index = LoadCommandIndex
                 };
-
-                DylibList.emplace_back(std::move(Info));
-            }
-
-            LoadCommandIndex++;
-        }
+            }) | std::ranges::to<std::vector<DylibInfo>>();
 
         const auto &Opt = this->Opt;
         if (!Opt.SortKindList.empty()) {
@@ -135,7 +132,7 @@ namespace Operations {
                 MachO::LoadCommandKind::LoadUpwardDylib).value().length();
 
         auto Counter = static_cast<uint32_t>(1);
-        for (const auto &DylibInfo : DylibList) {
+        std::ranges::for_each(DylibList, [&](const auto &DylibInfo) noexcept {
             std::print(OutFile,
                        "{}. LC {:>{}}: {:<{}} \"{}\"\n"
                        "\tCurrent Version: {}\n"
@@ -153,7 +150,7 @@ namespace Operations {
                            DylibInfo.Timestamp);
 
             Counter++;
-        }
+        });
 
         return RunResult();
     }

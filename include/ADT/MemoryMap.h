@@ -45,7 +45,7 @@ namespace ADT {
             return Range::FromSize(0, this->size());
         }
 
-        explicit MemoryMap(const MemoryMap &Map, const Range &Range)
+        explicit MemoryMap(const MemoryMap Map, const Range Range)
         : Base(reinterpret_cast<void *>(reinterpret_cast<uint64_t>(Map.Base) +
                Range.front())),
           Size(Range.size())
@@ -111,7 +111,7 @@ namespace ADT {
                   uint64_t Size = sizeof(T)>
 
         [[nodiscard]] inline
-        auto get(const Range &Range, const uint64_t Count = 1) const noexcept
+        auto get(const Range Range, const uint64_t Count = 1) const noexcept
             -> T *
         {
             if constexpr (Verify) {
@@ -153,7 +153,7 @@ namespace ADT {
         }
 
         template <typename T = uint8_t, bool Verify = true>
-        [[nodiscard]] inline auto getRange(const Range &Range) const noexcept
+        [[nodiscard]] inline auto getRange(const Range Range) const noexcept
             -> std::optional<std::span<T>>
         {
             if constexpr (Verify) {

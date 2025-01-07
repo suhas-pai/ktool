@@ -179,22 +179,24 @@ namespace Operations {
         auto IndexDigitCountMaximizer = ADT::Maximizer<uint32_t>();
 
         if (Opt.OnlyCount) {
-            for ([[maybe_unused]] const auto &Info : ProgramTrieMap.exportMap())
-            {
-                Count++;
-                continue;
-            }
+             std::ranges::for_each(ProgramTrieMap.exportList(),
+                                   [&]([[maybe_unused]] const auto &Info) {
+                                    return Count++;
+                                   });
         } else {
-            for (const auto &Info : ProgramTrieMap.exportMap()) {
-                LongestExportLength.set(Info.string().length());
-                IndexDigitCountMaximizer.set(
-                    Utils::GetIntegerDigitCount(Info.exportInfo().index()));
+            auto ExportListRange = ProgramTrieMap.exportList() |
+                std::views::transform([&](const auto &Info) noexcept {
+                    LongestExportLength.set(Info.string().length());
+                    IndexDigitCountMaximizer.set(
+                        Utils::GetIntegerDigitCount(Info.exportInfo().index()));
 
-                ExportList.emplace_back(SExportInfo {
-                    .String = std::string(Info.string()),
-                    .Index = Info.exportInfo().index(),
+                    return SExportInfo {
+                        .String = std::string(Info.string()),
+                        .Index = Info.exportInfo().index(),
+                    };
                 });
-            }
+
+            ExportList.append_range(ExportListRange);
         }
 
         if (ExportList.empty()) {
@@ -259,7 +261,7 @@ namespace Operations {
 
         auto TrieParser = ADT::TrieParser();
         auto ProgramTrieMap =
-            ::DyldSharedCache::ProgramTrieMap(ProgramTrie, TrieParser);
+            ::DyldSharedCache::ProgramTrieMap(ProgramTrie, &TrieParser);
 
         const auto OutFile = this->OutFile;
         const auto &Opt = this->Opt;

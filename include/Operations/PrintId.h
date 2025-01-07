@@ -34,7 +34,9 @@ namespace Operations {
 
                 NotADylib,
                 BadIdString,
-                IdNotFound
+
+                IdNotFound,
+                MultipleIdsFound
             };
 
             Error Error = Error::None;

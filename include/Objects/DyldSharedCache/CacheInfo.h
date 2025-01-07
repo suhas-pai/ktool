@@ -188,13 +188,13 @@ namespace Objects {
             }
 
             if (InsideMappings) {
-                auto Mappings = this->mappingInfoList()
-                    | std::views::transform([=](const auto &Mapping) noexcept {
+                auto Mappings = this->mappingInfoList() |
+                    std::views::transform([=](const auto &Mapping) noexcept {
                         return Mapping.getFileOffsetFromAddr(Addr, MaxSizeOut);
-                      })
-                    | std::views::filter([](const auto &Opt) noexcept {
+                    }) |
+                    std::views::filter([](const auto &Opt) noexcept {
                         return Opt.has_value();
-                      });
+                    });
 
                 if (!Mappings.empty()) {
                     return Mappings.front();

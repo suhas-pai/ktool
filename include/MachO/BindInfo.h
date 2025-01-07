@@ -460,7 +460,9 @@ namespace MachO {
             this->Advance();
         }
 
-        BindOpcodeIteratorBase(const BindOpcodeIteratorBase &) = delete;
+        inline BindOpcodeIteratorBase(const BindOpcodeIteratorBase &O) noexcept
+        : Iter(O.Iter), Info(std::make_unique<BindOpcodeIterateInfo>(*O.Info)),
+          Prev(O.Prev) {}
 
         [[nodiscard]]
         inline auto offset(const uint8_t *const Base) const noexcept {
@@ -521,7 +523,7 @@ namespace MachO {
             return *this;
         }
 
-        constexpr auto operator++(int) noexcept -> decltype(*this) {
+        constexpr auto operator++(int) noexcept {
             return ++(*this);
         }
 
@@ -907,8 +909,8 @@ namespace MachO {
           Iter(Begin, End, std::make_unique<BindActionIterateInfo>()),
           Is64Bit(Is64Bit)
         {
-            LastByte.setOpcode(BindByte::Opcode::SetDylibOrdinalImm);
-            operator++();
+            this->LastByte.setOpcode(BindByte::Opcode::SetDylibOrdinalImm);
+            this->operator++();
         }
 
         [[nodiscard]] inline auto &info() noexcept {
@@ -990,12 +992,13 @@ namespace MachO {
         }
 
         constexpr auto operator++(int) noexcept {
-            return operator++();
+            return this->operator++();
         }
 
-        constexpr auto operator+=(uint64_t Amt) noexcept {
+        constexpr
+        auto operator+=(const uint64_t Amt) noexcept -> decltype(*this) {
             for (auto I = uint64_t(); I != Amt; I++) {
-                operator++();
+                this->operator++();
             }
 
             return *this;

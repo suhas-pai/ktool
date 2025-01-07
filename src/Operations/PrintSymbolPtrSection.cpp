@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <compare>
+#include <ranges>
 
 #include "ADT/Maximizer.h"
 #include "Operations/PrintSymbolPtrSection.h"
@@ -53,26 +54,26 @@ namespace Operations {
         -> PrintSymbolPtrSection::RunResult
     {
         using RunResult = PrintSymbolPtrSection::RunResult;
+        auto SectionNameListRange =
+            Segment.sectionList(IsBigEndian) |
+                std::views::filter([&](const auto &Section) {
+                    return Section.sectionName() == SectionName;
+                }) |
+                std::views::filter([&](const auto &Section) {
+                    using Kind = typename T::Section::Kind;
+                    return
+                        Section.kind(IsBigEndian) == Kind::LazySymbolPointers ||
+                        Section.kind(IsBigEndian) ==
+                            Kind::NonLazySymbolPointers;
+                }) |
+                std::views::transform([&](const auto &Section)
+                    -> std::string_view
+                {
+                    SectionOut = &Section;
+                    return Section.sectionName();
+                });
 
-        SectionNameList.reserve(Segment.sectionCount(IsBigEndian));
-        for (const auto &Section : Segment.sectionList(IsBigEndian)) {
-            if (Section.sectionName() != SectionName) {
-                continue;
-            }
-
-            using Kind = typename T::Section::Kind;
-
-            const auto SectionKind = Section.kind(IsBigEndian);
-            if (SectionKind != Kind::LazySymbolPointers &&
-                SectionKind != Kind::NonLazySymbolPointers)
-            {
-                return RunResult(RunResult::Error::NotSymbolPointerSection);
-            }
-
-            SectionOut = &Section;
-            SectionNameList.emplace_back(Section.sectionName());
-        }
-
+        SectionNameList.append_range(SectionNameListRange);
         return RunResult();
     }
 
@@ -93,21 +94,31 @@ namespace Operations {
     static auto
     GetSectionAtOrdinal(const std::span<SegmentInfo> SegmentList,
                         const uint32_t Ordinal,
-                        std::string_view SegmentName) noexcept
+                        std::string_view &SegmentName) noexcept
         -> std::optional<std::string_view>
     {
         assert(Ordinal != 0);
+
         auto Index = Ordinal - 1;
+        auto ResultRange = SegmentList |
+            std::views::filter([&](const auto &Segment) {
+                const auto Result = !Utils::IndexOutOfBounds(
+                    Index, Segment.SectionNameList.size());
 
-        for (const auto &Segment : SegmentList) {
-            if (Utils::IndexOutOfBounds(Index, Segment.SectionNameList.size()))
-            {
-                Index -= Segment.SectionNameList.size();
-                continue;
-            }
+                if (!Result) {
+                    Index -= Segment.SectionNameList.size();
+                }
 
-            SegmentName = Segment.Name;
-            return std::optional(Segment.SectionNameList.at(Index));
+                return Result;
+                }
+            ) |
+            std::views::transform([&](const auto &Segment) {
+                SegmentName = Segment.Name;
+                return Segment.SectionNameList.at(Index);
+            });
+
+        if (!ResultRange.empty()) {
+            return *ResultRange.begin();
         }
 
         return std::nullopt;
@@ -523,17 +534,24 @@ namespace Operations {
 
         if (!Opt.SortKindList.empty()) {
             const auto Lambda = [&](const auto &Lhs, const auto &Rhs) noexcept {
-                auto Compare = std::strong_ordering::equivalent;
-                for (const auto &Sort : Opt.SortKindList) {
-                    Compare =
-                        CompareEntriesBySortKind(Lhs, Rhs, DylibList, Sort);
+                auto Compare = Opt.SortKindList |
+                    std::views::transform(
+                        [&](const auto &Kind) noexcept {
+                            return CompareEntriesBySortKind(Lhs, Rhs, DylibList,
+                                                            Kind);
+                        }
+                    ) |
+                    std::views::filter(
+                        [](const auto &Result) noexcept {
+                            return Result != std::strong_ordering::equivalent;
+                        }
+                    );
 
-                    if (Compare != std::strong_ordering::equivalent) {
-                        break;
-                    }
+                if (Compare.empty()) {
+                    return false;
                 }
 
-                return Compare == std::strong_ordering::less;
+                return Compare.front() == std::strong_ordering::less;
             };
 
             std::ranges::sort(SymbolInfoList, Lambda);

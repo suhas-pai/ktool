@@ -237,7 +237,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
     const auto OperationString = std::string_view(argv[1]);
 
     I++;
-    if (OperationString.front() != '-') {
+    if (!OperationString.starts_with('-')) {
         std::println(stderr,
                      "Expected option, found {} instead",
                      OperationString);
@@ -253,7 +253,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             const auto Arg = std::string_view(argv[I]);
             if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
-            } else if (Arg.front() == '-') {
+            } else if (Arg.starts_with('-')) {
                 std::println(stderr,
                              "Got unrecognized argument \"{}\" for option {}",
                              Arg,
@@ -276,7 +276,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             const auto Arg = std::string_view(argv[I]);
             if (Arg == "-v" || Arg == "--verbose") {
                 Options.Verbose = true;
-            } else if (Arg.front() == '-') {
+            } else if (Arg.starts_with('-')) {
                 std::println(stderr,
                              "Got unrecognized argument \"{}\" for option {}",
                              Arg,
@@ -324,7 +324,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.SortKindList.emplace_back(SortKind::ByName);
             } else if (Arg == "--sort-by-timestamp") {
                 Options.SortKindList.emplace_back(SortKind::ByTimeStamp);
-            } else if (Arg.front() == '-') {
+            } else if (Arg.starts_with('-')) {
                 std::println(stderr,
                              "Got unrecognized argument \"{}\" for option {}",
                              Arg,
@@ -388,7 +388,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.Limit = Limit;
             } else if (Arg == "--sort") {
                 Options.Sort = true;
-            } else if (Arg.front() == '-') {
+            } else if (Arg.starts_with('-')) {
                 std::println(stderr,
                              "Got unrecognized argument \"{}\" for option {}",
                              Arg,
@@ -464,7 +464,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.SortKindList.emplace_back(SortKind::ByIndex);
             } else if (Arg == "--sort-by-string") {
                 Options.SortKindList.emplace_back(SortKind::ByString);
-            } else if (Arg.front() == '-') {
+            } else if (Arg.starts_with('-')) {
                 std::println(stderr,
                              "Got unrecognized argument \"{}\" for option {}",
                              Arg,
@@ -592,7 +592,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                         .SectionName = ""
                     }
                 );
-            } else if (Arg.front() == '-') {
+            } else if (Arg.starts_with('-')) {
                 std::println(stderr,
                              "Got unrecognized argument \"{}\" for option {}",
                              Arg,
@@ -646,7 +646,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 }
 
                 Options.PrintWeak = true;
-            } else if (Arg.front() == '-') {
+            } else if (Arg.starts_with('-')) {
                 std::println(stderr,
                              "Got unrecognized argument \"{}\" for option {}",
                              Arg,
@@ -709,7 +709,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.SortKindList.emplace_back(SortKind::ByDylibOrdinal);
             } else if (Arg == "--sort-by-kind") {
                 Options.SortKindList.emplace_back(SortKind::ByKind);
-            } else if (Arg.front() == '-') {
+            } else if (Arg.starts_with('-')) {
                 std::println(stderr,
                              "Got unrecognized argument \"{}\" for option {}",
                              Arg,
@@ -772,7 +772,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.SortKindList.emplace_back(SortKind::ByDylibOrdinal);
             } else if (Arg == "--sort-by-kind") {
                 Options.SortKindList.emplace_back(SortKind::ByKind);
-            } else if (Arg.front() == '-') {
+            } else if (Arg.starts_with('-')) {
                 std::println(stderr,
                              "Got unrecognized argument \"{}\" for option {}",
                              Arg,
@@ -814,7 +814,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.Verbose = true;
             } else if (Arg == "--sort") {
                 Options.Sort = true;
-            } else if (Arg.front() == '-') {
+            } else if (Arg.starts_with('-')) {
                 std::println(stderr,
                              "Got unrecognized argument \"{}\" for option {}",
                              Arg,
@@ -870,7 +870,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.SortKindList.emplace_back(SortKind::ByDylibOrdinal);
             } else if (Arg == "--sort-by-kind") {
                 Options.SortKindList.emplace_back(SortKind::ByKind);
-            } else if (Arg.front() == '-') {
+            } else if (Arg.starts_with('-')) {
                 std::println(stderr,
                              "Got unrecognized argument \"{}\" for option {}",
                              Arg,
@@ -919,7 +919,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 }
 
                 Options.TabLength = TabLength;
-            } else if (Arg.front() == '-') {
+            } else if (Arg.starts_with('-')) {
                 std::println(stderr,
                              "Got unrecognized argument \"{}\" for option {}",
                              Arg,
@@ -953,7 +953,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                 Options.SortKindList.emplace_back(SortKind::ByInode);
             } else if (Arg == "--sort-by-modtime") {
                 Options.SortKindList.emplace_back(SortKind::ByModTime);
-            } else if (Arg.front() == '-') {
+            } else if (Arg.starts_with('-')) {
                 std::println(stderr,
                              "Got unrecognized argument \"{}\" for option {}",
                              Arg,
@@ -968,7 +968,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
         Operation.Op =
             std::unique_ptr<Operations::PrintImageList>(
                 new Operations::PrintImageList(stdout, Options));
-    } else if (OperationString.front() == '-') {
+    } else if (OperationString.starts_with('-')) {
         std::println(stderr, "Unrecognized operation: \"{}\"", OperationString);
         return 1;
     } else {
@@ -985,7 +985,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
     }
 
     const auto PathArg = std::string_view(argv[I]);
-    if (PathArg.front() == '-') {
+    if (PathArg.starts_with('-')) {
         std::println(stderr,
                      "Expected path to a file, got option {} instead",
                      PathArg);
@@ -1067,7 +1067,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             }
 
             const auto FileSuffix = std::string(argv[I + 1]);
-            if (FileSuffix.front() == '-') {
+            if (FileSuffix.starts_with('-')) {
                 std::println(stderr,
                              "Expected path to a file, got option {} instead",
                              PathArg);
@@ -1086,7 +1086,7 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
             }
 
             const auto PathArg = std::string_view(argv[I + 2]);
-            if (PathArg.front() == '-') {
+            if (PathArg.starts_with('-')) {
                 std::println(stderr,
                              "Expected path to a file, got option {} instead",
                              PathArg);
@@ -1140,6 +1140,9 @@ auto main(const int argc, const char *const argv[]) noexcept -> int {
                     return 1;
                 case RunResult::Error::IdNotFound:
                     std::println(stderr, "Id String not found");
+                    return 1;
+                case RunResult::Error::MultipleIdsFound:
+                    std::println(stderr, "Multiple Id Strings found");
                     return 1;
             }
 

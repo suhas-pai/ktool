@@ -44,43 +44,45 @@ namespace Operations {
         const auto IsBigEndian = MachO.isBigEndian();
         const auto LoadCommandsMap = MachO.loadCommandsMap();
 
-        for (auto Iter = LoadCommandsMap.begin();
-             Iter != LoadCommandsMap.end();
-             Iter++)
+        auto FoundIdDylib = false;
+        auto IdDylibCmd = static_cast<const MachO::DylibCommand *>(nullptr);
+
+        for (const auto &IdDylib :
+                LoadCommandsMap |
+                MachO::LCMapFilterKind<
+                    MachO::LoadCommandKind::IdDylib>(IsBigEndian))
         {
-            using Kind = MachO::LoadCommandKind;
-            if (const auto ID = Iter.dyn_cast<Kind::IdDylib>()) {
-                const auto NameOpt = ID->name(IsBigEndian);
-                if (!Opt.Verbose) {
-                    if (!NameOpt.has_value()) {
-                        return RunResult(RunResult::Error::BadIdString);
-                    }
-                }
-
-                std::println(OutFile,
-                             "\"{}\"",
-                             NameOpt.value_or("<Malformed>"));
-
-                if (Opt.Verbose) {
-                    const auto &Dylib = ID->Dylib;
-                    const auto CurrentVersion =
-                        Dylib.currentVersion(IsBigEndian);
-
-                    const auto CompatVersion = Dylib.compatVersion(IsBigEndian);
-                    const auto Timestamp = Dylib.timestamp(IsBigEndian);
-
-                    std::print(OutFile,
-                               "\tCurrent Version: {}\n"
-                               "\tCompat Version:  {}\n"
-                               "\tTimestamp:       {} (Value: {})\n",
-                               CurrentVersion,
-                               CompatVersion,
-                               Utils::Timestamp(Timestamp),
-                               Utils::FormattedNumber(Timestamp));
-                }
-
-                return RunResult();
+            if (FoundIdDylib) {
+                return RunResult(RunResult::Error::MultipleIdsFound);
             }
+
+            IdDylibCmd = IdDylib;
+            FoundIdDylib = true;
+        }
+
+        const auto NameOpt = IdDylibCmd->name(IsBigEndian);
+        if (!Opt.Verbose) {
+            if (!NameOpt.has_value()) {
+                return RunResult(RunResult::Error::BadIdString);
+            }
+        }
+
+        std::println(OutFile, "\"{}\"", NameOpt.value_or("<Malformed>"));
+        if (Opt.Verbose) {
+            const auto &Dylib = IdDylibCmd->Dylib;
+
+            const auto CurrentVersion = Dylib.currentVersion(IsBigEndian);
+            const auto CompatVersion = Dylib.compatVersion(IsBigEndian);
+            const auto Timestamp = Dylib.timestamp(IsBigEndian);
+
+            std::print(OutFile,
+                       "\tCurrent Version: {}\n"
+                       "\tCompat Version:  {}\n"
+                       "\tTimestamp:       {} (Value: {})\n",
+                       CurrentVersion,
+                       CompatVersion,
+                       Utils::Timestamp(Timestamp),
+                       Utils::FormattedNumber(Timestamp));
         }
 
         return RunResult(RunResult::Error::IdNotFound);

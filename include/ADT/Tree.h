@@ -523,14 +523,14 @@ namespace ADT {
         }
 
         constexpr auto operator++(int) noexcept {
-            return operator++();
+            return this->operator++();
         }
 
         constexpr auto operator+=(const size_t Amount) noexcept
             -> decltype(*this)
         {
             for (auto I = size_t(); I != Amount; I++) {
-                operator++();
+                this->operator++();
             }
 
             return *this;
@@ -540,7 +540,7 @@ namespace ADT {
             -> decltype(*this)
         {
             for (auto I = size_t(); I != Amount; I++) {
-                operator--();
+                this->operator--();
             }
 
             return *this;
@@ -657,12 +657,12 @@ namespace ADT {
 
             using Iterator = TreeDFSIterator<T>;
 
-            [[nodiscard]] constexpr auto begin() const noexcept {
+            [[nodiscard]] inline auto begin() const noexcept {
                 return Iterator(this->root());
             }
 
-            [[nodiscard]] constexpr auto end() const noexcept {
-                return Iterator(nullptr, nullptr);
+            [[nodiscard]] inline auto end() const noexcept {
+                return Iterator();
             }
 
             template <typename U>

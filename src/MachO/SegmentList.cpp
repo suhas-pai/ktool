@@ -11,26 +11,26 @@ namespace MachO {
     {
         const auto IsBigEndian = Map.isBigEndian();
         if (Is64Bit) {
-            auto SegmentList = Map
-                | std::views::transform([IsBigEndian](const auto &Lc) noexcept {
-                    return dyn_cast<SegmentCommand64>(&Lc, IsBigEndian);
-                  })
-                | std::views::filter([](const auto Segment) noexcept {
-                    return Segment != nullptr;
-                  });
+            auto SegmentList = Map |
+                std::views::transform([IsBigEndian](const auto &Lc) noexcept {
+                  return dyn_cast<SegmentCommand64>(&Lc, IsBigEndian);
+                }) |
+                std::views::filter([](const auto Segment) noexcept {
+                  return Segment != nullptr;
+                });
 
             std::ranges::for_each(SegmentList,
                                   [this, IsBigEndian](const auto Segment) {
                                     this->add(*Segment, IsBigEndian);
                                   });
         } else {
-            auto SegmentList = Map
-                | std::views::transform([IsBigEndian](const auto &Lc) noexcept {
+            auto SegmentList = Map |
+                std::views::transform([IsBigEndian](const auto &Lc) noexcept {
                     return dyn_cast<SegmentCommand>(&Lc, IsBigEndian);
-                  })
-                | std::views::filter([](const auto Segment) noexcept {
+                }) |
+                std::views::filter([](const auto Segment) noexcept {
                     return Segment != nullptr;
-                  });
+                });
 
             std::ranges::for_each(SegmentList,
                                   [this, IsBigEndian](const auto Segment) {
@@ -55,8 +55,8 @@ namespace MachO {
             .Index = static_cast<uint32_t>(List.size())
         });
 
-        const auto SectionListRange = Segment.sectionList(IsBigEndian)
-            | std::views::transform(
+        const auto SectionListRange = Segment.sectionList(IsBigEndian) |
+            std::views::transform(
                 [IsBigEndian](const auto &Section) noexcept {
                     return SectionInfo {
                         .Name = std::string(Section.sectionName()),
@@ -71,11 +71,10 @@ namespace MachO {
                         .Reserved2 = Section.reserved2(IsBigEndian),
                         .Reserved3 = 0
                     };
-                });
+                }
+            );
 
-        Info.SectionList.insert_range(
-            Info.SectionList.begin(), SectionListRange);
-
+        Info.SectionList.append_range(SectionListRange);
         return *this;
     }
 
@@ -95,8 +94,8 @@ namespace MachO {
             .Index = static_cast<uint32_t>(List.size())
         });
 
-        const auto SectionListRange = Segment.sectionList(IsBigEndian)
-            | std::views::transform(
+        const auto SectionListRange = Segment.sectionList(IsBigEndian) |
+            std::views::transform(
                 [IsBigEndian](const auto &Section) noexcept {
                     return SectionInfo {
                         .Name = std::string(Section.sectionName()),
@@ -111,11 +110,10 @@ namespace MachO {
                         .Reserved2 = Section.reserved2(IsBigEndian),
                         .Reserved3 = Section.reserved3(IsBigEndian)
                     };
-                });
+                }
+            );
 
-        Info.SectionList.insert_range(
-            Info.SectionList.begin(), SectionListRange);
-
+        Info.SectionList.append_range(SectionListRange);
         return *this;
     }
 

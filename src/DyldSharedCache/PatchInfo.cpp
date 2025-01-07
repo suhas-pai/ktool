@@ -540,14 +540,14 @@ namespace DyldSharedCache {
                                 ClientPatch.PatchLocationsStartIndex,
                                 ClientPatch.PatchLocationsCount);
 
-                        auto LocationList = ImagePatchLocationListForClient
-                            | std::views::filter(
+                        auto LocationList = ImagePatchLocationListForClient |
+                            std::views::filter(
                                 [this, VmRange](const auto &Loc) {
                                     return VmRange.hasLoc(
                                         this->ImageBaseAddress +
                                         Loc.DylibOffsetOfUse);
-                                })
-                            | std::views::transform(
+                                }) |
+                            std::views::transform(
                                 [this, &ExportInfo, ExportName](const auto &Loc)
                                     -> std::pair<uint64_t, PatchLocation>
                                 {
@@ -622,11 +622,11 @@ namespace DyldSharedCache {
                                 ClientPatch.PatchLocationsStartIndex,
                                 ClientPatch.PatchLocationsCount);
 
-                        auto PatchLocList = ImagePatchLocationListForClient
-                            | std::views::filter([VmRange](const auto &Loc) {
+                        auto PatchLocList = ImagePatchLocationListForClient |
+                            std::views::filter([VmRange](const auto &Loc) {
                                 return VmRange.hasLoc(Loc.CacheOffsetOfUse);
-                              })
-                            | std::views::transform(
+                              }) |
+                            std::views::transform(
                                 [this, &ExportInfo, ExportName](const auto &Loc)
                                     -> std::pair<uint64_t, PatchLocation>
                                 {
@@ -662,11 +662,11 @@ namespace DyldSharedCache {
                                 ClientPatch.PatchLocationsStartIndex,
                                 ClientPatch.PatchLocationsCount);
 
-                        auto GOTLocList = GotPatchListForClient
-                            | std::views::filter([VmRange](const auto &Loc) {
+                        auto GOTLocList = GotPatchListForClient |
+                            std::views::filter([VmRange](const auto &Loc) {
                                 return VmRange.hasLoc(Loc.CacheOffsetOfUse);
-                            })
-                            | std::views::transform(
+                            }) |
+                            std::views::transform(
                                 [this, &ExportInfo, ExportName](const auto &Loc)
                                     -> std::pair<uint64_t, PatchLocation>
                                 {
@@ -735,15 +735,15 @@ namespace DyldSharedCache {
                                 ClientPatch.PatchLocationsStartIndex,
                                 ClientPatch.PatchLocationsCount);
 
-                        auto LocationList = ImagePatchLocationListForClient
-                            | std::views::filter(
+                        auto LocationList = ImagePatchLocationListForClient |
+                            std::views::filter(
                                 [this, VmRange](const auto &Loc) {
                                     return VmRange.hasLoc(
                                         this->ImageBaseAddress +
                                         Loc.DylibOffsetOfUse);
                                 }
-                            )
-                            | std::views::transform(
+                            ) |
+                            std::views::transform(
                                 [this, &ExportInfo, ExportName](const auto &Loc)
                                     -> std::pair<uint64_t, PatchLocation>
                                 {
@@ -769,7 +769,6 @@ namespace DyldSharedCache {
                                 });
 
                         Map.insert_range(LocationList);
-
                         if (Utils::IndexAndCountOutOfBounds(
                                 ClientPatch.PatchLocationsStartIndex,
                                 ClientPatch.PatchLocationsCount,
@@ -783,13 +782,13 @@ namespace DyldSharedCache {
                                 ClientPatch.PatchLocationsStartIndex,
                                 ClientPatch.PatchLocationsCount);
 
-                        auto GOTLocationList = GOTPatchLocationListForClient
-                            | std::views::filter(
-                                [VmRange](const auto &Loc) {
+                        auto GOTLocationList = GOTPatchLocationListForClient |
+                            std::views::filter(
+                                [VmRange](const auto &Loc) noexcept {
                                     return VmRange.hasLoc(Loc.CacheOffsetOfUse);
                                 }
-                            )
-                            | std::views::transform(
+                            ) |
+                            std::views::transform(
                                 [this, &ExportInfo, ExportName](const auto &Loc)
                                     -> std::pair<uint64_t, PatchLocation>
                                 {

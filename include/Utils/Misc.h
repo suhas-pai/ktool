@@ -131,7 +131,7 @@ namespace Utils {
 
     [[nodiscard]]
     inline auto getFullPath(const std::string_view Path) noexcept {
-        if (Path.front() == '/') {
+        if (Path.starts_with('/')) {
             return std::string(Path);
         }
 
@@ -146,7 +146,7 @@ namespace Utils {
         auto String = std::string();
 
         const auto CdSv = std::string_view(CdString);
-        const auto HasBackSlash = CdSv.back() == '/';
+        const auto HasBackSlash = CdSv.ends_with('/');
         const auto ReserveLength =
             CdSv.length() + static_cast<size_t>(!HasBackSlash) + Path.length();
 

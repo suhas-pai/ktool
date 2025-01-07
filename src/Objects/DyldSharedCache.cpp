@@ -10,6 +10,7 @@
 #include <ranges>
 
 #include "DyldSharedCache/Headers.h"
+
 #include "Objects/DyldSharedCache.h"
 #include "Objects/DscImage.h"
 
@@ -632,7 +633,8 @@ namespace Objects {
         for (const auto &MappingWithSlideInfo :
                 MappingAndSlideInfoSpan |
                 std::views::reverse |
-                std::views::filter(HasSlideInfoFilter))
+                std::views::filter(HasSlideInfoFilter) |
+                std::views::take(1))
         {
             return MappingWithSlideInfo.slideInfoFileRange();
         }

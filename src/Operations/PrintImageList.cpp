@@ -4,6 +4,8 @@
  */
 
 #include <algorithm>
+#include <ranges>
+
 #include "ADT/Maximizer.h"
 
 #include "Objects/DscImage.h"
@@ -100,22 +102,23 @@ namespace Operations {
         auto ImageInfoList = std::vector<ImageInfo>();
         auto LongestImagePath = ADT::Maximizer<uint64_t>();
 
-        ImageInfoList.reserve(ImageCount);
-        for (const auto &Info : Dsc.imageInfoList()) {
-            auto NewInfo = ImageInfo();
+        const auto InfoRange = Dsc.imageInfoList() |
+            std::views::transform([&LongestImagePath, &Map](const auto &Info) {
+                auto NewInfo = ImageInfo();
 
-            NewInfo.Address = Info.Address;
-            NewInfo.ModTime = Info.ModTime;
-            NewInfo.Inode = Info.Inode;
-            NewInfo.PathFileOffset = Info.PathFileOffset;
-            NewInfo.Pad = Info.Pad;
-            NewInfo.Path =
-                Map.string(Info.PathFileOffset).value_or("<invalid>");
+                NewInfo.Address = Info.Address;
+                NewInfo.ModTime = Info.ModTime;
+                NewInfo.Inode = Info.Inode;
+                NewInfo.PathFileOffset = Info.PathFileOffset;
+                NewInfo.Pad = Info.Pad;
+                NewInfo.Path =
+                    Map.string(Info.PathFileOffset).value_or("<invalid>");
 
-            LongestImagePath.set(NewInfo.Path.length());
-            ImageInfoList.emplace_back(std::move(NewInfo));
-        }
+                LongestImagePath.set(NewInfo.Path.length());
+                return NewInfo;
+            });
 
+        ImageInfoList.append_range(InfoRange);
         if (!Opt.SortKindList.empty()) {
             const auto Comparator =
                 [&](const auto &Lhs, const auto &Rhs) noexcept
@@ -138,32 +141,34 @@ namespace Operations {
             Utils::GetIntegerDigitCount(ImageCount);
 
         auto Counter = static_cast<uint64_t>(1);
-        for (const auto &Info : ImageInfoList) {
-            std::print(OutFile,
-                       "Image {:>{}}: \"{}\"",
-                       Counter,
-                       ImageInfoListSizeDigitCount,
-                       Info.Path);
-
-            const auto WrittenOut = STR_LENGTH("\"\"") + Info.Path.length();
-            if (Opt.Verbose) {
-                const auto RightPad =
-                    LongestImagePath.value() + STR_LENGTH("\"\"");
-
+        std::ranges::for_each(
+            ImageInfoList,
+            [&](const auto &Info) noexcept {
                 std::print(OutFile,
-                           "{:<{}}"
-                           "{}, Modification-Time: {} (Value: {}), Inode: {}",
-                           "",
-                           RightPad - WrittenOut,
-                           Utils::Address(Info.Address),
-                           Utils::Timestamp(static_cast<time_t>(Info.ModTime)),
-                           Info.ModTime,
-                           Info.Inode);
-            }
+                        "Image {:>{}}: \"{}\"",
+                        Counter,
+                        ImageInfoListSizeDigitCount,
+                        Info.Path);
 
-            std::println(OutFile, "");
-            Counter++;
-        }
+                const auto WrittenOut = STR_LENGTH("\"\"") + Info.Path.length();
+                if (Opt.Verbose) {
+                    const auto RightPad =
+                        LongestImagePath.value() + STR_LENGTH("\"\"");
+
+                    std::print(OutFile,
+                            "{:<{}}"
+                            "{}, Modification-Time: {} (Value: {}), Inode: {}",
+                            "",
+                            RightPad - WrittenOut,
+                            Utils::Address(Info.Address),
+                            Utils::Timestamp(static_cast<time_t>(Info.ModTime)),
+                            Info.ModTime,
+                            Info.Inode);
+                }
+
+                std::println(OutFile, "");
+                Counter++;
+            });
 
         return RunResult();
     }

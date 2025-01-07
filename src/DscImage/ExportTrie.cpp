@@ -59,7 +59,7 @@ namespace DscImage {
 
     ExportTrieExportCollection
     ExportTrieExportCollection::Open(
-        const MachO::ExportTrieMap::ExportMap &Trie,
+        const MachO::ExportTrieMap::ExportList &Trie,
         const MachO::SegmentList *const SegList,
         const uint64_t ImageAddress,
         const ParseOptions &Options,

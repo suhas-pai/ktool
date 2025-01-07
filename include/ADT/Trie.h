@@ -285,7 +285,30 @@ namespace ADT {
             }
         };
 
-        struct IteratorEnd {};
+        struct Iterator;
+        struct ExportIterator;
+
+        struct Sentinel {
+        public:
+            Sentinel() noexcept = default;
+            Sentinel([[maybe_unused]] const Iterator &Iter) noexcept {}
+            Sentinel([[maybe_unused]] const ExportIterator &Iter) noexcept {}
+            Sentinel([[maybe_unused]] const IterateInfo &Info) noexcept {}
+
+            [[nodiscard]] auto operator==(const Iterator &It) const noexcept {
+                return It.isAtEnd();
+            }
+
+            [[nodiscard]]
+            auto operator==(const ExportIterator &It) const noexcept {
+                return It.isAtEnd();
+            }
+
+            [[nodiscard]] auto operator==(const Sentinel &) const noexcept {
+                return true;
+            }
+        };
+
         struct Iterator {
         public:
             using Error = TrieParseError;
@@ -296,11 +319,11 @@ namespace ADT {
                 MoveUptoParentNode
             };
         protected:
-            Error ParseError;
-            Direction Direction;
+            Error ParseError = Error::None;
+            Direction Direction = Direction::Normal;
 
-            uint8_t *Begin;
-            uint8_t *End;
+            uint8_t *Begin = nullptr;
+            uint8_t *End = nullptr;
 
             std::unique_ptr<IterateInfo> Info;
             std::unique_ptr<StackInfo> NextStack;
@@ -308,8 +331,10 @@ namespace ADT {
             TrieParser *Parser;
 
             void SetupInfoForNewStack() noexcept {
-                this->Info->stringRef().append(NextStack->node().prefix());
-                this->Info->stackListRef().emplace_back(std::move(*NextStack));
+                this->Info->stringRef().append(
+                    this->NextStack->node().prefix());
+                this->Info->stackListRef().emplace_back(
+                    std::move(*this->NextStack));
             }
 
             auto MoveUptoParentNode() noexcept {
@@ -501,15 +526,21 @@ namespace ADT {
 
             explicit Iterator() noexcept = default;
 
+            inline Iterator(const Iterator &Other) noexcept
+            : Begin(Other.Begin), End(Other.End),
+              Info(std::make_unique<IterateInfo>(*Other.Info)),
+              NextStack(std::make_unique<StackInfo>(*Other.NextStack)),
+              Parser(Other.Parser) {}
+
             explicit
             Iterator(uint8_t *const Begin,
                      uint8_t *const End,
-                     TrieParser &Parser,
-                     T &ExportInfoParser,
+                     TrieParser *const Parser,
+                     T *const ExportInfoParser,
                      const ParseOptions &Options = ParseOptions()) noexcept
             : Begin(Begin), End(End),
-              Info(std::make_unique<IterateInfo>(ExportInfoParser)),
-              Parser(&Parser)
+              Info(std::make_unique<IterateInfo>(*ExportInfoParser)),
+              Parser(Parser)
             {
                 Info->setMaxDepth(Options.MaxDepth);
 
@@ -519,11 +550,11 @@ namespace ADT {
 
                 auto Node = NodeInfo();
                 this->ParseError =
-                    Parser.ParseNode(Begin,
-                                     Begin,
-                                     End,
-                                     Info->rangeListRef(),
-                                     &Node);
+                    Parser->ParseNode(Begin,
+                                      Begin,
+                                      End,
+                                      Info->rangeListRef(),
+                                      &Node);
 
                 if (ParseError != Error::None) {
                     return;
@@ -569,7 +600,7 @@ namespace ADT {
                 return *this;
             }
 
-            inline auto operator++(int) noexcept -> decltype(*this) {
+            inline auto operator++(int) noexcept {
                 return this->operator++();
             }
 
@@ -599,6 +630,18 @@ namespace ADT {
                 return this->Info.get();
             }
 
+            constexpr auto operator=(const Iterator &Other) noexcept
+                -> decltype(*this)
+            {
+                this->Begin = Other.Begin;
+                this->End = Other.End;
+                this->Info = std::make_unique<IterateInfo>(*Other.Info);
+                this->NextStack = std::make_unique<StackInfo>(*Other.NextStack);
+                this->Parser = Other.Parser;
+
+                return *this;
+            }
+
             [[nodiscard]] constexpr
             auto operator<=>(const Iterator &Other) const noexcept = default;
 
@@ -608,18 +651,18 @@ namespace ADT {
                     return false;
                 }
 
-                if (this->Info.StackList.empty()) {
-                    if (Other.Info.StackList.empty()) {
+                if (this->Info->stackList().empty()) {
+                    if (Other.Info->stackList().empty()) {
                         return true;
                     } else {
                         return false;
                     }
-                } else if (Other.Info.StackList.empty()) {
+                } else if (Other.Info->stackList().empty()) {
                     return false;
                 }
 
-                const auto &Stack = this->Info.StackList.back();
-                const auto &OtherStack = Other.Info.StackList.back();
+                const auto &Stack = this->Info->stackList().back();
+                const auto &OtherStack = Other.Info->stackList().back();
 
                 const auto &Node = Stack.node();
                 const auto &OtherNode = OtherStack.node();
@@ -628,13 +671,8 @@ namespace ADT {
             }
 
             [[nodiscard]]
-            inline auto operator==(const IteratorEnd &) const noexcept {
+            inline auto operator==(const Sentinel &) const noexcept {
                 return this->isAtEnd();
-            }
-
-            [[nodiscard]]
-            inline auto operator!=(const IteratorEnd &End) const noexcept {
-                return !operator==(End);
             }
         };
 
@@ -667,12 +705,15 @@ namespace ADT {
 
             ExportIterator() noexcept = default;
 
+            inline ExportIterator(const ExportIterator &Other) noexcept
+            : Iter(Other.Iter) {}
+
             explicit
             ExportIterator(
                 uint8_t *Begin,
                 uint8_t *End,
-                TrieParser &TrieParser,
-                T &ExportInfoParser,
+                TrieParser *TrieParser,
+                T *ExportInfoParser,
                 const ParseOptions &Options = ParseOptions()) noexcept
             : Iter(Begin, End, TrieParser, ExportInfoParser, Options) {
                 if (!this->Iter.hasError() &&
@@ -686,8 +727,8 @@ namespace ADT {
             explicit
             ExportIterator(
                 const ADT::MemoryMap Map,
-                TrieParser &TrieParser,
-                T &ExportInfoParser,
+                TrieParser *const TrieParser,
+                T *const ExportInfoParser,
                 const ParseOptions &Options = ParseOptions()) noexcept
             : Iter(Map, TrieParser, ExportInfoParser, Options) {
                 if (!this->Iter.hasError() &&
@@ -696,10 +737,6 @@ namespace ADT {
                 {
                     this->Advance();
                 }
-            }
-
-            inline ExportIterator(const ExportIterator &Other) noexcept {
-                this->Iter = Other.Iter;
             }
 
             [[nodiscard]] inline auto &info() noexcept {
@@ -727,7 +764,7 @@ namespace ADT {
                 return *this;
             }
 
-            inline auto operator++(int) noexcept -> decltype(*this) {
+            inline auto operator++(int) noexcept {
                 return this->operator++();
             }
 
@@ -757,50 +794,49 @@ namespace ADT {
                 return &this->Iter.info();
             }
 
-            inline auto operator=(const ExportIterator &Other) noexcept
+            constexpr auto operator=(const ExportIterator &Other) noexcept
                 -> decltype(*this)
             {
                 this->Iter = Other.Iter;
                 return *this;
             }
 
-            [[nodiscard]] constexpr auto
-            operator<=>(const ExportIterator &Other) const noexcept = default;
-
             [[nodiscard]]
-            inline auto operator==(const Iterator &Other) const noexcept {
+            inline auto operator==(const ExportIterator &Other) const noexcept {
                 return this->Iter == Other.Iter;
             }
 
             [[nodiscard]]
-            inline auto operator==(const IteratorEnd &End) const noexcept {
+            inline auto operator==(const Sentinel &End) const noexcept {
                 return this->Iter== End;
             }
 
             [[nodiscard]]
-            inline auto operator!=(const IteratorEnd &End) const noexcept {
+            inline auto operator!=(const Sentinel &End) const noexcept {
                 return !this->operator==(End);
             }
         };
+
+        static_assert(std::forward_iterator<ExportIterator>);
     protected:
         uint8_t *Begin;
         uint8_t *End;
 
-        TrieParser &Parser;
-        T &ExportInfoParser;
+        TrieParser *Parser;
+        T *ExportInfoParser;
     public:
         constexpr explicit
         Trie(uint8_t *const Begin,
              uint8_t *const End,
-             TrieParser &TrieParser,
-             T &ExportInfoParser) noexcept
+             TrieParser *const TrieParser,
+             T *const ExportInfoParser) noexcept
         : Begin(Begin), End(End), Parser(TrieParser),
           ExportInfoParser(ExportInfoParser) {};
 
         constexpr explicit
         Trie(const ADT::MemoryMap Map,
-             TrieParser &TrieParser,
-             T &ExportInfoParser) noexcept
+             TrieParser *const TrieParser,
+             T *const ExportInfoParser) noexcept
         : Begin(Map.base<uint8_t>()),
           End(const_cast<uint8_t *>(Map.end<uint8_t>())),
           Parser(TrieParser), ExportInfoParser(ExportInfoParser) {};
@@ -824,7 +860,8 @@ namespace ADT {
             return Iterator(this->Begin,
                             this->End,
                             this->Parser,
-                            this->ExportInfoParser, Options);
+                            this->ExportInfoParser,
+                            Options);
         }
 
         [[nodiscard]]
@@ -832,37 +869,38 @@ namespace ADT {
             return Iterator(this->Begin,
                             this->End,
                             this->Parser,
-                            this->ExportInfoParser, Options);
+                            this->ExportInfoParser,
+                            Options);
         }
 
         [[nodiscard]] inline auto end() const noexcept {
-            return IteratorEnd();
+            return Sentinel();
         }
 
         [[nodiscard]] inline auto cend() const noexcept {
-            return IteratorEnd();
+            return Sentinel();
         }
 
-        struct ExportMap {
+        struct ExportList {
         protected:
             uint8_t *Begin;
             uint8_t *End;
 
-            TrieParser &Parser;
-            T &ExportInfoParser;
+            TrieParser *Parser;
+            T *ExportInfoParser;
         public:
             constexpr
-            ExportMap(uint8_t *const Begin,
-                      uint8_t *const End,
-                      TrieParser &Parser,
-                      T &ExportInfoParser) noexcept
+            ExportList(uint8_t *const Begin,
+                       uint8_t *const End,
+                       TrieParser *const Parser,
+                       T *const ExportInfoParser) noexcept
             : Begin(Begin), End(End), Parser(Parser),
               ExportInfoParser(ExportInfoParser) {}
 
             explicit
-            ExportMap(const ADT::MemoryMap Map,
-                      TrieParser &Parser,
-                      T &ExportInfoParser) noexcept
+            ExportList(const ADT::MemoryMap Map,
+                       TrieParser *const Parser,
+                       T *const ExportInfoParser) noexcept
             : Begin(Map.base<uint8_t>()),
               End(const_cast<uint8_t *>(Map.end<uint8_t>())),
               Parser(Parser), ExportInfoParser(ExportInfoParser) {}
@@ -877,6 +915,20 @@ namespace ADT {
             }
 
             [[nodiscard]] inline auto cbegin() const noexcept {
+                return Iterator(this->Begin,
+                                this->End,
+                                this->Parser,
+                                this->ExportInfoParser);
+            }
+
+            [[nodiscard]] inline auto begin() noexcept {
+                return Iterator(this->Begin,
+                                this->End,
+                                this->Parser,
+                                this->ExportInfoParser);
+            }
+
+            [[nodiscard]] inline auto cbegin() noexcept {
                 return Iterator(this->Begin,
                                 this->End,
                                 this->Parser,
@@ -901,20 +953,30 @@ namespace ADT {
                                 Options);
             }
 
+            [[nodiscard]] inline auto end() noexcept {
+                return Sentinel();
+            }
+
+            [[nodiscard]] inline auto cend() noexcept {
+                return Sentinel();
+            }
+
             [[nodiscard]] inline auto end() const noexcept {
-                return IteratorEnd();
+                return Sentinel();
             }
 
             [[nodiscard]] inline auto cend() const noexcept {
-                return IteratorEnd();
+                return Sentinel();
             }
         };
 
-        [[nodiscard]] inline auto exportMap() const noexcept {
-            return ExportMap(this->Begin,
-                             this->End,
-                             this->Parser,
-                             this->ExportInfoParser);
+        static_assert(std::ranges::forward_range<ExportList>);
+
+        [[nodiscard]] inline auto exportList() const noexcept {
+            return ExportList(this->Begin,
+                              this->End,
+                              this->Parser,
+                              this->ExportInfoParser);
         }
     };
 

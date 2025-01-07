@@ -5,11 +5,10 @@
 //  Created by suhaspai on 11/15/22.
 //
 
+#include <algorithm>
 #include <format>
 #include <print>
 #include <unordered_map>
-
-#include "ADT/FlagsIterator.h"
 
 #include "Objects/DyldSharedCache.h"
 #include "Objects/Open.h"
@@ -206,18 +205,20 @@ namespace Operations {
             Utils::GetIntegerDigitCount(
                 static_cast<uint32_t>(std::popcount(Flags.value())));
 
-        for (const auto Bit : ADT::FlagsIterator(Flags)) {
-            const auto Flag = MachO::Flags::Kind(1 << Bit);
-            std::println(OutFile,
-                         "\t\t{:0{}}. Bit {:02}: {}",
-                         Counter,
-                         DigitCount,
-                         Bit,
-                            MachO::Flags::KindGetString(Flag)
-                                .value_or("<Unknown>"));
+        std::ranges::for_each(
+            ADT::FlagsBase(Flags),
+            [OutFile, &Counter, DigitCount](const auto Bit) noexcept {
+                const auto Flag = MachO::Flags::Kind(1 << Bit);
+                std::println(OutFile,
+                            "\t\t{:0{}}. Bit {:02}: {}",
+                            Counter,
+                            DigitCount,
+                            Bit,
+                                MachO::Flags::KindGetString(Flag)
+                                    .value_or("<Unknown>"));
 
-            Counter++;
-        }
+                Counter++;
+            });
 
         return RunResult();
     }
@@ -245,35 +246,39 @@ namespace Operations {
             const auto IsBigEndian = Fat.isBigEndian();
 
             if (Fat.is64Bit()) {
-                for (const auto &Arch : Fat.arch64List()) {
-                    const auto Object =
-                        std::unique_ptr<Objects::Base>(
-                            Objects::OpenArch(Fat, I).value());
+                std::ranges::for_each(
+                    Fat.arch64List(),
+                    [&](const auto &Arch) noexcept {
+                        const auto Object =
+                            std::unique_ptr<Objects::Base>(
+                                Objects::OpenArch(Fat, I).value());
 
-                    Operations::PrintArchs::PrintArch64(OutFile,
-                                                        Arch,
-                                                        Object.get(),
-                                                        I + 1,
-                                                        Opt.Verbose,
-                                                        IsBigEndian,
-                                                        "\t\t");
-                    I++;
-                }
+                        Operations::PrintArchs::PrintArch64(OutFile,
+                                                            Arch,
+                                                            Object.get(),
+                                                            I + 1,
+                                                            Opt.Verbose,
+                                                            IsBigEndian,
+                                                            "\t\t");
+                        I++;
+                    });
             } else {
-                for (const auto &Arch : Fat.archList()) {
-                    const auto Object =
-                        std::unique_ptr<Objects::Base>(
-                            Objects::OpenArch(Fat, I).value());
+                std::ranges::for_each(
+                    Fat.archList(),
+                    [&](const auto &Arch) noexcept {
+                        const auto Object =
+                            std::unique_ptr<Objects::Base>(
+                                Objects::OpenArch(Fat, I).value());
 
-                    Operations::PrintArchs::PrintArch(OutFile,
-                                                      Arch,
-                                                      Object.get(),
-                                                      I + 1,
-                                                      Opt.Verbose,
-                                                      IsBigEndian,
-                                                      "\t\t");
-                    I++;
-                }
+                        Operations::PrintArchs::PrintArch(OutFile,
+                                                          Arch,
+                                                          Object.get(),
+                                                          I + 1,
+                                                          Opt.Verbose,
+                                                          IsBigEndian,
+                                                          "\t\t");
+                        I++;
+                    });
             }
         }
 
@@ -334,6 +339,7 @@ namespace Operations {
     };
 
     using DscRangeList = std::unordered_map<DscRangeKind, DscRange>;
+
     static
     void AddRangeToList(DscRangeList &List, DscRange &&DscRange) noexcept {
         for (const auto &Iter : List) {
@@ -1518,22 +1524,16 @@ namespace Operations {
                        Header->Flags);
 
             auto Counter = uint32_t();
-            for (const auto Bit :
-                    ADT::FlagsIterator<uint32_t>(Header->flags()))
-            {
-                using FlagsStruct =
-                    DyldSharedCache::ObjcOptimizationHeader::FlagsStruct;
-
-                const auto Flag = static_cast<FlagsStruct::Kind>(1ull << Bit);
-                std::println(OutFile,
-                             "\t\t{}. Bit {}: {}",
-                             Counter + 1,
-                             Bit,
-                             FlagsStruct::KindGetString(Flag)
-                                .value_or("<unknown>"));
-
-                Counter++;
-            }
+            std::ranges::for_each(
+                ADT::FlagsBase<uint32_t>(Header->flags()),
+                [OutFile, &Counter](const auto Bit) noexcept {
+                    std::println(OutFile,
+                                 "\t\t{}. Bit {}: {}",
+                                 Counter + 1,
+                                 Bit,
+                                 Utils::Boolean(1ull << Bit));
+                    Counter++;
+                });
 
             std::print(OutFile,
                        "\tHeader-Info Read-Only Cache Offset: {}\n"

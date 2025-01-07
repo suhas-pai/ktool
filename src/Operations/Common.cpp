@@ -52,7 +52,11 @@ namespace Operations {
         if (!Utils::OrdinalOutOfBounds(DylibOrdinal, List.size())) {
             IsOutOfBounds = false;
             LibraryPath =
-                    List.at(DylibOrdinal - 1).Path.value_or("<Malformed>");
+                List.at(DylibOrdinal - 1).Path
+                    .transform([](const auto &Path) {
+                        return std::string_view(Path);
+                    })
+                    .value_or(LibraryPath);
         }
 
         const auto WrittenOut =

@@ -353,7 +353,9 @@ namespace MachO {
             this->Advance();
         }
 
-        RebaseOpcodeIterator(const RebaseOpcodeIterator &) = delete;
+        inline RebaseOpcodeIterator(const RebaseOpcodeIterator &Other) noexcept
+        : Iter(Other.Iter),
+          Info(std::make_unique<RebaseOpcodeIterateInfo>(*Other.Info)) {}
 
         [[nodiscard]] constexpr auto isAtEnd() const noexcept {
             return this->ReachedEnd;
@@ -393,7 +395,7 @@ namespace MachO {
             return *this;
         }
 
-        inline auto operator++(int) noexcept -> decltype(*this) {
+        inline auto operator++(int) noexcept {
             return this->operator++();
         }
 
@@ -662,7 +664,7 @@ namespace MachO {
             return *this;
         }
 
-        inline auto operator++(int) noexcept -> decltype(*this) {
+        inline auto operator++(int) noexcept {
             return this->operator++();
         }
 

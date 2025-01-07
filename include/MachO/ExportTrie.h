@@ -100,56 +100,56 @@ namespace MachO {
         };
 
         [[nodiscard]] constexpr auto kind() const noexcept {
-            return Kind(valueForMask(Masks::Kind));
+            return Kind(this->valueForMask(Masks::Kind));
         }
 
         [[nodiscard]] constexpr auto regular() const noexcept {
-            return kind() == Kind::Regular;
+            return this->kind() == Kind::Regular;
         }
 
         [[nodiscard]] constexpr auto absolute() const noexcept {
-            return kind() == Kind::Absolute;
+            return this->kind() == Kind::Absolute;
         }
 
         [[nodiscard]] constexpr auto threadLocal() const noexcept {
-            return kind() == Kind::ThreadLocal;
+            return this->kind() == Kind::ThreadLocal;
         }
 
         [[nodiscard]] constexpr auto isWeak() const noexcept {
-            return has(Masks::WeakDefinition);
+            return this->has(Masks::WeakDefinition);
         }
 
         [[nodiscard]] constexpr auto isReexport() const noexcept {
-            return has(Masks::Reexport);
+            return this->has(Masks::Reexport);
         }
 
         [[nodiscard]] constexpr auto stubAndResolver() const noexcept {
-            return has(Masks::StubAndResolver);
+            return this->has(Masks::StubAndResolver);
         }
 
         constexpr auto setKind(const Kind Kind) noexcept -> decltype(*this) {
-            setValueForMask(Masks::Kind, /*Shift=*/0, Kind);
+            this->setValueForMask(Masks::Kind, /*Shift=*/0, Kind);
             return *this;
         }
 
         constexpr auto setWeak(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::WeakDefinition, /*Shift=*/0, Value);
+            this->setValueForMask(Masks::WeakDefinition, /*Shift=*/0, Value);
             return *this;
         }
 
         constexpr auto setReexport(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::Reexport, /*Shift=*/0, Value);
+            this->setValueForMask(Masks::Reexport, /*Shift=*/0, Value);
             return *this;
         }
 
         constexpr auto setStubAndResolver(const bool Value = true) noexcept
             -> decltype(*this)
         {
-            setValueForMask(Masks::StubAndResolver, /*Shift=*/0, Value);
+            this->setValueForMask(Masks::StubAndResolver, /*Shift=*/0, Value);
             return *this;
         }
     };
@@ -182,15 +182,6 @@ namespace MachO {
 
     [[nodiscard]] constexpr
     auto ExportTrieExportKindFromFlags(const ExportTrieFlags &Flags) noexcept {
-        switch (Flags.kind()) {
-            case ExportTrieFlags::Kind::Regular:
-                return ExportTrieExportKind::Regular;
-            case ExportTrieFlags::Kind::ThreadLocal:
-                return ExportTrieExportKind::ThreadLocal;
-            case ExportTrieFlags::Kind::Absolute:
-                return ExportTrieExportKind::Absolute;
-        }
-
         if (Flags.isReexport()) {
             return ExportTrieExportKind::Reexport;
         }
@@ -201,6 +192,15 @@ namespace MachO {
 
         if (Flags.stubAndResolver()) {
             return ExportTrieExportKind::StubAndResolver;
+        }
+
+        switch (Flags.kind()) {
+            case ExportTrieFlags::Kind::Regular:
+                return ExportTrieExportKind::Regular;
+            case ExportTrieFlags::Kind::ThreadLocal:
+                return ExportTrieExportKind::ThreadLocal;
+            case ExportTrieFlags::Kind::Absolute:
+                return ExportTrieExportKind::Absolute;
         }
 
         return ExportTrieExportKind::None;
@@ -464,16 +464,17 @@ namespace MachO {
         explicit
         ExportTrieMap(uint8_t *const Begin,
                       uint8_t *const End,
-                      ADT::TrieParser &TrieParser) noexcept
-        : ADT::Trie<ExportTrieExportInfo>(Begin, End, TrieParser, ExportInfo) {}
+                      ADT::TrieParser *const TrieParser) noexcept
+        : ADT::Trie<ExportTrieExportInfo>(
+            Begin, End, TrieParser, &ExportInfo) {}
 
         explicit
         ExportTrieMap(const ADT::MemoryMap Map,
-                      ADT::TrieParser &TrieParser) noexcept
-        : ADT::Trie<ExportTrieExportInfo>(Map, TrieParser, ExportInfo) {}
+                      ADT::TrieParser *const TrieParser) noexcept
+        : ADT::Trie<ExportTrieExportInfo>(Map, TrieParser, &ExportInfo) {}
 
         [[nodiscard]] constexpr auto &exportInfo() const noexcept {
-            return ExportInfo;
+            return this->ExportInfo;
         }
     };
 
@@ -808,19 +809,19 @@ namespace MachO {
         explicit ExportTrieExportCollection() noexcept = default;
 
         void
-        Parse(const ExportTrieMap::ExportMap &Trie,
+        Parse(const ExportTrieMap::ExportList &Trie,
               NodeCreator &Creator,
               const ParseOptions &Options,
               Error *const ErrorOut) noexcept;
     public:
         static auto
-        Open(const ExportTrieMap::ExportMap &Trie,
+        Open(const ExportTrieMap::ExportList &Trie,
              const SegmentList *SegList,
              const ParseOptions &Options = ParseOptions(),
              Error *ErrorOut = nullptr) noexcept -> ExportTrieExportCollection;
 
         static auto
-        Open(const ExportTrieMap::ExportMap &Trie,
+        Open(const ExportTrieMap::ExportList &Trie,
              const NodeCreator &Creator,
              const ParseOptions &Options = ParseOptions(),
              Error *ErrorOut = nullptr) noexcept -> ExportTrieExportCollection;

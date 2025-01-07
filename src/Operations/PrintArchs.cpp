@@ -177,34 +177,37 @@ namespace Operations {
         auto I = uint32_t();
 
         if (Fat.is64Bit()) {
-            for (const auto &Arch : Fat.arch64List()) {
-                const auto Object =
-                    std::unique_ptr<Objects::Base>(
-                       Objects::OpenArch(Fat, I).value());
+            std::ranges::for_each(
+                Fat.arch64List(),
+                [&](const auto &Arch) noexcept {
+                    const auto Object =
+                        std::unique_ptr<Objects::Base>(
+                            Objects::OpenArch(Fat, I).value());
 
-                PrintArch64(OutFile,
-                            Arch,
-                            Object.get(),
-                            I + 1,
-                            Opt.Verbose,
-                            IsBigEndian);
-                I++;
-            }
+                    PrintArch64(OutFile,
+                                Arch,
+                                Object.get(),
+                                I + 1,
+                                Opt.Verbose,
+                                IsBigEndian);
+                    I++;
+                });
         } else {
-            for (const auto &Arch : Fat.archList()) {
-                const auto Object =
-                    std::unique_ptr<Objects::Base>(
-                       Objects::OpenArch(Fat, I).value());
+            std::ranges::for_each(
+                Fat.archList(),
+                [&](const auto &Arch) noexcept {
+                    const auto Object =
+                        std::unique_ptr<Objects::Base>(
+                            Objects::OpenArch(Fat, I).value());
 
-                PrintArch(OutFile,
-                          Arch,
-                          Object.get(),
-                          I + 1,
-                          Opt.Verbose,
-                          IsBigEndian);
-
-                I++;
-            }
+                    PrintArch(OutFile,
+                              Arch,
+                              Object.get(),
+                              I + 1,
+                              Opt.Verbose,
+                              IsBigEndian);
+                    I++;
+                });
         }
 
         return RunResult();
