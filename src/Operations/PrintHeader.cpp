@@ -29,7 +29,7 @@ public:
     constexpr explicit
     DscKey(const std::string_view Key,
            const uint32_t LongestKey = LongestDscKeyLength) noexcept
-    : Key(Key), PadLength(LongestKey - Key.length()) {
+    : Key(Key), PadLength(LongestKey - static_cast<uint32_t>(Key.length())) {
         assert(LongestKey >= Key.length());
     }
 
