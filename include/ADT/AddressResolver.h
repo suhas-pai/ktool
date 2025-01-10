@@ -80,9 +80,9 @@ namespace ADT {
         MachO::RebaseActionList::UnorderedMap RebaseMap;
         Dyld3::ChainedPointerKind ChainedFixupsKind;
 
-        PatchLocationMap PatchExportMap;
         uint32_t SlideInfoVersion;
 
+        PatchLocationMap PatchExportMap;
         MachO::SegmentList SegmentList;
 
         uint64_t SlideInfoBaseAddress;
@@ -100,8 +100,8 @@ namespace ADT {
             const uint64_t BaseAddress) noexcept
         : BindMap(std::move(BindMap)), RebaseMap(std::move(RebaseMap)),
           ChainedFixupsKind(ChainedFixupsKind),
-          PatchExportMap(std::move(PatchExportMap)),
-          SlideInfoVersion(SlideInfoVersion), SegmentList(SegmentList),
+          SlideInfoVersion(SlideInfoVersion),
+          PatchExportMap(std::move(PatchExportMap)), SegmentList(SegmentList),
           SlideInfoBaseAddress(SlideInfoBaseAddress),
           ImageBaseAddress(BaseAddress) {}
 
