@@ -205,20 +205,18 @@ namespace Operations {
             Utils::GetIntegerDigitCount(
                 static_cast<uint32_t>(std::popcount(Flags.value())));
 
-        std::ranges::for_each(
-            ADT::FlagsBase(Flags),
-            [OutFile, &Counter, DigitCount](const auto Bit) noexcept {
-                const auto Flag = MachO::Flags::Kind(1 << Bit);
-                std::println(OutFile,
-                            "\t\t{:0{}}. Bit {:02}: {}",
-                            Counter,
-                            DigitCount,
-                            Bit,
-                                MachO::Flags::KindGetString(Flag)
-                                    .value_or("<Unknown>"));
+        for (const auto &Bit : ADT::FlagsBase(Flags)) {
+            const auto Flag = MachO::Flags::Kind(1 << Bit);
+            std::println(OutFile,
+                        "\t\t{:0{}}. Bit {:02}: {}",
+                        Counter,
+                        DigitCount,
+                        Bit,
+                            MachO::Flags::KindGetString(Flag)
+                                .value_or("<Unknown>"));
 
-                Counter++;
-            });
+            Counter++;
+        }
 
         return RunResult();
     }
@@ -246,39 +244,35 @@ namespace Operations {
             const auto IsBigEndian = Fat.isBigEndian();
 
             if (Fat.is64Bit()) {
-                std::ranges::for_each(
-                    Fat.arch64List(),
-                    [&](const auto &Arch) noexcept {
-                        const auto Object =
-                            std::unique_ptr<Objects::Base>(
-                                Objects::OpenArch(Fat, I).value());
+                for (const auto &Arch : Fat.arch64List()) {
+                    const auto Object =
+                        std::unique_ptr<Objects::Base>(
+                            Objects::OpenArch(Fat, I).value());
 
-                        Operations::PrintArchs::PrintArch64(OutFile,
-                                                            Arch,
-                                                            Object.get(),
-                                                            I + 1,
-                                                            Opt.Verbose,
-                                                            IsBigEndian,
-                                                            "\t\t");
-                        I++;
-                    });
+                    Operations::PrintArchs::PrintArch64(OutFile,
+                                                        Arch,
+                                                        Object.get(),
+                                                        I + 1,
+                                                        Opt.Verbose,
+                                                        IsBigEndian,
+                                                        "\t\t");
+                    I++;
+                }
             } else {
-                std::ranges::for_each(
-                    Fat.archList(),
-                    [&](const auto &Arch) noexcept {
-                        const auto Object =
-                            std::unique_ptr<Objects::Base>(
-                                Objects::OpenArch(Fat, I).value());
+                for (const auto &Arch : Fat.archList()) {
+                    const auto Object =
+                        std::unique_ptr<Objects::Base>(
+                            Objects::OpenArch(Fat, I).value());
 
-                        Operations::PrintArchs::PrintArch(OutFile,
-                                                          Arch,
-                                                          Object.get(),
-                                                          I + 1,
-                                                          Opt.Verbose,
-                                                          IsBigEndian,
-                                                          "\t\t");
-                        I++;
-                    });
+                    Operations::PrintArchs::PrintArch(OutFile,
+                                                        Arch,
+                                                        Object.get(),
+                                                        I + 1,
+                                                        Opt.Verbose,
+                                                        IsBigEndian,
+                                                        "\t\t");
+                    I++;
+                }
             }
         }
 

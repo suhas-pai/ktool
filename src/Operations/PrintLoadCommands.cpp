@@ -82,7 +82,7 @@ namespace Operations {
                     using FlagsStruct = SegmentCommand::FlagsStruct;
 
                     auto Counter = uint32_t();
-                    std::ranges::for_each(Flags, [&](const auto Bit) {
+                    for (const auto &Bit : Flags) {
                         const auto Flag =
                             static_cast<FlagsStruct::Kind>(1ull << Bit);
 
@@ -95,7 +95,7 @@ namespace Operations {
                                          .value_or("<unknown>"));
 
                         Counter++;
-                    });
+                    }
                 }
 
                 std::println(OutFile,
@@ -187,24 +187,24 @@ namespace Operations {
                                    Prefix, Flags.value());
 
                             auto FlagNumber = uint32_t();
-                            std::ranges::for_each(
-                                ADT::FlagsBase(Flags.attributes()),
-                                [&](const auto Bit) noexcept {
-                                    const auto Attr =
-                                        SectionT::Attribute(1ull << Bit);
-                                    const auto AttrString =
-                                        SectionT::AttributeGetString(Attr)
-                                            .value_or("<unknown>");
+                            for (const auto &Bit :
+                                    ADT::FlagsBase(Flags.attributes()))
+                            {
+                                const auto Attr =
+                                    SectionT::Attribute(1ull << Bit);
+                                const auto AttrString =
+                                    SectionT::AttributeGetString(Attr)
+                                        .value_or("<unknown>");
 
-                                    std::println(OutFile,
-                                                "\t\t{}{}. Bit {}: {}",
-                                                Prefix,
-                                                FlagNumber + 1,
-                                                Bit,
-                                                AttrString);
+                                std::println(OutFile,
+                                            "\t\t{}{}. Bit {}: {}",
+                                            Prefix,
+                                            FlagNumber + 1,
+                                            Bit,
+                                            AttrString);
 
-                                    FlagNumber++;
-                                });
+                                FlagNumber++;
+                            }
                     } else {
                         std::println(OutFile, "");
                     }
@@ -243,22 +243,20 @@ namespace Operations {
                     using FlagsStruct = SegmentCommand64::FlagsStruct;
 
                     auto Counter = uint32_t();
-                    std::ranges::for_each(
-                        ADT::FlagsBase(Flags),
-                        [OutFile, Prefix, &Counter](const auto Bit) noexcept {
-                            const auto Flag =
-                                static_cast<FlagsStruct::Kind>(1ull << Bit);
+                    for (const auto &Bit : ADT::FlagsBase(Flags)) {
+                        const auto Flag =
+                            static_cast<FlagsStruct::Kind>(1ull << Bit);
 
-                            std::println(OutFile,
-                                         "\t{}{}. Bit {}: {}",
-                                         Prefix,
-                                         Counter + 1,
-                                         Bit,
-                                         FlagsStruct::KindGetString(Flag)
-                                             .value_or("<unknown>"));
+                        std::println(OutFile,
+                                     "\t{}{}. Bit {}: {}",
+                                     Prefix,
+                                     Counter + 1,
+                                     Bit,
+                                     FlagsStruct::KindGetString(Flag)
+                                         .value_or("<unknown>"));
 
-                            Counter++;
-                        });
+                        Counter++;
+                    }
                 }
 
                 std::println(OutFile,
@@ -354,25 +352,23 @@ namespace Operations {
                                    Prefix, Flags.value());
 
                             auto FlagNumber = uint32_t();
-                            std::ranges::for_each(
-                                ADT::FlagsBase(Flags.attributes()),
-                                [OutFile, Prefix, &FlagNumber](
-                                    const auto Bit) noexcept
-                                {
-                                    const auto Attr =
-                                        SectionT::Attribute(1ull << Bit);
-                                    const auto AttrString =
-                                        SectionT::AttributeGetString(Attr)
-                                            .value_or("<unknown>");
+                            for (const auto &Bit :
+                                    ADT::FlagsBase(Flags.attributes()))
+                            {
+                                const auto Attr =
+                                    SectionT::Attribute(1ull << Bit);
+                                const auto AttrString =
+                                    SectionT::AttributeGetString(Attr)
+                                        .value_or("<unknown>");
 
-                                    std::println(OutFile,
-                                                "\t\t\t{}{}. Bit {}: {}",
-                                                Prefix,
-                                                FlagNumber + 1,
-                                                Bit, AttrString);
+                                std::println(OutFile,
+                                            "\t\t\t{}{}. Bit {}: {}",
+                                            Prefix,
+                                            FlagNumber + 1,
+                                            Bit, AttrString);
 
-                                    FlagNumber++;
-                                });
+                                FlagNumber++;
+                            }
                     } else {
                         std::println(OutFile, "");
                     }

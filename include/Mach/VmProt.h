@@ -12,8 +12,8 @@ namespace Mach {
     struct VmProt : public ADT::FlagsBase<uint32_t> {
     public:
         enum class Masks : uint32_t {
-            Readable   = 1 << 0,
-            Writable   = 1 << 1,
+            Readable = 1 << 0,
+            Writable = 1 << 1,
             Executable = 1 << 2
         };
 

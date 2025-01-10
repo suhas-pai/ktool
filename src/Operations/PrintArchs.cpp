@@ -7,10 +7,12 @@
 
 #include <format>
 #include <memory>
+
 #include <sys/stat.h>
 
 #include "Objects/Open.h"
 #include "Operations/PrintArchs.h"
+
 #include "Utils/Print.h"
 
 namespace Operations {
@@ -150,7 +152,6 @@ namespace Operations {
         const auto Size = Arch.size(IsBigEndian);
         const auto Align = Arch.align(IsBigEndian);
 
-        const auto OffsetRange = Utils::PrintRange(Offset, Size);
         std::print(OutFile,
                    "{}Arch #{}: {}\n"
                    "{}\tCpuKind:    {}\n"
@@ -161,7 +162,8 @@ namespace Operations {
                    Prefix, Ordinal, ObjectDesc,
                    Prefix, CpuKindString,
                    Prefix, SubKindString,
-                   Prefix, Utils::Address(Offset), OffsetRange,
+                   Prefix, Utils::Address(Offset),
+                    Utils::PrintRange(Offset, Size),
                    Prefix, Utils::ByteSize(Size),
                    Prefix, Align, Utils::ByteSize(1ull << Align));
     }
@@ -175,39 +177,34 @@ namespace Operations {
         const auto &Opt = this->Opt;
 
         auto I = uint32_t();
-
         if (Fat.is64Bit()) {
-            std::ranges::for_each(
-                Fat.arch64List(),
-                [&](const auto &Arch) noexcept {
-                    const auto Object =
-                        std::unique_ptr<Objects::Base>(
-                            Objects::OpenArch(Fat, I).value());
+            for (const auto &Arch : Fat.arch64List()) {
+                const auto Object =
+                    std::unique_ptr<Objects::Base>(
+                        Objects::OpenArch(Fat, I).value());
 
-                    PrintArch64(OutFile,
-                                Arch,
-                                Object.get(),
-                                I + 1,
-                                Opt.Verbose,
-                                IsBigEndian);
-                    I++;
-                });
+                PrintArch64(OutFile,
+                            Arch,
+                            Object.get(),
+                            I + 1,
+                            Opt.Verbose,
+                            IsBigEndian);
+                I++;
+            }
         } else {
-            std::ranges::for_each(
-                Fat.archList(),
-                [&](const auto &Arch) noexcept {
-                    const auto Object =
-                        std::unique_ptr<Objects::Base>(
-                            Objects::OpenArch(Fat, I).value());
+            for (const auto &Arch : Fat.archList()) {
+                const auto Object =
+                    std::unique_ptr<Objects::Base>(
+                        Objects::OpenArch(Fat, I).value());
 
-                    PrintArch(OutFile,
-                              Arch,
-                              Object.get(),
-                              I + 1,
-                              Opt.Verbose,
-                              IsBigEndian);
-                    I++;
-                });
+                PrintArch(OutFile,
+                          Arch,
+                          Object.get(),
+                          I + 1,
+                          Opt.Verbose,
+                          IsBigEndian);
+                I++;
+            }
         }
 
         return RunResult();

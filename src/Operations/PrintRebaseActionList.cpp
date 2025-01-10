@@ -151,17 +151,18 @@ namespace Operations {
         const auto SizeDigitLength =
             Utils::GetIntegerDigitCount(RebaseActionList.size());
 
-        std::ranges::for_each(
-            RebaseActionList,
-            [&](const auto &Action) noexcept {
-                PrintRebaseAction(OutFile,
-                                  Counter,
-                                  static_cast<int>(SizeDigitLength),
-                                  Action,
-                                  SegmentList,
-                                  Is64Bit);
-                Counter++;
-            });
+        std::ranges::for_each(RebaseActionList,
+                              [&](const auto &Action) noexcept {
+                                  PrintRebaseAction(
+                                    OutFile,
+                                    Counter,
+                                    static_cast<int>(SizeDigitLength),
+                                    Action,
+                                    SegmentList,
+                                    Is64Bit);
+
+                                  Counter++;
+                              });
 
         return RunResult(RunResult::Error::None);
     }

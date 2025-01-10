@@ -141,34 +141,32 @@ namespace Operations {
             Utils::GetIntegerDigitCount(ImageCount);
 
         auto Counter = static_cast<uint64_t>(1);
-        std::ranges::for_each(
-            ImageInfoList,
-            [&](const auto &Info) noexcept {
+        for (const auto &Info : ImageInfoList) {
+            std::print(OutFile,
+                    "Image {:>{}}: \"{}\"",
+                    Counter,
+                    ImageInfoListSizeDigitCount,
+                    Info.Path);
+
+            const auto WrittenOut = STR_LENGTH("\"\"") + Info.Path.length();
+            if (Opt.Verbose) {
+                const auto RightPad =
+                    LongestImagePath.value() + STR_LENGTH("\"\"");
+
                 std::print(OutFile,
-                        "Image {:>{}}: \"{}\"",
-                        Counter,
-                        ImageInfoListSizeDigitCount,
-                        Info.Path);
+                        "{:<{}}"
+                        "{}, Modification-Time: {} (Value: {}), Inode: {}",
+                        "",
+                        RightPad - WrittenOut,
+                        Utils::Address(Info.Address),
+                        Utils::Timestamp(static_cast<time_t>(Info.ModTime)),
+                        Info.ModTime,
+                        Info.Inode);
+            }
 
-                const auto WrittenOut = STR_LENGTH("\"\"") + Info.Path.length();
-                if (Opt.Verbose) {
-                    const auto RightPad =
-                        LongestImagePath.value() + STR_LENGTH("\"\"");
-
-                    std::print(OutFile,
-                            "{:<{}}"
-                            "{}, Modification-Time: {} (Value: {}), Inode: {}",
-                            "",
-                            RightPad - WrittenOut,
-                            Utils::Address(Info.Address),
-                            Utils::Timestamp(static_cast<time_t>(Info.ModTime)),
-                            Info.ModTime,
-                            Info.Inode);
-                }
-
-                std::println(OutFile, "");
-                Counter++;
-            });
+            std::println(OutFile, "");
+            Counter++;
+        }
 
         return RunResult();
     }

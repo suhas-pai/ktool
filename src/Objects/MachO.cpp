@@ -93,7 +93,8 @@ namespace Objects {
 
         if (Is64Bit) {
             std::ranges::for_each(
-                this->loadCommandsMap() | ::MachO::LCMapFilterType<
+                this->loadCommandsMap() |
+                ::MachO::LCMapFilterType<
                     ::MachO::SegmentCommand64>(IsBigEndian),
                 [&Base, &End, IsBigEndian](const auto Segment) noexcept {
                     const auto VmRange = Segment->vmRange(IsBigEndian);
@@ -107,8 +108,8 @@ namespace Objects {
                 });
         } else {
             std::ranges::for_each(
-                this->loadCommandsMap() | ::MachO::LCMapFilterType<
-                    ::MachO::SegmentCommand>(IsBigEndian),
+                this->loadCommandsMap() |
+                ::MachO::LCMapFilterType<::MachO::SegmentCommand>(IsBigEndian),
                 [&Base, &End, IsBigEndian](const auto Segment) noexcept {
                     const auto VmRange = Segment->vmRange(IsBigEndian);
                     if (Base == 0) {
