@@ -183,7 +183,7 @@ static_assert(std::ranges::forward_range<ADT::FlagsBase<uint32_t>>);
     constexpr static auto operator|(const ENUM Num, const ENUM Mask) noexcept \
     { \
         return static_cast<std::underlying_type_t<ENUM>>(Num) | \
-                static_cast<std::underlying_type_t<ENUM>>(Mask); \
+               static_cast<std::underlying_type_t<ENUM>>(Mask); \
     }\
 \
     [[maybe_unused]] \
