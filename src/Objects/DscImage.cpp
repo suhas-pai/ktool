@@ -111,36 +111,33 @@ namespace Objects {
 
         auto FileSize = uint64_t();
         if (Header->is64Bit()) {
-            for (auto Iter = LoadCommandsMap.begin();
-                 Iter != LoadCommandsMap.end();
-                 Iter++)
+            for (const auto &Segment :
+                    LoadCommandsMap |
+                    ::MachO::LCMapFilterType<
+                        ::MachO::SegmentCommand64>(IsBigEndian))
             {
-                if (const auto Segment =
-                        Iter.dyn_cast<::MachO::SegmentCommand64>())
-                {
-                    auto FoundMapping = true;
-                    for (const auto &Mapping : Dsc.mappingInfoList()) {
-                        const auto FileRange = Segment->fileRange(IsBigEndian);
-                        if (Mapping.fileRange().contains(FileRange)) {
-                            FoundMapping = true;
-                            break;
-                        }
-                    }
+                const auto FoundMapping =
+                    std::ranges::find_if(
+                        Dsc.mappingInfoList(),
+                        [&](const auto &Mapping) {
+                            const auto FileRange =
+                                Segment->fileRange(IsBigEndian);
+                            return Mapping.fileRange().contains(FileRange);
+                        });
 
-                    if (!FoundMapping) {
-                        return std::unexpected(OpenError::OutOfBoundsSegment);
-                    }
-
-                    const auto NewFileSize =
-                        Utils::AddAndCheckOverflow(
-                            Segment->fileSize(IsBigEndian), FileSize);
-
-                    if (!NewFileSize.has_value()) {
-                        return std::unexpected(OpenError::OutOfBoundsSegment);
-                    }
-
-                    FileSize = NewFileSize.value();
+                if (FoundMapping == Dsc.mappingInfoList().end()) {
+                    return std::unexpected(OpenError::OutOfBoundsSegment);
                 }
+
+                const auto NewFileSize =
+                    Utils::AddAndCheckOverflow(
+                        Segment->fileSize(IsBigEndian), FileSize);
+
+                if (!NewFileSize.has_value()) {
+                    return std::unexpected(OpenError::OutOfBoundsSegment);
+                }
+
+                FileSize = NewFileSize.value();
             }
         } else {
             for (const auto &Segment :
@@ -157,7 +154,7 @@ namespace Objects {
                             return Mapping.fileRange().contains(FileRange);
                         });
 
-                if (FoundMapping != Dsc.mappingInfoList().end()) {
+                if (FoundMapping == Dsc.mappingInfoList().end()) {
                     return std::unexpected(OpenError::OutOfBoundsSegment);
                 }
 
