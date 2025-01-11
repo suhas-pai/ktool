@@ -457,7 +457,10 @@ namespace MachO {
         }
     };
 
-    struct ExportTrieMap : public ADT::Trie<ExportTrieExportInfo> {
+    using ExportTrieMapBase =
+        ADT::Trie<ADT::TrieParser, ExportTrieExportInfo>;
+
+    struct ExportTrieMap : public ExportTrieMapBase {
     protected:
         ExportTrieExportInfo ExportInfo;
     public:
@@ -465,13 +468,14 @@ namespace MachO {
         ExportTrieMap(uint8_t *const Begin,
                       uint8_t *const End,
                       ADT::TrieParser *const TrieParser) noexcept
-        : ADT::Trie<ExportTrieExportInfo>(
+        : ADT::Trie<ADT::TrieParser, ExportTrieExportInfo>(
             Begin, End, TrieParser, &ExportInfo) {}
 
         explicit
         ExportTrieMap(const ADT::MemoryMap Map,
                       ADT::TrieParser *const TrieParser) noexcept
-        : ADT::Trie<ExportTrieExportInfo>(Map, TrieParser, &ExportInfo) {}
+        : ADT::Trie<ADT::TrieParser, ExportTrieExportInfo>(
+            Map, TrieParser, &ExportInfo) {}
 
         [[nodiscard]] constexpr auto &exportInfo() const noexcept {
             return this->ExportInfo;
@@ -677,12 +681,17 @@ namespace MachO {
     };
 
     struct ExportTrieEntryCollection :
-        public ADT::TrieNodeCollection<ExportTrieExportInfo,
+        public ADT::TrieNodeCollection<ADT::TrieParser,
+                                       ExportTrieExportInfo,
                                        ExportTrieEntryCollectionNodeCreator>
     {
     public:
         using NodeCreator = ExportTrieEntryCollectionNodeCreator;
-        using Base = ADT::TrieNodeCollection<ExportTrieExportInfo, NodeCreator>;
+        using Base =
+            ADT::TrieNodeCollection<ADT::TrieParser,
+                                    ExportTrieExportInfo,
+                                    NodeCreator>;
+
         using ChildNode = ExportTrieChildNode;
         using ExportChildNode = ExportTrieExportChildNode;
         using Error = ADT::TrieParseError;

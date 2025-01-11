@@ -438,7 +438,7 @@ namespace Operations {
 
         if (!Opt.OnlyCount || !Opt.SectionRequirements.empty()) {
             struct Temp {
-                const ADT::Trie<MachO::ExportTrieExportInfo>::IterateInfo *Info;
+                const MachO::ExportTrieMapBase::IterateInfo *Info;
 
                 std::string_view SegmentName;
                 std::string_view SectionName;

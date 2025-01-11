@@ -85,6 +85,22 @@ namespace ADT {
         TooDeep,
     };
 
+    template <typename T>
+    concept TrieParserConcept =
+        requires(T a,
+                 uint8_t *const Begin,
+                 uint8_t *const Ptr,
+                 uint8_t *&PtrRef,
+                 uint8_t *const End,
+                 std::vector<ADT::Range> &RangeList,
+                 TrieNodeInfo *const InfoOut)
+        {
+            { a.ParseNode(Begin, Ptr, End, RangeList, InfoOut) } noexcept
+                -> std::same_as<TrieParseError>;
+            { a.ParseNextNode(Begin, PtrRef, End, RangeList, InfoOut) } noexcept
+                -> std::same_as<TrieParseError>;
+        };
+
     struct TrieParser {
     public:
         explicit TrieParser() noexcept = default;
@@ -92,20 +108,22 @@ namespace ADT {
         using Error = TrieParseError;
         using NodeInfo = TrieNodeInfo;
 
-        virtual auto
+        auto
         ParseNode(uint8_t *Begin,
                   uint8_t *Ptr,
                   uint8_t *End,
                   std::vector<ADT::Range> &RangeList,
                   TrieNodeInfo *const InfoOut) noexcept -> Error;
 
-        virtual auto
+        auto
         ParseNextNode(uint8_t *const Begin,
                       uint8_t *& Ptr,
                       uint8_t *const End,
                       std::vector<ADT::Range> &RangeList,
                       TrieNodeInfo *const InfoOut) noexcept -> Error;
     };
+
+    static_assert(TrieParserConcept<TrieParser>);
 
     struct TrieStackInfo {
     public:
@@ -182,7 +200,7 @@ namespace ADT {
         uint64_t MaxDepth = 128;
     };
 
-    template <TrieExportInfoParser T>
+    template <TrieParserConcept P, TrieExportInfoParser T>
     struct Trie {
     public:
         using NodeInfo = TrieNodeInfo;
@@ -328,7 +346,7 @@ namespace ADT {
             std::unique_ptr<IterateInfo> Info;
             std::unique_ptr<StackInfo> NextStack;
 
-            TrieParser *Parser;
+            P *Parser;
 
             void SetupInfoForNewStack() noexcept {
                 this->Info->stringRef().append(
@@ -980,19 +998,20 @@ namespace ADT {
         }
     };
 
-    template <typename T, typename U>
+    template <typename T, typename P, typename U>
     concept TrieNodeCollectionNodeCreator =
-        requires(T A, typename Trie<U>::IterateInfo &B) {
+        requires(T A, typename Trie<P, U>::IterateInfo &B) {
             { A.createChildNode(B) } noexcept -> TreeNodeDerived;
         };
 
-    template <TreeDerived TreeType,
+    template <TrieParserConcept P,
+              TreeDerived TreeType,
               TrieExportInfoParser T,
-              TrieNodeCollectionNodeCreator<T> NodeCreatorType>
+              TrieNodeCollectionNodeCreator<P, T> NodeCreatorType>
 
     auto
     TrieCreateTree(TreeType &Tree,
-                   Trie<T> &Trie,
+                   Trie<P, T> &Trie,
                    NodeCreatorType &NodeCreator,
                    const TrieParseOptions &Options = TrieParseOptions(),
                    TrieParseError *const ErrorOut = nullptr) noexcept
@@ -1041,8 +1060,9 @@ namespace ADT {
         }
     }
 
-    template <TrieExportInfoParser T,
-              TrieNodeCollectionNodeCreator<T> NodeCreatorType>
+    template <TrieParserConcept P,
+              TrieExportInfoParser T,
+              TrieNodeCollectionNodeCreator<P, T> NodeCreatorType>
 
     struct TrieNodeCollection : public ADT::Tree {
     public:
@@ -1052,7 +1072,7 @@ namespace ADT {
         explicit TrieNodeCollection() noexcept = default;
 
         void
-        ParseFromTrie(Trie<T> &Trie,
+        ParseFromTrie(Trie<P, T> &Trie,
                       NodeCreatorType &NodeCreator,
                       const ParseOptions &Options = ParseOptions(),
                       Error *const ErrorOut = nullptr) noexcept

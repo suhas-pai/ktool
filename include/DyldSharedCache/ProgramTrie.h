@@ -43,7 +43,7 @@ namespace DyldSharedCache {
         }
     };
 
-    struct ProgramTrieMap : public ADT::Trie<DylibIndexInfo> {
+    struct ProgramTrieMap : public ADT::Trie<ADT::TrieParser, DylibIndexInfo> {
     protected:
         DylibIndexInfo Info;
     public:
@@ -51,12 +51,13 @@ namespace DyldSharedCache {
         ProgramTrieMap(uint8_t *const Begin,
                        uint8_t *const End,
                        ADT::TrieParser *const TrieParser) noexcept
-        : ADT::Trie<DylibIndexInfo>(Begin, End, TrieParser, &Info) {}
+        : ADT::Trie<
+            ADT::TrieParser, DylibIndexInfo>(Begin, End, TrieParser, &Info) {}
 
         explicit
         ProgramTrieMap(const ADT::MemoryMap Map,
                        ADT::TrieParser *const TrieParser) noexcept
-        : ADT::Trie<DylibIndexInfo>(Map, TrieParser, &Info) {}
+        : ADT::Trie<ADT::TrieParser, DylibIndexInfo>(Map, TrieParser, &Info) {}
 
         [[nodiscard]] constexpr auto &info() const noexcept {
             return this->Info;
@@ -203,12 +204,17 @@ namespace DyldSharedCache {
     };
 
     struct ProgramTrieEntryCollection :
-        public ADT::TrieNodeCollection<DylibIndexInfo,
+        public ADT::TrieNodeCollection<ADT::TrieParser,
+                                       DylibIndexInfo,
                                        ProgramTrieEntryCollectionNodeCreator>
     {
     public:
         using NodeCreator = ProgramTrieEntryCollectionNodeCreator;
-        using Base = ADT::TrieNodeCollection<DylibIndexInfo, NodeCreator>;
+        using Base =
+            ADT::TrieNodeCollection<ADT::TrieParser,
+                                    DylibIndexInfo,
+                                    NodeCreator>;
+
         using ChildNode = ProgramTrieChildNode;
         using ProgramChildNode = ProgramTrieChildNode;
         using ParseError = ADT::TrieParseError;

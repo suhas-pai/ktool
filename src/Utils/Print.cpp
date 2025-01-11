@@ -43,7 +43,7 @@ namespace Utils {
 
         std::print(OutFile, "{}", Suffix);
         return static_cast<int>(Prefix.length() + String.length() * Times +
-                               Suffix.length());
+                                Suffix.length());
     }
 
     auto
