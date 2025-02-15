@@ -579,7 +579,7 @@ namespace Operations {
                                  STR_LENGTH("\"\""));
 
             std::print(OutFile,
-                       "\t{:<{}}{:<{}}",
+                       "\t" "{:<{}}{:<{}}",
                        KindDesc,
                        LongestDescLength,
                        std::format("\"{}\"", Export.String),

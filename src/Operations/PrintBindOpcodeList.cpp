@@ -45,11 +45,11 @@ namespace Operations {
         if (!Flags.empty()) {
             std::println(OutFile, "");
             if (Flags.hasNonWeakDefinition()) {
-                std::println(OutFile, "\t\tHas Non-Weak Definition");
+                std::println(OutFile, "\t\t" "Has Non-Weak Definition");
             }
 
             if (Flags.isWeakImport()) {
-                std::println(OutFile, "\t\tWeak-Import");
+                std::println(OutFile, "\t\t" "Weak-Import");
             }
         } else {
             std::println(OutFile, " None");

@@ -135,9 +135,9 @@ namespace Operations {
         std::ranges::for_each(DylibList, [&](const auto &DylibInfo) noexcept {
             std::print(OutFile,
                        "{}. LC {:>{}}: {:<{}} \"{}\"\n"
-                       "\tCurrent Version: {}\n"
-                       "\tCompat Version:  {}\n"
-                       "\tTimestamp:       {} (Value: {})\n",
+                       "\t" "Current Version: {}\n"
+                       "\t" "Compat Version:  {}\n"
+                       "\t" "Timestamp:       {} (Value: {})\n",
                        Counter,
                        DylibInfo.Index,
                        NcmdsDigitCount,

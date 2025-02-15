@@ -104,7 +104,8 @@ namespace Utils {
         : Begin(Begin), Size(Size) {}
 
         explicit PrintRange(const ADT::Range Range) noexcept
-        : Begin(Range.front()), Size(Range.size()) {}
+        : Begin(static_cast<T>(Range.front())),
+          Size(static_cast<U>(Range.size())) {}
 
         [[nodiscard]] constexpr auto front() const noexcept {
             return this->Begin;
@@ -139,17 +140,6 @@ namespace Utils {
     struct Boolean {
         bool Value;
     };
-
-    auto
-    PrintOffsetSizeInfo(FILE *OutFile,
-                        const ADT::Range Range,
-                        bool Is64Bit,
-                        bool IsSize64Bit,
-                        bool IsOutOfBounds,
-                        std::string_view OffsetKey,
-                        std::string_view SizeKey,
-                        std::string_view Prefix = "",
-                        std::string_view Suffix = "") noexcept -> int;
 
     auto
     PrintDylibOrdinalPath(FILE *OutFile,

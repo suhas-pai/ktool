@@ -122,6 +122,6 @@ namespace Objects {
                 });
         }
 
-        return ADT::Range::FromEnd(Base, End);
+        return ADT::Range::FromEnd(Base, End).value();
     }
 }

@@ -49,9 +49,14 @@ namespace ADT {
         }
 
         [[nodiscard]] constexpr static
-        auto FromEnd(const uint64_t Begin, const uint64_t End) noexcept {
-            assert(Begin <= End);
-            return Range::FromSize(Begin, (End - Begin));
+        auto FromEnd(const uint64_t Begin, const uint64_t End) noexcept
+            -> std::optional<Range>
+        {
+            if (Begin <= End) {
+                return Range::FromSize(Begin, (End - Begin));
+            }
+
+            return std::nullopt;
         }
 
         [[nodiscard]] constexpr auto front() const noexcept {

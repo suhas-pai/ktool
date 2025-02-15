@@ -47,7 +47,7 @@ namespace Operations {
         auto FoundIdDylib = false;
         auto IdDylibCmd = static_cast<const MachO::DylibCommand *>(nullptr);
 
-        for (const auto &IdDylib :
+        for (const auto IdDylib :
                 LoadCommandsMap |
                 MachO::LCMapFilterKind<
                     MachO::LoadCommandKind::IdDylib>(IsBigEndian))
@@ -76,9 +76,9 @@ namespace Operations {
             const auto Timestamp = Dylib.timestamp(IsBigEndian);
 
             std::print(OutFile,
-                       "\tCurrent Version: {}\n"
-                       "\tCompat Version:  {}\n"
-                       "\tTimestamp:       {} (Value: {})\n",
+                       "\t" "Current Version: {}\n"
+                       "\t" "Compat Version:  {}\n"
+                       "\t" "Timestamp:       {} (Value: {})\n",
                        CurrentVersion,
                        CompatVersion,
                        Utils::Timestamp(Timestamp),
@@ -99,7 +99,11 @@ namespace Operations {
         const auto OutFile = this->OutFile;
         const auto PathOpt = Image.path();
 
-        std::print(OutFile, "\"{}\"", PathOpt.value_or("<invalid>"));
+        if (!PathOpt.has_value()) {
+            return RunResult(RunResult::Error::BadIdString);
+        }
+
+        std::print(OutFile, "\"{}\"", PathOpt.value());
         return RunResult();
     }
 

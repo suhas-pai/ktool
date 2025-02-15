@@ -44,7 +44,7 @@ public:
 
 template <>
 struct std::formatter<DscKey> : public std::formatter<std::string_view> {
-    auto format(const DscKey &DscKey, auto &Ctx) const noexcept {
+    constexpr auto format(const DscKey &DscKey, auto &Ctx) const noexcept {
         auto Result = std::string();
         std::format_to(std::back_inserter(Result),
                        "{}: {:<{}}",
@@ -160,8 +160,8 @@ namespace Operations {
 
         std::print(OutFile,
                    "Apple {} Mach-O File\n"
-                   "\tMagic:      {}\n"
-                   "\tCputype:    {}\n",
+                   "\t" "Magic:      {}\n"
+                   "\t" "Cputype:    {}\n",
                    MachO.is64Bit() ? "64-Bit" : "32-Bit",
                    Opt.Verbose ?
                     MachO::MagicGetString(Header.Magic).value() :
@@ -171,8 +171,8 @@ namespace Operations {
         if (Opt.Verbose) {
             const auto RawCpuType = static_cast<uint32_t>(Header.rawCpuType());
             std::print(OutFile,
-                       "\t\tIs 64-bit: {}\n"
-                       "\t\tIs 64-bit with 32-bit pointers: {}\n",
+                       "\t\t" "Is 64-bit: {}\n"
+                       "\t\t" "Is 64-bit with 32-bit pointers: {}\n",
                        Utils::Boolean(RawCpuType & Mach::CpuABI64),
                        Utils::Boolean(RawCpuType & Mach::CpuABI64_32));
         }
@@ -183,18 +183,18 @@ namespace Operations {
                 static_cast<uint32_t>(Header.rawCpuSubType());
 
             std::print(OutFile,
-                       "\t\tIs 64-bit: {}\n"
-                       "\t\tSupports Pointer Authentication: {}\n",
+                       "\t\t" "Is 64-bit: {}\n"
+                       "\t\t" "Supports Pointer Authentication: {}\n",
                        Utils::Boolean(RawCpuSubType & Mach::CpuSubtypeLib64),
                        Utils::Boolean(
                         RawCpuSubType & Mach::CpuSubtypePtrauthABI));
         }
 
         std::print(OutFile,
-                   "\tFiletype:   {}\n"
-                   "\tNcmds:      {}\n"
-                   "\tSizeOfCmds: {}\n"
-                   "\tFlags:      0x{:x}\n",
+                   "\t" "Filetype:   {}\n"
+                   "\t" "Ncmds:      {}\n"
+                   "\t" "SizeOfCmds: {}\n"
+                   "\t" "Flags:      0x{:x}\n",
                    FileKindString,
                    Utils::FormattedNumber(Ncmds),
                    Utils::FormattedNumber(SizeOfCmds),
@@ -205,10 +205,10 @@ namespace Operations {
             Utils::GetIntegerDigitCount(
                 static_cast<uint32_t>(std::popcount(Flags.value())));
 
-        for (const auto &Bit : ADT::FlagsBase(Flags)) {
+        for (const auto Bit : ADT::FlagsBase(Flags)) {
             const auto Flag = MachO::Flags::Kind(1 << Bit);
             std::println(OutFile,
-                        "\t\t{:0{}}. Bit {:02}: {}",
+                        "\t\t" "{:0{}}. Bit {:02}: {}",
                         Counter,
                         DigitCount,
                         Bit,
@@ -231,8 +231,8 @@ namespace Operations {
 
         std::print(OutFile,
                    "Apple {} Fat Mach-O File\n"
-                   "\tMagic: {}\n"
-                   "\tArch Count: {}\n",
+                   "\t" "Magic: {}\n"
+                   "\t" "Arch Count: {}\n",
                    Fat.is64Bit() ? "64-Bit" : "32-Bit",
                    Opt.Verbose ?
                     MachO::MagicGetString(Header.Magic).value() :
@@ -794,8 +794,8 @@ namespace Operations {
 
         for (const auto &Mapping : Dsc.mappingInfoList()) {
             std::print(OutFile,
-                       "\tMapping {:0{}}: {}\n"
-                       "\t\t{}{}",
+                       "\t" "Mapping {:0{}}: {}\n"
+                       "\t\t" "{}{}",
                        Index,
                        MappingCountDigitLength,
                        Mapping.initAndMaxProt(),
@@ -809,7 +809,7 @@ namespace Operations {
 
             std::println(OutFile, "");
             std::println(OutFile,
-                         "\t\t{}{}",
+                         "\t\t" "{}{}",
                          DscKey("Address", LongestKeyLength),
                             Utils::Address(Mapping.Address));
 
@@ -821,7 +821,7 @@ namespace Operations {
 
             std::println(OutFile, "");
             std::println(OutFile,
-                         "\t\t{}{}",
+                         "\t\t" "{}{}",
                          DscKey("Size", LongestKeyLength),
                             Utils::ByteSize(Mapping.Size));
 
@@ -841,9 +841,9 @@ namespace Operations {
         if (const auto ListOpt = Dsc.subCacheEntryInfoList()) {
             for (const auto &Info : ListOpt.value()) {
                 std::print(OutFile,
-                           "\tSubCache Entry {:0{}}: {}\n"
-                           "\t\t{}{}\n"
-                           "\t\t{}\"{}\"\n",
+                           "\t" "SubCache Entry {:0{}}: {}\n"
+                           "\t\t" "{}{}\n"
+                           "\t\t" "{}\"{}\"\n",
                            Index,
                            MappingCountDigitLength,
                            Utils::Uuid(Info.Uuid),
@@ -865,8 +865,8 @@ namespace Operations {
 
         for (const auto &Info : ListOpt.value()) {
             std::print(OutFile,
-                       "\tSubCache V1 Entry {:0{}}: {}\n"
-                       "\t\t{}{}\n",
+                       "\t" "SubCache V1 Entry {:0{}}: {}\n"
+                       "\t\t" "{}{}\n",
                        Index,
                        MappingCountDigitLength,
                        Utils::Uuid(Info.Uuid),
@@ -1297,8 +1297,8 @@ namespace Operations {
 
         for (const auto &Mapping : Header.mappingWithSlideInfoList()) {
             std::print(OutFile,
-                       "\tMapping {:0{}}: {}\n"
-                       "\t\t{}{}",
+                       "\t" "Mapping {:0{}}: {}\n"
+                       "\t\t" "{}{}",
                        Index,
                        MappingCountDigitLength,
                        Mapping.initAndMaxProt(),
@@ -1314,7 +1314,7 @@ namespace Operations {
 
             std::println(OutFile, "");
             std::print(OutFile,
-                       "\t\t{}{}",
+                       "\t\t" "{}{}",
                        DscKey("Address", LongestKeyLength),
                         Utils::Address(Mapping.Address));
 
@@ -1326,8 +1326,8 @@ namespace Operations {
 
             std::println(OutFile, "");
             std::print(OutFile,
-                       "\t\t{}{}\n"
-                       "\t\t{}{}",
+                       "\t\t" "{}{}\n"
+                       "\t\t" "{}{}",
                        DscKey("Size", LongestKeyLength),
                         Utils::ByteSize(Mapping.Size),
                        DscKey("Slide-Info File Offset", LongestKeyLength),
@@ -1341,7 +1341,7 @@ namespace Operations {
 
             std::println(OutFile, "");
             std::println(OutFile,
-                         "\t\t{}{}",
+                         "\t\t" "{}{}",
                          DscKey("Slide-Info File Size", LongestKeyLength),
                             Utils::ByteSize(Mapping.SlideInfoFileSize));
 
@@ -1512,8 +1512,8 @@ namespace Operations {
                     DyldSharedCache::ObjcOptimizationHeader>(ObjcOptsRange))
         {
             std::print(OutFile,
-                       "\tVersion: {}\n"
-                       "\tFlags:   {}\n",
+                       "\t" "Version: {}\n"
+                       "\t" "Flags:   {}\n",
                        Header->Version,
                        Header->Flags);
 
@@ -1522,7 +1522,7 @@ namespace Operations {
                 ADT::FlagsBase<uint32_t>(Header->flags()),
                 [OutFile, &Counter](const auto Bit) noexcept {
                     std::println(OutFile,
-                                 "\t\t{}. Bit {}: {}",
+                                 "\t\t" "{}. Bit {}: {}",
                                  Counter + 1,
                                  Bit,
                                  Utils::Boolean(1ull << Bit));
@@ -1530,12 +1530,12 @@ namespace Operations {
                 });
 
             std::print(OutFile,
-                       "\tHeader-Info Read-Only Cache Offset: {}\n"
-                       "\tHeader-Info Read-Write Cache Offset: {}\n"
-                       "\tSelector Hash-Table Cache Offset: {}\n"
-                       "\tClass Hash-Table Cache Offset: {}\n"
-                       "\tProtocol Hash-Table Cache Offset: {}\n"
-                       "\tRelative Method Selector Base Address Offset: {}\n",
+                       "\t" "Header-Info Read-Only Cache Offset: {}\n"
+                       "\t" "Header-Info Read-Write Cache Offset: {}\n"
+                       "\t" "Selector Hash-Table Cache Offset: {}\n"
+                       "\t" "Class Hash-Table Cache Offset: {}\n"
+                       "\t" "Protocol Hash-Table Cache Offset: {}\n"
+                       "\t" "Relative Method Selector Base Address Offset: {}\n",
                        Utils::Address(Header->HeaderInfoReadOnlyCacheOffset),
                        Utils::Address(Header->HeaderInfoReadWriteCacheOffset),
                        Utils::Address(Header->SelectorHashTableCacheOffset),
@@ -1560,9 +1560,9 @@ namespace Operations {
                     DyldSharedCache::DynamicDataHeader>(DynamicDataHeaderRange))
         {
             std::print(OutFile,
-                       "\tMagic:   {}\n"
-                       "\tFsId:    {}\n"
-                       "\tFsObjId: {}\n",
+                       "\t" "Magic:   {}\n"
+                       "\t" "FsId:    {}\n"
+                       "\t" "FsObjId: {}\n",
                        Header->magic(),
                        Header->FsId,
                        Header->FsObjectId);

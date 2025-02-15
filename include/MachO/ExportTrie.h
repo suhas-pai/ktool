@@ -540,9 +540,8 @@ namespace MachO {
             return this->Kind;
         }
 
-        [[nodiscard]]
-        constexpr auto string() const noexcept -> std::string_view {
-            return this->String;
+        [[nodiscard]] constexpr auto string() const noexcept {
+            return std::string_view(this->String);
         }
 
         constexpr auto setKind(const ExportTrieExportKind Kind) noexcept

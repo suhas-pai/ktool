@@ -38,7 +38,12 @@ namespace ADT {
             return Error::InvalidFormat;
         }
 
-        const auto Range = ADT::Range::FromEnd(Offset, OffsetEndOpt.value());
+        const auto RangeOpt = ADT::Range::FromEnd(Offset, OffsetEndOpt.value());
+        if (!RangeOpt.has_value()) {
+            return Error::InvalidFormat;
+        }
+
+        const auto Range = RangeOpt.value();
         const auto Predicate = [Range](const ADT::Range RhsRange) noexcept {
             return Range.overlaps(RhsRange);
         };

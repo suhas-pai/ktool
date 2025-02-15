@@ -62,6 +62,7 @@ namespace Objects {
 
             constexpr Error(const OpenError Kind) noexcept : Kind(Kind) {}
 
+            [[nodiscard]]
             static inline auto invalidAddress(const uint64_t Address) noexcept {
                 auto Result = Error(OpenError::InvalidAddress);
                 Result.InvalidAddress.Address = Address;

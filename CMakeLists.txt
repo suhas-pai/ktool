@@ -28,7 +28,7 @@ target_compile_options(ktool PUBLIC
     -Wstrict-overflow=5 -Wundef -Wnull-dereference -funsigned-char
     -fno-exceptions -Wcast-align -Wfloat-equal -Wredundant-decls
     -Wstrict-overflow=5 -Wundef -Wnull-dereference -funsigned-char -Wformat=2
-    -DBUILD_KERNEL -Wno-address-of-packed-member)
+    -DBUILD_KERNEL -Wno-address-of-packed-member -Wthread-safety)
 
 target_link_options(ktool PUBLIC -stdlib=libc++)
 target_link_options(ktool PUBLIC -fuse-ld=lld)
@@ -45,7 +45,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
                         "-fsanitize=address" "-fsanitize=undefined")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     set_target_properties(ktool PROPERTIES OUTPUT_NAME "ktool_release")
-    target_compile_options(ktool PRIVATE "-O3" "-Wno-unused-parameter" "-Wno-gnu-statement-expression-from-macro-expansion")
+    target_compile_options(ktool PRIVATE "-O3" "-Wno-unused-parameter"
+                           "-Wno-gnu-statement-expression-from-macro-expansion")
     target_link_options(ktool PRIVATE "-O3")
 endif()
 

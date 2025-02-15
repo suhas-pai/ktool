@@ -34,7 +34,6 @@ namespace Utils {
                    const std::string_view Suffix) -> int
     {
         std::print(OutFile, "{}", Prefix);
-
         std::ranges::for_each(
             std::views::iota(0) | std::views::take(Times),
             [OutFile, String]([[maybe_unused]] const auto I) noexcept {

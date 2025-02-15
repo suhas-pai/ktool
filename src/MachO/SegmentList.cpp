@@ -129,11 +129,11 @@ namespace MachO {
         for (const auto &SegInfo : this->List | std::views::filter(Filter)) {
             const uint64_t VmIndex = SegInfo.VmRange.indexForLoc(VmAddr);
             if (!SegInfo.FileRange.hasIndex(VmIndex)) {
-                return std::nullopt;
+                continue;
             }
 
             if (!SegInfo.FileRange.hasEndIndex(VmIndex + Size)) {
-                return std::nullopt;
+                continue;
             }
 
             return SegInfo.FileRange.locForIndex(VmIndex);

@@ -179,10 +179,12 @@ namespace Operations {
             case 0:
                 return;
             case 1:
-                std::println(OutFile, "\t1 Category:");
+                std::println(OutFile, "\t" "1 Category:");
                 break;
             default:
-                std::println(OutFile, "\t{} Categories:", CategoryList.size());
+                std::println(OutFile,
+                             "\t" "{} Categories:",
+                             CategoryList.size());
                 break;
         }
 
@@ -192,7 +194,7 @@ namespace Operations {
 
         for (const auto &Category : CategoryList) {
             std::println(OutFile,
-                         "\t\tObjc-Class Category {:>{}}: {}\"{}\"",
+                         "\t\t" "Objc-Class Category {:>{}}: {}\"{}\"",
                          Index,
                          CategoryListSizeDigitLength,
                          Utils::CustomAddress(Category->address(), Is64Bit),

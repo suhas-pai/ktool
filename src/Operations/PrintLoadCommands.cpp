@@ -64,7 +64,7 @@ namespace Operations {
                 const auto Flags = Segment.flags(IsBigEndian);
 
                 std::print(OutFile,
-                           "\t\"{}\"\t{}\n"
+                           "\t" "\"{}\"\t{}\n"
                            "{}File:          {}\n"
                            "{}Memory:        {}\n"
                            "{}File Size:     {}\n"
@@ -82,12 +82,12 @@ namespace Operations {
                     using FlagsStruct = SegmentCommand::FlagsStruct;
 
                     auto Counter = uint32_t();
-                    for (const auto &Bit : Flags) {
+                    for (const auto Bit : Flags) {
                         const auto Flag =
                             static_cast<FlagsStruct::Kind>(1ull << Bit);
 
                         std::println(OutFile,
-                                     "\t{}{}. Bit {}: {}",
+                                     "\t" "{}{}. Bit {}: {}",
                                      Prefix,
                                      Counter + 1,
                                      Bit,
@@ -124,13 +124,13 @@ namespace Operations {
 
                     if (Verbose) {
                         std::print(OutFile,
-                                   "\t{}{:>{}}. ",
+                                   "\t" "{}{:>{}}. ",
                                    Prefix,
                                    I + 1,
                                    SectionCountDigitCount);
                     } else {
                         std::print(OutFile,
-                                   "\t{}{:>{}}. File: {:<}  Memory: {:<}"
+                                   "\t" "{}{:>{}}. File: {:<}  Memory: {:<}"
                                    "  Align: {:<{}}",
                                    Prefix,
                                    I + 1,
@@ -163,15 +163,15 @@ namespace Operations {
                     if (Verbose) {
                         std::println(OutFile, "");
                         std::print(OutFile,
-                                   "\t\t{}File:              {}\n"
-                                   "\t\t{}Memory:            {}\n"
-                                   "\t\t{}Size:              {}\n"
-                                   "\t\t{}Alignment:         {} ({})\n"
-                                   "\t\t{}Reloc File Offset: {}\n"
-                                   "\t\t{}Reloc Count:       {}\n"
-                                   "\t\t{}Reserved 1:        {}\n"
-                                   "\t\t{}Reserved 2:        {}\n"
-                                   "\t\t{}Flags:             0x{:x}\n",
+                                   "\t\t" "{}File:              {}\n"
+                                   "\t\t" "{}Memory:            {}\n"
+                                   "\t\t" "{}Size:              {}\n"
+                                   "\t\t" "{}Alignment:         {} ({})\n"
+                                   "\t\t" "{}Reloc File Offset: {}\n"
+                                   "\t\t" "{}Reloc Count:       {}\n"
+                                   "\t\t" "{}Reserved 1:        {}\n"
+                                   "\t\t" "{}Reserved 2:        {}\n"
+                                   "\t\t" "{}Flags:             0x{:x}\n",
                                    Prefix, Utils::PrintRange(FileOffset, Size),
                                    Prefix, Utils::PrintRange(Addr, Size),
                                    Prefix, Utils::ByteSize(Size),
@@ -187,7 +187,7 @@ namespace Operations {
                                    Prefix, Flags.value());
 
                             auto FlagNumber = uint32_t();
-                            for (const auto &Bit :
+                            for (const auto Bit :
                                     ADT::FlagsBase(Flags.attributes()))
                             {
                                 const auto Attr =
@@ -197,11 +197,11 @@ namespace Operations {
                                         .value_or("<unknown>");
 
                                 std::println(OutFile,
-                                            "\t\t{}{}. Bit {}: {}",
-                                            Prefix,
-                                            FlagNumber + 1,
-                                            Bit,
-                                            AttrString);
+                                             "\t\t" "{}{}. Bit {}: {}",
+                                             Prefix,
+                                             FlagNumber + 1,
+                                             Bit,
+                                             AttrString);
 
                                 FlagNumber++;
                             }
@@ -225,7 +225,7 @@ namespace Operations {
                 const auto Flags = Segment.flags(IsBigEndian);
 
                 std::print(OutFile,
-                           "\t\"{}\"\t{}\n"
+                           "\t" "\"{}\"\t{}\n"
                            "{}File:          {}\n"
                            "{}Memory:        {}\n"
                            "{}File Size:     {}\n"
@@ -243,12 +243,12 @@ namespace Operations {
                     using FlagsStruct = SegmentCommand64::FlagsStruct;
 
                     auto Counter = uint32_t();
-                    for (const auto &Bit : ADT::FlagsBase(Flags)) {
+                    for (const auto Bit : ADT::FlagsBase(Flags)) {
                         const auto Flag =
                             static_cast<FlagsStruct::Kind>(1ull << Bit);
 
                         std::println(OutFile,
-                                     "\t{}{}. Bit {}: {}",
+                                     "\t" "{}{}. Bit {}: {}",
                                      Prefix,
                                      Counter + 1,
                                      Bit,
@@ -285,13 +285,13 @@ namespace Operations {
 
                     if (Verbose) {
                         std::print(OutFile,
-                                   "\t{}{:>{}}. ",
+                                   "\t" "{}{:>{}}. ",
                                    Prefix,
                                    I + 1,
                                    SectionCountDigitCount);
                     } else {
                         std::print(OutFile,
-                                   "\t{}{:>{}}. File: {:<}  Memory: {:<}  "
+                                   "\t" "{}{:>{}}. File: {:<}  Memory: {:<}  "
                                    "Align: {:>{}}",
                                    Prefix,
                                    I + 1,
@@ -327,15 +327,15 @@ namespace Operations {
 
                         std::println(OutFile, "");
                         std::print(OutFile,
-                                   "\t\t{}File:              {}\n"
-                                   "\t\t{}Memory:            {}\n"
-                                   "\t\t{}Size:              {}\n"
-                                   "\t\t{}Alignment:         {} ({})\n"
-                                   "\t\t{}Reloc File Offset: {}\n"
-                                   "\t\t{}Reloc Count:       {}\n"
-                                   "\t\t{}Reserved 1:        {}\n"
-                                   "\t\t{}Reserved 2:        {}\n"
-                                   "\t\t{}Flags:             0x{:x}\n",
+                                   "\t\t" "{}File:              {}\n"
+                                   "\t\t" "{}Memory:            {}\n"
+                                   "\t\t" "{}Size:              {}\n"
+                                   "\t\t" "{}Alignment:         {} ({})\n"
+                                   "\t\t" "{}Reloc File Offset: {}\n"
+                                   "\t\t" "{}Reloc Count:       {}\n"
+                                   "\t\t" "{}Reserved 1:        {}\n"
+                                   "\t\t" "{}Reserved 2:        {}\n"
+                                   "\t\t" "{}Flags:             0x{:x}\n",
                                    Prefix,
                                     Utils::PrintRange(FileOffset, Size),
                                    Prefix, Utils::PrintRange(Addr, Size),
@@ -352,7 +352,7 @@ namespace Operations {
                                    Prefix, Flags.value());
 
                             auto FlagNumber = uint32_t();
-                            for (const auto &Bit :
+                            for (const auto Bit :
                                     ADT::FlagsBase(Flags.attributes()))
                             {
                                 const auto Attr =
@@ -362,10 +362,10 @@ namespace Operations {
                                         .value_or("<unknown>");
 
                                 std::println(OutFile,
-                                            "\t\t\t{}{}. Bit {}: {}",
-                                            Prefix,
-                                            FlagNumber + 1,
-                                            Bit, AttrString);
+                                             "\t\t\t" "{}{}. Bit {}: {}",
+                                             Prefix,
+                                             FlagNumber + 1,
+                                             Bit, AttrString);
 
                                 FlagNumber++;
                             }
@@ -414,7 +414,7 @@ namespace Operations {
                 const auto &DylibCmd = cast<DylibCommand>(LC, IsBigEndian);
                 const auto NameOpt = DylibCmd.name(IsBigEndian);
 
-                std::print(OutFile, "\t\"{}\"", NameOpt.value_or(Malformed));
+                std::print(OutFile, "\t" "\"{}\"", NameOpt.value_or(Malformed));
                 if (Kind != MachO::LoadCommandKind::IdDylib) {
                     DylibIndex++;
                 }
@@ -447,8 +447,8 @@ namespace Operations {
 
                 const auto UmbrellaOpt = SubFramework.umbrella(IsBigEndian);
                 std::println(OutFile,
-                             "\t\"{}\"",
-                              UmbrellaOpt.value_or(Malformed));
+                             "\t" "\"{}\"",
+                             UmbrellaOpt.value_or(Malformed));
 
                 break;
             }
@@ -457,8 +457,8 @@ namespace Operations {
                 const auto ClientOpt = SubClient.client(IsBigEndian);
 
                 std::println(OutFile,
-                             "\t\"{}\"",
-                              ClientOpt.value_or(Malformed));
+                             "\t" "\"{}\"",
+                             ClientOpt.value_or(Malformed));
 
                 break;
             }
@@ -469,7 +469,7 @@ namespace Operations {
                     SubUmbrella.subUmbrella(IsBigEndian);
 
                 std::println(OutFile,
-                             "\t\"{}\"",
+                             "\t" "\"{}\"",
                              SubUmbrellaOpt.value_or(Malformed));
 
                 break;
@@ -480,8 +480,8 @@ namespace Operations {
 
                 const auto SubLibraryOpt = SubLibrary.subLibrary(IsBigEndian);
                 std::println(OutFile,
-                             "\t\"{}\"",
-                              SubLibraryOpt.value_or(Malformed));
+                             "\t" "\"{}\"",
+                             SubLibraryOpt.value_or(Malformed));
 
                 break;
             }
@@ -490,7 +490,9 @@ namespace Operations {
                     cast<PreboundDylibCommand>(LC, IsBigEndian);
 
                 const auto NameOpt = PreboundDylibCmd.name(IsBigEndian);
-                std::println(OutFile, "\t\"{}\"", NameOpt.value_or(Malformed));
+                std::println(OutFile,
+                             "\t" "\"{}\"",
+                             NameOpt.value_or(Malformed));
 
                 break;
             }
@@ -500,7 +502,9 @@ namespace Operations {
                     cast<DylinkerCommand>(LC, IsBigEndian);
 
                 const auto NameOpt = DylinkerCmd.name(IsBigEndian);
-                std::println(OutFile, "\t\"{}\"", NameOpt.value_or(Malformed));
+                std::println(OutFile,
+                             "\t" "\"{}\"",
+                             NameOpt.value_or(Malformed));
 
                 break;
             }
@@ -707,20 +711,24 @@ namespace Operations {
                     cast<PrebindChecksumCommand>(LC, IsBigEndian);
 
                 const auto Checksum = PrebindChecksumCmd.checksum(IsBigEndian);
-                std::println(OutFile, "\t{}", Checksum);
+                std::println(OutFile, "\t" "{}", Checksum);
 
                 break;
             }
             case LoadCommandKind::Uuid: {
                 const auto UuidCmd = cast<UuidCommand>(LC, IsBigEndian);
-                std::println(OutFile, "\t\"{}\"", Utils::Uuid(UuidCmd.Uuid));
+                std::println(OutFile,
+                             "\t" "\"{}\"",
+                             Utils::Uuid(UuidCmd.Uuid));
                 break;
             }
             case LoadCommandKind::Rpath: {
                 const auto &RpathCmd = cast<RpathCommand>(LC, IsBigEndian);
                 const auto PathOpt = RpathCmd.path(IsBigEndian);
 
-                std::println(OutFile, "\t\"{}\"", PathOpt.value_or(Malformed));
+                std::println(OutFile,
+                             "\t" "\"{}\"",
+                             PathOpt.value_or(Malformed));
                 break;
             }
             case LoadCommandKind::CodeSignature:
@@ -833,7 +841,7 @@ namespace Operations {
                     cast<BuildVersionCommand>(LC, IsBigEndian);
 
                 const auto Platform = BuildVersionCmd.platform(IsBigEndian);
-                const auto FallBack = [Platform = Platform]() noexcept {
+                const auto FallBack = [Platform]() noexcept {
                     return std::format("<unrecognized, value: {}>)",
                                        static_cast<uint32_t>(Platform));
                 };
@@ -872,7 +880,7 @@ namespace Operations {
                     const auto Version = Tool.version(IsBigEndian);
                     const auto ToolValue = Tool.tool(IsBigEndian);
 
-                    const auto FallBack = [ToolValue = ToolValue]() noexcept {
+                    const auto FallBack = [ToolValue]() noexcept {
                         return std::format("<unrecognized, value: {}>)",
                                            static_cast<uint32_t>(ToolValue));
                     };
@@ -1053,7 +1061,7 @@ namespace Operations {
 
         for (const auto &LoadCommand : MachO.loadCommandsMap()) {
             const auto Kind = LoadCommand.kind(IsBigEndian);
-            const auto FallBack = [Kind = Kind]() noexcept {
+            const auto FallBack = [Kind]() noexcept {
                 return std::format("<unrecognized, value: {}>)",
                                    static_cast<uint32_t>(Kind));
             };
@@ -1072,7 +1080,7 @@ namespace Operations {
             } else {
                 std::print(OutFile,
                            "LC {:>{}}: <unknown> (Value: {})\n"
-                           "\tCmdSize: {}\n",
+                           "\t" "CmdSize: {}\n",
                            Counter,
                            NcmdsDigitCount,
                            static_cast<uint32_t>(Kind),

@@ -111,7 +111,7 @@ namespace Objects {
 
         auto FileSize = uint64_t();
         if (Header->is64Bit()) {
-            for (const auto &Segment :
+            for (const auto Segment :
                     LoadCommandsMap |
                     ::MachO::LCMapFilterType<
                         ::MachO::SegmentCommand64>(IsBigEndian))
@@ -140,7 +140,7 @@ namespace Objects {
                 FileSize = NewFileSize.value();
             }
         } else {
-            for (const auto &Segment :
+            for (const auto Segment :
                     LoadCommandsMap |
                     ::MachO::LCMapFilterType<
                         ::MachO::SegmentCommand>(IsBigEndian))
